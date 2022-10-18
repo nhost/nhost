@@ -63,15 +63,18 @@ const readFile = (view: string, locals: Record<string, string>): string => {
   try {
     return fs.readFileSync(fullPath).toString();
   } catch (error) {
-    if (locale !== ENV.AUTH_LOCALE_DEFAULT)
+    if (locale !== ENV.AUTH_LOCALE_DEFAULT) {
+      logger.debug(
+        `No template found at ${fullPath}, falling back to default locale ${ENV.AUTH_LOCALE_DEFAULT}`
+      );
       return readFile(view, { ...locals, locale: ENV.AUTH_LOCALE_DEFAULT });
-    else {
-      logger.warn(`No template found at ${fullPath}`);
+    } else {
       throw Error();
     }
   }
 };
 
+/** @deprecated */
 const readRemoteTemplate = async (
   view: string,
   locals: Record<string, string>

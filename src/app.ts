@@ -7,8 +7,8 @@ import passport from 'passport';
 import router from './routes';
 import { serverErrors } from './errors';
 import { authMiddleware } from './middleware/auth';
-import { pino } from './logger';
 import { addOpenApiRoute } from './openapi';
+import { uncaughtErrorLogger, httpLogger } from './logger';
 
 const app = express();
 
@@ -17,16 +17,14 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 addOpenApiRoute(app);
+app.use(httpLogger);
 
-app.use(pino);
-app.use(helmet());
-app.use(json());
-app.use(cors());
-
+app.use(helmet(), json(), cors());
 app.use(authMiddleware);
 
 app.use(passport.initialize());
 
 app.use(router);
-app.use(serverErrors);
+
+app.use(uncaughtErrorLogger, serverErrors);
 export { app };

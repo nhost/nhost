@@ -1,7 +1,6 @@
-import { Response, Request } from 'express';
+import { Response, Request, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { logger } from './logger';
 import { generateRedirectUrl } from './utils';
 
 /**
@@ -11,10 +10,11 @@ import { generateRedirectUrl } from './utils';
 export async function serverErrors(
   error: Error,
   _req: Request,
-  res: Response
+  res: Response,
+  // * See: https://stackoverflow.com/a/61464426
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _next: NextFunction
 ): Promise<unknown> {
-  logger.error(error.message);
-
   if (process.env.NODE_ENV === 'production') {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
   } else {
