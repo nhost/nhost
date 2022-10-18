@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.4
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+
 ## 0.0.3
 
 ### Patch Changes
