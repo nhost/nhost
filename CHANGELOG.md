@@ -1,4 +1,19 @@
-# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
+
+
+# [0.15.0](https://github.com/nhost/hasura-auth/compare/v0.14.0...v0.15.0) (2022-10-18)
+
+
+### Bug Fixes
+
+* 🐛 capture unhandled errors ([c1f82c4](https://github.com/nhost/hasura-auth/commit/c1f82c45034aa396b9626a57afde89bd54b04564))
+* 🐛 remove wrong email-template warning ([8972912](https://github.com/nhost/hasura-auth/commit/89729120343cef6e55a87483cb66a98dcd85e144)), closes [#168](https://github.com/nhost/hasura-auth/issues/168)
+* use the metadata column in custom claims ([179d96a](https://github.com/nhost/hasura-auth/commit/179d96ad933b3fb849c13f38af8efd3cd02dfca9))
+
+
+### Features
+
+* 🎸 Improve logging ([4bccab8](https://github.com/nhost/hasura-auth/commit/4bccab8794978ee47f60689c1a01d2f5bde767cf))
+* 🎸 improve metadata application and startup time ([728f35b](https://github.com/nhost/hasura-auth/commit/728f35bc6b8dea265aac22ddd3b583ec328ba917))# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
 
 ### Features
 
