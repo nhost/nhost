@@ -73,10 +73,14 @@ describe('email-password', () => {
       AUTH_PASSWORD_HIBP_ENABLED: true,
     });
 
-    await request
+    const result = await request
       .post('/signup/email-password')
       .send({ email, password })
       .expect(StatusCodes.BAD_REQUEST);
+
+    expect(result.body.message).toEqual(
+      'Password is too weak (it has been pnwed)'
+    );
   });
 
   it('should succeed to sign up with different emails', async () => {
