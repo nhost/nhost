@@ -66,6 +66,10 @@ auth:
 
 Your custom claim will be automatically prefixed with `x-hasura-`, therefore, the example above results in a custom permission variable named `x-hasura-organisation-id`.
 
+### Limitation on JSON/JSONB columns
+
+JSON columns cannot be used in custom claims, with the exception of the `users.metadata` column.
+
 ## Roles
 
 Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permisisons**.
