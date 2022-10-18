@@ -1,5 +1,12 @@
 # @nhost/stripe-graphql-js
 
+## 0.0.5
+
+### Patch Changes
+
+- 3c70860a: Add description for all Stripe GraphQL Fields
+  Thanks [@piromsurang](https://github.com/piromsurang) for the contribution
+
 ## 0.0.4
 
 ### Patch Changes
