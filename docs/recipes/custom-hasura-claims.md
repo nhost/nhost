@@ -50,17 +50,18 @@ user:{
 ```
 
 This will not work:
+
 ```
 // ❌ WRONG, the path `user.profile.organisation[].id` will not work
 AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"user.profile.organisation[].id"}
 ```
 
 This will
+
 ```
 // ✅ CORRECT, the path `profile.organisation[].id` will work
 AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation[].id"}
 ```
-
 
 It will then use the same expressions e.g. `profile.contributesTo[].project.id` to evaluate the result with [JSONata](https://jsonata.org/), and possibly transform arrays into Hasura-readable, PostgreSQL arrays.Finally, it adds the custom claims to the JWT in the `https://hasura.io/jwt/claims` namespace:
 
@@ -80,3 +81,36 @@ It will then use the same expressions e.g. `profile.contributesTo[].project.id` 
   "exp": 1643041089
 }
 ```
+
+## Limitations on JSON columns
+
+JSON columns are currently a limitation of custom claims.
+For instance, if your define a claim with the path `user.profile.json_column.my_field`, it will generate under the hood the following query:
+
+```graphql
+{
+  user(id: "user-uuid") {
+    profile {
+      json_column {
+        my_field
+      }
+    }
+  }
+}
+```
+
+This is incorrect as Hasura does not support browsing into JSON columns (because they are not typed with a schema). Hasura only expects the following query:
+
+```graphql
+{
+  user(id: "user-uuid") {
+    profile {
+      json_column
+    }
+  }
+}
+```
+
+The detection of JSON columns requires a lot more efforts as we would need to build the GraphQL query not only from the JMESPath/JSONata expression, but also from the GraphQL schema.
+
+We however hard-coded a check on the `users.metadata` JSON column, hence a claim using the path `user.metadata.my_field` will work.
