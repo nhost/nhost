@@ -134,7 +134,10 @@ describe('custom JWT claims', () => {
   });
 
   // * Insert a user with a profile and optional projects, and return their decoded JWT
-  const insertUserProfile = async (projs?: string[]) => {
+  const insertUserProfile = async (
+    projs?: string[],
+    metaToken = faker.datatype.uuid()
+  ) => {
     const email = faker.internet.email();
     const password = faker.internet.password();
 
@@ -145,6 +148,11 @@ describe('custom JWT claims', () => {
     } = await request.post('/signup/email-password').send({
       email,
       password,
+      options: {
+        metadata: {
+          token: metaToken,
+        },
+      },
     });
     let query = `INSERT INTO public.profiles(id) VALUES('${user.id}');`;
     if (projs && projs.length > 0) {
@@ -210,6 +218,18 @@ describe('custom JWT claims', () => {
 
     expect(jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']).toEqual(
       escapeValueToPg(projects)
+    );
+  });
+
+  it('should add a custom claim from a field of the metadata column', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"token":"metadata.token"}',
+    });
+    const token = faker.datatype.uuid();
+    const jwt = await insertUserProfile([], token);
+
+    expect(jwt['https://hasura.io/jwt/claims']['x-hasura-token']).toEqual(
+      token
     );
   });
 
