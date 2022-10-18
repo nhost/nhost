@@ -16,7 +16,7 @@ builder.objectType('StripeCharge', {
     calculatedStatementDescriptor: t.exposeString('calculated_statement_descriptor', {
       nullable: true
     }),
-    billing_details: t.expose('billing_details', { type: 'JSON', nullable: true }),
+    billingDetails: t.expose('billing_details', { type: 'JSON', nullable: true }),
     captured: t.exposeBoolean('captured'),
     created: t.exposeInt('created', {
       nullable: true
