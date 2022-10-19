@@ -324,74 +324,6 @@ importers:
       ws: 8.9.0
       xstate: 4.33.6
 
-<<<<<<< HEAD
-  examples/react-apollo-crm:
-    specifiers:
-      '@apollo/client': ^3.6.9
-      '@graphql-codegen/cli': ^2.12.0
-      '@graphql-codegen/introspection': ^2.2.1
-      '@graphql-codegen/typescript': ^2.7.3
-      '@graphql-codegen/typescript-operations': ^2.5.3
-      '@graphql-codegen/typescript-react-apollo': ^3.3.3
-      '@headlessui/react': ^1.6.6
-      '@heroicons/react': ^1.0.6
-      '@nhost/react': '*'
-      '@nhost/react-apollo': '*'
-      '@tailwindcss/forms': ^0.5.3
-      '@types/express': ^4.17.13
-      '@types/jest': ^26.0.24
-      '@types/node': ^12.20.55
-      '@types/react': ^17.0.49
-      '@types/react-dom': ^17.0.17
-      '@vitejs/plugin-react': ^1.3.2
-      autoprefixer: ^10.4.8
-      classnames: ^2.3.1
-      date-fns: ^2.29.2
-      express: ^4.18.1
-      graphql: 15.7.2
-      graphql-tag: ^2.12.6
-      postcss: ^8.4.16
-      pretty-bytes: ^5.6.0
-      react: ^17.0.2
-      react-dom: ^17.0.2
-      react-router-dom: ^6.3.0
-      tailwindcss: ^3.1.8
-      typescript: ^4.8.2
-      vite: ^2.9.15
-    dependencies:
-      '@apollo/client': 3.6.9_yaujofatqqw66zcfkmual2ppy4
-      '@headlessui/react': 1.7.3_sfoxds7t5ydpegc3knd667wn6m
-      '@heroicons/react': 1.0.6_react@17.0.2
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
-      '@tailwindcss/forms': 0.5.3_tailwindcss@3.1.8
-      classnames: 2.3.1
-      date-fns: 2.29.3
-      graphql: 15.7.2
-      graphql-tag: 2.12.6_graphql@15.7.2
-      pretty-bytes: 5.6.0
-      react: 17.0.2
-      react-dom: 17.0.2_react@17.0.2
-      react-router-dom: 6.3.0_sfoxds7t5ydpegc3knd667wn6m
-      tailwindcss: 3.1.8_postcss@8.4.17
-    devDependencies:
-      '@graphql-codegen/cli': 2.13.6_wytw6bwfy5zyq75cqw6zdpb7dy
-      '@graphql-codegen/introspection': 2.2.1_graphql@15.7.2
-      '@graphql-codegen/typescript': 2.7.4_graphql@15.7.2
-      '@graphql-codegen/typescript-operations': 2.5.4_graphql@15.7.2
-      '@graphql-codegen/typescript-react-apollo': 3.3.4_uiakrmibzyjojycqgq5qw35buq
-      '@types/express': 4.17.13
-      '@types/jest': 26.0.24
-      '@types/node': 12.20.55
-      '@types/react': 17.0.50
-      '@types/react-dom': 17.0.17
-      '@vitejs/plugin-react': 1.3.2
-      autoprefixer: 10.4.12_postcss@8.4.17
-      express: 4.18.2
-      postcss: 8.4.17
-      typescript: 4.8.3
-      vite: 2.9.15
-
   examples/react-gqty:
     specifiers:
       '@gqty/cli': 3.3.0-alpha-d8cdbf6.0
@@ -421,8 +353,6 @@ importers:
       typescript: 4.8.3
       vite: 3.1.7
 
-=======
->>>>>>> main
   examples/vue-apollo:
     specifiers:
       '@apollo/client': ^3.6.9
@@ -8991,7 +8921,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: true
@@ -8999,7 +8929,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9007,7 +8937,7 @@ packages:
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -11299,6 +11229,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /debug/4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -13772,7 +13703,7 @@ packages:
       - encoding
     dev: false
 
-  /follow-redirects/1.14.9_debug@4.3.2:
+  /follow-redirects/1.14.9:
     resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
     engines: {node: '>=4.0'}
     peerDependencies:
@@ -13780,8 +13711,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dependencies:
-      debug: 4.3.2
 
   /foreach/2.0.6:
     resolution: {integrity: sha512-k6GAGDyqLe9JaebCsFCoudPPWfihKu8pylYXRlqP1J7ms39iPoTtk2fviNglIeQEwdh0bQeKJ01ZPyuyQvKzwg==}
@@ -14755,7 +14684,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
