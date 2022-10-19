@@ -1,32 +1,37 @@
 import React, { Suspense } from 'react'
 
-import { useQuery } from './gqty'
+import { NhostReactProvider } from '@nhost/react'
+
+import { SignedIn, SignedOut } from './components/controlls'
+import { ListPrivatePosts } from './components/ListPrivatePosts'
+import { ListPublicPosts } from './components/ListPublicPosts'
+import { SignIn } from './components/SignIn'
+import { nhost } from './utils/nhost'
 
 import './App.css'
-
-function Example() {
-  const query = useQuery({
-    suspense: true
-  })
-
-  return (
-    <div>
-      <h1>Posts</h1>
-      <div>
-        {query.posts().map((post) => {
-          return <div key={post.id}>{post.title}</div>
-        })}
-      </div>
-    </div>
-  )
-}
 
 function App() {
   return (
     <div className="App">
-      <Suspense fallback="Loading...">
-        <Example />
-      </Suspense>
+      <NhostReactProvider nhost={nhost}>
+        <SignedIn>
+          <Suspense fallback="Loading...">
+            <ListPrivatePosts />
+          </Suspense>
+          <div>
+            <button onClick={() => nhost.auth.signOut()}>Sign Out</button>
+          </div>
+        </SignedIn>
+        <SignedOut>
+          <Suspense fallback="Loading...">
+            <ListPublicPosts />
+          </Suspense>
+          <hr />
+          <div>
+            <SignIn />
+          </div>
+        </SignedOut>
+      </NhostReactProvider>
     </div>
   )
 }
