@@ -10,8 +10,8 @@ import { getStorageUrlFromEnv, urlFromParams } from '../utils/helpers'
  *
  */
 export function getStorageClient(adminSecret: string | undefined, urlParams: any) {
-  const storageUrl = urlFromParams(urlParams, 'storage')
-  const storageUrlFromEnv = getStorageUrlFromEnv()
+  // use process.env.STORAGE_URL if set
+  const storageUrl = getStorageUrlFromEnv() ?? urlFromParams(urlParams, 'storage')
 
-  return getHasuraStorageClient(storageUrlFromEnv ? storageUrlFromEnv : storageUrl, adminSecret)
+  return getHasuraStorageClient(storageUrl, adminSecret)
 }

@@ -23,13 +23,11 @@ export interface NhostGraphqlConstructorParams {
  * @returns
  */
 export function getGraphqlClient(adminSecret: string | undefined, urlParams: any) {
-  // default to the arguments passed directly
-  const graphqlUrl = urlFromParams(urlParams, 'graphql')
-  const graphqlUrlFromEnv = getGraphqlUrlFromEnv()
+  // use process.env.GRAPHQL_URL if set
+  const graphqlUrl = getGraphqlUrlFromEnv() ?? urlFromParams(urlParams, 'graphql')
 
-  // if process.env.GRAPHQL_URL is set, use that instead
   return new NhostGraphqlClient({
-    url: graphqlUrlFromEnv ? graphqlUrlFromEnv : graphqlUrl,
+    url: graphqlUrl,
     adminSecret
   })
 }

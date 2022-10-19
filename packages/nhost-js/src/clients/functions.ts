@@ -21,13 +21,11 @@ export interface NhostFunctionsConstructorParams {
  * @returns
  */
 export function getFunctionsClient(adminSecret: string | undefined, urlParams: any) {
-  // default to the arguments passed directly
-  const functionsUrl = urlFromParams(urlParams, 'functions')
-  const functionsUrlFromEnv = getFunctionsUrlFromEnv()
+  // use process.env.FUNCTIONS_URL if set
+  const functionsUrl = getFunctionsUrlFromEnv() ?? urlFromParams(urlParams, 'functions')
 
-  // if process.env.FUNCTIONS is set, use that instead
   return new NhostFunctionsClient({
-    url: functionsUrlFromEnv ? functionsUrlFromEnv : functionsUrl,
+    url: functionsUrl,
     adminSecret
   })
 }

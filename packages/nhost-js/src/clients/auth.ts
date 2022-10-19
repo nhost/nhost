@@ -27,11 +27,11 @@ export function getAuthClient(
   start: any,
   urlParams: any
 ) {
-  const authUrl = urlFromParams(urlParams, 'auth')
-  const authUrlFromEnv = getAuthUrlFromEnv()
+  // use process.env.AUTH_URL if set
+  const authUrl = getAuthUrlFromEnv() ?? urlFromParams(urlParams, 'auth')
 
   return getHasuraAuthClient(
-    authUrlFromEnv ? authUrlFromEnv : authUrl,
+    authUrl,
     refreshIntervalTime,
     clientStorageGetter,
     clientStorageSetter,
