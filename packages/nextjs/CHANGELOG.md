@@ -1,5 +1,14 @@
 # @nhost/nextjs
 
+## 1.8.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+  - @nhost/react@0.14.1
+  - @nhost/nhost-js@1.5.2
+
 ## 1.8.0
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 1.6.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+
 ## 1.6.0
 
 ### Minor Changes
