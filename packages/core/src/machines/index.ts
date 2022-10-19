@@ -24,7 +24,6 @@ import {
   INVALID_PHONE_NUMBER_ERROR,
   NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
-  NO_REFRESH_TOKEN,
   VALIDATION_ERROR_CODE
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
@@ -133,10 +132,16 @@ export const createAuthMachine = ({
               invoke: {
                 id: 'importRefreshToken',
                 src: 'importRefreshToken',
-                onDone: {
-                  actions: ['saveSession', 'reportTokenChanged'],
-                  target: 'signedIn'
-                },
+                onDone: [
+                  {
+                    cond: 'hasSession',
+                    actions: ['saveSession', 'reportTokenChanged'],
+                    target: 'signedIn'
+                  },
+                  {
+                    target: 'signedOut'
+                  }
+                ],
                 onError: [
                   {
                     cond: 'shouldRetryImportToken',
@@ -891,13 +896,12 @@ export const createAuthMachine = ({
               return { session, error: null }
             } catch (exception) {
               error = (exception as { error: ErrorPayload }).error
-              return Promise.reject<NhostSessionResponse>({ error })
             }
           }
-          if (!error) {
-            error = NO_REFRESH_TOKEN
+          if (error) {
+            return Promise.reject<NhostSessionResponse>({ error, session: null })
           }
-          return Promise.reject<NhostSessionResponse>({ error })
+          return { error: null, session: null }
         }
       },
       delays: {

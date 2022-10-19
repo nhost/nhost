@@ -1,13 +1,26 @@
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { useAuthenticationStatus } from '@nhost/react'
-import { useUserIsAnonymous } from '@nhost/react'
+import { useAuthenticationStatus, useUserIsAnonymous } from '@nhost/react'
+
+const LoadingComponent: React.FC<React.PropsWithChildren<{ connectionAttempts: number }>> = ({
+  connectionAttempts
+}) => {
+  if (connectionAttempts > 0) {
+    return (
+      <div>
+        Could not sign in automatically. Retrying to get user information
+        {Array(connectionAttempts).join('.')}
+      </div>
+    )
+  }
+  return <div>Loading...</div>
+}
 
 export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
-  const { isLoading, isAuthenticated } = useAuthenticationStatus()
+  const { isLoading, isAuthenticated, connectionAttempts } = useAuthenticationStatus()
   const location = useLocation()
   if (isLoading) {
-    return <div>Loading...</div>
+    return <LoadingComponent connectionAttempts={connectionAttempts} />
   }
 
   if (!isAuthenticated) {
@@ -23,11 +36,11 @@ export const PublicGate: React.FC<
     anonymous?: boolean
   }>
 > = ({ anonymous, children }) => {
-  const { isLoading, isAuthenticated } = useAuthenticationStatus()
+  const { isLoading, isAuthenticated, connectionAttempts } = useAuthenticationStatus()
   const isAnonymous = useUserIsAnonymous()
   const location = useLocation()
   if (isLoading) {
-    return <div>Loading...</div>
+    return <LoadingComponent connectionAttempts={connectionAttempts} />
   }
 
   if (isAuthenticated && !anonymous && isAnonymous) {

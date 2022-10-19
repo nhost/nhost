@@ -1,5 +1,28 @@
 # @nhost/core
 
+## 0.9.1
+
+### Patch Changes
+
+- 6b9d163e: Do not create an authentication error when starting with no refresh token
+
+## 0.9.0
+
+### Minor Changes
+
+- 3ced63ab: Retry the token import when starting offline
+  When using auto-sign-in and the user client stored a refresh token, it now retries to get an access token from the server until the server can be reached and did not return an internal error.
+  The five first attempts occur every second, then occur every five seconds.
+
+  When offline, it means `nhost.auth.isAuthenticatedAsync()` won't resolve until the user is online. In that case, use a conjunction of `nhost.auth.getAuthenticationStatus()` and `nhost.auth.onAuthStateChanged`.
+
+### Patch Changes
+
+- 13c41fe6: Correct `nhost.auth.signIn` to allow anonymous sign-in
+  The typings were not allowing empty or undefined parameters to let users sign in anonymously. `nhost.auth.signIn()` now triggers an anonymous sign-in.
+- ba785da1: remove `predictableActionArguments` warning
+- ba785da1: Bump dependencies versions
+
 ## 0.8.0
 
 ### Minor Changes
