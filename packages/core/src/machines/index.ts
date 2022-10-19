@@ -901,7 +901,7 @@ export const createAuthMachine = ({
           if (error) {
             return Promise.reject<NhostSessionResponse>({ error, session: null })
           }
-          return Promise.resolve<NhostSessionResponse>({ error: null, session: null })
+          return { error: null, session: null }
         }
       },
       delays: {
