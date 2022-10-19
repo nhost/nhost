@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.9.1
+
+### Patch Changes
+
+- 6b9d163e: Do not create an authentication error when starting with no refresh token
+
 ## 0.9.0
 
 ### Minor Changes
