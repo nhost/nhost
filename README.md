@@ -39,7 +39,7 @@
 - [**Anonymous**](./docs/workflows/anonymous-users.md) - sign in users without any method. Anonymous users can be
   converted to _regular_ users.
 - [**OAuth providers**](./docs/workflows/oauth-providers.md): Facebook, Google, GitHub, Twitter, Apple, Azure AD, LinkedIn, Windows Live, Spotify, Strava, GitLab, BitBucket, Discord, WorkOS.
-- [**Security keys with WebAuthn**](./docs/workflows/webauthn.md.md)
+- [**Security keys with WebAuthn**](./docs/workflows/webauthn.md)
 
 ## Deploy Hasura Auth in Seconds
 
