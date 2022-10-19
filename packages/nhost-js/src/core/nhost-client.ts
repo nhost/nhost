@@ -1,10 +1,12 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
-import { NhostFunctionsClient } from '../clients/functions'
-import { NhostGraphqlClient } from '../clients/graphql'
-import { urlFromParams } from '../utils/helpers'
+import { getAuthClient } from '../clients/auth'
+import { getFunctionsClient, NhostFunctionsClient } from '../clients/functions'
+import { getGraphqlClient, NhostGraphqlClient } from '../clients/graphql'
+import { getStorageClient } from '../clients/storage'
 import { NhostClientConstructorParams } from '../utils/types'
+
 export class NhostClient {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
@@ -36,8 +38,8 @@ export class NhostClient {
     start = true,
     ...urlParams
   }: NhostClientConstructorParams) {
-    this.auth = new HasuraAuthClient({
-      url: urlFromParams(urlParams, 'auth'),
+    // * Set clients for all services
+    this.auth = getAuthClient(
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -45,23 +47,12 @@ export class NhostClient {
       clientStorageType,
       autoRefreshToken,
       autoSignIn,
-      start
-    })
-
-    this.storage = new HasuraStorageClient({
-      url: urlFromParams(urlParams, 'storage'),
-      adminSecret
-    })
-
-    this.functions = new NhostFunctionsClient({
-      url: urlFromParams(urlParams, 'functions'),
-      adminSecret
-    })
-
-    this.graphql = new NhostGraphqlClient({
-      url: urlFromParams(urlParams, 'graphql'),
-      adminSecret
-    })
+      start,
+      urlParams
+    )
+    this.storage = getStorageClient(adminSecret, urlParams)
+    this.functions = getFunctionsClient(adminSecret, urlParams)
+    this.graphql = getGraphqlClient(adminSecret, urlParams)
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())

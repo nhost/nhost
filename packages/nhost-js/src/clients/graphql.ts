@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
+import { getGraphqlUrlFromEnv, urlFromParams } from '../utils/helpers'
 import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
@@ -12,6 +13,25 @@ export interface NhostGraphqlConstructorParams {
    * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
+}
+
+/**
+ * Get Nhost Graphql Client
+ *
+ * @param adminSecret
+ * @param urlParams
+ * @returns
+ */
+export function getGraphqlClient(adminSecret: string | undefined, urlParams: any) {
+  // default to the arguments passed directly
+  const graphqlUrl = urlFromParams(urlParams, 'graphql')
+  const graphqlUrlFromEnv = getGraphqlUrlFromEnv()
+
+  // if process.env.GRAPHQL_URL is set, use that instead
+  return new NhostGraphqlClient({
+    url: graphqlUrlFromEnv ? graphqlUrlFromEnv : graphqlUrl,
+    adminSecret
+  })
 }
 
 /**

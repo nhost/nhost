@@ -1,5 +1,6 @@
 import FormData from 'form-data'
 
+import { HasuraStorageApi } from './hasura-storage-api'
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -11,7 +12,16 @@ import {
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
-import { HasuraStorageApi } from './hasura-storage-api'
+
+/**
+ * Get Hasura Storage Client
+ * @param url
+ * @param adminSecret
+ * @returns
+ */
+export function getHasuraStorageClient(url: string, adminSecret?: string) {
+  return new HasuraStorageClient({ url, adminSecret })
+}
 
 interface NhostStorageConstructorParams {
   /**

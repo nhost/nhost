@@ -49,3 +49,67 @@ export function urlFromParams(
 
   return `https://${subdomain}.${service}.${region}.nhost.run/v1`
 }
+
+/**
+ *
+ * @returns whether the code is running in a browser
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined'
+}
+
+/**
+ *
+ * @returns whether the code is running in a Node.js environment
+ */
+function environmentIsAvailable() {
+  return typeof process !== 'undefined' && process.env
+}
+
+/**
+ *
+ * @returns process.env.AUTH_URL if set, null otherwise
+ */
+export function getAuthUrlFromEnv(): string | null {
+  if (!isBrowser() && environmentIsAvailable()) {
+    return process.env.AUTH_URL ? process.env.AUTH_URL : null
+  }
+
+  return null
+}
+
+/**
+ *
+ * @returns process.env.STORAGE_URL if set, null otherwise
+ */
+export function getStorageUrlFromEnv(): string | null {
+  if (!isBrowser() && environmentIsAvailable()) {
+    return process.env.STORAGE_URL ? process.env.STORAGE_URL : null
+  }
+
+  return null
+}
+
+/**
+ *
+ * @returns process.env.FUNCTIONS_URL if set, null otherwise
+ */
+export function getFunctionsUrlFromEnv(): string | null {
+  if (!isBrowser() && environmentIsAvailable()) {
+    return process.env.FUNCTIONS_URL ? process.env.FUNCTIONS_URL : null
+  }
+
+  return null
+}
+
+/**
+ *
+ * @returns process.env.GRAPHQL_URL if set, null otherwise
+ */
+export function getGraphqlUrlFromEnv(): string | null {
+  if (!isBrowser() && environmentIsAvailable()) {
+    return process.env.GRAPHQL_URL ? process.env.GRAPHQL_URL : null
+  }
+
+  return null
+}

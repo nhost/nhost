@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 
+import { getFunctionsUrlFromEnv, urlFromParams } from '../utils/helpers'
 import { FunctionCallResponse } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
   /**
@@ -10,6 +11,25 @@ export interface NhostFunctionsConstructorParams {
    * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
+}
+
+/**
+ * Get Nhost Functions Client
+ *
+ * @param adminSecret
+ * @param urlParams
+ * @returns
+ */
+export function getFunctionsClient(adminSecret: string | undefined, urlParams: any) {
+  // default to the arguments passed directly
+  const functionsUrl = urlFromParams(urlParams, 'functions')
+  const functionsUrlFromEnv = getFunctionsUrlFromEnv()
+
+  // if process.env.FUNCTIONS is set, use that instead
+  return new NhostFunctionsClient({
+    url: functionsUrlFromEnv ? functionsUrlFromEnv : functionsUrl,
+    adminSecret
+  })
 }
 
 /**
