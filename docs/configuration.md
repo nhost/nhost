@@ -19,7 +19,7 @@ AUTH_SMTP_PASS=password
 AUTH_SMTP_SENDER=hasura-auth@example.com
 ```
 
-See the [environment variables](environment-variables) for additional information about how to connnect to an SMTP server.
+See the [environment variables](./environment-variables.md) for additional information about how to connect to an SMTP server.
 
 ### Email templates
 
