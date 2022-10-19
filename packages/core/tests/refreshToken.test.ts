@@ -21,6 +21,37 @@ import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 
+describe(`Token refresh behaviour on first start`, () => {
+  let authMachine: AuthMachine
+  let authService: InterpreterFrom<AuthMachine>
+
+  beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' })
+    authMachine = createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      refreshIntervalTime: 1,
+      autoSignIn: true
+    })
+    authService = interpret(authMachine)
+  })
+
+  afterAll(() => server.close())
+
+  afterEach(() => {
+    server.resetHandlers()
+    authService.stop()
+  })
+
+  test('should start with the right state when no refresh token is given', async () => {
+    authService.start()
+    const state = await waitFor(authService, (state) =>
+      state.matches({ authentication: { signedOut: 'noErrors' } })
+    )
+    expect(state.context.errors).toEqual({})
+  })
+})
+
 describe(`Time based token refresh`, () => {
   const initialToken = faker.datatype.uuid()
   const initialExpiration = faker.date.future()
