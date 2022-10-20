@@ -9,11 +9,7 @@ builder.objectType('Stripe', {
   fields: (t) => ({
     connectedAccounts: t.field({
       type: 'StripeConnectedAccounts',
-      resolve: async (_parent, _, context) => {
-        const { isAdmin } = context
-
-        if (!isAdmin) throw new GraphQLYogaError('Not allowed')
-
+      resolve: async () => {
         const connectedAccounts = await stripe.accounts.list()
 
         return connectedAccounts
@@ -26,11 +22,7 @@ builder.objectType('Stripe', {
           required: true
         })
       },
-      resolve: async (_parent, { id }, context) => {
-        const { isAdmin } = context
-
-        if (!isAdmin) throw new GraphQLYogaError('Not allowed')
-
+      resolve: async (_parent, { id }) => {
         const connectedAccount = await stripe.accounts.retrieve(id)
 
         return connectedAccount
