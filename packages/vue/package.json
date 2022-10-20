@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@nhost/core": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@vueuse/core": "^8.9.4",
     "@xstate/vue": "^1.0.0",
