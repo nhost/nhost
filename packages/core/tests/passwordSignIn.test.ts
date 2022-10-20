@@ -89,7 +89,6 @@ test(`should fail if server returns an error`, async () => {
 })
 
 test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
-  server.use(authTokenNetworkErrorHandler)
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
@@ -102,11 +101,9 @@ test(`should retry token refresh if refresh endpoint is unreachable`, async () =
     })
   )
 
-  const state = await waitFor(authService, (state) =>
-    state.matches({
-      authentication: { signedIn: { refreshTimer: { running: 'pending' } } }
-    })
-  )
+  server.use(authTokenNetworkErrorHandler)
+
+  const state = await waitFor(authService, (state) => state.context.refreshTimer.attempts > 0)
 
   expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
 })
