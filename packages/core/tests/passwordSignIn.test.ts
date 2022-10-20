@@ -88,8 +88,8 @@ test(`should fail if server returns an error`, async () => {
   `)
 })
 
-// TODO this test is incorrect. Fix it in https://github.com/nhost/nhost/pull/1022
-test.skip(`should retry token refresh if refresh endpoint is unreachable`, async () => {
+test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
+  server.use(authTokenNetworkErrorHandler)
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
