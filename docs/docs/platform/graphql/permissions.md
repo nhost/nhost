@@ -66,6 +66,24 @@ auth:
 
 Your custom claim will be automatically prefixed with `x-hasura-`, therefore, the example above results in a custom permission variable named `x-hasura-organisation-id`.
 
+:::caution
+
+The custom claim path should **not** start with `user` when being defined in the `config.yaml` file.
+
+✅ Correct:
+
+```
+custom_claims: '{"organisation-id":"profile.organisation.id"}'
+```
+
+🛑 Incorrect:
+
+```
+custom_claims: '{"organisation-id":"user.profile.organisation.id"}'
+```
+
+:::
+
 ### Limitation on JSON/JSONB columns
 
 JSON columns cannot be used in custom claims, with the exception of the `users.metadata` column.
