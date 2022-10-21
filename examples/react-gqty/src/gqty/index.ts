@@ -36,7 +36,6 @@ const queryFetcher: QueryFetcher = async function (query, variables, fetchOption
 
   const json = await response.json()
 
-  console.log(json)
 
   return json
 }
