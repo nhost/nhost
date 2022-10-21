@@ -46,7 +46,7 @@ The main features of the service are:
 
 - leverage hasura's permissions to allow users to upload/retrieve files
 - upload files to any s3-compatible service
-- dowload files from any s3-compatible service
+- download files from any s3-compatible service
 - create presigned URLs to grant temporary access
 - caching information to integrate with caches and CDNs (cache headers, etag, conditional headers, etc)
 - perform basic image manipulation on the fly
