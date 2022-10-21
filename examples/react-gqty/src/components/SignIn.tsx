@@ -20,7 +20,7 @@ export function SignIn() {
           <input type="email" placeholder="email" onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
-          <button type="submit">Sign In</button>
+          <button type="submit">Sign In with a magic link</button>
         </div>
         {error && <div>{error.message}</div>}
       </form>
