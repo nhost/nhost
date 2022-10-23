@@ -7,11 +7,14 @@ configuration:
       custom_name: credentialId
     credential_public_key:
       custom_name: credentialPublicKey
+    id:
+      custom_name: id
     user_id:
       custom_name: userId
   custom_column_names:
     credential_id: credentialId
     credential_public_key: credentialPublicKey
+    id: id
     user_id: userId
   custom_name: authUserSecurityKeys
   custom_root_fields:

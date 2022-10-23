@@ -288,23 +288,23 @@ export const generatedSchema = {
   },
   mutation: {
     __typename: { __type: 'String!' },
-    delete_posts: { __type: 'posts_mutation_response', __args: { where: 'posts_bool_exp!' } },
-    delete_posts_by_pk: { __type: 'posts', __args: { id: 'uuid!' } },
-    insert_posts: {
-      __type: 'posts_mutation_response',
-      __args: { objects: '[posts_insert_input!]!', on_conflict: 'posts_on_conflict' }
-    },
-    insert_posts_one: {
+    deletePost: { __type: 'posts', __args: { id: 'uuid!' } },
+    deletePosts: { __type: 'posts_mutation_response', __args: { where: 'posts_bool_exp!' } },
+    insertPost: {
       __type: 'posts',
       __args: { object: 'posts_insert_input!', on_conflict: 'posts_on_conflict' }
     },
-    update_posts: {
+    insertPosts: {
       __type: 'posts_mutation_response',
-      __args: { _set: 'posts_set_input', where: 'posts_bool_exp!' }
+      __args: { objects: '[posts_insert_input!]!', on_conflict: 'posts_on_conflict' }
     },
-    update_posts_by_pk: {
+    updatePost: {
       __type: 'posts',
       __args: { _set: 'posts_set_input', pk_columns: 'posts_pk_columns_input!' }
+    },
+    updatePosts: {
+      __type: 'posts_mutation_response',
+      __args: { _set: 'posts_set_input', where: 'posts_bool_exp!' }
     },
     update_posts_many: {
       __type: '[posts_mutation_response]',
@@ -479,24 +479,24 @@ export const generatedSchema = {
 
 export interface Mutation {
   __typename?: 'Mutation'
-  delete_posts: (args: { where: posts_bool_exp }) => Maybe<posts_mutation_response>
-  delete_posts_by_pk: (args: { id: Scalars['uuid'] }) => Maybe<posts>
-  insert_posts: (args: {
-    objects: Array<posts_insert_input>
-    on_conflict?: Maybe<posts_on_conflict>
-  }) => Maybe<posts_mutation_response>
-  insert_posts_one: (args: {
+  deletePost: (args: { id: Scalars['uuid'] }) => Maybe<posts>
+  deletePosts: (args: { where: posts_bool_exp }) => Maybe<posts_mutation_response>
+  insertPost: (args: {
     object: posts_insert_input
     on_conflict?: Maybe<posts_on_conflict>
   }) => Maybe<posts>
-  update_posts: (args: {
-    _set?: Maybe<posts_set_input>
-    where: posts_bool_exp
+  insertPosts: (args: {
+    objects: Array<posts_insert_input>
+    on_conflict?: Maybe<posts_on_conflict>
   }) => Maybe<posts_mutation_response>
-  update_posts_by_pk: (args: {
+  updatePost: (args: {
     _set?: Maybe<posts_set_input>
     pk_columns: posts_pk_columns_input
   }) => Maybe<posts>
+  updatePosts: (args: {
+    _set?: Maybe<posts_set_input>
+    where: posts_bool_exp
+  }) => Maybe<posts_mutation_response>
   update_posts_many: (args: {
     updates: Array<posts_updates>
   }) => Maybe<Array<Maybe<posts_mutation_response>>>

@@ -1,6 +1,16 @@
 table:
   name: posts
   schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_root_fields:
+    delete: deletePosts
+    delete_by_pk: deletePost
+    insert: insertPosts
+    insert_one: insertPost
+    update: updatePosts
+    update_by_pk: updatePost
 object_relationships:
   - name: user
     using:

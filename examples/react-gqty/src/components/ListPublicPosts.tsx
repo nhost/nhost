@@ -9,7 +9,7 @@ export function ListPublicPosts() {
 
   return (
     <div>
-      <h1>Public Posts</h1>
+      <h1 className="text-3xl">Public Posts</h1>
       <div>
         {query.posts().map((post) => {
           return <div key={post.id ?? 0}>{post.title}</div>
