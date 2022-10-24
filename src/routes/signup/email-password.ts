@@ -35,9 +35,8 @@ export const signUpEmailPasswordHandler: RequestHandler<
     password
   );
 
-  // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Must verify email before sign in
-  // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Don't have to verify email before
-  // sign in
+  // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => User must verify their email before signing in.
+  // SIGNIN_EMAIL_VERIFIED_REQUIRED = false => User don't have to verify their email before signin in.
 
   if (!ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     const signInResponse = await getSignInResponse({
