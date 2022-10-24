@@ -103,34 +103,26 @@ You can use the GraphQL API to translate values from other columns.
 
 ### Default language
 
-- `defaultLanguage`
-- `getDefaultLanguage`
+It is possible to configure a default language by setting the `getDefaultLanguage` option, which is a function that gets the context as first argument, and returns either the language code, or `null`.
+The `getDefaultLanguage` option is preconfigured to get the user locale from the authenticated user, using the `auth.users.locale` value as per defined in Hasura Auth.
+
+If the `getDefaultLanguage` option returns `null`, the default language falls back to the `defaultLanguage` string option, which is preconfigured as `en`.
 
 ### Permissions
 
-- `canTranslate`
-- context: `userLanguage`
+The `canTranslate` options is a function that accepts the [GraphQL Yoga context](https://www.the-guild.dev/graphql/yoga-server/docs/features/context#default-context) as an argument, augmented with the `useLanguage` string value that has been set by the `getDefaultLanguage` method.
+By default, the `canTranslate` method returns true when:
+
+1. the `x-nhost-webhook-secret` header is equal to the `NHOST_WEBHOOK_SECRET` environment variable; and
+2. the user is an admin (either valid `x-hasura-admin-secret` is passed on as a header or `x-hasura-role` is `admin`), OR the user is authenticated (the request `Authorization` has a valid JWT)
 
 ### Server settings
 
-- `cors`
-- `graphiql`
-- `logger`
-- project id / API key
+Other options are available to configure the GraphQL server:
 
-### Context
-
-The `context` object contains:
-
-- `userClaims` - verified JWT claims from the user's access token.
-- `isAdmin` - `true` if the request was made using a valid `x-hasura-admin-secret` header.
-- `request` - [Fetch API Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request) that represents the incoming HTTP request in platform-independent way. It can be useful for accessing headers to authenticate a user
-- `query` - the DocumentNode that was parsed from the GraphQL query string
-- `operationName` - the operation name selected from the incoming query
-- `variables` - the variables that were defined in the query
-- `extensions` - the extensions that were received from the client
-
-Read more about the [default context from GraphQL Yoga](https://www.the-guild.dev/graphql/yoga-server/docs/features/context#default-context).
+- Google Project API and API Key can be passed on with the `projectId` and `apiKey` parameters. When not set, they will fall back respectively to `process.env.GOOGLE_TRANSLATION_PROJECT_ID` and `process.env.GOOGLE_TRANSLATION_API_KEY`.
+- `graphiql` defaults to `true`. Set it to `false` if you don't want to serve the GraphiQL UI.
+- Custom `cors` configuration. See [GraphQL Yoga documentation](https://www.the-guild.dev/graphql/yoga-server/docs/features/cors) for further information.
 
 ## Development
 
