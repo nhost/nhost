@@ -22,6 +22,18 @@ query {
 }
 ```
 
+Result:
+
+```json
+{
+  "data": {
+    "first": "service is available",
+    "second": "el servicio está disponible",
+    "third": "il servizio è disponibile"
+  }
+}
+```
+
 You can also user the Google Translation GraphQL API with Hasura Remote Schema Relationships and connect data from your database and the Google Translation API. This allows you to request data from your database and the Google Translation API in a single GraphQL query:
 
 ```graphql
@@ -30,6 +42,27 @@ query {
     title # a text column in the books table
     translatedTitle # title translated into the user's  default locale
     italianTitle: translatedTitle(to: "it") # title translated into italian
+  }
+}
+```
+
+Result:
+
+```json
+{
+  "data": {
+    "books": [
+      {
+        "title": "Guerre et Paix",
+        "translatedTitle": "War and peace",
+        "italianTitle": "Guerra e Pace"
+      },
+      {
+        "title": "Le Bruit et la Fureur",
+        "translatedTitle": "The Sound and the Fury",
+        "italianTitle": "Il suono e la furia"
+      }
+    ]
   }
 }
 ```
