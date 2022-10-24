@@ -166,6 +166,16 @@ Don't forget to restart your Next.js server after saving your `.env.development`
 file to load your new environment variable.
 :::
 
+:::info Nhost CLI
+If you're using the CLI, use `localhost` as the `subdomain`, and leave `region` empty for the [JS Client](/reference/javascript):
+
+```yaml title=".env.development"
+NEXT_PUBLIC_NHOST_SUBDOMAIN=localhost
+NEXT_PUBLIC_NHOST_REGION=
+```
+
+:::
+
 ## Build the app
 
 ### Add authentication

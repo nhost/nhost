@@ -182,6 +182,16 @@ You find your Nhost project's `subdomain` and `region` in the [project overview]
 
 ![Project Overview](/img/quickstarts/app-dashboard.png)
 
+:::info Nhost CLI
+If you're using the CLI, use `localhost` as the `subdomain`, and leave `region` empty for the [JS Client](/reference/javascript):
+
+```yaml title=".env.development"
+VITE_NHOST_SUBDOMAIN=localhost
+VITE_NHOST_REGION=
+```
+
+:::
+
 ## Build the app
 
 ### Add authentication
