@@ -1,0 +1,55 @@
+{
+  "name": "@nhost/google-translation",
+  "version": "0.0.0",
+  "description": "Google Translation GraphQL API",
+  "license": "MIT",
+  "keywords": [
+    "google translation",
+    "graphql",
+    "api",
+    "nhost",
+    "hasura"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "NODE_ENV=development ts-node-dev -r dotenv/config dev/server.ts",
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "tsc",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "dependencies": {
+    "@google-cloud/translate": "^7.0.3",
+    "@graphql-yoga/node": "^2.13.13",
+    "@pothos/core": "^3.22.5",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.23",
+    "typescript": "^4.8.4",
+    "dotenv": "^16.0.2"
+  }
+}
