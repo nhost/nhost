@@ -23,10 +23,7 @@ export type GetUserLanguage = (
 /**
  * @param context The GraphQL context
  */
-export type CanTranslate = (
-  context: Context,
-  logger?: Logger
-) => boolean | Promise<boolean>
+export type CanTranslate = (context: Context, logger?: Logger) => boolean | Promise<boolean>
 
 export type CreateServerProps = {
   /**
@@ -41,7 +38,6 @@ export type CreateServerProps = {
    * GraphQL Yoga CORS configuration
    * @see {@link https://www.the-guild.dev/graphql/yoga-server/docs/features/cors}
    */
-
   cors?: CORSOptions
   /**
    * Whether to enable the GraphiQL interface
