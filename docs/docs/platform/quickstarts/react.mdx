@@ -160,6 +160,16 @@ Don't forget to restart your React server after saving your `.env.local`
 file to load your new environment variable.
 :::
 
+:::info Nhost CLI
+If you're using the CLI, use `localhost` as the `subdomain`, and leave `region` empty for the [JS Client](/reference/javascript):
+
+```yaml title=".env.local"
+REACT_APP_NHOST_SUBDOMAIN=localhost
+REACT_APP_NHOST_REGION=
+```
+
+:::
+
 ## Build the app
 
 ### Add authentication
