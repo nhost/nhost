@@ -58,7 +58,6 @@ export const createGoogleTranslationGraphQLServer = ({
   return createServer({
     cors,
     graphiql,
-    endpoint: '/',
     context: async (context: YogaInitialContext): Promise<Context> => ({
       ...context,
       userLanguage: await getUserLanguage(context)

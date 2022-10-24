@@ -175,4 +175,4 @@ The GraphQL Server will reload every time the code changes.
 
 Open GraphiQL:
 
-[http://0.0.0.0:4000](http://0.0.0.0:4000)
+[http://0.0.0.0:4000](http://0.0.0.0:4000/graphql)
