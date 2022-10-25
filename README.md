@@ -363,8 +363,8 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/d4g0">
-            <img src="https://avatars.githubusercontent.com/u/34744883?v=4" width="100;" alt="d4g0"/>
+        <a href="https://github.com/daguitosama">
+            <img src="https://avatars.githubusercontent.com/u/34744883?v=4" width="100;" alt="daguitosama"/>
             <br />
             <sub><b>Dago</b></sub>
         </a>
