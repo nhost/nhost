@@ -86,9 +86,9 @@
   "resolutions": {
     "graphql": "15.7.2"
   },
-  "packageManager": "pnpm@6.24.0",
+  "packageManager": "pnpm@7.9.1",
   "engines": {
-    "node": ">=14",
+    "node": ">=14 <17",
     "pnpm": ">=7.9.1"
   },
   "eslintConfig": {

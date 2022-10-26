@@ -188,6 +188,7 @@ export interface Typegen0 {
     reportSignedOut:
       | 'SIGNOUT'
       | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.importRefreshToken'
       | 'done.invoke.passwordlessEmail'
       | 'done.invoke.passwordlessSms'
       | 'done.invoke.signUpEmailPassword'
@@ -296,6 +297,7 @@ export interface Typegen0 {
     hasRefreshToken: ''
     hasSession:
       | 'SESSION_UPDATE'
+      | 'done.invoke.importRefreshToken'
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
     isAnonymous: 'SIGNED_IN'

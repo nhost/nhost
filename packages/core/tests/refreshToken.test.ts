@@ -21,6 +21,37 @@ import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 
+describe(`Token refresh behaviour on first start`, () => {
+  let authMachine: AuthMachine
+  let authService: InterpreterFrom<AuthMachine>
+
+  beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' })
+    authMachine = createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      refreshIntervalTime: 1,
+      autoSignIn: true
+    })
+    authService = interpret(authMachine)
+  })
+
+  afterAll(() => server.close())
+
+  afterEach(() => {
+    server.resetHandlers()
+    authService.stop()
+  })
+
+  test('should start with the right state when no refresh token is given', async () => {
+    authService.start()
+    const state = await waitFor(authService, (state) =>
+      state.matches({ authentication: { signedOut: 'noErrors' } })
+    )
+    expect(state.context.errors).toEqual({})
+  })
+})
+
 describe(`Time based token refresh`, () => {
   const initialToken = faker.datatype.uuid()
   const initialExpiration = faker.date.future()
@@ -40,7 +71,7 @@ describe(`Time based token refresh`, () => {
     }
   })
 
-  const authServiceWithInitialSession = interpret(authMachineWithInitialSession).start()
+  const authServiceWithInitialSession = interpret(authMachineWithInitialSession)
 
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
   afterAll(() => server.close())
@@ -218,6 +249,29 @@ describe('General and disabled auto-sign in', () => {
     customStorage.clear()
     server.resetHandlers()
   })
+
+  test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
+    const user = { ...fakeUser }
+    const accessToken = faker.datatype.string(40)
+    const refreshToken = faker.datatype.uuid()
+
+    server.use(authTokenNetworkErrorHandler)
+
+    authService.send({
+      type: 'SESSION_UPDATE',
+      data: {
+        session: {
+          accessToken,
+          accessTokenExpiresIn: 0,
+          refreshToken,
+          user
+        }
+      }
+    })
+
+    const state = await waitFor(authService, (state) => state.context.refreshTimer.attempts > 0)
+    expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
+  }, 8000)
 
   test(`should save provided session on session update`, async () => {
     const user = { ...fakeUser }
