@@ -1,3 +1,4 @@
+import { gqlSdk } from '@/utils';
 import { ENV } from '@/utils/env';
 import { logger, LOG_LEVEL } from './logger';
 
@@ -24,6 +25,18 @@ export const start = async () => {
   await applyMigrations();
   await applyMetadata();
   // }
+
+  // * Insert missing default allowed roles into the database
+  const { insertAuthRoles } = await gqlSdk.upsertRoles({
+    roles: ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.map((role) => ({ role })),
+  });
+  if (insertAuthRoles?.affected_rows) {
+    logger.info(
+      `Inserted ${
+        insertAuthRoles.affected_rows
+      } roles: ${insertAuthRoles.returning.map(({ role }) => role).join(', ')}`
+    );
+  }
 
   // if (ENV.AUTH_SKIP_SERVE) {
   //   logger.info(

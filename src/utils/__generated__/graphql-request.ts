@@ -3206,6 +3206,13 @@ export type DeleteExpiredRefreshTokensMutationVariables = Exact<{ [key: string]:
 
 export type DeleteExpiredRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
 
+export type UpsertRolesMutationVariables = Exact<{
+  roles: Array<AuthRoles_Insert_Input> | AuthRoles_Insert_Input;
+}>;
+
+
+export type UpsertRolesMutation = { __typename?: 'mutation_root', insertAuthRoles?: { __typename?: 'authRoles_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'authRoles', role: string }> } | null };
+
 export type GetUserSecurityKeysQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -3471,6 +3478,19 @@ export const DeleteExpiredRefreshTokensDocument = gql`
   }
 }
     `;
+export const UpsertRolesDocument = gql`
+    mutation upsertRoles($roles: [authRoles_insert_input!]!) {
+  insertAuthRoles(
+    objects: $roles
+    on_conflict: {constraint: roles_pkey, update_columns: []}
+  ) {
+    affected_rows
+    returning {
+      role
+    }
+  }
+}
+    `;
 export const GetUserSecurityKeysDocument = gql`
     query getUserSecurityKeys($id: uuid!) {
   authUserSecurityKeys(where: {userId: {_eq: $id}}) {
@@ -3721,6 +3741,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     deleteExpiredRefreshTokens(variables?: DeleteExpiredRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteExpiredRefreshTokensMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteExpiredRefreshTokensMutation>(DeleteExpiredRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteExpiredRefreshTokens', 'mutation');
+    },
+    upsertRoles(variables: UpsertRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpsertRolesMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpsertRolesMutation>(UpsertRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'upsertRoles', 'mutation');
     },
     getUserSecurityKeys(variables: GetUserSecurityKeysQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserSecurityKeysQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserSecurityKeysQuery>(GetUserSecurityKeysDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserSecurityKeys', 'query');
