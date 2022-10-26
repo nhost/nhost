@@ -18,8 +18,8 @@
 | AUTH_SMTP_AUTH_METHOD                                 | SMTP authentication method                                                                                                                                                                             | `PLAIN`                      |
 | AUTH_SMTP_SECURE                                      | Enables SSL. [More info](https://nodemailer.com/smtp/#tls-options).                                                                                                                                    | `false`                      |
 | AUTH_GRAVATAR_ENABLED                                 |                                                                                                                                                                                                        | `true`                       |
-| AUTH_GRAVATAR_DEFAULT                                 |                                                                                                                                                                                                        | `blank`                      |
-| AUTH_GRAVATAR_RATING                                  |                                                                                                                                                                                                        | `g`                          |
+| AUTH_GRAVATAR_DEFAULT                                 | One of '404', 'mp', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank'.                                                                                                                 | `blank`                      |
+| AUTH_GRAVATAR_RATING                                  | One of 'g', 'pg', 'r', 'x'.                                                                                                                                                                            | `g`                          |
 | AUTH_ANONYMOUS_USERS_ENABLED                          | Enables users to register as an anonymous user.                                                                                                                                                        | `false`                      |
 | AUTH_DISABLE_NEW_USERS                                | If set, new users will be disabled after finishing registration and won't be able to connect.                                                                                                          | `false`                      |
 | AUTH_ACCESS_CONTROL_ALLOWED_EMAILS                    | Comma-separated list of emails that are allowed to register.                                                                                                                                           |                              |
@@ -110,7 +110,7 @@
 | AUTH_PROVIDER_WORKOKS_DEFAULT_DOMAIN                                               |                                     |
 | AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION                                          |                                     |
 | AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION                                            |                                     |
-| AUTH_PROVIDER_AZUREAD_ENABLED                                                        |                                     |
-| AUTH_PROVIDER_AZUREAD_CLIENT_ID                                                      |                                     |
-| AUTH_PROVIDER_AZUREAD_CLIENT_SECRET                                                  |                                     |
-| AUTH_PROVIDER_AZUREAD_TENANT                                                         |                                     |
+| AUTH_PROVIDER_AZUREAD_ENABLED                                                      |                                     |
+| AUTH_PROVIDER_AZUREAD_CLIENT_ID                                                    |                                     |
+| AUTH_PROVIDER_AZUREAD_CLIENT_SECRET                                                |                                     |
+| AUTH_PROVIDER_AZUREAD_TENANT                                                       |                                     |
