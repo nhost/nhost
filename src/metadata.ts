@@ -367,6 +367,8 @@ export const applyMetadata = async (): Promise<void> => {
     logger.info('Metadata applied');
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.warn('Impossible to apply metadata', (e as any).response?.data);
+    const error = e as any;
+    const message = error.response?.data || error.message;
+    logger.warn('Impossible to apply metadata', message);
   }
 };
