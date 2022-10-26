@@ -1,6 +1,5 @@
 import FormData from 'form-data'
 
-import { HasuraStorageApi } from './hasura-storage-api'
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -12,6 +11,7 @@ import {
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
+import { HasuraStorageApi } from './hasura-storage-api'
 
 /**
  * Get Hasura Storage Client
