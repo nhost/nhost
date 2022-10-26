@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
-import { getGraphqlUrlFromEnv, urlFromParams } from '../utils/helpers'
+import { urlFromSubdomain } from '../utils/helpers'
 import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
@@ -16,15 +16,21 @@ export interface NhostGraphqlConstructorParams {
 }
 
 /**
- * Get Nhost Graphql Client
+ * Creates a client for GraphQL from either a subdomain or a URL
  *
  * @param adminSecret
  * @param urlParams
  * @returns
  */
-export function getGraphqlClient(adminSecret: string | undefined, urlParams: any) {
-  // use process.env.GRAPHQL_URL if set
-  const graphqlUrl = getGraphqlUrlFromEnv() ?? urlFromParams(urlParams, 'graphql')
+export function createGraphqlClient(adminSecret: string | undefined, urlParams: any) {
+  const graphqlUrl =
+    'subdomain' in urlParams || 'backendUrl' in urlParams
+      ? urlFromSubdomain(urlParams, 'graphql')
+      : urlParams.graphqlUrl
+
+  if (!graphqlUrl) {
+    throw new Error('Please provide `subdomain` or `graphqlUrl`.')
+  }
 
   return new NhostGraphqlClient({
     url: graphqlUrl,

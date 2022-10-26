@@ -7,7 +7,7 @@ export type { NhostAuthConstructorParams }
 export type BackendUrl = {
   /**
    * Nhost backend URL
-   * Should only be used when self-hosting
+   * Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
    */
   backendUrl: string
   /**
@@ -36,11 +36,19 @@ export type Subdomain = {
   adminSecret?: string
 }
 
+export type ServiceUrls = {
+  authUrl?: string
+  graphqlUrl?: string
+  storageUrl?: string
+  functionsUrl?: string
+}
+
 export type BackendOrSubdomain = BackendUrl | Subdomain
 
 export interface NhostClientConstructorParams
   extends Partial<BackendUrl>,
     Partial<Subdomain>,
+    Partial<ServiceUrls>,
     Omit<NhostAuthConstructorParams, 'url'> {}
 
 export type GraphqlRequestResponse<T = unknown> =

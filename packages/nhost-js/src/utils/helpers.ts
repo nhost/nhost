@@ -10,23 +10,18 @@ const LOCALHOST_REGEX = /^localhost(:\d+)*$/g
  * @param service
  * @returns
  */
-export function urlFromParams(
+export function urlFromSubdomain(
   backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain' | 'backendUrl'>,
   service: string
-) {
+): string {
   const { backendUrl, subdomain, region } = backendOrSubdomain
-
-  if (!backendUrl && !subdomain) {
-    throw new Error('Either `backendUrl` or `subdomain` must be set.')
-  }
 
   if (backendUrl) {
     return `${backendUrl}/v1/${service}`
   }
 
-  // to make TS happy
   if (!subdomain) {
-    throw new Error('`subdomain` must be set if `backendUrl` is not set.')
+    throw new Error('Either `backendUrl` or `subdomain` must be set.')
   }
 
   // check if subdomain is localhost[:port]
@@ -35,6 +30,11 @@ export function urlFromParams(
     const localhostFound = subdomainLocalhostFound[0]
 
     // no port specified, use standard port 1337
+    const urlFromEnv = getValueFromEnv(service)
+    if (localhostFound === 'localhost' && urlFromEnv) {
+      return urlFromEnv
+    }
+
     if (localhostFound === 'localhost') {
       return `http://localhost:1337/v1/${service}`
     }
@@ -68,48 +68,14 @@ function environmentIsAvailable() {
 
 /**
  *
- * @returns process.env.AUTH_URL if set, null otherwise
+ * @param service auth | storage | graphql | functions
+ * @returns the service's url if the corresponding env var is set
+ * NHOST_${service}_URL
  */
-export function getAuthUrlFromEnv(): string | null {
-  if (!isBrowser() && environmentIsAvailable()) {
-    return process.env.AUTH_URL ? process.env.AUTH_URL : null
+function getValueFromEnv(service: string) {
+  if (isBrowser() || !environmentIsAvailable()) {
+    return null
   }
 
-  return null
-}
-
-/**
- *
- * @returns process.env.STORAGE_URL if set, null otherwise
- */
-export function getStorageUrlFromEnv(): string | null {
-  if (!isBrowser() && environmentIsAvailable()) {
-    return process.env.STORAGE_URL ? process.env.STORAGE_URL : null
-  }
-
-  return null
-}
-
-/**
- *
- * @returns process.env.FUNCTIONS_URL if set, null otherwise
- */
-export function getFunctionsUrlFromEnv(): string | null {
-  if (!isBrowser() && environmentIsAvailable()) {
-    return process.env.FUNCTIONS_URL ? process.env.FUNCTIONS_URL : null
-  }
-
-  return null
-}
-
-/**
- *
- * @returns process.env.GRAPHQL_URL if set, null otherwise
- */
-export function getGraphqlUrlFromEnv(): string | null {
-  if (!isBrowser() && environmentIsAvailable()) {
-    return process.env.GRAPHQL_URL ? process.env.GRAPHQL_URL : null
-  }
-
-  return null
+  return process.env[`NHOST_${service.toUpperCase()}_URL`]
 }

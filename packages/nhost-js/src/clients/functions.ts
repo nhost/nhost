@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 
-import { getFunctionsUrlFromEnv, urlFromParams } from '../utils/helpers'
+import { urlFromSubdomain } from '../utils/helpers'
 import { FunctionCallResponse } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
   /**
@@ -14,15 +14,21 @@ export interface NhostFunctionsConstructorParams {
 }
 
 /**
- * Get Nhost Functions Client
+ * Creates a client for Functions from either a subdomain or a URL
  *
  * @param adminSecret
  * @param urlParams
  * @returns
  */
-export function getFunctionsClient(adminSecret: string | undefined, urlParams: any) {
-  // use process.env.FUNCTIONS_URL if set
-  const functionsUrl = getFunctionsUrlFromEnv() ?? urlFromParams(urlParams, 'functions')
+export function createFunctionsClient(adminSecret: string | undefined, urlParams: any) {
+  const functionsUrl =
+    'subdomain' in urlParams || 'backendUrl' in urlParams
+      ? urlFromSubdomain(urlParams, 'functions')
+      : urlParams.functionsUrl
+
+  if (!functionsUrl) {
+    throw new Error('Please provide `subdomain` or `functionsUrl`.')
+  }
 
   return new NhostFunctionsClient({
     url: functionsUrl,
@@ -34,6 +40,7 @@ export function getFunctionsClient(adminSecret: string | undefined, urlParams: a
  * @alias Functions
  */
 export class NhostFunctionsClient {
+  private url: string
   private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string
@@ -41,6 +48,7 @@ export class NhostFunctionsClient {
   constructor(params: NhostFunctionsConstructorParams) {
     const { url, adminSecret } = params
 
+    this.url = url
     this.accessToken = null
     this.adminSecret = adminSecret
     this.instance = axios.create({

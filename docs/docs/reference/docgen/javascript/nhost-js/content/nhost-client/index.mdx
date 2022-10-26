@@ -4,7 +4,7 @@ title: NhostClient
 sidebar_label: NhostClient
 description: No description provided.
 slug: /reference/javascript/nhost-js/nhost-client
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/core/nhost-client.ts#L10
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/nhost.ts#L39
 ---
 
 # `NhostClient`
@@ -23,10 +23,14 @@ const nhost = new NhostClient({ subdomain, region })
 
 | Property                                                                                                            | Type                | Required | Notes                                                                                                                                    |
 | :------------------------------------------------------------------------------------------------------------------ | :------------------ | :------: | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>functionsUrl</span>        | `string`            |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>storageUrl</span>          | `string`            |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>graphqlUrl</span>          | `string`            |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>authUrl</span>             | `string`            |          |                                                                                                                                          |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>region</span>              | `string`            |          | Project region (e.g. `eu-central-1`) Project region is not required during local development (when `subdomain` is `localhost`)           |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>subdomain</span>           | `string`            |          | Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`) Use `localhost` during local development                                           |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>adminSecret</span>         | `string`            |          | When set, the admin secret is sent as a header, `x-hasura-admin-secret`, for all requests to GraphQL, Storage, and Serverless Functions. |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>backendUrl</span>          | `string`            |          | Nhost backend URL Should only be used when self-hosting                                                                                  |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>backendUrl</span>          | `string`            |          | Nhost backend URL Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.                               |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>start</span>               | `boolean`           |          |                                                                                                                                          |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>devTools</span>            | `boolean`           |          | Activate devTools e.g. the ability to connect to the xstate inspector                                                                    |
 | <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>autoSignIn</span>          | `boolean`           |          | When set to true, will parse the url on startup to check if it contains a refresh token to start the session with                        |

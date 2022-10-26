@@ -1,11 +1,40 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
-import { getAuthClient } from '../clients/auth'
-import { getFunctionsClient, NhostFunctionsClient } from '../clients/functions'
-import { getGraphqlClient, NhostGraphqlClient } from '../clients/graphql'
-import { getStorageClient } from '../clients/storage'
 import { NhostClientConstructorParams } from '../utils/types'
+
+import { createAuthClient } from './auth'
+import { createFunctionsClient, NhostFunctionsClient } from './functions'
+import { createGraphqlClient, NhostGraphqlClient } from './graphql'
+import { createStorageClient } from './storage'
+
+export function createClient({
+  refreshIntervalTime,
+  clientStorageGetter,
+  clientStorageSetter,
+  clientStorage,
+  clientStorageType,
+  autoRefreshToken,
+  autoSignIn,
+  adminSecret,
+  devTools,
+  start = true,
+  ...urlParams
+}: NhostClientConstructorParams): NhostClient {
+  return new NhostClient({
+    refreshIntervalTime,
+    clientStorageGetter,
+    clientStorageSetter,
+    clientStorage,
+    clientStorageType,
+    autoRefreshToken,
+    autoSignIn,
+    adminSecret,
+    devTools,
+    start,
+    ...urlParams
+  })
+}
 
 export class NhostClient {
   auth: HasuraAuthClient
@@ -39,7 +68,7 @@ export class NhostClient {
     ...urlParams
   }: NhostClientConstructorParams) {
     // * Set clients for all services
-    this.auth = getAuthClient(
+    this.auth = createAuthClient({
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -48,11 +77,11 @@ export class NhostClient {
       autoRefreshToken,
       autoSignIn,
       start,
-      urlParams
-    )
-    this.storage = getStorageClient(adminSecret, urlParams)
-    this.functions = getFunctionsClient(adminSecret, urlParams)
-    this.graphql = getGraphqlClient(adminSecret, urlParams)
+      ...urlParams
+    })
+    this.storage = createStorageClient(adminSecret, urlParams)
+    this.functions = createFunctionsClient(adminSecret, urlParams)
+    this.graphql = createGraphqlClient(adminSecret, urlParams)
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())

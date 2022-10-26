@@ -19,7 +19,7 @@ import {
  * @param adminSecret
  * @returns
  */
-export function getHasuraStorageClient(url: string, adminSecret?: string) {
+export function createHasuraStorageClient(url: string, adminSecret?: string) {
   return new HasuraStorageClient({ url, adminSecret })
 }
 

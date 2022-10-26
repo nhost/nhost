@@ -1,9 +1,10 @@
 import { getHasuraAuthClient } from '@nhost/hasura-auth-js'
 
-import { getAuthUrlFromEnv, urlFromParams } from '../utils/helpers'
+import { urlFromSubdomain } from '../utils/helpers'
+import { NhostClientConstructorParams } from '../utils/types'
 
 /**
- * Get a client for Auth
+ * Creates a client for Auth from either a subdomain or a URL
  *
  * @param refreshIntervalTime
  * @param clientStorageGetter
@@ -16,19 +17,25 @@ import { getAuthUrlFromEnv, urlFromParams } from '../utils/helpers'
  * @param urlParams
  * @returns
  */
-export function getAuthClient(
-  refreshIntervalTime: number | undefined,
-  clientStorageGetter: any,
-  clientStorageSetter: any,
-  clientStorage: any,
-  clientStorageType: any,
-  autoRefreshToken: any,
-  autoSignIn: any,
-  start: any,
-  urlParams: any
-) {
-  // use process.env.AUTH_URL if set
-  const authUrl = getAuthUrlFromEnv() ?? urlFromParams(urlParams, 'auth')
+export function createAuthClient({
+  refreshIntervalTime,
+  clientStorageGetter,
+  clientStorageSetter,
+  clientStorage,
+  clientStorageType,
+  autoRefreshToken,
+  autoSignIn,
+  start,
+  ...urlParams
+}: NhostClientConstructorParams) {
+  const authUrl =
+    'subdomain' in urlParams || 'backendUrl' in urlParams
+      ? urlFromSubdomain(urlParams, 'auth')
+      : urlParams.authUrl
+
+  if (!authUrl) {
+    throw new Error('Please provide `subdomain` or `authUrl`.')
+  }
 
   return getHasuraAuthClient(
     authUrl,
