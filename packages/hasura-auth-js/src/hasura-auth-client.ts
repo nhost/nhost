@@ -73,7 +73,7 @@ import {
  * @param urlParams
  * @returns
  */
-export function getHasuraAuthClient(
+export function createHasuraAuthClient(
   url: string,
   refreshIntervalTime: number | undefined,
   clientStorageGetter: any,
