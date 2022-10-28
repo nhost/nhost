@@ -19,7 +19,7 @@ export const passwordInsert = password
   )
   .external(async (value) => {
     if (ENV.AUTH_PASSWORD_HIBP_ENABLED && (await pwnedPassword(value))) {
-      const message = 'Password is too weak (it has been pnwed)';
+      const message = 'Password is too weak (it has been pwned)';
       throw new Joi.ValidationError(
         message,
         [
