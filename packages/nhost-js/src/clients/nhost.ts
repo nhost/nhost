@@ -8,7 +8,7 @@ import { createFunctionsClient, NhostFunctionsClient } from './functions'
 import { createGraphqlClient, NhostGraphqlClient } from './graphql'
 import { createStorageClient } from './storage'
 
-export function createClient({
+export function createNhostClient({
   refreshIntervalTime,
   clientStorageGetter,
   clientStorageSetter,

@@ -1,12 +1,12 @@
 import { vi } from 'vitest'
-import { createClient, NhostClient } from '../../src'
+import { createNhostClient } from '../../src'
 
 const cloud = 'goiqxsyjxufxlprgiprm'
 const local = 'localhost'
 
 describe('NhostClient', () => {
   describe('being used with Nhost Cloud', () => {
-    const nhostCloud = createClient({ subdomain: cloud, region: 'eu-central-1' })
+    const nhostCloud = createNhostClient({ subdomain: cloud, region: 'eu-central-1' })
 
     it('should create a new nhost client when a valid subdomain and region are specified', () => {
       expect(nhostCloud).toBeTruthy()
@@ -14,7 +14,7 @@ describe('NhostClient', () => {
 
     it('should throw an error if a subdomain is provided but not a region', () => {
       expect(() => {
-        new NhostClient({ subdomain: cloud })
+        createNhostClient({ subdomain: cloud })
       }).toThrow()
     })
 
@@ -41,7 +41,7 @@ describe('NhostClient', () => {
 
   describe('being used with Nhost Local (CLI)', () => {
     const originalEnv = process.env
-    const nhostLocal = new NhostClient({ subdomain: local })
+    const nhostLocal = createNhostClient({ subdomain: local })
     beforeEach(() => {
       vi.resetModules()
       process.env = {
@@ -80,22 +80,22 @@ describe('NhostClient', () => {
 
     describe('Custom endpoints', () => {
       it('should use the value in NHOST_AUTH_URL if set', () => {
-        const nhostLocal = new NhostClient({ subdomain: local })
+        const nhostLocal = createNhostClient({ subdomain: local })
         expect(nhostLocal.auth.url).toBe('http://traefik:1337/v1/auth')
       })
 
       it('should use the value in NHOST_STORAGE_URL if set', () => {
-        const nhostLocal = new NhostClient({ subdomain: local })
+        const nhostLocal = createNhostClient({ subdomain: local })
         expect(nhostLocal.storage.url).toBe('http://traefik:1337/v1/storage')
       })
 
       it('should use the value in NHOST_GRAPHQL_URL if set', () => {
-        const nhostLocal = new NhostClient({ subdomain: local })
+        const nhostLocal = createNhostClient({ subdomain: local })
         expect(nhostLocal.graphql.url).toBe('http://traefik:1337/v1/graphql')
       })
 
       it('should use the value in NHOST_FUNCTIONS_URL if set', () => {
-        const nhostLocal = new NhostClient({ subdomain: local })
+        const nhostLocal = createNhostClient({ subdomain: local })
         expect(nhostLocal.functions.url).toBe('http://traefik:1337/v1/functions')
       })
     })
@@ -103,7 +103,7 @@ describe('NhostClient', () => {
 
   describe('self hosting', () => {
     it('should use the individual url parameters', () => {
-      const nhost = new NhostClient({
+      const nhost = createNhostClient({
         authUrl: 'http://localhost:1337/v1/auth',
         storageUrl: 'http://localhost:1337/v1/storage',
         graphqlUrl: 'http://localhost:1337/v1/graphql',
