@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
 ---
-openapi: 3.0.0
+openapi: 3.0
 info:
   description: Hasura Storage is amazing
   version: 1.0.0
@@ -18,6 +18,7 @@ servers:
         default: '8000'
 security:
   - Authorization: []
+  - X-Hasura-Admin-Secret: []
 components:
   securitySchemes:
     Authorization:
@@ -25,6 +26,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: API key to authorize requests.
+    X-Hasura-Admin-Secret:
+      type: apiKey
+      name: X-Hasura-Admin-Secret
+      in: header
+      description: Hasura admin secret
   schemas:
     VersionInformation:
       type: object
@@ -120,7 +126,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VersionInformation'
-                
+
   /files/:
     post:
       summary: Upload one or more files
@@ -450,8 +456,8 @@ paths:
           1. Set isUploaded flag to false
           2. Replace contents of the file in the storage backend
           3. Update file metadata (size, mime-type, isUploaded, etc)
-          
-        Each individual state is atomic but if a step fails, previous steps won't be undone 
+
+        Each individual state is atomic but if a step fails, previous steps won't be undone
       tags:
         - storage
       security:
@@ -762,7 +768,7 @@ paths:
       tags:
         - operations
       security:
-        - Authorization: []
+        - X-Hasura-Admin-Secret: []
       responses:
         '200':
           description: Successfully computed orphaned files
@@ -789,7 +795,7 @@ paths:
       tags:
         - operations
       security:
-        - Authorization: []
+        - X-Hasura-Admin-Secret: []
       responses:
         '200':
           description: Successfully deleted orphaned files
@@ -816,7 +822,7 @@ paths:
       tags:
         - operations
       security:
-        - Authorization: []
+        - X-Hasura-Admin-Secret: []
       responses:
         '200':
           description: Successfully computed broken metadata
@@ -835,7 +841,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  
+
   /ops/delete-broken-metadata:
     post:
       summary: Delete broken metadata
@@ -843,7 +849,7 @@ paths:
       tags:
         - operations
       security:
-        - Authorization: []
+        - X-Hasura-Admin-Secret: []
       responses:
         '200':
           description: Successfully deleted broken metadata
@@ -870,7 +876,7 @@ paths:
       tags:
         - operations
       security:
-        - Authorization: []
+        - X-Hasura-Admin-Secret: []
       responses:
         '200':
           description: Successfully checked files not uploaded

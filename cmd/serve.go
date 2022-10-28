@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/image"
 	"github.com/nhost/hasura-storage/metadata"
+	"github.com/nhost/hasura-storage/middleware/auth"
 	"github.com/nhost/hasura-storage/middleware/cdn/fastly"
 	"github.com/nhost/hasura-storage/migrations"
 	"github.com/nhost/hasura-storage/storage"
@@ -88,8 +91,14 @@ func getGin(
 		publicURL, apiRootPrefix, hasuraAdminSecret, metadataStorage, contentStorage, imageTransformer, logger,
 	)
 
+	opsPath, err := url.JoinPath(apiRootPrefix, "ops")
+	if err != nil {
+		return nil, fmt.Errorf("problem trying to compute ops prefix path: %w", err)
+	}
+
 	middlewares := []gin.HandlerFunc{
 		ginLogger(logger),
+		auth.NeedsAdmin(opsPath, hasuraAdminSecret),
 	}
 
 	fastlyService := viper.GetString(fastlyServiceFlag)
