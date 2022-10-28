@@ -79,7 +79,7 @@ describe('email-password', () => {
       .expect(StatusCodes.BAD_REQUEST);
 
     expect(result.body.message).toEqual(
-      'Password is too weak (it has been pnwed)'
+      'Password is too weak (it has been pwned)'
     );
   });
 
