@@ -7,10 +7,7 @@ import { CanTranslate, GetUserLanguage } from './types'
  * It gets the user id from the `x-hasura-user-id` header and
  * returns the user locale from the `auth.users` hasura auth table.
  */
-export const defaultGetUserLanguage: GetUserLanguage = async (
-  context,
-  logger
-) => {
+export const defaultGetUserLanguage: GetUserLanguage = async (context, logger) => {
   const userId = context.request.headers.get('x-hasura-user-id')
   if (userId) {
     try {
@@ -42,19 +39,31 @@ export const defaultGetUserLanguage: GetUserLanguage = async (
  * - the user is an admin
  * - the user is authenticated (has a `x-hasura-user-id` header)
  */
-export const defaultCanTranslate: CanTranslate = async ({
-  request: { headers }
-}) => {
+export const defaultCanTranslate: CanTranslate = async ({ request: { headers } }) => {
   const nhostWebhookSecretFromHeader = headers.get('x-nhost-webhook-secret')
   const nhostWebhookSecret = process.env.NHOST_WEBHOOK_SECRET
 
   const adminSecretFromHeader = headers.get('x-hasura-admin-secret')
   const adminSecret = process.env.NHOST_ADMIN_SECRET
 
-  return (
-    nhostWebhookSecretFromHeader === nhostWebhookSecret &&
-    (!!headers.get('x-hasura-user-id') ||
-      headers.get('x-hasura-role') === 'admin' ||
-      adminSecretFromHeader === adminSecret)
-  )
+  // Check if the request comes from Hasura through the Nhost webhook secret
+  if (nhostWebhookSecretFromHeader !== nhostWebhookSecret) {
+    return false
+  }
+
+  // Check if the user is an admin
+  if (
+    adminSecretFromHeader === adminSecret &&
+    (headers.get('x-hasura-role') === 'admin' || !headers.get('x-hasura-role'))
+  ) {
+    return true
+  }
+
+  // Check if the user is authenticated
+  if (!!headers.get('x-hasura-user-id')) {
+    return true
+  }
+
+  // Otherwise, the user is not allowed to translate
+  return false
 }
