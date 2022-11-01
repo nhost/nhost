@@ -1,0 +1,17 @@
+table:
+  name: images
+  schema: public
+object_relationships:
+  - name: file
+    using:
+      foreign_key_constraint_on: file_id
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - name
+        - created_at
+        - updated_at
+        - file_id
+        - id
+      filter: {}

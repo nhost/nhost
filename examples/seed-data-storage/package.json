@@ -1,0 +1,18 @@
+{
+  "name": "seed-data-storage",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "seed-storage": "ts-node seed-storage.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/minio": "^7.0.14",
+    "minio": "^7.0.32",
+    "ts-node": "^10.9.1"
+  }
+}
