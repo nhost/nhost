@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "seed-storage": "ts-node seed-storage.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "seed-storage": "ts-node seed-storage.ts"
   },
   "keywords": [],
   "author": "",
