@@ -2,7 +2,7 @@
 
 This is an example of how to seed data and storage.
 
-> NOTE: To seed data (and files) only works locally.
+> NOTE: Seeding data and storage only works locally.
 
 ## Get Started
 
