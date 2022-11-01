@@ -5,10 +5,16 @@ configuration:
   column_config:
     created_at:
       custom_name: createdAt
+    id:
+      custom_name: id
+    role:
+      custom_name: role
     user_id:
       custom_name: userId
   custom_column_names:
     created_at: createdAt
+    id: id
+    role: role
     user_id: userId
   custom_name: authUserRoles
   custom_root_fields:
