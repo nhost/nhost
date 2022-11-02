@@ -25,9 +25,6 @@ const sendVerificationEmailMachine = createSendVerificationEmailMachine(
 
 const sendVerificationEmailService = interpret(sendVerificationEmailMachine)
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
-
 beforeEach(() => {
   sendVerificationEmailService.start()
 })

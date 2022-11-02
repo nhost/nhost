@@ -4,8 +4,8 @@ import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
 import { BASE_URL } from './helpers/config'
 import {
-  anonymousNetworkErrorHandler,
   anonymousInternalErrorHandler,
+  anonymousNetworkErrorHandler,
   invalidDeamonymisationEmailError
 } from './helpers/handlers'
 import { fakeAnonymousUser } from './helpers/mocks/user'
@@ -24,9 +24,6 @@ describe('Anonymous Sign-in', () => {
   })
 
   const authService = interpret(authMachine)
-
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     authService.start()

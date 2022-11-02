@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
+import { afterEach, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
@@ -39,8 +39,6 @@ authClient.interpreter = interpret(
 describe(`Generation`, () => {
   const enableMfaMachine = createEnableMfaMachine(authClient)
   const enableMfaService = interpret(enableMfaMachine)
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     enableMfaService.start()
@@ -123,9 +121,6 @@ describe(`Activation`, () => {
 
     return waitFor(enableMfaService, (state) => state.matches({ generated: 'idle' }))
   }
-
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     enableMfaService.start()

@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
 import { interpret, InterpreterFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import {
@@ -26,7 +26,6 @@ describe(`Token refresh behaviour on first start`, () => {
   let authService: InterpreterFrom<AuthMachine>
 
   beforeAll(() => {
-    server.listen({ onUnhandledRequest: 'error' })
     authMachine = createAuthMachine({
       backendUrl: BASE_URL,
       clientUrl: 'http://localhost:3000',
@@ -35,8 +34,6 @@ describe(`Token refresh behaviour on first start`, () => {
     })
     authService = interpret(authMachine)
   })
-
-  afterAll(() => server.close())
 
   afterEach(() => {
     server.resetHandlers()
@@ -72,9 +69,6 @@ describe(`Time based token refresh`, () => {
   })
 
   const authServiceWithInitialSession = interpret(authMachineWithInitialSession)
-
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
@@ -237,9 +231,6 @@ describe('General and disabled auto-sign in', () => {
 
   const authService = interpret(authMachine)
 
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
-
   beforeEach(() => {
     authService.start()
   })
@@ -393,8 +384,6 @@ describe(`Auto sign-in`, () => {
   const originalLocation = { ...global.location }
 
   beforeAll(() => {
-    server.listen({ onUnhandledRequest: 'error' })
-
     customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
     customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
 
@@ -409,8 +398,6 @@ describe(`Auto sign-in`, () => {
 
     authService = interpret(authMachine)
   })
-
-  afterAll(() => server.close())
 
   afterEach(() => {
     server.resetHandlers()

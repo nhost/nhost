@@ -22,9 +22,6 @@ const authMachine = createAuthMachine({
 
 const authService = interpret(authMachine)
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
-
 beforeEach(() => {
   authService.start()
 })

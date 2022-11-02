@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
+import { afterEach, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
@@ -23,9 +23,6 @@ const authMachine = createAuthMachine({
 })
 
 const authService = interpret(authMachine)
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
 
 beforeEach(() => {
   authService.start()
