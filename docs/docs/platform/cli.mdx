@@ -85,21 +85,21 @@ Hasura Console starts automatically and your Nhost project is running locally.
 
 Use `localhost` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
 
-```
+```js
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  subdomain: 'localhost',
+  subdomain: 'localhost'
 })
 ```
 
 ## Emails
 
-During local development with the CLI, all transactional emails from Authentication are sent to a local Mailhog instance, instead of to the recipient's email address. You'll see an address where after starting [`nhost up`](/reference/cli/up) where all emails are sent to.
+During local development with the CLI, all transactional emails from Nhost Auth are sent to a local Mailhog instance, instead of to the recipient's email address.
 
-For the example below, all emails are accessible at `http://localhost:8025`.
+The Mailhog address is listed after starting [`nhost up`](/reference/cli/up):
 
-```bash
+```
 $ nhost up
 URLs:
 - Postgres:         postgres://postgres:postgres@localhost:5432/postgres
@@ -109,7 +109,9 @@ URLs:
 - Functions:        http://localhost:1337/v1/functions
 
 - Hasura console:  http://localhost:9695
+// highlight-start
 - Mailhog:         http://localhost:8025
+// highlight-end
 
 - subdomain:       localhost
 - region:          (empty)

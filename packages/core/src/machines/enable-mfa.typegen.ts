@@ -2,34 +2,24 @@
 
 export interface Typegen0 {
   '@@xstate/typegen': true
-  eventsCausingActions: {
-    reportGeneratedSuccess: 'done.invoke.generate'
-    saveGeneration: 'done.invoke.generate'
-    saveError: 'error.platform.generate' | 'error.platform.activate'
-    reportGeneratedError: 'error.platform.generate'
-    saveInvalidMfaTypeError: 'ACTIVATE'
-    saveInvalidMfaCodeError: 'ACTIVATE'
-    reportSuccess: 'done.invoke.activate'
-    reportError: 'error.platform.activate'
-  }
   internalEvents: {
-    'done.invoke.generate': {
-      type: 'done.invoke.generate'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'error.platform.generate': { type: 'error.platform.generate'; data: unknown }
-    'error.platform.activate': { type: 'error.platform.activate'; data: unknown }
     'done.invoke.activate': {
       type: 'done.invoke.activate'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'done.invoke.generate': {
+      type: 'done.invoke.generate'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.activate': { type: 'error.platform.activate'; data: unknown }
+    'error.platform.generate': { type: 'error.platform.generate'; data: unknown }
     'xstate.init': { type: 'xstate.init' }
   }
   invokeSrcNameMap: {
-    generate: 'done.invoke.generate'
     activate: 'done.invoke.activate'
+    generate: 'done.invoke.generate'
   }
   missingImplementations: {
     actions: never
@@ -37,29 +27,39 @@ export interface Typegen0 {
     guards: never
     delays: never
   }
+  eventsCausingActions: {
+    reportError: 'error.platform.activate'
+    reportGeneratedError: 'error.platform.generate'
+    reportGeneratedSuccess: 'done.invoke.generate'
+    reportSuccess: 'done.invoke.activate'
+    saveError: 'error.platform.activate' | 'error.platform.generate'
+    saveGeneration: 'done.invoke.generate'
+    saveInvalidMfaCodeError: 'ACTIVATE'
+    saveInvalidMfaTypeError: 'ACTIVATE'
+  }
   eventsCausingServices: {
-    generate: 'GENERATE'
     activate: 'ACTIVATE'
+    generate: 'GENERATE'
   }
   eventsCausingGuards: {
-    invalidMfaType: 'ACTIVATE'
     invalidMfaCode: 'ACTIVATE'
+    invalidMfaType: 'ACTIVATE'
   }
   eventsCausingDelays: {}
   matchesStates:
-    | 'idle'
-    | 'idle.initial'
-    | 'idle.error'
-    | 'generating'
     | 'generated'
-    | 'generated.idle'
-    | 'generated.idle.idle'
-    | 'generated.idle.error'
-    | 'generated.activating'
     | 'generated.activated'
+    | 'generated.activating'
+    | 'generated.idle'
+    | 'generated.idle.error'
+    | 'generated.idle.idle'
+    | 'generating'
+    | 'idle'
+    | 'idle.error'
+    | 'idle.initial'
     | {
-        idle?: 'initial' | 'error'
-        generated?: 'idle' | 'activating' | 'activated' | { idle?: 'idle' | 'error' }
+        generated?: 'activated' | 'activating' | 'idle' | { idle?: 'error' | 'idle' }
+        idle?: 'error' | 'initial'
       }
   tags: never
 }
