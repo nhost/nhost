@@ -1,5 +1,5 @@
+import { faker } from '@faker-js/faker'
 import axios from 'axios'
-import { faker } from 'faker'
 import htmlUrls from 'html-urls'
 import { afterEach, describe, expect, it } from 'vitest'
 
