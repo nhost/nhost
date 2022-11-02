@@ -24,11 +24,11 @@
     "generate": "graphql-codegen --config graphql.config.yaml",
     "cypress": "cypress open",
     "test": "cypress run",
-    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend 5173 test",
+    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend 3000 test",
     "e2e:backend": "nhost dev --no-browser",
     "e2e:frontend": "run-s build preview",
     "build": "vite build",
-    "preview": "vite preview --host localhost --port 5173",
+    "preview": "vite preview --host localhost --port 3000",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "lint": "eslint . --ext .ts,.tsx",
@@ -63,7 +63,7 @@
     "start-server-and-test": "^1.14.0",
     "totp-generator": "^0.0.13",
     "typescript": "^4.8.2",
-    "vite": "^2.9.15",
+    "vite": "^3.2.2",
     "ws": "^8.8.1",
     "xstate": "^4.33.5"
   }

@@ -278,7 +278,7 @@ importers:
       tabler-icons-react: ^1.54.0
       totp-generator: ^0.0.13
       typescript: ^4.8.2
-      vite: ^2.9.15
+      vite: ^3.2.2
       ws: ^8.8.1
       xstate: ^4.33.5
     dependencies:
@@ -312,7 +312,7 @@ importers:
       start-server-and-test: 1.14.0
       totp-generator: 0.0.13
       typescript: 4.8.3
-      vite: 2.9.15
+      vite: 3.2.2
       ws: 8.9.0
       xstate: 4.33.6
 
@@ -9498,7 +9498,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.14.9_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -14397,6 +14397,7 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
 
   /follow-redirects/1.14.9_debug@4.3.2:
     resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
@@ -14408,7 +14409,6 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.2
-    dev: false
 
   /foreach/2.0.6:
     resolution: {integrity: sha512-k6GAGDyqLe9JaebCsFCoudPPWfihKu8pylYXRlqP1J7ms39iPoTtk2fviNglIeQEwdh0bQeKJ01ZPyuyQvKzwg==}
