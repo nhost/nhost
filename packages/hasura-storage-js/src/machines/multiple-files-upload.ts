@@ -43,6 +43,7 @@ export const createMultipleFilesUploadMachine = () => {
         events: {} as MultipleFilesUploadEvents
       },
       tsTypes: {} as import('./multiple-files-upload.typegen').Typegen0,
+      predictableActionArguments: true,
       context: {
         progress: null,
         files: [],
