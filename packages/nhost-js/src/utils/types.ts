@@ -10,11 +10,6 @@ export type BackendUrl = {
    * Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
    */
   backendUrl: string
-  /**
-   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-   * for all requests to GraphQL, Storage, and Serverless Functions.
-   */
-  adminSecret?: string
 }
 
 export type Subdomain = {
@@ -49,7 +44,13 @@ export interface NhostClientConstructorParams
   extends Partial<BackendUrl>,
     Partial<Subdomain>,
     Partial<ServiceUrls>,
-    Omit<NhostAuthConstructorParams, 'url'> {}
+    Omit<NhostAuthConstructorParams, 'url'> {
+  /**
+   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+   * for all requests to GraphQL, Storage, and Serverless Functions.
+   */
+  adminSecret?: string
+}
 
 export type GraphqlRequestResponse<T = unknown> =
   | {

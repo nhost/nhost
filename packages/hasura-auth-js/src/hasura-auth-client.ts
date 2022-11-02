@@ -60,44 +60,6 @@ import {
 } from './utils/types'
 
 /**
- * Get Hasura Auth Client
- *
- * @param refreshIntervalTime
- * @param clientStorageGetter
- * @param clientStorageSetter
- * @param clientStorage
- * @param clientStorageType
- * @param autoRefreshToken
- * @param autoSignIn
- * @param start
- * @param urlParams
- * @returns
- */
-export function createHasuraAuthClient(
-  url: string,
-  refreshIntervalTime: number | undefined,
-  clientStorageGetter: any,
-  clientStorageSetter: any,
-  clientStorage: any,
-  clientStorageType: any,
-  autoRefreshToken: any,
-  autoSignIn: any,
-  start: any
-) {
-  return new HasuraAuthClient({
-    url,
-    refreshIntervalTime,
-    clientStorageGetter,
-    clientStorageSetter,
-    clientStorage,
-    clientStorageType,
-    autoRefreshToken,
-    autoSignIn,
-    start
-  })
-}
-
-/**
  * @alias Auth
  */
 export class HasuraAuthClient {
