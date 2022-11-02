@@ -2,7 +2,6 @@ import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   authTokenNetworkErrorHandler,
@@ -15,9 +14,6 @@ import contextWithUser from './helpers/mocks/contextWithUser'
 import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -53,7 +49,7 @@ test(`should fail if network is unavailable`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -77,7 +73,7 @@ test(`should fail if server returns an error`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -92,30 +88,6 @@ test(`should fail if server returns an error`, async () => {
   `)
 })
 
-test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
-  server.use(authTokenNetworkErrorHandler)
-
-  authService.send({
-    type: 'SIGNIN_PASSWORD',
-    email: faker.internet.email(),
-    password: faker.internet.password(15)
-  })
-
-  await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } }
-    })
-  )
-
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: { signedIn: { refreshTimer: { running: 'pending' } } }
-    })
-  )
-
-  expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
-})
-
 test(`should fail if either email or password is incorrectly formatted`, async () => {
   // Scenario 1: Providing an invalid email address with a valid password
   authService.send({
@@ -124,7 +96,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(15)
   })
 
-  const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const emailErrorSignInState = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -144,7 +116,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(2)
   })
 
-  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const passwordErrorSignInState = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -168,7 +140,7 @@ test(`should fail if incorrect credentials are provided`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -192,7 +164,7 @@ test(`should fail if user email needs verification`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -216,11 +188,11 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
     password: faker.internet.password(15)
   })
 
-  const signInPasswordState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const signInPasswordState = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.needsMfa')
   )
 
-  expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
+  expect(signInPasswordState.context.mfa?.ticket).not.toBeNull()
 
   // Note: MFA ticket is already in context
   authService.send({
@@ -228,7 +200,7 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
     otp: faker.random.numeric(6)
   })
 
-  const mfaTotpState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const mfaTotpState = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 
@@ -242,7 +214,7 @@ test(`should succeed if correct credentials are provided`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 
@@ -256,7 +228,7 @@ test(`should transition to signed in state if user is already signed in`, async 
 
   authServiceWithInitialUser.start()
 
-  const state: AuthState = await waitFor(authServiceWithInitialUser, (state: AuthState) =>
+  const state = await waitFor(authServiceWithInitialUser, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 

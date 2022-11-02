@@ -3,7 +3,7 @@ import { assign, createMachine, send } from 'xstate'
 import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { SendVerificationEmailOptions } from '../types'
+import { SendVerificationEmailOptions, SendVerificationEmailResponse } from '../types'
 import { rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../validators'
 
@@ -20,6 +20,10 @@ export type SendVerificationEmailEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type SendVerificationEmailServices = {
+  request: { data: SendVerificationEmailResponse }
+}
+
 export type SendVerificationEmailMachine = ReturnType<typeof createSendVerificationEmailMachine>
 export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
@@ -27,10 +31,11 @@ export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: Au
     {
       schema: {
         context: {} as SendVerificationEmailContext,
-        events: {} as SendVerificationEmailEvents
+        events: {} as SendVerificationEmailEvents,
+        services: {} as SendVerificationEmailServices
       },
       tsTypes: {} as import('./send-verification-email.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'sendVerificationEmail',
       initial: 'idle',
       context: { error: null },
@@ -69,6 +74,7 @@ export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: Au
       actions: {
         saveInvalidEmailError: assign({ error: (_) => INVALID_EMAIL_ERROR }),
         saveRequestError: assign({
+          // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
           error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
@@ -79,10 +85,13 @@ export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: Au
       },
       services: {
         request: async (_, { email, options }) => {
-          const res = await api.post('/user/email/send-verification-email', {
-            email,
-            options: rewriteRedirectTo(clientUrl, options)
-          })
+          const res = await api.post<SendVerificationEmailResponse>(
+            '/user/email/send-verification-email',
+            {
+              email,
+              options: rewriteRedirectTo(clientUrl, options)
+            }
+          )
           return res.data
         }
       }

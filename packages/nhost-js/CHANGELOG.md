@@ -1,5 +1,101 @@
 # @nhost/nhost-js
 
+## 1.5.2
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.6.1
+- @nhost/hasura-storage-js@0.7.1
+
+## 1.5.1
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6] [ba785da1] [6da44bf8]
+  - @nhost/hasura-auth-js@1.6.0
+  - @nhost/hasura-storage-js@1.0.0
+
+## 1.5.0
+
+### Minor Changes
+
+- 739a3c45: Sign up with an email and a security key.
+
+  ```ts
+  const { error, session } = await nhost.auth.signUp({
+    email: 'joe@example.com',
+    securityKey: true
+  })
+
+  if (error) {
+    console.log(error)
+  } else if (session) {
+    console.log(session.user)
+  } else {
+    console.log(
+      'You need to verify your email address by clicking the link in the email we sent you.'
+    )
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [739a3c45]
+  - @nhost/hasura-auth-js@1.5.0
+  - @nhost/hasura-storage-js@1.0.0
+
+## 1.4.12
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.4.3
+- @nhost/hasura-storage-js@0.6.1
+
+## 1.4.11
+
+### Patch Changes
+
+- Updated dependencies [a47ce291]
+  - @nhost/hasura-auth-js@1.4.2
+
+## 1.4.10
+
+### Patch Changes
+
+- Updated dependencies [607c457f]
+  - @nhost/hasura-storage-js@0.6.0
+
+## 1.4.9
+
+### Patch Changes
+
+- eb46f7d8: Use port 1337 if no port is specified when using "localhost" as `subdomain`.
+
+## 1.4.8
+
+### Patch Changes
+
+- Updated dependencies [93cc6920]
+  - @nhost/hasura-auth-js@1.4.1
+
+## 1.4.7
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [18ac56d0]
+- Updated dependencies [10beea72]
+  - @nhost/hasura-auth-js@1.4.0
+  - @nhost/hasura-storage-js@0.5.3
+
+## 1.4.6
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.3.4
+- @nhost/hasura-storage-js@0.5.2
+
 ## 1.4.5
 
 ### Patch Changes

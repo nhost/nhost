@@ -1,5 +1,90 @@
 # @nhost/react-apollo
 
+## 4.8.1
+
+### Patch Changes
+
+- @nhost/react@0.14.1
+- @nhost/apollo@0.5.32
+
+## 4.8.0
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [ba785da1] [6da44bf8]
+  - @nhost/apollo@0.5.31
+  - @nhost/react@0.14.0
+
+## 4.7.6
+
+### Patch Changes
+
+- 74758f2c: fix (react-apollo): broken Next.js SSG when client was not available
+- Updated dependencies [739a3c45]
+  - @nhost/react@0.13.0
+  - @nhost/apollo@0.5.30
+
+## 4.7.5
+
+### Patch Changes
+
+- @nhost/react@0.12.5
+- @nhost/apollo@0.5.29
+
+## 4.7.4
+
+### Patch Changes
+
+- @nhost/apollo@0.5.28
+- @nhost/react@0.12.4
+
+## 4.7.3
+
+### Patch Changes
+
+- @nhost/react@0.12.3
+- @nhost/apollo@0.5.27
+
+## 4.7.2
+
+### Patch Changes
+
+- @nhost/apollo@0.5.26
+- @nhost/react@0.12.2
+
+## 4.7.1
+
+### Patch Changes
+
+- @nhost/apollo@0.5.25
+- @nhost/react@0.12.1
+
+## 4.7.0
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [10beea72]
+- Updated dependencies [84ba29dd]
+  - @nhost/apollo@0.5.24
+  - @nhost/react@0.12.0
+
+## 4.6.3
+
+### Patch Changes
+
+- f30d6779: Bump @apollo/client to v3.6.9
+- Updated dependencies [f30d6779]
+  - @nhost/apollo@0.5.23
+
+## 4.6.2
+
+### Patch Changes
+
+- @nhost/react@0.11.2
+- @nhost/apollo@0.5.22
+
 ## 4.6.1
 
 ### Patch Changes

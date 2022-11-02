@@ -31,9 +31,9 @@ const main = async () => {
     const rawInitial = fs.readFileSync(file, 'utf8')
     const doc = yaml.parse(rawInitial)
 
-    set(doc, 'services.hasura.version', hasura)
-    set(doc, 'services.auth.version', auth)
-    set(doc, 'services.storage.version', storage)
+    set(doc, 'services.hasura.image', `hasura/graphql-engine:${hasura}`)
+    set(doc, 'services.auth.image', `nhost/hasura-auth:${auth}`)
+    set(doc, 'services.storage.image', `nhost/hasura-storage:${storage}`)
     const rawModified = yaml.stringify(doc, { singleQuote: true })
     fs.writeFileSync(file, rawModified)
     if (rawInitial !== rawModified) {

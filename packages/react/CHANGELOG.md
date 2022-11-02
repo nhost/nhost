@@ -1,5 +1,127 @@
 # @nhost/react
 
+## 0.14.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+  - @nhost/hasura-storage-js@0.7.1
+  - @nhost/nhost-js@1.5.2
+
+## 0.14.0
+
+### Minor Changes
+
+- 6da44bf8: The `useAuthenticationStatus` hook now returns the number of attempts to get an access token from the server `connectionAttempts`.
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6] [ba785da1] [3ced63ab]
+  - @nhost/core@0.9.0
+  - @nhost/hasura-storage-js@1.0.0
+  - @nhost/nhost-js@1.5.1
+
+## 0.13.0
+
+### Minor Changes
+
+- 739a3c45: Sign up with an email and a security key.
+
+  Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+
+  ```tsx
+  const { signUpEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } =
+    useSignUpEmailSecurityKey()
+
+  console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault()
+    await signUpEmailSecurityKey('joe@example.com')
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [739a3c45]
+- Updated dependencies [8e4d790b]
+  - @nhost/nhost-js@1.5.0
+  - @nhost/core@0.8.0
+  - @nhost/hasura-storage-js@1.0.0
+
+## 0.12.5
+
+### Patch Changes
+
+- Updated dependencies [9eb78e06]
+  - @nhost/core@0.7.7
+  - @nhost/hasura-storage-js@0.6.1
+  - @nhost/nhost-js@1.4.12
+
+## 0.12.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.11
+
+## 0.12.3
+
+### Patch Changes
+
+- Updated dependencies [607c457f]
+  - @nhost/hasura-storage-js@0.6.0
+  - @nhost/nhost-js@1.4.10
+
+## 0.12.2
+
+### Patch Changes
+
+- Updated dependencies [eb46f7d8]
+  - @nhost/nhost-js@1.4.9
+
+## 0.12.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.8
+
+## 0.12.0
+
+### Minor Changes
+
+- 84ba29dd: Introduce `useSignInSmsPasswordless`
+
+  ```ts
+  const { signInSmsPasswordless, sendOtp, needsOtp, isLoading, isSuccess, isError, error } =
+    useSignInSmsPasswordless()
+  ```
+
+  1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
+  2. The client is then awaiting the OTP. `needsOtp` equals true
+  3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
+
+  Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+  - @nhost/hasura-storage-js@0.5.3
+  - @nhost/nhost-js@1.4.7
+
+## 0.11.2
+
+### Patch Changes
+
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+  - @nhost/hasura-storage-js@0.5.2
+  - @nhost/nhost-js@1.4.6
+
 ## 0.11.1
 
 ### Patch Changes

@@ -2,43 +2,51 @@ import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
+  addSecurityKeyPromise,
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
+  ChangeEmailResponse,
   changePasswordPromise,
+  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
+  DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
   ErrorPayload,
   INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
   JWTClaims,
   JWTHasuraClaims,
+  NhostSessionResponse,
   NO_REFRESH_TOKEN,
   resetPasswordPromise,
+  ResetPasswordResponse,
   rewriteRedirectTo,
+  SecurityKey,
   sendVerificationEmailPromise,
+  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
+  signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
+  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
+  SignOutResponse,
   signUpEmailPasswordPromise,
+  signUpEmailSecurityKeyPromise,
+  SignUpResponse,
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
 import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
 import {
-  ApiChangeEmailResponse,
-  ApiChangePasswordResponse,
-  ApiDeanonymizeResponse,
-  ApiResetPasswordResponse,
-  ApiSendVerificationEmailResponse,
-  ApiSignOutResponse,
   AuthChangedFunction,
   ChangeEmailParams,
   ChangePasswordParams,
@@ -47,11 +55,8 @@ import {
   OnTokenChangedFunction,
   ResetPasswordParams,
   SendVerificationEmailParams,
-  Session,
   SignInParams,
-  SignInResponse,
-  SignUpParams,
-  SignUpResponse
+  SignUpParams
 } from './utils/types'
 
 /**
@@ -100,10 +105,16 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
+  async signUp(params: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
+    const { email, options } = params
+    if ('securityKey' in params) {
+      return getAuthenticationResult(
+        await signUpEmailSecurityKeyPromise(interpreter, email, options)
+      )
+    }
     return getAuthenticationResult(
-      await signUpEmailPasswordPromise(interpreter, email, password, options)
+      await signUpEmailPasswordPromise(interpreter, email, params.password, options)
     )
   }
 
@@ -135,16 +146,36 @@ export class HasuraAuthClient {
    * ### Sign in a user using passwordless SMS
    * ```ts
    * // [step 1/2] Passwordless sign in using SMS
-   * nhost.auth.signIn({ phoneNumber: '001122334455' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123' })
    *
    * // [step 2/2] Finish passwordless sign in using SMS (OTP)
-   * nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
+   * ```
+   *
+   * @example
+   * ### Sign in anonymously
+   * ```ts
+   * // Sign in anonymously
+   * nhost.auth.signIn()
+   *
+   * // Later in the application, the user can complete their registration
+   * nhost.auth.signUp({
+   *   email: 'joe@example.com',
+   *   password: 'secret-password'
+   * })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
-  async signIn(params: SignInParams): Promise<SignInResponse> {
+  async signIn(
+    params?: SignInParams
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
+    // * Anonymous sign-in
+    if (!params) {
+      const anonymousResult = await signInAnonymousPromise(interpreter)
+      return { ...getAuthenticationResult(anonymousResult), mfa: null }
+    }
 
     // * Sign in with a social provider (OAuth)
     if ('provider' in params) {
@@ -175,9 +206,18 @@ export class HasuraAuthClient {
       return { ...getAuthenticationResult(res), mfa: null }
     }
 
+    if ('email' in params && 'securityKey' in params) {
+      if (params.securityKey !== true) {
+        throw Error('securityKey must be true')
+      }
+      const res = await signInEmailSecurityKeyPromise(interpreter, params.email)
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
     // * Passwordless Email (magic link)
     if ('email' in params) {
-      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      const { email, options } = params
+      const { error } = await signInEmailPasswordlessPromise(interpreter, email, options)
       return {
         session: null,
         mfa: null,
@@ -206,9 +246,8 @@ export class HasuraAuthClient {
       const res = await signInMfaTotpPromise(interpreter, params.otp, params.ticket)
       return { ...getAuthenticationResult(res), mfa: null }
     }
-    // * Anonymous sign-in
-    const anonymousResult = await signInAnonymousPromise(interpreter)
-    return { ...getAuthenticationResult(anonymousResult), mfa: null }
+
+    return { error: INVALID_SIGN_IN_METHOD, mfa: null, session: null }
   }
 
   /**
@@ -228,7 +267,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-out
    */
-  async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
+  async signOut(params?: { all?: boolean }): Promise<SignOutResponse> {
     const interpreter = await this.waitUntilReady()
     const { error } = await signOutPromise(interpreter, params?.all)
     return { error }
@@ -244,14 +283,14 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/reset-password
    */
-  async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
+  async resetPassword({ email, options }: ResetPasswordParams): Promise<ResetPasswordResponse> {
     const service = interpret(createResetPasswordMachine(this._client)).start()
     const { error } = await resetPasswordPromise(service, email, options)
     return { error }
   }
 
   /**
-   * Use `nhost.auth.changePassword` to change the password for the user. The old password is not needed.
+   * Use `nhost.auth.changePassword` to change the password for the signed-in user. The old password is not needed. In case the user is not signed-in, a password reset ticket needs to be provided.
    *
    * @example
    * ```ts
@@ -260,9 +299,12 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+  async changePassword({
+    newPassword,
+    ticket
+  }: ChangePasswordParams): Promise<ChangePasswordResponse> {
     const service = interpret(createChangePasswordMachine(this._client)).start()
-    const { error } = await changePasswordPromise(service, newPassword)
+    const { error } = await changePasswordPromise(service, newPassword, ticket)
     return { error }
   }
 
@@ -279,7 +321,7 @@ export class HasuraAuthClient {
   async sendVerificationEmail({
     email,
     options
-  }: SendVerificationEmailParams): Promise<ApiSendVerificationEmailResponse> {
+  }: SendVerificationEmailParams): Promise<SendVerificationEmailResponse> {
     const service = interpret(createSendVerificationEmailMachine(this._client)).start()
     const { error } = await sendVerificationEmailPromise(service, email, options)
     return { error }
@@ -295,7 +337,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-email
    */
-  async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
+  async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ChangeEmailResponse> {
     const service = interpret(createChangeEmailMachine(this._client)).start()
     const { error } = await changeEmailPromise(service, newEmail, options)
     return { error }
@@ -311,7 +353,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/deanonymize
    */
-  async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
+  async deanonymize(params: DeanonymizeParams): Promise<DeanonymizeResponse> {
     const interpreter = await this.waitUntilReady()
     if (params.signInMethod === 'passwordless') {
       if (params.connection === 'email') {
@@ -341,6 +383,19 @@ export class HasuraAuthClient {
       return { error }
     }
     throw Error(`Unknown deanonymization method`)
+  }
+
+  /**
+   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * @param nickname optional human-readable nickname for the security key
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
+   */
+  async addSecurityKey(
+    nickname?: string
+  ): Promise<{ error: ErrorPayload | null; key?: SecurityKey }> {
+    const { error, key } = await addSecurityKeyPromise(this._client, nickname)
+    return { error, key }
   }
 
   /**
@@ -438,6 +493,9 @@ export class HasuraAuthClient {
   /**
    * Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
    *
+   * The promise won't resolve until the authentication status is known.
+   * Attention: when using auto-signin and a refresh token is present in the client storage, the promise won't resolve if the server can't be reached (e.g. offline) or if it returns an internal error.
+   *
    * @example
    * ```ts
    * const isAuthenticated  = await nhost.auth.isAuthenticatedAsync();
@@ -460,6 +518,8 @@ export class HasuraAuthClient {
    * If `isLoading` is `true`, the client doesn't know whether the user is authenticated yet or not
    * because some internal authentication network requests have not been resolved yet.
    *
+   * The `connectionAttempts` returns the number of times the client has tried to connect to the server with no success (offline, or the server retruned an internal error).
+   *
    * @example
    * ```ts
    * const { isAuthenticated, isLoading } = nhost.auth.getAuthenticationStatus();
@@ -478,11 +538,18 @@ export class HasuraAuthClient {
   getAuthenticationStatus(): {
     isAuthenticated: boolean
     isLoading: boolean
+    connectionAttempts: number
   } {
+    const connectionAttempts =
+      this.client.interpreter?.getSnapshot().context.importTokenAttempts || 0
     if (!this.isReady()) {
-      return { isAuthenticated: false, isLoading: true }
+      return {
+        isAuthenticated: false,
+        isLoading: true,
+        connectionAttempts
+      }
     }
-    return { isAuthenticated: this.isAuthenticated(), isLoading: false }
+    return { isAuthenticated: this.isAuthenticated(), isLoading: false, connectionAttempts }
   }
 
   /**
@@ -578,10 +645,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/refresh-session
    */
-  async refreshSession(refreshToken?: string): Promise<{
-    session: Session | null
-    error: ErrorPayload | null
-  }> {
+  async refreshSession(refreshToken?: string): Promise<NhostSessionResponse> {
     try {
       const interpreter = await this.waitUntilReady()
       return new Promise((resolve) => {

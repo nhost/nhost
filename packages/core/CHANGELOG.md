@@ -1,5 +1,54 @@
 # @nhost/core
 
+## 0.9.1
+
+### Patch Changes
+
+- 6b9d163e: Do not create an authentication error when starting with no refresh token
+
+## 0.9.0
+
+### Minor Changes
+
+- 3ced63ab: Retry the token import when starting offline
+  When using auto-sign-in and the user client stored a refresh token, it now retries to get an access token from the server until the server can be reached and did not return an internal error.
+  The five first attempts occur every second, then occur every five seconds.
+
+  When offline, it means `nhost.auth.isAuthenticatedAsync()` won't resolve until the user is online. In that case, use a conjunction of `nhost.auth.getAuthenticationStatus()` and `nhost.auth.onAuthStateChanged`.
+
+### Patch Changes
+
+- 13c41fe6: Correct `nhost.auth.signIn` to allow anonymous sign-in
+  The typings were not allowing empty or undefined parameters to let users sign in anonymously. `nhost.auth.signIn()` now triggers an anonymous sign-in.
+- ba785da1: remove `predictableActionArguments` warning
+- ba785da1: Bump dependencies versions
+
+## 0.8.0
+
+### Minor Changes
+
+- 8e4d790b: Sign up with an email and a security key.
+
+## 0.7.7
+
+### Patch Changes
+
+- 9eb78e06: Add `workos` social provider
+
+## 0.7.6
+
+### Patch Changes
+
+- 747aa969: fix: added twitch and discord as provider
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+
+## 0.7.5
+
+### Patch Changes
+
+- 197d1d5c: - Using same cookie package ([`js-cookie`](https://www.npmjs.com/package/js-cookie)) for both `@nhost/nextjs` and `@nhost/core` packages.
+  - Adding `expires` to avoid the cookie turning into a session cookie that some browsers aggressively destroy.
+
 ## 0.7.4
 
 ### Patch Changes

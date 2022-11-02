@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "0.5.1",
+  "version": "0.7.1",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -27,6 +27,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -41,11 +42,13 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
-    "test": "vitest run --config ../../config/vite.lib.config.js",
-    "test:watch": "vitest --config ../../config/vite.lib.config.js",
-    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
+    "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
+    "ci:test": "vitest run",
+    "e2e:backend": "nhost dev --no-browser",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -57,7 +60,8 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "xstate": "^4.32.1"
+    "form-data": "^4.0.0",
+    "xstate": "^4.33.5"
   },
   "peerDependencies": {
     "@nhost/core": "workspace:*"
@@ -65,6 +69,8 @@
   "devDependencies": {
     "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
-    "msw": "^0.39.2"
+    "cross-fetch": "^3.1.5",
+    "start-server-and-test": "^1.14.0",
+    "uuid": "^8.3.2"
   }
 }

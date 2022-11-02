@@ -1,4 +1,5 @@
 export const NETWORK_ERROR_CODE = 0
+export const OTHER_ERROR_CODE = 1
 export const VALIDATION_ERROR_CODE = 10
 export const STATE_ERROR_CODE = 20
 
@@ -6,6 +7,31 @@ export type ErrorPayload = {
   error: string
   status: number
   message: string
+}
+
+/**
+ * @internal
+ * Adds a standard error payload to any JS Error, or convert a standard error payload into a JS Error.
+ * Allows xstate to use `throw` instead of `Promise.reject` to propagate errors.
+ * See https://github.com/statelyai/xstate/issues/3037
+ */
+export class CodifiedError extends Error {
+  error: ErrorPayload
+  constructor(original: Error | ErrorPayload) {
+    super(original.message)
+    Error.captureStackTrace(this, this.constructor)
+    if (original instanceof Error) {
+      this.name = original.name
+      this.error = {
+        error: original.name,
+        status: OTHER_ERROR_CODE,
+        message: original.message
+      }
+    } else {
+      this.name = original.error
+      this.error = original
+    }
+  }
 }
 
 export type ValidationErrorPayload = ErrorPayload & { status: typeof VALIDATION_ERROR_CODE }
@@ -94,4 +120,10 @@ export const INVALID_REFRESH_TOKEN = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-refresh-token',
   message: 'Invalid or expired refresh token'
+}
+
+export const INVALID_SIGN_IN_METHOD = {
+  status: OTHER_ERROR_CODE,
+  error: 'invalid-sign-in-method',
+  message: 'Invalid sign-in method'
 }

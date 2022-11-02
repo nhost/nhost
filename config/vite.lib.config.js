@@ -32,9 +32,6 @@ export default defineConfig({
     environment: 'jsdom',
     reporters: 'verbose',
     include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`],
-    // Note: temporarily disabled threads, because of a bug in vitest
-    // https://github.com/vitest-dev/vitest/issues/1171
-    threads: false,
     coverage: {
       enabled: process.env.CI === 'true',
       reporter: ['json']

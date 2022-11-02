@@ -2,6 +2,7 @@ table:
   name: roles
   schema: auth
 configuration:
+  column_config: {}
   custom_column_names: {}
   custom_name: authRoles
   custom_root_fields:
@@ -15,17 +16,17 @@ configuration:
     update: updateAuthRoles
     update_by_pk: updateAuthRole
 array_relationships:
-- name: userRoles
-  using:
-    foreign_key_constraint_on:
-      column: role
-      table:
-        name: user_roles
-        schema: auth
-- name: usersByDefaultRole
-  using:
-    foreign_key_constraint_on:
-      column: default_role
-      table:
-        name: users
-        schema: auth
+  - name: userRoles
+    using:
+      foreign_key_constraint_on:
+        column: role
+        table:
+          name: user_roles
+          schema: auth
+  - name: usersByDefaultRole
+    using:
+      foreign_key_constraint_on:
+        column: default_role
+        table:
+          name: users
+          schema: auth

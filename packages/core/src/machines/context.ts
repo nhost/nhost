@@ -20,6 +20,8 @@ export type AuthContext = {
   refreshToken: {
     value: string | null
   }
+  /** Number of times the user tried to get an access token from a refresh token but got a network error */
+  importTokenAttempts: number
   errors: Partial<Record<StateErrorTypes, ErrorPayload>>
 }
 
@@ -38,5 +40,6 @@ export const INITIAL_MACHINE_CONTEXT: AuthContext = {
   refreshToken: {
     value: null
   },
+  importTokenAttempts: 0,
   errors: {}
 }

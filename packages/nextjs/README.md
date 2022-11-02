@@ -38,8 +38,8 @@ import type { AppProps } from 'next/app'
 import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 
 const nhost = new NhostClient({
-  subdomain: '<Your Nhost app subdomain>',
-  region: '<Your Nhost app region>'
+  subdomain: '<Your Nhost project subdomain>',
+  region: '<Your Nhost project region>'
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -115,7 +115,7 @@ yarn add @nhost/react-apollo @apollo/client
 
 ### Initializing
 
-Wrap the React app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostNextProvider`.
+Wrap the Next.js app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostNextProvider`.
 
 ```jsx title=pages/_app.js
 import type { AppProps } from 'next/app'

@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.3
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+
 ## 0.1.2
 
 ### Patch Changes

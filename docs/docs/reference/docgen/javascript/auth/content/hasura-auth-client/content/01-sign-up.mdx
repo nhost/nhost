@@ -4,7 +4,7 @@ title: signUp()
 sidebar_label: signUp()
 slug: /reference/javascript/auth/sign-up
 description: Use `nhost.auth.signUp` to sign up a user using email and password. If you want to sign up a user using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L103
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L108
 ---
 
 # `signUp()`
@@ -22,12 +22,6 @@ nhost.auth.signUp({
 
 ---
 
-**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> [`SignUpEmailPasswordParams`](/reference/docgen/javascript/auth/types/sign-up-email-password-params)
-
-| Property                                                                                                 | Type            | Required | Notes |
-| :------------------------------------------------------------------------------------------------------- | :-------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>password</span> | `string`        |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>email</span>    | `string`        |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>options</span>  | `SignUpOptions` |          |       |
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignUpParams`](/reference/docgen/javascript/auth/types/sign-up-params)
 
 ---

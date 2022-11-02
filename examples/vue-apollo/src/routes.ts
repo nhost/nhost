@@ -50,5 +50,5 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  { path: '/apollo', component: ApolloPage }
+  { path: '/apollo', component: ApolloPage, meta: { auth: true } }
 ]

@@ -39,6 +39,8 @@ configuration:
       custom_name: totpSecret
     updated_at:
       custom_name: updatedAt
+    webauthn_current_challenge:
+      custom_name: currentChallenge
   custom_column_names:
     active_mfa_type: activeMfaType
     avatar_url: avatarUrl
@@ -58,6 +60,7 @@ configuration:
     ticket_expires_at: ticketExpiresAt
     totp_secret: totpSecret
     updated_at: updatedAt
+    webauthn_current_challenge: currentChallenge
   custom_name: users
   custom_root_fields:
     delete: deleteUsers
@@ -70,28 +73,61 @@ configuration:
     update: updateUsers
     update_by_pk: updateUser
 object_relationships:
-- name: defaultRoleByRole
-  using:
-    foreign_key_constraint_on: default_role
+  - name: defaultRoleByRole
+    using:
+      foreign_key_constraint_on: default_role
 array_relationships:
-- name: refreshTokens
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: refresh_tokens
-        schema: auth
-- name: roles
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: user_roles
-        schema: auth
-- name: userProviders
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: user_providers
-        schema: auth
+  - name: refreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: refresh_tokens
+          schema: auth
+  - name: roles
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_roles
+          schema: auth
+  - name: securityKeys
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_security_keys
+          schema: auth
+  - name: userProviders
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_providers
+          schema: auth
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - active_mfa_type
+        - avatar_url
+        - created_at
+        - default_role
+        - disabled
+        - display_name
+        - email
+        - email_verified
+        - id
+        - is_anonymous
+        - last_seen
+        - locale
+        - metadata
+        - otp_hash
+        - otp_method_last_used
+        - phone_number
+        - phone_number_verified
+        - updated_at
+        - webauthn_current_challenge
+      filter:
+        id:
+          _eq: X-Hasura-User-Id

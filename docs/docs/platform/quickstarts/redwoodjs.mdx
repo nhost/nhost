@@ -44,27 +44,16 @@ If your system versions do not meet both requirements, the RedwoodJS installatio
 
 ### Create a new Nhost app
 
-First things first, we need to create a new Nhost project.
+import CreateApp from '@site/src/components/create-nhost-project.mdx'
 
-So, log in to your Nhost dashboard and click the **Create your first app**
-button.
-
-![nhost-first-app](/img/quickstarts/create-app-step-1.png)
-
-Next, give your new Nhost app a name, select a geographic region for your Nhost
-services and click **Create App**.
-
-![nhost-first-app](/img/quickstarts/create-app-step-2.png)
-
-After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication set up.
+<CreateApp />
 
 Finally, update your client login URL from your Nhost dashboard as the local RedwoodJS server starts on port `8910` instead of the usual `3000` port you may be used to with a regular React app.
 
 ![nhost-first-app](/img/quickstarts/create-app-step-3.png)
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -179,13 +168,13 @@ That prop avoids having an additional request to fetch the current user.
 Next, store the environment variables for `subdomain` and `region` in `.env`:
 
 ```yaml title=".env"
-NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
-NHOST_REGION=YOUR_NHOST_APP_REGION
+NHOST_SUBDOMAIN=[subdomain]
+NHOST_REGION=[region]
 ```
 
-You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 Finally, we need to customize the GraphQL Endpoint for our RedwoodJS app. Indeed, by default, RedwoodJS provides a built-in GraphQL server under the `api` side. However, as we already have our own GraphQL server through Nhost and Hasura, we do not need it.
 

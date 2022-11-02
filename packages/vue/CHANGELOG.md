@@ -1,5 +1,108 @@
 # @nhost/vue
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+  - @nhost/nhost-js@1.5.2
+
+## 0.5.0
+
+### Minor Changes
+
+- 6da44bf8: The `useAuthenticationStatus` composable now returns the number of attempts to get an access token from the server `connectionAttempts`.
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6] [ba785da1] [3ced63ab]
+  - @nhost/core@0.9.0
+  - @nhost/nhost-js@1.5.1
+
+## 0.4.6
+
+### Patch Changes
+
+- Updated dependencies [739a3c45]
+- Updated dependencies [8e4d790b]
+  - @nhost/nhost-js@1.5.0
+  - @nhost/core@0.8.0
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [9eb78e06]
+  - @nhost/core@0.7.7
+  - @nhost/nhost-js@1.4.12
+
+## 0.4.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.11
+
+## 0.4.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.10
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [eb46f7d8]
+  - @nhost/nhost-js@1.4.9
+
+## 0.4.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.8
+
+## 0.4.0
+
+### Minor Changes
+
+- 84ba29dd: Introduce `useSignInSmsPasswordless`
+
+  ```ts
+  const { signInSmsPasswordless, sendOtp, needsOtp, isLoading, isSuccess, isError, error } =
+    useSignInSmsPasswordless()
+  ```
+
+  1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
+  2. The client is then awaiting the OTP. `needsOtp` equals true
+  3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
+
+  Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+  - @nhost/nhost-js@1.4.7
+
+## 0.3.7
+
+### Patch Changes
+
+- bc657251: Fix the deletion of refresh tokens in the URL when autoSignIn is enabled.
+  This feature only work when using the HTML5 history mode. A warning will appear when using the Hash mode and when in development mode.
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+  - @nhost/nhost-js@1.4.6
+
 ## 0.3.5
 
 ### Patch Changes

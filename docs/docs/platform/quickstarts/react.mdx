@@ -31,14 +31,14 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ## Project setup
 
-### Create a new Nhost app
+### Create a new Nhost project
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx'
+import CreateProject from '@site/src/components/create-nhost-project.mdx'
 
-<CreateApp />
+<CreateProject />
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -147,17 +147,21 @@ Finally, make sure to create an environment variable named
 `REACT_APP_NHOST_SUBDOMAIN` and `REACT_APP_NHOST_REGION` to store your Nhost domain details:
 
 ```yaml title=".env.local"
-REACT_APP_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
-REACT_APP_NHOST_REGION=YOUR_NHOST_APP_REGION
+REACT_APP_NHOST_SUBDOMAIN=[subdomain]
+REACT_APP_NHOST_REGION=[region]
 ```
 
-You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your React server after saving your `.env.local`
 file to load your new environment variable.
+:::
+
+:::info Nhost CLI
+Do you use the Nhost CLI? Learn how to set `subdomain` and `region` in the [CLI documentation](/platform/cli#subdomain-and-region).
 :::
 
 ## Build the app

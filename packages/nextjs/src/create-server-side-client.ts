@@ -1,4 +1,4 @@
-import Cookies from 'cookies'
+import Cookies from 'js-cookie'
 import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
@@ -19,7 +19,6 @@ export const createServerSideClient = async (
   backendUrl: string,
   context: GetServerSidePropsContext
 ) => {
-  const cookies = Cookies(context.req, context.res)
   const nhost = new NhostClient({
     backendUrl,
     clientStorageType: 'custom',
@@ -31,14 +30,18 @@ export const createServerSideClient = async (
         // * in the url as this is the key sent by hasura-auth
         const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
         const urlValue = context.query[urlKey]
-        const cookieValue = cookies.get(key) ?? null
-        return typeof urlValue === 'string' ? urlValue : cookieValue
+        const cookieValue = Cookies.get(key) ?? null
+        const nextCtxValue = context.req.cookies[key]
+
+        return typeof urlValue === 'string' ? urlValue : cookieValue ?? nextCtxValue
       },
       setItem: (key, value) => {
-        cookies.set(key, value, { httpOnly: false, sameSite: true })
+        // TODO: Set expires based on the actual refresh token expire time
+        // For now, we're using 30 days so the cookie is not removed when the browser is closed because if `expiers` is omitted, the cookie becomes a session cookie.
+        Cookies.set(key, value, { httpOnly: false, sameSite: 'strict', expires: 30 })
       },
       removeItem: (key) => {
-        cookies.set(key, null)
+        Cookies.remove(key)
       }
     },
     start: true,

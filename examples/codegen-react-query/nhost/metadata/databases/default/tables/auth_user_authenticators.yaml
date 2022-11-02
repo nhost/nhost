@@ -1,0 +1,30 @@
+table:
+  name: user_authenticators
+  schema: auth
+configuration:
+  column_config:
+    credential_id:
+      custom_name: credentialId
+    credential_public_key:
+      custom_name: credentialPublicKey
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    credential_id: credentialId
+    credential_public_key: credentialPublicKey
+    user_id: userId
+  custom_name: authUserAuthenticators
+  custom_root_fields:
+    delete: deleteAuthUserAuthenticators
+    delete_by_pk: deleteAuthUserAuthenticator
+    insert: insertAuthUserAuthenticators
+    insert_one: insertAuthUserAuthenticator
+    select: authUserAuthenticators
+    select_aggregate: authUserAuthenticatorsAggregate
+    select_by_pk: authUserAuthenticator
+    update: updateAuthUserAuthenticators
+    update_by_pk: updateAuthUserAuthenticator
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id

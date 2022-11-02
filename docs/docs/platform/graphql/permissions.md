@@ -32,7 +32,7 @@ The rule above make it so users can only select posts where the value of `user_i
 
 `x-hasura-user-id` is a permission variable that is used to create permission rules in Hasura. The permission variable comes from the [access token](platform/authentication#access-tokens) that signed-in users have.
 
-The `x-hasura-user-id` permission variable is always available for all signed-in users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your app.
+The `x-hasura-user-id` permission variable is always available for all signed-in users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your project.
 
 ## Custom Permission Variables
 
@@ -65,6 +65,28 @@ auth:
 ```
 
 Your custom claim will be automatically prefixed with `x-hasura-`, therefore, the example above results in a custom permission variable named `x-hasura-organisation-id`.
+
+:::caution
+
+The custom claim path should **not** start with `user` when being defined in the `config.yaml` file.
+
+✅ Correct:
+
+```
+custom_claims: '{"organisation-id":"profile.organisation.id"}'
+```
+
+🛑 Incorrect:
+
+```
+custom_claims: '{"organisation-id":"user.profile.organisation.id"}'
+```
+
+:::
+
+### Limitation on JSON/JSONB columns
+
+JSON columns cannot be used in custom claims, with the exception of the `users.metadata` column.
 
 ## Roles
 

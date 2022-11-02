@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "0.5.21",
+  "version": "0.5.32",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [
@@ -31,6 +31,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -62,10 +63,10 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "graphql": "16",
-    "graphql-ws": "^5.7.0"
+    "graphql": "15.7.2",
+    "graphql-ws": "^5.10.1"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.2"
+    "@apollo/client": "^3.6.9"
   }
 }
