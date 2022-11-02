@@ -5,17 +5,6 @@ import { NhostClientConstructorParams } from '../utils/types'
 
 /**
  * Creates a client for Auth from either a subdomain or a URL
- *
- * @param refreshIntervalTime
- * @param clientStorageGetter
- * @param clientStorageSetter
- * @param clientStorage
- * @param clientStorageType
- * @param autoRefreshToken
- * @param autoSignIn
- * @param start
- * @param urlParams
- * @returns
  */
 export function createAuthClient(params: NhostClientConstructorParams) {
   const authUrl =
