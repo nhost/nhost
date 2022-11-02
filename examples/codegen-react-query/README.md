@@ -7,48 +7,48 @@ This is an example repo for how to use GraphQL Code Generator together with:
 - [React Query](https://tanstack.com/query/v4/)
 - [Nhost](http://nhost.io/)
 
+This repo is a reference repo for the blog post: [How to use GraphQL Code Generator with React and React Query](https://nhost.io/blog/how-to-use-graphql-code-generator-with-react-query).
+
 ## Get Started
 
-### Run npm Packages in Dev Mode
+1. Clone the repository
 
-In the root of the `nhost/nhost` monorepo:
+```
+git clone https://github.com/nhost/nhost
+cd nhost
+```
 
-Install dependencies with `pnpm`:
-
-> It's important that you're using `pnpm` because our repo is using [PNPM Workspaces](https://pnpm.io/workspaces).
+2. Install and build dependencies
 
 ```
 pnpm install
+pnpm build
 ```
 
-```
-pnpm run dev
-```
-
-The following commands should be run inside this folder.
-
-### Run Nhost
+3. Go to the Codegen React Query example folder
 
 ```
+cd examples/codegen-react-query
+```
+
+4. Terminal 1: Start Nhost
+
+> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
+
+```sh
 nhost up
 ```
 
-### Run GraphQL Code Generator
-
-Run once:
-
-```
-pnpm codegen
-```
-
-Run in watch mode:
+5. Terminal 2: Run GraphQL Codegen
 
 ```
 pnpm codegen -w
 ```
 
-### Run React App
+> `-w` runs [codegen in watch mode](https://www.the-guild.dev/graphql/codegen/docs/getting-started/development-workflow#watch-mode).
 
-```
-pnpm run dev
+6. Terminal 3: Start the React application
+
+```sh
+pnpm dev
 ```
