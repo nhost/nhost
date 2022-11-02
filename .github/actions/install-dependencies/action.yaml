@@ -3,12 +3,12 @@ description: 'Install Node dependencies with pnpm'
 runs:
   using: 'composite'
   steps:
-    - uses: pnpm/action-setup@v2.2.3
+    - uses: pnpm/action-setup@v2.2.4
       with:
         version: 7.9.1
         run_install: false
     - name: Use Node.js 16
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: 16
         cache: 'pnpm'

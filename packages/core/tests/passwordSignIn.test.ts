@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
@@ -86,29 +86,6 @@ test(`should fail if server returns an error`, async () => {
       },
     }
   `)
-})
-
-// TODO this test is incorrect. Fix it in https://github.com/nhost/nhost/pull/1022
-test.skip(`should retry token refresh if refresh endpoint is unreachable`, async () => {
-  authService.send({
-    type: 'SIGNIN_PASSWORD',
-    email: faker.internet.email(),
-    password: faker.internet.password(15)
-  })
-
-  await waitFor(authService, (state) =>
-    state.matches({
-      authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } }
-    })
-  )
-
-  const state = await waitFor(authService, (state) =>
-    state.matches({
-      authentication: { signedIn: { refreshTimer: { running: 'pending' } } }
-    })
-  )
-
-  expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
 })
 
 test(`should fail if either email or password is incorrectly formatted`, async () => {

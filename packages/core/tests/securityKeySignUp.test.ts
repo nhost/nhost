@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types'
 import { vi } from 'vitest'
 import { interpret, StateFrom } from 'xstate'

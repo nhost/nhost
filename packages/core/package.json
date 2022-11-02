@@ -43,7 +43,7 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "dev": "vite build --config ./vite.dev.config.js",
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
@@ -66,6 +66,6 @@
   "devDependencies": {
     "@simplewebauthn/typescript-types": "^6.0.0",
     "@types/js-cookie": "^3.0.2",
-    "msw": "^0.39.2"
+    "msw": "^0.47.4"
   }
 }

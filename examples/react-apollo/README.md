@@ -1,10 +1,10 @@
-# Nhost React + Apollo example
+# Nhost with React and Apollo Client Example
 
-## See this example live
+## Live Demo
 
-Visit our demo application on [react-apollo.example.nhost.io](https://react-apollo.example.nhost.io)
+Visit our live demo application on [react-apollo.example.nhost.io](https://react-apollo.example.nhost.io)
 
-## Get started
+## Get Started
 
 1. Clone the repository
 
@@ -17,16 +17,18 @@ cd nhost
 
 ```sh
 pnpm install
-pnpm run build
+pnpm build
 ```
 
-3. Go to the example folder
+3. Go to the React example folder
 
 ```sh
 cd examples/react-apollo
 ```
 
 4. Terminal 1: Start Nhost
+
+> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
 
 ```sh
 nhost dev
@@ -35,6 +37,5 @@ nhost dev
 5. Terminal 2: Start the React application
 
 ```sh
-pnpm run dev
+pnpm dev
 ```
-
