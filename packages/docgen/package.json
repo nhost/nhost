@@ -29,7 +29,9 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
-  "bin": "dist/index.js",
+  "bin": {
+    "docgen": "dist/index.js"
+  },
   "devDependencies": {
     "@swc/core": "^1.2.246",
     "@types/jest": "^27.5.2",
