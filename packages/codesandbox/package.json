@@ -25,8 +25,12 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },

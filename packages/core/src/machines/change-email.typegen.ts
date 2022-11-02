@@ -2,12 +2,6 @@
 
 export interface Typegen0 {
   '@@xstate/typegen': true
-  eventsCausingActions: {
-    saveInvalidEmailError: 'REQUEST'
-    reportSuccess: 'done.invoke.requestChange'
-    saveRequestError: 'error.platform.requestChange'
-    reportError: 'error.platform.requestChange'
-  }
   internalEvents: {
     'done.invoke.requestChange': {
       type: 'done.invoke.requestChange'
@@ -26,6 +20,12 @@ export interface Typegen0 {
     guards: never
     delays: never
   }
+  eventsCausingActions: {
+    reportError: 'error.platform.requestChange'
+    reportSuccess: 'done.invoke.requestChange'
+    saveInvalidEmailError: 'REQUEST'
+    saveRequestError: 'error.platform.requestChange'
+  }
   eventsCausingServices: {
     requestChange: 'REQUEST'
   }
@@ -35,10 +35,10 @@ export interface Typegen0 {
   eventsCausingDelays: {}
   matchesStates:
     | 'idle'
+    | 'idle.error'
     | 'idle.initial'
     | 'idle.success'
-    | 'idle.error'
     | 'requesting'
-    | { idle?: 'initial' | 'success' | 'error' }
+    | { idle?: 'error' | 'initial' | 'success' }
   tags: never
 }
