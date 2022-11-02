@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
 import { interpret, InterpreterFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'

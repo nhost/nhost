@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 
 context('Token refresh', () => {
   it('should refresh token one minute before it expires', () => {

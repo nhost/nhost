@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
