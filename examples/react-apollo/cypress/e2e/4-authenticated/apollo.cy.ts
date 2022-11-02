@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 
 context('Apollo', () => {
   const addItemTest = (sentence: string) => {

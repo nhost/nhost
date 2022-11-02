@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { rest } from 'msw'
 import { NhostSession } from '../../../src/types'
 import { BASE_URL } from '../config'
