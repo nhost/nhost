@@ -9,7 +9,7 @@ This is an example repo for how to use GraphQL Code Generator together with:
 
 This repo is a reference repo for the blog post: [How to use GraphQL Code Generator with React and React Query](https://nhost.io/blog/how-to-use-graphql-code-generator-with-react-query).
 
-## Get started
+## Get Started
 
 1. Clone the repository
 

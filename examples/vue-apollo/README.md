@@ -1,4 +1,4 @@
-# Nhost & Vue 3 + Apollo Example
+# Nhost with Vue 3 and Apollo Client Example
 
 ## Live Demo
 

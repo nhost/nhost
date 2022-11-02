@@ -1,10 +1,10 @@
-# Nhost & React + Apollo Example
+# Nhost with React and Apollo Client Example
 
 ## Live Demo
 
 Visit our live demo application on [react-apollo.example.nhost.io](https://react-apollo.example.nhost.io)
 
-## Get started
+## Get Started
 
 1. Clone the repository
 

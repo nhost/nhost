@@ -1,8 +1,6 @@
-# Nhost & Next.js Example (WIP)
+# Nhost with Next.js Example
 
-This demo is a work in progress.
-
-## Get started
+## Get Started
 
 1. Clone the repository
 

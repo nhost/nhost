@@ -1,8 +1,6 @@
-# Nhost React + GQty example
+# Nhost with React and GQty Example
 
-[GQty Documentation](https://gqty.dev/docs/getting-started).
-
-## Get started
+## Get Started
 
 1. Clone the repository
 
