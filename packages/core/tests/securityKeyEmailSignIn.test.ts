@@ -1,23 +1,23 @@
 import faker from '@faker-js/faker'
-import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
-import { afterEach, beforeEach, test, vi } from 'vitest'
 import { interpret } from 'xstate'
+import { afterAll, afterEach, beforeAll, beforeEach, test, vi } from 'vitest'
+import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
 import { waitFor } from 'xstate/lib/waitFor'
 
 import { createAuthMachine } from '../src/machines'
 
 import { BASE_URL } from './helpers/config'
+import server from './helpers/server'
+import CustomClientStorage from './helpers/storage'
 import {
+  emailSecurityKeyNetworkErrorHandler,
+  unverifiedEmailSecurityKeyErrorHandler,
+  userNotFoundSecurityKeyHandler,
   authTokenNetworkErrorHandler,
   correctEmailSecurityKeyHandler,
   correctSecurityKeyVerifyHandler,
-  emailSecurityKeyNetworkErrorHandler,
-  incorrectSecurityKeyVerifyHandler,
-  unverifiedEmailSecurityKeyErrorHandler,
-  userNotFoundSecurityKeyHandler
+  incorrectSecurityKeyVerifyHandler
 } from './helpers/handlers'
-import server from './helpers/server'
-import CustomClientStorage from './helpers/storage'
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -50,6 +50,9 @@ const mockAuthenticator = () => {
   })
 }
 const authService = interpret(authMachine)
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
 
 beforeEach(() => {
   authService.start()

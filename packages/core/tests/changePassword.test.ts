@@ -33,6 +33,9 @@ authClient.interpreter = interpret(
 const changePasswordMachine = createChangePasswordMachine(authClient)
 const changePasswordService = interpret(changePasswordMachine)
 
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
+
 beforeEach(() => {
   changePasswordService.start()
 })

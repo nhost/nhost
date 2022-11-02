@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterEach, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
@@ -35,6 +35,9 @@ authClient.interpreter = interpret(
     clientStorage: customStorage
   }).withContext(contextWithUser)
 ).start()
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
 
 describe(`Generation`, () => {
   const enableMfaMachine = createEnableMfaMachine(authClient)

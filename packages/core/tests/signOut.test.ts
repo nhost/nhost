@@ -12,6 +12,9 @@ import {
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
+
 /**
  * Simulate sign in with password.
  *

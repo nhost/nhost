@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
 import { interpret, InterpreterFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import {
@@ -20,6 +20,9 @@ import contextWithUser from './helpers/mocks/contextWithUser'
 import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
 
 describe(`Token refresh behaviour on first start`, () => {
   let authMachine: AuthMachine

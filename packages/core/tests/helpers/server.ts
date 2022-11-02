@@ -4,18 +4,18 @@ import {
   authTokenSuccessHandler,
   changeEmailSuccessHandler,
   changePasswordSuccessHandler,
-  correctAnonymousHandler,
   correctEmailPasswordHandler,
   correctMfaTotpHandler,
   correctPasswordlessEmailHandler,
   correctPasswordlessSmsHandler,
   correctPasswordlessSmsOtpHandler,
-  deamonymisationSuccessfulHandler,
   generateMfaTotpSuccessHandler,
   resetPasswordSuccessHandler,
   sendVerificationEmailSuccessHandler,
   signOutHandler,
-  signUpSuccessHandler
+  signUpSuccessHandler,
+  correctAnonymousHandler,
+  deamonymisationSuccessfulHandler
 } from './handlers'
 
 export const defaultSuccessHandlers = [
@@ -38,6 +38,5 @@ export const defaultSuccessHandlers = [
 ]
 
 export const server = setupServer(...defaultSuccessHandlers)
-server.listen({ onUnhandledRequest: 'error' })
 
 export default server

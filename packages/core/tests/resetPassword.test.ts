@@ -25,6 +25,9 @@ const resetPasswordMachine = createResetPasswordMachine(
 
 const resetPasswordService = interpret(resetPasswordMachine)
 
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
+
 beforeEach(() => {
   resetPasswordService.start()
 })
