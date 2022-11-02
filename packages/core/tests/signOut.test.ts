@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
@@ -11,6 +11,9 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
 
 /**
  * Simulate sign in with password.
@@ -40,9 +43,6 @@ const authMachine = createAuthMachine({
 })
 
 const authService = interpret(authMachine)
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
 
 beforeEach(() => {
   authService.start()

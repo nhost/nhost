@@ -49,7 +49,7 @@
     ]
   },
   "devDependencies": {
-    "@faker-js/faker": "^6.3.1",
+    "@faker-js/faker": "^7.6.0",
     "@graphql-codegen/cli": "^2.12.0",
     "@nuintun/qrcode": "^3.3.0",
     "@testing-library/cypress": "^8.0.3",
@@ -63,7 +63,7 @@
     "start-server-and-test": "^1.14.0",
     "totp-generator": "^0.0.13",
     "typescript": "^4.8.2",
-    "vite": "^2.9.15",
+    "vite": "^3.2.2",
     "ws": "^8.8.1",
     "xstate": "^4.33.5"
   }

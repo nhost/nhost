@@ -1,11 +1,11 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
 import { BASE_URL } from './helpers/config'
 import {
-  anonymousNetworkErrorHandler,
   anonymousInternalErrorHandler,
+  anonymousNetworkErrorHandler,
   invalidDeamonymisationEmailError
 } from './helpers/handlers'
 import { fakeAnonymousUser } from './helpers/mocks/user'
