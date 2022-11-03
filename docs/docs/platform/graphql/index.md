@@ -75,7 +75,7 @@ query GetTodos {
 
 More complex queries utilize filters, limits, sorting, and aggregation.
 
-Here's an example of a more complex GraphQL query that selects all items in the `todos` table that aren not completed, with the total number of comments and the last five comments:
+Here's an example of a more complex GraphQL query that selects all items in the `todos` table that are not completed, with the total number of comments and the last five comments:
 
 ```graphql title=GraphQL
 query GetTodosWithLatestComments {
