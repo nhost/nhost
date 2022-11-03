@@ -20,6 +20,37 @@ interface CommonOptions {
 }
 
 /**
+ * Extracts the files from a sandbox url and returns the files in a format that can be used in the Codesandbox API.
+ * @param githubUrl The URL of the GitHub repository to import.
+ */
+const extractFilesWithDetailsFromGitHub = async (githubUrl: string): Promise<IFiles> => {
+  const url = githubUrl.replace(
+    'https://github.com',
+    'https://codesandbox.io/api/v1/sandboxes/github'
+  )
+  const {
+    data: { modules, directories }
+  } = await fetch(url).then((response) => response.json())
+  return normalize(
+    correctDirectoryShortIdProperty<ISandboxFile>(modules),
+    correctDirectoryShortIdProperty<ISandboxDirectory>(directories)
+  ) as IFiles
+}
+
+/**
+ * Extracts the files from a sandbox url and returns the files as a key-value object.
+ * @param githubUrl The URL of the GitHub repository to import.
+ */
+export const extractFilesFromGitHub = async (githubUrl: string): Promise<Record<string, string>> =>
+  Object.entries(await extractFilesWithDetailsFromGitHub(githubUrl)).reduce<Record<string, string>>(
+    (agg, [path, file]) => {
+      agg[path] = file.content
+      return agg
+    },
+    {}
+  )
+
+/**
  * Create parameters for the CodeSandbox Define API, with optional additional files
  * @param githubUrl full github url
  * @returns parameters to use with the CodeSandbox Define API
@@ -38,25 +69,13 @@ interface CommonOptions {
 export const createGitHubCodeSandBoxParameters = async (
   githubUrl: string,
   { files }: CommonOptions | undefined = {}
-) => {
-  const url = githubUrl.replace(
-    'https://github.com',
-    'https://codesandbox.io/api/v1/sandboxes/github'
-  )
-  const {
-    data: { modules, directories }
-  } = await fetch(url).then((response) => response.json())
-  const originalFiles = normalize(
-    correctDirectoryShortIdProperty<ISandboxFile>(modules),
-    correctDirectoryShortIdProperty<ISandboxDirectory>(directories)
-  ) as IFiles
-  return getParameters({
+): Promise<string> =>
+  getParameters({
     files: {
-      ...originalFiles,
+      ...(await extractFilesWithDetailsFromGitHub(githubUrl)),
       ...files
     }
   })
-}
 
 interface OpenGitHubCodeSandBoxOptions extends CommonOptions {
   /**
@@ -86,7 +105,7 @@ export const openGitHubCodeSandBox = async (
   { files, target = '_blank' }: OpenGitHubCodeSandBoxOptions | undefined = {
     target: '_blank'
   }
-) => {
+): Promise<void> => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw Error('openGitHubCodeSandBox can only be used in a browser')
   }
@@ -109,7 +128,7 @@ export const openGitHubCodeSandBox = async (
 /**
  * Transform a plain JavaScript object into a string formatted as a `.env` key-value file
  */
-export const objectToDotEnv = (obj: Record<string, number | boolean | string>) =>
+export const objectToDotEnv = (obj: Record<string, number | boolean | string>): string =>
   Object.entries(obj)
     .map(([key, value]) => `${key}=${value}`)
     .join('\n')
