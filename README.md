@@ -502,7 +502,7 @@ Here are some ways of contributing to making Nhost better:
         <a href="https://github.com/meesvandongen">
             <img src="https://avatars.githubusercontent.com/u/35409045?v=4" width="100;" alt="meesvandongen"/>
             <br />
-            <sub><b>meesvandongen</b></sub>
+            <sub><b>Meesvandongen</b></sub>
         </a>
     </td></tr>
 </table>
