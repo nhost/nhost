@@ -497,6 +497,13 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Komninos</b></sub>
         </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/meesvandongen">
+            <img src="https://avatars.githubusercontent.com/u/35409045?v=4" width="100;" alt="meesvandongen"/>
+            <br />
+            <sub><b>meesvandongen</b></sub>
+        </a>
     </td></tr>
 </table>
 <!-- readme: contributors -end -->
