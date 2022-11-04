@@ -17,7 +17,6 @@ import { Request, Response } from 'express'
 import { allowCors } from '../_utils/helpers'
 
 const handler = (req: Request, res: Response) => {
-  const d = new Date()
   res.send('CORS OK')
 }
 
