@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
 ---
-openapi: 3.0
+openapi: 3.0.3
 info:
   description: Hasura Storage is amazing
   version: 1.0.0
