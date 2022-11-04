@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 func (ctrl *Controller) getFileMetadata(
 	ctx context.Context,
 	fileID string,
+	checkIsUploaded bool,
 	headers http.Header,
 ) (FileMetadata, BucketMetadata, *APIError) {
 	fileMetadata, apiErr := ctrl.metadataStorage.GetFileByID(ctx, fileID, headers)
@@ -20,8 +22,9 @@ func (ctrl *Controller) getFileMetadata(
 		return FileMetadata{}, BucketMetadata{}, apiErr
 	}
 
-	if !fileMetadata.IsUploaded {
-		return FileMetadata{}, BucketMetadata{}, ForbiddenError(nil, "you are not auhtorized")
+	if checkIsUploaded && !fileMetadata.IsUploaded {
+		msg := "file is not uploaded"
+		return FileMetadata{}, BucketMetadata{}, ForbiddenError(errors.New(msg), msg) //nolint:goerr113
 	}
 
 	bucketMetadata, apiErr := ctrl.metadataStorage.GetBucketByID(
@@ -124,7 +127,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 	}
 
 	id := ctx.Param("id")
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, true, ctx.Request.Header)
 	if apiErr != nil {
 		return nil, apiErr
 	}

@@ -81,6 +81,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 	fileMetadata, _, apiErr := ctrl.getFileMetadata(
 		ctx.Request.Context(),
 		req.fileID,
+		true,
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {

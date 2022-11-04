@@ -68,7 +68,9 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		return FileMetadata{}, apiErr
 	}
 
-	originalMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), file.ID, ctx.Request.Header)
+	originalMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+		ctx.Request.Context(), file.ID, false, ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return FileMetadata{}, apiErr
 	}

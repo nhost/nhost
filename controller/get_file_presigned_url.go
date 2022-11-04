@@ -28,7 +28,9 @@ func (ctrl *Controller) getFilePresignedURLParse(ctx *gin.Context) GetFilePresig
 func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedURLResponse, *APIError) {
 	req := ctrl.getFilePresignedURLParse(ctx)
 
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), req.FileID, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+		ctx.Request.Context(), req.FileID, true, ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return GetFilePresignedURLResponse{}, apiErr
 	}

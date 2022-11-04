@@ -203,7 +203,9 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 		return nil, apiErr
 	}
 
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), req.fileID, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+		ctx.Request.Context(), req.fileID, true, ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
