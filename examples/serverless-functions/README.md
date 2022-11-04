@@ -22,21 +22,21 @@ See all examples in the [`functions/`](./functions/) folder.
 
 1. Clone the repository
 
-```sh
+```
 git clone https://github.com/nhost/nhost
 cd nhost
 ```
 
 2. Install and build dependencies
 
-```sh
+```
 pnpm install
 pnpm build
 ```
 
 3. Go to the Serverless Functions example folder
 
-```sh
+```
 cd examples/serverless-functions
 ```
 
@@ -44,13 +44,13 @@ cd examples/serverless-functions
 
 > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
 
-```sh
+```
 nhost up
 ```
 
-5. Terminal 2: See Serverless Function logs
+5. Terminal 2: See logs for the Serverless Functions
 
-```text
+```
 nhost logs functions -f
 ```
 
