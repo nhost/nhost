@@ -1,7 +1,6 @@
 /*
 
 - How to import a function (`add`) from a utils folder.
-- How to use a file inside a folder (`/math/add.ts`) to create an endpoint.
 
 Test:
 

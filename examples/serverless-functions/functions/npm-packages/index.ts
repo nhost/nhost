@@ -12,7 +12,9 @@ import slugify from 'slugify'
 
 export default (req: Request, res: Response) => {
   const text = 'The quick brown fox jumps over the lazy dog'
-  const slug = slugify(text)
+  const slug = slugify(text, {
+    lower: true
+  })
 
   res.status(200).send(slug)
 }
