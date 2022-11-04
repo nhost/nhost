@@ -26,7 +26,7 @@ interface ScheduledEvent {
   cancel: () => Promise<void>
 }
 
-export const createScheduledEvent = async <T>(
+export const createScheduledEvent = async <T extends Record<string, unknown> = {}>(
   endpoint: string,
   time: ScheduleEventTime,
   options?: ScheduleEventPayload<T>

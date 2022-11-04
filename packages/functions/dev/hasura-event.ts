@@ -1,6 +1,6 @@
 import { eventFunction } from '../src'
 
-export default eventFunction<{}>(
+export default eventFunction<{ bob: string }>(
   'INSERT',
   (req, res) => {
     const { userClaims, isAdmin, role } = req

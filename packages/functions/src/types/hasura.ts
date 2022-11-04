@@ -6,34 +6,74 @@ export type HasuraUserClaims = {
   [key: string]: string // had to add this here to avoide adding `| string[]` at the end here.
 }
 
-export type HasuraEventType = 'INSERT' | 'UPDATE' | 'DELETE' | 'UNKNOWN'
+/**
+ * Name of the operation. Can only be "INSERT", "UPDATE", "DELETE", "MANUAL"
+ */
+export type HasuraEventType = 'INSERT' | 'UPDATE' | 'DELETE' | 'MANUAL'
 
-export type HasuraEventRow = Record<string, unknown>
+/**
+ * Key-value pairs of column name and their values of the table
+ */
+export type HasuraEventColumnValues = Record<string, unknown>
 
-// TODO link to hasura docs
-export type HasuraEventPayload<T extends HasuraEventRow, U extends HasuraEventType = 'UNKNOWN'> = {
+/**
+ * The payload of a Hasura event
+ * @see{@link https://hasura.io/docs/latest/event-triggers/payload/#json-payload}
+ */
+export type HasuraEventPayload<T extends HasuraEventColumnValues, U extends HasuraEventType> = {
   event: {
     op: U
+    /**
+     * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
+     */
+    session_variables: Record<string, string>
     data: {
-      old: U extends 'UNKNOWN' ? T | null : U extends 'INSERT' ? null : T
-      new: U extends 'UNKNOWN' ? T | null : U extends 'DELETE' ? null : T
+      /**
+       * Column values before the update or delete. Null when the event is of type "INSERT" or manually triggered.
+       */
+      old: U extends 'INSERT' | 'MANUAL' ? null : T
+      /**
+       * Column values after the update, or values on creation. Current row when the event manually triggered. Null when the event is of type "DELETE".
+       */
+      new: U extends 'DELETE' ? null : T
     }
     trace_context: {
       trace_id: string
       span_id: string
     }
   }
-  created_at: string //'2022-10-16T14:43:49.644Z'
-  id: string //'2c173942-a860-4a4c-ab71-9a29e2384d54'
+  /**
+   * Timestamp at which event was created
+   */
+  created_at: string
+  /**
+   * UUID identifier for the event
+   */
+  id: string
   delivery_info: {
+    /**
+     * Maximum retries for this event
+     */
     max_retries: number
+    /**
+     * Current retry number
+     */
     current_retry: number
   }
   trigger: {
+    /**
+     * Name of the trigger
+     */
     name: string
   }
   table: {
+    /**
+     * Name of the schema for the table
+     */
     schema: string
+    /**
+     * Name of the table
+     */
     name: string
   }
 }
@@ -47,7 +87,13 @@ export interface HasuraMetadataAPIPayload<Type extends string, Args> {
  * @see{@link https://hasura.io/docs/latest/api-reference/syntax-defs/#headerfromvalue}
  */
 export interface HasuraHeaderFromValue {
+  /**
+   * Name of the header
+   */
   name: string
+  /**
+   * Value of the header
+   */
   value: string
 }
 
@@ -55,29 +101,74 @@ export interface HasuraHeaderFromValue {
  * @see{@link https://hasura.io/docs/latest/api-reference/syntax-defs/#headerfromenv}
  */
 export interface HasuraHeaderFromEnv {
+  /**
+   * Name of the header
+   */
   name: string
+  /**
+   * Name of the environment variable which holds the value of the header
+   */
   value_from_env: string
 }
 
 export type HasuraScheduledEventHeaders = (HasuraHeaderFromValue | HasuraHeaderFromEnv)[]
+
 /**
+ * Payload used to create a scheduled event
  * @see{@link https://hasura.io/docs/latest/api-reference/metadata-api/scheduled-triggers/#metadata-create-scheduled-event}
  */
 export interface HasuraCreateScheduledEventPayload<T>
   extends HasuraMetadataAPIPayload<
     'create_scheduled_event',
     {
+      /**
+       * A String value which supports templating environment variables enclosed in {{ and }}.
+       * @example
+       * https://{{ACTION_API_DOMAIN}}/create-user
+       */
       webhook: string
+      /**
+       * The time at which the invocation should be invoked. (ISO8601 format)
+       */
       schedule_at: string
-      payload?: T
+      /**
+       * Any JSON payload which will be sent when the webhook is invoked.
+       */
+      payload?: T & Record<string, unknown> // TODO check tyoe
 
+      /**
+       * List of headers to be sent with the webhook
+       */
       headers?: (HasuraHeaderFromValue | HasuraHeaderFromEnv)[]
+      /**
+       * Retry configuration if scheduled event delivery fails
+       */
       retry_conf?: {
+        /**
+         * Number of times to retry delivery.
+         * @default 0
+         */
         num_retries?: number
+        /**
+         * Number of seconds to wait between each retry.
+         * @default 10
+         */
         timeout_seconds?: number
+        /**
+         * Number of seconds to wait for response before timing out
+         * @default 60
+         */
         tolerance_seconds?: number
+        /**
+         * Number of seconds between scheduled time and actual delivery time that is acceptable.
+         * If the time difference is more than this, then the event is dropped.
+         * @default 21600 (6 hours)
+         */
         retry_interval_seconds?: number
       }
+      /**
+       * Custom comment.
+       */
       comment?: string
     }
   > {}
@@ -97,7 +188,13 @@ export interface HasuraDeleteScheduledEventPayload
   extends HasuraMetadataAPIPayload<
     'delete_scheduled_event',
     {
+      /**
+       * Type of the event trigger.
+       */
       type: 'one_off' | 'cron'
+      /**
+       * The id of the scheduled event.
+       */
       event_id: string
     }
   > {}

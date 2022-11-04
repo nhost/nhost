@@ -1,50 +1,71 @@
 import { RequestHandler } from 'express'
 
-import { HasuraEventPayload, HasuraEventRow, HasuraEventType } from './types'
+import { HasuraEventColumnValues, HasuraEventPayload, HasuraEventType } from './types'
 import { ErrorRequestHandler, webhookGuard, wrapErrors } from './utils'
 
-export type EventFunctionOptions<T extends HasuraEventType = 'UNKNOWN'> = T | { event: T }
+export type EventFunctionOptions<T extends HasuraEventType = 'MANUAL'> = T | { event: T }
 
-type EventHandler<R extends HasuraEventRow, E extends HasuraEventType> = RequestHandler<
+type EventHandler<R extends HasuraEventColumnValues, E extends HasuraEventType> = RequestHandler<
   {},
   {},
   HasuraEventPayload<R, E>,
   {}
 >
-type EventFunctionResult<R extends HasuraEventRow, E extends HasuraEventType> = EventHandler<R, E>[]
+type EventFunctionResult<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType
+> = EventHandler<R, E>[]
 
-// * A bit repetitive workaround to the fact that Typescript doesn't support partial type parameter inference
+// * The following overrides are a bit repetitive workaround to the fact that Typescript doesn't support partial type parameter inference
 // * https://stackoverflow.com/questions/57589098/infer-one-of-generic-types-from-function-argument/57595649#57595649
 
-export function eventFunction<R extends HasuraEventRow, E extends HasuraEventType = 'UNKNOWN'>(
+export function eventFunction<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType = 'MANUAL'
+>(
   options: EventFunctionOptions<E>,
   handler: EventHandler<R, E>,
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, E>
 
-export function eventFunction<R extends HasuraEventRow, E extends HasuraEventType = 'INSERT'>(
+export function eventFunction<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType = 'INSERT'
+>(
   options: EventFunctionOptions<E>,
   handler: EventHandler<R, E>,
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, E>
 
-export function eventFunction<R extends HasuraEventRow, E extends HasuraEventType = 'UPDATE'>(
+export function eventFunction<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType = 'UPDATE'
+>(
   options: EventFunctionOptions<E>,
   handler: EventHandler<R, E>,
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, E>
 
-export function eventFunction<R extends HasuraEventRow, E extends HasuraEventType = 'DELETE'>(
+export function eventFunction<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType = 'DELETE'
+>(
   options: EventFunctionOptions<E>,
   handler: EventHandler<R, E>,
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, E>
 
-// TODO Should we support the 'MANUAL' event type?
-export function eventFunction<R extends HasuraEventRow>(
+/**
+ * Creates a function that can be used as a webhook handler for Hasura event triggers
+ * @param options The event type(s) to handle
+ * @param handler The handler function
+ * @param errorHandler The error handler function
+ * @returns
+ */
+export function eventFunction<R extends HasuraEventColumnValues>(
   options: EventFunctionOptions,
-  handler: EventHandler<R, 'UNKNOWN'>,
+  handler: EventHandler<R, 'MANUAL'>,
   errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, 'UNKNOWN'> {
+): EventFunctionResult<R, 'MANUAL'> {
   return wrapErrors([webhookGuard, handler], errorHandler)
 }

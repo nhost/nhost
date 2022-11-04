@@ -7,56 +7,21 @@ export interface NhostFunctionOptions {
   cors?: boolean
 }
 
-/*
-
-import { nhostFunction } from '@nhost/functions'
-
-export default nhostFunction(
-  async (req, res) => {
-		// Returns the decoded access token, or undefined
-    console.log(req.accessToken)
-
-		// Returns `true` if there is the hasura admin secret of if the role is admin
-    console.log(req.isAdmin)
-		// Returns the `x-hasura-role` value or 'admin' if the hasura admin secret is set
-    console.log(req.role)
-
-  }
-)
-
-
-import { nhostFunction } from '@nhost/functions'
-
-export default nhostFunction(
-  { roles: ['user', 'admin', 'public', 'anonymous', 'any'] },
-  async (req, res) => {
-		 req.accessToken is the decoded access token. Type:
-		 - `undefined` if roles are ['public'] or [] or undefined
-		 - `undefined | AccessToken` if roles include 'admin' or 'any'
-		 - `AccessToken` if roles don't include 'public' nor 'admin'
-         console.log(req.accessToken)
-
-         // Returns `true` if there is the hasura admin secret of if the role is admin
-     console.log(req.isAdmin)
-         // Returns the `x-hasura-role` value or 'admin' if the hasura admin secret is set
-     console.log(req.role)
-   }
- )
-
-
-
- ```tsx
-import { nhostFunction } from '@nhost/functions'
-
-export default nhostFunction<{ id: string; created_at: string; value: number }>(
-  async (req, res) => {
-    // Typed according to the generic type
-    console.log(req.body.id, req.body.value)
-  }
-)
-```
-*/
-
+/**
+ * Nhost function helper
+ * @param options options of the function, such as allowed roles and cors
+ * @param handler the function handler
+ * @param errorHandler the error handler
+ * @example
+ * ```ts
+ * import { nhostFunction } from '@nhost/functions'
+ *
+ * export default nhostFunction({ roles: ['user'] }, (req, res) => {
+ *   console.log(req.role)
+ *   res.send("this function can be run with the 'user' role")
+ * })
+ * ```
+ */
 export function nhostFunction<
   P = Record<string, string>,
   ResultBody = any,
@@ -68,6 +33,36 @@ export function nhostFunction<
   errorHandler?: ErrorRequestHandler
 ): RequestHandler<P, ResultBody, RequestBody, RequestQuery>[]
 
+/**
+ * Nhost function helper
+ * @param handler the function handler
+ * @param errorHandler the error handler
+ * @example
+ *  ```ts
+ * import { nhostFunction } from '@nhost/functions'
+ *
+ * export default nhostFunction<{ id: string; created_at: string; value: number }>(
+ *   (req, res) => {
+ *     // Typed according to the generic type
+ *     console.log(req.body.id, req.body.value)
+ *   }
+ * )
+ * ```
+ * @example
+ * ```ts
+ * import { nhostFunction } from '@nhost/functions'
+ *
+ * export default nhostFunction((req, res) => {
+ *   // Returns the decoded user claims, if any
+ *   console.log(req.userClaims)
+ *   // Returns `true` if there is the hasura admin secret of if the user role is admin
+ *   console.log(req.isAdmin)
+ *   // Returns the `x-hasura-role` value or 'admin' if the hasura admin secret is set
+ *   console.log(req.role)
+ *   res.send(`User id: ${req.userClaims?.['x-hasura-user-id']}`)
+ * })
+ * ```
+ */
 export function nhostFunction<
   P = Record<string, string>,
   ResultBody = any,
