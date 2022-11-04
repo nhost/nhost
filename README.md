@@ -97,14 +97,19 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 # Resources
 
-Nhost libraries and tools
+- Start developing locally with the [Nhost CLI](https://docs.nhost.io/reference/cli)
+
+## Nhost Clients
 
 - [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/javascript)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
-- [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
 - [Nhost Next.js](https://docs.nhost.io/reference/nextjs)
 - [Nhost Vue](https://docs.nhost.io/reference/vue)
+
+## Integrations
+
+- [Stripe GraphQL API](./packages/stripe-graphql-js)
 
 ## Community ❤️
 
