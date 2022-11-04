@@ -1,0 +1,63 @@
+{
+  "name": "@nhost/functions",
+  "version": "0.0.1",
+  "description": "Nhost Functions Helpers",
+  "license": "MIT",
+  "keywords": [
+    "graphql",
+    "api",
+    "nhost",
+    "hasura",
+    "serverless",
+    "functions",
+    "lambda"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "run-p dev:lib dev:nhost-cli",
+    "dev:lib": "vite build --config ../../config/vite.lib.dev.config.js",
+    "dev:nhost-cli": "vite build --config vite.nhost-cli.config.js --watch",
+    "build": "run-p build:lib build:nhost-cli",
+    "build:lib": "vite build",
+    "build:nhost-cli": "vite build --config vite.nhost-cli.config.js",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:*",
+    "axios": "^0.27.2",
+    "date-fns": "^2.29.3",
+    "graphql": "16.6.0",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^18.11.9",
+    "dotenv": "^16.0.3",
+    "glob": "^8.0.3",
+    "typescript": "^4.8.4"
+  }
+}

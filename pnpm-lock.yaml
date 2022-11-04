@@ -521,6 +521,33 @@ importers:
       tsup: 5.12.9_ml4fnuhsvjfvmeutrpvravkyna
       typescript: 4.8.4
 
+  packages/functions:
+    specifiers:
+      '@nhost/nhost-js': workspace:*
+      '@types/express': ^4.17.13
+      '@types/jsonwebtoken': ^8.5.9
+      '@types/node': ^18.11.9
+      axios: ^0.27.2
+      date-fns: ^2.29.3
+      dotenv: ^16.0.3
+      glob: ^8.0.3
+      graphql: 15.7.2
+      jsonwebtoken: ^8.5.1
+      typescript: ^4.8.4
+    dependencies:
+      '@nhost/nhost-js': link:../nhost-js
+      '@types/express': 4.17.13
+      axios: 0.27.2
+      date-fns: 2.29.3
+      graphql: 15.7.2
+      jsonwebtoken: 8.5.1
+    devDependencies:
+      '@types/jsonwebtoken': 8.5.9
+      '@types/node': 18.11.9
+      dotenv: 16.0.3
+      glob: 8.0.3
+      typescript: 4.8.4
+
   packages/hasura-auth-js:
     specifiers:
       '@nhost/core': workspace:*
@@ -5809,7 +5836,7 @@ packages:
       '@types/jsonwebtoken': 8.5.9
       chalk: 4.1.2
       debug: 4.3.4
-      dotenv: 16.0.2
+      dotenv: 16.0.3
       graphql: 15.7.2
       graphql-request: 4.2.0_graphql@15.7.2
       http-proxy-agent: 5.0.0
@@ -5842,7 +5869,7 @@ packages:
       '@types/jsonwebtoken': 8.5.9
       chalk: 4.1.2
       debug: 4.3.4
-      dotenv: 16.0.2
+      dotenv: 16.0.3
       graphql: 15.7.2
       graphql-request: 4.2.0_graphql@15.7.2
       http-proxy-agent: 5.0.0
@@ -7624,7 +7651,7 @@ packages:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
       '@types/minimatch': 3.0.5
-      '@types/node': 17.0.45
+      '@types/node': 18.11.9
     dev: true
 
   /@types/hast/2.3.4:
@@ -7836,7 +7863,7 @@ packages:
   /@types/sax/1.2.4:
     resolution: {integrity: sha512-pSAff4IAxJjfAXUG6tFkO7dsSbTmf8CtUpfhhZ5VhkRpC4628tJhh3+V6H1E+/Gs9piSzYKT5yzHO5M4GG9jkw==}
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 18.11.9
     dev: false
 
   /@types/scheduler/0.16.2:
@@ -9631,7 +9658,7 @@ packages:
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -11692,6 +11719,11 @@ packages:
     resolution: {integrity: sha512-qTcEYLen3r7ojZNgVUaRggOI+KM7jrKxXeSHhogh/TWxYMeONEMqY+hmkobiYQozsGIyg9OYVzO4ZIfoB4I0pQ==}
     dev: true
 
+  /date-fns/2.29.3:
+    resolution: {integrity: sha512-dDCnyH2WnnKusqvZZ6+jA1O51Ibt8ZMRNkDZdyAyK4YfbDwa/cEmuztzG5pk6hqlp9aSBPYcjOlktquahGwGeA==}
+    engines: {node: '>=0.11'}
+    dev: false
+
   /dayjs/1.11.1:
     resolution: {integrity: sha512-ER7EjqVAMkRRsxNCC5YqJ9d9VQYuWdGt7aiH2qA5R5wt8ZmWaP2dLUSIK6y/kVzLMlmh1Tvu5xUf4M/wdGJ5KA==}
     dev: true
@@ -12115,11 +12147,6 @@ packages:
     dependencies:
       is-obj: 2.0.0
     dev: false
-
-  /dotenv/16.0.2:
-    resolution: {integrity: sha512-JvpYKUmzQhYoIFgK2MOnF3bciIZoItIIoryihy0rIA+H4Jy0FmgyKYAHCTN98P5ybGSJcIFbh6QKeJdtZd1qhA==}
-    engines: {node: '>=12'}
-    dev: true
 
   /dotenv/16.0.3:
     resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
@@ -14385,6 +14412,16 @@ packages:
       react: 17.0.2
     transitivePeerDependencies:
       - encoding
+    dev: false
+
+  /follow-redirects/1.14.9:
+    resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
     dev: false
 
   /follow-redirects/1.14.9_debug@4.3.2:
