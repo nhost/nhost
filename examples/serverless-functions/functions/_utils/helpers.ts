@@ -1,5 +1,5 @@
 /*
-Files inside a folder that starts with an underscore (like `_utils`) are not considered as endpoints. Here you can put code that that you want to reuse in your functions.
+Files inside a folder that starts with an underscore (like `_utils`) are not considered as endpoints. Here you can put code that you want to reuse in your functions.
 */
 
 export const add = (a: number, b: number): number => a + b
