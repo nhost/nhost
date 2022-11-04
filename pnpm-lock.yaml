@@ -187,6 +187,12 @@ importers:
   examples/docker-compose/functions:
     specifiers: {}
 
+  examples/functions:
+    specifiers:
+      '@types/express': ^4.17.13
+    devDependencies:
+      '@types/express': 4.17.13
+
   examples/multi-tenant-one-to-many:
     specifiers:
       '@nhost/nhost-js': '*'
@@ -355,6 +361,15 @@ importers:
 
   examples/seed-data/functions:
     specifiers: {}
+
+  examples/serverless-functions:
+    specifiers:
+      '@types/express': ^4.17.13
+      slugify: ^1.6.5
+    dependencies:
+      slugify: 1.6.5
+    devDependencies:
+      '@types/express': 4.17.13
 
   examples/vue-apollo:
     specifiers:
@@ -20251,6 +20266,11 @@ packages:
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
     dev: true
+
+  /slugify/1.6.5:
+    resolution: {integrity: sha512-8mo9bslnBO3tr5PEVFzMPIWwWnipGS0xVbYf65zxDqfNwmzYn1LpiKNrR6DlClusuvo+hDHd1zKpmfAe83NQSQ==}
+    engines: {node: '>=8.0.0'}
+    dev: false
 
   /smart-buffer/4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
