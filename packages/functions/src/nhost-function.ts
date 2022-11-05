@@ -1,10 +1,24 @@
 import { RequestHandler } from 'express'
 
-import { ErrorRequestHandler, nhostUserInformationMiddleware, roleGuard, wrapErrors } from './utils'
+import {
+  allowCorsMiddleware,
+  ErrorRequestHandler,
+  nhostUserInformationMiddleware,
+  roleGuard,
+  wrapErrors
+} from './utils'
 
 export interface NhostFunctionOptions {
+  /**
+   * Roles that are allowed to access this function.
+   * If not specified, the function is accessible to all roles.
+   */
   roles?: string[] | string
-  cors?: boolean
+  /**
+   * Enable CORS for browsers
+   * @default false
+   */
+  allowCors?: boolean
 }
 
 /**
@@ -76,17 +90,18 @@ export function nhostFunction<
 export function nhostFunction(...args: any[]) {
   let handler: RequestHandler
   let errorHandler: ErrorRequestHandler
-  //   TODO CORS
   const internalHandlers: RequestHandler[] = [nhostUserInformationMiddleware]
 
   if (typeof args[0] === 'function') {
     handler = args[0]
     errorHandler = args[1]
   } else {
-    const { roles }: NhostFunctionOptions = args[0]
+    const { roles, allowCors }: NhostFunctionOptions = args[0]
     handler = args[1]
     errorHandler = args[2]
-
+    if (allowCors) {
+      internalHandlers.push(allowCorsMiddleware)
+    }
     if (roles) {
       internalHandlers.push(roleGuard(roles))
     }

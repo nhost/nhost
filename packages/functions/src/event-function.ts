@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express'
 
-import { HasuraEventColumnValues, HasuraEventPayload, HasuraEventType } from './types'
+import { HasuraEventColumnValues, HasuraEventPayload, HasuraEventType } from './hasura-metadata'
 import { ErrorRequestHandler, webhookGuard, wrapErrors } from './utils'
 
 export type EventFunctionOptions<T extends HasuraEventType = 'MANUAL'> = T | { event: T }
@@ -63,7 +63,7 @@ export function eventFunction<
  * @returns
  */
 export function eventFunction<R extends HasuraEventColumnValues>(
-  options: EventFunctionOptions,
+  _options: EventFunctionOptions,
   handler: EventHandler<R, 'MANUAL'>,
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, 'MANUAL'> {

@@ -123,7 +123,7 @@ auth:
     allowed_roles: user,me
     default_allowed_roles: user,me
     default_role: user
-    signin_email_verified_required: true
+    signin_email_verified_required: false
   mfa:
     enabled: true
     issuer: nhost

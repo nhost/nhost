@@ -1,11 +1,11 @@
 import { add, Duration } from 'date-fns'
 
+import { hasuraClient } from './client'
 import {
   HasuraCreateScheduledEventResult,
   HasuraMetadataPayload,
   HasuraScheduledEventHeaders
 } from './types'
-import { hasuraClient } from './utils'
 
 interface ScheduleEventPayload<T = any> {
   headers?: Record<string, string | { env: string } | { value: string }>

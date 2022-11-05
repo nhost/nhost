@@ -10,6 +10,8 @@
 </p>
 
 - [x] Basic function handler
+  - [x] Roles guard
+  - [x] Enable CORS for browsers
 - [x] Hasura event handler
   - [ ] cli command to add an event handler?
 - [ ] Remote schema
@@ -22,8 +24,4 @@
   - [x] create
   - [x] delete
   - [ ] list?
-- [ ] Enable CORS for browsers
 - [ ] Add tests
-- Not implemented env vars:
-  - FUNCTIONS_LOG_LEVEL
-  - FUNCTIONS_LOGGER_TYPE

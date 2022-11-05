@@ -1,7 +1,7 @@
 import { Request, RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
 
-import { HasuraUserClaims } from '../types'
+import { HasuraUserClaims } from '../hasura-metadata'
 
 import { ExpressError } from './errors'
 
@@ -79,4 +79,10 @@ export const roleGuard =
     }
   }
 
-export const adminGuard: RequestHandler = roleGuard('admin')
+export const adminGuard: RequestHandler = (req, res, next) => {
+  if (req.isAdmin || req.role === 'admin') {
+    next()
+  } else {
+    throw new ExpressError(401, 'unauthorized')
+  }
+}

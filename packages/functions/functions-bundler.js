@@ -3,7 +3,7 @@ const esbuild = require('esbuild')
 const path = require('path')
 const fs = require('fs-extra')
 
-const origin = 'dev'
+const origin = 'tests'
 const destination = 'functions'
 
 fs.emptydirSync(destination)
@@ -26,46 +26,36 @@ fs.writeJsonSync(path.join(destination, 'tsconfig.json'), {
   include: ['**/*.js']
 })
 
-const changeExtension = (file, extension) => {
-  const basename = path.basename(file, path.extname(file))
-  return path.join(path.dirname(file), basename + extension)
-}
-
 const targetFile = (file) => {
-  let result = path.join(destination, file)
-  if (path.extname(file) === '.ts' || path.extname(file) === '.ts') {
-    result = changeExtension(result, '.js')
-  }
-  return result
+  const basename = path.basename(file, path.extname(file))
+  return path.join(destination, path.dirname(file), basename + '.js')
 }
 
-const buildOrCopy = (file) => {
+const bunle = (file) => {
   const destinationFile = targetFile(file)
-  if (path.extname(file) === '.ts' || path.extname(file) === '.ts') {
-    console.log(`Bundling ${path.join(origin, file)} -> ${destinationFile}`)
-
-    esbuild.buildSync({
-      entryPoints: [path.join(origin, file)],
-      platform: 'node',
-      outfile: destinationFile,
-      target: ['node16'],
-      format: 'esm',
-      bundle: true
-    })
-  } else {
-    console.log(`Copying ${path.join(origin, file)} -> ${destinationFile}`)
-    fs.copySync(path.join(origin, file), destinationFile, { overwrite: true })
-  }
+  console.log(`Bundling ${path.join(origin, file)} -> ${destinationFile}`)
+  esbuild.buildSync({
+    entryPoints: [path.join(origin, file)],
+    platform: 'node',
+    outfile: destinationFile,
+    target: ['node16'],
+    format: 'esm',
+    bundle: true
+  })
 }
+
 const remove = async (file) => {
   const outfile = targetFile(file)
   console.log(`Removing ${path.join(origin, file)} -> ${outfile}`)
   fs.unlinkSync(outfile)
 }
 
-const watcher = chokidar.watch('**/*', { cwd: path.join(__dirname, origin) })
+const watcher = chokidar.watch('**/*.{js,ts}', {
+  cwd: path.join(__dirname, origin),
+  ignored: ['**/_*/**', '**/*.spec.{js,ts}', '**/tests/**', '**/*.test.{js,ts}']
+})
 
-watcher.on('add', buildOrCopy).on('change', buildOrCopy).on('unlink', remove)
+watcher.on('add', bunle).on('change', bunle).on('unlink', remove)
 
 watcher.on('ready', () => {
   if (!process.argv.includes('--watch')) {
