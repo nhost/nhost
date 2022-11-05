@@ -28,7 +28,7 @@ const jsonOutput =
     _console[level](
       JSON.stringify({
         level: getLogLevel(level),
-        message: args?.length === 1 && typeof args[0] === 'object' ? args[0] : args?.join(' ')
+        message: args?.join(' ')
       })
     )
 

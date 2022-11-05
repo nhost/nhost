@@ -530,7 +530,7 @@ importers:
       axios: ^0.27.2
       date-fns: ^2.29.3
       dotenv: ^16.0.3
-      glob: ^8.0.3
+      fs-extra: ^10.1.0
       graphql: 15.7.2
       jsonwebtoken: ^8.5.1
       typescript: ^4.8.4
@@ -545,7 +545,7 @@ importers:
       '@types/jsonwebtoken': 8.5.9
       '@types/node': 18.11.9
       dotenv: 16.0.3
-      glob: 8.0.3
+      fs-extra: 10.1.0
       typescript: 4.8.4
 
   packages/functions/dev/public:
@@ -9664,7 +9664,7 @@ packages:
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -14418,6 +14418,16 @@ packages:
       react: 17.0.2
     transitivePeerDependencies:
       - encoding
+    dev: false
+
+  /follow-redirects/1.14.9:
+    resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
     dev: false
 
   /follow-redirects/1.14.9_debug@4.3.2:
