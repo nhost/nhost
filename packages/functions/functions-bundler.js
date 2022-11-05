@@ -2,9 +2,13 @@ const chokidar = require('chokidar')
 const esbuild = require('esbuild')
 const path = require('path')
 const fs = require('fs-extra')
+const args = require('command-line-args')
 
-const from = process.argv.find((arg) => arg.startsWith('--from'))?.replace('--from', '') || 'tests'
-const to = process.argv.find((arg) => arg.startsWith('--to'))?.replace('--to', '') || 'functions'
+const { from, to, watch } = args([
+  { name: 'from', type: String, defaultValue: 'tests' },
+  { name: 'to', type: String, defaultValue: 'functions' },
+  { name: 'watch', type: Boolean, defaultValue: false }
+])
 
 fs.emptydirSync(to)
 
@@ -59,8 +63,8 @@ const watcher = chokidar
   .on('change', bundle)
   .on('unlink', remove)
   .on('ready', () => {
-    if (!process.argv.includes('--watch')) {
+    if (!watch) {
       return watcher.close()
     }
-    console.log('Watching for changes...')
+    console.log(`Watching changes in: ${from}...`)
   })
