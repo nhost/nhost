@@ -17,7 +17,6 @@
   - [ ] With graphql-yoga?
   - [ ] cli command to add a remote schema?
 - [x] Nhost client
-- [x] Logger
 - [ ] Code generation
 - [ ] One-off event scheduler
   - [x] create
