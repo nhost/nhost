@@ -31,7 +31,7 @@ const targetFile = (file) => {
   return path.join(destination, path.dirname(file), basename + '.js')
 }
 
-const bunle = (file) => {
+const bundle = (file) => {
   const destinationFile = targetFile(file)
   console.log(`Bundling ${path.join(origin, file)} -> ${destinationFile}`)
   esbuild.buildSync({
@@ -55,7 +55,7 @@ const watcher = chokidar.watch('**/*.{js,ts}', {
   ignored: ['**/_*/**', '**/*.spec.{js,ts}', '**/tests/**', '**/*.test.{js,ts}']
 })
 
-watcher.on('add', bunle).on('change', bunle).on('unlink', remove)
+watcher.on('add', bundle).on('change', bundle).on('unlink', remove)
 
 watcher.on('ready', () => {
   if (!process.argv.includes('--watch')) {
