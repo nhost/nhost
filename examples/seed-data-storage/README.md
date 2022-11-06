@@ -12,23 +12,18 @@ Start Nhost:
 nhost up
 ```
 
-Install dependencies:
-
-```
-pnpm install
-```
-
 Seed storage by uploading file(s) directly to the local S3 server.
 
 ```
 pnpm run seed-storage
 ```
 
-The database and storage has now been seeded successfully.
+The database and storage have now been seeded successfully.
 
-You can now try to fetch the seeded image:
+You can now try to fetch the seeded files:
 
-[http://localhost:1337/v1/storage/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267](http://localhost:1337/v1/storage/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267)
+- [http://localhost:1337/v1/storage/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267](http://localhost:1337/v1/storage/files/3d62252d-8db2-4b2b-ba63-f2ef64af4267)
+- [http://localhost:1337/v1/storage/files/039f89ef-f151-418f-b2db-83c94fbf0fa5](http://localhost:1337/v1/storage/files/039f89ef-f151-418f-b2db-83c94fbf0fa5)
 
 And make a GraphQL request:
 
@@ -46,7 +41,7 @@ query {
 }
 ```
 
-which should return:
+which returns:
 
 ```json
 {
@@ -57,7 +52,16 @@ which should return:
         "name": "nhost-nextjs.png",
         "file": {
           "id": "3d62252d-8db2-4b2b-ba63-f2ef64af4267",
-          "size": 12131,
+          "size": 11806,
+          "mimeType": "image/png"
+        }
+      },
+      {
+        "id": "05b62110-dfa7-42f6-a298-30a60c8a0324",
+        "name": "nhost-apple-sign-in.png",
+        "file": {
+          "id": "039f89ef-f151-418f-b2db-83c94fbf0fa5",
+          "size": 463155,
           "mimeType": "image/png"
         }
       }
@@ -72,6 +76,13 @@ When Nhost starts (`nhost up`) it automatically applies seed data to the `storag
 
 - [nhost/seed/default/001-images.sql](./nhost/seeds/default/001-images.sql).
 
-Once Nhost has started, we run a seed-scripts (`pnpm run seed-storage`) that uploads files directly to S3.
+This will add all metadata to your database and prepare `storage.files` table by adding the id's for the files to seed.
+
+When `pnpm run see-storage` is run a script is uploading the files with the same file id as was in the initial sql seed file.
 
 This way, both data in the database, and files in storage are in sync.
+
+### Notable files:
+
+- [./nhost/seeds/default/001-images.sql](nhost/seeds/default/001-images.sql)
+- [./input.json](input.json)

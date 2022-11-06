@@ -1,0 +1,11 @@
+{
+  "name": "@nhost-examples/seed-data-storage",
+  "version": "0.0.1",
+  "devDependencies": {},
+  "scripts": {
+    "seed-storage": "./seed-storage.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
