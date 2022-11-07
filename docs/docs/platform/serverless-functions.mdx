@@ -7,15 +7,13 @@ image: /img/og/platform/serverless-functions.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-With Nhost, you can deploy Serverless Functions to execute custom code. Each serverless function is its HTTP endpoint.
+With Nhost, you can deploy Serverless Functions to execute custom code. Each Serverless Function is its HTTP endpoint.
 
 Serverless functions can be used to handle [event triggers](/platform/database/event-triggers), form submission, integrations (e.g. Stripe, Slack, etc), and more.
 
----
-
 ## Creating a Serverless Function
 
-Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder of your Nhost project is its own serverless function.
+Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder of your Nhost project is its own Serverless Function.
 
 <Tabs groupId="language">
   <TabItem value="ts" label="TypeScript" default>
@@ -30,12 +28,14 @@ export default (req: Request, res: Response) => {
 
 :::info
 
-You **MUST** install `express` locally in the base directory of your Nhost project.
+To get the `Request`, and `Response` types you can install the `@types/express` package.
 
 ```bash
-npm install -d express @types/express
+npm install -d @types/express
 # or yarn
-yarn add -d express @types/express
+yarn add -d @types/express
+# or pnpm
+pnpm add -d @types/express
 ```
 
 :::
@@ -49,32 +49,25 @@ export default (req, res) => {
 }
 ```
 
-:::info
-
-You **MUST** install `express` locally in the base directory of your Nhost project.
-
-```bash
-npm install -d express
-# or yarn
-yarn add -D express
-```
-
-:::
-
   </TabItem>
 </Tabs>
 
 ## Deploying Serverless Functions
 
-Serverless functions are automatically deployed using Nhost's [GitHub integration](/platform/github-integration).
+Serverless Functions are automatically deployed using Nhost's [GitHub integration](/platform/github-integration).
 
-You can prepend files and folders with an underscore (`_`) to prevent them from being treated as serverless functions and be turned into HTTP endpoints. This is useful if you have, for example, a utils file (`functions/_utils.js`) or a utils folder (`functions/_utils/[multiple-files].js`).
+All Serverless Functions are deployed with the following options:
+
+- Node v16
+- 1024 MB memory (can be upgraded)
+- 10 seconds timeout (can be upgraded)
+- 6 MB request and response payload size limit
 
 ## Routing
 
 HTTP endpoints are automatically generated based on the file structure inside `functions/`.
 
-Here's an example of four serverless functions with their files and their HTTP endpoints:
+Here's an example of four Serverless Functions with their files and their HTTP endpoints:
 
 | File                        | HTTP Endpoint                                                     |
 | --------------------------- | ----------------------------------------------------------------- |
@@ -83,23 +76,23 @@ Here's an example of four serverless functions with their files and their HTTP e
 | `functions/users/active.ts` | `https://[project-subdomain].nhost.run/v1/functions/users/active` |
 | `functions/my-company.js`   | `https://[project-subdomain].nhost.run/v1/functions/my-company`   |
 
----
+You can prepend files and folders with an underscore (`_`) to prevent them from being treated as Serverless Functions and
+be turned into HTTP endpoints. This is useful if you have, for example, a utils file (`functions/_utils.js`) or a utils f
+older (`functions/_utils/<utils-files>.js`).
 
 ## Environment Variables
 
-[Environment variables](/platform/environment-variables) are available inside your serverless functions. Both in production and when running Nhost locally using the [Nhost CLI](/platform/cli).
+[Environment variables](/platform/environment-variables) are available inside your Serverless Functions. Both in production and when running Nhost locally using the [Nhost CLI](/platform/cli).
+
+## Examples
+
+We have multiple examples of Serverless Functions in our [Nhost repository](https://github.com/nhost/nhost/tree/main/examples/serverless-functions).
 
 ## Billing
 
-Serverless functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
+Serverless Functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
 
-1 GB-sec is 1 function with 1 GB of RAM running for 1 second. If 1 function with 1 GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
-
-All serverless functions in production are running with 1 GB of RAM.
-
-## Node Version
-
-All serverless functions in production are running Node.js version 16.x.
+1 GB-sec is 1 Serverless Function with 1 GB of RAM running for 1 second. If 1 Serverless Function with 1 GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
 
 ## Regions
 
@@ -107,4 +100,4 @@ Serverless Functions are always deployed to the same region as your project.
 
 ## Local Debugging
 
-To see the output of `console.log` in your terminal, you can use `nhost logs -f functions`.
+Use `nhost logs functions -f` to see the logs of your Serverless Functions when develop locally with the [Nhost CLI](/platform/cli).
