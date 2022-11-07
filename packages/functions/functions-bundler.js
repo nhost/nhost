@@ -5,7 +5,7 @@ const fs = require('fs-extra')
 const args = require('command-line-args')
 
 const { from, to, watch } = args([
-  { name: 'from', type: String, defaultValue: 'tests' },
+  { name: 'from', type: String, defaultOption: true, defaultValue: 'tests' },
   { name: 'to', type: String, defaultValue: 'functions' },
   { name: 'watch', type: Boolean, defaultValue: false }
 ])
