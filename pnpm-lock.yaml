@@ -353,9 +353,6 @@ importers:
       typescript: 4.8.3
       vite: 3.2.2
 
-  examples/seed-data/functions:
-    specifiers: {}
-
   examples/serverless-functions:
     specifiers:
       '@graphql-yoga/node': ^2.13.13
