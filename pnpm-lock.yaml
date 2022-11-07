@@ -356,6 +356,23 @@ importers:
   examples/seed-data/functions:
     specifiers: {}
 
+  examples/serverless-functions:
+    specifiers:
+      '@graphql-yoga/node': ^2.13.13
+      '@nhost/stripe-graphql-js': ^0.0.5
+      '@pothos/core': ^3.21.0
+      '@types/express': ^4.17.13
+      graphql: 15.7.2
+      slugify: ^1.6.5
+    dependencies:
+      '@graphql-yoga/node': 2.13.13_graphql@15.7.2
+      '@nhost/stripe-graphql-js': link:../../packages/stripe-graphql-js
+      '@pothos/core': 3.21.0_graphql@15.7.2
+      graphql: 15.7.2
+      slugify: 1.6.5
+    devDependencies:
+      '@types/express': 4.17.13
+
   examples/vue-apollo:
     specifiers:
       '@apollo/client': ^3.7.1
@@ -5286,7 +5303,7 @@ packages:
       '@envelop/core': 2.6.0_graphql@15.7.2
       graphql: 15.7.2
       lru-cache: 6.0.0
-      tslib: 2.4.0
+      tslib: 2.4.1
     dev: false
 
   /@envelop/types/2.4.0_graphql@15.7.2:
@@ -5295,7 +5312,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
     dev: false
 
   /@envelop/validation-cache/4.7.0_lik4xeitpfdwxqflh4melh77ce:
@@ -5307,7 +5324,7 @@ packages:
       '@envelop/core': 2.6.0_graphql@15.7.2
       graphql: 15.7.2
       lru-cache: 6.0.0
-      tslib: 2.4.0
+      tslib: 2.4.1
     dev: false
 
   /@esbuild/android-arm/0.15.12:
@@ -5795,7 +5812,7 @@ packages:
     dependencies:
       '@graphql-tools/utils': 8.12.0_graphql@15.7.2
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /@graphql-tools/optimize/1.3.0_graphql@15.7.2:
     resolution: {integrity: sha512-30QOWJoMJEt1De7tAFtWJ6VPrP6SLq+tSQrA3x+WMvCW3q2exq5wPDpvAXOakVKu0y8L2E+YkipC0hcQPBQdLg==}
@@ -5906,7 +5923,7 @@ packages:
       '@graphql-tools/merge': 8.3.6_graphql@15.7.2
       '@graphql-tools/utils': 8.12.0_graphql@15.7.2
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
       value-or-promise: 1.0.11
 
   /@graphql-tools/url-loader/7.13.3_graphql@15.7.2:
@@ -5971,7 +5988,7 @@ packages:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /@graphql-tools/utils/8.8.0_graphql@15.7.2:
     resolution: {integrity: sha512-KJrtx05uSM/cPYFdTnGAS1doL5bftJLAiFCDMZ8Vkifztz3BFn3gpFiy/o4wDtM8s39G46mxmt2Km/RmeltfGw==}
@@ -5989,6 +6006,7 @@ packages:
     dependencies:
       graphql: 15.7.2
       tslib: 2.4.0
+    dev: true
 
   /@graphql-tools/wrap/8.5.1_graphql@15.7.2:
     resolution: {integrity: sha512-KpVVfha2wLSpE08YLX0jeo5nXPfDLASlxOqMlvfa/B4X8SOVmuLyN1L5YZ132tPLDF93uflwlHFnUO5ahpRNlA==}
@@ -6019,13 +6037,13 @@ packages:
       '@envelop/parser-cache': 4.7.0_lik4xeitpfdwxqflh4melh77ce
       '@envelop/validation-cache': 4.7.0_lik4xeitpfdwxqflh4melh77ce
       '@graphql-tools/schema': 9.0.4_graphql@15.7.2
-      '@graphql-tools/utils': 8.9.0_graphql@15.7.2
+      '@graphql-tools/utils': 8.12.0_graphql@15.7.2
       '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
       '@graphql-yoga/subscription': 2.2.3
       '@whatwg-node/fetch': 0.3.2
       dset: 3.1.2
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -6036,12 +6054,12 @@ packages:
       graphql: ^15.2.0 || ^16.0.0
     dependencies:
       '@envelop/core': 2.6.0_graphql@15.7.2
-      '@graphql-tools/utils': 8.9.0_graphql@15.7.2
+      '@graphql-tools/utils': 8.12.0_graphql@15.7.2
       '@graphql-yoga/common': 2.12.12_graphql@15.7.2
       '@graphql-yoga/subscription': 2.2.3
       '@whatwg-node/fetch': 0.3.2
       graphql: 15.7.2
-      tslib: 2.4.0
+      tslib: 2.4.1
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -6051,14 +6069,14 @@ packages:
     dependencies:
       '@graphql-yoga/typed-event-target': 0.1.1
       '@repeaterjs/repeater': 3.0.4
-      tslib: 2.4.0
+      tslib: 2.4.1
     dev: false
 
   /@graphql-yoga/typed-event-target/0.1.1:
     resolution: {integrity: sha512-l23kLKHKhfD7jmv4OUlzxMTihSqgIjGWCSb0KdlLkeiaF2jjuo8pRhX200hFTrtjRHGSYS1fx2lltK/xWci+vw==}
     dependencies:
       '@repeaterjs/repeater': 3.0.4
-      tslib: 2.4.0
+      tslib: 2.4.1
     dev: false
 
   /@hapi/hoek/9.3.0:
@@ -6823,13 +6841,13 @@ packages:
     dependencies:
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /@peculiar/json-schema/1.1.12:
     resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
     engines: {node: '>=8.0.0'}
     dependencies:
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /@peculiar/webcrypto/1.4.0:
     resolution: {integrity: sha512-U58N44b2m3OuTgpmKgf0LPDOmP3bhwNz01vAnj1mBwxBASRhptWYK+M3zG+HBkDqGQM+bFsoIihTW8MdmPXEqg==}
@@ -6838,7 +6856,7 @@ packages:
       '@peculiar/asn1-schema': 2.2.0
       '@peculiar/json-schema': 1.1.12
       pvtsutils: 1.3.2
-      tslib: 2.4.0
+      tslib: 2.4.1
       webcrypto-core: 1.7.5
 
   /@pnpm/constants/6.1.0:
@@ -9526,7 +9544,7 @@ packages:
     dependencies:
       pvtsutils: 1.3.2
       pvutils: 1.1.3
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /assert-plus/1.0.0:
     resolution: {integrity: sha512-NfJ4UzBCcQGLDlQq7nHxH+tv3kyZ0hHQqF5BO6J7tNJeP5do1llPr8dZ8zHonfhAu0PHAdMkSo+8o0wxg9lZWw==}
@@ -9624,7 +9642,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: true
@@ -9632,7 +9650,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9640,7 +9658,7 @@ packages:
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -11768,6 +11786,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /debug/4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -14425,7 +14444,7 @@ packages:
       - encoding
     dev: false
 
-  /follow-redirects/1.14.9_debug@4.3.2:
+  /follow-redirects/1.14.9:
     resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
     engines: {node: '>=4.0'}
     peerDependencies:
@@ -14433,8 +14452,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dependencies:
-      debug: 4.3.2
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -15360,7 +15377,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -19044,7 +19061,7 @@ packages:
   /pvtsutils/1.3.2:
     resolution: {integrity: sha512-+Ipe2iNUyrZz+8K/2IOo+kKikdtfhRKzNpQbruF2URmqPtoqAs8g3xS7TJvFF2GcPXjh7DkqMnpVveRFq4PgEQ==}
     dependencies:
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /pvutils/1.1.3:
     resolution: {integrity: sha512-pMpnA0qRdFp32b1sJl1wOJNxZLQ2cbQx+k6tjNtZ8CpvVhNqEPRgivZ2WOUev2YMajecdH7ctUPDvEe87nariQ==}
@@ -20297,6 +20314,11 @@ packages:
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
     dev: true
+
+  /slugify/1.6.5:
+    resolution: {integrity: sha512-8mo9bslnBO3tr5PEVFzMPIWwWnipGS0xVbYf65zxDqfNwmzYn1LpiKNrR6DlClusuvo+hDHd1zKpmfAe83NQSQ==}
+    engines: {node: '>=8.0.0'}
+    dev: false
 
   /smart-buffer/4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
@@ -22805,7 +22827,7 @@ packages:
       '@peculiar/json-schema': 1.1.12
       asn1js: 3.0.5
       pvtsutils: 1.3.2
-      tslib: 2.4.0
+      tslib: 2.4.1
 
   /webfontloader/1.6.28:
     resolution: {integrity: sha1-23hhKSU8tujq5UwvsF+HCvZnW64=}
