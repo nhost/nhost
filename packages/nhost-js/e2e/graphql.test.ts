@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { NhostClient } from '../../src'
+import { NhostClient } from '../src'
 
 const nhost = new NhostClient({
   subdomain: 'localhost'

@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { createNhostClient } from '../../src'
+import { createNhostClient } from '../src'
 
 const cloud = 'goiqxsyjxufxlprgiprm'
 const local = 'localhost'

@@ -72,13 +72,6 @@ Will be deprecated in a future release. Please look at 'subdomain' and 'region' 
 
 ---
 
-**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
-
-When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Serverless Functions.
-
----
-
 **<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
 
 Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
@@ -90,5 +83,12 @@ Use `localhost` during local development
 
 Project region (e.g. `eu-central-1`)
 Project region is not required during local development (when `subdomain` is `localhost`)
+
+---
+
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---

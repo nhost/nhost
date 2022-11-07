@@ -33,15 +33,25 @@ describe('urlFromParams', () => {
     })
 
     describe('"localhost" without a custom port', () => {
-      it('should use port 1337 and return "http://localhost:1337/v1/auth"', async () => {
+      it('should use port 1337 when none provided and return "http://localhost:1337/v1/auth"', async () => {
         const url = urlFromSubdomain({ subdomain: 'localhost' }, 'auth')
 
         expect(url).toBe('http://localhost:1337/v1/auth')
       })
-      it('should use port 1337 and return "http://localhost:1337/v1/auth"', async () => {
-        const url = urlFromSubdomain({ subdomain: 'localhost:1337' }, 'auth')
+      it('should use given port and return "http://localhost:1337/v1/auth"', async () => {
+        const url = urlFromSubdomain({ subdomain: 'localhost:8000' }, 'auth')
+
+        expect(url).toBe('http://localhost:8000/v1/auth')
+      })
+      it('should work with http', async () => {
+        const url = urlFromSubdomain({ subdomain: 'http://localhost:1337' }, 'auth')
 
         expect(url).toBe('http://localhost:1337/v1/auth')
+      })
+      it('should work with https', async () => {
+        const url = urlFromSubdomain({ subdomain: 'https://localhost:1337' }, 'auth')
+
+        expect(url).toBe('https://localhost:1337/v1/auth')
       })
     })
 

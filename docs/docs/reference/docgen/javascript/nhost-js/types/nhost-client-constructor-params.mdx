@@ -4,12 +4,19 @@ title: NhostClientConstructorParams
 sidebar_label: NhostClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/utils/types.ts#L48
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/utils/types.ts#L43
 ---
 
 # `NhostClientConstructorParams`
 
 ## Parameters
+
+---
+
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---
 
@@ -40,13 +47,6 @@ Project region is not required during local development (when `subdomain` is `lo
 
 Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
 Use `localhost` during local development
-
----
-
-**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
-
-When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---
 
