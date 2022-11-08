@@ -1,8 +1,5 @@
 import { Router } from 'express';
 
-import github from './github';
-import google from './google';
-import facebook from './facebook';
 import twitter from './twitter';
 import apple from './apple';
 import azuread from './azuread';
@@ -14,13 +11,9 @@ import gitlab from './gitlab';
 import bitbucket from './bitbucket';
 import discord from './discord';
 import twitch from './twitch';
-import workos from './workos';
 
 const router = Router();
 
-github(router);
-google(router);
-facebook(router);
 twitter(router);
 apple(router);
 azuread(router);
@@ -32,7 +25,6 @@ gitlab(router);
 bitbucket(router);
 discord(router);
 twitch(router);
-workos(router);
 
 export default (parentRouter: Router) => {
   /**

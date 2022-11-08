@@ -6,12 +6,17 @@ import { ENV } from '@/utils';
 
 const requestValidator: (
   payload: 'body' | 'query'
-) => (schema: Schema) => RequestHandler =
-  (payload) => (schema) => async (req, res, next) => {
+) => (schema: Schema, save?: boolean) => RequestHandler =
+  (payload) =>
+  (schema, save = true) =>
+  async (req, res, next) => {
     try {
       const options: AsyncValidationOptions =
         payload === 'query' ? { convert: true, allowUnknown: true } : {};
-      req[payload] = await schema.validateAsync(req[payload], options);
+      const validatedData = await schema.validateAsync(req[payload], options);
+      if (save) {
+        req[payload] = validatedData;
+      }
       next();
     } catch (err: any) {
       const error: ValidationError = err;

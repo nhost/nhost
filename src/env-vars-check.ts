@@ -150,32 +150,6 @@ if (PROVIDERS.facebook) {
   });
 }
 
-if (PROVIDERS.google) {
-  [
-    'AUTH_PROVIDER_GOOGLE_CLIENT_ID',
-    'AUTH_PROVIDER_GOOGLE_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Google provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
-if (PROVIDERS.github) {
-  [
-    'AUTH_PROVIDER_GITHUB_CLIENT_ID',
-    'AUTH_PROVIDER_GITHUB_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Github provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (PROVIDERS.azuread) {
   [
     'AUTH_PROVIDER_AZUREAD_CLIENT_ID',

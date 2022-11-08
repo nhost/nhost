@@ -7,7 +7,6 @@ import express, {
 } from 'express';
 import passport, { Profile } from 'passport';
 import { VerifyCallback } from 'passport-oauth2';
-import refresh from 'passport-oauth2-refresh';
 import { Strategy } from 'passport';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -384,12 +383,6 @@ export const initProvider = <T extends Strategy>(
     }
 
     passport.use(strategyName, strategyToUse);
-    if (strategyName !== 'workos') {
-      // ! provider token rotation does not work with `passport-workos`.
-      // ! The only impacted endpoint is /user/provider/tokens
-      // @ts-expect-error
-      refresh.use(strategyToUse);
-    }
   }
 
   subRouter.get('/', [

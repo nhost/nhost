@@ -5,17 +5,13 @@ export type SocialProvider =
   | 'azuread'
   | 'bitbucket'
   | 'discord'
-  | 'facebook'
-  | 'github'
   | 'gitlab'
-  | 'google'
   | 'linkedin'
   | 'spotify'
   | 'strava'
   | 'twitch'
   | 'twitter'
-  | 'windowslive'
-  | 'workos';
+  | 'windowslive';
 
 export type ClaimValueType =
   | string
