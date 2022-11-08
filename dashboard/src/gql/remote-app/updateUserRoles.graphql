@@ -1,0 +1,13 @@
+mutation insertRemoteAppUserRoles($roles: [authUserRoles_insert_input!]!) {
+  insertAuthUserRoles(objects: $roles) {
+    affected_rows
+  }
+}
+
+mutation deleteRemoteAppUserRoles($userId: uuid!, $roles: [String!]!) {
+  deleteAuthUserRoles(
+    where: { _and: [{ userId: { _eq: $userId } }, { role: { _in: $roles } }] }
+  ) {
+    affected_rows
+  }
+}

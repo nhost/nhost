@@ -1,0 +1,16 @@
+query getAllUserData {
+  workspaceMembers {
+    id
+    workspace {
+      id
+      name
+      creatorUserId
+      apps {
+        id
+        name
+        hasuraGraphqlAdminSecret
+        subdomain
+      }
+    }
+  }
+}

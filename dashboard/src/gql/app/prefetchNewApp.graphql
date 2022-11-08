@@ -1,0 +1,41 @@
+fragment PrefetchNewAppRegions on regions {
+  id
+  city
+  active
+  country {
+    code
+    name
+  }
+}
+
+fragment PrefetchNewAppPlans on plans {
+  id
+  name
+  isDefault
+  isFree
+  price
+  featureBackupEnabled
+  featureCustomDomainsEnabled
+  featureMaxDbSize
+}
+
+fragment PrefetchNewAppWorkspace on workspaces {
+  id
+  name
+  slug
+  paymentMethods {
+    id
+  }
+}
+
+query PrefetchNewApp {
+  regions(order_by: { city: asc }) {
+    ...PrefetchNewAppRegions
+  }
+  plans(order_by: { sort: asc }) {
+    ...PrefetchNewAppPlans
+  }
+  workspaces {
+    ...PrefetchNewAppWorkspace
+  }
+}

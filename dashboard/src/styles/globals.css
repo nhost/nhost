@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#__next {
+  height: 100%;
+}
+
+/* Layout bugs on codemirror */
+.cm-widgetBuffer {
+  position: absolute;
+  @apply top-1.5;
+}
+
+.ͼ1.cm-editor.cm-focused {
+  outline: none !important;
+}
+
+.custom-tab-shadow {
+  box-shadow: 0px 0 28px rgb(0 0 0 / 15%);
+  z-index: 5;
+}
+
+.execute-button-wrap {
+  display: none;
+}
+
+/* GraphiQL overrides */
+
+.graphiql-container {
+  @apply h-auto flex-1 !important;
+}
+
+.graphiql-container .graphiql-toolbar {
+  @apply hidden !important;
+}
+
+.graphiql-container .graphiql-sidebar {
+  @apply hidden !important;
+}
+
+.graphiql-container .graphiql-main {
+  @apply bg-gray-100 !important;
+}
+
+.graphiql-container .graphiql-sessions {
+  @apply m-0 rounded-none bg-gray-100 !important;
+}
+
+.graphiql-container .graphiql-plugin-visible .graphiql-session {
+  @apply pl-0 !important;
+}
+
+.graphiql-container .graphiql-doc-explorer {
+  @apply h-full overflow-y-auto border-l-0 bg-white py-3 px-3 !important;
+}
+
+.graphiql-container .graphiql-plugin {
+  @apply max-w-[initial] border-none py-2 pl-2 pr-0 !important;
+}
+
+.graphiql-container .graphiql-logo {
+  @apply hidden !important;
+}
+
+.graphiql-container .graphiql-add-tab-wrapper {
+  @apply px-4 py-3 !important;
+}
+
+.graphiql-container .graphiql-tab-add {
+  @apply px-2 !important;
+}
+
+.graphiql-container .graphiql-editors {
+  @apply rounded-none shadow-none !important;
+}
+
+[data-reach-dialog-overlay] {
+  @apply z-[100] bg-greyscaleDark bg-opacity-25 !important;
+}
+
+/* Layout bugs on codemirror */
+
+.drop {
+  position: fixed;
+  z-index: 10;
+  background: #f4f7f9;
+  box-shadow: 0px 1px 3px rgba(33, 50, 75, 0.15),
+    0px 4px 16px rgba(33, 50, 75, 0.05);
+  border-radius: 4px;
+}
+
+.input-secondary {
+  border: 1px solid #c2cad6;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+.step {
+  width: 220px;
+  height: 300px;
+  left: 0px;
+  top: 0px;
+  border-radius: 8px;
+}
+
+.step .number {
+  position: absolute;
+  width: 25px;
+  height: 62px;
+  left: 4px;
+  bottom: -2px;
+
+  /* Display/H2 */
+
+  font-family: Work Sans;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 56px;
+  line-height: 110%;
+  /* identical to box height, or 62px */
+
+  letter-spacing: -0.02em;
+
+  /* Translucent white/White light (20) */
+
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.badge {
+  padding: 1px 8px;
+  border-radius: 16px;
+}
+
+.version {
+  background: #0d3777;
+}
+
+.beta {
+  background: #0052cd;
+}
+
+.tag {
+  background: #0052cd;
+}
+
+.noapps {
+  background: radial-gradient(
+      100% 100% at 100% 100%,
+      #063799 0%,
+      rgba(6, 55, 153, 0) 100%
+    ),
+    #0052cd;
+  /* Raised/Raised 2 */
+
+  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+    0px 8px 24px rgba(14, 24, 39, 0.1);
+  border-radius: 8px;
+}
+
+.in::placeholder {
+  @apply px-1;
+}
+
+.box-drop {
+  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1),
+    0px 8px 24px rgba(14, 24, 39, 0.1);
+}
+
+.top50percent {
+  top: 50%;
+}
+
+.bg-checker-pattern {
+  background-color: #feffff;
+  background-image: repeating-linear-gradient(
+      45deg,
+      #f4f7f9 25%,
+      transparent 25%,
+      transparent 75%,
+      #f4f7f9 75%,
+      #f4f7f9
+    ),
+    repeating-linear-gradient(
+      45deg,
+      #f4f7f9 25%,
+      #feffff 25%,
+      #feffff 75%,
+      #f4f7f9 75%,
+      #f4f7f9
+    );
+  background-position: 0 0, 28px 28px;
+  background-size: 56px 56px;
+}
+
+::-webkit-calendar-picker-indicator {
+  @apply cursor-pointer;
+}
+
+::-webkit-calendar-picker-indicator {
+  @apply hidden;
+}
+
+.justify-initial {
+  justify-content: initial;
+}
+
+@tailwind utilities;

@@ -1,0 +1,68 @@
+query getOneUser($userId: uuid!) {
+  user(id: $userId) {
+    id
+    displayName
+    avatarUrl
+    workspaceMembers {
+      id
+      userId
+      workspaceId
+      type
+      workspace {
+        creatorUserId
+        id
+        slug
+        name
+        apps {
+          id
+          slug
+          name
+          hasuraGraphqlAdminSecret
+          repositoryProductionBranch
+          subdomain
+          isProvisioned
+          createdAt
+          desiredState
+          nhostBaseFolder
+          featureFlags {
+            description
+            id
+            name
+            value
+          }
+          appStates(order_by: { createdAt: desc }, limit: 1) {
+            id
+            appId
+            message
+            stateId
+            createdAt
+          }
+          region {
+            id
+            countryCode
+            awsName
+            city
+          }
+          plan {
+            id
+            name
+            isFree
+          }
+          githubRepository {
+            fullName
+          }
+          deployments(limit: 4, order_by: { deploymentEndedAt: desc }) {
+            id
+            commitSHA
+            commitMessage
+            commitUserName
+            deploymentStartedAt
+            deploymentEndedAt
+            commitUserAvatarUrl
+            deploymentStatus
+          }
+        }
+      }
+    }
+  }
+}

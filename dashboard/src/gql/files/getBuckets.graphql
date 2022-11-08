@@ -1,0 +1,6 @@
+query getBuckets {
+  buckets {
+    id
+    maxUploadFileSize
+  }
+}
