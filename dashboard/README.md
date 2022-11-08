@@ -1,34 +1,31 @@
 # Nhost Dashboard
 
-`yarn dev`
-`yarn build`
-`yarn predev` & `yarn prebuild` both generate gql hooks and types.
+This is the Nhost Dashboard, a web application that allows you to manage your Nhost project.
+To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
-## Dependencies
-
-- Git
-- Docker
-- [Nhost CLI](https://github.com/nhost/cli)
+```bash
+pnpm install
+```
 
 ## Environment
 
+### Setup Environment Variables
+
 Depending on the environment you wish to target you can configure environment variables in `.env.<target_environment>.local`.
 
-- `env.development`: This file is used if you run `nhost dev`
-- `env.development.local`: This file is used if you run `yarn dev`
-- `.env.production.local`: This file is used if you run `yarn build`
-- `.env.local`: This file is used if you run either `yarn dev` or `yarn build`
+- `.env.development`: This file is used if you run `nhost dev`
+- `.env.development.local`: This file is used if you run `yarn dev`. It takes precedence over `.env.local` if available.
+- `.env.production.local`: This file is used if you run `yarn build`. It takes precedence over `.env.local` if available.
+- `.env.local`: This file is used if you run either `yarn dev` or `yarn build`.
 
 These files are added to `.gitignore`, so you don't need to worry about committing them. It's important that you make sure you change environment variables in `.env` files ending with `.local`.
 
-Please see `.env.example` for a full list of environment variables used by the application.
+### Enable Local Development
 
-## Enable Local Development
+There are two environment variables you need to set to enable local development:
 
-There are two environment environments to set to enable local development:
-
-- `NEXT_PUBLIC_NHOST_PLATFORM` determines how the platform should work. For instance, a dashboard that's not connecting to Nhost's database doesn't need authentication or not applicable features (e.g: Deployments, Settings, etc.).
-- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` is the URL of Hasura's migration service. This does not affect the local development directly, but it's required for the Database UI to work.
+- `NEXT_PUBLIC_NHOST_PLATFORM` determines how the dashboard should work. For instance, a dashboard that's not connecting to Nhost's database doesn't need authentication and some features (e.g: Deployments, Settings, etc.).
+- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` is the URL of Hasura's migration service. This does not affect local development directly, but it's required for the Database UI to work.
 
 Example:
 
@@ -37,22 +34,19 @@ NEXT_PUBLIC_NHOST_PLATFORM=false
 NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 ```
 
-## Get Started
+### Full list of environment variables
 
-1. Clone repo
-2. Install dependencies with `yarn`
-3. Terminal 1: Start Nhost Backend: `nhost dev`
-4. Terminal 2: Start web app: `yarn dev`
-5. Terminal 3 (optional: Only for development): Start GraphQL Codegens: `yarn codegens:watch`
-
-## Production
-
-- Backend: https://nhost.run
-- Web app: https://app.nhost.io
-
-## Deployments
-
-Code, migrations and metadata gets automatically deployed on push to the `main` branch.
+| Name                                 | Description                                                               |
+| ------------------------------------ | ------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`                                                |
+| `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.     |
+| `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migration API. Used only if local development is enabled. |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | URL of the local backend. This is `http://localhost:1337` by default.     |
+| `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` when doing local development.               |
+| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                   |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.       |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                       |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. Not necessary for local development.          |
 
 ## ESLint Rules
 
