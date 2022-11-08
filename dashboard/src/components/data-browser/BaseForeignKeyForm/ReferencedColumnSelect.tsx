@@ -61,7 +61,11 @@ export default function ReferencedColumnSelect() {
       slotProps={{ listbox: { className: 'max-h-[13rem]' } }}
       hideEmptyHelperText
       error={Boolean(errors.referencedColumn)}
-      helperText={errors?.referencedColumn?.message || helperText}
+      helperText={
+        typeof errors?.referencedColumn?.message === 'string'
+          ? errors?.referencedColumn?.message
+          : helperText
+      }
     >
       {availableColumnsInSelectedTable.map((name) => (
         <Option value={name} key={name}>

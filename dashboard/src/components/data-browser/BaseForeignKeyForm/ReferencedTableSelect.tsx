@@ -34,7 +34,11 @@ export default function ReferencedTableSelect({
       slotProps={{ listbox: { className: 'max-h-[13rem]' } }}
       hideEmptyHelperText
       error={Boolean(errors.referencedTable)}
-      helperText={errors.referencedTable?.message}
+      helperText={
+        typeof errors.referencedTable?.message === 'string'
+          ? errors.referencedTable?.message
+          : ''
+      }
       onChange={() => {
         setValue('referencedColumn', null);
       }}

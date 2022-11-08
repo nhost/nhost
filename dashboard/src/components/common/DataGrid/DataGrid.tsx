@@ -135,43 +135,45 @@ function DataGrid<TColumnData extends object>(
       tableRef={tableRef}
       {...dataGridProps}
     >
-      {controls}
+      <>
+        {controls}
 
-      {columns.length === 0 && !loading && (
-        <DataBrowserEmptyState
-          title="Columns not found"
-          description="Please create a column before adding data to the table."
-        />
-      )}
+        {columns.length === 0 && !loading && (
+          <DataBrowserEmptyState
+            title="Columns not found"
+            description="Please create a column before adding data to the table."
+          />
+        )}
 
-      {columns.length > 0 && (
-        <div
-          ref={mergeRefs([ref, tableRef])}
-          className={twMerge(
-            'overflow-x-auto bg-gray-50',
-            !loading && 'h-full',
-            className,
-          )}
-        >
-          <DataGridFrame>
-            <DataGridHeader
-              onInsertColumn={onInsertColumn}
-              onEditColumn={onEditColumn}
-              onRemoveColumn={onRemoveColumn}
-              {...headerProps}
-            />
+        {columns.length > 0 && (
+          <div
+            ref={mergeRefs([ref, tableRef])}
+            className={twMerge(
+              'overflow-x-auto bg-gray-50',
+              !loading && 'h-full',
+              className,
+            )}
+          >
+            <DataGridFrame>
+              <DataGridHeader
+                onInsertColumn={onInsertColumn}
+                onEditColumn={onEditColumn}
+                onRemoveColumn={onRemoveColumn}
+                {...headerProps}
+              />
 
-            <DataGridBody
-              emptyStateMessage={emptyStateMessage}
-              loading={loading}
-              onInsertRow={onInsertRow}
-              allowInsertColumn={Boolean(onRemoveColumn)}
-            />
-          </DataGridFrame>
-        </div>
-      )}
+              <DataGridBody
+                emptyStateMessage={emptyStateMessage}
+                loading={loading}
+                onInsertRow={onInsertRow}
+                allowInsertColumn={Boolean(onRemoveColumn)}
+              />
+            </DataGridFrame>
+          </div>
+        )}
 
-      {loading && <ActivityIndicator delay={1000} className="my-4" />}
+        {loading && <ActivityIndicator delay={1000} className="my-4" />}
+      </>
     </DataGridProvider>
   );
 }

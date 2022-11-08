@@ -8,7 +8,7 @@ import ColumnEditorRow from './ColumnEditorRow';
 function ColumnErrorMessage() {
   const { errors } = useFormState({ name: 'columns' });
 
-  if (errors?.columns?.message) {
+  if (typeof errors?.columns?.message === 'string') {
     return (
       <HelperText className="mt-2" error>
         {errors.columns.message}
@@ -25,7 +25,7 @@ export default function ColumnEditorTable() {
   return (
     <>
       <div role="table" className="col-span-8">
-        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 bg-white pt-1 pb-2">
+        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pt-1 pb-2 bg-white">
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Name
@@ -44,13 +44,13 @@ export default function ColumnEditorTable() {
             <InputLabel as="span">Default Value</InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-1 truncate text-center">
+          <div role="columnheader" className="col-span-1 text-center truncate">
             <InputLabel as="span" className="truncate">
               Nullable
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-1 truncate text-center">
+          <div role="columnheader" className="col-span-1 text-center truncate">
             <InputLabel as="span" className="truncate">
               Unique
             </InputLabel>

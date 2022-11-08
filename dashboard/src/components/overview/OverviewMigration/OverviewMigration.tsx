@@ -29,10 +29,10 @@ export default function OverviewMigration() {
   return (
     <div className="pb-12">
       <div className="flex flex-col gap-2">
-        <Text variant="h3" className="!font-bold">
+        <Text variant="h3" className="lg:!font-bold">
           Migrate Database
           <span className="relative -top-0.5 ml-2 self-center">
-            <Chip variant="filled">NEW</Chip>
+            <Chip variant="filled">New</Chip>
           </span>
         </Text>
 
@@ -42,7 +42,7 @@ export default function OverviewMigration() {
         </Text>
       </div>
 
-      <div className="mt-6 flex flex-row place-content-between rounded-lg">
+      <div className="flex flex-row mt-6 rounded-lg place-content-between">
         <Button
           variant="outlined"
           color="secondary"
@@ -64,9 +64,9 @@ export default function OverviewMigration() {
                     <div className="grid grid-rows-3 gap-4">
                       {migrationSteps.map((step, index) => (
                         <div key={step.title} className="col-span-1">
-                          <div className="flex h-11 flex-row gap-3">
+                          <div className="flex flex-row gap-3 h-11">
                             <div className="flex items-center">
-                              <div className="flex h-8 w-8 flex-col items-center justify-center self-center rounded-md bg-veryLightGray align-middle font-semibold">
+                              <div className="flex flex-col items-center self-center justify-center w-8 h-8 font-semibold align-middle rounded-md bg-veryLightGray">
                                 <span className="text-[15px] font-semibold leading-[22px] text-greyscaleGreyDark">
                                   {index + 1}
                                 </span>

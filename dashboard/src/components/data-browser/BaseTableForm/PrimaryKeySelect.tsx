@@ -32,7 +32,11 @@ export default function PrimaryKeySelect() {
       placeholder="Select a column"
       hideEmptyHelperText
       error={Boolean(errors.primaryKeyIndex)}
-      helperText={errors.primaryKeyIndex?.message}
+      helperText={
+        typeof errors.primaryKeyIndex?.message === 'string'
+          ? errors.primaryKeyIndex?.message
+          : ''
+      }
       disabled={columnsWithNames.length === 0}
     >
       {columnsWithNames.map(({ label, id }) => (

@@ -45,7 +45,11 @@ export default function IdentityColumnSelect() {
       placeholder="Select a column"
       hideEmptyHelperText
       error={Boolean(errors.identityColumnIndex)}
-      helperText={errors.identityColumnIndex?.message}
+      helperText={
+        typeof errors.identityColumnIndex?.message === 'string'
+          ? errors.identityColumnIndex?.message
+          : ''
+      }
       onChange={(_event, columnIndex) => {
         if (columnIndex === '') {
           setValue('identityColumnIndex', null);

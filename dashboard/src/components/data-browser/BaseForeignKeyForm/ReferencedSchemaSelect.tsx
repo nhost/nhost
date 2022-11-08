@@ -37,7 +37,11 @@ function ReferencedSchemaSelect(
       placeholder="Select a schema"
       hideEmptyHelperText
       error={Boolean(errors.referencedSchema)}
-      helperText={errors.referencedSchema?.message}
+      helperText={
+        typeof errors.referencedSchema?.message === 'string'
+          ? errors.referencedSchema?.message
+          : ''
+      }
       onChange={() => {
         setValue('referencedTable', null);
         setValue('referencedColumn', null);
