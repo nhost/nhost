@@ -18,9 +18,15 @@ jobs:
       NEXT_TELEMETRY_DISABLED: 1
       NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
     steps:
-      - uses: actions/checkout@v3.1.0
-      - name: Setup node
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.9.1
+          run_install: false
+      - name: Use Node.js 16
         uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build the application
@@ -34,8 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Setup node
+      - name: Setup Node
         uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'pnpm'
       - uses: actions/cache@v3.0.11
         id: restore-build
         with:
@@ -48,8 +57,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Setup node
+      - name: Setup Node
         uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'pnpm'
       - uses: actions/cache@v3.0.11
         id: restore-build
         with:
