@@ -67,6 +67,6 @@
     "graphql-ws": "^5.10.1"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.9"
+    "@apollo/client": "^3.7.1"
   }
 }

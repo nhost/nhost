@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/typescript-types'
 import { rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src/types'

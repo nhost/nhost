@@ -18,13 +18,7 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
-      afterBuild: () => {
-        const types = fs.readdirSync(path.join(PWD, 'dist/src'))
-        types.forEach((file) => {
-          fs.renameSync(path.join(PWD, 'dist/src', file), path.join(PWD, 'dist', file))
-        })
-        fs.rmdirSync(path.join(PWD, 'dist/src'))
-      }
+      entryRoot: 'src'
     })
   ],
   test: {

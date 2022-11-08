@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from '../../../src/machines/context'
 import fakeUser from './user'
 
