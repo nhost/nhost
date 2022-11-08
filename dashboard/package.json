@@ -126,7 +126,7 @@
     "dotenv": "^10.0.0",
     "eslint": "^8.26.0",
     "eslint-config-airbnb": "19.0.4",
-    "eslint-config-next": "^12.3.1",
+    "eslint-config-next": "^13.0.2",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",

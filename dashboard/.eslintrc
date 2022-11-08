@@ -1,4 +1,5 @@
 {
+  "root": true,
   "extends": ["airbnb", "airbnb/hooks", "next/core-web-vitals", "prettier"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
