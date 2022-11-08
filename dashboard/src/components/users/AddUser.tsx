@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import validator from 'validator';
 
-export function AddUserModal({ modalIsOpen, setModalIsOpen }) {
+export function AddUserModal({ modalIsOpen, setModalIsOpen }: any) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const client = useApolloClient();
@@ -73,7 +73,7 @@ export function AddUserModal({ modalIsOpen, setModalIsOpen }) {
   };
   return (
     <Modal showModal={modalIsOpen} close={() => setModalIsOpen(false)}>
-      <div className="w-modal2 px-4 py-4 text-left">
+      <div className="px-4 py-4 text-left w-modal2">
         <div className="grid grid-flow-row gap-2">
           <Text variant="h3" component="h2" className="text-center">
             Add New User
@@ -150,7 +150,7 @@ export function AddUser() {
       <Button
         variant="outlined"
         color="secondary"
-        className="ml-2 w-full"
+        className="w-full ml-2"
         onClick={() => setModalIsOpen(true)}
       >
         Add User

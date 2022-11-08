@@ -48,7 +48,7 @@ export function ToggleTextElement({
   onChange,
 }: ToggleTextElementProps) {
   return (
-    <div className="flex flex-row place-content-between py-3">
+    <div className="flex flex-row py-3 place-content-between">
       <Text
         color="greyscaleDark"
         className="self-center font-normal"
@@ -75,14 +75,14 @@ export function LoginInputElement({
   inputOnChange,
 }: LoginInputElementProps) {
   return (
-    <div className="flex w-full flex-row place-content-between">
+    <div className="flex flex-row w-full place-content-between">
       <div className="flex flex-col">
         <Text variant="h3">{title}</Text>
         <Text color="greyscaleDark" size="normal" className="font-normal">
           {desc}
         </Text>
       </div>
-      <div className="flex w-96 flex-col self-end align-bottom">
+      <div className="flex flex-col self-end align-bottom w-96">
         <Input
           value={inputValue}
           onChange={inputOnChange}
@@ -104,8 +104,8 @@ function SocialSignInProviders() {
   });
 
   return (
-    <div className="mx-auto flex flex-col place-content-between font-display">
-      <div className="mb-3 grid grid-flow-row gap-2">
+    <div className="flex flex-col mx-auto place-content-between font-display">
+      <div className="grid grid-flow-row gap-2 mb-3">
         <Text variant="h3" component="h2">
           Social Sign-In Providers
         </Text>
@@ -133,7 +133,7 @@ function SocialSignInProviders() {
   );
 }
 
-function ClientLoginURL({ app, setShowFormSaver, setApp }) {
+function ClientLoginURL({ app, setShowFormSaver, setApp }: any) {
   return (
     <div className="flex flex-col align-middle">
       <LoginInputElement
@@ -149,11 +149,16 @@ function ClientLoginURL({ app, setShowFormSaver, setApp }) {
   );
 }
 
-function AllowedRedirectURLs({ submitState, app, setShowFormSaver, setApp }) {
+function AllowedRedirectURLs({
+  submitState,
+  app,
+  setShowFormSaver,
+  setApp,
+}: any) {
   return (
     <div>
-      <div className="mt-20 flex flex-col space-y-8">
-        <div className="flex w-full flex-col">
+      <div className="flex flex-col mt-20 space-y-8">
+        <div className="flex flex-col w-full">
           <div className="flex flex-col">
             <Text variant="h3" component="h2">
               Allowed Redirect URLs
@@ -173,7 +178,7 @@ function AllowedRedirectURLs({ submitState, app, setShowFormSaver, setApp }) {
                 {submitState.error.message}
               </Alert>
             )}
-          <div className="mt-4 w-full self-center">
+          <div className="self-center w-full mt-4">
             <Input
               value={app?.authAccessControlAllowedRedirectUrls || ''}
               onChange={(v) => {
@@ -188,7 +193,7 @@ function AllowedRedirectURLs({ submitState, app, setShowFormSaver, setApp }) {
           </div>
         </div>
       </div>
-      <div className="mt-6 flex flex-row">
+      <div className="flex flex-row mt-6">
         <Text className="" size="tiny" color="greyscaleDark">
           We add the success or error code as a query parameter to these URLs
           when redirecting.{' '}
@@ -397,9 +402,9 @@ function SettingsForm() {
         />
       )}
 
-      <div className="mt-20 grid grid-flow-row gap-5">
+      <div className="grid grid-flow-row gap-5 mt-20">
         <div className="grid grid-flow-row gap-2">
-          <div className="grid grid-flow-col items-center justify-start gap-2">
+          <div className="grid items-center justify-start grid-flow-col gap-2">
             <Image
               src="/assets/emailshield.svg"
               alt="An envelope with a shield in front"
@@ -415,7 +420,7 @@ function SettingsForm() {
           <Text>Sign in users with Email and Password</Text>
         </div>
 
-        <div className="flex flex-col divide-y-1 divide-divide border-t border-b">
+        <div className="flex flex-col border-t border-b divide-y-1 divide-divide">
           <ToggleTextElement
             desc="Only allow users with verified emails to sign in."
             checked={app?.authEmailSigninEmailVerifiedRequired || false}
@@ -443,9 +448,9 @@ function SettingsForm() {
         </div>
       </div>
 
-      <div className="mt-20 grid grid-flow-row gap-2">
-        <div className="grid grid-flow-col justify-between">
-          <div className="grid grid-flow-col items-center justify-start gap-2">
+      <div className="grid grid-flow-row gap-2 mt-20">
+        <div className="grid justify-between grid-flow-col">
+          <div className="grid items-center justify-start grid-flow-col gap-2">
             <Image
               src="/assets/envelope.svg"
               width={24}
@@ -479,7 +484,7 @@ function SettingsForm() {
 
       <div className="mt-20">
         <div className="grid grid-flow-row gap-2">
-          <div className="grid grid-flow-col justify-between">
+          <div className="grid justify-between grid-flow-col">
             <Text variant="h3" component="h2">
               Security Keys
             </Text>
@@ -550,7 +555,7 @@ function SettingsForm() {
             />
           </div>
           {securityAllowedEmailAndDomains && (
-            <div className="mt-5 flex flex-col space-y-2">
+            <div className="flex flex-col mt-5 space-y-2">
               <Input
                 value={app?.authAccessControlAllowedEmails || ''}
                 onChange={(v) => {
@@ -575,7 +580,7 @@ function SettingsForm() {
               />
             </div>
           )}
-          <div className="mt-6 flex flex-row place-content-between">
+          <div className="flex flex-row mt-6 place-content-between">
             <Text className="font-bold">Blocked email and domains</Text>
             <Toggle
               checked={securityBlockedEmailAndDomains}
@@ -596,7 +601,7 @@ function SettingsForm() {
             />
           </div>
           {securityBlockedEmailAndDomains && (
-            <div className="mt-5 flex flex-col space-y-2">
+            <div className="flex flex-col mt-5 space-y-2">
               <Input
                 value={app?.authAccessControlBlockedEmails || ''}
                 onChange={(v) => {
@@ -635,18 +640,18 @@ function SettingsForm() {
           {showAdvancedFields ? (
             <>
               Hide Advanced Features
-              <ChevronUpIcon className="h-4 w-4" />
+              <ChevronUpIcon className="w-4 h-4" />
             </>
           ) : (
             <>
               Show Advanced Features
-              <ChevronDownIcon className="h-4 w-4" />
+              <ChevronDownIcon className="w-4 h-4" />
             </>
           )}
         </Button>
 
         {showAdvancedFields && (
-          <div className="mx-auto grid grid-flow-row gap-20 bg-white pt-10 pb-20">
+          <div className="grid grid-flow-row gap-20 pt-10 pb-20 mx-auto bg-white">
             <GeneralPermissions />
             <MultiFactorAuthentication />
             <GravatarSettings />

@@ -32,7 +32,7 @@ export const Input: React.FC<InputProps> = forwardRef(
       autoComplete,
       multiline,
       ...rest
-    },
+    }: InputProps,
     inputRef,
   ) => {
     const rootClassName = clsx(

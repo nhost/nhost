@@ -42,7 +42,7 @@ function BackupsHeader() {
   );
 }
 
-function BackupRow({ backup }) {
+function BackupRow({ backup }: any) {
   const { id, createdAt, size } = backup;
 
   const [restoreModalOpen, setRestoreModalOpen] = useState(false);
@@ -57,25 +57,25 @@ function BackupRow({ backup }) {
           data={{ id, createdAt }}
         />
       )}
-      <div className="flex flex-row place-content-between py-3">
+      <div className="flex flex-row py-3 place-content-between">
         <Text
           color="greyscaleDark"
           size="tiny"
-          className="w-drop self-center font-medium"
+          className="self-center font-medium w-drop"
         >
           {formatISO9075(new Date(createdAt))}
         </Text>
         <Text
           color="greyscaleDark"
           size="tiny"
-          className="w-drop self-center font-medium"
+          className="self-center font-medium w-drop"
         >
           {prettysize(size)}
         </Text>
         <Text
           color="greyscaleDark"
           size="tiny"
-          className="w-drop self-center font-medium"
+          className="self-center font-medium w-drop"
         >
           {formatDistanceStrict(new Date(createdAt), new Date(), {
             addSuffix: true,
@@ -113,14 +113,14 @@ function BackupsTable() {
 
   return (
     <>
-      <div className="flex flex-row place-content-between border-b-1 py-2">
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
+      <div className="flex flex-row py-2 place-content-between border-b-1">
+        <Text color="greyscaleDark" size="tiny" className="font-bold w-drop">
           Backup
         </Text>
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
+        <Text color="greyscaleDark" size="tiny" className="font-bold w-drop">
           Size
         </Text>
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
+        <Text color="greyscaleDark" size="tiny" className="font-bold w-drop">
           Backed Up
         </Text>
         <div className="w-20" />
@@ -144,14 +144,14 @@ function BackupsTable() {
   );
 }
 
-function SectionContainer({ title }) {
+function SectionContainer({ title }: any) {
   return (
-    <div className="mt-6 w-full">
+    <div className="w-full mt-6">
       <Text color="greyscaleDark" className="font-medium" size="large">
         {title}
       </Text>
       <Text color="greyscaleDark" className="my-2 font-normal" size="normal">
-        Database backups includes database schema, database data and Hasura
+        The database backup includes database schema, database data and Hasura
         metadata. It does not include the actual files in Storage.
       </Text>
 

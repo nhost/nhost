@@ -40,7 +40,7 @@ function EnvHeader() {
         target="_blank"
         rel="noreferrer"
         underline="hover"
-        className="justify-self-start font-medium"
+        className="font-medium justify-self-start"
       >
         Documentation
       </Link>
@@ -51,7 +51,7 @@ function EnvHeader() {
 function AppVariablesHeader() {
   return (
     <div>
-      <div className="flex flex-row place-content-between px-2 py-2">
+      <div className="flex flex-row px-2 py-2 place-content-between">
         <Text
           variant="subtitle2"
           className="w-drop font-bold !text-greyscaleDark"
@@ -160,7 +160,7 @@ function AppVariable({ envVar }: AppVariableProps) {
         />
       )}
       <div
-        className="flex cursor-pointer flex-row place-content-between px-2 py-2"
+        className="flex flex-row px-2 py-2 cursor-pointer place-content-between"
         role="button"
         onClick={() => setShowEditModal(true)}
         tabIndex={0}
@@ -182,9 +182,9 @@ function AppVariable({ envVar }: AppVariableProps) {
   );
 }
 
-function SectionContainer({ title, children }) {
+function SectionContainer({ title, children }: any) {
   return (
-    <div className="mt-8 w-full space-y-6">
+    <div className="w-full mt-8 space-y-6">
       <Text variant="h3">{title}</Text>
       <div className="divide divide-y-1 border-t-1 border-b-1">{children}</div>
     </div>
@@ -243,7 +243,7 @@ function SensitiveValue({ value }: { value: string | any }) {
   }
 
   return (
-    <div className="grid w-full grid-flow-col items-center gap-2">
+    <div className="grid items-center w-full grid-flow-col gap-2">
       <button
         type="button"
         onClick={() => setEye(!eye)}
@@ -260,7 +260,7 @@ function SensitiveValue({ value }: { value: string | any }) {
         variant="borderless"
         color="secondary"
       >
-        {eye ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+        {eye ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
       </IconButton>
     </div>
   );
@@ -311,7 +311,7 @@ function SystemVariable({
             >
               Reveal
             </Button>
-            <span className="self-center align-text-bottom text-sm text-gray-600">
+            <span className="self-center text-sm text-gray-600 align-text-bottom">
               or
             </span>
             <Button

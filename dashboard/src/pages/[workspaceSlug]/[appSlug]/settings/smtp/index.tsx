@@ -76,13 +76,13 @@ function ValInput({
   required = true,
 }: ValInputProps) {
   return (
-    <div className="flex flex-row items-center py-5 px-2">
+    <div className="flex flex-row items-center px-2 py-5">
       <div className="flex w-full">
         <Text className="text-sm+ font-medium text-greyscaleDark">{title}</Text>
       </div>
 
-      <div className="flex w-full flex-col">
-        <div className=" flex w-full">
+      <div className="flex flex-col w-full">
+        <div className="flex w-full ">
           {type === 'Input' && (
             <ControlledInput name={id} control={control} required={required}>
               <Input
@@ -140,7 +140,7 @@ function CustomSMTPSettingsForm({
   handleEditSMSSettings,
   loading,
   submitState,
-}) {
+}: any) {
   const { control } = useFormContext<EditCustomSTMPSettingsFormData>();
   const {
     handleSubmit,
@@ -149,7 +149,7 @@ function CustomSMTPSettingsForm({
 
   return (
     <form autoComplete="off" onSubmit={handleSubmit(handleEditSMSSettings)}>
-      <div className="mt-6 divide-y-1 border-t border-b">
+      <div className="mt-6 border-t border-b divide-y-1">
         {/* <ValInput
           control={control}
           id="authSmtpUser"
@@ -165,7 +165,7 @@ function CustomSMTPSettingsForm({
           type="Input"
           inputPlaceholder="e.g. noreply@nhost.app"
         />
-        <div className="flex flex-row place-content-between items-center py-5 px-2">
+        <div className="flex flex-row items-center px-2 py-5 place-content-between">
           <div className="flex w-full">
             <Text className="text-sm+ font-medium text-greyscaleDark">
               SMTP Host and Port
@@ -173,7 +173,7 @@ function CustomSMTPSettingsForm({
           </div>
 
           <div className="w-full">
-            <div className="flex w-full flex-row space-x-2">
+            <div className="flex flex-row w-full space-x-2">
               <div className="flex-auto">
                 <Controller
                   name="authSmtpHost"
@@ -284,7 +284,7 @@ function CustomSMTPSettingsForm({
           {submitState.error.message}
         </Alert>
       )}
-      <div className="mt-5 flex place-content-end">
+      <div className="flex mt-5 place-content-end">
         <div>
           <Button
             type="submit"

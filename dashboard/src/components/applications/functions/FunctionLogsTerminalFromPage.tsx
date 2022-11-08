@@ -9,7 +9,7 @@ import { FunctionLogHistory } from './FunctionLogHistory';
 
 SyntaxHighlighter.registerLanguage('json', json);
 
-export function FunctionsLogsTerminalPage({ functionName }) {
+export function FunctionsLogsTerminalPage({ functionName }: any) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [normalizedFunctionData, setNormalizedFunctionData] = useState(null);
 
@@ -38,8 +38,8 @@ export function FunctionsLogsTerminalPage({ functionName }) {
     normalizedFunctionData.logs.length === 0
   ) {
     return (
-      <div className="w-full rounded-lg text-white">
-        <div className="h-terminal overflow-auto rounded-lg bg-log px-4 py-4 font-mono shadow-sm">
+      <div className="w-full text-white rounded-lg">
+        <div className="px-4 py-4 overflow-auto font-mono rounded-lg shadow-sm h-terminal bg-log">
           <div className="font-mono text-xs text-grey">
             There are no stored logs yet. Try calling your function for logs to
             appear.
@@ -50,12 +50,12 @@ export function FunctionsLogsTerminalPage({ functionName }) {
     );
   }
   return (
-    <div className="w-full rounded-lg text-white">
-      <div className="h-terminal overflow-auto rounded-lg bg-log px-4 py-4 font-mono shadow-sm">
+    <div className="w-full text-white rounded-lg">
+      <div className="px-4 py-4 overflow-auto font-mono rounded-lg shadow-sm h-terminal bg-log">
         {normalizedFunctionData.logs.map((log) => (
           <div
             key={`${log.date}-${log.message.slice(66)}`}
-            className=" flex text-sm"
+            className="flex text-sm "
           >
             <div id={`#-${log.date}`}>
               <pre className="inline">

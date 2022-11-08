@@ -25,7 +25,7 @@ export interface JWTSecretModalProps {
   initialModalState?: JWTSecretModalState;
 }
 
-export function EditJWTSecretModal({ close }) {
+export function EditJWTSecretModal({ close }: any) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { submitState, setSubmitState } = useSubmitState();
 
@@ -86,7 +86,7 @@ export function EditJWTSecretModal({ close }) {
 
   return (
     <form
-      className="w-modal px-6 py-4"
+      className="px-6 py-4 w-modal"
       onSubmit={handleSubmit(handleEditJWTSecret)}
     >
       <div className="grid grid-flow-row gap-2">
@@ -152,9 +152,9 @@ export function EditJWTSecretModal({ close }) {
   );
 }
 
-export function ShowJWTTokenModal({ JWTKey, editJWTSecret }) {
+export function ShowJWTTokenModal({ JWTKey, editJWTSecret }: any) {
   return (
-    <div className="w-modal px-6 py-4">
+    <div className="px-6 py-4 w-modal">
       <div className="grid grid-flow-row gap-2">
         <div className="grid grid-flow-row text-left">
           <Text variant="h3" component="h2">
@@ -179,7 +179,7 @@ export function ShowJWTTokenModal({ JWTKey, editJWTSecret }) {
           />
         </div>
 
-        <div className="mx-auto max-w-sm text-center">
+        <div className="max-w-sm mx-auto text-center">
           <Text variant="subtitle2">
             Already using a third party auth service? <br />
             <button
@@ -198,7 +198,12 @@ export function ShowJWTTokenModal({ JWTKey, editJWTSecret }) {
   );
 }
 
-export function JWTSecretModal({ close, data, jwtSecret, initialModalState }) {
+export function JWTSecretModal({
+  close,
+  data,
+  jwtSecret,
+  initialModalState,
+}: any) {
   const [jwtSecretModalState, setJwtSecretModalState] =
     useState<JWTSecretModalState>(initialModalState || 'SHOW');
 

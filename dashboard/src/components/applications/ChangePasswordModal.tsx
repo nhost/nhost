@@ -5,7 +5,7 @@ import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import React, { useState } from 'react';
 
-export function ChangePasswordModal({ close }) {
+export function ChangePasswordModal({ close }: any) {
   const [formState, setFormState] = useState<{
     loading: boolean;
     error: null | string;

@@ -55,7 +55,8 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 | `react/react-in-jsx-scope`                   | Disabled because we don't need to import `React` anymore.                                                                                                    |
 | `react/jsx-props-no-spreading`               | Disabled because we heavily rely on props spreading in our `@/ui/v2` components.                                                                             |
 | `react/require-default-props`                | Disabled because we use TypeScript instead of PropTypes.                                                                                                     |
-| `import/extensions`                          | JS / TS files should be importaed without file extensions.                                                                                                   |
+| `react-hooks/exhaustive-deps`                | Because we already had several rule violations when proper ESLint rules were introduced, we changed this rule to a warning.                                  |
+| `import/extensions`                          | JS / TS files should be imported without file extensions.                                                                                                    |
 | `react/jsx-filename-extension`               | JSX should only appear in `.jsx` and `.tsx` files.                                                                                                           |
 | `react/jsx-no-bind`                          | Further investigation must be made on the performance impact of functions directly passed as props to components.                                            |
 | `import/no-extraneous-dependencies`          | `devDependencies` should be excluded from the list of disallowed imports.                                                                                    |

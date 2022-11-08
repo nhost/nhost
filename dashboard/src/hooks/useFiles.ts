@@ -97,7 +97,7 @@ export default function useFiles({
                     ...init,
                   });
 
-                  return response.blob();
+                  return await response.blob();
                 } catch {
                   return null;
                 }

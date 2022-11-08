@@ -48,7 +48,7 @@ export default function useDataGrid<T extends object>(
     () => ({
       width: 32,
       minWidth: 32,
-      Cell: ({ value }) => (
+      Cell: ({ value }: { value: any }) => (
         <span className="truncate">
           {typeof value === 'object' ? JSON.stringify(value) : value}
         </span>
@@ -76,7 +76,7 @@ export default function useDataGrid<T extends object>(
         ? hooks.visibleColumns.push((columns) => [
             {
               id: 'selection',
-              Header: ({ rows, getToggleAllRowsSelectedProps }) => (
+              Header: ({ rows, getToggleAllRowsSelectedProps }: any) => (
                 <Checkbox
                   disabled={rows.length === 0}
                   {...getToggleAllRowsSelectedProps({ style: null })}
@@ -86,7 +86,7 @@ export default function useDataGrid<T extends object>(
                   }}
                 />
               ),
-              Cell: ({ row }) => {
+              Cell: ({ row }: any) => {
                 const originalValue = row.original as any;
 
                 return (

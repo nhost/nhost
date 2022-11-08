@@ -58,7 +58,7 @@ export const Text: FunctionComponent<TextProps> = forwardRef(
       href,
       target,
       name,
-    },
+    }: TextProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const componentsMap: {

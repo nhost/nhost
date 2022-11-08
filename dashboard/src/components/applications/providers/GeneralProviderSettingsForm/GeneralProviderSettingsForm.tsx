@@ -17,7 +17,7 @@ export default function GeneralProviderSettingsForm({
   authProviderClientSecret,
   handleClientIdChange,
   handleClientSecretChange,
-}) {
+}: GeneralProviderSettingsFormProps) {
   return (
     <div className="space-y-3 divide-y-1 divide-divide">
       <ProviderSetting

@@ -3,7 +3,9 @@ import { Button } from '@/ui/Button';
 import { Text } from '@/ui/Text';
 import { PlusSmIcon } from '@heroicons/react/solid';
 
-export function GitHubNoRepositoriesAdded({ filteredGitHubAppInstallations }) {
+export function GitHubNoRepositoriesAdded({
+  filteredGitHubAppInstallations,
+}: any) {
   return (
     <div>
       <Text
@@ -18,19 +20,19 @@ export function GitHubNoRepositoriesAdded({ filteredGitHubAppInstallations }) {
         variant="body"
         color="greyscaleDark"
         size="tiny"
-        className="text-center font-normal"
+        className="font-normal text-center"
       >
         Check the Nhost app&apos;s settings on your GitHub account, or install
         the app on a new account.
       </Text>
 
-      <div className="my-2 border-t border-b py-3">
+      <div className="py-3 my-2 border-t border-b">
         <div className="flex">
           {filteredGitHubAppInstallations.map((githubApp) => (
-            <div key={githubApp.id} className="mr-4 flex items-center">
+            <div key={githubApp.id} className="flex items-center mr-4">
               <Avatar
                 avatarUrl={githubApp.accountAvatarUrl as string}
-                className="mr-1 h-5 w-5"
+                className="w-5 h-5 mr-1"
               />
               {githubApp.accountLogin}
             </div>
@@ -43,9 +45,9 @@ export function GitHubNoRepositoriesAdded({ filteredGitHubAppInstallations }) {
         rel="noreferrer noopener"
         transparent
         type={null}
-        className="cursor-pointer text-xs font-medium text-blue"
+        className="text-xs font-medium cursor-pointer text-blue"
       >
-        <PlusSmIcon className="mr-1 h-4 w-4 rounded-full border border-btn" />
+        <PlusSmIcon className="w-4 h-4 mr-1 border rounded-full border-btn" />
         Configure the Nhost application on GitHub.
       </Button>
     </div>

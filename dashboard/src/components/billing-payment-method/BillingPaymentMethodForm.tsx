@@ -70,7 +70,9 @@ function AddPaymentMethodForm({
         });
 
       if (createPaymentMethodError) {
-        throw createPaymentMethodError;
+        throw new Error(
+          createPaymentMethodError.message || 'Unknown error occurred.',
+        );
       }
 
       // attach new payment method to workspace
@@ -144,7 +146,7 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <div className="w-modal2 px-6 pt-6 pb-6 text-left">
+    <div className="px-6 pt-6 pb-6 text-left w-modal2">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
           <Text
@@ -159,11 +161,11 @@ function AddPaymentMethodForm({
             variant="body"
             color="greyscaleDark"
             size="small"
-            className="text-center font-normal"
+            className="font-normal text-center"
           >
             We&apos;ll store these in your workspace for future use.
           </Text>
-          <div className="my-2 mt-6 w-full rounded-lg border-1 px-2 py-2">
+          <div className="w-full px-2 py-2 my-2 mt-6 rounded-lg border-1">
             <CardElement
               onReady={(element) => element.focus()}
               options={{

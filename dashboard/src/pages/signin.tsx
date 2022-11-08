@@ -13,7 +13,7 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-function SignInWithGithub({ setSignInMethod }) {
+function SignInWithGithub({ setSignInMethod }: any) {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
@@ -27,7 +27,7 @@ function SignInWithGithub({ setSignInMethod }) {
           nhost.auth.signIn({ provider: 'github' });
         }}
       >
-        <GithubIcon className="h-6 w-6 text-white " />
+        <GithubIcon className="w-6 h-6 text-white " />
         <div>Continue with GitHub</div>
       </button>
       <div className="mt-2 text-greyscaleMedium">
@@ -49,7 +49,7 @@ type SignInFormProps = {
   password: string;
 };
 
-function SignInWithEmail({ setSignInMethod }) {
+function SignInWithEmail({ setSignInMethod }: any) {
   const { signInEmailPassword, isLoading, isSuccess, isError, error } =
     useSignInEmailPassword();
 
@@ -73,7 +73,7 @@ function SignInWithEmail({ setSignInMethod }) {
   }
 
   return (
-    <div className="flex max-w-2xl flex-col items-center">
+    <div className="flex flex-col items-center max-w-2xl">
       <FormProvider register={register} {...form}>
         <Form onSubmit={onSubmit} className="grid w-full grid-flow-row gap-3">
           <Input
@@ -101,7 +101,7 @@ function SignInWithEmail({ setSignInMethod }) {
             required
             fullWidth
             label={
-              <span className="grid grid-flow-col justify-between">
+              <span className="grid justify-between grid-flow-col">
                 <span>Password</span>
 
                 <Link href="/reset-password" passHref>
@@ -166,9 +166,9 @@ function SignInController() {
 
 export default function SignInPage() {
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex max-w-3xl flex-col">
-        <div className="z-30 mb-8 flex justify-center">
+    <div className="flex items-center justify-center h-screen">
+      <div className="flex flex-col max-w-3xl">
+        <div className="z-30 flex justify-center mb-8">
           <a href="https://nhost.io" tabIndex={-1}>
             <Image
               src="/assets/Logo.svg"
@@ -181,17 +181,17 @@ export default function SignInPage() {
         <div className="flex items-center justify-center">
           <div className="z-10">
             <div
-              className="grid grid-flow-row gap-4 rounded-lg border border-gray-300 bg-white px-12 py-8"
+              className="grid grid-flow-row gap-4 px-12 py-8 bg-white border border-gray-300 rounded-lg"
               style={{ width: '480px' }}
             >
-              <Text variant="h1" className="text-center text-lg font-semibold">
+              <Text variant="h1" className="text-lg font-semibold text-center">
                 Sign in to Nhost
               </Text>
 
               <SignInController />
             </div>
 
-            <div className="mt-3 flex justify-center">
+            <div className="flex justify-center mt-3">
               <div className="text-sm text-gray-700">
                 Don&apos;t have an account?{' '}
                 <Link href="/signup" passHref>

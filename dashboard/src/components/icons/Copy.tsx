@@ -1,4 +1,4 @@
-function Copy({ stroke = '#21324B', ...props }) {
+function Copy({ stroke = '#21324B', ...props }: any) {
   return (
     <svg fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path

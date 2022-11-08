@@ -53,7 +53,7 @@ function modalStateReducer(state: ModalState, action: ModalAction): ModalState {
   }
 }
 
-function PermissionVariablesTable({ appId }) {
+function PermissionVariablesTable({ appId }: any) {
   const [
     { visible: modalVisible, type: modalType, payload: modalPayload },
     dispatch,
@@ -102,10 +102,10 @@ function PermissionVariablesTable({ appId }) {
         )}
       </Modal>
 
-      <table className="w-full table-fixed overflow-x-auto">
+      <table className="w-full overflow-x-auto table-fixed">
         <thead>
           <tr>
-            <th className="w-60 p-2 text-left">
+            <th className="p-2 text-left w-60">
               <Text className="text-xs font-bold text-greyscaleDark">
                 Field name
               </Text>
@@ -131,7 +131,7 @@ function PermissionVariablesTable({ appId }) {
                   : (event) => handlePermissionSelect(event, claim)
               }
               aria-label={claim.key}
-              className="border-t-1 border-solid border-gray-300"
+              className="border-gray-300 border-solid border-t-1"
               key={claim.key || index}
             >
               <td className="p-2">
@@ -165,7 +165,7 @@ function PermissionVariablesTable({ appId }) {
             </tr>
           ))}
 
-          <tr className="border-y-1 border-solid border-gray-300">
+          <tr className="border-gray-300 border-solid border-y-1">
             <td className="p-2">
               <button
                 type="button"
@@ -283,7 +283,7 @@ function DefaultRoleInAPIRequests() {
   }
 
   return (
-    <div className="mt-2 flex flex-col divide-y-1 divide-divide border-t border-b">
+    <div className="flex flex-col mt-2 border-t border-b divide-y-1 divide-divide">
       {submitState.error && (
         <Alert severity="error">{submitState.error.message}</Alert>
       )}

@@ -26,11 +26,11 @@ function Plan({
   planId,
   selectedPlanId,
   currentPlan,
-}) {
+}: any) {
   return (
     <button
       type="button"
-      className="my-4 grid w-full grid-flow-col items-center justify-between px-1"
+      className="grid items-center justify-between w-full grid-flow-col px-1 my-4"
       onClick={setPlan}
       tabIndex={-1}
     >
@@ -48,7 +48,7 @@ function Plan({
           <Text
             variant="h3"
             component="p"
-            className="ml-2 self-center font-medium"
+            className="self-center ml-2 font-medium"
           >
             {currentPlan.price > price ? 'Downgrade' : 'Upgrade'} to {planName}
           </Text>
@@ -65,7 +65,7 @@ function Plan({
   );
 }
 
-export function ChangePlanModalWithData({ app, plans, close }) {
+export function ChangePlanModalWithData({ app, plans, close }: any) {
   const theme = useTheme();
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { closeAlertDialog } = useDialog();
@@ -143,7 +143,7 @@ export function ChangePlanModalWithData({ app, plans, close }) {
   };
 
   return (
-    <div className="w-welcome p-6 text-left">
+    <div className="p-6 text-left w-welcome">
       <Modal
         showModal={paymentModal}
         close={closePaymentModal}
@@ -189,7 +189,7 @@ export function ChangePlanModalWithData({ app, plans, close }) {
             ))}
         </div>
 
-        <div className="mt-6 grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2 mt-6">
           <Button onClick={handleChangePlanClick} disabled={!selectedPlan}>
             {!selectedPlan && 'Change Plan'}
             {selectedPlan && isDowngrade && 'Downgrade'}

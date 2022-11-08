@@ -12,7 +12,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-export function EnableSMSSignIn({ openSMSSettingsModal }) {
+export function EnableSMSSignIn({ openSMSSettingsModal }: any) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
@@ -114,7 +114,7 @@ export function EnableSMSSignIn({ openSMSSettingsModal }) {
                 />
               </div>
             </div>
-            <div className="mt-3 flex flex-row self-center align-middle">
+            <div className="flex flex-row self-center mt-3 align-middle">
               <Text
                 variant="body"
                 size="normal"

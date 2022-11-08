@@ -2,7 +2,7 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 
-export function FeedbackReceived({ setFeedbackSent, close }) {
+export function FeedbackReceived({ setFeedbackSent, close }: any) {
   function handleSubmit() {
     close();
 
@@ -12,7 +12,7 @@ export function FeedbackReceived({ setFeedbackSent, close }) {
   }
 
   return (
-    <div className="grid grid-flow-row items-center gap-4 text-center">
+    <div className="grid items-center grid-flow-row gap-4 text-center">
       <Image
         src="/assets/FeedbackReceived.svg"
         alt="Light bulb with a checkmark"

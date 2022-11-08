@@ -26,85 +26,87 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   padding?: 'none' | Array<'horizontal' | 'vertical'>;
 }
 
-export const Button: React.FC<ButtonProps> = forwardRef((props, buttonRef) => {
-  const {
-    className,
-    variant,
-    children,
-    active,
-    width,
-    small,
-    href,
-    color,
-    border,
-    loading = false,
-    disabled = false,
-    transparent = false,
-    style = {},
-    type = 'button',
-    Component = 'button',
-    showLoadingText = false,
-    padding = ['horizontal', 'vertical'],
-    ...rest
-  } = props;
-  const ref = useRef<typeof Component>(null);
-  const paddingSet = new Set(padding);
+export const Button: React.FC<ButtonProps> = forwardRef(
+  (props: ButtonProps, buttonRef) => {
+    const {
+      className,
+      variant,
+      children,
+      active,
+      width,
+      small,
+      href,
+      color,
+      border,
+      loading = false,
+      disabled = false,
+      transparent = false,
+      style = {},
+      type = 'button',
+      Component = 'button',
+      showLoadingText = false,
+      padding = ['horizontal', 'vertical'],
+      ...rest
+    } = props;
+    const ref = useRef<typeof Component>(null);
+    const paddingSet = new Set(padding);
 
-  const rootClassName = clsx(
-    s.root,
-    {
-      [s.primary]: variant === 'primary',
-      [s.secondary]: variant === 'secondary',
-      [s.menu]: variant === 'menu',
-      [s.dark]: variant === 'dark',
-      [s.danger]: variant === 'danger',
-      [s.loading]: loading,
-      [s.disabled]: disabled,
-      [s.small]: small,
-      [s.transparent]: transparent,
-      [s.blue]: color === 'blue',
-      [s.red]: color === 'red',
-      [s.border]: border,
-      [s.paddingHorizontal]:
-        padding === 'none' ? false : paddingSet.has('horizontal'),
-      [s.paddingVertical]:
-        padding === 'none' ? false : paddingSet.has('vertical'),
-    },
-    className,
-  );
+    const rootClassName = clsx(
+      s.root,
+      {
+        [s.primary]: variant === 'primary',
+        [s.secondary]: variant === 'secondary',
+        [s.menu]: variant === 'menu',
+        [s.dark]: variant === 'dark',
+        [s.danger]: variant === 'danger',
+        [s.loading]: loading,
+        [s.disabled]: disabled,
+        [s.small]: small,
+        [s.transparent]: transparent,
+        [s.blue]: color === 'blue',
+        [s.red]: color === 'red',
+        [s.border]: border,
+        [s.paddingHorizontal]:
+          padding === 'none' ? false : paddingSet.has('horizontal'),
+        [s.paddingVertical]:
+          padding === 'none' ? false : paddingSet.has('vertical'),
+      },
+      className,
+    );
 
-  return (
-    <Component
-      aria-pressed={active}
-      data-variant={variant}
-      ref={mergeRefs([ref, buttonRef])}
-      className={rootClassName}
-      disabled={disabled}
-      type={type}
-      href={href}
-      style={{
-        width,
-        ...style,
-      }}
-      {...rest}
-    >
-      {loading ? null : children}
+    return (
+      <Component
+        aria-pressed={active}
+        data-variant={variant}
+        ref={mergeRefs([ref, buttonRef])}
+        className={rootClassName}
+        disabled={disabled}
+        type={type}
+        href={href}
+        style={{
+          width,
+          ...style,
+        }}
+        {...rest}
+      >
+        {loading ? null : children}
 
-      {loading && showLoadingText && (
-        <div className=" mx-auto flex w-full flex-row">
-          Loading
-          <Loading className="ml-3" />
-        </div>
-      )}
+        {loading && showLoadingText && (
+          <div className="flex flex-row w-full mx-auto ">
+            Loading
+            <Loading className="ml-3" />
+          </div>
+        )}
 
-      {loading && !showLoadingText && (
-        <div className=" mx-auto flex w-full flex-row">
-          <Loading className="" />
-        </div>
-      )}
-    </Component>
-  );
-});
+        {loading && !showLoadingText && (
+          <div className="flex flex-row w-full mx-auto ">
+            <Loading className="" />
+          </div>
+        )}
+      </Component>
+    );
+  },
+);
 Button.displayName = 'Button';
 
 export default Button;

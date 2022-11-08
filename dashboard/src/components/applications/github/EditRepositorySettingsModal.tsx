@@ -18,7 +18,7 @@ export function EditRepositorySettingsModal({
   selectedRepoId,
   close,
   handleSelectAnotherRepository,
-}) {
+}: any) {
   const {
     handleSubmit,
     watch,
@@ -78,8 +78,8 @@ export function EditRepositorySettingsModal({
   return (
     <div className="px-1">
       <div className="flex flex-col">
-        <div className="mx-auto h-8 w-8">
-          <GithubIcon className="h-8 w-8 text-greyscaleDark" />
+        <div className="w-8 h-8 mx-auto">
+          <GithubIcon className="w-8 h-8 text-greyscaleDark" />
         </div>
         <Text
           variant="subHeading"
@@ -95,7 +95,7 @@ export function EditRepositorySettingsModal({
           variant="body"
           color="greyscaleDark"
           size="small"
-          className="text-center font-normal"
+          className="font-normal text-center"
         >
           {selectedRepoId
             ? `We'll deploy changes automatically when you push to the deployment branch.            `
@@ -110,7 +110,7 @@ export function EditRepositorySettingsModal({
               <div className="">
                 <RepoAndBranch />
               </div>
-              <div className="mt-2 flex flex-col">
+              <div className="flex flex-col mt-2">
                 <Button
                   type="submit"
                   color="primary"
@@ -123,7 +123,7 @@ export function EditRepositorySettingsModal({
                 </Button>
               </div>
             </form>
-            <div className="mt-2 flex flex-col">
+            <div className="flex flex-col mt-2">
               <Button
                 type="button"
                 variant="outlined"

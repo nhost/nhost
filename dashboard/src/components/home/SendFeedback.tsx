@@ -6,7 +6,7 @@ import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import * as React from 'react';
 
-export function SendFeedback({ setFeedbackSent, feedback, setFeedback }) {
+export function SendFeedback({ setFeedbackSent, feedback, setFeedback }: any) {
   const [insertFeedback, { loading }] = useInsertFeedbackOneMutation();
   const user = nhost.auth.getUser();
 
@@ -38,13 +38,13 @@ export function SendFeedback({ setFeedbackSent, feedback, setFeedback }) {
       </Text>
 
       <form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
-        <div className="grid grid-flow-col place-content-between gap-2">
+        <div className="grid grid-flow-col gap-2 place-content-between">
           <Text className="font-medium">
             What do you think we should improve?
           </Text>
 
           <Avatar
-            className="h-6 w-6 rounded-full"
+            className="w-6 h-6 rounded-full"
             name={user?.displayName}
             avatarUrl={user?.avatarUrl}
           />

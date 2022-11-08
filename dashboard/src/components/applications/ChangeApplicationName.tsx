@@ -13,7 +13,7 @@ import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
 import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 
-export function ChangeApplicationName({ close }) {
+export function ChangeApplicationName({ close }: any) {
   const [updateAppName, { client }] = useUpdateApplicationMutation({});
   const { workspaceContext } = useWorkspaceContext();
   const [name, setName] = useState(workspaceContext.appName);
@@ -56,14 +56,14 @@ export function ChangeApplicationName({ close }) {
   }
 
   return (
-    <div className="w-modal px-6 py-6 text-left">
+    <div className="px-6 py-6 text-left w-modal">
       <div className="flex flex-col">
         <Text variant="h3" component="h2">
           Change Project Name
         </Text>
 
         <form onSubmit={handleSubmit}>
-          <div className="mt-4 grid grid-flow-row gap-2">
+          <div className="grid grid-flow-row gap-2 mt-4">
             <Input
               label="New Project Name"
               id="projectName"
@@ -84,7 +84,7 @@ export function ChangeApplicationName({ close }) {
             )}
           </div>
 
-          <div className="mt-4 grid grid-flow-row gap-2">
+          <div className="grid grid-flow-row gap-2 mt-4">
             <Button type="submit" disabled={applicationError}>
               Save
             </Button>
