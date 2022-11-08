@@ -13,10 +13,10 @@ Object {
   "roles": Object {
     "data": Array [
       Object {
-        "role": "user",
+        "role": "me",
       },
       Object {
-        "role": "me",
+        "role": "user",
       },
     ],
   },
@@ -36,10 +36,10 @@ Object {
   "roles": Object {
     "data": Array [
       Object {
-        "role": "user",
+        "role": "me",
       },
       Object {
-        "role": "me",
+        "role": "user",
       },
     ],
   },
@@ -59,10 +59,10 @@ Object {
   "roles": Object {
     "data": Array [
       Object {
-        "role": "user",
+        "role": "me",
       },
       Object {
-        "role": "me",
+        "role": "user",
       },
     ],
   },
