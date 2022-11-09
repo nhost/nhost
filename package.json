@@ -65,7 +65,6 @@
     "pascal-case": "^3.1.2",
     "passport": "0.4.1",
     "passport-apple": "^2.0.1",
-    "passport-azure-ad-oauth2": "^0.0.4",
     "passport-bitbucket-oauth2": "^0.1.2",
     "passport-gitlab2": "^5.0.0",
     "passport-linkedin-oauth2": "^2.0.0",

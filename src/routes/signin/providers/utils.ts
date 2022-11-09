@@ -215,7 +215,7 @@ export const initProvider = <T extends Strategy>(
     let strategyToUse;
 
     // Apple and Azure AD are special
-    if (strategyName === 'apple' || strategyName === 'azuread') {
+    if (strategyName === 'apple') {
       strategyToUse = new strategy(
         {
           ...PROVIDERS[strategyName],
@@ -247,16 +247,6 @@ export const initProvider = <T extends Strategy>(
             id = decodedJwt.sub;
             email = decodedJwt.email;
             emailVerified = decodedJwt.email_verified;
-          } else if (strategyName === 'azuread') {
-            const decodedJwt: JWTPayload & {
-              oid?: string;
-              upn?: string;
-              name?: string;
-            } = decodeJwt((params as { id_token: string }).id_token);
-            id = decodedJwt.oid;
-            email = decodedJwt.upn;
-            emailVerified = !!email;
-            displayName = decodedJwt.name;
           } else {
             throw new Error(`Unsupported strategy "${strategyName}"`);
           }

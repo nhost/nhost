@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import twitter from './twitter';
 import apple from './apple';
-import azuread from './azuread';
 import windowslive from './windowslive';
 import linkedin from './linkedin';
 import spotify from './spotify';
@@ -16,7 +15,6 @@ const router = Router();
 
 twitter(router);
 apple(router);
-azuread(router);
 windowslive(router);
 linkedin(router);
 spotify(router);

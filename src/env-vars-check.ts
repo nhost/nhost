@@ -137,19 +137,6 @@ if (PROVIDERS.twitter) {
   });
 }
 
-if (PROVIDERS.azuread) {
-  [
-    'AUTH_PROVIDER_AZUREAD_CLIENT_ID',
-    'AUTH_PROVIDER_AZUREAD_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Azure AD provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (ENV.AUTH_SMS_PROVIDER) {
   if (ENV.AUTH_SMS_PROVIDER === 'twilio') {
     [

@@ -100,7 +100,6 @@ specifiers:
   pascal-case: ^3.1.2
   passport: 0.4.1
   passport-apple: ^2.0.1
-  passport-azure-ad-oauth2: ^0.0.4
   passport-bitbucket-oauth2: ^0.1.2
   passport-gitlab2: ^5.0.0
   passport-linkedin-oauth2: ^2.0.0
@@ -171,7 +170,6 @@ dependencies:
   pascal-case: 3.1.2
   passport: 0.4.1
   passport-apple: 2.0.1
-  passport-azure-ad-oauth2: 0.0.4
   passport-bitbucket-oauth2: 0.1.2
   passport-gitlab2: 5.0.0
   passport-linkedin-oauth2: 2.0.0
@@ -10233,12 +10231,6 @@ packages:
     dependencies:
       jsonwebtoken: 8.5.1
       passport-oauth2: 1.6.1
-    dev: false
-
-  /passport-azure-ad-oauth2/0.0.4:
-    resolution: {integrity: sha512-yjwi0qXzGPIrR8yI5mBql2wO6tf/G5+HAFllkwwZ6f2EBCVvRv5z+6CwQeBvlrDbFh8RCXdj/IfB17r8LYDQQQ==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/passport-azure-ad-oauth2/-/passport-azure-ad-oauth2-0.0.4.tgz}
-    dependencies:
-      passport-oauth: 1.0.0
     dev: false
 
   /passport-bitbucket-oauth2/0.1.2:
