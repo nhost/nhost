@@ -176,7 +176,7 @@ export const oauthProviders = Router()
           });
 
         if (!insertAuthUserProvider) {
-          console.warn('Could not add a provider to user');
+          logger.warn('Could not add a provider to user');
           return sendError(res, 'internal-error', { redirectTo }, true);
         }
       } else {
