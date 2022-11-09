@@ -1,7 +1,7 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "src/index.ts"
+    "src/hasura-auth-client.ts"
   ],
   "exclude": "*.(spec|test).tsx?",
   "sort": [
