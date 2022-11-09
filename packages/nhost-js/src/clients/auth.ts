@@ -16,8 +16,5 @@ export function createAuthClient(params: NhostClientConstructorParams) {
     throw new Error('Please provide `subdomain` or `authUrl`.')
   }
 
-  return new HasuraAuthClient({
-    ...params,
-    url: authUrl
-  })
+  return new HasuraAuthClient({ url: authUrl, ...params })
 }

@@ -13,69 +13,19 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/
 
 ---
 
-**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> `number`
 
-When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Serverless Functions.
-
----
-
-**<span className="parameter-name">functionsUrl</span>** <span className="optional-status">optional</span> `string`
+Time interval until token refreshes, in seconds
 
 ---
 
-**<span className="parameter-name">storageUrl</span>** <span className="optional-status">optional</span> `string`
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
 
----
+Define a way to get information about the refresh token and its exipration date.
 
-**<span className="parameter-name">graphqlUrl</span>** <span className="optional-status">optional</span> `string`
+**`@default`**
 
----
-
-**<span className="parameter-name">authUrl</span>** <span className="optional-status">optional</span> `string`
-
----
-
-**<span className="parameter-name">region</span>** <span className="optional-status">optional</span> `string`
-
-Project region (e.g. `eu-central-1`)
-Project region is not required during local development (when `subdomain` is `localhost`)
-
----
-
-**<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
-
-Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
-Use `localhost` during local development
-
----
-
-**<span className="parameter-name">backendUrl</span>** <span className="optional-status">optional</span> `string`
-
-Nhost backend URL
-Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
-
----
-
-**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> `boolean`
-
----
-
-**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
-
-Activate devTools e.g. the ability to connect to the xstate inspector
-
----
-
-**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
-
-When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
-
----
-
-**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
-
-When set to true, will automatically refresh token before it expires
+`web`
 
 ---
 
@@ -97,18 +47,68 @@ Recommended values:
 
 ---
 
-**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
 
-Define a way to get information about the refresh token and its exipration date.
-
-**`@default`**
-
-`web`
+When set to true, will automatically refresh token before it expires
 
 ---
 
-**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> `number`
+**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
 
-Time interval until token refreshes, in seconds
+When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
+
+---
+
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
+
+Activate devTools e.g. the ability to connect to the xstate inspector
+
+---
+
+**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> `boolean`
+
+---
+
+**<span className="parameter-name">backendUrl</span>** <span className="optional-status">optional</span> `string`
+
+Nhost backend URL
+Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
+
+---
+
+**<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
+
+Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
+Use `localhost` during local development
+
+---
+
+**<span className="parameter-name">region</span>** <span className="optional-status">optional</span> `string`
+
+Project region (e.g. `eu-central-1`)
+Project region is not required during local development (when `subdomain` is `localhost`)
+
+---
+
+**<span className="parameter-name">authUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">graphqlUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">storageUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">functionsUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---

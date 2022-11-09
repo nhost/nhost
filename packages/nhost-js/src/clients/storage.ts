@@ -1,23 +1,20 @@
-import { createHasuraStorageClient } from '@nhost/hasura-storage-js'
+import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
 import { urlFromSubdomain } from '../utils/helpers'
+import { NhostClientConstructorParams } from '../utils/types'
 
 /**
  * Creates a client for Storage from either a subdomain or a URL
- *
- * @param adminSecret
- * @param urlParams
- *
  */
-export function createStorageClient(adminSecret: string | undefined, urlParams: any) {
+export function createStorageClient(params: NhostClientConstructorParams) {
   const storageUrl =
-    'subdomain' in urlParams || 'backendUrl' in urlParams
-      ? urlFromSubdomain(urlParams, 'storage')
-      : urlParams.storageUrl
+    'subdomain' in params || 'backendUrl' in params
+      ? urlFromSubdomain(params, 'storage')
+      : params.storageUrl
 
   if (!storageUrl) {
     throw new Error('Please provide `subdomain` or `storageUrl`.')
   }
 
-  return createHasuraStorageClient(storageUrl, adminSecret)
+  return new HasuraStorageClient({ url: storageUrl, ...params })
 }

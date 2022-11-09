@@ -31,7 +31,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     reporters: 'verbose',
-    include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/**/*.{spec,test}.{ts,tsx}`],
+    include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`],
     coverage: {
       enabled: process.env.CI === 'true',
       reporter: ['json']

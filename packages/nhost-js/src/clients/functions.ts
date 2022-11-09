@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 
 import { urlFromSubdomain } from '../utils/helpers'
-import { FunctionCallResponse } from '../utils/types'
+import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
   /**
    * Serverless Functions endpoint.
@@ -15,25 +15,18 @@ export interface NhostFunctionsConstructorParams {
 
 /**
  * Creates a client for Functions from either a subdomain or a URL
- *
- * @param adminSecret
- * @param urlParams
- * @returns
  */
-export function createFunctionsClient(adminSecret: string | undefined, urlParams: any) {
+export function createFunctionsClient(params: NhostClientConstructorParams) {
   const functionsUrl =
-    'subdomain' in urlParams || 'backendUrl' in urlParams
-      ? urlFromSubdomain(urlParams, 'functions')
-      : urlParams.functionsUrl
+    'subdomain' in params || 'backendUrl' in params
+      ? urlFromSubdomain(params, 'functions')
+      : params.functionsUrl
 
   if (!functionsUrl) {
     throw new Error('Please provide `subdomain` or `functionsUrl`.')
   }
 
-  return new NhostFunctionsClient({
-    url: functionsUrl,
-    adminSecret
-  })
+  return new NhostFunctionsClient({ url: functionsUrl, ...params })
 }
 
 /**

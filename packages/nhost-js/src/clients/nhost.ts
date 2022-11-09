@@ -79,9 +79,9 @@ export class NhostClient {
       start,
       ...urlParams
     })
-    this.storage = createStorageClient(adminSecret, urlParams)
-    this.functions = createFunctionsClient(adminSecret, urlParams)
-    this.graphql = createGraphqlClient(adminSecret, urlParams)
+    this.storage = createStorageClient({ adminSecret, ...urlParams })
+    this.functions = createFunctionsClient({ adminSecret, ...urlParams })
+    this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())
