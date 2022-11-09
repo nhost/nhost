@@ -1,3 +1,6 @@
+import { NextFunction, Request, Response } from 'express';
+import { GrantResponse } from 'grant';
+
 import {
   locale as localeValidator,
   email as emailValidator,
@@ -5,12 +8,12 @@ import {
 import { InsertUserMutationVariables } from '@/utils/__generated__/graphql-request';
 import { ENV, getGravatarUrl } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
-import { GrantResponse } from 'grant';
+import { logger } from '@/logger';
+
 import {
   PRE_REQUEST_PROVIDER_MIDDLEWARES,
   PROFILE_NORMALISERS,
 } from './config';
-import { NextFunction, Request, Response } from 'express';
 
 /**
  * Fields that can be possibly returned by the OAuth provider and stored in the database
@@ -78,6 +81,8 @@ export const normaliseProfile = async (
     PROFILE_NORMALISERS[provider] || PROFILE_NORMALISERS.defaults;
   const profile = await normaliser(data);
   if (!profile.id) {
+    logger.warn(`Missing id in profile for provider ${provider}`);
+    logger.warn(data);
     throw new Error('Could not determine profile id');
   }
   return profile;

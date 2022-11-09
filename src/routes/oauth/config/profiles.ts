@@ -27,6 +27,16 @@ export const PROFILE_NORMALISERS: Record<
     };
   },
 
+  azuread: ({ jwt }) => {
+    const payload = jwt?.id_token?.payload;
+    return {
+      id: payload.oid,
+      displayName: payload.name,
+      email: payload.email,
+      emailVerified: !!payload.email,
+    };
+  },
+
   facebook: ({ profile }) => ({
     id: profile.id,
     displayName: profile.name,

@@ -18,7 +18,7 @@ import {
   registrationOptions,
 } from '@/validation';
 import { SessionStore } from './session-store';
-import { config, OAUTH_ROUTE, SESSION_NAME } from './config';
+import { GRANT_CONFIG, OAUTH_ROUTE, SESSION_NAME } from './config';
 import { logger } from '@/logger';
 import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
@@ -56,7 +56,7 @@ export const oauthProviders = Router()
   // * Validate the provider configuration
   .use(`${OAUTH_ROUTE}/:provider`, ({ params: { provider } }, res, next) => {
     const redirectTo: string = res.locals.redirectTo;
-    const providerConfig = config[provider];
+    const providerConfig = GRANT_CONFIG[provider];
     // * Check if provider is enabled
     if (!providerConfig) {
       return sendError(res, 'disabled-endpoint', { redirectTo }, true);
@@ -97,7 +97,7 @@ export const oauthProviders = Router()
    * Grant middleware: handle the oauth flow until the callback
    * @see {@link file://./config/grant.ts}
    */
-  .use(grant.express()(config))
+  .use(grant.express()(GRANT_CONFIG))
 
   /**
    * Oauth Callback
@@ -126,7 +126,10 @@ export const oauthProviders = Router()
       return sendError(res, 'internal-error', { redirectTo }, true);
     }
     if (!response.profile) {
-      logger.warn('No Oauth profile in the session');
+      logger.warn(`No Oauth profile in the session`);
+      if (response.error) {
+        logger.warn(response.error);
+      }
       return sendError(res, 'internal-error', { redirectTo }, true);
     }
     const profile = await normaliseProfile(provider, response);
@@ -138,6 +141,7 @@ export const oauthProviders = Router()
       refresh_token: refreshToken,
       jwt,
     } = response;
+    // TODO remove console.log
     console.log('From the prodiver:', { accessToken, refreshToken, jwt });
 
     let user: NonNullable<InsertUserMutation['insertUser']> | null = null;
