@@ -5,11 +5,11 @@ import {
   Subdomain
 } from '@nhost/nhost-js'
 
+export * from './create-server-side-client'
+export * from './get-session'
 export type { NhostSession } from '@nhost/hasura-auth-js'
 export * from '@nhost/react'
 export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
-export * from './create-server-side-client'
-export * from './get-session'
 
 const isBrowser = typeof window !== 'undefined'
 
