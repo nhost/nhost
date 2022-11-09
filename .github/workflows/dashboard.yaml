@@ -1,4 +1,5 @@
-# this workflow will run on all pushes.
+name: 'Dashboard'
+
 on:
   push:
     branches: [main]
@@ -10,7 +11,9 @@ on:
     paths:
       - 'dashboard/**'
 
-name: 'dashboard'
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
 jobs:
   build:
     runs-on: ubuntu-latest
