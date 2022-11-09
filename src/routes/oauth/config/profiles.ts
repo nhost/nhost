@@ -33,7 +33,6 @@ export const PROFILE_NORMALISERS: Record<
       id: payload.oid,
       displayName: payload.name,
       email: payload.email,
-      emailVerified: !!payload.email,
     };
   },
 

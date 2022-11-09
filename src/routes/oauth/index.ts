@@ -217,8 +217,3 @@ export const oauthProviders = Router()
       })
     );
   });
-
-// http://localhost:4000/signin/provider/workos
-// http://localhost:4000/signin/provider/google
-// http://localhost:4000/signin/provider/github
-// http://localhost:4000/signin/provider/facebook
