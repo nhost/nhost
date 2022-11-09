@@ -10,7 +10,7 @@ runs:
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
       shell: bash
-      run: echo "::set-output name=dir::$(pnpm store path)"
+      run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
     - uses: actions/cache@v3
       id: pnpm-cache 
       with:
