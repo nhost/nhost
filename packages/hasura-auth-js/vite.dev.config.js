@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-import baseConfig from '../../config/vite.lib.config'
+import baseConfig from '../../config/vite.lib.dev.config'
 
 export default defineConfig({
   ...baseConfig,
