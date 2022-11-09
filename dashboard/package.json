@@ -129,7 +129,6 @@
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-next": "^13.0.2",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react": "^7.31.10",
