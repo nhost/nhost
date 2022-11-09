@@ -10,6 +10,12 @@
       "dependsOn": [],
       "outputs": [".next"]
     },
+    "@nhost/dashboard#lint": {
+      "dependsOn": ["^@nhost/dashboard#build"]
+    },
+    "@nhost/dashboard#test": {
+      "dependsOn": ["^@nhost/dashboard#build"]
+    },
     "@nhost-examples/react-apollo#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
