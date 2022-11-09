@@ -61,19 +61,20 @@
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^6.0.0",
     "axios": "^0.27.2",
+    "js-cookie": "^3.0.1",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.33.5"
   },
-  "peerDependencies": {
-    "@nhost/core": "workspace:*"
-  },
   "devDependencies": {
-    "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
+    "@simplewebauthn/typescript-types": "^6.0.0",
     "@types/faker": "5",
+    "@types/js-cookie": "^3.0.2",
     "html-urls": "^2.4.38",
     "mailhog": "^4.16.0",
+    "msw": "^0.47.4",
     "start-server-and-test": "^1.14.0"
   }
 }

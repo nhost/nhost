@@ -12,7 +12,7 @@ import {
   StorageSetter,
   User,
   WorkOsOptions
-} from '@nhost/core'
+} from '../core'
 export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams extends AuthOptions {
   url: string

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
-import { USER_UNAUTHENTICATED } from '@nhost/core'
 import { describe, expect, it } from 'vitest'
+import { USER_UNAUTHENTICATED } from '../src/core'
 
 import { auth, signUpAndInUser } from './helpers'
 

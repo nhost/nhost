@@ -1,6 +1,6 @@
 import { App, warn } from 'vue'
 
-import { removeParameterFromWindow } from '@nhost/core'
+import { removeParameterFromWindow } from '@nhost/hasura-auth-js'
 import {
   BackendUrl,
   NhostAuthConstructorParams,

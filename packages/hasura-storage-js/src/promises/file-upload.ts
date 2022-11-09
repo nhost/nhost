@@ -1,6 +1,6 @@
 import { InterpreterFrom } from 'xstate'
 
-import { ActionErrorState } from '@nhost/core'
+import { ActionErrorState } from '@nhost/hasura-auth-js'
 
 import { FileItemRef, FileUploadMachine } from '../machines'
 import { NhostClientReturnType, StorageUploadFileParams } from '../utils/types'

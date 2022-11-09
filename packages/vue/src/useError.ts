@@ -1,4 +1,4 @@
-import { StateErrorTypes } from '@nhost/core'
+import { StateErrorTypes } from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/vue'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

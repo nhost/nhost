@@ -1,6 +1,19 @@
 import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
+import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
+import {
+  AuthChangedFunction,
+  ChangeEmailParams,
+  ChangePasswordParams,
+  DeanonymizeParams,
+  NhostAuthConstructorParams,
+  OnTokenChangedFunction,
+  ResetPasswordParams,
+  SendVerificationEmailParams,
+  SignInParams,
+  SignUpParams
+} from './utils/types'
 import {
   addSecurityKeyPromise,
   AuthClient,
@@ -43,21 +56,7 @@ import {
   signUpEmailSecurityKeyPromise,
   SignUpResponse,
   TOKEN_REFRESHER_RUNNING_ERROR
-} from '@nhost/core'
-
-import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
-import {
-  AuthChangedFunction,
-  ChangeEmailParams,
-  ChangePasswordParams,
-  DeanonymizeParams,
-  NhostAuthConstructorParams,
-  OnTokenChangedFunction,
-  ResetPasswordParams,
-  SendVerificationEmailParams,
-  SignInParams,
-  SignUpParams
-} from './utils/types'
+} from './core'
 
 /**
  * @alias Auth

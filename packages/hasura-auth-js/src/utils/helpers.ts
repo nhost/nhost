@@ -1,4 +1,4 @@
-import { AuthContext, NhostSession, SessionActionHandlerResult, SignUpResponse } from '@nhost/core'
+import { AuthContext, NhostSession, SessionActionHandlerResult, SignUpResponse } from '../core'
 
 export const isBrowser = () => typeof window !== 'undefined'
 
