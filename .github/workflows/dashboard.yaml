@@ -22,17 +22,8 @@ jobs:
       NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7.9.1
-          run_install: false
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Build the application
         run: NEXT_PUBLIC_ENV=dev pnpm build:dashboard
       - uses: actions/cache@v3.0.11
@@ -45,15 +36,8 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7.9.1
-          run_install: false
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'pnpm'
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - uses: actions/cache@v3.0.11
         id: restore-build
         with:
@@ -67,11 +51,8 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          cache: 'pnpm'
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - uses: actions/cache@v3.0.11
         id: restore-build
         with:
