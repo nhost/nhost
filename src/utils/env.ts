@@ -63,6 +63,9 @@ export const ENV = {
   get AUTH_SMS_PROVIDER() {
     return castStringEnv('AUTH_SMS_PROVIDER');
   },
+  get AUTH_SMS_TEST_PHONE_NUMBERS() {
+    return castStringArrayEnv('AUTH_SMS_TEST_PHONE_NUMBERS', []);
+  },
 
   // TWILIO
   get AUTH_SMS_TWILIO_ACCOUNT_SID() {

@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { ENV, getSignInResponse, gqlSdk } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber } from '@/validation';
-import { isVerifySid } from '@/utils/twilio';
+import { isTestingPhoneNumber, isVerifySid } from '@/utils/twilio';
 import twilio from 'twilio';
 
 export type OtpSmsRequestBody = {
@@ -66,6 +66,31 @@ export const signInOtpHandler: RequestHandler<
     return sendError(res, 'invalid-otp');
   }
 
+  async function verifyPhoneNumberAndSignIn() {
+    await gqlSdk.updateUser({
+      id: user.id,
+      user: {
+        otpHash: null,
+        phoneNumberVerified: true,
+      },
+    });
+
+    const signInResponse = await getSignInResponse({
+      userId: user.id,
+      checkMFA: true,
+    });
+
+    return res.send(signInResponse);
+  }
+
+  if (isTestingPhoneNumber(user.phoneNumber)) {
+    if (await bcrypt.compare(otp, user.otpHash)) {
+      return await verifyPhoneNumberAndSignIn();
+    } else {
+      return sendError(res, 'invalid-otp');
+    }
+  }
+
   if (!ENV.AUTH_SMS_PROVIDER) {
     throw Error('No sms provider set');
   }
@@ -96,19 +121,5 @@ export const signInOtpHandler: RequestHandler<
     return sendError(res, 'invalid-otp');
   }
 
-  // verify phone number
-  await gqlSdk.updateUser({
-    id: user.id,
-    user: {
-      otpHash: null,
-      phoneNumberVerified: true,
-    },
-  });
-
-  const signInResponse = await getSignInResponse({
-    userId: user.id,
-    checkMFA: true,
-  });
-
-  return res.send(signInResponse);
+  return verifyPhoneNumberAndSignIn();
 };

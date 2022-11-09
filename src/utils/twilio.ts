@@ -12,3 +12,9 @@ export const isVerifySid = (
   const identifier = sid.substring(0, 2);
   return VERIFY_SIDs.includes(identifier);
 };
+
+export const isTestingPhoneNumber = (phoneNumber?: string | null) => {
+  const testPhoneNumbers = ENV.AUTH_SMS_TEST_PHONE_NUMBERS as string[];
+
+  return phoneNumber && testPhoneNumbers.indexOf(phoneNumber) > -1;
+};
