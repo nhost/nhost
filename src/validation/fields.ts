@@ -75,7 +75,6 @@ export const redirectTo = ENV.AUTH_CLIENT_URL
       .try(
         ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
           Joi.string()
-            .lowercase()
             .regex(new RegExp('^' + value))
         ),
         Joi.string()
