@@ -8,34 +8,7 @@ import { createFunctionsClient, NhostFunctionsClient } from './functions'
 import { createGraphqlClient, NhostGraphqlClient } from './graphql'
 import { createStorageClient } from './storage'
 
-export function createNhostClient({
-  refreshIntervalTime,
-  clientStorageGetter,
-  clientStorageSetter,
-  clientStorage,
-  clientStorageType,
-  autoRefreshToken,
-  autoSignIn,
-  adminSecret,
-  devTools,
-  start = true,
-  ...urlParams
-}: NhostClientConstructorParams): NhostClient {
-  return new NhostClient({
-    refreshIntervalTime,
-    clientStorageGetter,
-    clientStorageSetter,
-    clientStorage,
-    clientStorageType,
-    autoRefreshToken,
-    autoSignIn,
-    adminSecret,
-    devTools,
-    start,
-    ...urlParams
-  })
-}
-
+export const createNhostClient = (params: NhostClientConstructorParams) => new NhostClient(params)
 export class NhostClient {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
