@@ -109,7 +109,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 ## Integrations
 
-- [Stripe GraphQL API](./packages/stripe-graphql-js#nhoststripe-graphql-js)
+- [Stripe GraphQL API](./integrations/stripe-graphql-js#nhoststripe-graphql-js)
 
 ## Community ❤️
 
