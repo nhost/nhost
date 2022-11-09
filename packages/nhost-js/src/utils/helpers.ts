@@ -1,6 +1,6 @@
 import { NhostClientConstructorParams } from './types'
 
-const LOCALHOST_REGEX = /^localhost(:\d+)*$/g
+const LOCALHOST_REGEX = /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>\d+))?$/
 
 /**
  * `backendUrl` should now be used only when self-hosting
@@ -10,37 +10,30 @@ const LOCALHOST_REGEX = /^localhost(:\d+)*$/g
  * @param service
  * @returns
  */
-export function urlFromParams(
+export function urlFromSubdomain(
   backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain' | 'backendUrl'>,
   service: string
-) {
+): string {
   const { backendUrl, subdomain, region } = backendOrSubdomain
-
-  if (!backendUrl && !subdomain) {
-    throw new Error('Either `backendUrl` or `subdomain` must be set.')
-  }
 
   if (backendUrl) {
     return `${backendUrl}/v1/${service}`
   }
 
-  // to make TS happy
   if (!subdomain) {
-    throw new Error('`subdomain` must be set if `backendUrl` is not set.')
+    throw new Error('Either `backendUrl` or `subdomain` must be set.')
   }
 
-  // check if subdomain is localhost[:port]
+  // check if subdomain is [http[s]://]localhost[:port]
   const subdomainLocalhostFound = subdomain.match(LOCALHOST_REGEX)
-  if (subdomainLocalhostFound && subdomainLocalhostFound.length > 0) {
-    const localhostFound = subdomainLocalhostFound[0]
+  if (subdomainLocalhostFound?.groups) {
+    const { protocol = 'http', host, port = 1337 } = subdomainLocalhostFound.groups
 
-    // no port specified, use standard port 1337
-    if (localhostFound === 'localhost') {
-      return `http://localhost:1337/v1/${service}`
+    const urlFromEnv = getValueFromEnv(service)
+    if (urlFromEnv) {
+      return urlFromEnv
     }
-
-    // port specified
-    return `http://${localhostFound}/v1/${service}`
+    return `${protocol}://${host}:${port}/v1/${service}`
   }
 
   if (!region) {
@@ -48,4 +41,34 @@ export function urlFromParams(
   }
 
   return `https://${subdomain}.${service}.${region}.nhost.run/v1`
+}
+
+/**
+ *
+ * @returns whether the code is running in a browser
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined'
+}
+
+/**
+ *
+ * @returns whether the code is running in a Node.js environment
+ */
+function environmentIsAvailable() {
+  return typeof process !== 'undefined' && process.env
+}
+
+/**
+ *
+ * @param service auth | storage | graphql | functions
+ * @returns the service's url if the corresponding env var is set
+ * NHOST_${service}_URL
+ */
+function getValueFromEnv(service: string) {
+  if (isBrowser() || !environmentIsAvailable()) {
+    return null
+  }
+
+  return process.env[`NHOST_${service.toUpperCase()}_URL`]
 }
