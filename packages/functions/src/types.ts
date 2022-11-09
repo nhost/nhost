@@ -1,7 +1,7 @@
 import type { HasuraUserClaims } from './hasura-metadata'
 
 // to make the file a module and avoid the TypeScript error
-export {}
+export { }
 
 declare global {
   namespace Express {
@@ -10,6 +10,7 @@ declare global {
       userClaims?: HasuraUserClaims
       isAdmin: boolean
       role: string
+      rawBody: string
     }
   }
 }
