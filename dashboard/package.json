@@ -154,5 +154,17 @@
     "vite-tsconfig-paths": "^3.5.2",
     "vitest": "^0.25.1",
     "webpack": "^5.75.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

@@ -47,3 +47,6 @@ tailwind.json
 .nhost
 
 .idea
+
+# Do not ignore Logs page
+!src/**/logs*
