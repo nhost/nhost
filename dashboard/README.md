@@ -22,10 +22,18 @@ These files are added to `.gitignore`, so you don't need to worry about committi
 
 ### Enable Local Development
 
-There are two environment variables you need to set to enable local development:
+You can connect the Nhost Dashboard to your **locally running** Nhost backend in a few steps. Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli#installation).
 
-- `NEXT_PUBLIC_NHOST_PLATFORM` determines how the dashboard should work. For instance, a dashboard that's not connecting to Nhost's database doesn't need authentication and some features (e.g: Deployments, Settings, etc.).
-- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` is the URL of Hasura's migration service. This does not affect local development directly, but it's required for the Database UI to work.
+First, you need to run the following command to start your backend locally:
+
+```bash
+cd <your_nhost_project> && nhost dev
+```
+
+Two environment variables are required to connect the Nhost Dashboard to your local backend:
+
+- `NEXT_PUBLIC_NHOST_PLATFORM` should be set to `false`, because otherwise the Nhost Dashboard will try to connect to the Nhost platform.
+- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` should be set to `http://localhost:9693` unless Hasura is configured to run on a different port. This is the URL of Hasura's migrations endpoint.
 
 Example:
 
@@ -36,17 +44,17 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 
 ### Full list of environment variables
 
-| Name                                 | Description                                                               |
-| ------------------------------------ | ------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`                                                |
-| `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.     |
-| `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migration API. Used only if local development is enabled. |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | URL of the local backend. This is `http://localhost:1337` by default.     |
-| `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` when doing local development.               |
-| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                   |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.       |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                       |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. Not necessary for local development.          |
+| Name                                 | Description                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. |
+| `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migrations endpoint. Used only if local development is enabled.                  |
+| `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.                            |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | URL of the local backend. This is `http://localhost:1337` by default.                            |
+| `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                |
+| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                                          |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.                              |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                                              |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. Not necessary for local development.                                 |
 
 ## ESLint Rules
 
