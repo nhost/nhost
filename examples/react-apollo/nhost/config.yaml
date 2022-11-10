@@ -17,7 +17,7 @@ auth:
       blocked_emails: ''
     allowed_redirect_urls: ''
   anonymous_users_enabled: true
-  client_url: http://localhost:3000
+  client_url: http://127.0.0.1:5173
   disable_new_users: false
   email:
     passwordless:
