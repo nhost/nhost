@@ -77,11 +77,14 @@ export const redirectTo = ENV.AUTH_CLIENT_URL
           Joi.string()
             .lowercase()
             .regex(new RegExp('^' + value))
+            // * Get the initial value so we don't change the case
             .raw()
         ),
         Joi.string()
           .lowercase()
           .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
+          // * Get the initial value so we don't change the case
+          .raw()
       )
       // ! If validation fails, it will always fall back to `ENV.AUTH_CLIENT_URL` instead of raising an error.
       .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`)
