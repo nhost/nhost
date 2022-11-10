@@ -3,8 +3,9 @@
 
 /packages                                @plmercereau @szilarddoro
 /packages/docgen                         @szilarddoro
-/packages/stripe-graphql-js              @elitan
+/integrations/stripe-graphql-js          @elitan
 /.github                                 @plmercereau
+/dashboard/                              @szilarddoro @guicurcio
 /docs/                                   @guicurcio @elitan
 /config/                                 @plmercereau @szilarddoro
 /examples/                               @plmercereau

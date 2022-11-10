@@ -42,6 +42,7 @@
   },
   "workspaces": [
     "packages/*",
+    "integrations/*",
     "examples/*",
     "docs"
   ],

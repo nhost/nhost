@@ -1,10 +1,14 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
-import { NhostFunctionsClient } from '../clients/functions'
-import { NhostGraphqlClient } from '../clients/graphql'
-import { urlFromParams } from '../utils/helpers'
 import { NhostClientConstructorParams } from '../utils/types'
+
+import { createAuthClient } from './auth'
+import { createFunctionsClient, NhostFunctionsClient } from './functions'
+import { createGraphqlClient, NhostGraphqlClient } from './graphql'
+import { createStorageClient } from './storage'
+
+export const createNhostClient = (params: NhostClientConstructorParams) => new NhostClient(params)
 export class NhostClient {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
@@ -36,8 +40,8 @@ export class NhostClient {
     start = true,
     ...urlParams
   }: NhostClientConstructorParams) {
-    this.auth = new HasuraAuthClient({
-      url: urlFromParams(urlParams, 'auth'),
+    // * Set clients for all services
+    this.auth = createAuthClient({
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -45,23 +49,12 @@ export class NhostClient {
       clientStorageType,
       autoRefreshToken,
       autoSignIn,
-      start
+      start,
+      ...urlParams
     })
-
-    this.storage = new HasuraStorageClient({
-      url: urlFromParams(urlParams, 'storage'),
-      adminSecret
-    })
-
-    this.functions = new NhostFunctionsClient({
-      url: urlFromParams(urlParams, 'functions'),
-      adminSecret
-    })
-
-    this.graphql = new NhostGraphqlClient({
-      url: urlFromParams(urlParams, 'graphql'),
-      adminSecret
-    })
+    this.storage = createStorageClient({ adminSecret, ...urlParams })
+    this.functions = createFunctionsClient({ adminSecret, ...urlParams })
+    this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())
