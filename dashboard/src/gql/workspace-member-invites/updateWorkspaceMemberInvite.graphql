@@ -1,0 +1,11 @@
+mutation updateWorkspaceMemberInvite(
+  $id: uuid!
+  $workspaceMemberInvite: workspaceMemberInvites_set_input!
+) {
+  updateWorkspaceMemberInvites(
+    _set: $workspaceMemberInvite
+    where: { id: { _eq: $id } }
+  ) {
+    affected_rows
+  }
+}

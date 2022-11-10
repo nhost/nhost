@@ -1,0 +1,9 @@
+query getWorkspaces {
+  workspaces(order_by: { name: asc }) {
+    id
+    createdAt
+    name
+    slug
+    creatorUserId
+  }
+}

@@ -1,0 +1,11 @@
+mutation updateEnvironmentVariable(
+  $id: uuid!
+  $environmentVariable: environmentVariables_set_input!
+) {
+  updateEnvironmentVariable(
+    pk_columns: { id: $id }
+    _set: $environmentVariable
+  ) {
+    id
+  }
+}

@@ -1,0 +1,13 @@
+query getRoles($id: uuid!) {
+  app(id: $id) {
+    id
+    authUserDefaultRole
+    authUserDefaultAllowedRoles
+  }
+}
+
+query getRemoteAppRoles {
+  authRoles {
+    role
+  }
+}

@@ -1,0 +1,5 @@
+mutation deleteWorkspaceMember($id: uuid!) {
+  deleteWorkspaceMember(id: $id) {
+    id
+  }
+}

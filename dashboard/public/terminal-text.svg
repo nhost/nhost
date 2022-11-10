@@ -1,0 +1,36 @@
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 8C0 3.58172 3.58172 0 8 0H64C68.4183 0 72 3.58172 72 8V64C72 68.4183 68.4183 72 64 72H8C3.58172 72 0 68.4183 0 64V8Z" fill="#3787FF" fill-opacity="0.1"/>
+<path d="M0 8C0 3.58172 3.58172 0 8 0H64C68.4183 0 72 3.58172 72 8V64C72 68.4183 68.4183 72 64 72H8C3.58172 72 0 68.4183 0 64V8Z" fill="url(#paint0_linear_307_525)" fill-opacity="0.1"/>
+<g filter="url(#filter0_dd_307_525)">
+<rect x="18.5" y="21" width="35" height="30" rx="2" fill="#21324B"/>
+<rect x="18.5" y="21" width="35" height="30" rx="2" fill="url(#paint1_linear_307_525)" fill-opacity="0.2"/>
+</g>
+<circle cx="52.25" cy="22.25" r="3.75" fill="#62D198"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M45 29H25V31H45V29ZM37 33H25V35H37V33ZM25 37H47V39H25V37ZM31 41H25V43H31V41Z" fill="white"/>
+<defs>
+<filter id="filter0_dd_307_525" x="16.5" y="20" width="39" height="35" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feMorphology radius="4" operator="erode" in="SourceAlpha" result="effect1_dropShadow_307_525"/>
+<feOffset dy="4"/>
+<feGaussianBlur stdDeviation="2"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0941176 0 0 0 0 0.152941 0 0 0 0.25 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_307_525"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1"/>
+<feGaussianBlur stdDeviation="1"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.054902 0 0 0 0 0.0941176 0 0 0 0 0.152941 0 0 0 0.1 0"/>
+<feBlend mode="normal" in2="effect1_dropShadow_307_525" result="effect2_dropShadow_307_525"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect2_dropShadow_307_525" result="shape"/>
+</filter>
+<linearGradient id="paint0_linear_307_525" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+<stop stop-color="#3787FF" stop-opacity="0"/>
+<stop offset="1" stop-color="#3787FF"/>
+</linearGradient>
+<linearGradient id="paint1_linear_307_525" x1="18.5" y1="21" x2="53.5" y2="51" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

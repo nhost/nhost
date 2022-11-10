@@ -1,0 +1,64 @@
+name: 'Dashboard'
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+    paths:
+      - 'dashboard/**'
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+      - name: Build the application
+        run: NEXT_PUBLIC_ENV=dev pnpm build:dashboard
+      - uses: actions/cache@v3.0.11
+        with:
+          path: ./*
+          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+      - uses: actions/cache@v3.0.11
+        id: restore-build
+        with:
+          path: ./*
+          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
+      - name: Run tests
+        run: pnpm test:dashboard
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+      - uses: actions/cache@v3.0.11
+        id: restore-build
+        with:
+          path: ./*
+          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
+      - run: pnpm lint:dashboard

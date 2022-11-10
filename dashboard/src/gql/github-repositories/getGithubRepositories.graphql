@@ -1,0 +1,24 @@
+fragment GithubRepository on githubRepositories {
+  id
+  name
+  fullName
+  private
+  githubAppInstallation {
+    id
+    accountLogin
+    accountType
+    accountAvatarUrl
+  }
+}
+
+query getGithubRepositories {
+  githubRepositories {
+    ...GithubRepository
+  }
+  githubAppInstallations {
+    id
+    accountLogin
+    accountType
+    accountAvatarUrl
+  }
+}
