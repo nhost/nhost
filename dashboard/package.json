@@ -6,7 +6,7 @@
     "preinstall": "npx only-allow pnpm",
     "dev": "next dev",
     "build": "next build --no-lint",
-    "analyze": "ANALYZE=true yarn build --no-lint",
+    "analyze": "ANALYZE=true pnpm build --no-lint",
     "start": "next start",
     "lint": "next lint --max-warnings 6",
     "test": "vitest",

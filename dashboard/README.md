@@ -14,9 +14,9 @@ pnpm install
 Depending on the environment you wish to target you can configure environment variables in `.env.<target_environment>.local`.
 
 - `.env.development`: This file is used if you run `nhost dev`
-- `.env.development.local`: This file is used if you run `yarn dev`. It takes precedence over `.env.local` if available.
-- `.env.production.local`: This file is used if you run `yarn build`. It takes precedence over `.env.local` if available.
-- `.env.local`: This file is used if you run either `yarn dev` or `yarn build`.
+- `.env.development.local`: This file is used if you run `pnpm dev`. It takes precedence over `.env.local` if available.
+- `.env.production.local`: This file is used if you run `pnpm build`. It takes precedence over `.env.local` if available.
+- `.env.local`: This file is used if you run either `pnpm dev` or `pnpm build`.
 
 These files are added to `.gitignore`, so you don't need to worry about committing them. It's important that you make sure you change environment variables in `.env` files ending with `.local`.
 
