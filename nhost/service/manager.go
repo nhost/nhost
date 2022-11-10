@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/nhost/cli/internal/ports"
 	"net/http"
 	"os"
 	"os/exec"
@@ -12,6 +11,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/nhost/cli/internal/ports"
 
 	"github.com/nhost/cli/aws/s3client"
 	"github.com/nhost/cli/hasura"
@@ -99,7 +100,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := m.waitForGraphqlEngine(ctx, time.Millisecond*100, time.Minute*2); err != nil {
+	if err := m.waitForGraphql(ctx, time.Millisecond*100, time.Minute*2); err != nil {
 		return err
 	}
 
@@ -189,8 +190,8 @@ func (m *dockerComposeManager) startFunctions(ctx context.Context, ds *compose.D
 }
 
 func (m *dockerComposeManager) startPostgresGraphql(ctx context.Context, ds *compose.DataStreams) error {
-	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine}, ", "))
-	cmd, err := m.dcWrapper.Command(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine}, ds)
+	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphql}, ", "))
+	cmd, err := m.dcWrapper.Command(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphql}, ds)
 	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -246,7 +247,7 @@ func (m *dockerComposeManager) Stop(ctx context.Context) error {
 		ctx,
 		[]string{"kill",
 			compose.SvcFunctions,
-			compose.SvcGraphqlEngine,
+			compose.SvcGraphql,
 			compose.SvcTraefik,
 			compose.SvcAuth,
 			compose.SvcMailhog,
@@ -432,9 +433,9 @@ func (m *dockerComposeManager) hasuraHealthcheck(ctx context.Context) (bool, err
 	return resp.StatusCode == 200, nil
 }
 
-func (m *dockerComposeManager) waitForGraphqlEngine(ctx context.Context, interval, timeout time.Duration) error {
-	m.status.Executing("Waiting for graphql-engine service to be ready...")
-	m.l.Debug("Waiting for graphql-engine service to be ready")
+func (m *dockerComposeManager) waitForGraphql(ctx context.Context, interval, timeout time.Duration) error {
+	m.status.Executing("Waiting for the graphql service to be ready...")
+	m.l.Debug("Waiting for the graphql service to be ready")
 
 	t := time.After(timeout)
 
@@ -446,7 +447,7 @@ func (m *dockerComposeManager) waitForGraphqlEngine(ctx context.Context, interva
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t:
-			return fmt.Errorf("timeout: graphql-engine not ready, please run the command again")
+			return fmt.Errorf("timeout: the graphql service is not ready, please run the command again")
 		case <-ticker.C:
 			if ok, err := m.hasuraHealthcheck(ctx); err == nil && ok {
 				return nil

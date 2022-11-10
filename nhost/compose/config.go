@@ -16,15 +16,15 @@ import (
 
 const (
 	// docker compose service names
-	SvcPostgres      = "postgres"
-	SvcAuth          = "auth"
-	SvcStorage       = "storage"
-	SvcFunctions     = "functions"
-	SvcMinio         = "minio"
-	SvcMailhog       = "mailhog"
-	SvcHasura        = "hasura"
-	SvcTraefik       = "traefik"
-	SvcGraphqlEngine = "graphql-engine"
+	SvcPostgres  = "postgres"
+	SvcAuth      = "auth"
+	SvcStorage   = "storage"
+	SvcFunctions = "functions"
+	SvcMinio     = "minio"
+	SvcMailhog   = "mailhog"
+	SvcHasura    = "hasura"
+	SvcTraefik   = "traefik"
+	SvcGraphql   = "graphql"
 	// --
 
 	// container ports
@@ -313,10 +313,21 @@ func (c Config) minioService() *types.ServiceConfig {
 	}
 }
 
+func (c Config) traefikServiceUrl(svc string) string {
+	return fmt.Sprintf("http://%s:%d/v1/%s", SvcTraefik, proxyPort, svc)
+}
+
 func (c Config) functionsServiceEnvs() env {
 	e := env{}
 	e.merge(env{
 		"NHOST_BACKEND_URL":    c.envValueNhostBackendUrl(),
+		"NHOST_SUBDOMAIN":      "localhost",
+		"NHOST_REGION":         "",
+		"NHOST_HASURA_URL":     fmt.Sprintf("http://%s:%d", SvcTraefik, proxyPort),
+		"NHOST_GRAPHQL_URL":    c.traefikServiceUrl(SvcGraphql),
+		"NHOST_AUTH_URL":       c.traefikServiceUrl(SvcAuth),
+		"NHOST_STORAGE_URL":    c.traefikServiceUrl(SvcStorage),
+		"NHOST_FUNCTIONS_URL":  c.traefikServiceUrl(SvcFunctions),
 		"NHOST_ADMIN_SECRET":   util.ADMIN_SECRET,
 		"NHOST_WEBHOOK_SECRET": util.WEBHOOK_SECRET,
 		"NHOST_JWT_SECRET":     c.envValueHasuraGraphqlJwtSecret(),
@@ -405,7 +416,6 @@ func (c Config) storageServiceEnvs() env {
 		"NHOST_ADMIN_SECRET":          util.ADMIN_SECRET,
 		"NHOST_WEBHOOK_SECRET":        util.WEBHOOK_SECRET,
 		"POSTGRES_MIGRATIONS_SOURCE":  fmt.Sprintf("%s?sslmode=disable", c.connectionStringForUser("nhost_storage_admin")),
-		"NHOST_BACKEND_URL":           c.envValueNhostBackendUrl(),
 	}
 
 	e.merge(c.serviceConfigEnvs(SvcStorage))
@@ -481,7 +491,7 @@ func (c Config) authService() *types.ServiceConfig {
 			SvcPostgres: {
 				Condition: types.ServiceConditionHealthy,
 			},
-			SvcGraphqlEngine: {
+			SvcGraphql: {
 				Condition: types.ServiceConditionStarted,
 			},
 		},
@@ -511,7 +521,7 @@ func (c Config) envValueHasuraGraphqlJwtSecret() string {
 }
 
 func (c Config) hasuraEndpoint() string {
-	return fmt.Sprintf("http://graphql-engine:%d/v1", graphqlPort)
+	return fmt.Sprintf("http://%s:%d/v1", SvcGraphql, graphqlPort)
 }
 
 func (c Config) hasuraServiceEnvs() env {
@@ -521,6 +531,13 @@ func (c Config) hasuraServiceEnvs() env {
 		"HASURA_GRAPHQL_ADMIN_SECRET":              util.ADMIN_SECRET,
 		"NHOST_ADMIN_SECRET":                       util.ADMIN_SECRET,
 		"NHOST_BACKEND_URL":                        c.envValueNhostBackendUrl(),
+		"NHOST_SUBDOMAIN":                          "localhost",
+		"NHOST_REGION":                             "",
+		"NHOST_HASURA_URL":                         fmt.Sprintf("http://%s:%d", SvcTraefik, proxyPort),
+		"NHOST_GRAPHQL_URL":                        c.traefikServiceUrl(SvcGraphql),
+		"NHOST_AUTH_URL":                           c.traefikServiceUrl(SvcAuth),
+		"NHOST_STORAGE_URL":                        c.traefikServiceUrl(SvcStorage),
+		"NHOST_FUNCTIONS_URL":                      c.traefikServiceUrl(SvcFunctions),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
 		"HASURA_GRAPHQL_DEV_MODE":                  "true",
 		"HASURA_GRAPHQL_LOG_LEVEL":                 "debug",
@@ -545,7 +562,7 @@ func (c Config) hasuraService() *types.ServiceConfig {
 	}
 
 	return &types.ServiceConfig{
-		Name:        SvcGraphqlEngine,
+		Name:        SvcGraphql,
 		Image:       c.serviceDockerImage(SvcHasura, svcHasuraDefaultImage),
 		Environment: c.hasuraServiceEnvs().dockerServiceConfigEnv(),
 		Labels:      labels,
