@@ -15,7 +15,12 @@ export interface LogTimePickerProps extends InputProps {
 
 const TIMEPICKER_STEP = 1;
 
-function LogsTimePicker({ selectedDate, setSelectedDate, onChange, maxDate }) {
+function LogsTimePicker({
+  selectedDate,
+  setSelectedDate,
+  onChange,
+  maxDate,
+}: any) {
   const { handleClose } = useDropdown();
 
   const handleCancel = () => {
@@ -50,7 +55,7 @@ function LogsTimePicker({ selectedDate, setSelectedDate, onChange, maxDate }) {
   };
 
   return (
-    <div className="mx-auto grid grid-flow-row items-center self-center">
+    <div className="grid items-center self-center grid-flow-row mx-auto">
       <div className="border border-[#EAEDF0] px-4 py-2">
         <Input
           value={format(selectedDate, 'HH:mm:ss')}
@@ -80,7 +85,7 @@ function LogsTimePicker({ selectedDate, setSelectedDate, onChange, maxDate }) {
           }}
         />
       </div>
-      <div className="grid grid-flow-col justify-end gap-x-4 px-4 py-2">
+      <div className="grid justify-end grid-flow-col px-4 py-2 gap-x-4">
         <Button variant="outlined" color="secondary" onClick={handleCancel}>
           Cancel
         </Button>
