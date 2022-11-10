@@ -30,10 +30,12 @@ jobs:
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
+      # * In a PR, only include packages that have been modified, and their dependencies
       - name: List examples with an e2e script
         id: set-matrix
         run: |
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter=!nhost-root \
+            | ${{ github.event_name == 'pull_request' && format(' --filter=[...{0}]', github.base_ref) || '' }}
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
             | jq -c --slurp)

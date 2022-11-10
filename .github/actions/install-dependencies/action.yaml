@@ -12,7 +12,7 @@ runs:
       shell: bash
       run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
     - uses: actions/cache@v3
-      id: pnpm-cache 
+      id: pnpm-cache
       with:
         path: |
           ${{ steps.pnpm-cache-dir.outputs.dir }}
@@ -28,6 +28,7 @@ runs:
       run: pnpm install --frozen-lockfile
     # * Build all Nhost packages as they are all supposed to be tested.
     # * They are reused through the Turborepo cache
+    # * In a PR, only include packages that have been modified, and their dependencies
     - shell: bash
       name: Build packages
-      run: pnpm build
+      run: pnpm build ${{ github.event_name == 'pull_request' && format(' --filter=[...{0}]', github.base_ref) || '' }}
