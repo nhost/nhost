@@ -59,14 +59,14 @@
     "jsonwebtoken": "^8.5.1",
     "lodash.debounce": "^4.0.8",
     "next": "^12.3.1",
-    "next-seo": "^5.14.0",
+    "next-seo": "^5.14.1",
     "node-pg-format": "^1.3.5",
     "pluralize": "^8.0.0",
     "prettysize": "^2.0.0",
     "randomstring": "^1.2.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.39.1",
+    "react-hook-form": "^7.39.2",
     "react-hot-toast": "^2.4.0",
     "react-is": "17.0.2",
     "react-loading-skeleton": "^2.2.0",
@@ -137,11 +137,11 @@
     "express-validator": "^6.14.2",
     "jsdom": "^20.0.2",
     "lint-staged": ">=13",
-    "msw": "^0.48.0",
+    "msw": "^0.48.1",
     "postcss": "^8.4.18",
     "postmark": "^2.7.8",
     "prettier": "^2.7.1",
-    "prettier-plugin-organize-imports": "^3.1.1",
+    "prettier-plugin-organize-imports": "^3.2.0",
     "prettier-plugin-tailwind-css": "^1.5.0",
     "prettier-plugin-tailwindcss": "^0.1.13",
     "react-date-fns-hooks": "^0.9.4",
@@ -153,6 +153,6 @@
     "vite": "^3.2.3",
     "vite-tsconfig-paths": "^3.5.2",
     "vitest": "^0.25.1",
-    "webpack": "^5.74.0"
+    "webpack": "^5.75.0"
   }
 }
