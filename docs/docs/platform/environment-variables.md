@@ -10,7 +10,7 @@ You can manage your project's Environment Variables in Nhost Dashboard under **V
 
 ![Environment Variables](/img/platform/environment-variables/environment-variables.png)
 
-When an Environment Variable is changed, you must deploy your project again using the [GitHub integration](/platform/github-integration) for the changes to take effect.
+When an Environment Variable is changed, you must deploy your project again using the [Git integration](/platform/git) for the changes to take effect.
 
 Environment Variables are available in:
 
