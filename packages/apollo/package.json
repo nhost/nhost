@@ -62,7 +62,7 @@
     "@apollo/client": "^3.6.2"
   },
   "dependencies": {
-    "@nhost/nhost-js": "*",
+    "@nhost/nhost-js": "workspace:*",
     "graphql": "15.7.2",
     "graphql-ws": "^5.10.1"
   },

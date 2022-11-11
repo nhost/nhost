@@ -64,11 +64,11 @@
     "xstate": "^4.33.5"
   },
   "peerDependencies": {
-    "@nhost/core": "*"
+    "@nhost/core": "workspace:*"
   },
   "devDependencies": {
-    "@nhost/core": "*",
-    "@nhost/docgen": "*",
+    "@nhost/core": "workspace:*",
+    "@nhost/docgen": "workspace:*",
     "cross-fetch": "^3.1.5",
     "start-server-and-test": "^1.14.0",
     "uuid": "^8.3.2"

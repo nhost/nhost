@@ -64,16 +64,16 @@
     "vue": "^3.2.31"
   },
   "dependencies": {
-    "@nhost/core": "*",
-    "@nhost/nhost-js": "*",
+    "@nhost/core": "workspace:*",
+    "@nhost/nhost-js": "workspace:*",
     "@vueuse/core": "^8.9.4",
     "@xstate/vue": "^1.0.0",
     "immer": "^9.0.15",
     "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
-    "@nhost/hasura-auth-js": "*",
+    "@nhost/docgen": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:*",
     "@vitejs/plugin-vue": "^3.2.0",
     "@xstate/inspect": "^0.6.2",
     "vue": "^3.2.41",
