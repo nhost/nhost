@@ -16,8 +16,8 @@
   "dependencies": {
     "@apollo/client": "^3.7.1",
     "@mdi/font": "5.9.55",
-    "@nhost/apollo": "workspace:*",
-    "@nhost/vue": "workspace:*",
+    "@nhost/apollo": "*",
+    "@nhost/vue": "*",
     "@vue/apollo-composable": "4.0.0-alpha.18",
     "graphql": "15.7.2",
     "graphql-tag": "^2.12.6",
@@ -29,7 +29,7 @@
     "webfontloader": "^1.0.0"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:*",
+    "@nhost/core": "*",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^2.3.4",
     "@xstate/inspect": "^0.6.2",

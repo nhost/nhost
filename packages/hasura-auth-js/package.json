@@ -66,11 +66,11 @@
     "xstate": "^4.33.5"
   },
   "peerDependencies": {
-    "@nhost/core": "workspace:*"
+    "@nhost/core": "*"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:*",
-    "@nhost/docgen": "workspace:*",
+    "@nhost/core": "*",
+    "@nhost/docgen": "*",
     "@types/faker": "5",
     "html-urls": "^2.4.38",
     "mailhog": "^4.16.0",

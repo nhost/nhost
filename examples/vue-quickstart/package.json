@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "@nhost/apollo": "workspace:*",
-    "@nhost/vue": "workspace:*",
+    "@nhost/apollo": "*",
+    "@nhost/vue": "*",
     "@vue/apollo-composable": "4.0.0-alpha.18",
     "@vueuse/core": "^8.9.4",
     "graphql": "15.7.2",

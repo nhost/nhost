@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@gqty/react": "2.1.0",
-    "@nhost/react": "workspace:*",
+    "@nhost/react": "*",
     "gqty": "^2.3.0",
     "graphql": "15.7.2",
     "react": "18.2.0",
