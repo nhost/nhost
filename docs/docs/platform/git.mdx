@@ -1,12 +1,18 @@
 ---
-title: 'GitHub Integration'
+title: 'Git'
 sidebar_position: 10
 image: /img/og/platform/github-integration.png
 ---
 
-The GitHub integration allows you to automatically deploy your Nhost project when on push and merge to a GitHub repository that is connected to your Nhost project.
+Nhost allows you to automatically deploy your Nhost project when you do changes to your Git repository.
 
-When a GitHub repository is connected to a Nhost project, Nhost automatically deploys changes when you push code to the repo.
+## Supported Git Providers
+
+- GitHub
+
+GitLab, BitBucket, and other Git providers are on our roadmap to support.
+
+## How It Works
 
 The following things are deployed:
 
@@ -18,7 +24,7 @@ The following things are deployed:
 Settings in `nhost/config.yaml` are **not** deployed. That means you need to manually sync settings between local and remote environments between the CLI and Nhost Cloud.
 :::
 
-## Connecting a GitHub repository
+## Using GitHub
 
 1. From your Nhost project, click **Connect to Github**.
 
@@ -51,7 +57,3 @@ If your Nhost project is not at the root of your git repository (typically when 
 <center>
   <img src="/img/platform/github-integration/base-directory.png" alt="drawing" width="50%" />
 </center>
-
-## Next Steps
-
-- Learn how to [use the CLI to deploy your Nhost project](/platform/overview/get-started-with-nhost-cli).

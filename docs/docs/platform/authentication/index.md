@@ -1,5 +1,5 @@
 ---
-title: Nhost Authentication
+title: Authentication
 sidebar_label: Authentication
 sidebar_position: 1
 image: /img/og/platform/authentication.png

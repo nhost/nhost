@@ -1,20 +1,20 @@
 ---
-title: 'CLI'
-sidebar_position: 11
+title: 'Nhost CLI'
+sidebar_position: 1
 image: /img/og/platform/cli.png
 ---
 
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost projects locally on Mac, Linux and Windows (WSL2).
+Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost projects locally on Mac, Linux, and Windows (WSL2).
 
 This means you get a full-featured Nhost project running locally on your machine:
 
 - Postgres Database
 - Hasura GraphQL API
 - Hasura Console
-- Auth
+- Authentication
 - Storage
 - Serverless Functions
 
@@ -22,7 +22,7 @@ This way, you can develop and test local changes before you deploy them live. Th
 
 - Postgres database migrations
 - Hasura metadata
-- Serverless functions
+- Serverless Functions
 
 It's recommended to commit and push changes to GitHub and use the [GitHub integration](/platform/github-integration) for Nhost to automatically deploy those changes live.
 
@@ -95,7 +95,7 @@ const nhost = new NhostClient({
 
 ## Emails
 
-During local development with the CLI, all transactional emails from Nhost Auth are sent to a local Mailhog instance, instead of to the recipient's email address.
+During local development with the CLI, all transactional emails from Nhost Authentication are sent to a local Mailhog services, instead of to the recipient's email address.
 
 The Mailhog address is listed after starting [`nhost up`](/reference/cli/up):
 
@@ -119,5 +119,5 @@ URLs:
 
 ## What's next?
 
-- Read our in-depth guide on [Get started with Nhost CLI](/platform/overview/get-started-with-nhost-cli)
+- Read our in-depth guide on [Get started with Nhost CLI](./get-started-with-the-nhost-cli)
 - [CLI commands reference](/reference/cli)

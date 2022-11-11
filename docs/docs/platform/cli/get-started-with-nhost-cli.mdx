@@ -1,18 +1,15 @@
 ---
-title: 'Get Started with Nhost CLI'
+title: 'Development with the Nhost CLI'
+sidebar_label: 'Development'
 sidebar_position: 2
 image: /img/og/platform/get-started-with-nhost-cli.png
 ---
 
-# Get started with Nhost CLI
-
-Nhost's command-line interface (CLI) lets you run a complete Nhost development
-environment locally with the following services: PostgreSQL database, Hasura,
-Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
+Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
 ## Installation
 
-### Install the binary globally
+### Install the Nhost CLI
 
 To install **Nhost CLI**, run this command from any directory in your terminal:
 
@@ -20,84 +17,54 @@ To install **Nhost CLI**, run this command from any directory in your terminal:
 sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
 ```
 
-On **MacOS and Linux**, this will install the **Nhost CLI** in `/usr/local/bin`.
+The Nhost CLI works for MacOS, Linux, and Windows WSL2.
 
-If you'd prefer to install to a different location other than `/usr/local/bin`,
-set the `INSTALL_PATH` variable accordingly:
+The Nhost CLI is installed at `/usr/local/bin`.
+
+<!-- On **MacOS, Linux, and Windows (WSL2)**, this will install the **Nhost CLI** in `/usr/local/bin`. -->
+
+If you'd prefer to install the CLI at a different location other than `/usr/local/bin`, set the `INSTALL_PATH` variable accordingly:
 
 ```bash
 sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | INSTALL_PATH=$HOME/bin bash
 ```
 
-On **Windows**, this will download and extract the binary `nhost.exe` available
-under `Assets` of the latest release from the GitHub release page:
-https://github.com/nhost/cli/releases.
+You can move the executable to a different location and add the path to the environment variable `PATH` to make `nhost` accessible globally.
 
-You can move the executable to a different location and add the path to the
-environment variable `PATH` to make `nhost` accessible globally.
-
-Finally, you can check that everything has been successfully installed by
-typing:
+Finally, you can check that everything has been successfully installed by typing:
 
 ```bash
 nhost version
 ```
 
-![Nhost CLI Version](/img/architecture/cli/cli-installed.png)
-
-### (Optional) Add shell completion
-
-To add command auto-completion in the shell, you can run the following command:
-
-```bash
-nhost completion [shell]
-```
-
-This will generate the autocompletion script for `nhost` for the specified shell
-(bash, fish, PowerShell, or zsh).
-
 ## Prerequisites
 
 ### Dependencies
 
-Before using the **Nhost CLI**, make sure you have the following dependencies
-installed on your local machine:
+Before using the **Nhost CLI**, make sure you have the following dependencies installed on your local machine:
 
 - [Git](https://git-scm.com/downloads)
 - [Docker](https://www.docker.com/get-started)
 
-:::caution
-Docker must be running while using Nhost CLI.
-:::
+### Nhost CLI Login
 
-### Nhost CLI login
-
-After installing **Nhost CLI**, you can log in to your Nhost account by running
-the following command:
+After installing **Nhost CLI**, you can log in to your Nhost account by running the following command:
 
 ```bash
 nhost login
 ```
 
-This will display a prompt for you to enter your Nhost account credentials
-(email/password).
+This will display a prompt for you to enter your Nhost account credentials (email/password).
 
 :::info
-You can create a Nhost account here: [https://app.nhost.io](https://app.nhost.io/).
+If you've signed up with GitHub you must first set a new password in the [Nhost Dashboard](https://app.nhost.io/) to use to sign in with the Nhost CLI.
 :::
 
 ![Nhost CLI Login](/img/architecture/cli/cli-login.png)
 
-After successfully logging in, you are authorized to manage your Nhost projects
-using the Nhost CLI.
+After successfully logging in, you are authorized to manage your Nhost projects using the Nhost CLI.
 
-You can also log out at any time by running:
-
-```bash
-nhost logout
-```
-
-## Set up your project
+## Set Up Your Project
 
 ### 1. Create a new Nhost project
 
@@ -105,22 +72,17 @@ import CreateProject from '@site/src/components/create-nhost-project.mdx'
 
 <CreateProject />
 
-### 2. Create a new GitHub Repository
+### 2. Create a New GitHub Repository
 
-A typical workflow would also include creating a Github repository for your
-Nhost project. It will facilitate your development workflow since Nhost can
-integrate with Github to enable continuous deployment.
+A typical workflow would also include creating a Github repository for your Nhost project. It will facilitate your development workflow since Nhost can integrate with Github to enable continuous deployment.
 
-So, go to your Github account and
-[create a new repository](https://github.com/new). You can make your repository
-either public or private.
+So, go to your Github account and [create a new repository](https://github.com/new). You can make your repository either public or private.
 
 ![Create GitHub Repo](/img/architecture/cli/create-github-repo.png)
 
-### 3. Connect Nhost project to Github
+### 3. Connect Nhost Project to Github
 
-Finally, connect your GitHub repository to your Nhost project. Doing so will
-enable Nhost to deploy new versions of your project when you push new commits to your connected Git repository.
+Finally, connect your GitHub repository to your Nhost project. Doing so will enable Nhost to deploy new versions of your project when you push new commits to your connected Git repository.
 
 1. From your project workspace, click **Connect to GitHub**.
 
@@ -134,16 +96,13 @@ enable Nhost to deploy new versions of your project when you push new commits to
 
 ![Connect to GitHub](/img/architecture/cli/connect-repo-step-3.png)
 
-## Develop locally
+## Local Development
 
-## 1. Initialize your Nhost project
+## 1. Initialize your Nhost Project
 
-**Nhost CLI** brings the functionality of your Nhost production environment
-directly to your local machine.
+**Nhost CLI** brings the functionality of your Nhost production environment directly to your local machine.
 
-It provides Docker containers to run the backend services that match your
-production environment in a local environment. That way, you can make changes
-and test your code locally before deploying those changes to production.
+It provides Docker containers to run the backend services that match your production environment in a local environment. That way, you can make changes and test your code locally before deploying those changes to production.
 
 Initialize your Nhost project locally with the following command:
 
@@ -167,8 +126,7 @@ my-nhost-app/
       └─ seeds/
 ```
 
-Finally, make sure to link your current working directory to your GitHub
-repository:
+Finally, make sure to link your current working directory to your GitHub repository:
 
 ```bash
 echo "# my-nhost-app" >> README.md
@@ -182,54 +140,59 @@ git push -u origin main
 
 ## 2. Start a local development environment
 
-To start a local development environment for your Nhost project, run the following
-command:
+To start a local development environment for your Nhost project, run the following command:
 
 ```bash
 nhost up
 ```
 
-:::caution
-Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s required for Nhost to work.
-:::
-
 Running this command will start up all the backend services provided by Nhost.
 
-It also runs a webserver to serve the Hasura Console for the GraphQL Engine so
-you can manage the database and test the GraphQL API.
+:::info
+
+Here are two tips when using the Nhost CLI:
+
+1. Use `nhost up -d` to run the Nhost CLI in debug mode for more verbose output.
+2. Use `nhost logs -f` in a different terminal to see local logs for your Nhost project.
+
+:::
+
+`nhost up` starts Hasura Console for the GraphQL Engine so you can manage the database and test the GraphQL API.
 
 The Hasura Console opens automatically at [http://localhost:9695](http://localhost:9695/).
 
 ![Hasura Console](/img/architecture/cli/hasura-console.png)
 
-## 3. Make changes
+## 3. Make Changes
 
-There are three things the Nhost CLI and the GitHub integration track and apply
-to production:
+There are three things the Nhost CLI and the GitHub integration track and apply to production:
 
 - Database Migrations
 - Hasura Metadata
 - Serverless Functions
 
 :::caution
-Settings in `nhost/config.yaml` are not being applied to production. They only work locally for now.
+Settings in `nhost/config.yaml` are **not** deployed. That means you need to manually sync settings between local and remote environments between the CLI and Nhost Cloud.
 :::
 
-### Database migrations
+### Database Migrations
 
-Database changes are tracked and managed through migrations.
+Database changes are automatically tracked and managed through migrations.
 
 :::tip
+
 You must use the Hasura Console to make database changes. With the Hasura Console, database migration files are automatically generated incrementally to track database changes for you.
+
 :::
 
-To demonstrate how to make database changes, let's create a new table called
-`messages`, with the following columns:
+To demonstrate how to make database changes, let's create a new table called `messages`, with the following columns:
 
+```
 - `id` (type UUID and default `gen_random_uuid()`),
 - `text` (type Text),
 - `authorId` (type UUID),
 - `createdAt` (type Timestamp and default `now()`)
+```
 
 In the Hasura Console, go to the **DATA** tab section and click on the
 PostgreSQL database (from the left side navigation) that Nhost provides us.

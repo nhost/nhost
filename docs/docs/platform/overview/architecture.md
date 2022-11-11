@@ -12,7 +12,7 @@ Here's a diagram of the Nhost stack on a high level:
 
 As you see in the image above, Nhost provides endpoints for:
 
-- GraphQL (`/graphql`)
+- GraphQL API (`/graphql`)
 - Authentication (`/auth`)
 - Storage (`/storage`)
 - Functions (`/functions`)
@@ -24,7 +24,7 @@ Data is stored in Postgres and files are stored in S3.
 The open source tools used for the full Nhost stack are:
 
 - Database: [Postgres](https://www.postgresql.org/)
-- GraphQL: [Hasura](https://github.com/hasura/graphql-engine)
+- GraphQL API: [Hasura](https://github.com/hasura/graphql-engine)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth)
 - Storage: [Hasura Storage](https://github.com/nhost/hasura-storage)
 - Functions: [Node.js](https://nodejs.org/en/)

@@ -1,6 +1,6 @@
 ---
 title: 'Environment Variables'
-sidebar_position: 9
+sidebar_position: 11
 image: /img/og/platform/environment-variables.png
 ---
 
