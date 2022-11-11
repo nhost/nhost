@@ -102,11 +102,11 @@ importers:
       '@mui/x-date-pickers': ^5.0.8
       '@netlify/functions': ^0.7.2
       '@next/bundle-analyzer': ^12.3.1
-      '@nhost/core': '*'
-      '@nhost/nextjs': '*'
-      '@nhost/nhost-js': '*'
-      '@nhost/react': '*'
-      '@nhost/react-apollo': '*'
+      '@nhost/core': workspace:*
+      '@nhost/nextjs': workspace:*
+      '@nhost/nhost-js': workspace:*
+      '@nhost/react': workspace:*
+      '@nhost/react-apollo': workspace:*
       '@segment/snippet': ^4.15.3
       '@storybook/addon-actions': ^6.5.13
       '@storybook/addon-essentials': ^6.5.13
