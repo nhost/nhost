@@ -131,7 +131,11 @@ func TestUploadFile(t *testing.T) {
 				// file 1
 				metadataStorage.EXPECT().InitializeFile(
 					gomock.Any(),
-					gomock.Any(),
+					file.md.ID,
+					file.md.Name,
+					int64(len(file.contents)),
+					"blah",
+					"text/plain; charset=utf-8",
 					gomock.Any(),
 				).Return(nil)
 

@@ -53,7 +53,11 @@ type FileMetadataWithBucket struct {
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
 	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadata, *APIError)
-	InitializeFile(ctx context.Context, uuid string, headers http.Header) *APIError
+	InitializeFile(
+		ctx context.Context,
+		id, name string, size int64, bucketID, mimeType string,
+		headers http.Header,
+	) *APIError
 	PopulateMetadata(
 		ctx context.Context,
 		id, name string, size int64, bucketID, etag string, IsUploaded bool, mimeType string,

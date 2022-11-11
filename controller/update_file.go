@@ -89,12 +89,18 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		)
 	}
 
-	etag, contentType, apiErr := ctrl.uploadSingleFile(file, file.ID)
+	fileContent, contentType, err := ctrl.getMultipartFile(file)
+	if err != nil {
+		return FileMetadata{}, err
+	}
+	defer fileContent.Close()
+
+	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
 	if apiErr != nil {
 		// let's revert the change to isUploaded
 		_ = ctrl.metadataStorage.SetIsUploaded(ctx, file.ID, true, ctx.Request.Header)
 
-		return FileMetadata{}, InternalServerError(fmt.Errorf("problem processing file %s: %w", file.Name, apiErr))
+		return FileMetadata{}, apiErr.ExtendError("problem uploading file to storage")
 	}
 
 	newMetadata, apiErr := ctrl.metadataStorage.PopulateMetadata(

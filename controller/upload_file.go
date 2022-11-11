@@ -41,28 +41,19 @@ func checkFileSize(file *multipart.FileHeader, minSize, maxSize int) *APIError {
 	return nil
 }
 
-func (ctrl *Controller) uploadSingleFile(
-	file fileData,
-	filePath string,
-) (string, string, *APIError) {
+func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string, *APIError) {
 	fileContent, err := file.header.Open()
 	if err != nil {
-		return "", "", InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
+		return nil, "", InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
 	}
-	defer fileContent.Close()
 
 	contentType, err := mimetype.DetectReader(fileContent)
 	if err != nil {
-		return "", "",
+		return nil, "",
 			InternalServerError(fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err))
 	}
 
-	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, filePath, contentType.String())
-	if apiErr != nil {
-		return "", "", apiErr.ExtendError("problem uploading file to storage")
-	}
-
-	return etag, contentType.String(), nil
+	return fileContent, contentType.String(), nil
 }
 
 func (ctrl *Controller) upload(
@@ -85,19 +76,28 @@ func (ctrl *Controller) upload(
 			return filesMetadata, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, err))
 		}
 
-		apiErr := ctrl.metadataStorage.InitializeFile(ctx, file.ID, request.headers)
+		fileContent, contentType, err := ctrl.getMultipartFile(file)
+		if err != nil {
+			return filesMetadata, err
+		}
+		defer fileContent.Close()
+
+		apiErr := ctrl.metadataStorage.InitializeFile(
+			ctx,
+			file.ID, file.Name, file.header.Size, bucket.ID, contentType,
+			request.headers)
 		if apiErr != nil {
 			return filesMetadata, apiErr
 		}
 
-		etag, contentType, err := ctrl.uploadSingleFile(file, file.ID)
-		if err != nil {
+		etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
+		if apiErr != nil {
 			_ = ctrl.metadataStorage.DeleteFileByID(
 				ctx,
 				file.ID,
 				http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 			)
-			return filesMetadata, InternalServerError(fmt.Errorf("problem processing file %s: %w", file.Name, err))
+			return filesMetadata, apiErr.ExtendError("problem uploading file to storage")
 		}
 
 		metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(

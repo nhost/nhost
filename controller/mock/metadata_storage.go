@@ -81,17 +81,17 @@ func (mr *MockMetadataStorageMockRecorder) GetFileByID(arg0, arg1, arg2 interfac
 }
 
 // InitializeFile mocks base method.
-func (m *MockMetadataStorage) InitializeFile(arg0 context.Context, arg1 string, arg2 http.Header) *controller.APIError {
+func (m *MockMetadataStorage) InitializeFile(arg0 context.Context, arg1, arg2 string, arg3 int64, arg4, arg5 string, arg6 http.Header) *controller.APIError {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitializeFile", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "InitializeFile", arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 	ret0, _ := ret[0].(*controller.APIError)
 	return ret0
 }
 
 // InitializeFile indicates an expected call of InitializeFile.
-func (mr *MockMetadataStorageMockRecorder) InitializeFile(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockMetadataStorageMockRecorder) InitializeFile(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitializeFile", reflect.TypeOf((*MockMetadataStorage)(nil).InitializeFile), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitializeFile", reflect.TypeOf((*MockMetadataStorage)(nil).InitializeFile), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
 // ListFiles mocks base method.

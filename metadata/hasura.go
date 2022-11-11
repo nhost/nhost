@@ -175,7 +175,11 @@ func (h *Hasura) GetBucketByID(
 	return query.StorageBucketsByPK.ToControllerType(), nil
 }
 
-func (h *Hasura) InitializeFile(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
+func (h *Hasura) InitializeFile(
+	ctx context.Context,
+	fileID, name string, size int64, bucketID, mimeType string,
+	headers http.Header,
+) *controller.APIError {
 	var result struct {
 		InsertFiles struct {
 			AffectedRows int `graphql:"affected_rows"`
@@ -183,13 +187,17 @@ func (h *Hasura) InitializeFile(ctx context.Context, fileID string, headers http
 	}
 
 	variables := map[string]interface{}{
-		"id": uuid(fileID),
+		"id":       uuid(fileID),
+		"bucketId": graphql.String(bucketID),
+		"mimeType": graphql.String(mimeType),
+		"name":     graphql.String(name),
+		"size":     graphql.Int(size),
 	}
 
 	client := h.client.WithRequestModifier(h.authorizer(headers))
 	if err := client.Exec(
 		ctx,
-		`mutation InitializeFile($id: uuid) {insertFiles(objects: {id: $id}) {affected_rows}}`,
+		`mutation InitializeFile($id: uuid!, $name: String!, $bucketId: String!, $mimeType: String!, $size: Int!) {insertFiles(objects: {id: $id, bucketId: $bucketId, mimeType: $mimeType, name: $name, size: $size}) {affected_rows}}`, //nolint: lll
 		&result,
 		variables,
 	); err != nil {
