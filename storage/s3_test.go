@@ -5,7 +5,6 @@ package storage_test
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -45,7 +44,7 @@ func getS3() *storage.S3 {
 	return st
 }
 
-func findFile(t *testing.T, s3 *storage.S3, root, filename string) bool {
+func findFile(t *testing.T, s3 *storage.S3, filename string) bool {
 	t.Helper()
 
 	ff, err := s3.ListFiles()
@@ -54,7 +53,7 @@ func findFile(t *testing.T, s3 *storage.S3, root, filename string) bool {
 	}
 	found := false
 	for _, file := range ff {
-		if file == root+"/"+filename {
+		if file == filename {
 			found = true
 			break
 		}
@@ -78,7 +77,7 @@ func TestDeleteFile(t *testing.T) {
 		t.Fatal(apiErr)
 	}
 
-	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "s3_test.go") {
+	if !findFile(t, s3, "s3_test.go") {
 		t.Fatal("couldn't find test file")
 	}
 
@@ -106,7 +105,7 @@ func TestDeleteFile(t *testing.T) {
 				t.Error(err)
 			}
 
-			if findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", tc.filepath) {
+			if findFile(t, s3, tc.filepath) {
 				t.Error("file wasn't deleted")
 			}
 		})
@@ -136,8 +135,7 @@ func TestListFiles(t *testing.T) {
 			}
 
 			for _, f := range got {
-				fmt.Println(f)
-				if !strings.HasPrefix(f, "f215cf48-7458-4596-9aa5-2159fc6a3caf/") {
+				if strings.HasPrefix(f, "this-shouldnt-show-in-list") {
 					t.Errorf("found extraneous file: %s", f)
 				}
 			}
@@ -160,7 +158,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Fatal(apiErr)
 	}
 
-	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "sample.txt") {
+	if !findFile(t, s3, "sample.txt") {
 		t.Fatal("couldn't find test file")
 	}
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +29,7 @@ func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *AP
 		found := false
 
 		for _, fileS3 := range filesInS3 {
-			if fileS3 == fileHasura.BucketID+"/"+fileHasura.ID || !fileHasura.IsUploaded {
+			if path.Base(fileS3) == fileHasura.ID || !fileHasura.IsUploaded {
 				found = true
 			}
 		}

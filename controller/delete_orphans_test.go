@@ -23,7 +23,7 @@ func TestDeleteOrphans(t *testing.T) {
 		{
 			name: "successful",
 			expected: controller.ListOrphansResponse{
-				Files: []string{"default/garbage", "bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15"},
+				Files: []string{"default/garbage"},
 			},
 		},
 	}
@@ -68,12 +68,10 @@ func TestDeleteOrphans(t *testing.T) {
 					"default/b3b4e653-ca59-412c-a165-92d251c3fe86",
 					"default/7dc0b0d0-b100-4667-89f1-0434942d9c15",
 					"default/garbage",
-					"bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15",
 				}, nil,
 			)
 
 			contentStorage.EXPECT().DeleteFile("default/garbage").Return(nil)
-			contentStorage.EXPECT().DeleteFile("bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15").Return(nil)
 
 			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, logger)
 

@@ -210,6 +210,7 @@ func (s *S3) DeleteFile(filepath string) *controller.APIError {
 func (s *S3) ListFiles() ([]string, *controller.APIError) {
 	objects, err := s.session.ListObjects(&s3.ListObjectsInput{
 		Bucket: s.bucket,
+		Prefix: aws.String(s.rootFolder + "/"),
 	})
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem listing objects in s3: %w", err))
@@ -217,7 +218,7 @@ func (s *S3) ListFiles() ([]string, *controller.APIError) {
 
 	res := make([]string, len(objects.Contents))
 	for i, c := range objects.Contents {
-		res[i] = *c.Key
+		res[i] = strings.TrimPrefix(*c.Key, s.rootFolder+"/")
 	}
 
 	return res, nil

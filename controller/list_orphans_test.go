@@ -23,7 +23,7 @@ func TestListOrphans(t *testing.T) {
 		{
 			name: "successful",
 			expected: controller.ListOrphansResponse{
-				Files: []string{"default/garbage", "bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15"},
+				Files: []string{"app_id/garbage"},
 			},
 		},
 	}
@@ -65,10 +65,9 @@ func TestListOrphans(t *testing.T) {
 
 			contentStorage.EXPECT().ListFiles().Return(
 				[]string{
-					"default/b3b4e653-ca59-412c-a165-92d251c3fe86",
-					"default/7dc0b0d0-b100-4667-89f1-0434942d9c15",
-					"default/garbage",
-					"bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15",
+					"app_id/b3b4e653-ca59-412c-a165-92d251c3fe86",
+					"app_id/7dc0b0d0-b100-4667-89f1-0434942d9c15",
+					"app_id/garbage",
 				}, nil,
 			)
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"path"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,7 @@ func (ctrl *Controller) listOrphans(ctx *gin.Context) ([]string, *APIError) {
 	for _, fileS3 := range filesInS3 {
 		found := false
 		for _, fileHasura := range filesInHasura {
-			if fileS3 == fileHasura.BucketID+"/"+fileHasura.ID {
+			if path.Base(fileS3) == fileHasura.ID {
 				found = true
 				break
 			}

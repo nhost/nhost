@@ -90,7 +90,7 @@ func TestListBrokenMetadata(t *testing.T) {
 
 			contentStorage.EXPECT().ListFiles().Return(
 				[]string{
-					"default/7dc0b0d0-b100-4667-89f1-0434942d9c15",
+					"app_id/7dc0b0d0-b100-4667-89f1-0434942d9c15",
 				}, nil,
 			)
 
