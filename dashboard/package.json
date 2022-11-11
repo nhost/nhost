@@ -103,7 +103,7 @@
     "@stripe/stripe-js": "^1.35.0",
     "@testing-library/dom": "^8.19.0",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "12.1.5",
+    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
     "@types/express": "^4.17.14",
     "@types/lodash.debounce": "^4.0.7",

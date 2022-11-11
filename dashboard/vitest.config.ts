@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   // @ts-ignore
-  plugins: [tsconfigPaths(), react()],
+  plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
   test: {
     environment: 'jsdom',
     globals: true,
