@@ -12,7 +12,7 @@ curl http://localhost:1337/v1/functions/graphql-stripe \
 
 Docs: 
 
-https://github.com/nhost/nhost/tree/main/packages/stripe-graphql-js
+https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js
 */
 
 import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'

@@ -7,14 +7,9 @@ export type { NhostAuthConstructorParams }
 export type BackendUrl = {
   /**
    * Nhost backend URL
-   * Should only be used when self-hosting
+   * Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
    */
   backendUrl: string
-  /**
-   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-   * for all requests to GraphQL, Storage, and Serverless Functions.
-   */
-  adminSecret?: string
 }
 
 export type Subdomain = {
@@ -36,12 +31,26 @@ export type Subdomain = {
   adminSecret?: string
 }
 
+export type ServiceUrls = {
+  authUrl?: string
+  graphqlUrl?: string
+  storageUrl?: string
+  functionsUrl?: string
+}
+
 export type BackendOrSubdomain = BackendUrl | Subdomain
 
 export interface NhostClientConstructorParams
   extends Partial<BackendUrl>,
     Partial<Subdomain>,
-    Omit<NhostAuthConstructorParams, 'url'> {}
+    Partial<ServiceUrls>,
+    Omit<NhostAuthConstructorParams, 'url'> {
+  /**
+   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+   * for all requests to GraphQL, Storage, and Serverless Functions.
+   */
+  adminSecret?: string
+}
 
 export type GraphqlRequestResponse<T = unknown> =
   | {

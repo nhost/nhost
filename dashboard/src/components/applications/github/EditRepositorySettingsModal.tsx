@@ -1,0 +1,144 @@
+import type { EditRepositorySettingsFormData } from '@/components/applications/github/EditRepositorySettings';
+import { useDialog } from '@/components/common/DialogProvider';
+import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
+import GithubIcon from '@/components/icons/GithubIcon';
+import { useUpdateAppMutation } from '@/generated/graphql';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { Text } from '@/ui/Text';
+import Button from '@/ui/v2/Button';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { triggerToast } from '@/utils/toast';
+import { updateOwnCache } from '@/utils/updateOwnCache';
+import { useApolloClient } from '@apollo/client';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useFormContext } from 'react-hook-form';
+import { RepoAndBranch } from './RepoAndBranch';
+
+export function EditRepositorySettingsModal({
+  selectedRepoId,
+  close,
+  handleSelectAnotherRepository,
+}: any) {
+  const {
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = useFormContext<EditRepositorySettingsFormData>();
+  const isNotCompleted = !watch('productionBranch') || !watch('repoBaseFolder');
+  const { closeAlertDialog } = useDialog();
+
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
+
+  const [updateApp, { loading }] = useUpdateAppMutation();
+
+  const client = useApolloClient();
+
+  const handleEditGitHubIntegration = async (
+    data: EditRepositorySettingsFormData,
+  ) => {
+    try {
+      if (!currentApplication.githubRepository || selectedRepoId) {
+        await updateApp({
+          variables: {
+            id: currentApplication.id,
+            app: {
+              githubRepositoryId: selectedRepoId,
+              repositoryProductionBranch: data.productionBranch,
+              nhostBaseFolder: data.repoBaseFolder,
+            },
+          },
+        });
+      } else {
+        await updateApp({
+          variables: {
+            id: currentApplication.id,
+            app: {
+              repositoryProductionBranch: data.productionBranch,
+              nhostBaseFolder: data.repoBaseFolder,
+            },
+          },
+        });
+      }
+
+      await updateOwnCache(client);
+      if (close) {
+        close();
+      } else {
+        closeAlertDialog();
+      }
+      triggerToast('GitHub repository settings successfully updated.');
+    } catch (error) {
+      await discordAnnounce(
+        `Error while trying to edit repository GitHub integration: ${currentApplication.slug}.`,
+      );
+      throw error;
+    }
+  };
+
+  return (
+    <div className="px-1">
+      <div className="flex flex-col">
+        <div className="w-8 h-8 mx-auto">
+          <GithubIcon className="w-8 h-8 text-greyscaleDark" />
+        </div>
+        <Text
+          variant="subHeading"
+          color="greyscaleDark"
+          size="large"
+          className="mt-1.5 text-center"
+        >
+          {selectedRepoId
+            ? 'Configure your GitHub integration'
+            : 'Edit your GitHub integration'}
+        </Text>
+        <Text
+          variant="body"
+          color="greyscaleDark"
+          size="small"
+          className="font-normal text-center"
+        >
+          {selectedRepoId
+            ? `We'll deploy changes automatically when you push to the deployment branch.            `
+            : `We'll deploy changes automatically when you push to the deployment branch.`}
+        </Text>
+        <div>
+          <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
+            <form
+              onSubmit={handleSubmit(handleEditGitHubIntegration)}
+              autoComplete="off"
+            >
+              <div className="">
+                <RepoAndBranch />
+              </div>
+              <div className="flex flex-col mt-2">
+                <Button
+                  type="submit"
+                  color="primary"
+                  variant="contained"
+                  className=""
+                  loading={isSubmitting || loading}
+                  disabled={isSubmitting || isNotCompleted}
+                >
+                  {selectedRepoId ? `Connect Repository` : `Save`}
+                </Button>
+              </div>
+            </form>
+            <div className="flex flex-col mt-2">
+              <Button
+                type="button"
+                variant="outlined"
+                className="w-full border-1 hover:border-1"
+                color="secondary"
+                onClick={handleSelectAnotherRepository}
+              >
+                Select another repository
+              </Button>
+            </div>
+          </ErrorBoundary>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default EditRepositorySettingsModal;

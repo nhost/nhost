@@ -142,16 +142,16 @@ DELETE /v1/storage/files/{file_id} HTTP/1.1
 
 Buckets are used to organize files and group permissions for files. Buckets are stored in the `storage.buckets` table in your database, and accessible via `buckets` in your GraphQL API.
 
-For each bucket, you can specify file permissions for the following properties:
+For each Bucket, you can specify file permissions for the following properties:
 
 - MIME type.
-- Minimum size.
-- Maximum size.
+- Minimum size in bytes.
+- Maximum size in bytes.
 - Cache control.
 - Allow pre-signed URLs.
 - Download expiration (for pre-signed URLs).
 
-There is a default bucket (`default`) that is used if no bucket is specified during file upload. It's not possible to delete the `default` bucket.
+There is a default Bucket (`default`) that is used if no Bucket is specified during file upload. It's not possible to delete the `default` Bucket.
 
 ## Permissions
 

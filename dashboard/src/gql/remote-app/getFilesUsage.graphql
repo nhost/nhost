@@ -1,0 +1,10 @@
+query getRemoteAppFilesUsage {
+  filesAggregate {
+    aggregate {
+      count
+      sum {
+        size
+      }
+    }
+  }
+}

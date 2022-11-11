@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Amsterdam, Netherlands",
+    "city": "Amsterdam",
+    "locationId": "dd6f8e01-35a9-4ba6-8dc6-ed972f2db93c",
+    "flag": "USA"
+  },
+  {
+    "name": "San Francisco",
+    "city": "Amsterdam",
+    "locationId": "f97d95bc-5dcc-4a4b-94d1-dadd1b8dd164",
+    "flag": "USA"
+  },
+  {
+    "name": "New York",
+    "city": "Amsterdam",
+    "locationId": "f97d95bc-5dcc-4a4b-94d1-dadd1b8dd164",
+    "flag": "USA"
+  },
+  {
+    "name": "London",
+    "city": "Amsterdam",
+    "locationId": "f97d95bc-5dcc-4a4b-94d1-dadd1b8dd164",
+    "flag": "USA"
+  },
+  {
+    "name": "Bangalore",
+    "city": "Amsterdam",
+    "locationId": "f97d95bc-5dcc-4a4b-94d1-dadd1b8dd164",
+    "flag": "INDIA"
+  }
+]

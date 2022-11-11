@@ -1,0 +1,59 @@
+fragment DeploymentRow on deployments {
+  id
+  commitSHA
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+}
+
+query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
+  deployments(
+    where: { appId: { _eq: $id } }
+    order_by: { deploymentStartedAt: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    ...DeploymentRow
+  }
+}
+
+subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+  deployments(
+    where: { appId: { _eq: $id } }
+    order_by: { deploymentStartedAt: desc }
+    limit: $limit
+    offset: $offset
+  ) {
+    ...DeploymentRow
+  }
+}
+
+subscription deploymentSub($id: uuid!) {
+  deployment(id: $id) {
+    id
+    commitMessage
+    commitSHA
+    commitUserName
+    commitUserAvatarUrl
+    deploymentStartedAt
+    deploymentEndedAt
+    deploymentStatus
+    metadataStartedAt
+    metadataEndedAt
+    metadataStatus
+    migrationsStartedAt
+    migrationsEndedAt
+    migrationsStatus
+    functionsStartedAt
+    functionsEndedAt
+    functionsStatus
+    deploymentLogs(order_by: { createdAt: asc }) {
+      id
+      createdAt
+      message
+    }
+  }
+}

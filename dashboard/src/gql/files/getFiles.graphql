@@ -1,0 +1,19 @@
+query getFiles(
+  $where: files_bool_exp
+  $limit: Int
+  $offset: Int
+  $order_by: [files_order_by!]
+) {
+  files(where: $where, limit: $limit, offset: $offset, order_by: $order_by) {
+    id
+    bucketId
+    createdAt
+    updatedAt
+    name
+    size
+    mimeType
+    etag
+    isUploaded
+    uploadedByUserId
+  }
+}

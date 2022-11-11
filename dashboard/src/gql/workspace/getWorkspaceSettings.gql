@@ -1,0 +1,15 @@
+query getWorkspaceSettings($id: uuid!) {
+  workspace(id: $id) {
+    id
+    name
+    addressLine1
+    addressLine2
+    addressPostalCode
+    addressPostalCode
+    addressCity
+    addressState
+    addressCountryCode
+    companyName
+    email
+  }
+}

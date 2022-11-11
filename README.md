@@ -97,14 +97,24 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 # Resources
 
-Nhost libraries and tools
+- Start developing locally with the [Nhost CLI](https://docs.nhost.io/reference/cli)
+
+## Nhost Clients
 
 - [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/javascript)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
-- [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
 - [Nhost Next.js](https://docs.nhost.io/reference/nextjs)
 - [Nhost Vue](https://docs.nhost.io/reference/vue)
+
+## Integrations
+
+- [Stripe GraphQL API](./integrations/stripe-graphql-js#nhoststripe-graphql-js)
+
+## Applications
+
+- [Dashboard](./dashboard)
+- [Docs](./docs)
 
 ## Community ❤️
 
@@ -155,17 +165,17 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/gdangelo">
-            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
-            <br />
-            <sub><b>Grégory D'Angelo</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/szilarddoro">
             <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
             <br />
             <sub><b>Szilárd Dóró</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/gdangelo">
+            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
+            <br />
+            <sub><b>Grégory D'Angelo</b></sub>
         </a>
     </td>
     <td align="center">

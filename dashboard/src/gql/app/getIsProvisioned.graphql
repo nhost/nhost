@@ -1,0 +1,11 @@
+query getAppProvisionStatus($workspace: String!, $slug: String!) {
+  apps(
+    where: { workspace: { slug: { _eq: $workspace } }, slug: { _eq: $slug } }
+  ) {
+    id
+    isProvisioned
+    subdomain
+    hasuraGraphqlAdminSecret
+    createdAt
+  }
+}

@@ -1,0 +1,7 @@
+query getAppInjectedVariables($id: uuid!) {
+  app(id: $id) {
+    id
+    webhookSecret
+    hasuraGraphqlJwtSecret
+  }
+}

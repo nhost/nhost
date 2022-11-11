@@ -1,0 +1,10 @@
+query getSMSSettings($id: uuid!) {
+  app(id: $id) {
+    id
+    authSmsPasswordlessEnabled
+    authSmsTwilioAccountSid
+    authSmsTwilioAuthToken
+    authSmsTwilioMessagingServiceId
+    authSmsTwilioFrom
+  }
+}
