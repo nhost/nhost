@@ -779,7 +779,7 @@ importers:
   packages/apollo:
     specifiers:
       '@apollo/client': ^3.7.1
-      '@nhost/nhost-js': '*'
+      '@nhost/nhost-js': workspace:*
       graphql: 15.7.2
       graphql-ws: ^5.10.1
     dependencies:
@@ -839,8 +839,8 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
       '@types/faker': '5'
       axios: ^0.27.2
       html-urls: ^2.4.38
@@ -865,8 +865,8 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
       axios: ^0.27.2
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
@@ -889,10 +889,10 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
-      '@nhost/nhost-js': '*'
-      '@nhost/react': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
+      '@nhost/nhost-js': workspace:*
+      '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
       cross-fetch: ^3.1.5
       js-cookie: ^3.0.1
@@ -916,9 +916,9 @@ importers:
 
   packages/nhost-js:
     specifiers:
-      '@nhost/docgen': '*'
-      '@nhost/hasura-auth-js': '*'
-      '@nhost/hasura-storage-js': '*'
+      '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/hasura-storage-js': workspace:*
       axios: ^0.27.2
       graphql: 15.7.2
       jwt-decode: ^3.1.2
@@ -940,10 +940,10 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
-      '@nhost/hasura-storage-js': '*'
-      '@nhost/nhost-js': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
+      '@nhost/hasura-storage-js': workspace:*
+      '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.24
       '@xstate/react': ^3.0.1
       immer: ^9.0.15
@@ -966,8 +966,8 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.7.1
-      '@nhost/apollo': '*'
-      '@nhost/react': '*'
+      '@nhost/apollo': workspace:*
+      '@nhost/react': workspace:*
       '@types/react': ^18.0.24
       graphql: 15.7.2
       react: ^18.2.0
@@ -1009,10 +1009,10 @@ importers:
 
   packages/vue:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
-      '@nhost/hasura-auth-js': '*'
-      '@nhost/nhost-js': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^3.2.0
       '@vueuse/core': ^8.9.4
       '@xstate/inspect': ^0.6.2
@@ -9386,7 +9386,7 @@ packages:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.2.1_postcss@8.4.18
+      tailwindcss: 3.2.1_postcss@8.4.19
 
   /@tanstack/match-sorter-utils/8.1.1:
     resolution: {integrity: sha512-IdmEekEYxQsoLOR0XQyw3jD1GujBpRRYaGJYQUw1eOT1eUugWxdc7jomh1VQ1EKHcdwDLpLaCz/8y4KraU4T9A==}
@@ -12337,7 +12337,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.14.9_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -12345,7 +12345,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.14.9_debug@4.3.2
     transitivePeerDependencies:
       - debug
 
@@ -15026,7 +15026,6 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
-    dev: true
 
   /debug/4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -18329,6 +18328,18 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
+
+  /follow-redirects/1.14.9_debug@4.3.2:
+    resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.2
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -19639,7 +19650,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.9
+      follow-redirects: 1.14.9_debug@4.3.2
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -23552,6 +23563,7 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
+    dev: true
 
   /postcss-import/14.1.0_postcss@8.4.19:
     resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
@@ -23563,7 +23575,6 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
-    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.18:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -23573,6 +23584,7 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.18
+    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.19:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -23582,7 +23594,6 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.19
-    dev: true
 
   /postcss-load-config/3.1.4_postcss@8.4.18:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -23599,6 +23610,7 @@ packages:
       lilconfig: 2.0.6
       postcss: 8.4.18
       yaml: 1.10.2
+    dev: true
 
   /postcss-load-config/3.1.4_postcss@8.4.19:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -23615,7 +23627,6 @@ packages:
       lilconfig: 2.0.6
       postcss: 8.4.19
       yaml: 1.10.2
-    dev: true
 
   /postcss-load-config/3.1.4_ts-node@10.9.1:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -23820,6 +23831,7 @@ packages:
     dependencies:
       postcss: 8.4.18
       postcss-selector-parser: 6.0.10
+    dev: true
 
   /postcss-nested/6.0.0_postcss@8.4.19:
     resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
@@ -23829,7 +23841,6 @@ packages:
     dependencies:
       postcss: 8.4.19
       postcss-selector-parser: 6.0.10
-    dev: true
 
   /postcss-normalize-charset/5.1.0_postcss@8.4.19:
     resolution: {integrity: sha512-mSgUJ+pd/ldRGVx26p2wz9dNZ7ji6Pn8VWBajMXFf8jk7vUoSrZ2lt/wZR7DtlZYKesmZI680qjr2CeFF2fbUg==}
@@ -26998,6 +27009,7 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
+    dev: true
 
   /tailwindcss/3.2.1_postcss@8.4.19:
     resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
@@ -27031,7 +27043,6 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
-    dev: true
 
   /tapable/1.1.3:
     resolution: {integrity: sha512-4WK/bYZmj8xLr+HUCODHGF1ZFzsYffasLUgEiMBY4fgtltdO6B4WJtlSbPaDTLpYTcGVwM2qLnFTICEcNxs3kA==}
