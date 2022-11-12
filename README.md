@@ -495,6 +495,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/kwarabei">
+            <img src="https://avatars.githubusercontent.com/u/102731455?v=4" width="100;" alt="kwarabei"/>
+            <br />
+            <sub><b>Vadim</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/TheRedLancer">
             <img src="https://avatars.githubusercontent.com/u/58493767?v=4" width="100;" alt="TheRedLancer"/>
             <br />
