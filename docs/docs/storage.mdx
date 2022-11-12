@@ -161,6 +161,14 @@ Permissions to upload, download, and delete files are managed through Hasura's p
 
 To upload a file, a user must have the **`insert` permission** to the `storage.files` table. The `id` column must be granted.
 
+The following columns can be used for insert permissions:
+
+- `id`
+- `bucket_id`
+- `name`
+- `size`
+- `mime_type`
+
 ### Download
 
 To download a file, a user must have the **`select` permission** to the `storage.files` table. **All** columns must be granted.
