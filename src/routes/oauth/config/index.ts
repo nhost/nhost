@@ -237,6 +237,24 @@ export const PROVIDERS_CONFIG: Record<
     }),
   },
 
+  twitch: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_TWITCH_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_TWITCH_CLIENT_SECRET,
+      scope: ['user:read:email'],
+    },
+    profile: ({
+      profile: {
+        data: [profile],
+      },
+    }) => ({
+      id: profile.id,
+      email: profile.email,
+      displayName: profile.display_name,
+      avatarUrl: profile.profile_image_url,
+    }),
+  },
+
   workos: {
     grant: {
       oauth: 2,

@@ -66,22 +66,4 @@ export const PROVIDERS = {
           },
         };
   },
-
-  get twitch() {
-    return !castBooleanEnv('AUTH_PROVIDER_TWITCH_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_TWITCH_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_TWITCH_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_TWITCH_SCOPE', [
-              'user:read:email',
-            ]);
-          },
-        };
-  },
 };
