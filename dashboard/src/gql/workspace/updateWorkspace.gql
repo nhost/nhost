@@ -1,0 +1,16 @@
+mutation updateWorkspace($id: uuid!, $workspace: workspaces_set_input!) {
+  updateWorkspace(pk_columns: { id: $id }, _set: $workspace) {
+    id
+    name
+    email
+    companyName
+    addressLine1
+    addressLine2
+    addressPostalCode
+    addressCity
+    addressCountryCode
+    slug
+    taxIdType
+    taxIdValue
+  }
+}

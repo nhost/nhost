@@ -1,0 +1,16 @@
+# Update current workspace payment methods to default: false
+# Insert new payment method with default: true
+mutation insertNewPaymentMethod(
+  $workspaceId: uuid!
+  $paymentMethod: paymentMethods_insert_input!
+) {
+  updatePaymentMethods(
+    where: { workspaceId: { _eq: $workspaceId } }
+    _set: { isDefault: false }
+  ) {
+    affected_rows
+  }
+  insertPaymentMethod(object: $paymentMethod) {
+    id
+  }
+}

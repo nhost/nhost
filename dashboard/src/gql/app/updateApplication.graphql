@@ -1,0 +1,7 @@
+mutation updateApplication($appId: uuid!, $app: apps_set_input!) {
+  updateApp(pk_columns: { id: $appId }, _set: $app) {
+    name
+    id
+    slug
+  }
+}

@@ -1,0 +1,147 @@
+import ChangeWorkspaceName from '@/components/applications/ChangeWorkspaceName';
+import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
+import { useUI } from '@/context/UIContext';
+import { useGetWorkspace } from '@/hooks/use-GetWorkspace';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { Avatar } from '@/ui/Avatar';
+import { Modal } from '@/ui/Modal';
+import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
+import { Dropdown } from '@/ui/v2/Dropdown';
+import Text from '@/ui/v2/Text';
+import { copy } from '@/utils/copy';
+import { nhost } from '@/utils/nhost';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+
+export default function WorkspaceHeader() {
+  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const {
+    query: { workspaceSlug },
+  } = useRouter();
+
+  const [changeWorkspaceNameModal, setChangeWorkspaceNameModal] =
+    useState(false);
+  const {
+    openDeleteWorkspaceModal,
+    closeDeleteWorkspaceModal,
+    deleteWorkspaceModal,
+  } = useUI();
+
+  const { data } = useGetWorkspace(workspaceSlug);
+
+  const workspace = data?.workspaces[0];
+
+  const user = nhost.auth.getUser();
+
+  const isOwner = workspace?.workspaceMembers.some(
+    (member) => member.user.id === user?.id && member.type === 'owner',
+  );
+
+  const noApplications = workspace?.apps.length === 0;
+
+  const IS_DEFAULT_WORKSPACE = currentWorkspace.name === 'Default Workspace';
+
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col">
+      <Modal
+        showModal={changeWorkspaceNameModal}
+        close={() => setChangeWorkspaceNameModal(!changeWorkspaceNameModal)}
+        Component={ChangeWorkspaceName}
+      />
+      <Modal
+        showModal={deleteWorkspaceModal}
+        close={closeDeleteWorkspaceModal}
+        Component={RemoveWorkspaceModal}
+      />
+      <div className="flex flex-row place-content-between">
+        <div className="flex flex-row items-center">
+          {IS_DEFAULT_WORKSPACE &&
+          user.id === currentWorkspace.creatorUserId ? (
+            <Avatar
+              className="h-14 w-14 self-center rounded-full"
+              name={user?.displayName}
+              avatarUrl={user?.avatarUrl}
+            />
+          ) : (
+            <div className="inline-block h-14 w-14 overflow-hidden rounded-xl">
+              <Image
+                src="/logos/new.svg"
+                alt="Nhost Logo"
+                width={56}
+                height={56}
+              />
+            </div>
+          )}
+
+          <div className="flex flex-col items-start pl-3">
+            <h1 className="font-display text-3xl font-medium">
+              {currentWorkspace.name}
+            </h1>
+            <button
+              type="button"
+              className="cursor-pointer py-1 pl-1 font-display text-xs font-medium"
+              onClick={() =>
+                copy(
+                  `https://app.nhost.io/${currentWorkspace.slug}`,
+                  'Workspace URL',
+                )
+              }
+            >
+              <span className="text-grayscale">app.nhost.io/</span>
+              {currentWorkspace.slug}
+            </button>
+          </div>
+        </div>
+
+        <div className="hidden self-center sm:block">
+          {data && isOwner && (
+            <Dropdown.Root>
+              <Dropdown.Trigger asChild>
+                <Button variant="outlined" color="secondary" className="gap-2">
+                  Workspace Options
+                </Button>
+              </Dropdown.Trigger>
+
+              <Dropdown.Content
+                PaperProps={{ className: 'mt-1 w-[280px]' }}
+                menu
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              >
+                <Dropdown.Item
+                  className="py-2"
+                  onClick={() =>
+                    setChangeWorkspaceNameModal(!changeWorkspaceNameModal)
+                  }
+                >
+                  Change workspace name
+                </Dropdown.Item>
+
+                <Divider component="li" sx={{ margin: 0 }} />
+
+                <Dropdown.Item
+                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium text-red"
+                  disabled={!noApplications}
+                  onClick={openDeleteWorkspaceModal}
+                >
+                  I want to remove this workspace
+                  {!noApplications && (
+                    <Text
+                      variant="caption"
+                      className="font-medium text-greyscaleGrey"
+                    >
+                      You can&apos;t remove this workspace because you have apps
+                      running. Remove all apps first.
+                    </Text>
+                  )}
+                </Dropdown.Item>
+              </Dropdown.Content>
+            </Dropdown.Root>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

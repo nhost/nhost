@@ -1,0 +1,14 @@
+fragment GetAppRoles on apps {
+  id
+  slug
+  subdomain
+  name
+  authUserDefaultAllowedRoles
+  authUserDefaultRole
+}
+
+query getAppRolesAndPermissions($id: uuid!) {
+  app(id: $id) {
+    ...GetAppRoles
+  }
+}

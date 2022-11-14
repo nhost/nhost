@@ -111,6 +111,11 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 - [Stripe GraphQL API](./integrations/stripe-graphql-js#nhoststripe-graphql-js)
 
+## Applications
+
+- [Dashboard](./dashboard)
+- [Docs](./docs)
+
 ## Community ❤️
 
 First and foremost: **Star and watch this repository** to stay up-to-date.
@@ -153,6 +158,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/szilarddoro">
+            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
+            <br />
+            <sub><b>Szilárd Dóró</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/nunopato">
             <img src="https://avatars.githubusercontent.com/u/1523504?v=4" width="100;" alt="nunopato"/>
             <br />
@@ -164,13 +176,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
             <br />
             <sub><b>Grégory D'Angelo</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/szilarddoro">
-            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
-            <br />
-            <sub><b>Szilárd Dóró</b></sub>
         </a>
     </td>
     <td align="center">
@@ -487,6 +492,13 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/22399181?v=4" width="100;" alt="uulwake"/>
             <br />
             <sub><b>Ulrich Wake</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/kwarabei">
+            <img src="https://avatars.githubusercontent.com/u/102731455?v=4" width="100;" alt="kwarabei"/>
+            <br />
+            <sub><b>Vadim</b></sub>
         </a>
     </td>
     <td align="center">

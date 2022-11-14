@@ -1,0 +1,17 @@
+mutation setNewDefaultPaymentMethod(
+  $workspaceId: uuid!
+  $paymentMethodId: uuid!
+) {
+  setAllPaymentMethodToDefaultFalse: updatePaymentMethods(
+    where: { workspaceId: { _eq: $workspaceId } }
+    _set: { isDefault: false }
+  ) {
+    affected_rows
+  }
+  updatePaymentMethods(
+    where: { id: { _eq: $paymentMethodId } }
+    _set: { isDefault: true }
+  ) {
+    affected_rows
+  }
+}

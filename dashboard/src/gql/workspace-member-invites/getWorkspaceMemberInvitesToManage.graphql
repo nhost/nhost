@@ -1,0 +1,14 @@
+query getWorkspaceMemberInvitesToManage($userId: uuid!) {
+  workspaceMemberInvites(where: { userByEmail: { id: { _eq: $userId } } }) {
+    id
+    email
+    userByEmail {
+      id
+    }
+    workspace {
+      id
+      name
+      slug
+    }
+  }
+}

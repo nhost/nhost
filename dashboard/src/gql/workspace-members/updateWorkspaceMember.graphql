@@ -1,0 +1,8 @@
+mutation updateWorkspaceMember(
+  $id: uuid!
+  $workspaceMember: workspaceMembers_set_input!
+) {
+  updateWorkspaceMember(_set: $workspaceMember, pk_columns: { id: $id }) {
+    id
+  }
+}
