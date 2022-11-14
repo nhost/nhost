@@ -81,7 +81,7 @@ export default function DataBrowserGridControls({
     selectedRowsBeforeDelete.length || selectedRows?.length;
 
   async function handleRowDelete() {
-    if (!selectedRows || !selectedRows.length) {
+    if (!selectedRows?.length) {
       return;
     }
 
