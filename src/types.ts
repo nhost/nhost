@@ -4,7 +4,6 @@ export type SocialProvider =
   | 'apple'
   | 'bitbucket'
   | 'discord'
-  | 'gitlab'
   | 'spotify'
   | 'strava'
   | 'twitch'

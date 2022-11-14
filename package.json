@@ -66,7 +66,6 @@
     "passport": "0.4.1",
     "passport-apple": "^2.0.1",
     "passport-bitbucket-oauth2": "^0.1.2",
-    "passport-gitlab2": "^5.0.0",
     "passport-oauth2": "^1.6.1",
     "passport-oauth2-refresh": "^2.1.0",
     "passport-spotify": "^2.0.0",

@@ -100,7 +100,6 @@ specifiers:
   passport: 0.4.1
   passport-apple: ^2.0.1
   passport-bitbucket-oauth2: ^0.1.2
-  passport-gitlab2: ^5.0.0
   passport-oauth2: ^1.6.1
   passport-oauth2-refresh: ^2.1.0
   passport-spotify: ^2.0.0
@@ -169,7 +168,6 @@ dependencies:
   passport: 0.4.1
   passport-apple: 2.0.1
   passport-bitbucket-oauth2: 0.1.2
-  passport-gitlab2: 5.0.0
   passport-oauth2: 1.6.1
   passport-oauth2-refresh: 2.1.0
   passport-spotify: 2.0.0
@@ -10228,13 +10226,6 @@ packages:
     dependencies:
       passport-oauth2: 1.6.1
       pkginfo: 0.2.3
-    dev: false
-
-  /passport-gitlab2/5.0.0:
-    resolution: {integrity: sha512-cXQMgM6JQx9wHVh7JLH30D8fplfwjsDwRz+zS0pqC8JS+4bNmc1J04NGp5g2M4yfwylH9kQRrMN98GxMw7q7cg==}
-    engines: {node: '>= 6.0.0'}
-    dependencies:
-      passport-oauth2: 1.6.1
     dev: false
 
   /passport-oauth/1.0.0:

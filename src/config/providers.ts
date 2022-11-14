@@ -86,27 +86,6 @@ export const PROVIDERS = {
         };
   },
 
-  get gitlab() {
-    return !castBooleanEnv('AUTH_PROVIDER_GITLAB_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_GITLAB_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_GITLAB_CLIENT_SECRET');
-          },
-          get baseUrl() {
-            return castStringEnv('AUTH_PROVIDER_GITLAB_BASE_URL');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_GITLAB_SCOPE', [
-              'read_user',
-            ]);
-          },
-        };
-  },
-
   get bitbucket() {
     return !castBooleanEnv('AUTH_PROVIDER_BITBUCKET_ENABLED')
       ? null

@@ -80,6 +80,20 @@ export const PROVIDERS_CONFIG: Record<
     },
   },
 
+  gitlab: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_GITLAB_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_GITLAB_CLIENT_SECRET,
+      scope: ['read_user'],
+    },
+    profile: ({ profile }) => ({
+      id: String(profile.id),
+      displayName: profile.name,
+      email: profile.email,
+      avatarUrl: profile.avatar_url,
+    }),
+  },
+
   google: {
     grant: {
       client_id: process.env.AUTH_PROVIDER_GOOGLE_CLIENT_ID,

@@ -72,19 +72,6 @@ if (PROVIDERS.windowslive) {
   });
 }
 
-if (PROVIDERS.gitlab) {
-  [
-    'AUTH_PROVIDER_GITLAB_CLIENT_ID',
-    'AUTH_PROVIDER_GITLAB_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Gitlab provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (PROVIDERS.bitbucket) {
   [
     'AUTH_PROVIDER_BITBUCKET_CLIENT_ID',
