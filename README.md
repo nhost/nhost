@@ -110,6 +110,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 ## Integrations
 
 - [Stripe GraphQL API](./integrations/stripe-graphql-js#nhoststripe-graphql-js)
+- [Google Translation GraphQL API](./integrations/google-translation#nhostgoogle-translation)
 
 ## Applications
 
