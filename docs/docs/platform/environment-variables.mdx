@@ -10,16 +10,16 @@ You can manage your project's Environment Variables in Nhost Dashboard under **V
 
 ![Environment Variables](/img/platform/environment-variables/environment-variables.png)
 
-When an Environment Variable is changed, you must deploy your project again using the [Git integration](/platform/git) for the changes to take effect.
+Environment Variables are available for:
 
-Environment Variables are available in:
+- [Hasura GraphQL Engine](/graphql)
+- [Serverless Functions](/serverless-functions)
 
-- Hasura
-- Serverless Functions
+When an Environment Variable has updated the changes happen immediately for Hasura GraphQL Engine. For Serverless Functions, a new deployment via [Git](/platform/git) is required.
 
 ## System Environment Variables
 
-System Environment Variables are automatically available in production and during development. The following system Environment Variables are available:
+System Environment Variables are automatically available in production and during local development. The following system Environment Variables are available:
 
 - `NHOST_ADMIN_SECRET`
 - `NHOST_WEBHOOK_SECRET`
