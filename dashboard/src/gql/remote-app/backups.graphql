@@ -1,0 +1,3 @@
+mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
+  restoreApplicationDatabase(appID: $appId, backupID: $backupId)
+}

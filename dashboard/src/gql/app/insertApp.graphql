@@ -1,0 +1,12 @@
+mutation insertApplication($app: apps_insert_input!) {
+  insertApp(object: $app) {
+    id
+    name
+    slug
+    workspace {
+      id
+      name
+      slug
+    }
+  }
+}

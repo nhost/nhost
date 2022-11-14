@@ -1,0 +1,7 @@
+mutation insertEnvironmentVariables(
+  $environmentVariables: [environmentVariables_insert_input!]!
+) {
+  insertEnvironmentVariables(objects: $environmentVariables) {
+    affected_rows
+  }
+}

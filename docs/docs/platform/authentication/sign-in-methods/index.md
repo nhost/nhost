@@ -18,3 +18,7 @@ Nhost Authentication support the following sign-in methods:
 - [LinkedIn](/platform/authentication/sign-in-with-linkedin)
 - [Spotify](/platform/authentication/sign-in-with-spotify)
 - [Twitch](/platform/authentication/sign-in-with-twitch)
+
+## Enabling sign-in methods during local development
+
+To enable a sign-in method locally, add variables corresponding to the relevant authentication methods in an `.env.development` file located in the project repository. An overview of available options is available over in the [hasura auth repository](https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md#oauth-environment-variables).

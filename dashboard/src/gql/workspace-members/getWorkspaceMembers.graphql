@@ -1,0 +1,31 @@
+fragment getWorkspaceMembersWorkspaceMember on workspaceMembers {
+  id
+  type
+  user {
+    id
+    displayName
+    avatarUrl
+    email
+  }
+}
+
+fragment getWorkspaceMembersWorkspaceMemberInvite on workspaceMemberInvites {
+  id
+  email
+  memberType
+}
+
+query getWorkspaceMembers($workspaceId: uuid!) {
+  workspace(id: $workspaceId) {
+    id
+    creatorUser {
+      id
+    }
+    workspaceMembers(order_by: { createdAt: asc }) {
+      ...getWorkspaceMembersWorkspaceMember
+    }
+    workspaceMemberInvites(order_by: { createdAt: asc }) {
+      ...getWorkspaceMembersWorkspaceMemberInvite
+    }
+  }
+}

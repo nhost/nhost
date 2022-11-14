@@ -1,0 +1,14 @@
+query getApplicationPlan($workspace: String!, $slug: String!) {
+  apps(
+    where: { workspace: { slug: { _eq: $workspace } }, slug: { _eq: $slug } }
+  ) {
+    id
+    subdomain
+    plan {
+      name
+      price
+      upatedAt
+      featureMaxDbSize
+    }
+  }
+}

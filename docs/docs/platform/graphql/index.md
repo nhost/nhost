@@ -1,12 +1,12 @@
 ---
-title: 'GraphQL'
+title: 'GraphQL API'
 sidebar_position: 1
 image: /img/og/platform/graphql.png
 ---
 
 A GraphQL API is automatically and instantly available based on the tables and columns in your [database](/platform/database).
 
-The GraphQL API has instant support for inserting, selecting, updating, and deleting data, which usually account for 80% of all API operations you need.
+The GraphQL API has support for inserting, selecting, updating, and deleting data, which usually accounts for 80% of all API operations you need.
 
 It's the [Hasura GraphQL engine](https://github.com/hasura/graphql-engine) that powers the GraphQL API which means that all documentation about [queries](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/), [mutations](https://hasura.io/docs/latest/graphql/core/databases/postgres/mutations/index/), and [subscriptions](https://hasura.io/docs/latest/graphql/core/databases/postgres/subscriptions/index/) from Hasura's documentation is applicable.
 
@@ -75,7 +75,7 @@ query GetTodos {
 
 More complex queries utilize filters, limits, sorting, and aggregation.
 
-Here's an example of a more complex GraphQL query that selects all items in the `todos` table that aren not completed, with the total number of comments and the last five comments:
+Here's an example of a more complex GraphQL query that selects all items in the `todos` table that are not completed, with the total number of comments and the last five comments:
 
 ```graphql title=GraphQL
 query GetTodosWithLatestComments {

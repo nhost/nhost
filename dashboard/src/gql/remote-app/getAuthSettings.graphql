@@ -1,0 +1,10 @@
+query getAuthSettings($id: uuid!) {
+  app(id: $id) {
+    authAnonymousUsersEnabled
+    authDisableNewUsers
+    authPasswordMinLength
+    authMfaEnabled
+    authMfaTotpIssuer
+    authAccessControlAllowedRedirectUrls
+  }
+}

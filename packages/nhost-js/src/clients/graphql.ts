@@ -1,7 +1,12 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
-import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
+import { urlFromSubdomain } from '../utils/helpers'
+import {
+  GraphqlRequestResponse,
+  GraphqlResponse,
+  NhostClientConstructorParams
+} from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
   /**
@@ -12,6 +17,22 @@ export interface NhostGraphqlConstructorParams {
    * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
+}
+
+/**
+ * Creates a client for GraphQL from either a subdomain or a URL
+ */
+export function createGraphqlClient(params: NhostClientConstructorParams) {
+  const graphqlUrl =
+    'subdomain' in params || 'backendUrl' in params
+      ? urlFromSubdomain(params, 'graphql')
+      : params.graphqlUrl
+
+  if (!graphqlUrl) {
+    throw new Error('Please provide `subdomain` or `graphqlUrl`.')
+  }
+
+  return new NhostGraphqlClient({ url: graphqlUrl, ...params })
 }
 
 /**

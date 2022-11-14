@@ -4,7 +4,7 @@ title: NhostClientConstructorParams
 sidebar_label: NhostClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/utils/types.ts#L41
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/utils/types.ts#L43
 ---
 
 # `NhostClientConstructorParams`
@@ -72,14 +72,7 @@ Activate devTools e.g. the ability to connect to the xstate inspector
 **<span className="parameter-name">backendUrl</span>** <span className="optional-status">optional</span> `string`
 
 Nhost backend URL
-Should only be used when self-hosting
-
----
-
-**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
-
-When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Serverless Functions.
+Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
 
 ---
 
@@ -94,5 +87,28 @@ Use `localhost` during local development
 
 Project region (e.g. `eu-central-1`)
 Project region is not required during local development (when `subdomain` is `localhost`)
+
+---
+
+**<span className="parameter-name">authUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">graphqlUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">storageUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">functionsUrl</span>** <span className="optional-status">optional</span> `string`
+
+---
+
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---
