@@ -231,7 +231,7 @@ importers:
       '@mui/material': 5.10.13_thp4wrxo45nyllusrnt46mid4u
       '@mui/system': 5.10.13_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_7ftzmevi7stou2f3gr2dy644z4
-      '@nhost/core': link:../packages/core
+      '@nhost/core': 0.9.1
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/nhost-js': link:../packages/nhost-js
       '@nhost/react': link:../packages/react
@@ -629,6 +629,9 @@ importers:
       tailwindcss: 3.2.1_postcss@8.4.18
       typescript: 4.8.3
       vite: 3.2.2
+
+  examples/seed-data-storage:
+    specifiers: {}
 
   examples/serverless-functions:
     specifiers:
@@ -6978,6 +6981,17 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /@nhost/core/0.9.1:
+    resolution: {integrity: sha512-v+Q2zQRGYQCdvIphZw5ZKwZlB2B5qFqiT2zSEeAQDgischckiOZnD76qGxl/00T43kU6FinS27P+qP9rCCBI3A==}
+    dependencies:
+      '@simplewebauthn/browser': 6.0.0
+      axios: 0.27.2
+      js-cookie: 3.0.1
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /@nicolo-ribaudo/eslint-scope-5-internals/5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}

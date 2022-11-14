@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { AuthContext, INITIAL_MACHINE_CONTEXT } from '../../../src/core/machines/context'
+import { AuthContext, INITIAL_MACHINE_CONTEXT } from '../../../src'
 import fakeUser from './user'
 
 export const contextWithUser: AuthContext = {

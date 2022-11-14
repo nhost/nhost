@@ -1,5 +1,5 @@
-import { RedirectOption } from '../src/core/types'
-import { rewriteRedirectTo } from '../src/core/utils'
+import { expect, test } from 'vitest'
+import { RedirectOption, rewriteRedirectTo } from '../src'
 
 test(`should not add redirectTo when none is given`, async () => {
   expect(rewriteRedirectTo('https://frontend.com', {})).toEqual({})

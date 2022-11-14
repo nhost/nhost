@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/typescript-types'
 import { rest } from 'msw'
-import { Mfa, NhostSession } from '../../../src/core/types'
+import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import fakeUser from '../mocks/user'
 

@@ -1,9 +1,13 @@
 import { faker } from '@faker-js/faker'
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { AuthClient } from '../src/core/client'
-import { INVALID_EMAIL_ERROR } from '../src/core/errors'
-import { createAuthMachine, createChangeEmailMachine } from '../src/core/machines'
+import {
+  AuthClient,
+  createAuthMachine,
+  createChangeEmailMachine,
+  INVALID_EMAIL_ERROR
+} from '../src'
 import { BASE_URL } from './helpers/config'
 import { changeEmailInternalErrorHandler, changeEmailNetworkErrorHandler } from './helpers/handlers'
 import contextWithUser from './helpers/mocks/contextWithUser'

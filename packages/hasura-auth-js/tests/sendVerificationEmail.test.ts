@@ -1,9 +1,8 @@
 import { faker } from '@faker-js/faker'
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { AuthClient } from '../src/core/client'
-import { INVALID_EMAIL_ERROR } from '../src/core/errors'
-import { createSendVerificationEmailMachine } from '../src/core/machines'
+import { AuthClient, createSendVerificationEmailMachine, INVALID_EMAIL_ERROR } from '../src'
 import { BASE_URL } from './helpers/config'
 import {
   sendVerificationEmailInternalErrorHandler,

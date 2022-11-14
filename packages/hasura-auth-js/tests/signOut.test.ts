@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker'
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { NHOST_REFRESH_TOKEN_KEY } from '../src/core/constants'
-import { createAuthMachine } from '../src/core/machines'
+import { createAuthMachine, NHOST_REFRESH_TOKEN_KEY } from '../src'
 import { BASE_URL } from './helpers/config'
 import {
   signOutAllErrorHandler,

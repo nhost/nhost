@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker'
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types'
-import { vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { interpret, StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { AuthMachine, createAuthMachine } from '../src/core/machines'
+import { AuthMachine, createAuthMachine } from '../src'
 import { BASE_URL } from './helpers/config'
 import {
   signUpEmailSecurityKeyConflictErrorHandler,

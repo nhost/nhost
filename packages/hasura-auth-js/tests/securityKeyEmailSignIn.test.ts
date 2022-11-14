@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
 import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
-import { afterAll, afterEach, beforeAll, beforeEach, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 
-import { createAuthMachine } from '../src/core/machines'
+import { createAuthMachine } from '../src'
 
 import { BASE_URL } from './helpers/config'
 import {

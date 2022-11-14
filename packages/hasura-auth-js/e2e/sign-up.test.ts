@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { afterEach, describe, expect, it, test } from 'vitest'
-import { USER_ALREADY_SIGNED_IN } from '../src/core'
+import { USER_ALREADY_SIGNED_IN } from '../src'
 
 import { auth, signUpAndInUser } from './helpers'
 

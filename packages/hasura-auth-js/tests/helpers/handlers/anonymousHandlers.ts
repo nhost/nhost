@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { rest } from 'msw'
-import { Mfa, NhostSession } from '../../../src/core/types'
+import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import { fakeAnonymousUser } from '../mocks/user'
 

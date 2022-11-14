@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { interpret, InterpreterFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import {
+  AuthMachine,
+  createAuthMachine,
+  INVALID_REFRESH_TOKEN,
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   TOKEN_REFRESH_MARGIN
-} from '../src/core/constants'
-import { INVALID_REFRESH_TOKEN } from '../src/core/errors'
-import { AuthMachine, createAuthMachine } from '../src/core/machines'
+} from '../src'
 import { BASE_URL } from './helpers/config'
 import {
   authTokenInternalErrorHandler,

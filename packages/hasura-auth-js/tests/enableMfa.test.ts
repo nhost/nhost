@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { AuthClient } from '../src/core/client'
-import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../src/core/errors'
-import { createAuthMachine, createEnableMfaMachine } from '../src/core/machines'
+import {
+  AuthClient,
+  createAuthMachine,
+  createEnableMfaMachine,
+  INVALID_MFA_CODE_ERROR,
+  INVALID_MFA_TYPE_ERROR
+} from '../src'
 import { BASE_URL } from './helpers/config'
 import {
   activateMfaTotpInternalErrorHandler,

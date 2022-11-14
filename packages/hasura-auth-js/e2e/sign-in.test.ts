@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import axios from 'axios'
 import htmlUrls from 'html-urls'
 import { afterEach, describe, expect, it } from 'vitest'
-import { USER_ALREADY_SIGNED_IN } from '../src/core'
+import { USER_ALREADY_SIGNED_IN } from '../src'
 
 import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 

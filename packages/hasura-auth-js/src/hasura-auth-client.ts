@@ -1,62 +1,70 @@
 import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
-import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
 import {
-  AuthChangedFunction,
-  ChangeEmailParams,
-  ChangePasswordParams,
-  DeanonymizeParams,
-  NhostAuthConstructorParams,
-  OnTokenChangedFunction,
-  ResetPasswordParams,
-  SendVerificationEmailParams,
-  SignInParams,
-  SignUpParams
-} from './utils/types'
+  EMAIL_NEEDS_VERIFICATION,
+  INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
+  NO_REFRESH_TOKEN,
+  TOKEN_REFRESHER_RUNNING_ERROR
+} from './errors'
+import { AuthClient } from './internal-client'
 import {
-  addSecurityKeyPromise,
-  AuthClient,
   AuthInterpreter,
-  changeEmailPromise,
-  ChangeEmailResponse,
-  changePasswordPromise,
-  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  DeanonymizeResponse,
-  EMAIL_NEEDS_VERIFICATION,
-  encodeQueryParameters,
-  ErrorPayload,
-  INVALID_REFRESH_TOKEN,
-  INVALID_SIGN_IN_METHOD,
-  JWTClaims,
-  JWTHasuraClaims,
-  NhostSessionResponse,
-  NO_REFRESH_TOKEN,
+  createSendVerificationEmailMachine
+} from './machines'
+import {
+  addSecurityKeyPromise,
+  changeEmailPromise,
+  changePasswordPromise,
   resetPasswordPromise,
-  ResetPasswordResponse,
-  rewriteRedirectTo,
-  SecurityKey,
   sendVerificationEmailPromise,
-  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
-  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
-  SignOutResponse,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  SignUpResponse,
-  TOKEN_REFRESHER_RUNNING_ERROR
-} from './core'
+  signUpEmailSecurityKeyPromise
+} from './promises'
+import {
+  AuthChangedFunction,
+  ChangeEmailParams,
+  ChangeEmailResponse,
+  ChangePasswordParams,
+  ChangePasswordResponse,
+  DeanonymizeParams,
+  DeanonymizeResponse,
+  ErrorPayload,
+  JWTClaims,
+  JWTHasuraClaims,
+  NhostAuthConstructorParams,
+  NhostSessionResponse,
+  OnTokenChangedFunction,
+  ResetPasswordParams,
+  ResetPasswordResponse,
+  SecurityKey,
+  SendVerificationEmailParams,
+  SendVerificationEmailResponse,
+  SignInParams,
+  SignInResponse,
+  SignOutResponse,
+  SignUpParams,
+  SignUpResponse
+} from './types'
+import {
+  encodeQueryParameters,
+  getAuthenticationResult,
+  getSession,
+  isBrowser,
+  rewriteRedirectTo
+} from './utils'
 
 /**
  * @alias Auth

@@ -1,4 +1,4 @@
-import { ClientStorage } from '../../src/core/types'
+import { ClientStorage } from '../../src'
 
 /**
  * Custom in memory storage implementation for testing purposes.
