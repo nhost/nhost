@@ -66,8 +66,11 @@ export const oauthProviders = Router()
       return sendError(res, 'disabled-endpoint', { redirectTo }, true);
     }
     // * Check if the provider has a client id and secret
-    if (!providerConfig.client_id || !providerConfig.client_secret) {
-      logger.warn(`Missing client id or secret for provider ${provider}`);
+    if (
+      !(providerConfig.client_id && providerConfig.client_secret) &&
+      !(providerConfig.key && providerConfig.secret)
+    ) {
+      logger.warn(`Missing client id/key or secret for provider ${provider}`);
       return sendError(
         res,
         'invalid-oauth-configuration',

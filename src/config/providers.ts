@@ -1,19 +1,6 @@
 import { castBooleanEnv, castStringArrayEnv, castStringEnv } from '@config';
 
 export const PROVIDERS = {
-  get twitter() {
-    return !castBooleanEnv('AUTH_PROVIDER_TWITTER_ENABLED')
-      ? null
-      : {
-          get consumerKey() {
-            return castStringEnv('AUTH_PROVIDER_TWITTER_CONSUMER_KEY');
-          },
-          get consumerSecret() {
-            return castStringEnv('AUTH_PROVIDER_TWITTER_CONSUMER_SECRET');
-          },
-        };
-  },
-
   get apple() {
     if (!castBooleanEnv('AUTH_PROVIDER_APPLE_ENABLED')) {
       return null;

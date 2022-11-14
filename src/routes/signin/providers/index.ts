@@ -1,12 +1,10 @@
 import { Router } from 'express';
 
-import twitter from './twitter';
 import apple from './apple';
 import windowslive from './windowslive';
 
 const router = Router();
 
-twitter(router);
 apple(router);
 windowslive(router);
 

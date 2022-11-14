@@ -255,6 +255,22 @@ export const PROVIDERS_CONFIG: Record<
     }),
   },
 
+  twitter: {
+    grant: {
+      key: process.env.AUTH_PROVIDER_TWITTER_CONSUMER_KEY,
+      secret: process.env.AUTH_PROVIDER_TWITTER_CONSUMER_SECRET,
+      response: ['tokens', 'profile', 'raw'],
+      profile_url:
+        'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+    },
+    profile: ({ profile }) => ({
+      id: profile.id_str || String(profile.id),
+      displayName: profile.name,
+      email: profile.email,
+      avatarUrl: profile.profile_image_url_https,
+    }),
+  },
+
   workos: {
     grant: {
       oauth: 2,
