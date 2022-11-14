@@ -209,6 +209,20 @@ export const PROVIDERS_CONFIG: Record<
     },
   },
 
+  strava: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_STRAVA_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_STRAVA_CLIENT_SECRET,
+      scope: ['profile:read_all'],
+    },
+    // ! It is not possible to get the user's email address from Strava
+    profile: async ({ profile }) => ({
+      id: String(profile.id),
+      displayName: `${profile.firstname} ${profile.lastname}`,
+      avatarUrl: profile.profile,
+    }),
+  },
+
   workos: {
     grant: {
       oauth: 2,

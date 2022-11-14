@@ -4,7 +4,6 @@ import twitter from './twitter';
 import apple from './apple';
 import windowslive from './windowslive';
 import spotify from './spotify';
-import strava from './strava';
 import twitch from './twitch';
 
 const router = Router();
@@ -13,7 +12,6 @@ twitter(router);
 apple(router);
 windowslive(router);
 spotify(router);
-strava(router);
 twitch(router);
 
 export default (parentRouter: Router) => {

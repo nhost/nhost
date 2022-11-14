@@ -20,7 +20,7 @@ export type NormalisedProfile = {
   id: string;
   displayName?: string;
   avatarUrl?: string;
-  email: string;
+  email?: string;
   locale?: string;
   emailVerified?: boolean;
 };

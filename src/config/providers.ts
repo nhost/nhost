@@ -86,24 +86,6 @@ export const PROVIDERS = {
         };
   },
 
-  get strava() {
-    return !castBooleanEnv('AUTH_PROVIDER_STRAVA_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_STRAVA_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_STRAVA_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_STRAVA_SCOPE', [
-              'profile:read_all',
-            ]);
-          },
-        };
-  },
-
   get twitch() {
     return !castBooleanEnv('AUTH_PROVIDER_TWITCH_ENABLED')
       ? null

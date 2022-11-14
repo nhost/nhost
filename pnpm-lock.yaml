@@ -12,7 +12,6 @@ specifiers:
   '@milahu/patch-package-with-pnpm-support': ^6.4.8
   '@oauth-everything/passport-twitch': ^1.0.3
   '@release-it/conventional-changelog': ^4.2.2
-  '@riderize/passport-strava-oauth2': ^1.1.1
   '@simplewebauthn/server': ^5.3.0
   '@simplewebauthn/typescript-types': ^5.3.0
   '@types/bcryptjs': ^2.4.2
@@ -126,7 +125,6 @@ dependencies:
   '@djgrant/postgres-migrations': 4.1.0-rc.1
   '@milahu/patch-package-with-pnpm-support': 6.4.8
   '@oauth-everything/passport-twitch': 1.0.3
-  '@riderize/passport-strava-oauth2': 1.1.1
   '@simplewebauthn/server': 5.3.0
   '@types/passport-oauth2': 1.4.11
   axios: 0.21.1
@@ -2522,13 +2520,6 @@ packages:
       prepend-file: 2.0.1
       release-it: 14.12.5
     dev: true
-
-  /@riderize/passport-strava-oauth2/1.1.1:
-    resolution: {integrity: sha512-+zpHS5PJHG9GqjW5p5roIhk1PXl9HhgznHQfLfuU6p5MOsagVRvJxiuEw4e+/bbIk0iisc8eDjiV0lngTJuMng==}
-    engines: {node: '>= 0.4.0'}
-    dependencies:
-      passport-oauth2: 1.6.1
-    dev: false
 
   /@samverschueren/stream-to-observable/0.3.1_rxjs@6.6.7:
     resolution: {integrity: sha512-c/qwwcHyafOQuVQJj0IlBjf5yYgBI7YPJ77k4fOJYesb41jio65eaJODRUmfYKhTOFBrIZ66kgvGPlNbjuoRdQ==}
