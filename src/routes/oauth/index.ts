@@ -33,6 +33,23 @@ const SESSION_NAME = 'connect.sid';
 // TODO handle the provider id, access token, and refresh token. See utils.ts and Grant doc
 const grantConfig = createGrantConfig();
 
+/**
+ * GET /signin/provider/{provider}
+ * @summary
+ * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,azuread,windowslive,linkedin,spotify,strava,gitlab,bitbucket,twitch
+ * @param {string} redirectUrl.query.required -
+ * @return {string} 302 - Redirect to the provider's authentication page
+ * @tags Authentication
+ */
+
+/**
+ * GET /signin/provider/{provider}/callback
+ * @summary Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple and Azure AD that use POST
+ * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,azuread,windowslive,linkedin,spotify,strava,gitlab,bitbucket,twitch
+ * @param {string} redirectUrl.query.required
+ * @return {string} 302 - Redirect to the initial url given as a query parameter in /signin/provider/{provider}
+ * @tags Authentication
+ */
 export const oauthProviders = Router()
   // * Use a middleware to keep the session between Oauth requests
   .use(

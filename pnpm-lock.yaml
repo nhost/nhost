@@ -95,7 +95,6 @@ specifiers:
   passport-apple: ^2.0.1
   passport-oauth2: ^1.6.1
   passport-oauth2-refresh: ^2.1.0
-  passport-windowslive: ^1.0.2
   pg: ^8.6.0
   postinstall-postinstall: ^2.1.0
   prettier: ^2.3.2
@@ -156,7 +155,6 @@ dependencies:
   passport-apple: 2.0.1
   passport-oauth2: 1.6.1
   passport-oauth2-refresh: 2.1.0
-  passport-windowslive: 1.0.2
   pg: 8.7.3
   postinstall-postinstall: 2.1.0
   qrcode: 1.4.4
@@ -10109,13 +10107,6 @@ packages:
   /passport-strategy/1.0.0:
     resolution: {integrity: sha512-CB97UUvDKJde2V0KDWWB3lyf6PC3FaZP7YxZ2G8OAtn9p4HI9j9JLP9qjOGZFvyl8uwNT8qM+hGnz/n16NI7oA==}
     engines: {node: '>= 0.4.0'}
-    dev: false
-
-  /passport-windowslive/1.0.2:
-    resolution: {integrity: sha1-ODz+5lif+17MKtGcOkHvaRRipwU=}
-    engines: {node: '>= 0.4.0'}
-    dependencies:
-      passport-oauth2: 1.6.1
     dev: false
 
   /passport/0.4.1:

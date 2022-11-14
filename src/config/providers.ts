@@ -34,23 +34,4 @@ export const PROVIDERS = {
       }
     }
   },
-
-  get windowslive() {
-    return !castBooleanEnv('AUTH_PROVIDER_WINDOWS_LIVE_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_WINDOWS_LIVE_SCOPE', [
-              'wl.basic',
-              'wl.emails',
-            ]);
-          },
-        };
-  },
 };

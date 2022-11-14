@@ -128,7 +128,10 @@ export const preRequestProviderMiddleware = (
 export const createGrantConfig = (): GrantConfig =>
   Object.keys(PROVIDERS_CONFIG).reduce<GrantConfig>(
     (aggr, provider) => {
-      if (castBooleanEnv(`AUTH_PROVIDER_${provider.toUpperCase()}_ENABLED`)) {
+      const providerKey = (
+        provider === 'windowslive' ? 'windows_live' : provider
+      ).toUpperCase();
+      if (castBooleanEnv(`AUTH_PROVIDER_${providerKey}_ENABLED`)) {
         aggr[provider] = PROVIDERS_CONFIG[provider].grant;
       }
       return aggr;

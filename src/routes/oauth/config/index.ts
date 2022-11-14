@@ -271,6 +271,27 @@ export const PROVIDERS_CONFIG: Record<
     }),
   },
 
+  windowslive: {
+    // * Copy of Grant's `live` provider
+    // TODO do not re-promt the user for consent (related to the access/refresh token?)
+    grant: {
+      oauth: 2,
+      authorize_url: 'https://login.live.com/oauth20_authorize.srf',
+      access_url: 'https://login.live.com/oauth20_token.srf',
+      profile_url: 'https://apis.live.net/v5.0/me',
+      client_id: process.env.AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET,
+      scope: ['wl.basic', 'wl.emails'],
+    },
+    profile: ({ profile }) => ({
+      // ? Could be improved in fetching the user's profile picture - but the apis.live.net/v5.0 API is deprecated
+      id: profile.id,
+      email: profile.emails.preferred || profile.emails.account,
+      displayName: profile.name,
+      avatarUrl: profile.profile_image_url,
+    }),
+  },
+
   workos: {
     grant: {
       oauth: 2,

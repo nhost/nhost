@@ -59,19 +59,6 @@ if (PROVIDERS.apple) {
   });
 }
 
-if (PROVIDERS.windowslive) {
-  [
-    'AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID',
-    'AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Windows Live provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (ENV.AUTH_SMS_PROVIDER) {
   if (ENV.AUTH_SMS_PROVIDER === 'twilio') {
     [
