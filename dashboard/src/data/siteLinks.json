@@ -1,0 +1,24 @@
+{
+  "siteLinks": [
+    {
+      "text": "product",
+      "links": ["Product", "Features", "Pricing"]
+    },
+    {
+      "text": "docs",
+      "links": ["Get Started", "Platform", "Reference"]
+    },
+    {
+      "text": "Frameworks",
+      "links": ["API Reference", "JS SDK", "Dart SDK"]
+    },
+    {
+      "text": "community",
+      "links": ["Github", "Discord", "Stack Overflow"]
+    },
+    {
+      "text": "company",
+      "links": ["About us", "Blog", "Careers"]
+    }
+  ]
+}

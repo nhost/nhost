@@ -1,0 +1,6 @@
+query GetAvatar($userId: uuid!) {
+  user(id: $userId) {
+    id
+    avatarUrl
+  }
+}

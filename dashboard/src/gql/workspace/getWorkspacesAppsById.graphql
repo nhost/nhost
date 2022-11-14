@@ -1,0 +1,16 @@
+query GetWorkspacesAppsById($workspaceId: uuid!) {
+  workspace(id: $workspaceId) {
+    id
+    slug
+    apps {
+      id
+      name
+      slug
+      updatedAt
+      plan {
+        id
+        name
+      }
+    }
+  }
+}

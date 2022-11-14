@@ -20,7 +20,7 @@
     "tabler-icons-react": "^1.54.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host localhost --port 3000",
     "generate": "graphql-codegen --config graphql.config.yaml",
     "cypress": "cypress open",
     "test": "cypress run",

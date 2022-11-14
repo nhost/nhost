@@ -1,0 +1,79 @@
+fragment RemoteAppGetUsers on users {
+  id
+  createdAt
+  displayName
+  avatarUrl
+  email
+  phoneNumber
+  disabled
+  defaultRole
+  roles {
+    role
+  }
+}
+
+query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
+  users(where: $where, limit: $limit, offset: $offset) {
+    ...RemoteAppGetUsers
+  }
+  usersAggregate(where: $where) {
+    # make same where query here
+    aggregate {
+      count
+    }
+  }
+}
+
+query remoteAppGetUsersCustom(
+  $where: users_bool_exp!
+  $limit: Int!
+  $offset: Int!
+) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: { createdAt: desc }
+  ) {
+    id
+    createdAt
+    displayName
+    phoneNumber
+    avatarUrl
+    email
+    disabled
+    defaultRole
+    roles(order_by: { role: asc }) {
+      role
+    }
+    isAnonymous
+  }
+}
+
+query remoteAppGetUsersWhole($limit: Int!, $offset: Int!) {
+  users(limit: $limit, offset: $offset) {
+    ...RemoteAppGetUsers
+  }
+  usersAggregate {
+    # make same where query here
+    aggregate {
+      count
+    }
+  }
+}
+
+query totalUsers {
+  usersAggregate {
+    aggregate {
+      count
+    }
+  }
+}
+
+query totalUsersByDate($where: users_bool_exp!) {
+  usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

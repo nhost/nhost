@@ -3,55 +3,28 @@
   "baseBranch": "origin/main",
   "pipeline": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        "umd/**",
-        "build/**",
-        ".next"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
     "@nhost-examples/react-apollo#build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ],
-      "env": [
-        "VITE_NHOST_SUBDOMAIN",
-        "VITE_NHOST_REGION"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
     "@nhost-examples/vue-apollo#build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ],
-      "env": [
-        "VITE_NHOST_SUBDOMAIN",
-        "VITE_NHOST_REGION"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
     "@nhost/sync-versions#start": {
       "cache": false
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
     },
     "e2e": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "dev": {
@@ -61,9 +34,7 @@
       "cache": false
     },
     "lint": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "lint:fix": {

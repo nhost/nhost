@@ -1,0 +1,7 @@
+mutation insertWorkspaceMemberInvite(
+  $workspaceMemberInvite: workspaceMemberInvites_insert_input!
+) {
+  insertWorkspaceMemberInvite(object: $workspaceMemberInvite) {
+    id
+  }
+}
