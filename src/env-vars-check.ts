@@ -72,19 +72,6 @@ if (PROVIDERS.windowslive) {
   });
 }
 
-if (PROVIDERS.bitbucket) {
-  [
-    'AUTH_PROVIDER_BITBUCKET_CLIENT_ID',
-    'AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Bitbucket provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (PROVIDERS.spotify) {
   [
     'AUTH_PROVIDER_SPOTIFY_CLIENT_ID',

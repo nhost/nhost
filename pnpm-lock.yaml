@@ -98,7 +98,6 @@ specifiers:
   pascal-case: ^3.1.2
   passport: 0.4.1
   passport-apple: ^2.0.1
-  passport-bitbucket-oauth2: ^0.1.2
   passport-oauth2: ^1.6.1
   passport-oauth2-refresh: ^2.1.0
   passport-spotify: ^2.0.0
@@ -165,7 +164,6 @@ dependencies:
   pascal-case: 3.1.2
   passport: 0.4.1
   passport-apple: 2.0.1
-  passport-bitbucket-oauth2: 0.1.2
   passport-oauth2: 1.6.1
   passport-oauth2-refresh: 2.1.0
   passport-spotify: 2.0.0
@@ -10209,14 +10207,6 @@ packages:
       passport-oauth2: 1.6.1
     dev: false
 
-  /passport-bitbucket-oauth2/0.1.2:
-    resolution: {integrity: sha1-6zr1zdDQaDCtxJt2rK5K2CKQaTs=}
-    engines: {node: '>= 0.4.0'}
-    dependencies:
-      passport-oauth2: 1.6.1
-      pkginfo: 0.2.3
-    dev: false
-
   /passport-oauth/1.0.0:
     resolution: {integrity: sha512-4IZNVsZbN1dkBzmEbBqUxDG8oFOIK81jqdksE3HEb/vI3ib3FMjbiZZ6MTtooyYZzmKu0BfovjvT1pdGgIq+4Q==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/passport-oauth/-/passport-oauth-1.0.0.tgz}
     engines: {node: '>= 0.4.0'}
@@ -10482,11 +10472,6 @@ packages:
     dependencies:
       find-up: 4.1.0
     dev: true
-
-  /pkginfo/0.2.3:
-    resolution: {integrity: sha1-cjnEKl72wwuPMoQ52bn/cQQkkPg=}
-    engines: {node: '>= 0.4.0'}
-    dev: false
 
   /please-upgrade-node/3.2.0:
     resolution: {integrity: sha512-gQR3WpIgNIKwBMVLkpMUeR3e1/E1y42bqDQZfql+kDeXd8COYfM8PQA4X6y7a8u9Ua9FHmsrrmirW2vHs45hWg==}

@@ -40,6 +40,32 @@ export const PROVIDERS_CONFIG: Record<
     },
   },
 
+  bitbucket: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_BITBUCKET_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET,
+      scope: ['account'],
+    },
+    profile: async ({ profile, access_token }) => {
+      const {
+        data: {
+          values: [{ email, is_confirmed }],
+        },
+      } = await axios.get<{
+        values: { email: string; is_confirmed: boolean }[];
+      }>(`https://api.bitbucket.org/2.0/user/emails`, {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      return {
+        id: profile.uuid,
+        displayName: profile.display_name,
+        emailVerified: is_confirmed,
+        email,
+        avatarUrl: profile.links.avatar.href,
+      };
+    },
+  },
+
   discord: {
     grant: {
       client_id: process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID,

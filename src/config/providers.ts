@@ -86,19 +86,6 @@ export const PROVIDERS = {
         };
   },
 
-  get bitbucket() {
-    return !castBooleanEnv('AUTH_PROVIDER_BITBUCKET_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_BITBUCKET_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET');
-          },
-        };
-  },
-
   get strava() {
     return !castBooleanEnv('AUTH_PROVIDER_STRAVA_ENABLED')
       ? null
