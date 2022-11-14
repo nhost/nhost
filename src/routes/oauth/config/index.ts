@@ -3,7 +3,7 @@ import axios from 'axios';
 import { RequestHandler } from 'express';
 import { GrantProvider, GrantResponse } from 'grant';
 import { NormalisedProfile } from '../utils';
-
+import jwt from 'jsonwebtoken';
 export const OAUTH_ROUTE = '/signin/provider';
 
 const azureBaseUrl = 'https://login.microsoftonline.com';
@@ -19,6 +19,55 @@ export const PROVIDERS_CONFIG: Record<
     middleware?: RequestHandler;
   }
 > = {
+  // TODO http://localhost:4000/signin/provider/apple
+  // * https://github.com/simov/grant/issues/193
+  // * ---> https://gist.github.com/rxb/e596c66b03e3262f26d9ede5d7dbab81
+  apple: {
+    grant: {
+      key: process.env.AUTH_PROVIDER_APPLE_CLIENT_ID,
+      secret:
+        process.env.AUTH_PROVIDER_APPLE_CLIENT_ID &&
+        process.env.AUTH_PROVIDER_APPLE_TEAM_ID &&
+        process.env.AUTH_PROVIDER_APPLE_KEY_ID &&
+        process.env.AUTH_PROVIDER_APPLE_PRIVATE_KEY &&
+        jwt.sign(
+          {
+            iss: process.env.AUTH_PROVIDER_APPLE_TEAM_ID,
+            aud: 'https://appleid.apple.com',
+            sub: process.env.AUTH_PROVIDER_APPLE_CLIENT_ID,
+          },
+          process.env.AUTH_PROVIDER_APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          {
+            algorithm: 'ES256',
+            header: {
+              kid: process.env.AUTH_PROVIDER_APPLE_KEY_ID,
+              typ: undefined,
+              alg: 'ES256',
+            },
+            expiresIn: '180d',
+          }
+        ),
+      scope: ['openid', 'name', 'email'], // ! "openid" is new
+      response: ['raw', 'jwt'],
+      nonce: true,
+      custom_params: {
+        response_type: 'code id_token',
+        response_mode: 'form_post',
+      },
+    },
+    profile: ({ profile, jwt }) => {
+      // TODO avatarUrl and locale?
+      const payload = jwt?.id_token?.payload;
+      console.log(profile, jwt, payload);
+      return {
+        id: payload.sub,
+        displayName: `${payload.name.firstName} ${payload.name.lastName}`,
+        email: payload.email,
+        emailVerified: payload.email_verified,
+      };
+    },
+  },
+
   azuread: {
     grant: {
       oauth: 2,

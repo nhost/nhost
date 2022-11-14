@@ -8,8 +8,6 @@ import {
   signInEmailPasswordSchema,
 } from './email-password';
 import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
-// TODO permanently remove this route once/if all providers can be handled by Grant
-// import providers from './providers';
 import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
 import {
   signInPasswordlessEmailHandler,
@@ -135,10 +133,6 @@ router.post(
   bodyValidator(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
-
-// TODO permanently remove this route once/if all providers can be handled by Grant
-// sign in using providers
-// providers(router);
 
 /**
  * POST /signin/mfa/totp

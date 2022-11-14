@@ -1,4 +1,4 @@
-import { PROVIDERS, castObjectEnv } from '@config';
+import { castObjectEnv } from '@config';
 import { logger } from './logger';
 import { ENV } from './utils';
 
@@ -43,20 +43,6 @@ if (process.env.AUTH_EMAIL_TEMPLATE_FETCH_URL) {
   warnings.push(
     `The 'AUTH_EMAIL_TEMPLATE_FETCH_URL' environment variable is deprecated, and the feature will be deactivated soon. Please include your templates in the file system instead.`
   );
-}
-if (PROVIDERS.apple) {
-  [
-    'AUTH_PROVIDER_APPLE_CLIENT_ID',
-    'AUTH_PROVIDER_APPLE_TEAM_ID',
-    'AUTH_PROVIDER_APPLE_KEY_ID',
-    'AUTH_PROVIDER_APPLE_PRIVATE_KEY',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Apple provider is enabled but no value was provided`
-      );
-    }
-  });
 }
 
 if (ENV.AUTH_SMS_PROVIDER) {

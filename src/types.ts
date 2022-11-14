@@ -1,7 +1,5 @@
 import { UserQuery } from './utils/__generated__/graphql-request';
 
-export type SocialProvider = 'apple';
-
 export type ClaimValueType =
   | string
   | string[]

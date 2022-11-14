@@ -24,13 +24,10 @@ specifiers:
   '@types/hapi__joi': 16.0.12
   '@types/helmet': 0.0.45
   '@types/jest': ^27.4.0
+  '@types/jsonwebtoken': ^8.5.9
   '@types/node': ^17.0.9
   '@types/node-fetch': ^2.5.7
   '@types/nodemailer': 6.4.0
-  '@types/passport': 1.0.3
-  '@types/passport-apple': ^1.1.1
-  '@types/passport-oauth2': ^1.4.11
-  '@types/passport-oauth2-refresh': ^1.1.1
   '@types/pg': ^7.14.11
   '@types/qrcode': 1.3.4
   '@types/random-number-csprng': ^1.0.0
@@ -83,6 +80,7 @@ specifiers:
   js-yaml: 3.13.1
   json-to-graphql-query: ^2.2.0
   jsonata: ^1.8.5
+  jsonwebtoken: ^8.5.1
   libphonenumber-js: ^1.10.6
   lint-staged: 10.1.3
   nocache: ^2.1.0
@@ -91,10 +89,6 @@ specifiers:
   npm-run-all: ^4.1.5
   otplib: 12.0.1
   pascal-case: ^3.1.2
-  passport: 0.4.1
-  passport-apple: ^2.0.1
-  passport-oauth2: ^1.6.1
-  passport-oauth2-refresh: ^2.1.0
   pg: ^8.6.0
   postinstall-postinstall: ^2.1.0
   prettier: ^2.3.2
@@ -117,7 +111,6 @@ specifiers:
 dependencies:
   '@djgrant/postgres-migrations': 4.1.0-rc.1
   '@simplewebauthn/server': 5.3.0
-  '@types/passport-oauth2': 1.4.11
   axios: 0.21.1
   bcryptjs: 2.4.3
   body-parser: 1.19.0
@@ -145,16 +138,13 @@ dependencies:
   js-yaml: 3.13.1
   json-to-graphql-query: 2.2.3
   jsonata: 1.8.6
+  jsonwebtoken: 8.5.1
   libphonenumber-js: 1.10.6
   nocache: 2.1.0
   node-fetch: 2.6.7
   nodemailer: 6.4.16
   otplib: 12.0.1
   pascal-case: 3.1.2
-  passport: 0.4.1
-  passport-apple: 2.0.1
-  passport-oauth2: 1.6.1
-  passport-oauth2-refresh: 2.1.0
   pg: 8.7.3
   postinstall-postinstall: 2.1.0
   qrcode: 1.4.4
@@ -186,12 +176,10 @@ devDependencies:
   '@types/hapi__joi': 16.0.12
   '@types/helmet': 0.0.45
   '@types/jest': 27.4.1
+  '@types/jsonwebtoken': 8.5.9
   '@types/node': 17.0.21
   '@types/node-fetch': 2.6.1
   '@types/nodemailer': 6.4.0
-  '@types/passport': 1.0.3
-  '@types/passport-apple': 1.1.1
-  '@types/passport-oauth2-refresh': 1.1.1
   '@types/pg': 7.14.11
   '@types/qrcode': 1.3.4
   '@types/random-number-csprng': 1.0.0
@@ -2636,6 +2624,7 @@ packages:
     dependencies:
       '@types/connect': 3.4.35
       '@types/node': 17.0.21
+    dev: true
 
   /@types/cacheable-request/6.0.2:
     resolution: {integrity: sha512-B3xVo+dlKM6nnKTcmm5ZtY/OL8bOAOd2Olee9M1zft65ox50OzjEHW91sDiU9j6cvW8Ejg1/Qkf4xd2kugApUA==}
@@ -2650,6 +2639,7 @@ packages:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
       '@types/node': 17.0.45
+    dev: true
 
   /@types/cookiejar/2.1.2:
     resolution: {integrity: sha512-t73xJJrvdTjXrn4jLS9VSGRbz0nUY3cl2DMGDU48lKl+HR9dbbjW2A9r3g40VA++mQpy6uuHg33gy7du2BKpog==}
@@ -2682,6 +2672,7 @@ packages:
       '@types/node': 17.0.45
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
+    dev: true
 
   /@types/express-session/1.17.5:
     resolution: {integrity: sha512-l0DhkvNVfyUPEEis8fcwbd46VptfA/jmMwHfob2TfDMf3HyPLiB9mKD71LXhz5TMUobODXPD27zXSwtFQLHm+w==}
@@ -2696,6 +2687,7 @@ packages:
       '@types/express-serve-static-core': 4.17.28
       '@types/qs': 6.9.7
       '@types/serve-static': 1.13.10
+    dev: true
 
   /@types/faker/5.5.9:
     resolution: {integrity: sha512-uCx6mP3UY5SIO14XlspxsGjgaemrxpssJI0Ol+GfhxtcKpv9pgRZYsS4eeKeHVLje6Qtc8lGszuBI461+gVZBA==}
@@ -2789,6 +2781,7 @@ packages:
 
   /@types/mime/1.3.2:
     resolution: {integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/@types/mime/-/mime-1.3.2.tgz}
+    dev: true
 
   /@types/minimatch/3.0.5:
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
@@ -2812,9 +2805,11 @@ packages:
 
   /@types/node/17.0.21:
     resolution: {integrity: sha512-DBZCJbhII3r90XbQxI8Y9IjjiiOGlZ0Hr32omXIZvwwZ7p4DMMXGrKXVyPfuoBOri9XNtL0UK69jYIBIsRX3QQ==}
+    dev: true
 
   /@types/node/17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/@types/node/-/node-17.0.45.tgz}
+    dev: true
 
   /@types/nodemailer/6.4.0:
     resolution: {integrity: sha512-KY7bFWB0MahRZvVW4CuW83qcCDny59pJJ0MQ5ifvfcjNwPlIT0vW4uARO4u1gtkYnWdhSvURegecY/tzcukJcA==}
@@ -2826,41 +2821,9 @@ packages:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
     dev: true
 
-  /@types/oauth/0.9.1:
-    resolution: {integrity: sha512-a1iY62/a3yhZ7qH7cNUsxoI3U/0Fe9+RnuFrpTKr+0WVOzbKlSLojShCKe20aOD1Sppv+i8Zlq0pLDuTJnwS4A==}
-    dependencies:
-      '@types/node': 17.0.45
-
   /@types/parse-json/4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
     dev: true
-
-  /@types/passport-apple/1.1.1:
-    resolution: {integrity: sha512-JpNC+yqkErqs9Vh/sDafoAWW5tJI9g7c7JwL+qYIhlB9A9rK6PFkl0S326DQLSm32vZFH4C0eF7aKCO3gXdp+Q==}
-    dependencies:
-      '@types/express': 4.17.6
-      '@types/passport': 1.0.3
-      '@types/passport-oauth2': 1.4.11
-    dev: true
-
-  /@types/passport-oauth2-refresh/1.1.1:
-    resolution: {integrity: sha512-Tw0JvfDPv9asgFPACd9oOGCaD/0/Uyi+QF7fmrJC74cJKC6I8N8wwhJJHyfd1N2E/qaLgTh431lhOa9jicpNdg==}
-    dependencies:
-      '@types/oauth': 0.9.1
-      '@types/passport-oauth2': 1.4.11
-    dev: true
-
-  /@types/passport-oauth2/1.4.11:
-    resolution: {integrity: sha512-KUNwmGhe/3xPbjkzkPwwcPmyFwfyiSgtV1qOrPBLaU4i4q9GSCdAOyCbkFG0gUxAyEmYwqo9OAF/rjPjJ6ImdA==}
-    dependencies:
-      '@types/express': 4.17.6
-      '@types/oauth': 0.9.1
-      '@types/passport': 1.0.3
-
-  /@types/passport/1.0.3:
-    resolution: {integrity: sha512-nyztuxtDPQv9utCzU0qW7Gl8BY2Dn8BKlYAFFyxKipFxjaVd96celbkLCV/tRqqBUZ+JB8If3UfgV8347DTo3Q==}
-    dependencies:
-      '@types/express': 4.17.6
 
   /@types/pg/7.14.11:
     resolution: {integrity: sha512-EnZkZ1OMw9DvNfQkn2MTJrwKmhJYDEs5ujWrPfvseWNoI95N8B4HzU/Ltrq5ZfYxDX/Zg8mTzwr6UAyTjjFvXA==}
@@ -2882,6 +2845,7 @@ packages:
 
   /@types/qs/6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
+    dev: true
 
   /@types/random-number-csprng/1.0.0:
     resolution: {integrity: sha512-JmNWSCGbay5HGkHb/WF0Ju3XTHP0tMLUhAOk4fsw+b1GQ9rC/WP9uLeuulWLVERCg3KoyTCNzsJX4jSi4ShKaw==}
@@ -2889,6 +2853,7 @@ packages:
 
   /@types/range-parser/1.2.4:
     resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/@types/range-parser/-/range-parser-1.2.4.tgz}
+    dev: true
 
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
@@ -2905,6 +2870,7 @@ packages:
     dependencies:
       '@types/mime': 1.3.2
       '@types/node': 17.0.45
+    dev: true
 
   /@types/stack-utils/1.0.1:
     resolution: {integrity: sha512-l42BggppR6zLmpfU6fq9HEa2oGPEI8yrSPL3GITjfRInppYFahObbIQOQK3UGxEnyQpltZLaPe75046NOZQikw==}
@@ -8671,7 +8637,7 @@ packages:
     dev: true
 
   /jsonwebtoken/8.5.1:
-    resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/jsonwebtoken/-/jsonwebtoken-8.5.1.tgz}
+    resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
     engines: {node: '>=4', npm: '>=1.4.28'}
     dependencies:
       jws: 3.2.2
@@ -8750,7 +8716,7 @@ packages:
     dev: false
 
   /jws/3.2.2:
-    resolution: {integrity: sha512-YHlZCB6lMTllWDtSPHz/ZXTsi8S00usEV6v1tjq8tOUZzw7DpSDWVXjXDre6ed1w/pd495ODpHZYSdkRTsa0HA==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/jws/-/jws-3.2.2.tgz}
+    resolution: {integrity: sha512-YHlZCB6lMTllWDtSPHz/ZXTsi8S00usEV6v1tjq8tOUZzw7DpSDWVXjXDre6ed1w/pd495ODpHZYSdkRTsa0HA==}
     dependencies:
       jwa: 1.4.1
       safe-buffer: 5.2.1
@@ -9033,26 +8999,26 @@ packages:
     dev: false
 
   /lodash.includes/4.3.0:
-    resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.includes/-/lodash.includes-4.3.0.tgz}
+    resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
   /lodash.isboolean/3.0.3:
-    resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz}
+    resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
 
   /lodash.isinteger/4.0.4:
-    resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.isinteger/-/lodash.isinteger-4.0.4.tgz}
+    resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
 
   /lodash.ismatch/4.4.0:
     resolution: {integrity: sha1-dWy1FQyjum8RCFp4hJZF8Yj4Xzc=}
     dev: true
 
   /lodash.isnumber/3.0.3:
-    resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.isnumber/-/lodash.isnumber-3.0.3.tgz}
+    resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==}
 
   /lodash.isplainobject/4.0.6:
-    resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz}
+    resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
 
   /lodash.isstring/4.0.1:
-    resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz}
+    resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
   /lodash.map/4.6.0:
     resolution: {integrity: sha1-dx7Hg540c9nEzeKLGTlMNWL09tM=}
@@ -9066,7 +9032,7 @@ packages:
     dev: false
 
   /lodash.once/4.1.1:
-    resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/lodash.once/-/lodash.once-4.1.1.tgz}
+    resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
   /lodash.pick/4.4.0:
     resolution: {integrity: sha1-UvBWEP/53tQiYRRB7R/BI6AwAbM=}
@@ -9751,10 +9717,6 @@ packages:
     resolution: {integrity: sha512-fexhUFFPTGV8ybAtSIGbV6gOkSv8UtRbDBnAyLQw4QPKkgNlsH2ByPGtMUqdWkos6YCRmAqViwgZrJc/mRDzZQ==}
     dev: false
 
-  /oauth/0.9.15:
-    resolution: {integrity: sha512-a5ERWK1kh38ExDEfoO6qUHJb32rd7aYmPHuyCu3Fta/cnICvYmgd2uhuKXvPD+PXB+gCEYYEaQdIRAjCOwAKNA==}
-    dev: false
-
   /object-assign/4.1.1:
     resolution: {integrity: sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=}
     engines: {node: '>=0.10.0'}
@@ -10081,42 +10043,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /passport-apple/2.0.1:
-    resolution: {integrity: sha512-+ssWcwgg/PWyHNSgNn4d1dbsgQeEb13Xgu7TRb+FlHggbCTDvCb2jzm+M+hQ0vmU9y2QOmiRPqD27b3TCRc6PQ==}
-    dependencies:
-      jsonwebtoken: 8.5.1
-      passport-oauth2: 1.6.1
-    dev: false
-
-  /passport-oauth2-refresh/2.1.0:
-    resolution: {integrity: sha512-4ML7ooCESCqiTgdDBzNUFTBcPR8zQq9iM6eppEUGMMvLdsjqRL93jKwWm4Az3OJcI+Q2eIVyI8sVRcPFvxcF/A==}
-    engines: {node: '>=10'}
-    dev: false
-
-  /passport-oauth2/1.6.1:
-    resolution: {integrity: sha512-ZbV43Hq9d/SBSYQ22GOiglFsjsD1YY/qdiptA+8ej+9C1dL1TVB+mBE5kDH/D4AJo50+2i8f4bx0vg4/yDDZCQ==}
-    engines: {node: '>= 0.4.0'}
-    dependencies:
-      base64url: 3.0.1
-      oauth: 0.9.15
-      passport-strategy: 1.0.0
-      uid2: 0.0.4
-      utils-merge: 1.0.1
-    dev: false
-
-  /passport-strategy/1.0.0:
-    resolution: {integrity: sha512-CB97UUvDKJde2V0KDWWB3lyf6PC3FaZP7YxZ2G8OAtn9p4HI9j9JLP9qjOGZFvyl8uwNT8qM+hGnz/n16NI7oA==}
-    engines: {node: '>= 0.4.0'}
-    dev: false
-
-  /passport/0.4.1:
-    resolution: {integrity: sha512-IxXgZZs8d7uFSt3eqNjM9NQ3g3uQCW5avD8mRNoXV99Yig50vjuaez6dQK2qC0kVWPRTujxY0dWgGfT09adjYg==}
-    engines: {node: '>= 0.4.0'}
-    dependencies:
-      passport-strategy: 1.0.0
-      pause: 0.0.1
-    dev: false
-
   /path-case/3.0.4:
     resolution: {integrity: sha512-qO4qCFjXqVTrcbPt/hQfhTQ+VhFsqNKOPtytgNKkKxSoEp3XPUQ8ObFuePylOIok5gjn69ry8XiULxCwot3Wfg==}
     dependencies:
@@ -10175,10 +10101,6 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
     dev: true
-
-  /pause/0.0.1:
-    resolution: {integrity: sha1-HUCLP9t2kjuVQ9lvtMnf1TXZy10=}
-    dev: false
 
   /performance-now/2.1.0:
     resolution: {integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=}
@@ -11207,7 +11129,7 @@ packages:
     dev: true
 
   /semver/4.3.2:
-    resolution: {integrity: sha512-VyFUffiBx8hABJ9HYSTXLRwyZtdDHMzMtFmID1aiNAD2BZppBmJm0Hqw3p2jkgxP9BNt1pQ9RnC49P0EcXf6cA==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/semver/-/semver-4.3.2.tgz}
+    resolution: {integrity: sha512-VyFUffiBx8hABJ9HYSTXLRwyZtdDHMzMtFmID1aiNAD2BZppBmJm0Hqw3p2jkgxP9BNt1pQ9RnC49P0EcXf6cA==}
     hasBin: true
     dev: false
 
@@ -12456,10 +12378,6 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       random-bytes: 1.0.0
-    dev: false
-
-  /uid2/0.0.4:
-    resolution: {integrity: sha512-IevTus0SbGwQzYh3+fRsAMTVVPOoIVufzacXcHPmdlle1jUpq7BRL+mw3dgeLanvGZdwwbWhRV6XrcFNdBmjWA==}
     dev: false
 
   /unbox-primitive/1.0.1:
