@@ -49,18 +49,19 @@ export interface NhostSession {
 
 export type Provider =
   | 'apple'
+  | 'azuread'
+  | 'bitbucket'
+  | 'discord'
   | 'facebook'
   | 'github'
+  | 'gitlab'
   | 'google'
   | 'linkedin'
   | 'spotify'
+  | 'strava'
+  | 'twitch'
   | 'twitter'
   | 'windowslive'
-  | 'strava'
-  | 'gitlab'
-  | 'bitbucket'
-  | 'discord'
-  | 'twitch'
   | 'workos'
 
 /**
