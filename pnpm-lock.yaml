@@ -102,11 +102,11 @@ importers:
       '@mui/x-date-pickers': ^5.0.8
       '@netlify/functions': ^0.7.2
       '@next/bundle-analyzer': ^12.3.1
-      '@nhost/core': workspace:*
-      '@nhost/nextjs': workspace:*
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/core': ^0.9.1
+      '@nhost/nextjs': ^1.8.1
+      '@nhost/nhost-js': ^1.5.2
+      '@nhost/react': ^0.14.1
+      '@nhost/react-apollo': ^4.8.1
       '@segment/snippet': ^4.15.3
       '@storybook/addon-actions': ^6.5.13
       '@storybook/addon-essentials': ^6.5.13
@@ -119,8 +119,8 @@ importers:
       '@stripe/react-stripe-js': ^1.10.0
       '@stripe/stripe-js': ^1.35.0
       '@tailwindcss/forms': ^0.5.3
-      '@tanstack/react-query': ^4.14.5
-      '@tanstack/react-table': ^8.5.22
+      '@tanstack/react-query': ^4.16.1
+      '@tanstack/react-table': ^8.5.27
       '@tanstack/react-virtual': ^3.0.0-beta.22
       '@testing-library/dom': ^8.19.0
       '@testing-library/jest-dom': ^5.16.5
@@ -173,7 +173,7 @@ importers:
       jsonwebtoken: ^8.5.1
       lint-staged: '>=13'
       lodash.debounce: ^4.0.8
-      msw: ^0.48.1
+      msw: ^0.48.2
       next: ^12.3.1
       next-seo: ^5.14.1
       node-pg-format: ^1.3.5
@@ -238,8 +238,8 @@ importers:
       '@nhost/react-apollo': link:../packages/react-apollo
       '@segment/snippet': 4.15.3
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.1
-      '@tanstack/react-query': 4.14.5_biqbaboplfbrettd7655fr4n2y
-      '@tanstack/react-table': 8.5.22_biqbaboplfbrettd7655fr4n2y
+      '@tanstack/react-query': 4.16.1_biqbaboplfbrettd7655fr4n2y
+      '@tanstack/react-table': 8.5.27_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-virtual': 3.0.0-beta.22_react@18.2.0
       analytics-node: 6.2.0
       axios: 0.27.2
@@ -334,7 +334,7 @@ importers:
       express-validator: 6.14.2
       jsdom: 20.0.2
       lint-staged: 13.0.3
-      msw: 0.48.1_typescript@4.8.4
+      msw: 0.48.2_typescript@4.8.4
       postcss: 8.4.19
       postmark: 2.9.5
       prettier: 2.7.1
@@ -9401,8 +9401,8 @@ packages:
     resolution: {integrity: sha512-+ME02sUmBfx3Pjd+0XtEthK8/4rVMD2jcxvnW9DSgFONpKtpjzfRzjY4ykzpDw1QEo2eoPvl7NS8J5mNI199aA==}
     dev: false
 
-  /@tanstack/query-core/4.14.5:
-    resolution: {integrity: sha512-Su1AyrPb6xnm7wXTvpN5tt+B7LViYSh9k04vvuc6+eMVH0HkE9ktZTXibRrTvV83BI1KP5MG7v/k90ne/4zQzw==}
+  /@tanstack/query-core/4.15.1:
+    resolution: {integrity: sha512-+UfqJsNbPIVo0a9ANW0ZxtjiMfGLaaoIaL9vZeVycvmBuWywJGtSi7fgPVMCPdZQFOzMsaXaOsDtSKQD5xLRVQ==}
     dev: false
 
   /@tanstack/react-query-devtools/4.11.0_vhepussragssjkevgznguhxexq:
@@ -9438,8 +9438,8 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
-  /@tanstack/react-query/4.14.5_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-CuWl/SxSB0zHhHaTja8LNhy9Vdk+vk9IkW3Oiq3lo4gPnTguHmbUzfjEA1x3RfvPeHfPMuq/pYMSbV+CX4aDQA==}
+  /@tanstack/react-query/4.16.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-PDE9u49wSDykPazlCoLFevUpceLjQ0Mm8i6038HgtTEKb/aoVnUZdlUP7C392ds3Cd75+EGlHU7qpEX06R7d9Q==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -9450,20 +9450,20 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@tanstack/query-core': 4.14.5
+      '@tanstack/query-core': 4.15.1
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
-  /@tanstack/react-table/8.5.22_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-01XaxQTxcI+w7g+i/YRblxdAikM9G7L1S7LwqaiD/gkKmNUs+g2BXw4GfIcuzzE75Q5t0BXlyqM7MyxxBuvQXA==}
+  /@tanstack/react-table/8.5.27_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-dUl8qRGvWVaJkOk/goUxb3w675FtioY7uh6NalRG04dYBiwIpjHn8a1Jhmp9lE+Puk88GZ0OCF7svCVXIJviqQ==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=16'
       react-dom: '>=16'
     dependencies:
-      '@tanstack/table-core': 8.5.22
+      '@tanstack/table-core': 8.5.27
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     dev: false
@@ -9478,8 +9478,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@tanstack/table-core/8.5.22:
-    resolution: {integrity: sha512-D3wDbVXl3Bi5PdGfle6DijhLzZxrvMyZsE1dSHH0xBsqEbu7Pkxn5EEd6CA9tGsCgXIEP1s4Yfy1cZ9xnMz1sQ==}
+  /@tanstack/table-core/8.5.27:
+    resolution: {integrity: sha512-sxGZPV97bNYap+U/ZxYVmx3Uy872Fc/M0qjKl85PzMaqBgikosybtkOEEjLdeJlBthqG5G8VI6zN1/Pej9awWA==}
     engines: {node: '>=12'}
     dev: false
 
@@ -15735,32 +15735,6 @@ packages:
       stackframe: 1.3.4
     dev: true
 
-  /es-abstract/1.19.5:
-    resolution: {integrity: sha512-Aa2G2+Rd3b6kxEUKTF4TaW67czBLyAv3z7VOhYRU50YBx+bbsYZ9xQP4lMNazePuFlybXI0V4MruPos7qUo5fA==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      call-bind: 1.0.2
-      es-to-primitive: 1.2.1
-      function-bind: 1.1.1
-      get-intrinsic: 1.1.3
-      get-symbol-description: 1.0.0
-      has: 1.0.3
-      has-symbols: 1.0.3
-      internal-slot: 1.0.3
-      is-callable: 1.2.4
-      is-negative-zero: 2.0.2
-      is-regex: 1.1.4
-      is-shared-array-buffer: 1.0.2
-      is-string: 1.0.7
-      is-weakref: 1.0.2
-      object-inspect: 1.12.2
-      object-keys: 1.1.1
-      object.assign: 4.1.2
-      string.prototype.trimend: 1.0.5
-      string.prototype.trimstart: 1.0.5
-      unbox-primitive: 1.0.2
-    dev: true
-
   /es-abstract/1.20.4:
     resolution: {integrity: sha512-0UtvRN79eMe2L+UNEF1BwRe364sj/DXhQ/k5FmivgoSdpM90b8Jc0mDzKMGo7QS0BVbOP/bTwBKNnDc9rNzaPA==}
     engines: {node: '>= 0.4'}
@@ -20096,11 +20070,6 @@ packages:
       builtin-modules: 3.3.0
     dev: true
 
-  /is-callable/1.2.4:
-    resolution: {integrity: sha512-nsuwtxZfMX67Oryl9LCQ+upnC0Z0BgpwntpS89m1H/TLF0zNfzfLMV/9Wa/6MZsj0acpEjAO0KF1xT6ZdLl95w==}
-    engines: {node: '>= 0.4'}
-    dev: true
-
   /is-callable/1.2.7:
     resolution: {integrity: sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==}
     engines: {node: '>= 0.4'}
@@ -20440,17 +20409,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       has-symbols: 1.0.3
-    dev: true
-
-  /is-typed-array/1.1.8:
-    resolution: {integrity: sha512-HqH41TNZq2fgtGT8WHVFVJhBVGuY3AnP3Q36K8JKXUxSxRgk/d+7NjmwG2vo2mYmXK8UYZKu0qH8bVP5gEisjA==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      available-typed-arrays: 1.0.5
-      call-bind: 1.0.2
-      es-abstract: 1.19.5
-      foreach: 2.0.6
-      has-tostringtag: 1.0.0
     dev: true
 
   /is-typed-array/1.1.9:
@@ -22295,8 +22253,8 @@ packages:
       - supports-color
     dev: true
 
-  /msw/0.48.1_typescript@4.8.4:
-    resolution: {integrity: sha512-lnhIsC5aQOpqu5CjJ11CPl6RYGbY9+LhZZw1zKX3S710O9qGQ7kftmfX1FifmZNk2FuKoygprKITSfqHWpE5LQ==}
+  /msw/0.48.2_typescript@4.8.4:
+    resolution: {integrity: sha512-kXeLiyf5CRYkRf+ve/Utmw5/Iii+y+Mcr8hzXSVFrvzWVDpBfYL/4vBEhQu4zrBPBhvPbTNrH7/Y0KDQilpBKg==}
     engines: {node: '>=14'}
     hasBin: true
     requiresBuild: true
@@ -30153,10 +30111,10 @@ packages:
     dependencies:
       available-typed-arrays: 1.0.5
       call-bind: 1.0.2
-      es-abstract: 1.19.5
+      es-abstract: 1.20.4
       foreach: 2.0.6
       has-tostringtag: 1.0.0
-      is-typed-array: 1.1.8
+      is-typed-array: 1.1.9
     dev: true
 
   /which-typed-array/1.1.8:
