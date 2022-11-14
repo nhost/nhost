@@ -630,6 +630,9 @@ importers:
       typescript: 4.8.3
       vite: 3.2.2
 
+  examples/seed-data-storage:
+    specifiers: {}
+
   examples/serverless-functions:
     specifiers:
       '@graphql-yoga/node': ^2.13.13
@@ -796,13 +799,13 @@ importers:
       '@simplewebauthn/browser': ^6.0.0
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
-      axios: ^0.27.2
+      axios: ^1.1.3
       js-cookie: ^3.0.1
       msw: ^0.47.4
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
-      axios: 0.27.2
+      axios: 1.1.3
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
@@ -844,14 +847,14 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@types/faker': '5'
-      axios: ^0.27.2
+      axios: ^1.1.3
       html-urls: ^2.4.38
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
       start-server-and-test: ^1.14.0
       xstate: ^4.33.5
     dependencies:
-      axios: 0.27.2
+      axios: 1.1.3
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -869,14 +872,14 @@ importers:
     specifiers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
-      axios: ^0.27.2
+      axios: ^1.1.3
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
       uuid: ^8.3.2
       xstate: ^4.33.5
     dependencies:
-      axios: 0.27.2
+      axios: 1.1.3
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
@@ -921,7 +924,7 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^0.27.2
+      axios: ^1.1.3
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
@@ -929,7 +932,7 @@ importers:
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 0.27.2
+      axios: 1.1.3
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -12341,7 +12344,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -12349,15 +12352,25 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
 
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.15.2
       form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /axios/1.1.3:
+    resolution: {integrity: sha512-00tXVRwKx/FZr/IDVFt4C+f9FYairX517WoGCL6dpOntqLkZofjhu43F/Xl44UOpqa+9sLFDrG/XAnFsUYgkDA==}
+    dependencies:
+      follow-redirects: 1.15.2
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
     dev: false
@@ -18367,8 +18380,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /follow-redirects/1.14.9:
-    resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
+  /follow-redirects/1.15.2:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -19685,7 +19698,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.9
+      follow-redirects: 1.15.2
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -24618,6 +24631,10 @@ packages:
   /proxy-from-env/1.0.0:
     resolution: {integrity: sha512-F2JHgJQ1iqwnHDcQjVBsq3n/uoaFL+iPW/eAeL7kVxy/2RrWaN4WroKjjvbsoRtv0ftelNyC01bjRhn/bhcf4A==}
     dev: true
+
+  /proxy-from-env/1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+    dev: false
 
   /prr/1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
