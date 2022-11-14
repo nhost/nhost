@@ -14,25 +14,6 @@ export const PROVIDERS = {
         };
   },
 
-  get linkedin() {
-    return !castBooleanEnv('AUTH_PROVIDER_LINKEDIN_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_LINKEDIN_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_LINKEDIN_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_LINKEDIN_SCOPE', [
-              'r_emailaddress',
-              'r_liteprofile',
-            ]);
-          },
-        };
-  },
-
   get apple() {
     if (!castBooleanEnv('AUTH_PROVIDER_APPLE_ENABLED')) {
       return null;

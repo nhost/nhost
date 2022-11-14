@@ -18,16 +18,20 @@ import {
   registrationOptions,
 } from '@/validation';
 import { SessionStore } from './session-store';
-import { GRANT_CONFIG, OAUTH_ROUTE, SESSION_NAME } from './config';
 import { logger } from '@/logger';
 import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
+  createGrantConfig,
   normaliseProfile,
   preRequestProviderMiddleware,
   transformOauthProfile,
 } from './utils';
+import { OAUTH_ROUTE } from './config';
+
+const SESSION_NAME = 'connect.sid';
 
 // TODO handle the provider id, access token, and refresh token. See utils.ts and Grant doc
+const grantConfig = createGrantConfig();
 
 export const oauthProviders = Router()
   // * Use a middleware to keep the session between Oauth requests
@@ -56,7 +60,7 @@ export const oauthProviders = Router()
   // * Validate the provider configuration
   .use(`${OAUTH_ROUTE}/:provider`, ({ params: { provider } }, res, next) => {
     const redirectTo: string = res.locals.redirectTo;
-    const providerConfig = GRANT_CONFIG[provider];
+    const providerConfig = grantConfig[provider];
     // * Check if provider is enabled
     if (!providerConfig) {
       return sendError(res, 'disabled-endpoint', { redirectTo }, true);
@@ -97,7 +101,7 @@ export const oauthProviders = Router()
    * Grant middleware: handle the oauth flow until the callback
    * @see {@link file://./config/grant.ts}
    */
-  .use(grant.express()(GRANT_CONFIG))
+  .use(grant.express(grantConfig))
 
   /**
    * Oauth Callback

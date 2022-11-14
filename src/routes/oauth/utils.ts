@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { GrantResponse } from 'grant';
+import { GrantConfig, GrantResponse } from 'grant';
 
+import { castBooleanEnv } from '@config';
 import {
   locale as localeValidator,
   email as emailValidator,
@@ -10,10 +11,7 @@ import { ENV, getGravatarUrl } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
 import { logger } from '@/logger';
 
-import {
-  PRE_REQUEST_PROVIDER_MIDDLEWARES,
-  PROFILE_NORMALISERS,
-} from './config';
+import { OAUTH_ROUTE, PROVIDERS_CONFIG } from './config';
 
 /**
  * Fields that can be possibly returned by the OAuth provider and stored in the database
@@ -73,13 +71,36 @@ export const transformOauthProfile = async (
   };
 };
 
+// TODO remove this
+export const defaultProfileNormaliser: (
+  response: GrantResponse
+) => Promise<NormalisedProfile> | NormalisedProfile = (response) => {
+  logger.warn('Default profile normaliser used');
+  // ? improve defaults? Or remove them and raise an error instead? Let's see how other providers behave
+  const profile = response.profile;
+  const displayName =
+    profile.first_name && profile.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : profile.given_name && profile.family_name
+      ? `${profile.given_name} ${profile.family_name}`
+      : profile.email;
+
+  const avatarUrl =
+    profile.photos && Array.isArray(profile.photos)
+      ? profile.photos[0]?.value
+      : profile.picture;
+  return {
+    displayName,
+    avatarUrl,
+    ...profile,
+  };
+};
+
 export const normaliseProfile = async (
   provider: string,
   data: GrantResponse
 ) => {
-  const normaliser =
-    PROFILE_NORMALISERS[provider] || PROFILE_NORMALISERS.defaults;
-  const profile = await normaliser(data);
+  const profile = await PROVIDERS_CONFIG[provider].profile(data);
   if (!profile.id) {
     logger.warn(`Missing id in profile for provider ${provider}`);
     logger.warn(data);
@@ -94,9 +115,31 @@ export const preRequestProviderMiddleware = (
   next: NextFunction
 ) => {
   const provider = req.params.provider;
-  const middleware = PRE_REQUEST_PROVIDER_MIDDLEWARES[provider];
+  const middleware = PROVIDERS_CONFIG[provider]?.middleware;
   if (middleware) {
     return middleware(req, res, next);
   }
   next();
 };
+
+/**
+ * Grant standard configuration
+ */
+export const createGrantConfig = (): GrantConfig =>
+  Object.keys(PROVIDERS_CONFIG).reduce<GrantConfig>(
+    (aggr, provider) => {
+      if (castBooleanEnv(`AUTH_PROVIDER_${provider.toUpperCase()}_ENABLED`)) {
+        aggr[provider] = PROVIDERS_CONFIG[provider].grant;
+      }
+      return aggr;
+    },
+    {
+      defaults: {
+        origin: ENV.AUTH_SERVER_URL,
+        prefix: OAUTH_ROUTE,
+        transport: 'session',
+        scope: ['email', 'profile'],
+        response: ['tokens', 'email', 'profile', 'jwt'],
+      },
+    }
+  );
