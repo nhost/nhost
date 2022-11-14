@@ -147,20 +147,6 @@ export const PROVIDERS_CONFIG: Record<
         }
       );
 
-      const { data } = await axios.get<{
-        elements: {
-          'handle~': {
-            emailAddress: string;
-          };
-        }[];
-      }>(
-        'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))',
-        {
-          headers: { Authorization: `Bearer ${access_token}` },
-        }
-      );
-      console.log(JSON.stringify(data, null, 2));
-
       const locale = profile.firstName?.preferredLocale?.language;
       const displayName = `${profile.localizedFirstName} ${profile.localizedLastName}`;
 
