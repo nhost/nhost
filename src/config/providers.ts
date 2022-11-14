@@ -67,25 +67,6 @@ export const PROVIDERS = {
         };
   },
 
-  get spotify() {
-    return !castBooleanEnv('AUTH_PROVIDER_SPOTIFY_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_SPOTIFY_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_SPOTIFY_SCOPE', [
-              'user-read-email',
-              'user-read-private',
-            ]);
-          },
-        };
-  },
-
   get twitch() {
     return !castBooleanEnv('AUTH_PROVIDER_TWITCH_ENABLED')
       ? null

@@ -1,11 +1,6 @@
 import { UserQuery } from './utils/__generated__/graphql-request';
 
-export type SocialProvider =
-  | 'apple'
-  | 'spotify'
-  | 'twitch'
-  | 'twitter'
-  | 'windowslive';
+export type SocialProvider = 'apple' | 'twitch' | 'twitter' | 'windowslive';
 
 export type ClaimValueType =
   | string

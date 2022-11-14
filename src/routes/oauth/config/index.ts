@@ -209,6 +209,20 @@ export const PROVIDERS_CONFIG: Record<
     },
   },
 
+  spotify: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_SPOTIFY_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET,
+      scope: ['user-read-email', 'user-read-private'],
+    },
+    profile: ({ profile }) => ({
+      id: profile.id,
+      email: profile.email,
+      displayName: profile.display_name,
+      avatarUrl: profile.images?.[0]?.url,
+    }),
+  },
+
   strava: {
     grant: {
       client_id: process.env.AUTH_PROVIDER_STRAVA_CLIENT_ID,
@@ -216,7 +230,7 @@ export const PROVIDERS_CONFIG: Record<
       scope: ['profile:read_all'],
     },
     // ! It is not possible to get the user's email address from Strava
-    profile: async ({ profile }) => ({
+    profile: ({ profile }) => ({
       id: String(profile.id),
       displayName: `${profile.firstname} ${profile.lastname}`,
       avatarUrl: profile.profile,

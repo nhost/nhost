@@ -3,7 +3,6 @@ import { Router } from 'express';
 import twitter from './twitter';
 import apple from './apple';
 import windowslive from './windowslive';
-import spotify from './spotify';
 import twitch from './twitch';
 
 const router = Router();
@@ -11,7 +10,6 @@ const router = Router();
 twitter(router);
 apple(router);
 windowslive(router);
-spotify(router);
 twitch(router);
 
 export default (parentRouter: Router) => {

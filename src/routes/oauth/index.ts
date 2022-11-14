@@ -169,7 +169,8 @@ export const oauthProviders = Router()
         },
       });
     } else {
-      user = await getUserByEmail(profile.email);
+      // TODO what if there is no email e.g. Strava?
+      user = await getUserByEmail(profile.email!);
       if (user) {
         // * add this provider to existing user with the same email
         const { insertAuthUserProvider } =
@@ -188,7 +189,7 @@ export const oauthProviders = Router()
           return sendError(res, 'internal-error', { redirectTo }, true);
         }
       } else {
-        // * No user found with this emaail. Create a new user
+        // * No user found with this email. Create a new user
         // TODO do we always allow registration?
         const userInput = await transformOauthProfile(profile, options);
         user = await insertUser({

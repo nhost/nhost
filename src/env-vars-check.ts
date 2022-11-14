@@ -72,19 +72,6 @@ if (PROVIDERS.windowslive) {
   });
 }
 
-if (PROVIDERS.spotify) {
-  [
-    'AUTH_PROVIDER_SPOTIFY_CLIENT_ID',
-    'AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET',
-  ].forEach((env) => {
-    if (isUnset(process.env[env])) {
-      errors.push(
-        `Env var ${env} is required when the Spotify provider is enabled but no value was provided`
-      );
-    }
-  });
-}
-
 if (PROVIDERS.twitter) {
   [
     'AUTH_PROVIDER_TWITTER_CONSUMER_KEY',
