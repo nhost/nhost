@@ -40,6 +40,22 @@ export const PROVIDERS_CONFIG: Record<
     },
   },
 
+  discord: {
+    grant: {
+      client_id: process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID,
+      client_secret: process.env.AUTH_PROVIDER_DISCORD_CLIENT_SECRET,
+      scope: ['identify', 'email'],
+    },
+    profile: ({ profile }) => ({
+      id: profile.id,
+      displayName: `${profile.username}#${profile.discriminator}`,
+      emailVerified: !!profile.verified,
+      email: profile.email,
+      locale: profile.locale?.slice(0, 2),
+      avatarUrl: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
+    }),
+  },
+
   facebook: {
     grant: {
       client_id: process.env.AUTH_PROVIDER_FACEBOOK_CLIENT_ID,

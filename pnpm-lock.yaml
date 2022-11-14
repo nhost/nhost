@@ -10,7 +10,6 @@ specifiers:
   '@graphql-codegen/typescript-graphql-request': ^4.5.7
   '@graphql-codegen/typescript-operations': ^2.5.5
   '@milahu/patch-package-with-pnpm-support': ^6.4.8
-  '@oauth-everything/passport-discord': ^1.0.2
   '@oauth-everything/passport-twitch': ^1.0.3
   '@release-it/conventional-changelog': ^4.2.2
   '@riderize/passport-strava-oauth2': ^1.1.1
@@ -127,7 +126,6 @@ specifiers:
 dependencies:
   '@djgrant/postgres-migrations': 4.1.0-rc.1
   '@milahu/patch-package-with-pnpm-support': 6.4.8
-  '@oauth-everything/passport-discord': 1.0.2
   '@oauth-everything/passport-twitch': 1.0.3
   '@riderize/passport-strava-oauth2': 1.1.1
   '@simplewebauthn/server': 5.3.0
@@ -2307,15 +2305,6 @@ packages:
     dependencies:
       '@types/express': 4.17.6
       '@types/passport-oauth2': 1.4.11
-    dev: false
-
-  /@oauth-everything/passport-discord/1.0.2:
-    resolution: {integrity: sha512-N+n8ICOADti8vJUBLb9FEHeroMb7Cdvu18moM0BgJIxXb1ZzxiYy02MyiMVyqFZGh/Tw7xJA2z9c7o0nQVQZ7g==}
-    dependencies:
-      '@oauth-everything/oauth2-types': 1.0.2
-      '@oauth-everything/profile': 1.0.0
-      '@types/passport-oauth2': 1.4.11
-      passport-oauth2: 1.6.1
     dev: false
 
   /@oauth-everything/passport-twitch/1.0.3:

@@ -3,7 +3,6 @@ import { UserQuery } from './utils/__generated__/graphql-request';
 export type SocialProvider =
   | 'apple'
   | 'bitbucket'
-  | 'discord'
   | 'spotify'
   | 'strava'
   | 'twitch'

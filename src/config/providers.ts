@@ -117,25 +117,6 @@ export const PROVIDERS = {
         };
   },
 
-  get discord() {
-    return !castBooleanEnv('AUTH_PROVIDER_DISCORD_ENABLED')
-      ? null
-      : {
-          get clientID() {
-            return castStringEnv('AUTH_PROVIDER_DISCORD_CLIENT_ID');
-          },
-          get clientSecret() {
-            return castStringEnv('AUTH_PROVIDER_DISCORD_CLIENT_SECRET');
-          },
-          get scope() {
-            return castStringArrayEnv('AUTH_PROVIDER_DISCORD_SCOPE', [
-              'identify',
-              'email',
-            ]);
-          },
-        };
-  },
-
   get twitch() {
     return !castBooleanEnv('AUTH_PROVIDER_TWITCH_ENABLED')
       ? null

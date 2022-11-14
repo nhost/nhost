@@ -6,7 +6,6 @@ import windowslive from './windowslive';
 import spotify from './spotify';
 import strava from './strava';
 import bitbucket from './bitbucket';
-import discord from './discord';
 import twitch from './twitch';
 
 const router = Router();
@@ -17,7 +16,6 @@ windowslive(router);
 spotify(router);
 strava(router);
 bitbucket(router);
-discord(router);
 twitch(router);
 
 export default (parentRouter: Router) => {
