@@ -1,7 +1,5 @@
 import { normaliseProfile, transformOauthProfile } from '@/routes/oauth/utils';
 
-// TODO unit test transformOauthProfile - with and without options
-
 describe('OAuth helpers', () => {
   it('should transform a Facebook profile', async () => {
     const facebookProfile = {
@@ -19,53 +17,6 @@ describe('OAuth helpers', () => {
     };
     const normalisedProfile = await normaliseProfile('facebook', {
       profile: facebookProfile,
-    });
-    const output = await transformOauthProfile(normalisedProfile);
-    expect(output).toMatchSnapshot();
-  });
-
-  // TODO mock https://api.github.com/user/emails first
-  it.skip('should transform a GitHub profile', async () => {
-    const githubProfile = {
-      login: 'plmercereau',
-      id: 24897252,
-      node_id: 'MDQ6VXNlcjI0ODk3MjUy',
-      avatar_url: 'https://avatars.githubusercontent.com/u/24897252?v=4',
-      gravatar_id: '',
-      url: 'https://api.github.com/users/plmercereau',
-      html_url: 'https://github.com/plmercereau',
-      followers_url: 'https://api.github.com/users/plmercereau/followers',
-      following_url:
-        'https://api.github.com/users/plmercereau/following{/other_user}',
-      gists_url: 'https://api.github.com/users/plmercereau/gists{/gist_id}',
-      starred_url:
-        'https://api.github.com/users/plmercereau/starred{/owner}{/repo}',
-      subscriptions_url:
-        'https://api.github.com/users/plmercereau/subscriptions',
-      organizations_url: 'https://api.github.com/users/plmercereau/orgs',
-      repos_url: 'https://api.github.com/users/plmercereau/repos',
-      events_url: 'https://api.github.com/users/plmercereau/events{/privacy}',
-      received_events_url:
-        'https://api.github.com/users/plmercereau/received_events',
-      type: 'User',
-      site_admin: false,
-      name: 'Pilou',
-      company: null,
-      blog: '',
-      location: 'Brussels, Belgium',
-      email: null,
-      hireable: true,
-      bio: null,
-      twitter_username: null,
-      public_repos: 63,
-      public_gists: 4,
-      followers: 27,
-      following: 20,
-      created_at: '2017-01-03T15:41:32Z',
-      updated_at: '2022-11-05T18:04:04Z',
-    };
-    const normalisedProfile = await normaliseProfile('google', {
-      profile: githubProfile,
     });
     const output = await transformOauthProfile(normalisedProfile);
     expect(output).toMatchSnapshot();
