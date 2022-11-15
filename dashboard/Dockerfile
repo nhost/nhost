@@ -5,7 +5,7 @@ RUN apk update
 WORKDIR /app
 
 RUN yarn global add turbo
-COPY ./ ./
+COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
 FROM node:16-alpine AS builder
@@ -19,11 +19,11 @@ ENV NEXT_PUBLIC_NHOST_BACKEND_URL http://localhost:1337
 
 RUN yarn global add pnpm
 COPY .gitignore .gitignore
-COPY --from=pruner /app/out/json/ ./
-COPY --from=pruner /app/out/pnpm-*.yaml ./
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-*.yaml .
 RUN pnpm install --frozen-lockfile
 
-COPY --from=pruner /app/out/full/ ./
+COPY --from=pruner /app/out/full/ .
 COPY turbo.json turbo.json
 COPY config/ config/
 RUN pnpm build:dashboard
@@ -35,16 +35,13 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
 
-COPY --from=builder /app/dashboard/next.config.js ./
-COPY --from=builder /app/dashboard/package.json ./
+COPY --from=builder /app/dashboard/next.config.js .
+COPY --from=builder /app/dashboard/package.json .
+COPY --from=builder /app/dashboard/public ./dashboard/public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public /app/dashboard/.next/standalone/public
-COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone/app ./
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
 
-ENV PORT 3000
-EXPOSE 3000
-
-CMD node app/dashboard/server.js
+CMD node dashboard/server.js
