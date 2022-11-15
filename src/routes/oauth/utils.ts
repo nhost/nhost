@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { GrantConfig, GrantResponse } from 'grant';
 
-import { castBooleanEnv } from '@config';
+import { castBooleanEnv, castStringArrayEnv } from '@config';
 import {
   locale as localeValidator,
   email as emailValidator,
@@ -123,16 +123,35 @@ export const preRequestProviderMiddleware = (
 };
 
 /**
- * Grant standard configuration
+ * Create Grant standard configuration
+ * - Sets the Grant defauls
+ * - Enables the providers defined in the env variables
+ * - Adds the custom scope defined in the env variables
  */
 export const createGrantConfig = (): GrantConfig =>
   Object.keys(PROVIDERS_CONFIG).reduce<GrantConfig>(
     (aggr, provider) => {
-      const providerKey = (
-        provider === 'windowslive' ? 'windows_live' : provider
-      ).toUpperCase();
-      if (castBooleanEnv(`AUTH_PROVIDER_${providerKey}_ENABLED`)) {
-        aggr[provider] = PROVIDERS_CONFIG[provider].grant;
+      // * Convert the provider name used in Grant into its name in the env variables
+      let providerEnvName = provider.toUpperCase();
+      if (providerEnvName === 'WINDOWSLIVE') {
+        providerEnvName = 'WINDOWS_LIVE';
+      }
+      if (castBooleanEnv(`AUTH_PROVIDER_${providerEnvName}_ENABLED`)) {
+        const grant = { ...PROVIDERS_CONFIG[provider].grant };
+        const customScope = castStringArrayEnv(
+          `AUTH_PROVIDER_${providerEnvName}_SCOPE`
+        );
+        if (customScope.length) {
+          // * Adds the scope defined in the env variables to the scope sent as a parameter
+          const initialScope = Array.isArray(grant.scope)
+            ? grant.scope
+            : typeof grant.scope === 'string'
+            ? [grant.scope]
+            : [];
+          // * Merge both sources, and remove duplicates
+          grant.scope = [...new Set([...initialScope, ...customScope])];
+        }
+        aggr[provider] = grant;
       }
       return aggr;
     },
