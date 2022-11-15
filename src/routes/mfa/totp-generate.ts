@@ -26,7 +26,7 @@ export const mfatotpGenerateHandler: RequestHandler<
     return sendError(res, 'forbidden-anonymous');
   }
 
-  const totpSecret = authenticator.generateSecret();
+  const totpSecret = authenticator.generateSecret(32);
   const otpAuth = authenticator.keyuri(
     userId,
     ENV.AUTH_MFA_TOTP_ISSUER,

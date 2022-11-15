@@ -1,31 +1,35 @@
-
-
 # [0.15.0](https://github.com/nhost/hasura-auth/compare/v0.14.0...v0.15.0) (2022-10-18)
-
 
 ### Bug Fixes
 
-* 🐛 capture unhandled errors ([c1f82c4](https://github.com/nhost/hasura-auth/commit/c1f82c45034aa396b9626a57afde89bd54b04564))
-* 🐛 remove wrong email-template warning ([8972912](https://github.com/nhost/hasura-auth/commit/89729120343cef6e55a87483cb66a98dcd85e144)), closes [#168](https://github.com/nhost/hasura-auth/issues/168)
-* use the metadata column in custom claims ([179d96a](https://github.com/nhost/hasura-auth/commit/179d96ad933b3fb849c13f38af8efd3cd02dfca9))
-
+- 🐛 capture unhandled errors ([c1f82c4](https://github.com/nhost/hasura-auth/commit/c1f82c45034aa396b9626a57afde89bd54b04564))
+- 🐛 remove wrong email-template warning ([8972912](https://github.com/nhost/hasura-auth/commit/89729120343cef6e55a87483cb66a98dcd85e144)), closes [#168](https://github.com/nhost/hasura-auth/issues/168)
+- use the metadata column in custom claims ([179d96a](https://github.com/nhost/hasura-auth/commit/179d96ad933b3fb849c13f38af8efd3cd02dfca9))
 
 ### Features
 
-* 🎸 Improve logging ([4bccab8](https://github.com/nhost/hasura-auth/commit/4bccab8794978ee47f60689c1a01d2f5bde767cf))
-* 🎸 improve metadata application and startup time ([728f35b](https://github.com/nhost/hasura-auth/commit/728f35bc6b8dea265aac22ddd3b583ec328ba917))# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
+- 🎸 Improve logging ([4bccab8](https://github.com/nhost/hasura-auth/commit/4bccab8794978ee47f60689c1a01d2f5bde767cf))
+- 🎸 improve metadata application and startup time ([728f35b](https://github.com/nhost/hasura-auth/commit/728f35bc6b8dea265aac22ddd3b583ec328ba917))# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
+
+# 0.14.0
 
 ### Features
 
 - **provider:** add azure ad provider ([c7247cc](https://github.com/nhost/hasura-auth/commit/c7247ccd0b1d0128a4b2e7af02c768cae175aa08))## [0.13.2](https://github.com/nhost/hasura-auth/compare/v0.13.1...v0.13.2) (2022-09-28), thanks [@yannickglt](https://github.com/yannickglt) for the contribution
 
+## 0.13.2
+
 ### Bug Fixes
 
 - drop authenticators inconsistency safely ([5939bd8](https://github.com/nhost/hasura-auth/commit/5939bd81c1943034801da11f3da06b163fc2f291))## [0.13.1](https://github.com/nhost/hasura-auth/compare/v0.13.0...v0.13.1) (2022-09-27)
 
+## 0.13.1
+
 ### Bug Fixes
 
 - don't drop inconsistencies when applying Hasura metadata ([3744152](https://github.com/nhost/hasura-auth/commit/374415289b83df84557b3822897082e38aff1cd6))# [0.13.0](https://github.com/nhost/hasura-auth/compare/v0.12.0...v0.13.0) (2022-09-23)
+
+# 0.13.0
 
 ### Bug Fixes
 
@@ -33,6 +37,8 @@
 - Fetch profile from WorkOS oauth connection ([b49d4f7](https://github.com/nhost/hasura-auth/commit/b49d4f70c7dd1cf560243b11e34f94ce7b688e05))
 - Use client hostname as RP ID ([2371fdc](https://github.com/nhost/hasura-auth/commit/2371fdc9173ffa79b008c8581450c51ce1546d08))
 - webauthn signup endpoints ([8982a49](https://github.com/nhost/hasura-auth/commit/8982a497df87fafa7c7cad3b52de8c1f9e2e134e))# [0.12.0](https://github.com/nhost/hasura-auth/compare/v0.11.0...v0.12.0) (2022-09-16)
+
+# 0.12.0
 
 ### Bug Fixes
 
@@ -43,6 +49,8 @@
 ### Features
 
 - **sms:** support for templates for the sms message ([#217](https://github.com/nhost/hasura-auth/issues/217)) ([e99ec64](https://github.com/nhost/hasura-auth/commit/e99ec64bcaf4831bbc16e85ced86f8bc0166a999))# [0.11.0](https://github.com/nhost/hasura-auth/compare/v0.10.0...v0.11.0) (2022-09-08)
+
+# 0.11.0
 
 ### Bug Fixes
 
@@ -56,6 +64,8 @@
 - remove webauthn signup endpoints ([224e990](https://github.com/nhost/hasura-auth/commit/224e9902b49fedffca3df198d4adea55112e0bba))
 - **webauthn:** add optional authenticator nickname ([457fafd](https://github.com/nhost/hasura-auth/commit/457fafd6a0d6be8a7d84e1982b619487f083445a))
 - workos oauth provider ([ab35971](https://github.com/nhost/hasura-auth/commit/ab359713a2346f1b6eebb8fdffa1de8cc4ec0a59))# [0.10.0](https://github.com/nhost/hasura-auth/compare/v0.9.3...v0.10.0) (2022-07-13)
+
+# 0.10.0
 
 ### Bug Fixes
 
