@@ -1,5 +1,18 @@
 # @nhost/nhost-js
 
+## 1.6.0
+
+### Minor Changes
+
+- b5395be2: 1. Add custom endpoint options to the NhostClient constructor. `authUrl`, `storageUrl`, `functionsUrl`, and `graphqlUrl` can now be passed as parameters to define the endpoints for each client. These are useful when self hosting. 2. Fix support for using NhostClient in the context of the CLI and node (e.g. functions).
+
+### Patch Changes
+
+- 996e8016: Bump Axios to v1.1.3
+- Updated dependencies [996e8016]
+  - @nhost/hasura-auth-js@1.6.2
+  - @nhost/hasura-storage-js@0.7.2
+
 ## 1.5.2
 
 ### Patch Changes

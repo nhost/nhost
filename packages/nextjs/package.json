@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
