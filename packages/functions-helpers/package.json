@@ -19,24 +19,41 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
-  "main": "dist/index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
     "dist",
+    "umd",
     "README.md"
   ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "bin": {
+    "functions-codegen": "dist/functions-codegen.cjs.js",
+    "functions-bundle": "dist/functions-codegen.cjs.js"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "dev": "run-p dev:lib \"bundle-functions --watch\"",
+    "functions-codegen": "vite-node src/cli/codegen.ts -- --origin tests",
+    "functions-bundle": "vite-node src/cli/bundle.ts",
+    "dev": "run-p dev:lib \"functions-bundle --watch\"",
     "dev:lib": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "vite build",
-    "bundle-functions": "node functions-bundler.js tests functions",
     "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend",
     "e2e:backend": "nhost dev --no-browser",
-    "e2e:frontend": "run-s bundle-functions e2e:test",
+    "e2e:frontend": "run-s functions-bundle e2e:test",
     "e2e:test": "vitest run",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -46,19 +63,29 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
+    "@graphql-codegen/cli": "^2.13.12",
+    "@graphql-codegen/typescript": "2.8.2",
+    "@graphql-codegen/typescript-graphql-request": "^4.5.8",
+    "@graphql-codegen/typescript-operations": "^2.5.7",
     "@nhost/nhost-js": "workspace:*",
     "axios": "^0.27.2",
+    "chokidar": "^3.5.3",
+    "command-line-args": "^5.2.1",
     "date-fns": "^2.29.3",
+    "esbuild": "^0.15.14",
+    "fs-extra": "^10.1.0",
     "graphql": "16.6.0",
+    "graphql-request": "^4.3.0",
+    "graphql-tag": "^2.12.6",
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
+    "@types/command-line-args": "^5.2.0",
     "@types/express": "^4.17.13",
+    "@types/fs-extra": "^9.0.13",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.11.9",
-    "command-line-args": "^5.2.1",
-    "dotenv": "^16.0.3",
-    "fs-extra": "^10.1.0",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "vite-node": "^0.25.2"
   }
 }

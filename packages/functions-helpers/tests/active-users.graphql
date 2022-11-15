@@ -1,0 +1,6 @@
+query activeUsers {
+  users(where: { disabled: { _eq: true } }) {
+    id
+    displayName
+  }
+}
