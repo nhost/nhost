@@ -8,7 +8,7 @@ export const OAUTH_ROUTE = '/signin/provider';
 
 const azureBaseUrl = 'https://login.microsoftonline.com';
 const workosBaseUrl = 'https://api.workos.com/sso';
-
+process.env.DEBUG = 'req,res,json';
 export const PROVIDERS_CONFIG: Record<
   string,
   {
@@ -19,12 +19,10 @@ export const PROVIDERS_CONFIG: Record<
     middleware?: RequestHandler;
   }
 > = {
-  // TODO http://localhost:4000/signin/provider/apple
-  // * https://github.com/simov/grant/issues/193
-  // * ---> https://gist.github.com/rxb/e596c66b03e3262f26d9ede5d7dbab81
   apple: {
     grant: {
-      key: process.env.AUTH_PROVIDER_APPLE_CLIENT_ID,
+      // * See https://github.com/simov/grant/issues/193
+      key: process.env.AUTH_PROVIDER_APPLE_CLIENT_ID, //  Apple service id is the client id
       secret:
         process.env.AUTH_PROVIDER_APPLE_CLIENT_ID &&
         process.env.AUTH_PROVIDER_APPLE_TEAM_ID &&
@@ -47,23 +45,23 @@ export const PROVIDERS_CONFIG: Record<
             expiresIn: '180d',
           }
         ),
-      scope: ['openid', 'name', 'email'], // ! "openid" is new
-      response: ['raw', 'jwt'],
-      nonce: true,
+      scope: ['name', 'email'],
       custom_params: {
         response_type: 'code id_token',
         response_mode: 'form_post',
       },
     },
-    profile: ({ profile, jwt }) => {
-      // TODO avatarUrl and locale?
+    profile: ({ jwt }) => {
       const payload = jwt?.id_token?.payload;
-      console.log(profile, jwt, payload);
+      // * See https://developer.apple.com/forums/thread/118209
+      const displayName = payload?.name
+        ? `${payload.name.firstName} ${payload.name.lastName}`
+        : payload.email;
       return {
         id: payload.sub,
-        displayName: `${payload.name.firstName} ${payload.name.lastName}`,
+        displayName,
         email: payload.email,
-        emailVerified: payload.email_verified,
+        emailVerified: payload.email_verified === 'true',
       };
     },
   },

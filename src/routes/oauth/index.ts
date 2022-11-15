@@ -31,6 +31,12 @@ import { OAUTH_ROUTE } from './config';
 const SESSION_NAME = 'connect.sid';
 
 // TODO handle the provider id, access token, and refresh token. See utils.ts and Grant doc
+/**
+ * We create a Grant configuration when the service starts,
+ * so it determines which providers are enabled.
+ * If a provider is enabled but incorrectly configured, the service will start,
+ * but the end user will be redirected with an error to the client app.
+ */
 const grantConfig = createGrantConfig();
 
 /**
@@ -51,7 +57,10 @@ const grantConfig = createGrantConfig();
  * @tags Authentication
  */
 export const oauthProviders = Router()
-  // * Use a middleware to keep the session between Oauth requests
+  /**
+   * Use a middleware to keep the session between Oauth requests.
+   * Once the authentication choregraphy is done (either success or failure), the session is destroyed.
+   */
   .use(
     session({
       secret: 'grant',
@@ -63,9 +72,14 @@ export const oauthProviders = Router()
     })
   )
 
+  /**
+   * Grant and Oauth providers need to be able to encode/decode urls
+   */
   .use(OAUTH_ROUTE, express.urlencoded({ extended: true }))
 
-  // * Determine the redirect url, and store it in the locals so it is available in next middlewares
+  /**
+   * Determine the redirect url, and store it in the locals so it is available in next middlewares
+   */
   .use(`${OAUTH_ROUTE}/:provider`, ({ query }, { locals }, next) => {
     locals.redirectTo = redirectToRule.validate(query, {
       convert: true,
@@ -74,7 +88,13 @@ export const oauthProviders = Router()
     next();
   })
 
-  // * Validate the provider configuration
+  /**
+   * Validate the provider configuration. Any error will be redirected to the client application:
+   * 1. Check if the provider is enabled
+   * 2. Check if the provider has a client id/key and secret
+   *
+   * The redirect url has been set in the previous middleware and is available in the locals
+   */
   .use(`${OAUTH_ROUTE}/:provider`, ({ params: { provider } }, res, next) => {
     const redirectTo: string = res.locals.redirectTo;
     const providerConfig = grantConfig[provider];
@@ -98,16 +118,23 @@ export const oauthProviders = Router()
     next();
   })
 
-  // * Validate registration options from the query parameters, but don't override them with defaults as we'll need them in the callback
+  /**
+   * Validate registration options from the query parameters
+   * Don't override them with default values as we'll possible user-defined values in the callback
+   */
   .use(`${OAUTH_ROUTE}/:provider`, queryValidator(registrationOptions, false))
 
   /**
    * Optional provider-specific middleware
-   * @see {@link file://./config/middlewares.ts}
-   * */
+   * For instance, it is possible to validate/transform additional query parameters, and to add them to the provider parameters.
+   * This is what we do with WorkOS.
+   * @see {@link file://./config/index.ts}
+   */
   .use(`${OAUTH_ROUTE}/:provider`, preRequestProviderMiddleware)
 
-  // * Save the initial query and the redirection url into the session to be able to retrieve them in the callback
+  /**
+   *  Save the initial query and the redirection url into the session to be able to retrieve them in the callback
+   */
   .use(
     `${OAUTH_ROUTE}/:provider`,
     ({ session, query }, { locals: { redirectTo } }, next) => {
@@ -119,20 +146,20 @@ export const oauthProviders = Router()
 
   /**
    * Grant middleware: handle the oauth flow until the callback
-   * @see {@link file://./config/grant.ts}
+   * @see {@link file://./config/index.ts}
    */
   .use(grant.express(grantConfig))
 
   /**
-   * Oauth Callback
+   * The following middleware is reached in the Oauth Callback:
    * 1. Destroy the Oauth session (we don't need it anymore)
    * 2. Transform the profile to a standard format
-   *    @see {@link file://./profiles.ts}
+   *    @see {@link file://./config/index.ts}
    * 3. Find/create the user in the database
    * 4. Connect the user to the provider
    * 5. Generate and return a new refresh token
    */
-  .use(async ({ session }, res) => {
+  .use(async ({ session, query }, res) => {
     const { grant, options, redirectTo = ENV.AUTH_CLIENT_URL } = { ...session };
     // * Destroy the session as it is only needed for the oauth flow
     await new Promise((resolve) => {
@@ -147,14 +174,34 @@ export const oauthProviders = Router()
     const response = grant?.response;
     const provider = grant?.provider;
     if (!response || !provider) {
-      return sendError(res, 'internal-error', { redirectTo }, true);
+      // * Grant sends errors in the query parameters
+      const customMessage =
+        typeof query.error === 'string' ? query.error : undefined;
+      if (customMessage) {
+        logger.warn(customMessage);
+      }
+      return sendError(
+        res,
+        'internal-error',
+        {
+          redirectTo,
+          customMessage,
+        },
+        true
+      );
     }
     if (!response.profile) {
       logger.warn(`No Oauth profile in the session`);
-      if (response.error) {
-        logger.warn(response.error);
+      const customMessage = response.error || undefined;
+      if (customMessage) {
+        logger.warn(customMessage);
       }
-      return sendError(res, 'internal-error', { redirectTo }, true);
+      return sendError(
+        res,
+        'internal-error',
+        { redirectTo, customMessage },
+        true
+      );
     }
     const profile = await normaliseProfile(provider, response);
 
