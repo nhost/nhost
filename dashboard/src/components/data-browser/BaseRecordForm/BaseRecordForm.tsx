@@ -80,7 +80,7 @@ export default function BaseRecordForm({
     new Map<string, DataBrowserGridColumn>(),
   );
 
-  if (!columns || !columns.length) {
+  if (!columns?.length) {
     return (
       <p className="px-10">This table doesn&apos;t contain any columns.</p>
     );

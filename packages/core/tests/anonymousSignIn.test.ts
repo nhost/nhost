@@ -52,7 +52,7 @@ describe('Anonymous Sign-in', () => {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -126,7 +126,7 @@ describe('Anonymous Sign-in', () => {
 
     authService.send({
       type: 'PASSWORDLESS_SMS',
-      phoneNumber: faker.phone.phoneNumber()
+      phoneNumber: faker.phone.number()
     })
 
     const state = await waitFor(authService, (state) =>

@@ -80,7 +80,7 @@ test(`should fail if network is unavailable`, async () => {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -101,7 +101,7 @@ test(`should fail if server returns an error`, async () => {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
