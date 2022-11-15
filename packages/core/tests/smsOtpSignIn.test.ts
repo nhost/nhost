@@ -41,7 +41,7 @@ test(`should fail if network is unavailable`, async () => {
 
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
-    phoneNumber: faker.phone.phoneNumber(),
+    phoneNumber: faker.phone.number(),
     otp: faker.random.numeric(6).toString()
   })
 
@@ -54,7 +54,7 @@ test(`should fail if network is unavailable`, async () => {
       "registration": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -65,7 +65,7 @@ test(`should fail if server returns an error`, async () => {
 
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
-    phoneNumber: faker.phone.phoneNumber(),
+    phoneNumber: faker.phone.number(),
     otp: faker.random.numeric(6).toString()
   })
 
@@ -112,7 +112,7 @@ test(`should fail if the provided OTP was invalid`, async () => {
 
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
-    phoneNumber: faker.phone.phoneNumber(),
+    phoneNumber: faker.phone.number(),
     otp: faker.random.numeric(6).toString()
   })
 
@@ -134,7 +134,7 @@ test(`should fail if the provided OTP was invalid`, async () => {
 test(`should succeed if the provided phone number and OTP were valid`, async () => {
   authService.send({
     type: 'PASSWORDLESS_SMS_OTP',
-    phoneNumber: faker.phone.phoneNumber(),
+    phoneNumber: faker.phone.number(),
     otp: faker.random.numeric(6).toString()
   })
 

@@ -82,7 +82,7 @@ describe('Security Key', () => {
         "registration": {
           "error": "OK",
           "message": "Network Error",
-          "status": 200,
+          "status": 0,
         },
       }
     `)

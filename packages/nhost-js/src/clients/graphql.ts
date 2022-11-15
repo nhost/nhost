@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
 import { urlFromSubdomain } from '../utils/helpers'
@@ -159,7 +159,7 @@ export class NhostGraphqlClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): AxiosRequestHeaders {
+  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret
