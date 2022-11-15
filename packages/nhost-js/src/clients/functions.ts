@@ -1,4 +1,9 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  RawAxiosRequestHeaders
+} from 'axios'
 
 import { urlFromSubdomain } from '../utils/helpers'
 import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
@@ -107,7 +112,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): AxiosRequestHeaders {
+  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

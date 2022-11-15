@@ -63,7 +63,7 @@ export const signUpEmailSecurityKeySuccessHandler = rest.post(
         excludeCredentials: [],
         pubKeyCredParams: [],
         rp: {
-          name: faker.company.companyName(),
+          name: faker.company.name(),
           id: faker.internet.domainName()
         }
       })

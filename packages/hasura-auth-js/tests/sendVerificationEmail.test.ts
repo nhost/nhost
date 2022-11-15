@@ -53,7 +53,7 @@ test(`should fail if there is a network error`, async () => {
     {
       "error": "OK",
       "message": "Network Error",
-      "status": 200,
+      "status": 0,
     }
   `)
 })

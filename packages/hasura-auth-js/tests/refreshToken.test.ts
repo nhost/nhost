@@ -342,7 +342,7 @@ describe('General and disabled auto-sign in', () => {
         "authentication": {
           "error": "OK",
           "message": "Network Error",
-          "status": 200,
+          "status": 0,
         },
       }
     `)
@@ -458,9 +458,9 @@ describe(`Auto sign-in`, () => {
     `)
   })
 
-  test(`should fail if network is unavailable`, async () => {
+  test(`should retry token refresh if network is unavailable`, async () => {
     server.use(authTokenNetworkErrorHandler)
-
+    //
     vi.stubGlobal('location', {
       ...globalThis.location,
       href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
@@ -468,19 +468,9 @@ describe(`Auto sign-in`, () => {
 
     authService.start()
 
-    const state = await waitFor(authService, (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' } })
-    )
+    const state = await waitFor(authService, (state) => state.context.importTokenAttempts === 2)
 
-    expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    expect(state.context.importTokenAttempts).toEqual(2)
   })
 
   test(`should retry a token refresh if server returns an error`, async () => {
