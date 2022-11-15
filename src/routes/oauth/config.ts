@@ -2,7 +2,7 @@ import { sendError } from '@/errors';
 import axios from 'axios';
 import { RequestHandler } from 'express';
 import { GrantProvider, GrantResponse } from 'grant';
-import { NormalisedProfile } from '../utils';
+import { NormalisedProfile } from './utils';
 import jwt from 'jsonwebtoken';
 export const OAUTH_ROUTE = '/signin/provider';
 
