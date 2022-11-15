@@ -189,8 +189,7 @@ export const PROVIDERS_CONFIG: Record<
       client_secret: process.env.AUTH_PROVIDER_GOOGLE_CLIENT_SECRET,
       scope: ['email', 'profile'],
       custom_params: {
-        // * do not re-promt the user for consent
-        // prompt: 'consent',
+        prompt: 'consent',
         access_type: 'offline',
       },
     },

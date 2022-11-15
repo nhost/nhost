@@ -207,13 +207,7 @@ export const oauthProviders = Router()
 
     const providerUserId = profile.id;
 
-    const {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      jwt,
-    } = response;
-    // TODO remove console.log
-    console.log('From the prodiver:', { accessToken, refreshToken, jwt });
+    const { access_token: accessToken, refresh_token: refreshToken } = response;
 
     let user: NonNullable<InsertUserMutation['insertUser']> | null = null;
 
