@@ -160,7 +160,7 @@ export const PROVIDERS_CONFIG: Record<
       const { email, verified } =
         emails.find((email) => email.primary) || emails[0];
       return {
-        id: String(profile.id),
+        id: profile.id && String(profile.id),
         displayName: profile.name,
         avatarUrl: profile.avatar_url,
         email,
@@ -176,7 +176,7 @@ export const PROVIDERS_CONFIG: Record<
       scope: ['read_user'],
     },
     profile: ({ profile }) => ({
-      id: String(profile.id),
+      id: profile.id && String(profile.id),
       displayName: profile.name,
       email: profile.email,
       avatarUrl: profile.avatar_url,
@@ -276,11 +276,13 @@ export const PROVIDERS_CONFIG: Record<
       scope: ['profile:read_all'],
     },
     // ! It is not possible to get the user's email address from Strava
-    profile: ({ profile }) => ({
-      id: String(profile.id),
-      displayName: `${profile.firstname} ${profile.lastname}`,
-      avatarUrl: profile.profile,
-    }),
+    profile: ({ profile }) => {
+      return {
+        id: profile.id && String(profile.id),
+        displayName: `${profile.firstname} ${profile.lastname}`,
+        avatarUrl: profile.profile,
+      };
+    },
   },
 
   twitch: {
@@ -310,7 +312,7 @@ export const PROVIDERS_CONFIG: Record<
         'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
     },
     profile: ({ profile }) => ({
-      id: profile.id_str || String(profile.id),
+      id: profile.id_str || (profile.id && String(profile.id)),
       displayName: profile.name,
       email: profile.email,
       avatarUrl: profile.profile_image_url_https,
@@ -319,7 +321,6 @@ export const PROVIDERS_CONFIG: Record<
 
   windowslive: {
     // * Copy of Grant's `live` provider
-    // TODO do not re-promt the user for consent (related to the access/refresh token?)
     grant: {
       oauth: 2,
       authorize_url: 'https://login.live.com/oauth20_authorize.srf',

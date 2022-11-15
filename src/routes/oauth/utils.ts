@@ -9,22 +9,27 @@ import {
 import { InsertUserMutationVariables } from '@/utils/__generated__/graphql-request';
 import { ENV, getGravatarUrl } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
-import { logger } from '@/logger';
 
 import { OAUTH_ROUTE, PROVIDERS_CONFIG } from './config';
 
 /**
  * Fields that can be possibly returned by the OAuth provider and stored in the database
  */
-export type NormalisedProfile = {
+export type NormalisedProfile = Partial<{
   id: string;
-  displayName?: string;
-  avatarUrl?: string;
-  email?: string;
-  locale?: string;
-  emailVerified?: boolean;
-};
+  displayName: string;
+  avatarUrl: string;
+  email: string;
+  locale: string;
+  emailVerified: boolean;
+}>;
 
+/**
+ * Transform the profile normalised from the provider to the format we store in the database.
+ * - Options sent by the client (locale, displayName) take precedence over the profile returned by the provider.
+ * - Fall back to the email as the display name
+ * - the locale should be in the list of allowed locales, and if not, fall back to the default locale
+ */
 export const transformOauthProfile = async (
   normalised: NormalisedProfile,
   options?: Partial<UserRegistrationOptions>
@@ -48,9 +53,7 @@ export const transformOauthProfile = async (
    */
   const displayName = options?.displayName || normalised.displayName || email;
 
-  // TODO not sure if this is the best way to do it: isn't profile.email always supposed to be here?
-  // TODO and even so, do we allow unverified emails to be used?
-  const emailVerified: boolean = normalised.emailVerified || !!email;
+  const emailVerified = !!normalised.emailVerified;
 
   return {
     passwordHash: null,
@@ -71,43 +74,8 @@ export const transformOauthProfile = async (
   };
 };
 
-// TODO remove this
-export const defaultProfileNormaliser: (
-  response: GrantResponse
-) => Promise<NormalisedProfile> | NormalisedProfile = (response) => {
-  logger.warn('Default profile normaliser used');
-  // ? improve defaults? Or remove them and raise an error instead? Let's see how other providers behave
-  const profile = response.profile;
-  const displayName =
-    profile.first_name && profile.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : profile.given_name && profile.family_name
-      ? `${profile.given_name} ${profile.family_name}`
-      : profile.email;
-
-  const avatarUrl =
-    profile.photos && Array.isArray(profile.photos)
-      ? profile.photos[0]?.value
-      : profile.picture;
-  return {
-    displayName,
-    avatarUrl,
-    ...profile,
-  };
-};
-
-export const normaliseProfile = async (
-  provider: string,
-  data: GrantResponse
-) => {
-  const profile = await PROVIDERS_CONFIG[provider].profile(data);
-  if (!profile.id) {
-    logger.warn(`Missing id in profile for provider ${provider}`);
-    logger.warn(data);
-    throw new Error('Could not determine profile id');
-  }
-  return profile;
-};
+export const normaliseProfile = (provider: string, data: GrantResponse) =>
+  PROVIDERS_CONFIG[provider].profile(data);
 
 export const preRequestProviderMiddleware = (
   req: Request,

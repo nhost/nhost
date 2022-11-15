@@ -3,7 +3,7 @@ import express, { Router } from 'express';
 import session from 'express-session';
 import grant from 'grant';
 
-import { sendError } from '@/errors';
+import { ERRORS, sendError } from '@/errors';
 import {
   ENV,
   generateRedirectUrl,
@@ -30,7 +30,6 @@ import { OAUTH_ROUTE } from './config';
 
 const SESSION_NAME = 'connect.sid';
 
-// TODO handle the provider id, access token, and refresh token. See utils.ts and Grant doc
 /**
  * We create a Grant configuration when the service starts,
  * so it determines which providers are enabled.
@@ -173,39 +172,56 @@ export const oauthProviders = Router()
 
     const response = grant?.response;
     const provider = grant?.provider;
-    if (!response || !provider) {
-      // * Grant sends errors in the query parameters
-      const customMessage =
-        typeof query.error === 'string' ? query.error : undefined;
-      if (customMessage) {
-        logger.warn(customMessage);
+
+    /**
+     * Send error to the client application from the query parameters
+     * This function is used in several places.
+     */
+    const sendErrorFromQuery = (
+      code?: keyof typeof ERRORS,
+      fallbackMessage?: string
+    ) => {
+      const error =
+        code ||
+        (typeof query.error === 'string' ? query.error : 'invalid-request');
+      const errorDescription =
+        typeof query.error_description === 'string'
+          ? query.error_description
+          : typeof query.error === 'string' && query.error !== error
+          ? query.error
+          : fallbackMessage || 'Unknown error';
+      const details: Record<string, string> = {
+        error,
+        errorDescription,
+      };
+      if (provider) {
+        details.provider = provider;
       }
-      return sendError(
-        res,
-        'internal-error',
-        {
-          redirectTo,
-          customMessage,
-        },
-        true
-      );
+      return res.redirect(generateRedirectUrl(redirectTo, details));
+    };
+
+    if (!provider) {
+      logger.warn(`No Oauth provider`);
+      return sendErrorFromQuery('internal-error');
+    }
+    if (!response) {
+      logger.warn(`No Oauth response for the provider ${provider}`);
+      return sendErrorFromQuery('internal-error');
     }
     if (!response.profile) {
-      logger.warn(`No Oauth profile in the session`);
-      const customMessage = response.error || undefined;
-      if (customMessage) {
-        logger.warn(customMessage);
-      }
-      return sendError(
-        res,
-        'internal-error',
-        { redirectTo, customMessage },
-        true
+      logger.warn(
+        `No Oauth profile in the session for the provider ${provider}`
       );
+      return sendErrorFromQuery('internal-error', response.error);
     }
+
     const profile = await normaliseProfile(provider, response);
 
-    const providerUserId = profile.id;
+    const providerUserId = profile?.id;
+    if (!providerUserId) {
+      logger.warn(`Missing id in profile for provider ${provider}`);
+      return sendErrorFromQuery(undefined, 'OAuth request cancelled');
+    }
 
     const { access_token: accessToken, refresh_token: refreshToken } = response;
 
@@ -230,8 +246,9 @@ export const oauthProviders = Router()
         },
       });
     } else {
-      // TODO what if there is no email e.g. Strava?
-      user = await getUserByEmail(profile.email!);
+      if (profile.email) {
+        user = await getUserByEmail(profile.email);
+      }
       if (user) {
         // * add this provider to existing user with the same email
         const { insertAuthUserProvider } =
@@ -251,7 +268,7 @@ export const oauthProviders = Router()
         }
       } else {
         // * No user found with this email. Create a new user
-        // TODO do we always allow registration?
+        // TODO feature: check if registration is enabled
         const userInput = await transformOauthProfile(profile, options);
         user = await insertUser({
           ...userInput,
@@ -270,16 +287,10 @@ export const oauthProviders = Router()
     }
 
     if (user) {
-      const refreshToken = await getNewRefreshToken(user.id);
+      const refreshToken: string = await getNewRefreshToken(user.id);
       // * redirect back user to app url
       return res.redirect(`${redirectTo}?refreshToken=${refreshToken}`);
     }
-    // TODO capture provider errors / cancellations
-    return res.redirect(
-      generateRedirectUrl(redirectTo, {
-        error: 'error' || 'invalid-request',
-        provider,
-        errorDescription: 'error_description' || 'OAuth request cancelled',
-      })
-    );
+
+    return sendErrorFromQuery(undefined, 'OAuth request cancelled');
   });
