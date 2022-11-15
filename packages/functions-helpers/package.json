@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/functions",
+  "name": "@nhost/functions-helpers",
   "version": "0.0.1",
   "description": "Nhost Functions Helpers",
   "license": "MIT",
@@ -33,7 +33,7 @@
     "dev": "run-p dev:lib \"bundle-functions --watch\"",
     "dev:lib": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "vite build",
-    "bundle-functions": "node functions-bundler.js",
+    "bundle-functions": "node functions-bundler.js tests functions",
     "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend",
     "e2e:backend": "nhost dev --no-browser",
     "e2e:frontend": "run-s bundle-functions e2e:test",
