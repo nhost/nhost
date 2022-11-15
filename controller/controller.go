@@ -118,7 +118,8 @@ func (ctrl *Controller) SetupRouter(
 		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
 	}
 
-	router.MaxMultipartMemory = 1000 << 20 //nolint:gomnd  // 1GB
+	// lower values make uploads slower but keeps service memory usage low
+	router.MaxMultipartMemory = 8 << 20 //nolint:gomnd  // 8 MB
 	router.Use(gin.Recovery())
 
 	for _, mw := range middleware {
