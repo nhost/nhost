@@ -1,5 +1,14 @@
 # @nhost/core
 
+## 0.9.2
+
+### Patch Changes
+
+- 996e8016: Retry auto-signin when starting offline
+- 996e8016: Return the correct error code for a network error
+- 869e7253: Add the Azure Active Directory `azuread` provider to typings
+- 996e8016: Bump Axios to v1.1.3
+
 ## 0.9.1
 
 ### Patch Changes
