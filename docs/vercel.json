@@ -50,6 +50,21 @@
       "source": "/reference/hasura-auth/:path*",
       "destination": "https://github.com/nhost/hasura-auth",
       "permanent": true
+    },
+    {
+      "source": "/platform/overview/architecture",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/platform/overview/get-started-with-nhost-cli",
+      "destination": "/cli/local-development",
+      "permanent": true
+    },
+    {
+      "source": "/platform/quickstarts/*",
+      "destination": "/quickstarts",
+      "permanent": true
     }
   ]
 }
