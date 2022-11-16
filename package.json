@@ -8,6 +8,7 @@
   "version": "0.15.0",
   "main": "dist/start.js",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
     "start": "node ./dist/start.js",
     "lint": "eslint --ext .ts .",
@@ -19,7 +20,8 @@
     "test": "AUTH_LOG_LEVEL=error jest --runInBand",
     "test:watch": "AUTH_LOG_LEVEL=error jest --runInBand --watch",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "changeset": "changeset"
   },
   "dependencies": {
     "@djgrant/postgres-migrations": "^4.1.0-rc.1",
