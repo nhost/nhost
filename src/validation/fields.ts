@@ -117,6 +117,7 @@ export const redirectTo = Joi.string()
       if (match) return value;
       return helper.error('redirectTo');
     } catch {
+      // * value is not a valid URL
       return helper.error('redirectTo');
     }
   })
