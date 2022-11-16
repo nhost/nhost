@@ -211,7 +211,7 @@ function AppEnvironmentVariables() {
     throw error;
   }
 
-  if (!data || !data.environmentVariables) {
+  if (!data?.environmentVariables) {
     return (
       <SectionContainer title="Project Environment Variables">
         <AppVariablesHeader />

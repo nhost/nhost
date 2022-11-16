@@ -40,7 +40,7 @@ test(`should fail if network is unavailable`, async () => {
 
   authService.send({
     type: 'PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    phoneNumber: faker.phone.number()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -52,7 +52,7 @@ test(`should fail if network is unavailable`, async () => {
       "registration": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -63,7 +63,7 @@ test(`should fail if server returns an error`, async () => {
 
   authService.send({
     type: 'PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    phoneNumber: faker.phone.number()
   })
 
   const state = await waitFor(authService, (state) =>
@@ -106,7 +106,7 @@ test(`should fail if the provided phone number was invalid`, async () => {
 test(`should succeed if the provided phone number was valid`, async () => {
   authService.send({
     type: 'PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    phoneNumber: faker.phone.number()
   })
 
   const state = await waitFor(authService, (state) =>
