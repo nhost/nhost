@@ -1,0 +1,73 @@
+log:
+  level: DEBUG
+
+api:
+  insecure: true
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":1337"
+
+http:
+  routers:
+    hasura:
+      entryPoints:
+      - web
+      service: graphql-engine
+      rule: Host(`localhost`) && PathPrefix(`/`)
+    auth:
+      entryPoints:
+      - web
+      service: auth
+      rule: Host(`localhost`) && PathPrefix(`/v1/auth`)
+      middlewares:
+      - strip-auth
+    storage:
+      entryPoints:
+      - web
+      service: storage
+      rule: Host(`localhost`) && PathPrefix(`/v1/storage`)
+      middlewares:
+      - strip-suffix
+    functions:
+      entryPoints:
+      - web
+      service: graphql-engine
+      rule: Host(`localhost`) && PathPrefix(`/v1/functions`)
+      middlewares:
+      - strip-functions
+
+  middlewares:
+    strip-auth: 
+      stripPrefix: 
+        prefixes:
+        - /v1/auth
+    strip-functions: 
+      stripPrefix: 
+        prefixes:
+        - /v1/functions
+    strip-suffix: 
+      replacePathRegex:
+        regex: "^/v1/storage/(.*)"
+        replacement: "/v1/$1"
+
+  services:
+    graphql-engine:
+      loadBalancer:
+        servers:
+        - url: http://localhost:8081/
+    auth:
+      loadBalancer:
+        servers:
+        - url: http://localhost:4000/
+    storage:
+      loadBalancer:
+        servers:
+        - url: http://storage:8000/
+    functions:
+      loadBalancer:
+        servers:
+        - url: http://functions:3000/
+    
+    
