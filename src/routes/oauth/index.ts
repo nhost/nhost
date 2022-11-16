@@ -163,7 +163,7 @@ export const oauthProviders = Router()
     // * Destroy the session as it is only needed for the oauth flow
     await new Promise((resolve) => {
       session.destroy(() => {
-        // * Delete the cookie manually
+        // * Delete the cookie that has been set by express-session manually
         // See  https://stackoverflow.com/questions/70101660/how-to-destroy-session
         res.clearCookie(SESSION_NAME);
         return resolve(null);
