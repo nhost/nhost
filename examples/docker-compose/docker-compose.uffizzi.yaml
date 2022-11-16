@@ -1,0 +1,175 @@
+version: '3.6'
+services:
+  traefik:
+    image: "traefik:v2.5"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:1337"
+    ports:
+      - "1337:1337"
+      - "9090:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  postgres:
+    image: postgres:14.6
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+  graphql-engine:
+    image: hasura/graphql-engine:v2.2.0
+    depends_on:
+      - 'postgres'
+      - 'traefik'
+    restart: always
+    ports:
+      - 8080
+    expose:
+      - 8080
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_LOG_LEVEL: debug
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hasura.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.hasura.entrypoints=web"
+  auth:
+    image: nhost/hasura-auth:latest
+    depends_on:
+      - postgres
+      - graphql-engine
+      - traefik
+    restart: always
+    volumes:
+      - ./emails:/app/email-templates
+    environment:
+      AUTH_HOST: '0.0.0.0'
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      AUTH_CLIENT_URL: http://localhost:3000
+      AUTH_SMTP_HOST: mailhog
+      AUTH_SMTP_PORT: 1025
+      AUTH_SMTP_USER: user
+      AUTH_SMTP_PASS: password
+      AUTH_SMTP_SENDER: mail@example.com
+    ports:
+      - 4000
+    expose: 
+      - 4000
+    healthcheck:
+      disable: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
+      - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/v1/auth`)"
+      - "traefik.http.routers.auth.middlewares=strip-auth@docker"
+      - "traefik.http.routers.auth.entrypoints=web"
+  storage:
+    image: nhost/hasura-storage:0.2.1
+    depends_on:
+      - postgres
+      - graphql-engine
+      - minio
+      - traefik
+      - auth
+    restart: always
+    ports:
+      - 8000
+    expose:
+      - 8000
+    healthcheck:
+      disable: true
+    environment:
+      PUBLIC_URL: http://localhost:1337
+      HASURA_METADATA: 1
+      HASURA_ENDPOINT: http://graphql-engine:8080/v1
+      HASURA_GRAPHQL_ADMIN_SECRET: hello123
+      S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      S3_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      S3_ENDPOINT: http://minio:8484
+      S3_BUCKET: nhost
+      POSTGRES_MIGRATIONS: 1
+      POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
+      - "traefik.http.routers.storage.entrypoints=web"
+      # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
+      - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
+      - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
+      - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
+    command: serve
+  functions:
+    depends_on:
+      - postgres
+      - graphql-engine
+      - minio
+      - traefik
+    image: nhost/functions:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
+      - "traefik.http.routers.functions.rule=Host(`localhost`) && PathPrefix(`/v1/functions`)"
+      - "traefik.http.routers.functions.middlewares=strip-functions@docker"
+      - "traefik.http.routers.functions.entrypoints=web"
+    restart: always
+    ports:
+      - 3000
+    expose: 
+      - 3000
+    healthcheck:
+      disable: true
+    volumes:
+      - .:/opt/project
+      - functions_node_modules:/opt/project/node_modules
+      - /opt/project/data/
+      - /opt/project/initdb.d/
+  minio:
+    depends_on:
+      - postgres
+      - graphql-engine
+      - 'traefik'
+    image: minio/minio:RELEASE.2021-09-24T00-24-24Z
+    entrypoint: sh
+    command: -c 'mkdir -p /data/nhost && /opt/bin/minio server --address :8484 /data'
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY}
+    ports:
+      - 8484:8484
+    volumes:
+      - ./data/minio:/data
+  mailhog:
+    depends_on:
+      - postgres
+      - graphql-engine
+      - minio
+      - 'traefik'
+    image: mailhog/mailhog
+    environment:
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_PASS: password
+      SMTP_USER: user
+      SMTP_SECURE: 'false'
+      SMTP_SENDER: hbp@hbp.com
+    ports:
+      - 1024:1025 
+      - 8025:8025
+    volumes:
+      - ./data/mailhog:/maildir
+volumes:
+  functions_node_modules:
