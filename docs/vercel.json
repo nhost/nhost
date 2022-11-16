@@ -66,5 +66,10 @@
       "destination": "/quickstarts/:framework",
       "permanent": true
     }
+    {
+      "source": "/platform/database/:path",
+      "destination": "/database/:path",
+      "permanent": true
+    }
   ]
 }
