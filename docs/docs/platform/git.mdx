@@ -1,0 +1,59 @@
+---
+title: 'Git'
+sidebar_position: 1
+image: /img/og/platform/github-integration.png
+---
+
+Nhost allows you to automatically deploy your Nhost project when you do changes to your Git repository.
+
+## Supported Git Providers
+
+- GitHub
+
+Support GitLab, BitBucket, and other Git providers are on our roadmap.
+
+## How It Works
+
+The following things are deployed:
+
+- Database migrations
+- Hasura metadata
+- Serverless Functions
+
+:::caution
+Settings in `nhost/config.yaml` are **not** deployed. That means you need to manually sync settings between local and remote environments between the CLI and Nhost Cloud.
+:::
+
+## Using GitHub
+
+1. From your Nhost project, click **Connect to Github**.
+
+![Connect to GitHub](/img/platform/git/connect-to-github.png)
+
+2. **Install the Nhost project** on your Github account.
+
+![Install the Nhost GitHub App](/img/architecture/cli/connect-repo-step-2.png)
+
+3. **Connect** your Github repository.
+
+![Select reopsitoru](/img/architecture/cli/connect-repo-step-3.png)
+
+## Deployment Branch
+
+Nhost only deploys your **deployment branch**. By default, your deployment branch matches the default branch set on GitHub (usually `main`).
+
+You can change the deployment branch by clicking **Edit** next to the repository in your Nhost project's Overview.
+
+You can have multiple Nhost projects connected to the same GitHub repository and use different deployment branches (e.g., `main` and `staging`).
+
+<center>
+  <img src="/img/github-integration/deployment-branch.png" alt="drawing" width="50%" />
+</center>
+
+## Base Directory
+
+If your Nhost project is not at the root of your git repository (typically when using a monorepo), you can set a custom base directory. The base directory is where the `nhost` directory is located. In other words, the base directory is the **parent directory** of the `nhost` folder.
+
+<center>
+  <img src="/img/github-integration/base-directory.png" alt="drawing" width="50%" />
+</center>
