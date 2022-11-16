@@ -16,6 +16,9 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NEXT_PUBLIC_NHOST_PLATFORM false
 ENV NEXT_PUBLIC_NHOST_BACKEND_URL http://localhost:1337
+ENV NEXT_PUBLIC_NHOST_MIGRATIONS_URL http://localhost:9693
+ENV NEXT_PUBLIC_NHOST_HASURA_URL http://localhost:9695
+ENV NEXT_PUBLIC_ENV dev
 
 RUN yarn global add pnpm
 COPY .gitignore .gitignore
@@ -39,8 +42,6 @@ COPY --from=builder /app/dashboard/next.config.js .
 COPY --from=builder /app/dashboard/package.json .
 COPY --from=builder /app/dashboard/public ./dashboard/public
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone/app ./
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
 
