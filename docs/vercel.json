@@ -62,8 +62,8 @@
       "permanent": true
     },
     {
-      "source": "/platform/quickstarts/:path",
-      "destination": "/quickstarts",
+      "source": "/platform/quickstarts/:framework",
+      "destination": "/quickstarts/:framework",
       "permanent": true
     }
   ]
