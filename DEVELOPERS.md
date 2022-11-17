@@ -1,8 +1,10 @@
 # Developer guide
 
 ## Requirements
+
 - [pnpm](https://pnpm.io/)
 - Docker and docker-compose
+
 ## Getting things ready
 
 First, clone this repository:
@@ -17,8 +19,8 @@ Then, create a `.env` file from the example:
 cd hasura-auth
 cp .env.example .env
 ```
-## Develop
 
+## Develop
 
 ```sh
 make dev
@@ -27,7 +29,6 @@ make dev
 Hasura-auth is now running on `http://localhost:4000` and will restart on evey change. GraphQL-codegen is watching the Hasura GraphQL and will regenerate every change in the schema.
 
 ## Test
-
 
 ```sh
 make test
@@ -46,6 +47,7 @@ make build
 # Equivalent command:
 # docker build -t nhost/hasura-auth:local .
 ```
+
 ## Generate the OpenAPI specs
 
 ```sh
@@ -59,14 +61,17 @@ Commits are linted so we can automatically bump semantic versions and changelog.
 
 It is then recommended to commit your changes with `git cz`, or else (if commitizen is not installed) to use the command `pnpm run cz`.
 
-## Release a new version
+## Changesets
 
-Thanks to the wonderful [release-it](https://github.com/release-it/release-it), maintainers of this repository can release a new version calculated from conventional commits, with the following command:
+If you've made changes to the packages, you must describe those changes so that they can be reflected in the next release.
+We use [changesets](https://github.com/changesets/changesets) to support our versioning and release workflows. When you submit a pull request, a bot checks if some changesets are present, and if not, it directs you to add them.
+
+The most comprehensive way to add a changeset is to run the following command in the repository root:
 
 ```sh
-# Print what would be the next version
-pnpm run release:preview
-pnpm run release
+$ pnpm changeset
 ```
 
-It will then tag the branch, push to GitHub, and trigger a GitHub relase. A GitHub action will then takeover to test, build and tag the docker image, and publish it to [Docker Hub](https://hub.docker.com/r/nhost/hasura-auth).
+This will create a file in the `.changeset` directory. You can edit it to give more details about the change you just made.
+
+You can take a look at the changeset documentation: [How to add a changeset](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
