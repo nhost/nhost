@@ -26,18 +26,16 @@ https://vercel.app
 
 ```
 
-It is possible to use other patterns, for instance to make the redirect url work with both http and https:
+It is possible to use other patterns, for instance:
+
+- to allow both http and https:
 
 ```
 AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http?(s)://website.com
 ```
 
-As a result:
+- to allow any port:
 
-```sh
-# Correct
-http://website.com
-https://website.com
-
-
+```
+AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http://website.com?(:{1..65536})
 ```

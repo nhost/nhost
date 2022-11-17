@@ -60,9 +60,11 @@ describe('Unit tests on field validation', () => {
     const clientUrl = 'http://localhost:3000';
     const domain = 'allowed.com';
     const protocolDomain = 'protocol.com';
+    const anyPortDomain = 'port.com';
     const anotherUrl = `https://${domain}/allowed`;
     const protocolUrl = `http?(s)://${protocolDomain}`;
     const subdomainUrl = `https://*.${domain}/allowed`;
+    const anyportUrl = `https://${anyPortDomain}?(:{1..65536})`;
     const otherAllowedRedirects = `${anotherUrl},${subdomainUrl},${protocolUrl}`;
     beforeAll(async () => {
       await request.post('/change-env').send({
@@ -169,12 +171,24 @@ describe('Unit tests on field validation', () => {
       expect(redirectTo.validate(`link://localhost:3000`).error).toBeObject();
     });
 
-    it('should accept a http/https insensitive redirect url', () => {
+    it('should accept both http and https when set', () => {
       expect(redirectTo.validate(`https://${protocolDomain}`).value).toEqual(
         `https://${protocolDomain}`
       );
       expect(redirectTo.validate(`http://${protocolDomain}`).value).toEqual(
         `http://${protocolDomain}`
+      );
+    });
+
+    it('should accept any port when set', () => {
+      expect(redirectTo.validate(`https://${anyportUrl}`).value).toEqual(
+        `https://${anyportUrl}`
+      );
+      expect(redirectTo.validate(`https://${anyportUrl}:80`).value).toEqual(
+        `https://${anyportUrl}:80`
+      );
+      expect(redirectTo.validate(`https://${anyportUrl}:8080`).value).toEqual(
+        `https://${anyportUrl}:8080`
       );
     });
 
