@@ -1,6 +1,6 @@
 import { add, Duration } from 'date-fns'
 
-import { hasuraClient } from './client'
+import { callHasuraMetadataAPI } from './client'
 import {
   HasuraCreateScheduledEventResult,
   HasuraMetadataPayload,
@@ -68,20 +68,15 @@ export const createScheduledEvent = async <T extends Record<string, unknown> = {
     }
   }
 
-  const {
-    data: { event_id: id },
-    status,
-    statusText
-  } = await hasuraClient.post<HasuraCreateScheduledEventResult>('/v1/metadata', payload)
-  if (status !== 200) {
-    throw new Error(
-      `Impossible to create scheduled event ${endpoint}. The Hasura metadata API returned the status ${status}: ${statusText}`
-    )
-  }
-
-  return {
-    id,
-    cancel: () => deleteScheduledEvent(id)
+  try {
+    const { event_id: id } = await callHasuraMetadataAPI<HasuraCreateScheduledEventResult>(payload)
+    return {
+      id,
+      cancel: () => deleteScheduledEvent(id)
+    }
+  } catch (err) {
+    const error = err as Error
+    throw new Error(`Impossible to create scheduled event ${endpoint}: ${error.message}`)
   }
 }
 
@@ -90,13 +85,10 @@ export const deleteScheduledEvent = async (id: string): Promise<void> => {
     type: 'delete_scheduled_event',
     args: { event_id: id, type: 'one_off' }
   }
-  const { status, statusText } = await hasuraClient.post<HasuraCreateScheduledEventResult>(
-    '/v1/metadata',
-    payload
-  )
-  if (status !== 200) {
-    throw new Error(
-      `Impossible to remove scheduled event ${id}. The Hasura metadata API returned the status ${status}: ${statusText}`
-    )
+  try {
+    await callHasuraMetadataAPI(payload)
+  } catch (err) {
+    const error = err as Error
+    throw new Error(`Impossible to remove scheduled event ${id}: ${error.message}`)
   }
 }

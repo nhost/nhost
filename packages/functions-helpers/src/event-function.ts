@@ -55,6 +55,15 @@ export function eventFunction<
   errorHandler?: ErrorRequestHandler
 ): EventFunctionResult<R, E>
 
+export function eventFunction<
+  R extends HasuraEventColumnValues,
+  E extends HasuraEventType = 'MULTIPLE'
+>(
+  options: EventFunctionOptions<E>,
+  handler: EventHandler<R, E>,
+  errorHandler?: ErrorRequestHandler
+): EventFunctionResult<R, E>
+
 /**
  * Creates a function that can be used as a webhook handler for Hasura event triggers
  * @param options The event type(s) to handle

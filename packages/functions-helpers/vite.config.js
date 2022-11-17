@@ -18,7 +18,8 @@ export default defineConfig({
       input: {
         index: baseConfig.build.lib.entry,
         'functions-bundle': path.resolve(process.env.PWD, 'src/cli/bundle.ts'),
-        'functions-codegen': path.resolve(process.env.PWD, 'src/cli/codegen.ts')
+        'functions-codegen': path.resolve(process.env.PWD, 'src/cli/codegen.ts'),
+        'functions-event': path.resolve(process.env.PWD, 'src/cli/event.ts')
       },
 
       output: [

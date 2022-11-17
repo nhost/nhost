@@ -9,23 +9,6 @@
   </a>
 </p>
 
-- [x] Basic function handler
-  - [x] Roles guard
-  - [x] Enable CORS for browsers
-- [x] Hasura event handler
-  - [ ] cli command to add an event handler?
-- [ ] Remote schema
-  - [ ] With Pothos?
-  - [ ] With graphql-yoga?
-  - [ ] cli command to add a remote schema?
-- [x] Nhost client
-- [x] Code generation
-- [ ] One-off event scheduler
-  - [x] create
-  - [x] delete
-  - [ ] list?
-- [ ] Add tests
-
 ## GraphQL Code Generation
 
 The Functions helpers library contains the [react-query](https://github.com/prisma-labs/graphql-request) client. You can automatically generate the SDK from your `.graphql` files.
