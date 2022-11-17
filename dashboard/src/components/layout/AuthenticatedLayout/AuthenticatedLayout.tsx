@@ -72,7 +72,10 @@ export default function AuthenticatedLayout({
     router.push('/local/local');
   }, [isPlatform, router]);
 
-  if ((isPlatform && isLoading) || healthCheckStatus === 'loading') {
+  if (
+    (isPlatform && isLoading) ||
+    (!isPlatform && healthCheckStatus === 'loading')
+  ) {
     return (
       <BaseLayout {...props}>
         <Header className="flex max-h-[59px] flex-auto" />
