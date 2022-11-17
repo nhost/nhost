@@ -59,9 +59,11 @@ describe('Unit tests on field validation', () => {
   describe('redirections', () => {
     const clientUrl = 'http://localhost:3000';
     const domain = 'allowed.com';
+    const protocolDomain = 'protocol.com';
     const anotherUrl = `https://${domain}/allowed`;
+    const protocolUrl = `http?(s)://${protocolDomain}`;
     const subdomainUrl = `https://*.${domain}/allowed`;
-    const otherAllowedRedirects = `${anotherUrl},${subdomainUrl}`;
+    const otherAllowedRedirects = `${anotherUrl},${subdomainUrl},${protocolUrl}`;
     beforeAll(async () => {
       await request.post('/change-env').send({
         AUTH_CLIENT_URL: clientUrl,
@@ -165,6 +167,15 @@ describe('Unit tests on field validation', () => {
     it('should reject url with the wrong protocol', () => {
       expect(redirectTo.validate(`https://localhost:3000`).error).toBeObject();
       expect(redirectTo.validate(`link://localhost:3000`).error).toBeObject();
+    });
+
+    it('should accept a http/https insensitive redirect url', () => {
+      expect(redirectTo.validate(`https://${protocolDomain}`).value).toEqual(
+        `https://${protocolDomain}`
+      );
+      expect(redirectTo.validate(`http://${protocolDomain}`).value).toEqual(
+        `http://${protocolDomain}`
+      );
     });
 
     it('should reject sub-subdomains', () => {
