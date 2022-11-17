@@ -15,7 +15,6 @@ WORKDIR /app
 RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod  && pnpm store prune
-RUN pnpm run postinstall
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
