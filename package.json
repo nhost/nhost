@@ -32,7 +32,6 @@
     "lint:fix": "turbo run lint:fix",
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish",
-    "release-with-tag": "pnpm release && changeset tag",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
     "test:dashboard": "turbo run test --filter=@nhost/dashboard",
