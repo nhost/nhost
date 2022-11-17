@@ -17,5 +17,8 @@ export default function useIsHealthy() {
     },
   );
 
-  return isPlatform || (status === 'success' && failureCount === 0);
+  return {
+    isHealthy: isPlatform || (status === 'success' && failureCount === 0),
+    status,
+  };
 }

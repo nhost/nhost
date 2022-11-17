@@ -10,8 +10,6 @@ on:
 
 jobs:
   publish:
-    needs: version
-    if: needs.version.outputs.hasChangesets == 'false'
     timeout-minutes: 60
     runs-on: ubuntu-latest
     # These permissions are needed to interact with GitHub's OIDC Token endpoint.
