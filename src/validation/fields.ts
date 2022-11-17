@@ -72,7 +72,7 @@ export const metadata = Joi.object().default({}).example({
 
 export const redirectTo = Joi.string()
   .messages({
-    redirectTo: '{{#label}} is not allowed by the current hasura-auth settings',
+    redirectTo: 'The value of {{#label}} is not allowed.',
   })
   .default(ENV.AUTH_CLIENT_URL)
   .custom((value, helper) => {
