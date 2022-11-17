@@ -11,6 +11,7 @@ import { tokenRouter } from './token';
 import { signOutRouter } from './signout';
 import env from './env';
 import { verifyRouter } from './verify';
+import { oauthProviders } from './oauth';
 
 const router = express.Router();
 router.use(nocache());
@@ -44,6 +45,8 @@ router.use(verifyRouter);
 
 // admin
 env(router);
+
+router.use(oauthProviders);
 
 // all other routes should throw 404 not found
 router.use('*', (rwq, res) => {

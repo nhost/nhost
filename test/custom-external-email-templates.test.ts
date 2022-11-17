@@ -33,7 +33,7 @@ describe('custom external email templates', () => {
     await client.query(`DELETE FROM auth.users;`);
   });
 
-  it('shoud find a template through HTTP', async () => {
+  it('should find a template through HTTP', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
 

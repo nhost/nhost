@@ -1,53 +1,15 @@
 // rotate provider tokens
 import { RequestHandler } from 'express';
-import refresh from 'passport-oauth2-refresh';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, ENV } from '@/utils';
+import { ENV } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, userId } from '@/validation';
+import { logger } from '@/logger';
 
 type BodyType = {
   providerId: string;
   userId?: string;
-};
-
-const rotate = async ({ providerId, userId }: BodyType) => {
-  const { authUserProviders } = await gqlSdk.userProvider({
-    userId,
-    providerId,
-  });
-
-  const authUserProvider = authUserProviders[0];
-
-  if (!authUserProvider) {
-    throw new Error('Could not get user');
-  }
-
-  if (!authUserProvider.refreshToken) {
-    throw new Error('No refresh token found for provider id for user');
-  }
-
-  refresh.requestNewAccessToken(
-    providerId,
-    authUserProvider.refreshToken,
-    async (err: unknown, accessToken: string, refreshToken: string) => {
-      if (err) {
-        throw new Error('error refreshing tokens');
-      }
-
-      // save new token(s)
-      // possibly reuse old refresh token
-      // https://github.com/fiznool/passport-oauth2-refresh/issues/8#issuecomment-306935733
-      await gqlSdk.updateAuthUserprovider({
-        id: authUserProvider.id,
-        authUserProvider: {
-          accessToken,
-          refreshToken: refreshToken || authUserProvider.refreshToken,
-        },
-      });
-    }
-  );
 };
 
 export const userProviderTokensSchema = Joi.object({
@@ -66,9 +28,6 @@ export const userProviderTokensHandler: RequestHandler<
     return sendError(res, 'invalid-admin-secret');
   }
 
-  const { providerId, userId } = req.body;
-
-  await rotate({ providerId, userId });
-
+  logger.warn(`/user/provider/tokens is deprecated`);
   return res.json(ReasonPhrases.OK);
 };

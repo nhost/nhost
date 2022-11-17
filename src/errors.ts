@@ -154,6 +154,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     message: 'Internal server error',
   },
+  'invalid-oauth-configuration': {
+    status: StatusCodes.INTERNAL_SERVER_ERROR,
+    message: 'Invalid OAuth configuration',
+  },
 });
 
 export const sendError = (

@@ -8,7 +8,6 @@ import {
   signInEmailPasswordSchema,
 } from './email-password';
 import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
-import providers from './providers';
 import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
 import {
   signInPasswordlessEmailHandler,
@@ -134,9 +133,6 @@ router.post(
   bodyValidator(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
-
-// sign in using providers
-providers(router);
 
 /**
  * POST /signin/mfa/totp
