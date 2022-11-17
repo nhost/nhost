@@ -91,7 +91,7 @@ jobs:
           export DB_IMAGE
           # Render simple template from environment variables.
           export $(cat ./examples/docker-compose/.env.example | xargs)
-          envsubst < ./examples/docker-compose/uffizzi/docker-compose.uffizzi.yml > docker-compose.rendered.yml
+          envsubst < ./examples/docker-compose/docker-compose.uffizzi.yml > docker-compose.rendered.yml
           cat docker-compose.rendered.yml
       - name: Upload Rendered Compose File as Artifact
         uses: actions/upload-artifact@v3
