@@ -1,5 +1,76 @@
 ## Changelog
 
+## 0.16.0
+
+### Minor Changes
+
+- 09478c4: Allow patterns in allowed urls
+
+  `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS` now accepts wildcard and other [micromatch patterns](https://github.com/micromatch/micromatch#matching-features) in `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS`.
+
+  To match `https://(random-subdomain).vercel.app`:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=https://*.vercel.app
+  ```
+
+  As a result:
+
+  ```sh
+  # Correct
+  https://bob.vercel.app
+  https://anything.vercel.app
+
+  # Incorrect
+  https://sub.bob.vercel.app
+  http://bob.vercel.app
+  https://vercel.app
+
+  ```
+
+  It is possible to use other patterns, for instance:
+
+  - to allow both http and https:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http?(s)://website.com
+  ```
+
+  - to allow any port:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http://website.com?(:{1..65536})
+  ```
+
+- 4d16514: Fix Twitter provider (close [#100](https://github.com/nhost/hasura-auth/issues/100))
+- c6daab9: Synchronise `AUTH_USER_DEFAULT_ALLOWED_ROLES` and `AUTH_USER_DEFAULT_ROLE` with the database
+  When starting the server, all the roles defined in `AUTH_USER_DEFAULT_ALLOWED_ROLES` and `AUTH_USER_DEFAULT_ROLE` are upserted into the `auth.roles`
+  table
+- 4d16514: Use [Grant](https://github.com/simov/grant)
+  Hasura Auth was relying on PassportJS and numerous npm packages to orchestrate each Oauth provider. The code became complex to maintain, and it became more and more difficult to add new providers.
+  Providers are noew defined in one single file so it is easier to add new ones.
+
+### Patch Changes
+
+- 4d16514: Fetch the user locale when available (Discord, Google, LinkedIn, WorkOS)
+- 4d16514: Fetch avatar url from BitBucket
+- 4d16514: Fetch display name from the Strava provider
+- c6daab9: Redirect Oauth errors or cancellations
+  When a user cancelled their authentication in the middle of the Oauth choregraphy, they were falling back to an error on the Hasura Auth callback endpoint.
+  Hasura Auth now parses the error and redirect the user to the client url, with error details as query parameters.
+- 4d16514: The service starts when a provider is incorrectly configured. Instead, the endpoint fails with a standard error. The error is logged (warn level)
+- 4d16514: Fetch the email verification status when available (Apple, BitBucket, Discord, GitHub, Google)
+- c6daab9: Preserve the case in `redirectTo` options, and case-insensitive validation
+  The `redirectTo` values were transformed into lower case. It now validates regardless of the case, and preserve the original value.
+- c6daab9: Return Have I Been Pwned error message
+  Hasura Auth now returns the reason why the password is not compliant with HIBP.
+- c6daab9: Log error when failing to apply Hasura metadata
+- c6daab9: Tell why Hasura can't be reached
+  When starting, Hasura Auth waits for Hasura to be ready. Hasura Auth now logs the reason why Hasura can't be reached.
+- 4d16514: Enforce Oauth scopes required by hasura-auth
+  Custom scopes set as environment variables don't replace the scopes that are required by Hasura-auth to function. They are appended instead.
+- c6daab9: Increase OTP secret entropy to 256 bits
+
 ## [0.15.0](https://github.com/nhost/hasura-auth/compare/v0.14.0...v0.15.0) (2022-10-18)
 
 ### Bug Fixes
