@@ -31,8 +31,7 @@ jobs:
           version: pnpm run ci:version
           commit: 'chore: update versions'
           title: 'chore: update versions'
-          publish: pnpm run release
-          tag: pnpm changeset tag
+          publish: pnpm run release && pnpm changeset tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
