@@ -58,9 +58,9 @@ describe('Unit tests on field validation', () => {
 
   describe('redirections', () => {
     const clientUrl = 'http://localhost:3000';
-    const domain = 'anotherdomain.com';
-    const anotherUrl = `https://${domain}/anotherpath`;
-    const subdomainUrl = `http://*.${domain}/anotherpath`;
+    const domain = 'allowed.com';
+    const anotherUrl = `https://${domain}/allowed`;
+    const subdomainUrl = `https://*.${domain}/allowed`;
     const otherAllowedRedirects = `${anotherUrl},${subdomainUrl}`;
     beforeAll(async () => {
       await request.post('/change-env').send({
@@ -74,9 +74,9 @@ describe('Unit tests on field validation', () => {
         AUTH_CLIENT_URL: '',
       });
       expect(
-        redirectTo.validate('http://www.google.com/subpath?key=value').value
-      ).toEqual('http://www.google.com/subpath?key=value');
-      expect(redirectTo.validate('not-an-url').error).toBeObject();
+        redirectTo.validate('https://www.google.com/subpath?key=value').value
+      ).toEqual('https://www.google.com/subpath?key=value');
+
       await request.post('/change-env').send({
         AUTH_CLIENT_URL: clientUrl,
       });
@@ -118,26 +118,26 @@ describe('Unit tests on field validation', () => {
     });
 
     it('should work with wildcards', () => {
-      expect(redirectTo.validate(`http://bob.${domain}`).value).toEqual(
-        `http://bob.${domain}`
+      expect(redirectTo.validate(`https://bob.${domain}`).value).toEqual(
+        `https://bob.${domain}`
       );
       expect(
-        redirectTo.validate(`http://bob.${domain}/sub-route`).value
-      ).toEqual(`http://bob.${domain}/sub-route`);
+        redirectTo.validate(`https://bob.${domain}/sub-route`).value
+      ).toEqual(`https://bob.${domain}/sub-route`);
       expect(
-        redirectTo.validate(`http://bob.${domain}#key=value`).value
-      ).toEqual(`http://bob.${domain}#key=value`);
+        redirectTo.validate(`https://bob.${domain}#key=value`).value
+      ).toEqual(`https://bob.${domain}#key=value`);
       expect(
-        redirectTo.validate(`http://bob.${domain}?key=value`).value
-      ).toEqual(`http://bob.${domain}?key=value`);
+        redirectTo.validate(`https://bob.${domain}?key=value`).value
+      ).toEqual(`https://bob.${domain}?key=value`);
     });
 
     it('should be case insentivite', () => {
-      expect(
-        redirectTo.validate('https://anotherdomain.com/ANOTHERpath').value
-      ).toEqual('https://anotherdomain.com/ANOTHERpath');
-      expect(redirectTo.validate('https://ANOTHERdomain.com').value).toEqual(
-        'https://ANOTHERdomain.com'
+      expect(redirectTo.validate('https://allowed.com/ALLOWED').value).toEqual(
+        'https://allowed.com/ALLOWED'
+      );
+      expect(redirectTo.validate('https://ALLOWED.com').value).toEqual(
+        'https://ALLOWED.com'
       );
       expect(redirectTo.validate(`${clientUrl}?KEY=VaLuE`).value).toEqual(
         `${clientUrl}?KEY=VaLuE`
@@ -145,6 +145,32 @@ describe('Unit tests on field validation', () => {
       expect(redirectTo.validate(`${clientUrl}#KEY=VaLuE`).value).toEqual(
         `${clientUrl}#KEY=VaLuE`
       );
+    });
+
+    it('should reject an invalid url', () => {
+      expect(redirectTo.validate('not-an-url').error).toBeObject();
+    });
+
+    it('should reject url with the wrong port', () => {
+      expect(redirectTo.validate(`https://localhost:9999`).error).toBeObject();
+      expect(
+        redirectTo.validate(`https://${domain}:9999/allowed`).error
+      ).toBeObject();
+    });
+
+    it('should reject url with the wrong path', () => {
+      expect(redirectTo.validate(`https://${domain}/wrong`).error).toBeObject();
+    });
+
+    it('should reject url with the wrong protocol', () => {
+      expect(redirectTo.validate(`https://localhost:3000`).error).toBeObject();
+      expect(redirectTo.validate(`link://localhost:3000`).error).toBeObject();
+    });
+
+    it('should reject sub-subdomains', () => {
+      expect(
+        redirectTo.validate(`https://bob.thebuilder.${domain}/allowed`).error
+      ).toBeObject();
     });
   });
 });

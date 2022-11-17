@@ -93,6 +93,8 @@ export const redirectTo = Joi.string()
     // * Allowed redirect urls also accepts wildcards and other micromatch patterns
     const expressions = ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map(
       (allowed) => {
+        // * Replace all the `.` by `/` so micromatch will understand `.` as a path separator
+        allowed = allowed.replace(/[.]/g, '/');
         // * Append `/**` to the end of the allowed URL to allow for any subpath
         if (allowed.endsWith('/**')) {
           return allowed;
@@ -110,7 +112,11 @@ export const redirectTo = Joi.string()
     try {
       // * Don't take the query parameters into account
       const url = new URL(value);
-      const urlWithoutParams = `${url.origin}${url.pathname}`;
+      const urlWithoutParams =
+        // * Remove the query parameters and the hash
+        `${url.origin}${url.pathname}`
+          // * Replace all the `.` by `/` so micromatch will understand `.` as a path separator
+          .replace(/[.]/g, '/');
       const match = micromatch.isMatch(urlWithoutParams, expressions, {
         nocase: true,
       });

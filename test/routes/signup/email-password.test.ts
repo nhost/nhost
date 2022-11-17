@@ -212,6 +212,8 @@ describe('email-password', () => {
         options: { redirectTo: 'http://this-redirection-url-is-forbidden.com' },
       })
       .expect(StatusCodes.BAD_REQUEST);
-    expect(body.message).toStartWith('"options.redirectTo"');
+    expect(body.message).toEqual(
+      'The value of "options.redirectTo" is not allowed.'
+    );
   });
 });
