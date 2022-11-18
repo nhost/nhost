@@ -24,7 +24,7 @@
         "NEXT_PUBLIC_NHOST_PLATFORM",
         "NEXT_PUBLIC_NHOST_MIGRATIONS_URL",
         "NEXT_PUBLIC_NHOST_HASURA_URL",
-        "NEXT_PUBLIC_NHOST_HASURA_URL"
+        "NEXT_PUBLIC_ENV"
       ]
     },
     "@nhost/sync-versions#start": {
