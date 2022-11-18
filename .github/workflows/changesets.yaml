@@ -45,7 +45,7 @@ jobs:
           package="@nhost/dashboard"
           version=$(jq -r .version dashboard/package.json)
           tag="$package@$version"
-          git tag $tag 2>/dev/null && (git push origin --tags ; echo "dashboardVersion=$tag" >> $GITHUB_OUTPUT) || true
+          git tag $tag 2>/dev/null && (git push origin --tags ; echo "dashboardVersion=$version" >> $GITHUB_OUTPUT) || true
 
   publish:
     runs-on: ubuntu-latest
