@@ -9,6 +9,9 @@ COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
 FROM node:16-alpine AS builder
+ARG TURBO_TOKEN
+ARG TURBO_TEAM
+RUN env
 RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app

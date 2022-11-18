@@ -11,6 +11,9 @@ on:
       - '!.changeset/**'
       - 'LICENSE'
 
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -81,6 +84,9 @@ jobs:
           context: .
           file: ./dashboard/Dockerfile
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            TURBO_TOKEN=${{ env.TURBO_TOKEN }}
+            TURBO_TEAM=#{{ env.TURBO_TEAM }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
