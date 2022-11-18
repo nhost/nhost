@@ -47,7 +47,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: version
-    if: needs.version.outputs.hasChangesets == 'false' && needs.version.outputs.dashboardVersion != ''
+    if: needs.version.outputs.dashboardVersion != ''
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -60,7 +60,6 @@ jobs:
           images: |
             nhost/dashboard
           tags: |
-            type=schedule
             type=raw,value=latest,enable=true
             type=semver,pattern={{version}},value=v${{ needs.version.outputs.dashboardVersion }}
             type=semver,pattern={{major}}.{{minor}},value=v${{ needs.version.outputs.dashboardVersion }}
