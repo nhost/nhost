@@ -56,6 +56,10 @@ export function getCurrentEnvironment(): Environment {
 }
 
 export function generateRemoteAppUrl(subdomain: string): string {
+  if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
+    return 'http://localhost:1337';
+  }
+
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || 'http://localhost:1337';
   }
