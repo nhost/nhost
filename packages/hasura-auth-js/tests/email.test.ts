@@ -1,9 +1,8 @@
 import { faker } from '@faker-js/faker'
 import axios from 'axios'
-import htmlUrls from 'html-urls'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { auth, mailhog } from './helpers'
+import { auth, getHtmlLink, mailhog } from './helpers'
 
 describe('emails', () => {
   afterEach(async () => {
@@ -19,20 +18,11 @@ describe('emails', () => {
       password
     })
 
-    // get email that was sent
-    const message = await mailhog.latestTo(email)
-
-    if (!message?.html) {
-      throw new Error('email does not exists')
-    }
-
     // get verify email link
-    const verifyEmailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
-    )
+    const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
     // verify email
-    await axios.get(verifyEmailLink.url, {
+    await axios.get(verifyEmailLink, {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })
@@ -52,20 +42,11 @@ describe('emails', () => {
 
     expect(changeEmailResponse.error).toBeNull()
 
-    // get email that was sent
-    const changeEmailEmail = await mailhog.latestTo(email)
-
-    if (!changeEmailEmail?.html) {
-      throw new Error('email does not exists')
-    }
-
     // get verify email link
-    const changeEmailLink = htmlUrls({ html: changeEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('emailConfirmChange')
-    )
+    const changeEmailLink = await getHtmlLink(email, 'emailConfirmChange')
 
     // verify email
-    await axios.get(changeEmailLink.url, {
+    await axios.get(changeEmailLink, {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })
@@ -103,21 +84,12 @@ describe('emails', () => {
 
     expect(messages.count).toBe(1)
 
-    // get email that was sent
-    const verifyEmailEmail = await mailhog.latestTo(email)
-
-    if (!verifyEmailEmail?.html) {
-      throw new Error('email does not exists')
-    }
-
     // test email link
     // get verify email link
-    const verifyEmailLink = htmlUrls({ html: verifyEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
-    )
+    const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
     // verify email
-    await axios.get(verifyEmailLink.url, {
+    await axios.get(verifyEmailLink, {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })

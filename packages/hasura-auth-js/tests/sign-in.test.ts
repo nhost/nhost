@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker'
 import { USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import axios from 'axios'
-import htmlUrls from 'html-urls'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
+import { auth, getHtmlLink, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 
 describe('sign-in', () => {
   afterEach(async () => {
@@ -54,20 +53,11 @@ describe('sign-in', () => {
     expect(error).toBeNull()
     expect(session).toBeNull()
 
-    // get email that was sent
-    const message = await mailhog.latestTo(email)
-
-    if (!message?.html) {
-      throw new Error('email does not exists')
-    }
-
     // get passwordless email ink
-    const emailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('signinPasswordless')
-    )
+    const emailLink = await getHtmlLink(email, 'signinPasswordless')
 
     // verify email
-    await axios.get(emailLink.url, {
+    await axios.get(emailLink, {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })
