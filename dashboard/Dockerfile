@@ -1,6 +1,6 @@
 
 FROM node:16-alpine AS pruner
-RUN apk add --no-cache libc6-compat python3 py3-pip make g++
+RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
 FROM node:16-alpine AS builder
-RUN apk add --no-cache libc6-compat python3 py3-pip make g++
+RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
 

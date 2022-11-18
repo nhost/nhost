@@ -72,7 +72,7 @@
     "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
-    "html-urls": "^2.4.38",
+    "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
     "start-server-and-test": "^1.14.0"
   }
