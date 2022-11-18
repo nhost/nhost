@@ -41,7 +41,7 @@ export default function AuthenticatedLayout({
   const isPlatform = useIsPlatform();
   const { newWorkspace, closeSection } = useUI();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
-  const { isHealthy, status: healthCheckStatus } = useIsHealthy();
+  const isHealthy = useIsHealthy();
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -72,10 +72,7 @@ export default function AuthenticatedLayout({
     router.push('/local/local');
   }, [isPlatform, router]);
 
-  if (
-    (isPlatform && isLoading) ||
-    (!isPlatform && healthCheckStatus === 'loading')
-  ) {
+  if (isPlatform && isLoading) {
     return (
       <BaseLayout {...props}>
         <Header className="flex max-h-[59px] flex-auto" />

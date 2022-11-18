@@ -65,7 +65,7 @@ function DataBrowserSidebarContent({
   const [optimisticlyRemovedTable, setOptimisticlyRemovedTable] =
     useState<string>();
 
-  const [selectedSchema, setSelectedSchema] = useState<string>();
+  const [selectedSchema, setSelectedSchema] = useState<string>('');
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
 
   /**

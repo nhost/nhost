@@ -86,7 +86,7 @@ importers:
       '@emotion/styled': ^11.10.5
       '@fontsource/inter': ^4.5.14
       '@fontsource/roboto-mono': ^4.5.8
-      '@graphiql/react': ^0.13.2
+      '@graphiql/react': ^0.14.0
       '@graphiql/toolkit': ^0.8.0
       '@graphql-codegen/cli': ^2.8.0
       '@graphql-codegen/typescript': ^2.7.1
@@ -164,7 +164,7 @@ importers:
       express: ^4.18.2
       express-validator: ^6.14.2
       generate-password: ^1.7.0
-      graphiql: ^2.0.8
+      graphiql: ^2.1.0
       graphql: 15.7.2
       graphql-request: ^4.3.0
       graphql-tag: ^2.12.6
@@ -223,7 +223,7 @@ importers:
       '@emotion/styled': 11.10.5_hmjty4frusbltjhl3xd7udcm2y
       '@fontsource/inter': 4.5.14
       '@fontsource/roboto-mono': 4.5.8
-      '@graphiql/react': 0.13.7_te5rle7gmjg3syudiw42pabya4
+      '@graphiql/react': 0.14.0_te5rle7gmjg3syudiw42pabya4
       '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
       '@heroicons/react': 1.0.6_react@18.2.0
@@ -6160,37 +6160,6 @@ packages:
 
   /@gqty/utils/1.0.0:
     resolution: {integrity: sha512-QJMlzts//d0H5mlekOZgx1a4KsTYXfxmRhhx8g/8mvzdaNVPxhFzCsv3+ljTOzbW3A08qy4jXQPWAMoTefSJDQ==}
-
-  /@graphiql/react/0.13.7_te5rle7gmjg3syudiw42pabya4:
-    resolution: {integrity: sha512-mI+6mXd9AJFDJy39VuZGxCiVLvmBe2XoNidbN3lXgTLe689RZKifPaUw41USitQOu20sASoYDfzJ8i98G4urow==}
-    peerDependencies:
-      graphql: ^15.5.0 || ^16.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
-      '@reach/combobox': 0.17.0_biqbaboplfbrettd7655fr4n2y
-      '@reach/dialog': 0.17.0_2zx2umvpluuhvlq44va5bta2da
-      '@reach/listbox': 0.17.0_biqbaboplfbrettd7655fr4n2y
-      '@reach/menu-button': 0.17.0_pumtretovylab5lwhztzjp2kuy
-      '@reach/tooltip': 0.17.0_biqbaboplfbrettd7655fr4n2y
-      '@reach/visually-hidden': 0.17.0_biqbaboplfbrettd7655fr4n2y
-      codemirror: 5.65.9
-      codemirror-graphql: 2.0.2_iqwfwa2i4p54k5bdy4wsg4tww4
-      copy-to-clipboard: 3.3.3
-      graphql: 15.7.2
-      graphql-language-service: 5.1.0_graphql@15.7.2
-      markdown-it: 12.3.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      set-value: 4.1.0
-    transitivePeerDependencies:
-      - '@codemirror/language'
-      - '@types/node'
-      - '@types/react'
-      - graphql-ws
-      - react-is
-    dev: false
 
   /@graphiql/react/0.14.0_te5rle7gmjg3syudiw42pabya4:
     resolution: {integrity: sha512-BBkbl35akar4/+4P6ggZ99jSmU0D1qV70A2OegkuJ4t/knAis/R713faOs9xKyjkUj8hv6+KcAqBOp48LnP6lA==}
@@ -22043,7 +22012,7 @@ packages:
     dev: true
 
   /isobject/3.0.1:
-    resolution: {integrity: sha1-TkMekrEalzFjaqH5yNHMvP2reN8=}
+    resolution: {integrity: sha512-WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==}
     engines: {node: '>=0.10.0'}
 
   /isobject/4.0.0:
