@@ -86,7 +86,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             TURBO_TOKEN=${{ env.TURBO_TOKEN }}
-            TURBO_TEAM=#{{ env.TURBO_TEAM }}
+            TURBO_TEAM=${{ env.TURBO_TEAM }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
