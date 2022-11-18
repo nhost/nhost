@@ -53,14 +53,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Tag
-        id: version
-        run: |
-          version="${{ needs.version.outputs.dashboardVersion }}"
-          IFS='.' read -r -a array <<< $version
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "major=${array[0]}" >> $GITHUB_OUTPUT
-          echo "minor=${array[1]}" >> $GITHUB_OUTPUT
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -70,9 +62,9 @@ jobs:
           tags: |
             type=schedule
             type=raw,value=latest,enable=true
-            type=semver,pattern=${{ steps.version.outputs.version }}
-            type=semver,pattern=${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}
-            type=semver,pattern=${{ steps.version.outputs.major }}
+            type=semver,pattern={{version}},value=v${{ needs.version.outputs.dashboardVersion }}
+            type=semver,pattern={{major}}.{{minor}},value=v${{ needs.version.outputs.dashboardVersion }}
+            type=semver,pattern={{major}},value=v${{ needs.version.outputs.dashboardVersion }}
             type=sha
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -92,3 +84,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          push: true
