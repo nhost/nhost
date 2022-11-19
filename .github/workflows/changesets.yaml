@@ -11,34 +11,18 @@ on:
 
 jobs:
   version:
+    name: Determine version
     runs-on: ubuntu-latest
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
-      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        id: pnpm-install
-        with:
-          version: 7.14.2
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
 
       - name: Install dependencies
         run: pnpm install
@@ -52,15 +36,42 @@ jobs:
           title: 'chore: update versions'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Tag
-        id: tag
-        if: steps.changesets.outputs.hasChangesets == 'false'
-        run: |
-          tag=v$(jq -r .version package.json)
-          git tag $tag 2>/dev/null && (git push origin --tags ; echo "tag=$tag" >> $GITHUB_OUTPUT) || true
-  publish:
+
+  build:
+    name: Build Docker image
     needs: version
-    if: needs.version.outputs.hasChangesets == 'false' && needs.version.outputs.tag != ''
+    if: needs.version.outputs.hasChangesets == 'false'
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build
+        uses: docker/build-push-action@v3
+        timeout-minutes: 60
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test:
+    name: Run tests
+    uses: ./.github/workflows/test.yaml
+
+  publish:
+    name: Publish image & GitHub release
+    needs:
+      - test
+      - build
+      - version
     timeout-minutes: 60
     runs-on: ubuntu-latest
     # These permissions are needed to interact with GitHub's OIDC Token endpoint.
@@ -70,15 +81,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - uses: taiki-e/create-gh-release-action@v1
+        uses: actions/checkout@v3
         with:
-          changelog: CHANGELOG.md
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: refs/tags/${{ needs.version.outputs.tag }}
+          fetch-depth: 0
       - name: Preprocess environment
         id: preprocess-environment
-        run: echo "::set-output name=aws_account_id::${{ secrets.AWS_PRODUCTION_ACCOUNT_ID }}"
+        run: echo "aws_account_id=${{ secrets.AWS_PRODUCTION_ACCOUNT_ID }}" >> $GITHUB_OUTPUT
+      - name: Determine tags
+        # Create and push a Git tag for the release it doesn't already exist.
+        # If the package version has not been released yet:
+        # 1. push the corresponding git tag
+        # 2. add the corresponding docker tags to the output
+        # 3. add the corresponding git tag to the output
+        id: tags
+        run: |
+          CURRENT_VERSION=$(jq -r .version package.json)
+          GIT_TAG="v$CURRENT_VERSION"
+          echo "docker_tags<<EOF" >> $GITHUB_OUTPUT
+          echo "type=sha" >> $GITHUB_OUTPUT
+          echo "type=raw,value=latest,enable=true" >> $GITHUB_OUTPUT
+          if [ "${{ needs.version.outputs.hasChangesets }}" = "false" ] && [ -z "$(git tag -l | grep $GIT_TAG)" ]; then
+            git tag $GIT_TAG
+            git push origin --tags
+            echo "type=semver,pattern={{version}},value=$GIT_TAG" >> $GITHUB_OUTPUT
+            echo "type=semver,pattern={{major}}.{{minor}},value=$GIT_TAG" >> $GITHUB_OUTPUT
+            echo "type=semver,pattern={{major}},value=$GIT_TAG" >> $GITHUB_OUTPUT
+            echo 'EOF' >> $GITHUB_OUTPUT
+            echo "git_tag=$GIT_TAG" >> $GITHUB_OUTPUT
+          else
+            echo 'EOF' >> $GITHUB_OUTPUT
+          fi
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -87,16 +119,9 @@ jobs:
           images: |
             nhost/hasura-auth
             ${{ steps.preprocess-environment.outputs.aws_account_id }}.dkr.ecr.eu-central-1.amazonaws.com/hasura-auth
-          # generate Docker tags based on the following events/attributes
-          tags: |
-            type=schedule
-            type=raw,value=latest,enable=true
-            type=semver,pattern={{version}},value=${{ needs.version.outputs.tag }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.version.outputs.tag }}
-            type=semver,pattern={{major}},value=${{ needs.version.outputs.tag }}
-            type=sha
+          tags: ${{ steps.tags.outputs.docker_tags }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to DockerHub
@@ -115,9 +140,18 @@ jobs:
         uses: docker/build-push-action@v3
         timeout-minutes: 60
         with:
-          # TODO: use cache https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md
           context: .
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.docker_tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
+          cache-from: type=gha
+      - name: Create GitHub Release
+        uses: taiki-e/create-gh-release-action@v1
+        if: steps.tags.outputs.git_tag != ''
+        with:
+          changelog: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/tags/${{ steps.tags.outputs.git_tag }}
+      - name: Remove tag
+        if: failure() && steps.tags.outputs.git_tag != ''
+        run: git push --delete origin ${{ steps.tags.outputs.git_tag }}

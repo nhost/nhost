@@ -11,7 +11,7 @@ services:
     ports:
       - '5432:5432'
   graphql-engine:
-    image: hasura/graphql-engine:v2.2.0
+    image: hasura/graphql-engine:v2.10.1
     depends_on:
       - postgres
     restart: always
