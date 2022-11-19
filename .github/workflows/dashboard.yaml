@@ -1,11 +1,7 @@
 name: 'Dashboard'
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'packages/**'
-      - 'dashboard/**'
+  workflow_call:
   pull_request:
     branches: [main]
     types: [opened, synchronize]
