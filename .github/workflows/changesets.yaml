@@ -40,21 +40,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Tag Dashboard
+      - name: Check dashboard tag
         id: dashboard
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
           DASHBOARD_VERSION=$(jq -r .version dashboard/package.json)
           GIT_TAG="${{ env.DASHBOARD_PACKAGE}}@$DASHBOARD_VERSION"
           if [ -z "$(git tag -l | grep $GIT_TAG)" ]; then
-            git tag $GIT_TAG
-            git push origin --tags
             echo "dashboardVersion=$DASHBOARD_VERSION" >> $GITHUB_OUTPUT
           fi
 
   test:
     needs: version
-    name: Run Dashboard tests
+    name: Run dashboard tests
     if: needs.version.outputs.dashboardVersion != ''
     uses: ./.github/workflows/dashboard.yaml
 
@@ -68,6 +66,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Add git tag
+        run: |
+          git tag $GIT_TAG
+          git push origin --tags
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
