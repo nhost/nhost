@@ -28,7 +28,7 @@ export interface NhostFunctionOptions {
  * @param errorHandler the error handler
  * @example
  * ```ts
- * import { nhostFunction } from '@nhost/functions-js'
+ * import { nhostFunction } from '@nhost/functions-helpers'
  *
  * export default nhostFunction({ roles: ['user'] }, (req, res) => {
  *   console.log(req.role)
@@ -53,7 +53,7 @@ export function nhostFunction<
  * @param errorHandler the error handler
  * @example
  *  ```ts
- * import { nhostFunction } from '@nhost/functions-js'
+ * import { nhostFunction } from '@nhost/functions-helpers'
  *
  * export default nhostFunction<{ id: string; created_at: string; value: number }>(
  *   (req, res) => {
@@ -64,7 +64,7 @@ export function nhostFunction<
  * ```
  * @example
  * ```ts
- * import { nhostFunction } from '@nhost/functions-js'
+ * import { nhostFunction } from '@nhost/functions-helpers'
  *
  * export default nhostFunction((req, res) => {
  *   // Returns the decoded user claims, if any

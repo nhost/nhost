@@ -13,6 +13,10 @@ export default defineConfig({
   },
   build: {
     ...baseConfig.build,
+    lib: {
+      ...baseConfig.build.lib,
+      formats: undefined
+    },
     rollupOptions: {
       ...baseConfig.build.rollupOptions,
       input: {

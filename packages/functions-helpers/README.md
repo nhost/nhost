@@ -1,9 +1,9 @@
-<h1 align="center">@nhost/functions-js</h1>
+<h1 align="center">@nhost/functions-helpers</h1>
 <h2 align="center">Serverless Functions SDK</h2>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/functions-js">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/functions-js">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/functions-helpers">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/functions-helpers">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
@@ -11,7 +11,7 @@
 
 ## Function wrapper
 
-The `nhostFunction` wrapper will enhance a function with the following:
+The `nhostFunction` wrapper enhances a function with the following:
 
 - Type the request/response handler
 - Automatically decode the user claims, if the access token has been sent as a bearer token in the `Authorization` request header.
@@ -19,7 +19,7 @@ The `nhostFunction` wrapper will enhance a function with the following:
 - Set `role` to either the default role of the user, or to the `x-hasura-role` request header, if the `x-hasura-admin-secret` is set, or if the user is allowed to use this role.
 
 ```ts
-import { nhostFunction } from `@nhost/functions-js`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction((req, res) => {
   const { userClaims, isAdmin, role } = req
@@ -30,7 +30,7 @@ export default nhostFunction((req, res) => {
 ### Guarded function
 
 ```ts
-import { nhostFunction } from `@nhost/functions-js`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction(
   { roles: ['user', 'admin'] },
@@ -44,7 +44,7 @@ export default nhostFunction(
 ### Allow CORS
 
 ```ts
-import { nhostFunction } from `@nhost/functions-js`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction({ allowCors: true }, (req, res) => {
   res.json({ success: true })
@@ -54,7 +54,7 @@ export default nhostFunction({ allowCors: true }, (req, res) => {
 ### Custom error handler
 
 ```ts
-import { nhostFunction, ExpressError } from `@nhost/functions-js`
+import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
 
 export default nhostFunction(
   (req, res) => {
@@ -73,7 +73,7 @@ export default nhostFunction(
 Import the Nhost client from this library to automatically determine the backend url and the admin secret:
 
 ```ts
-import { NhostClient } from '@nhost/functions-js'
+import { NhostClient } from '@nhost/functions-helpers'
 
 // Detects endpoints AND the hasura admin secret from env vars
 const client = new NhostClient()
@@ -118,7 +118,7 @@ npx functions-codegen
 It will create a file `functions/_sdk.ts` that you can then use in any function, for instance `functions/active-users.ts`:
 
 ```ts
-import { GraphQLClient, nhostFunction } from '@nhost/functions-js'
+import { GraphQLClient, nhostFunction } from '@nhost/functions-helpers'
 import { getSdk } from './_sdk'
 
 const client = new GraphQLClient()
@@ -143,7 +143,7 @@ Hasura Event triggers can be configured to call a Nhost function. See the [Nhost
 The `eventFunction` helper adds types to the Hasura payload:
 
 ```ts
-import { eventFunction } from '@nhost/functions-js'
+import { eventFunction } from '@nhost/functions-helpers'
 
 export default eventFunction<ColumnValues>((req) => {
   console.log(req.body.created_at)
@@ -156,7 +156,7 @@ export default eventFunction<ColumnValues>((req) => {
 You can improve the types by specifying the columns of the table:
 
 ```ts
-import { eventFunction } from '@nhost/functions-js'
+import { eventFunction } from '@nhost/functions-helpers'
 
 type ColumnValues = {
   name: string
