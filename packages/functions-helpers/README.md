@@ -9,6 +9,88 @@
   </a>
 </p>
 
+## Function wrapper
+
+The `nhostFunction` wrapper will enhance a function with the following:
+
+- Automatically decode the user claims, if the access token has been sent as a bearer token in the `Authorization` request header.
+- Set `isAdmin`, if a valid `x-hasura-admin-secret` is in the request headers, or of the user has the admin role and is currenlty using it `x-hasura-default-role` is `admin` in the access token, or `x-hasura-role` is `admin` in the request headers.
+- Set `role` to either the default role of the user, or to the `x-hasura-role` request header, if valid.
+
+```ts
+import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+
+export default nhostFunction((req, res) => {
+  const { userClaims, isAdmin, role } = req
+  res.json({ userClaims, isAdmin, role })
+})
+```
+
+### Guarded function
+
+```ts
+import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+
+export default nhostFunction(
+  { roles: ['user', 'admin'] },
+  (req, res) => {
+    const { userClaims, isAdmin, role } = req
+    res.json({ userClaims, isAdmin, role })
+  }
+)
+```
+
+### Allow CORS
+
+```ts
+import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+
+export default nhostFunction({ allowCors: true }, (req, res) => {
+  res.json({ success: true })
+})
+```
+
+### Custom error handler
+
+```ts
+import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+
+export default nhostFunction(
+  (req, res) => {
+    throw new ExpressError(501, 'not implemented')
+  },
+  (err, _, res) => {
+    res
+      .status(err.status)
+      .json({ note: 'custom error handler', status: err.status, message: err.message })
+  }
+)
+```
+
+## Nhost Client
+
+Import the Nhost client from this library to automatically determine the backend url and the admin secret:
+
+```ts
+import { NhostClient } from '@nhost/functions-helpers'
+
+// Detects endpoints AND the hasura admin secret from env vars
+const client = new NhostClient()
+
+// Connect to an external destination:
+const externalClient = new NhostClient({
+  subdomain: 'qwerty',
+  region: 'wa-niamey-1'
+  // or anything else we usually do to get the enpoints
+})
+
+export default async (req, res) => {
+  const users = await nhost.graphql.request('users { id }')
+  console.log(users)
+  res.json({ success: true })
+}
+```
+
 ## GraphQL Code Generation
 
 The Functions helpers library contains the [react-query](https://github.com/prisma-labs/graphql-request) client. You can automatically generate the SDK from your `.graphql` files.
@@ -120,3 +202,7 @@ export default eventFunction<ColumnValues>((req, res) => {
   res.status(501).json({ reason: 'not implemented' })
 })
 ```
+
+## One-off event scheduler
+
+TODO: explain how it works
