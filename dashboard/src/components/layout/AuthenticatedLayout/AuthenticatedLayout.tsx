@@ -85,7 +85,7 @@ export default function AuthenticatedLayout({
       <BaseLayout {...props}>
         <Header className="flex max-h-[59px] flex-auto" />
 
-        <Container className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center">
+        <Container className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center">
           <div className="mx-auto">
             <Image
               src="/terminal-text.svg"
@@ -123,7 +123,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex h-full flex-col" {...props}>
+    <BaseLayout className="flex flex-col h-full" {...props}>
       <Modal
         showModal={newWorkspace}
         close={closeSection}

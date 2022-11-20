@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -25,7 +25,7 @@
     "@emotion/styled": "^11.10.5",
     "@fontsource/inter": "^4.5.14",
     "@fontsource/roboto-mono": "^4.5.8",
-    "@graphiql/react": "^0.13.2",
+    "@graphiql/react": "^0.14.0",
     "@graphiql/toolkit": "^0.8.0",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
@@ -51,7 +51,7 @@
     "cross-fetch": "^3.1.5",
     "date-fns": "^2.29.3",
     "generate-password": "^1.7.0",
-    "graphiql": "^2.0.8",
+    "graphiql": "^2.1.0",
     "graphql": "^16.6.0",
     "graphql-request": "^4.3.0",
     "graphql-tag": "^2.12.6",
@@ -73,6 +73,7 @@
     "react-merge-refs": "^1.1.0",
     "react-syntax-highlighter": "^15.4.5",
     "react-table": "^7.8.0",
+    "sharp": "^0.31.2",
     "slugify": "^1.6.5",
     "smartlook-client": "^6.0.0",
     "stripe": "^10.17.0",

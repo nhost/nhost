@@ -1,7 +1,7 @@
 import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { useAccessToken } from '@nhost/react';
+import { useAccessToken, useNhostClient } from '@nhost/nextjs';
 import { createClient } from 'graphql-ws';
 import { useMemo } from 'react';
 
@@ -11,11 +11,12 @@ import { useMemo } from 'react';
  * @returns A function that returns a new ApolloClient instance with split functionality prepared for websockets connected to bragi.
  */
 export function useRemoteApplicationGQLClientWithSubscriptions() {
+  const client = useNhostClient();
   const token = useAccessToken();
 
   const userApplicationClient = useMemo(() => {
     const httpLink = new HttpLink({
-      uri: `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}/v1/graphql`,
+      uri: client.graphql.getUrl(),
       headers: {
         authorization: `Bearer ${token}`,
       },
@@ -48,7 +49,7 @@ export function useRemoteApplicationGQLClientWithSubscriptions() {
         httpLink,
       ),
     });
-  }, [token]);
+  }, [client.graphql, token]);
 
   return userApplicationClient;
 }

@@ -1,4 +1,5 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useNhostClient } from '@nhost/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -6,9 +7,10 @@ import { useQuery } from '@tanstack/react-query';
  */
 export default function useIsHealthy() {
   const isPlatform = useIsPlatform();
+  const client = useNhostClient();
   const { failureCount, status } = useQuery(
-    ['/v1/auth/healthz'],
-    () => fetch(`${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}/v1/auth/healthz`),
+    ['/healthz'],
+    () => fetch(`${client.auth.url}/healthz`),
     {
       enabled: !isPlatform,
       retry: true,
