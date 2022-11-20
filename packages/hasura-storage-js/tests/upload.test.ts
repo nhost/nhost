@@ -18,6 +18,19 @@ describe('test upload', () => {
     expect(error).toBeNull()
   })
 
+  it('should upload a large file from the file system', async () => {
+    const fd = new FormData()
+    fd.append('file', fs.createReadStream('./tests/assets/large.pdf'))
+
+    const { error } = await storage.upload({
+      formData: fd
+    })
+
+    console.log(error)
+
+    expect(error).toBeNull()
+  })
+
   it('should upload a file using blob from fetch', async () => {
     const logo = await fetch('http://nodejs.org/images/logo.png')
 
