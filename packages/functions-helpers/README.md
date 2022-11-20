@@ -1,9 +1,9 @@
-<h1 align="center">@nhost/functions</h1>
+<h1 align="center">@nhost/functions-helpers</h1>
 <h2 align="center">Serverless Functions Helpers</h2>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/functions">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/functions">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/functions-helpers">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/functions-helpers">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
