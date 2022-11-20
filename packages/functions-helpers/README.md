@@ -13,6 +13,7 @@
 
 The `nhostFunction` wrapper will enhance a function with the following:
 
+- Type the request/response handler
 - Automatically decode the user claims, if the access token has been sent as a bearer token in the `Authorization` request header.
 - Set `isAdmin`, if a valid `x-hasura-admin-secret` is in the request headers, or of the user has the admin role and is currenlty using it `x-hasura-default-role` is `admin` in the access token, or `x-hasura-role` is `admin` in the request headers.
 - Set `role` to either the default role of the user, or to the `x-hasura-role` request header, if valid.
