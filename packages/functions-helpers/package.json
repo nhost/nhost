@@ -47,9 +47,9 @@
     "access": "public"
   },
   "scripts": {
-    "functions-bundle": "vite-node src/cli/bundle.ts",
-    "functions-codegen": "vite-node src/cli/codegen.ts -- --origin tests",
-    "functions-event": "vite-node src/cli/event.ts --",
+    "functions-bundle": "vite-node src/scripts/bundle.ts",
+    "functions-codegen": "vite-node src/scripts/codegen.ts -- --origin tests",
+    "functions-event": "vite-node src/scripts/event.ts --",
     "dev": "run-p dev:lib \"functions-bundle --watch\"",
     "dev:lib": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "vite build",

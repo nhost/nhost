@@ -17,9 +17,9 @@ export default defineConfig({
       ...baseConfig.build.rollupOptions,
       input: {
         index: baseConfig.build.lib.entry,
-        'functions-bundle': path.resolve(process.env.PWD, 'src/cli/bundle.ts'),
-        'functions-codegen': path.resolve(process.env.PWD, 'src/cli/codegen.ts'),
-        'functions-event': path.resolve(process.env.PWD, 'src/cli/event.ts')
+        'functions-bundle': path.resolve(process.env.PWD, 'src/scripts/bundle.ts'),
+        'functions-codegen': path.resolve(process.env.PWD, 'src/scripts/codegen.ts'),
+        'functions-event': path.resolve(process.env.PWD, 'src/scripts/event.ts')
       },
 
       output: [
