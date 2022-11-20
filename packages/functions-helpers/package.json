@@ -53,10 +53,10 @@
     "dev": "run-p dev:lib \"functions-bundle --watch\"",
     "dev:lib": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "vite build",
-    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend",
+    "e2e": "run-s functions-bundle e2e:run",
+    "e2e:run": "start-test e2e:backend http-get://localhost:9695 e2e:frontend",
     "e2e:backend": "nhost dev --no-browser",
-    "e2e:frontend": "run-s functions-bundle e2e:test",
-    "e2e:test": "vitest run",
+    "e2e:frontend": "vitest run",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -87,6 +87,7 @@
     "@types/fs-extra": "^9.0.13",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.11.9",
+    "start-server-and-test": "^1.14.0",
     "typescript": "^4.9.3",
     "vite-node": "^0.25.2"
   }

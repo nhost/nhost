@@ -7,9 +7,9 @@ export type HasuraUserClaims = {
 }
 
 /**
- * Name of the operation. Can only be "INSERT", "UPDATE", "DELETE", "MANUAL", or "MULTIPLE".
+ * Name of the operation. Can only be "INSERT", "UPDATE", "DELETE", "MANUAL", or "UNKNOWN".
  */
-export type HasuraEventType = 'INSERT' | 'UPDATE' | 'DELETE' | 'MANUAL' | 'MULTIPLE'
+export type HasuraEventType = 'INSERT' | 'UPDATE' | 'DELETE' | 'MANUAL' | 'UNKNOWN'
 
 /**
  * Key-value pairs of column name and their values of the table
@@ -22,7 +22,7 @@ export type HasuraEventColumnValues = Record<string, unknown>
  */
 export type HasuraEventPayload<T extends HasuraEventColumnValues, U extends HasuraEventType> = {
   event: {
-    op: U extends 'MULTIPLE' ? 'INSERT' | 'UPDATE' | 'DELETE' | 'MANUAL' : U
+    op: U extends 'UNKNOWN' ? 'INSERT' | 'UPDATE' | 'DELETE' | 'MANUAL' : U
     /**
      * Key-value pairs of session variables (i.e. "x-hasura-*" variables) and their values (NULL if no session variables found)
      */
@@ -31,11 +31,11 @@ export type HasuraEventPayload<T extends HasuraEventColumnValues, U extends Hasu
       /**
        * Column values before the update or delete. Null when the event is of type "INSERT" or manually triggered.
        */
-      old: U extends 'MULTIPLE' ? T | null : U extends 'INSERT' | 'MANUAL' ? null : T
+      old: U extends 'UNKNOWN' ? T | null : U extends 'INSERT' | 'MANUAL' ? null : T
       /**
        * Column values after the update, or values on creation. Current row when the event manually triggered. Null when the event is of type "DELETE".
        */
-      new: U extends 'MULTIPLE' ? T | null : U extends 'DELETE' ? null : T
+      new: U extends 'UNKNOWN' ? T | null : U extends 'DELETE' ? null : T
     }
     trace_context: {
       trace_id: string

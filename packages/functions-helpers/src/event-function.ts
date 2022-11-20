@@ -1,9 +1,11 @@
 import { RequestHandler } from 'express'
 
 import { HasuraEventColumnValues, HasuraEventPayload, HasuraEventType } from './hasura-metadata'
-import { ErrorRequestHandler, webhookGuard, wrapErrors } from './utils'
+import { webhookGuard, wrapErrors } from './utils'
 
-export type EventFunctionOptions<T extends HasuraEventType = 'MANUAL'> = T | { event: T }
+type SpecifiableHasuraEventType = Exclude<HasuraEventType, 'UNKNOWN'>
+
+export type EventFunctionOptions<T extends SpecifiableHasuraEventType> = T | { event: T }
 
 type EventHandler<R extends HasuraEventColumnValues, E extends HasuraEventType> = RequestHandler<
   {},
@@ -11,58 +13,37 @@ type EventHandler<R extends HasuraEventColumnValues, E extends HasuraEventType> 
   HasuraEventPayload<R, E>,
   {}
 >
-type EventFunctionResult<
-  R extends HasuraEventColumnValues,
-  E extends HasuraEventType
-> = EventHandler<R, E>[]
+type EventFunctionResult<R extends HasuraEventColumnValues, E extends HasuraEventType> =
+  | EventHandler<R, E>[]
+  | EventHandler<R, E>
 
 // * The following overrides are a bit repetitive workaround to the fact that Typescript doesn't support partial type parameter inference
 // * https://stackoverflow.com/questions/57589098/infer-one-of-generic-types-from-function-argument/57595649#57595649
 
 export function eventFunction<
   R extends HasuraEventColumnValues,
-  E extends HasuraEventType = 'MANUAL'
->(
-  options: EventFunctionOptions<E>,
-  handler: EventHandler<R, E>,
-  errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, E>
+  E extends HasuraEventType = 'UNKNOWN'
+>(handler: EventHandler<R, E>): EventFunctionResult<R, E>
 
 export function eventFunction<
   R extends HasuraEventColumnValues,
-  E extends HasuraEventType = 'INSERT'
->(
-  options: EventFunctionOptions<E>,
-  handler: EventHandler<R, E>,
-  errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, E>
+  E extends SpecifiableHasuraEventType = 'MANUAL'
+>(options: EventFunctionOptions<E>, handler: EventHandler<R, E>): EventFunctionResult<R, E>
 
 export function eventFunction<
   R extends HasuraEventColumnValues,
-  E extends HasuraEventType = 'UPDATE'
->(
-  options: EventFunctionOptions<E>,
-  handler: EventHandler<R, E>,
-  errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, E>
+  E extends SpecifiableHasuraEventType = 'INSERT'
+>(options: EventFunctionOptions<E>, handler: EventHandler<R, E>): EventFunctionResult<R, E>
 
 export function eventFunction<
   R extends HasuraEventColumnValues,
-  E extends HasuraEventType = 'DELETE'
->(
-  options: EventFunctionOptions<E>,
-  handler: EventHandler<R, E>,
-  errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, E>
+  E extends SpecifiableHasuraEventType = 'UPDATE'
+>(options: EventFunctionOptions<E>, handler: EventHandler<R, E>): EventFunctionResult<R, E>
 
 export function eventFunction<
   R extends HasuraEventColumnValues,
-  E extends HasuraEventType = 'MULTIPLE'
->(
-  options: EventFunctionOptions<E>,
-  handler: EventHandler<R, E>,
-  errorHandler?: ErrorRequestHandler
-): EventFunctionResult<R, E>
+  E extends SpecifiableHasuraEventType = 'DELETE'
+>(options: EventFunctionOptions<E>, handler: EventHandler<R, E>): EventFunctionResult<R, E>
 
 /**
  * Creates a function that can be used as a webhook handler for Hasura event triggers
@@ -72,9 +53,24 @@ export function eventFunction<
  * @returns
  */
 export function eventFunction<R extends HasuraEventColumnValues>(
-  _options: EventFunctionOptions,
-  handler: EventHandler<R, 'MANUAL'>,
-  errorHandler?: ErrorRequestHandler
+  ...args: any[]
 ): EventFunctionResult<R, 'MANUAL'> {
-  return wrapErrors([webhookGuard, handler], errorHandler)
+  let handler: EventHandler<R, 'MANUAL'>
+  // let options: EventFunctionOptions
+  if (args.length === 1) {
+    handler = args[0]
+  } else {
+    //  options = args[0]
+    handler = args[1]
+  }
+  return wrapErrors(
+    [
+      webhookGuard,
+      (req, res, err) => {
+        handler(req, res, err)
+        return res.status(200).send({ success: true })
+      }
+    ],
+    (error, _, res) => res.status(error.status).send({ success: false, message: error.message })
+  )
 }

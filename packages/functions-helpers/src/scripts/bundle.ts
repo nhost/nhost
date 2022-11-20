@@ -13,23 +13,31 @@ const { origin, destination, watch } = args([
 
 fs.emptydirSync(destination)
 
-fs.writeJsonSync(path.join(destination, 'package.json'), {
-  name: '@nhost-dev/functions',
-  version: '0.0.0'
-})
-
-fs.writeJsonSync(path.join(destination, 'tsconfig.json'), {
-  compilerOptions: {
-    allowJs: true,
-    skipLibCheck: true,
-    noEmit: true,
-    esModuleInterop: true,
-    resolveJsonModule: true,
-    isolatedModules: true,
-    strictNullChecks: false
+fs.writeJsonSync(
+  path.join(destination, 'package.json'),
+  {
+    name: 'functions',
+    version: '0.0.0'
   },
-  include: ['**/*.js']
-})
+  { spaces: 2 }
+)
+
+fs.writeJsonSync(
+  path.join(destination, 'tsconfig.json'),
+  {
+    compilerOptions: {
+      allowJs: true,
+      skipLibCheck: true,
+      noEmit: true,
+      esModuleInterop: true,
+      resolveJsonModule: true,
+      isolatedModules: true,
+      strictNullChecks: false
+    },
+    include: ['**/*.js']
+  },
+  { spaces: 2 }
+)
 
 const targetPath = (filePath: string) => {
   const fileName = `${path.basename(filePath, path.extname(filePath))}.js`
@@ -57,8 +65,9 @@ const remove = async (filePath: string) => {
 
 const watcher: FSWatcher = chokidar
   .watch('**/*.{js,ts}', {
-    cwd: path.join(__dirname, origin),
-    ignored: ['**/_*/**', '**/*.spec.{js,ts}', '**/tests/**', '**/*.test.{js,ts}']
+    cwd: path.join(process.cwd(), origin),
+    ignored: ['**/_*/**', '**/*.spec.{js,ts}', '**/tests/**', '**/*.test.{js,ts}'],
+    ignoreInitial: false
   })
   .on('add', bundle)
   .on('change', bundle)
