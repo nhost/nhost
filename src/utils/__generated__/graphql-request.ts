@@ -3256,7 +3256,7 @@ export type AuthUserProvidersQueryVariables = Exact<{
 }>;
 
 
-export type AuthUserProvidersQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, user: { __typename?: 'users', id: any } }> };
+export type AuthUserProvidersQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> };
 
 export type UserProviderQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -3427,7 +3427,10 @@ export const UserFieldsFragmentDoc = gql`
     `;
 export const InsertProviderRequestDocument = gql`
     mutation insertProviderRequest($providerRequest: authProviderRequests_insert_input!) {
-  insertAuthProviderRequest(object: $providerRequest) {
+  insertAuthProviderRequest(
+    object: $providerRequest
+    on_conflict: {constraint: provider_requests_pkey, update_columns: [options]}
+  ) {
     id
     options
   }
@@ -3542,11 +3545,11 @@ export const AuthUserProvidersDocument = gql`
   ) {
     id
     user {
-      id
+      ...userFields
     }
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 export const UserProviderDocument = gql`
     query userProvider($userId: uuid!, $providerId: String!) {
   authUserProviders(

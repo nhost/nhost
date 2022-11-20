@@ -1,6 +1,7 @@
 import { UserRegistrationOptionsWithRedirect } from '@/types';
 import { pwnedPassword } from 'hibp';
 import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
+import micromatch from 'micromatch';
 
 import { ENV } from '../utils/env';
 
@@ -69,22 +70,64 @@ export const metadata = Joi.object().default({}).example({
   lastName: 'Smith',
 });
 
-export const redirectTo = ENV.AUTH_CLIENT_URL
-  ? Joi.alternatives()
-      .default(ENV.AUTH_CLIENT_URL)
-      .try(
-        ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
-          Joi.string()
-            .lowercase()
-            .regex(new RegExp('^' + value))
-        ),
-        Joi.string()
-          .lowercase()
-          .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
-      )
-      // ! If validation fails, it will always fall back to `ENV.AUTH_CLIENT_URL` instead of raising an error.
-      .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`)
-  : Joi.string().uri();
+export const redirectTo = Joi.string()
+  .messages({
+    redirectTo: 'The value of {{#label}} is not allowed.',
+  })
+  .default(ENV.AUTH_CLIENT_URL)
+  .custom((value, helper) => {
+    // * If no client url is set, we allow any valid url
+    if (!ENV.AUTH_CLIENT_URL) {
+      try {
+        new URL(value);
+        return value;
+      } catch {
+        return helper.error('redirectTo');
+      }
+    }
+    // * We allow any sub-path of the client url
+    if (new RegExp(`^${ENV.AUTH_CLIENT_URL}`).test(value)) {
+      return value;
+    }
+    // * We allow any sub-path of the allowed redirect urls.
+    // * Allowed redirect urls also accepts wildcards and other micromatch patterns
+    const expressions = ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map(
+      (allowed) => {
+        // * Replace all the `.` by `/` so micromatch will understand `.` as a path separator
+        allowed = allowed.replace(/[.]/g, '/');
+        // * Append `/**` to the end of the allowed URL to allow for any subpath
+        if (allowed.endsWith('/**')) {
+          return allowed;
+        }
+        if (allowed.endsWith('/*')) {
+          return `${allowed}*`;
+        }
+        if (allowed.endsWith('/')) {
+          return `${allowed}**`;
+        }
+        return `${allowed}/**`;
+      }
+    );
+
+    try {
+      // * Don't take the query parameters into account
+      const url = new URL(value);
+      const urlWithoutParams =
+        // * Remove the query parameters and the hash
+        `${url.origin}${url.pathname}`
+          // * Replace all the `.` by `/` so micromatch will understand `.` as a path separator
+          .replace(/[.]/g, '/');
+      const match = micromatch.isMatch(urlWithoutParams, expressions, {
+        nocase: true,
+      });
+      if (match) return value;
+      return helper.error('redirectTo');
+    } catch {
+      // * value is not a valid URL
+      return helper.error('redirectTo');
+    }
+  })
+  .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`);
 
 export const uuid = Joi.string()
   .regex(uuidRegex)

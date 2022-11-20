@@ -10,7 +10,7 @@ query authUserProviders($provider: String!, $providerUserId: String!) {
   ) {
     id
     user {
-      id
+      ...userFields
     }
   }
 }

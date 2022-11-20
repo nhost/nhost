@@ -1,31 +1,108 @@
+## Changelog
 
+## 0.16.0
 
-# [0.15.0](https://github.com/nhost/hasura-auth/compare/v0.14.0...v0.15.0) (2022-10-18)
+### Minor Changes
 
+- 09478c4: Allow patterns in allowed urls
+
+  `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS` now accepts wildcard and other [micromatch patterns](https://github.com/micromatch/micromatch#matching-features) in `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS`.
+
+  To match `https://(random-subdomain).vercel.app`:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=https://*.vercel.app
+  ```
+
+  As a result:
+
+  ```sh
+  # Correct
+  https://bob.vercel.app
+  https://anything.vercel.app
+
+  # Incorrect
+  https://sub.bob.vercel.app
+  http://bob.vercel.app
+  https://vercel.app
+
+  ```
+
+  It is possible to use other patterns, for instance:
+
+  - to allow both http and https:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http?(s)://website.com
+  ```
+
+  - to allow any port:
+
+  ```
+  AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS=http://website.com?(:{1..65536})
+  ```
+
+- 4d16514: Fix Twitter provider (close [#100](https://github.com/nhost/hasura-auth/issues/100))
+- c6daab9: Synchronise `AUTH_USER_DEFAULT_ALLOWED_ROLES` and `AUTH_USER_DEFAULT_ROLE` with the database
+  When starting the server, all the roles defined in `AUTH_USER_DEFAULT_ALLOWED_ROLES` and `AUTH_USER_DEFAULT_ROLE` are upserted into the `auth.roles`
+  table
+- 4d16514: Use [Grant](https://github.com/simov/grant)
+  Hasura Auth was relying on PassportJS and numerous npm packages to orchestrate each Oauth provider. The code became complex to maintain, and it became more and more difficult to add new providers.
+  Providers are noew defined in one single file so it is easier to add new ones.
+
+### Patch Changes
+
+- 4d16514: Fetch the user locale when available (Discord, Google, LinkedIn, WorkOS)
+- 4d16514: Fetch avatar url from BitBucket
+- 4d16514: Fetch display name from the Strava provider
+- c6daab9: Redirect Oauth errors or cancellations
+  When a user cancelled their authentication in the middle of the Oauth choregraphy, they were falling back to an error on the Hasura Auth callback endpoint.
+  Hasura Auth now parses the error and redirect the user to the client url, with error details as query parameters.
+- 4d16514: The service starts when a provider is incorrectly configured. Instead, the endpoint fails with a standard error. The error is logged (warn level)
+- 4d16514: Fetch the email verification status when available (Apple, BitBucket, Discord, GitHub, Google)
+- c6daab9: Preserve the case in `redirectTo` options, and case-insensitive validation
+  The `redirectTo` values were transformed into lower case. It now validates regardless of the case, and preserve the original value.
+- c6daab9: Return Have I Been Pwned error message
+  Hasura Auth now returns the reason why the password is not compliant with HIBP.
+- c6daab9: Log error when failing to apply Hasura metadata
+- c6daab9: Tell why Hasura can't be reached
+  When starting, Hasura Auth waits for Hasura to be ready. Hasura Auth now logs the reason why Hasura can't be reached.
+- 4d16514: Enforce Oauth scopes required by hasura-auth
+  Custom scopes set as environment variables don't replace the scopes that are required by Hasura-auth to function. They are appended instead.
+- c6daab9: Increase OTP secret entropy to 256 bits
+
+## [0.15.0](https://github.com/nhost/hasura-auth/compare/v0.14.0...v0.15.0) (2022-10-18)
 
 ### Bug Fixes
 
-* 🐛 capture unhandled errors ([c1f82c4](https://github.com/nhost/hasura-auth/commit/c1f82c45034aa396b9626a57afde89bd54b04564))
-* 🐛 remove wrong email-template warning ([8972912](https://github.com/nhost/hasura-auth/commit/89729120343cef6e55a87483cb66a98dcd85e144)), closes [#168](https://github.com/nhost/hasura-auth/issues/168)
-* use the metadata column in custom claims ([179d96a](https://github.com/nhost/hasura-auth/commit/179d96ad933b3fb849c13f38af8efd3cd02dfca9))
-
+- 🐛 capture unhandled errors ([c1f82c4](https://github.com/nhost/hasura-auth/commit/c1f82c45034aa396b9626a57afde89bd54b04564))
+- 🐛 remove wrong email-template warning ([8972912](https://github.com/nhost/hasura-auth/commit/89729120343cef6e55a87483cb66a98dcd85e144)), closes [#168](https://github.com/nhost/hasura-auth/issues/168)
+- use the metadata column in custom claims ([179d96a](https://github.com/nhost/hasura-auth/commit/179d96ad933b3fb849c13f38af8efd3cd02dfca9))
 
 ### Features
 
-* 🎸 Improve logging ([4bccab8](https://github.com/nhost/hasura-auth/commit/4bccab8794978ee47f60689c1a01d2f5bde767cf))
-* 🎸 improve metadata application and startup time ([728f35b](https://github.com/nhost/hasura-auth/commit/728f35bc6b8dea265aac22ddd3b583ec328ba917))# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
+- 🎸 Improve logging ([4bccab8](https://github.com/nhost/hasura-auth/commit/4bccab8794978ee47f60689c1a01d2f5bde767cf))
+- 🎸 improve metadata application and startup time ([728f35b](https://github.com/nhost/hasura-auth/commit/728f35bc6b8dea265aac22ddd3b583ec328ba917))# [0.14.0](https://github.com/nhost/hasura-auth/compare/v0.13.2...v0.14.0) (2022-10-07)
+
+## 0.14.0
 
 ### Features
 
 - **provider:** add azure ad provider ([c7247cc](https://github.com/nhost/hasura-auth/commit/c7247ccd0b1d0128a4b2e7af02c768cae175aa08))## [0.13.2](https://github.com/nhost/hasura-auth/compare/v0.13.1...v0.13.2) (2022-09-28), thanks [@yannickglt](https://github.com/yannickglt) for the contribution
 
+## 0.13.2
+
 ### Bug Fixes
 
 - drop authenticators inconsistency safely ([5939bd8](https://github.com/nhost/hasura-auth/commit/5939bd81c1943034801da11f3da06b163fc2f291))## [0.13.1](https://github.com/nhost/hasura-auth/compare/v0.13.0...v0.13.1) (2022-09-27)
 
+## 0.13.1
+
 ### Bug Fixes
 
 - don't drop inconsistencies when applying Hasura metadata ([3744152](https://github.com/nhost/hasura-auth/commit/374415289b83df84557b3822897082e38aff1cd6))# [0.13.0](https://github.com/nhost/hasura-auth/compare/v0.12.0...v0.13.0) (2022-09-23)
+
+## 0.13.0
 
 ### Bug Fixes
 
@@ -33,6 +110,8 @@
 - Fetch profile from WorkOS oauth connection ([b49d4f7](https://github.com/nhost/hasura-auth/commit/b49d4f70c7dd1cf560243b11e34f94ce7b688e05))
 - Use client hostname as RP ID ([2371fdc](https://github.com/nhost/hasura-auth/commit/2371fdc9173ffa79b008c8581450c51ce1546d08))
 - webauthn signup endpoints ([8982a49](https://github.com/nhost/hasura-auth/commit/8982a497df87fafa7c7cad3b52de8c1f9e2e134e))# [0.12.0](https://github.com/nhost/hasura-auth/compare/v0.11.0...v0.12.0) (2022-09-16)
+
+## 0.12.0
 
 ### Bug Fixes
 
@@ -43,6 +122,8 @@
 ### Features
 
 - **sms:** support for templates for the sms message ([#217](https://github.com/nhost/hasura-auth/issues/217)) ([e99ec64](https://github.com/nhost/hasura-auth/commit/e99ec64bcaf4831bbc16e85ced86f8bc0166a999))# [0.11.0](https://github.com/nhost/hasura-auth/compare/v0.10.0...v0.11.0) (2022-09-08)
+
+## 0.11.0
 
 ### Bug Fixes
 
@@ -56,6 +137,8 @@
 - remove webauthn signup endpoints ([224e990](https://github.com/nhost/hasura-auth/commit/224e9902b49fedffca3df198d4adea55112e0bba))
 - **webauthn:** add optional authenticator nickname ([457fafd](https://github.com/nhost/hasura-auth/commit/457fafd6a0d6be8a7d84e1982b619487f083445a))
 - workos oauth provider ([ab35971](https://github.com/nhost/hasura-auth/commit/ab359713a2346f1b6eebb8fdffa1de8cc4ec0a59))# [0.10.0](https://github.com/nhost/hasura-auth/compare/v0.9.3...v0.10.0) (2022-07-13)
+
+## 0.10.0
 
 ### Bug Fixes
 
@@ -94,7 +177,7 @@
 - do not actually follow redirection when redirectTo is invalid ([7d24e55](https://github.com/nhost/hasura-auth/commit/7d24e55d3a45207e2434cff39497984af6ae406c))
 - workaround for outlook safelinks: add `HEAD` operation to the `/verify` route ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)
 
-# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
+## [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
 
 ### Bug Fixes
 
@@ -109,7 +192,7 @@
 - Able to use both phone number and messaging service id as `from`
   This way users can use both a simple phone number without setting up a Twilio messaging service or use a messaging service from Twilio ([doc](https://support.twilio.com/hc/en-us/articles/223181308-Getting-started-with-Messaging-Services)).
 
-# [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
+## [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
 
 ### Bug Fixes
 
@@ -135,7 +218,7 @@
 
 - use query parameter instead of hash when adding the refresh token to an url ([af8ea50](https://github.com/nhost/hasura-auth/commit/af8ea5097cf04d9991977c72bed0797218f5e997))
 
-# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
+## [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
 
 ### Bug Fixes
 
@@ -172,7 +255,7 @@
 - improve startup with async imports ([e00c073](https://github.com/nhost/hasura-auth/commit/e00c073d55c3d85fbd698e1e10c489b30d98949c))
 - set AUTH_CLIENT_URL and AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS to lower case ([8bb351d](https://github.com/nhost/hasura-auth/commit/8bb351d55f0ebb15ac31d0c38265ddb8c2a22432))
 
-# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
+## [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
 
 ### Bug Fixes
 
@@ -183,7 +266,7 @@
 
 - add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))
 
-# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+## [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
 
 ## What's new
 
@@ -257,7 +340,7 @@ This release comes with improvements in the code structure and readiblity:
 - 0.4.0 bugs ([#114](https://github.com/nhost/hasura-auth/issues/114)) ([0024aa1](https://github.com/nhost/hasura-auth/commit/0024aa16f7e3a98bbcb7232512c82080a5f464a9))
 - correct redirect url generation ([02e75cf](https://github.com/nhost/hasura-auth/commit/02e75cfd935926d235291eb7c5b9e82a6d929fe5))
 
-# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
+## [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
 
 - provider requests signup data and redirectTo ([#108](https://github.com/nhost/hasura-auth/issues/108)) ([068f9c0](https://github.com/nhost/hasura-auth/commit/068f9c0d650b655656d78af4b719dc2289be0e67))
 
@@ -273,7 +356,7 @@ This release comes with improvements in the code structure and readiblity:
 
 - use process.env.npm_package_version instead of import 'package.json' ([ab23184](https://github.com/nhost/hasura-auth/commit/ab23184e7c9638e6ae15cd0fe14232cf3c77dd67))
 
-# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
+## [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
 
 ### Features
 
@@ -286,7 +369,7 @@ This release comes with improvements in the code structure and readiblity:
 
 - reload metadata after applying metadata changes ([26fb2ff](https://github.com/nhost/hasura-auth/commit/26fb2ffdef3cb5baba97a7bce8b5f0b62e58a0a3))
 
-# [0.2.0](https://github.com/nhost/hasura-auth/compare/v0.1.0...v0.2.0) (2022-02-03)
+## [0.2.0](https://github.com/nhost/hasura-auth/compare/v0.1.0...v0.2.0) (2022-02-03)
 
 ## What's new
 
@@ -397,7 +480,7 @@ The context variables in email templates have been simplified: the `${link}` var
 
 - deactivate the `/email-templates` endpoint
 
-# [0.1.0](https://github.com/nhost/hasura-auth/compare/v0.0.1-canary.0...v0.1.0) (2022-01-18)
+## [0.1.0](https://github.com/nhost/hasura-auth/compare/v0.0.1-canary.0...v0.1.0) (2022-01-18)
 
 ### Bug Fixes
 

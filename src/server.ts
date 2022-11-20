@@ -28,7 +28,12 @@ export const start = async () => {
 
   // * Insert missing default allowed roles into the database
   const { insertAuthRoles } = await gqlSdk.upsertRoles({
-    roles: ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.map((role) => ({ role })),
+    roles: [
+      ...new Set([
+        ...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES,
+        ENV.AUTH_USER_DEFAULT_ROLE,
+      ]),
+    ].map((role) => ({ role })),
   });
   if (insertAuthRoles?.affected_rows) {
     logger.info(

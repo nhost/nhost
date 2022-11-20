@@ -2,7 +2,6 @@ import express from 'express';
 import helmet from 'helmet';
 import { json } from 'body-parser';
 import cors from 'cors';
-import passport from 'passport';
 
 import router from './routes';
 import { serverErrors } from './errors';
@@ -21,8 +20,6 @@ app.use(httpLogger);
 
 app.use(helmet(), json(), cors());
 app.use(authMiddleware);
-
-app.use(passport.initialize());
 
 app.use(router);
 
