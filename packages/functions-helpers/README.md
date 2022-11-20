@@ -15,11 +15,11 @@ The `nhostFunction` wrapper will enhance a function with the following:
 
 - Type the request/response handler
 - Automatically decode the user claims, if the access token has been sent as a bearer token in the `Authorization` request header.
-- Set `isAdmin`, if a valid `x-hasura-admin-secret` is in the request headers, or of the user has the admin role and is currenlty using it `x-hasura-default-role` is `admin` in the access token, or `x-hasura-role` is `admin` in the request headers.
-- Set `role` to either the default role of the user, or to the `x-hasura-role` request header, if valid.
+- Set `isAdmin` to `true`, if a valid `x-hasura-admin-secret` is in the request headers, or of the user has the admin role and is currenlty using it `x-hasura-default-role` is `admin` in the access token, or `x-hasura-role` is `admin` in the request headers.
+- Set `role` to either the default role of the user, or to the `x-hasura-role` request header, if the `x-hasura-admin-secret` is set, or if the user is allowed to use this role.
 
 ```ts
-import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction((req, res) => {
   const { userClaims, isAdmin, role } = req
@@ -30,7 +30,7 @@ export default nhostFunction((req, res) => {
 ### Guarded function
 
 ```ts
-import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction(
   { roles: ['user', 'admin'] },
@@ -44,7 +44,7 @@ export default nhostFunction(
 ### Allow CORS
 
 ```ts
-import { nhostFunction, ExpressError } from `@nhost/functions-helpers`
+import { nhostFunction } from `@nhost/functions-helpers`
 
 export default nhostFunction({ allowCors: true }, (req, res) => {
   res.json({ success: true })
@@ -86,7 +86,7 @@ const externalClient = new NhostClient({
 })
 
 export default async (req, res) => {
-  const users = await nhost.graphql.request('users { id }')
+  const users = await nhost.graphql.request('{ users { id } }')
   console.log(users)
   res.json({ success: true })
 }
