@@ -22,13 +22,13 @@ export interface NhostFunctionOptions {
 }
 
 /**
- * Nhost function helper
+ * Nhost function wrapper
  * @param options options of the function, such as allowed roles and cors
  * @param handler the function handler
  * @param errorHandler the error handler
  * @example
  * ```ts
- * import { nhostFunction } from '@nhost/functions-helpers'
+ * import { nhostFunction } from '@nhost/functions-js'
  *
  * export default nhostFunction({ roles: ['user'] }, (req, res) => {
  *   console.log(req.role)
@@ -48,12 +48,12 @@ export function nhostFunction<
 ): RequestHandler<P, ResultBody, RequestBody, RequestQuery>[]
 
 /**
- * Nhost function helper
+ * Nhost function wrapper
  * @param handler the function handler
  * @param errorHandler the error handler
  * @example
  *  ```ts
- * import { nhostFunction } from '@nhost/functions-helpers'
+ * import { nhostFunction } from '@nhost/functions-js'
  *
  * export default nhostFunction<{ id: string; created_at: string; value: number }>(
  *   (req, res) => {
@@ -64,7 +64,7 @@ export function nhostFunction<
  * ```
  * @example
  * ```ts
- * import { nhostFunction } from '@nhost/functions-helpers'
+ * import { nhostFunction } from '@nhost/functions-js'
  *
  * export default nhostFunction((req, res) => {
  *   // Returns the decoded user claims, if any

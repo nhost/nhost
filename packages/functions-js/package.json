@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/functions-helpers",
+  "name": "@nhost/functions-js",
   "version": "0.0.1",
   "description": "Nhost Functions Helpers",
   "license": "MIT",

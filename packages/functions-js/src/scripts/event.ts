@@ -13,7 +13,7 @@ if (!name) {
   process.exit(1)
 }
 const event = 'TODO'
-const template = `import { eventFunction } from '@nhost/functions-helpers'
+const template = `import { eventFunction } from '@nhost/functions-js'
 
 // Describe the event payload in the generic type <{}>
 export default eventFunction<{}>('${event}', (req, res) => {

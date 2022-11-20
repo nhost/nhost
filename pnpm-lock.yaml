@@ -865,7 +865,7 @@ importers:
       tsup: 5.12.9_ml4fnuhsvjfvmeutrpvravkyna
       typescript: 4.8.4
 
-  packages/functions-helpers:
+  packages/functions-js:
     specifiers:
       '@graphql-codegen/cli': 2.13.12
       '@graphql-codegen/typescript': 2.8.2
