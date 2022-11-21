@@ -602,7 +602,7 @@ function UserDetailsPreloadData() {
     return <LoadingScreen />;
   }
 
-  if (!data || !data.user) {
+  if (!data?.user) {
     return (
       <Container>
         <ErrorMessage>
