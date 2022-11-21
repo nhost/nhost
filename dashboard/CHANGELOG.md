@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.4.0
+
+### Minor Changes
+
+- 9211743d: feat(dashboard): migrate Settings page features
+
 ## 0.3.0
 
 ### Minor Changes
