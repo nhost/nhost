@@ -43,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Check dashboard tag
+      - name: Check Dashboard tag
         id: dashboard
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
@@ -55,7 +55,7 @@ jobs:
 
   test:
     needs: version
-    name: Run dashboard tests
+    name: Run Dashboard tests
     if: needs.version.outputs.dashboardVersion != ''
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
