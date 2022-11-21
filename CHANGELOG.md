@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.16.1
+
+### Patch Changes
+
+- 42d7ce8: Fix Oauth redirection
+
 ## 0.16.0
 
 ### Minor Changes
