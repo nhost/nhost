@@ -133,13 +133,6 @@ export default function SettingsSidebar({
             >
               General
             </SettingsNavLink>
-            <SettingsNavLink
-              href="/sign-in-methods"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Sign-In Methods
-            </SettingsNavLink>
             {isK8SPostgresEnabledInCurrentEnvironment && !isProjectUsingRDS && (
               <SettingsNavLink
                 href="/database"
@@ -150,6 +143,21 @@ export default function SettingsSidebar({
               </SettingsNavLink>
             )}
             <SettingsNavLink
+              href="/authentication"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Authentication
+            </SettingsNavLink>
+            <SettingsNavLink
+              href="/sign-in-methods"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Sign-In Methods
+            </SettingsNavLink>
+
+            <SettingsNavLink
               href="/roles-and-permissions"
               exact={false}
               onClick={handleSelect}
@@ -159,6 +167,10 @@ export default function SettingsSidebar({
 
             <SettingsNavLink href="/smtp" exact={false} onClick={handleSelect}>
               SMTP
+            </SettingsNavLink>
+
+            <SettingsNavLink href="/git" exact={false} onClick={handleSelect}>
+              Git
             </SettingsNavLink>
 
             <SettingsNavLink

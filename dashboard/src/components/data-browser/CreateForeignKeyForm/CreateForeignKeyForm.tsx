@@ -43,7 +43,7 @@ export function CreateForeignKeyForm({
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
 

@@ -1,16 +1,19 @@
-import { ApplicationMenuItems } from '@/components/applications/ApplicationMenuItems';
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
+
 import { useDialog } from '@/components/common/DialogProvider';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
+import CogIcon from '@/ui/v2/icons/CogIcon';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentApplication } =
+    useCurrentWorkspaceAndApplication();
   const isPro = !currentApplication?.plan?.isFree;
   const { openAlertDialog } = useDialog();
 
@@ -92,8 +95,17 @@ export default function OverviewTopBar() {
           </>
         )}
       </div>
-
-      <ApplicationMenuItems />
+      <Link
+        href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/general`}
+      >
+        <Button
+          endIcon={<CogIcon className="h-4 w-4" />}
+          variant="outlined"
+          color="secondary"
+        >
+          Settings
+        </Button>
+      </Link>
     </div>
   );
 }

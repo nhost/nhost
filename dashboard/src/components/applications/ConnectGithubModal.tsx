@@ -144,7 +144,7 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
               </div>
             </div>
             <RetryableErrorBoundary>
-              <div className=" h-import divide-y-1 divide-divide overflow-y-auto border-t-1 border-b-1">
+              <div className="h-import  divide-y-1 divide-divide overflow-y-auto border-t-1 border-b-1">
                 {githubRepositoriesToDisplay.map((repo) => (
                   <Repo
                     key={repo.id}

@@ -27,7 +27,7 @@ export function CreateUserRoleModal({ onClose }: CreateUserRoleModalProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const form = useForm<CreateUserRoleBaseFormData>({
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
   });
 
   const [updateApp] = useUpdateAppMutation({

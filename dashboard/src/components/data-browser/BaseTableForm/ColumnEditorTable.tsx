@@ -25,7 +25,7 @@ export default function ColumnEditorTable() {
   return (
     <>
       <div role="table" className="col-span-8">
-        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pt-1 pb-2 bg-white">
+        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 bg-white pt-1 pb-2">
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Name
@@ -44,13 +44,13 @@ export default function ColumnEditorTable() {
             <InputLabel as="span">Default Value</InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-1 text-center truncate">
+          <div role="columnheader" className="col-span-1 truncate text-center">
             <InputLabel as="span" className="truncate">
               Nullable
             </InputLabel>
           </div>
 
-          <div role="columnheader" className="col-span-1 text-center truncate">
+          <div role="columnheader" className="col-span-1 truncate text-center">
             <InputLabel as="span" className="truncate">
               Unique
             </InputLabel>

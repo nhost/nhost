@@ -24,7 +24,7 @@ export function EditRepositorySettings({
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const form = useForm<EditRepositorySettingsFormData>({
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     defaultValues: {
       productionBranch: currentApplication.repositoryProductionBranch || 'main',
       repoBaseFolder: currentApplication.nhostBaseFolder,

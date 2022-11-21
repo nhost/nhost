@@ -29,7 +29,7 @@ export default function CreatePermissionVariableModal({
   const [error, setError] = useState<Error>();
 
   const form = useForm<CreatePermissionVariableFormData>({
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
   });
 
   const {

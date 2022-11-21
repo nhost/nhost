@@ -144,7 +144,6 @@
     "postmark": "^2.7.8",
     "prettier": "^2.7.1",
     "prettier-plugin-organize-imports": "^3.2.0",
-    "prettier-plugin-tailwind-css": "^1.5.0",
     "prettier-plugin-tailwindcss": "^0.1.13",
     "react-date-fns-hooks": "^0.9.4",
     "react-error-boundary": "^3.1.4",

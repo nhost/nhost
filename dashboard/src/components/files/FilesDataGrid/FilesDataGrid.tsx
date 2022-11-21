@@ -224,7 +224,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       return;
     }
 
-    if (!defaultBucket?.id) {
+    if (!defaultBucket || !defaultBucket.id) {
       // eslint-disable-next-line no-param-reassign
       event.target.value = null;
 

@@ -146,7 +146,7 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <div className="px-6 pt-6 pb-6 text-left w-modal2">
+    <div className="w-modal2 px-6 pt-6 pb-6 text-left">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
           <Text
@@ -161,11 +161,11 @@ function AddPaymentMethodForm({
             variant="body"
             color="greyscaleDark"
             size="small"
-            className="font-normal text-center"
+            className="text-center font-normal"
           >
             We&apos;ll store these in your workspace for future use.
           </Text>
-          <div className="w-full px-2 py-2 my-2 mt-6 rounded-lg border-1">
+          <div className="my-2 mt-6 w-full rounded-lg border-1 px-2 py-2">
             <CardElement
               onReady={(element) => element.focus()}
               options={{

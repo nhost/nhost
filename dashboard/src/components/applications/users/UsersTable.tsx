@@ -32,25 +32,25 @@ function Users({ users }: any) {
           key={user.id}
           passHref
         >
-          <tr className="cursor-pointer w-52">
-            <td className="py-1 pr-6 whitespace-nowrap">
+          <tr className="w-52 cursor-pointer">
+            <td className="whitespace-nowrap py-1 pr-6">
               <div className="flex items-center">
                 <IconButton
                   variant="borderless"
                   color="secondary"
-                  className="p-1 mr-2"
+                  className="mr-2 p-1"
                   aria-label="Copy user ID"
                   onClick={(event) => {
                     event.stopPropagation();
                     copy(user.id, `User ID`);
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
 
-                <div className="flex-shrink-0 w-8 h-8">
+                <div className="h-8 w-8 flex-shrink-0">
                   <Avatar
-                    className="w-8 h-8"
+                    className="h-8 w-8"
                     avatarUrl={user.avatarUrl}
                     name={user.displayName}
                   />
@@ -63,7 +63,7 @@ function Users({ users }: any) {
                     <Text
                       variant="a"
                       color="greyscaleDark"
-                      className="font-medium cursor-pointer"
+                      className="cursor-pointer font-medium"
                       size="normal"
                     >
                       {user.displayName ||
@@ -78,7 +78,7 @@ function Users({ users }: any) {
                 </div>
               </div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
+            <td className="whitespace-nowrap px-6 py-4">
               <Text color="greyscaleDark" className="font-normal" size="normal">
                 {format(new Date(user.createdAt), 'd MMM yyyy')}
               </Text>
@@ -103,13 +103,13 @@ function Users({ users }: any) {
                 );
               })}
             </td>
-            <td className="py-4 pl-6 text-sm font-medium text-right whitespace-nowrap">
+            <td className="whitespace-nowrap py-4 pl-6 text-right text-sm font-medium">
               <Link
                 href={`/${workspaceSlug}/${appSlug}/users/${user.id}`}
                 passHref
               >
                 <a href={`${workspaceSlug}/${appSlug}/users/${user.id}`}>
-                  <ChevronRightIcon className="self-center w-4 h-4 ml-2 cursor-pointer" />
+                  <ChevronRightIcon className="ml-2 h-4 w-4 cursor-pointer self-center" />
                 </a>
               </Link>
             </td>
@@ -131,7 +131,7 @@ function UserPages({ totalNrOfPages, setCurrentPage }: any) {
         <button
           type="button"
           key={i}
-          className="px-2 cursor-pointer"
+          className="cursor-pointer px-2"
           onClick={() => {
             setCurrentPage(i);
           }}
@@ -212,15 +212,15 @@ export function UsersTable({
   }
 
   return (
-    <div className="flex flex-col mt-2 font-display">
-      <div className="inline-block min-w-full py-2 align-">
+    <div className="mt-2 flex flex-col font-display">
+      <div className="align- inline-block min-w-full py-2">
         <div className="overflow-hidden border-b">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="">
               <tr>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-medium tracking-wider text-left text-dark"
+                  className="px-4 py-3 text-left text-xs font-medium tracking-wider text-dark"
                 >
                   {data ? (
                     <TotalUsers
@@ -244,7 +244,7 @@ export function UsersTable({
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-xs font-medium tracking-wider text-left text-dark"
+                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-dark"
                 >
                   <Text size="tiny" color="greyscaleDark" className="font-bold">
                     Signed up at
@@ -253,7 +253,7 @@ export function UsersTable({
 
                 <th
                   scope="col"
-                  className="px-6 py-3 text-xs font-medium tracking-wider text-left text-dark"
+                  className="px-6 py-3 text-left text-xs font-medium tracking-wider text-dark"
                 >
                   <Text size="tiny" color="greyscaleDark" className="font-bold">
                     Roles

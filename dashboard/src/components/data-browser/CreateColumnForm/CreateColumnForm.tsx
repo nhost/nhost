@@ -58,7 +58,7 @@ export default function CreateColumnForm({
       isUnique: false,
       isIdentity: false,
     },
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(baseColumnValidationSchema),
   });
 

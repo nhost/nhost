@@ -1,0 +1,89 @@
+query signInMethods($id: uuid!) {
+  app(id: $id) {
+    id
+    slug
+    subdomain
+
+    # Sign-In Settings
+    authEmailPasswordlessEnabled
+    authEmailSigninEmailVerifiedRequired
+
+    # Anonymous Sign-In
+    authAnonymousUsersEnabled
+
+    # WebAuthn Sign-In
+    authWebAuthnEnabled
+
+    # SMS Settings
+    authSmsPasswordlessEnabled
+    authSmsTwilioAccountSid
+    authSmsTwilioAuthToken
+    authSmsTwilioMessagingServiceId
+    authSmsTwilioFrom
+
+    # Password Protection
+    authPasswordHibpEnabled
+
+    # GitHub
+    authGithubEnabled
+    authGithubClientId
+    authGithubClientSecret
+
+    # Google
+    authGoogleEnabled
+    authGoogleClientId
+    authGoogleClientSecret
+
+    # Facebook
+    authFacebookEnabled
+    authFacebookClientId
+    authFacebookClientSecret
+
+    # Linkedin
+    authLinkedinEnabled
+    authLinkedinClientId
+    authLinkedinClientSecret
+
+    # Discord
+    authDiscordEnabled
+    authDiscordClientId
+    authDiscordClientSecret
+
+    # Twitch
+    authTwitchEnabled
+    authTwitchClientId
+    authTwitchClientSecret
+
+    
+    # Twitter
+    authTwitterEnabled
+    authTwitterConsumerKey
+    authTwitterConsumerSecret
+
+    # Apple
+    authAppleEnabled
+    authAppleTeamId
+    authAppleKeyId
+    authAppleClientId
+    authApplePrivateKey
+    authAppleScope
+
+    # Windows Live
+    authWindowsLiveEnabled
+    authWindowsLiveClientId
+    authWindowsLiveClientSecret
+
+    # Spotify
+    authSpotifyEnabled
+    authSpotifyClientId
+    authSpotifyClientSecret
+
+    # WorkOs
+    authWorkOsEnabled
+    authWorkOsClientId
+    authWorkOsClientSecret
+    authWorkOsDefaultDomain
+    authWorkOsDefaultOrganization
+    authWorkOsDefaultConnection
+  }
+}
