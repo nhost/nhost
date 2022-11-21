@@ -56,14 +56,14 @@ export function ChangeApplicationName({ close }: any) {
   }
 
   return (
-    <div className="px-6 py-6 text-left w-modal">
+    <div className="w-modal px-6 py-6 text-left">
       <div className="flex flex-col">
         <Text variant="h3" component="h2">
           Change Project Name
         </Text>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-flow-row gap-2 mt-4">
+          <div className="mt-4 grid grid-flow-row gap-2">
             <Input
               label="New Project Name"
               id="projectName"
@@ -84,7 +84,7 @@ export function ChangeApplicationName({ close }: any) {
             )}
           </div>
 
-          <div className="grid grid-flow-row gap-2 mt-4">
+          <div className="mt-4 grid grid-flow-row gap-2">
             <Button type="submit" disabled={applicationError}>
               Save
             </Button>

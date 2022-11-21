@@ -114,7 +114,7 @@ export function EnableSMSSignIn({ openSMSSettingsModal }: any) {
                 />
               </div>
             </div>
-            <div className="flex flex-row self-center mt-3 align-middle">
+            <div className="mt-3 flex flex-row self-center align-middle">
               <Text
                 variant="body"
                 size="normal"

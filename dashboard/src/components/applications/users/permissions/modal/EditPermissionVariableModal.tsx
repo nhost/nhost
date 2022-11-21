@@ -39,7 +39,7 @@ export default function EditPermissionVariableModal({
   const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const form = useForm<EditPermissionVariableFormData>({
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     defaultValues: {
       key: originalCustomClaim.key || '',
       value: originalCustomClaim.value || '',

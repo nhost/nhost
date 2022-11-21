@@ -51,7 +51,7 @@ function UserSectionContainer({ title, children }: any) {
 
 function UserDetailsFromAppElement({ title, children }: any) {
   return (
-    <div className="grid items-center justify-between grid-cols-8 gap-4 px-2 py-3">
+    <div className="grid grid-cols-8 items-center justify-between gap-4 px-2 py-3">
       <Text className="col-span-3 font-medium">{title}</Text>
 
       <div className="col-span-5">{children}</div>
@@ -67,7 +67,7 @@ function UserDetailsFromApp({ user }: UserDetailsFromAppProps) {
   return (
     <div className="divide-y-1 divide-divide">
       <UserDetailsFromAppElement title="User ID">
-        <div className="grid items-center justify-start grid-flow-col gap-2">
+        <div className="grid grid-flow-col items-center justify-start gap-2">
           <Text className="font-medium">{user.id}</Text>
 
           <IconButton
@@ -77,12 +77,12 @@ function UserDetailsFromApp({ user }: UserDetailsFromAppProps) {
             aria-label="Copy user ID"
             className="p-1"
           >
-            <CopyIcon className="w-4 h-4" />
+            <CopyIcon className="h-4 w-4" />
           </IconButton>
         </div>
       </UserDetailsFromAppElement>
       <UserDetailsFromAppElement title="Status">
-        <div className="flex flex-row self-center space-x-2">
+        <div className="flex flex-row space-x-2 self-center">
           {user.disabled && (
             <Status status={StatusEnum.Closed}>Disabled</Status>
           )}
@@ -154,7 +154,7 @@ function UserDetailsPassword({
     return (
       <form
         onSubmit={handleOnSubmit}
-        className="flex flex-row items-start w-full gap-2 px-2 py-3"
+        className="flex w-full flex-row items-start gap-2 py-3 px-2"
       >
         <Input
           id="password"
@@ -180,7 +180,7 @@ function UserDetailsPassword({
         <Button
           type="submit"
           loading={loading}
-          className="py-2 justify-self-end"
+          className="justify-self-end py-2"
         >
           Save
         </Button>
@@ -189,9 +189,9 @@ function UserDetailsPassword({
   }
 
   return (
-    <div className="grid items-center grid-cols-8 gap-4 px-2 py-3">
+    <div className="grid grid-cols-8 items-center gap-4 py-3 px-2">
       <Text className="col-span-3 text-sm+ font-medium">Password</Text>
-      <div className="grid items-center w-full grid-flow-col col-span-5 gap-2 place-content-between">
+      <div className="col-span-5 grid w-full grid-flow-col place-content-between items-center gap-2">
         <Text variant="subtitle2">
           {userHasPasswordSet ? `••••••••••••` : 'No password set'}
         </Text>
@@ -344,11 +344,11 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
       </Modal>
       <div className="flex flex-row">
         <Avatar
-          className="rounded-lg h-14 w-14"
+          className="h-14 w-14 rounded-lg"
           avatarUrl={user.avatarUrl}
           name={user.displayName}
         />
-        <div className="flex flex-col self-center ml-4">
+        <div className="ml-4 flex flex-col self-center">
           <Text variant="h3" component="h1">
             {user.displayName || user.phoneNumber}
           </Text>
@@ -441,8 +441,8 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
         />
 
         <UserDetailsFromAppElement title="Authentication">
-          <div className="flex flex-col w-full space-y-3">
-            <div className="flex items-center place-content-between">
+          <div className="flex w-full flex-col space-y-3">
+            <div className="flex place-content-between items-center">
               <div className="flex">
                 <Text className="font-medium">Email + Password</Text>
               </div>
@@ -458,7 +458,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
                 </Status>
               </div>
             </div>
-            <div className="flex items-center place-content-between">
+            <div className="flex place-content-between items-center">
               <div className="flex">
                 <Text className="font-medium">Magic Link</Text>
               </div>
@@ -470,7 +470,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
                 </Status>
               </div>
             </div>
-            <div className="flex items-center place-content-between">
+            <div className="flex place-content-between items-center">
               <div className="flex">
                 <Text className="font-medium">SMS</Text>
               </div>
@@ -561,7 +561,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
           </UserDetailsFromAppElement>
         </UserSectionContainer>
       )}
-      <div className="flex flex-row px-1 mt-3 place-content-between">
+      <div className="mt-3 flex flex-row place-content-between px-1">
         <Button
           startIcon={toggleShowRoles ? <ChevronUpIcon /> : <ChevronDownIcon />}
           variant="borderless"

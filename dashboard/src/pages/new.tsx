@@ -19,11 +19,13 @@ import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { generateRandomPassword, schema } from '@/utils/generateRandomPassword';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment, slugifyString } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
+import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword/generateRandomDatabasePassword';
+import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
+
 import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
@@ -78,7 +80,7 @@ export function NewProjectPageContent({
   });
 
   const [databasePassword, setDatabasePassword] = useState(
-    generateRandomPassword(),
+    generateRandomDatabasePassword(),
   );
 
   const [plan, setPlan] = useState(plans[0]);
@@ -122,7 +124,7 @@ export function NewProjectPageContent({
 
   // function handlers
   const handleGenerateRandomPassword = () => {
-    const newRandomDatabasePassword = generateRandomPassword();
+    const newRandomDatabasePassword = generateRandomDatabasePassword();
     setPasswordError('');
     triggerToast('New random database password generated.');
     setDatabasePassword(newRandomDatabasePassword);
@@ -157,7 +159,9 @@ export function NewProjectPageContent({
 
     if (isK8SPostgresEnabledInCurrentEnvironment) {
       try {
-        await schema.validate({ 'Database Password': databasePassword });
+        await resetDatabasePasswordValidationSchema.validate({
+          databasePassword,
+        });
       } catch (validationError) {
         setSubmitState({
           error: Error(validationError.errors),
@@ -310,7 +314,8 @@ export function NewProjectPageContent({
 
           {isK8SPostgresEnabledInCurrentEnvironment && (
             <Input
-              id="database-password"
+              name="databasePassword"
+              id="databasePassword"
               autoComplete="new-password"
               label="Database Password"
               value={databasePassword}
@@ -344,18 +349,20 @@ export function NewProjectPageContent({
                     </Text>
                   )}
 
-                  <Text variant="subtitle2">
+                  <div className="font-medium text-greyscaleDark">
                     The root Postgres password for your database - it must be
                     strong and hard to guess.{' '}
-                    <button
+                    <Button
                       type="button"
+                      variant="borderless"
+                      color="secondary"
                       onClick={handleGenerateRandomPassword}
-                      className="rounded-sm px-1 py-0.5 text-xs text-greyscaleDark underline underline-offset-2 hover:bg-gray-100 motion-safe:transition-colors"
+                      className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
                       tabIndex={-1}
                     >
                       Generate a password
-                    </button>
-                  </Text>
+                    </Button>
+                  </div>
                 </div>
               }
               onChange={async (e) => {
@@ -373,8 +380,8 @@ export function NewProjectPageContent({
                 setDatabasePassword(e.target.value);
                 setPasswordError('');
                 try {
-                  await schema.validate({
-                    'Database Password': e.target.value,
+                  await resetDatabasePasswordValidationSchema.validate({
+                    databasePassword: e.target.value,
                   });
                   setPasswordError('');
                 } catch (validationError) {

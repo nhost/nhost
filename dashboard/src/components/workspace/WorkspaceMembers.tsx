@@ -134,8 +134,8 @@ export default function WorkspaceMembers() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto mt-18 font-display">
-      <div className="grid grid-flow-row gap-1 mb-2">
+    <div className="mx-auto mt-18 max-w-3xl font-display">
+      <div className="mb-2 grid grid-flow-row gap-1">
         <Text variant="h3">Members</Text>
         <Text>
           People in this workspace can manage all projects listed above.

@@ -79,7 +79,7 @@ export default function EditColumnForm({
 
   const form = useForm<BaseColumnFormValues>({
     defaultValues: columnValues,
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(baseColumnValidationSchema),
   });
 

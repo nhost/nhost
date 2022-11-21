@@ -49,7 +49,7 @@ export function EditForeignKeyForm({
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
 

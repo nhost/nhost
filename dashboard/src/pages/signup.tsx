@@ -46,7 +46,7 @@ function SignUpWithGithub({ setSignUpMethod }: any) {
           nhost.auth.signIn({ provider: 'github' });
         }}
       >
-        <GithubIcon className="w-6 h-6 text-white " />
+        <GithubIcon className="h-6 w-6 text-white " />
         <div>Sign Up with GitHub</div>
       </button>
       <div className="mt-2 text-greyscaleMedium">
@@ -97,7 +97,7 @@ function SignUpWithEmail({ setSignUpMethod }: any) {
   }
 
   return (
-    <div className="grid items-center grid-flow-row gap-2 justify-items-center">
+    <div className="grid grid-flow-row items-center justify-items-center gap-2">
       <Text variant="h1" className="text-lg font-semibold">
         Sign Up with Email
       </Text>
@@ -198,8 +198,8 @@ function SignUpController() {
 
 export default function SignUpPage() {
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="grid max-w-6xl grid-cols-1 px-5 gap-x-20 gap-y-14 md:grid-cols-2">
+    <div className="flex h-screen items-center justify-center">
+      <div className="grid max-w-6xl grid-cols-1 gap-x-20 gap-y-14 px-5 md:grid-cols-2">
         <div className="flex items-center justify-center md:order-1">
           <div className="z-30">
             <div className="block md:hidden">
@@ -215,11 +215,11 @@ export default function SignUpPage() {
                 Build the App of Your Dreams
               </div>
             </div>
-            <div className="px-12 py-4 bg-white border border-gray-300 rounded-lg">
+            <div className="rounded-lg border border-gray-300 bg-white px-12 py-4">
               <div className="my-4">
                 <SignUpController />
               </div>
-              <div className="mt-4 text-xs text-center text-gray-500">
+              <div className="mt-4 text-center text-xs text-gray-500">
                 By signing up, you agree to our{' '}
                 <a
                   href="https://nhost.io/legal/terms-of-service"
@@ -241,8 +241,8 @@ export default function SignUpPage() {
                 .
               </div>
             </div>
-            <div className="flex justify-center mt-3">
-              <div className="text-sm text-gray-700 ">
+            <div className="mt-3 flex justify-center">
+              <div className=" text-sm text-gray-700">
                 Already have an account?{' '}
                 <Link href="/signin" passHref>
                   <a href="signin" className="text-btn hover:underline">
@@ -276,7 +276,7 @@ export default function SignUpPage() {
               Build the App of Your Dreams
             </div>
           </div>
-          <div className="flex flex-col my-4 space-y-3">
+          <div className="my-4 flex flex-col space-y-3">
             {sellingPoints.map((sellingPoint) => (
               <div key={sellingPoint} className="flex items-center space-x-2">
                 <Image
@@ -290,8 +290,8 @@ export default function SignUpPage() {
               </div>
             ))}
           </div>
-          <div className="h-2 my-14 bg-blue opacity-20" />
-          <div className="grid items-center grid-cols-3 my-4 gap-x-6 gap-y-6 opacity-40">
+          <div className="my-14 h-2 bg-blue opacity-20" />
+          <div className="my-4 grid grid-cols-3 items-center gap-x-6 gap-y-6 opacity-40">
             {companies.map((company) => (
               <div key={company} className="h-[25px] w-[150px]">
                 <Image

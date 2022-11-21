@@ -40,7 +40,7 @@ export function EditUserRoleModal({
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const form = useForm<EditUserRoleFormData>({
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     defaultValues: {
       roleName: originalRole.name || '',
     },

@@ -16890,6 +16890,13 @@ export type GetDatabaseConnectionInfoQueryVariables = Exact<{
 
 export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, postgresUser?: string | null, postgresDatabase?: string | null } | null };
 
+export type SignInMethodsQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type SignInMethodsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, authEmailPasswordlessEnabled: boolean, authEmailSigninEmailVerifiedRequired: boolean, authAnonymousUsersEnabled: boolean, authWebAuthnEnabled: boolean, authSmsPasswordlessEnabled: boolean, authSmsTwilioAccountSid: string, authSmsTwilioAuthToken: string, authSmsTwilioMessagingServiceId: string, authSmsTwilioFrom: string, authPasswordHibpEnabled: boolean, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authDiscordEnabled: boolean, authDiscordClientId: string, authDiscordClientSecret: string, authTwitchEnabled: boolean, authTwitchClientId: string, authTwitchClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string } | null };
+
 export type GetAllUserDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -20170,6 +20177,95 @@ export type GetDatabaseConnectionInfoLazyQueryHookResult = ReturnType<typeof use
 export type GetDatabaseConnectionInfoQueryResult = Apollo.QueryResult<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>;
 export function refetchGetDatabaseConnectionInfoQuery(variables: GetDatabaseConnectionInfoQueryVariables) {
       return { query: GetDatabaseConnectionInfoDocument, variables: variables }
+    }
+export const SignInMethodsDocument = gql`
+    query signInMethods($id: uuid!) {
+  app(id: $id) {
+    id
+    slug
+    subdomain
+    authEmailPasswordlessEnabled
+    authEmailSigninEmailVerifiedRequired
+    authAnonymousUsersEnabled
+    authWebAuthnEnabled
+    authSmsPasswordlessEnabled
+    authSmsTwilioAccountSid
+    authSmsTwilioAuthToken
+    authSmsTwilioMessagingServiceId
+    authSmsTwilioFrom
+    authPasswordHibpEnabled
+    authGithubEnabled
+    authGithubClientId
+    authGithubClientSecret
+    authGoogleEnabled
+    authGoogleClientId
+    authGoogleClientSecret
+    authFacebookEnabled
+    authFacebookClientId
+    authFacebookClientSecret
+    authLinkedinEnabled
+    authLinkedinClientId
+    authLinkedinClientSecret
+    authDiscordEnabled
+    authDiscordClientId
+    authDiscordClientSecret
+    authTwitchEnabled
+    authTwitchClientId
+    authTwitchClientSecret
+    authTwitterEnabled
+    authTwitterConsumerKey
+    authTwitterConsumerSecret
+    authAppleEnabled
+    authAppleTeamId
+    authAppleKeyId
+    authAppleClientId
+    authApplePrivateKey
+    authAppleScope
+    authWindowsLiveEnabled
+    authWindowsLiveClientId
+    authWindowsLiveClientSecret
+    authSpotifyEnabled
+    authSpotifyClientId
+    authSpotifyClientSecret
+    authWorkOsEnabled
+    authWorkOsClientId
+    authWorkOsClientSecret
+    authWorkOsDefaultDomain
+    authWorkOsDefaultOrganization
+    authWorkOsDefaultConnection
+  }
+}
+    `;
+
+/**
+ * __useSignInMethodsQuery__
+ *
+ * To run a query within a React component, call `useSignInMethodsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSignInMethodsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSignInMethodsQuery(baseOptions: Apollo.QueryHookOptions<SignInMethodsQuery, SignInMethodsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SignInMethodsQuery, SignInMethodsQueryVariables>(SignInMethodsDocument, options);
+      }
+export function useSignInMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SignInMethodsQuery, SignInMethodsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SignInMethodsQuery, SignInMethodsQueryVariables>(SignInMethodsDocument, options);
+        }
+export type SignInMethodsQueryHookResult = ReturnType<typeof useSignInMethodsQuery>;
+export type SignInMethodsLazyQueryHookResult = ReturnType<typeof useSignInMethodsLazyQuery>;
+export type SignInMethodsQueryResult = Apollo.QueryResult<SignInMethodsQuery, SignInMethodsQueryVariables>;
+export function refetchSignInMethodsQuery(variables: SignInMethodsQueryVariables) {
+      return { query: SignInMethodsDocument, variables: variables }
     }
 export const GetAllUserDataDocument = gql`
     query getAllUserData {

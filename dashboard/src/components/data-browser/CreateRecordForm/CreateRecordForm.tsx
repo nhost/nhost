@@ -32,7 +32,7 @@ export default function CreateRecordForm({
 
       return { ...defaultValues, [column.id]: null };
     }, {}),
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
 

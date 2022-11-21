@@ -15,7 +15,7 @@ import { ContainerAllWorkspacesApplications } from './ContainerAllWorkspacesAppl
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
-    <Text color="dark" className="self-center text-sm cursor-pointer">
+    <Text color="dark" className="cursor-pointer self-center text-sm">
       created{' '}
       {formatDistance(new Date(createdAt), new Date(), {
         addSuffix: true,
@@ -30,9 +30,9 @@ function LastSuccesfulDeployment({ deployment }: any) {
       <Avatar
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
-        className="self-center w-4 h-4 mr-1"
+        className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="self-center text-sm cursor-pointer">
+      <Text color="dark" className="cursor-pointer self-center text-sm">
         {deployment.commitUserName} deployed{' '}
         {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
           addSuffix: true,
@@ -48,9 +48,9 @@ function CurrentDeployment({ deployment }: any) {
       <Avatar
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
-        className="self-center w-4 h-4 mr-1"
+        className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="self-center text-sm cursor-pointer">
+      <Text color="dark" className="cursor-pointer self-center text-sm">
         {deployment.commitUserName} updated just now
       </Text>
     </div>
@@ -103,7 +103,7 @@ export function RenderWorkspacesWithApps({
                   variant="a"
                   color="greyscaleGrey"
                   size="normal"
-                  className="mb-3 font-medium cursor-pointer"
+                  className="mb-3 cursor-pointer font-medium"
                 >
                   {workspace.name}
                 </Text>
@@ -138,16 +138,16 @@ export function RenderWorkspacesWithApps({
                       ? app.deployments[0].deploymentStatus === 'DEPLOYING'
                       : false;
                     return (
-                      <div key={app.slug} className="py-4 cursor-pointer">
+                      <div key={app.slug} className="cursor-pointer py-4">
                         <Link href={`${workspace?.slug}/${app.slug}`} passHref>
                           <a
                             href={`${workspace?.slug}/${app.slug}`}
-                            className="flex px-2 bg-white rounded-sm place-content-between border-divide"
+                            className="flex place-content-between rounded-sm border-divide bg-white px-2"
                           >
-                            <div className="flex flex-col self-center w-full">
-                              <div className="flex flex-row w-full place-content-between">
+                            <div className="flex w-full flex-col self-center">
+                              <div className="flex w-full flex-row place-content-between">
                                 <div className="flex flex-row items-center self-center">
-                                  <div className="w-10 h-10 overflow-hidden rounded-lg">
+                                  <div className="h-10 w-10 overflow-hidden rounded-lg">
                                     <Image
                                       src="/logos/new.svg"
                                       alt="Nhost Logo"
@@ -155,12 +155,12 @@ export function RenderWorkspacesWithApps({
                                       height={40}
                                     />
                                   </div>
-                                  <div className="flex flex-col ml-2 text-left">
+                                  <div className="ml-2 flex flex-col text-left">
                                     <div>
                                       <Text
                                         color="dark"
                                         size="normal"
-                                        className="self-center font-medium text-left capitalize cursor-pointer"
+                                        className="cursor-pointer self-center text-left font-medium capitalize"
                                       >
                                         {app.name}
                                       </Text>
@@ -192,7 +192,7 @@ export function RenderWorkspacesWithApps({
                                 <div className="flex flex-row">
                                   <div className="flex self-center align-middle">
                                     {app.deployments[0] && (
-                                      <div className="flex self-center mr-2 align-middle">
+                                      <div className="mr-2 flex self-center align-middle">
                                         <StatusCircle
                                           status={
                                             app.deployments[0]

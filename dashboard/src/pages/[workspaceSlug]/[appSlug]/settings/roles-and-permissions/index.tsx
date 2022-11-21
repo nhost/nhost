@@ -102,10 +102,10 @@ function PermissionVariablesTable({ appId }: any) {
         )}
       </Modal>
 
-      <table className="w-full overflow-x-auto table-fixed">
+      <table className="w-full table-fixed overflow-x-auto">
         <thead>
           <tr>
-            <th className="p-2 text-left w-60">
+            <th className="w-60 p-2 text-left">
               <Text className="text-xs font-bold text-greyscaleDark">
                 Field name
               </Text>
@@ -131,7 +131,7 @@ function PermissionVariablesTable({ appId }: any) {
                   : (event) => handlePermissionSelect(event, claim)
               }
               aria-label={claim.key}
-              className="border-gray-300 border-solid border-t-1"
+              className="border-t-1 border-solid border-gray-300"
               key={claim.key || index}
             >
               <td className="p-2">
@@ -165,7 +165,7 @@ function PermissionVariablesTable({ appId }: any) {
             </tr>
           ))}
 
-          <tr className="border-gray-300 border-solid border-y-1">
+          <tr className="border-y-1 border-solid border-gray-300">
             <td className="p-2">
               <button
                 type="button"
@@ -283,7 +283,7 @@ function DefaultRoleInAPIRequests() {
   }
 
   return (
-    <div className="flex flex-col mt-2 border-t border-b divide-y-1 divide-divide">
+    <div className="mt-2 flex flex-col divide-y-1 divide-divide border-t border-b">
       {submitState.error && (
         <Alert severity="error">{submitState.error.message}</Alert>
       )}

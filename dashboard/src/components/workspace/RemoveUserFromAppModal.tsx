@@ -3,7 +3,7 @@ import Text from '@/ui/v2/Text';
 
 export default function RemoveUserFromAppModal({ onClick, close }: any) {
   return (
-    <div className="grid grid-flow-row gap-4 p-6 text-left w-miniModal">
+    <div className="grid w-miniModal grid-flow-row gap-4 p-6 text-left">
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h2">
           Delete User Account

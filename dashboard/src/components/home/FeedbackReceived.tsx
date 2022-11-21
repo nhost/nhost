@@ -12,7 +12,7 @@ export function FeedbackReceived({ setFeedbackSent, close }: any) {
   }
 
   return (
-    <div className="grid items-center grid-flow-row gap-4 text-center">
+    <div className="grid grid-flow-row items-center gap-4 text-center">
       <Image
         src="/assets/FeedbackReceived.svg"
         alt="Light bulb with a checkmark"

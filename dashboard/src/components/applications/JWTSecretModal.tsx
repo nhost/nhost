@@ -86,7 +86,7 @@ export function EditJWTSecretModal({ close }: any) {
 
   return (
     <form
-      className="px-6 py-4 w-modal"
+      className="w-modal px-6 py-4"
       onSubmit={handleSubmit(handleEditJWTSecret)}
     >
       <div className="grid grid-flow-row gap-2">
@@ -154,7 +154,7 @@ export function EditJWTSecretModal({ close }: any) {
 
 export function ShowJWTTokenModal({ JWTKey, editJWTSecret }: any) {
   return (
-    <div className="px-6 py-4 w-modal">
+    <div className="w-modal px-6 py-4">
       <div className="grid grid-flow-row gap-2">
         <div className="grid grid-flow-row text-left">
           <Text variant="h3" component="h2">
@@ -179,7 +179,7 @@ export function ShowJWTTokenModal({ JWTKey, editJWTSecret }: any) {
           />
         </div>
 
-        <div className="max-w-sm mx-auto text-center">
+        <div className="mx-auto max-w-sm text-center">
           <Text variant="subtitle2">
             Already using a third party auth service? <br />
             <button

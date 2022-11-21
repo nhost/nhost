@@ -109,7 +109,7 @@ function FormFooter({
   }, [isDirty, onDirtyStateChange]);
 
   return (
-    <div className="grid justify-between flex-shrink-0 grid-flow-col gap-3 p-2 border-gray-200 border-t-1">
+    <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
       <Button
         variant="borderless"
         color="secondary"
@@ -139,14 +139,14 @@ export default function BaseTableForm({
   return (
     <Form
       onSubmit={handleExternalSubmit}
-      className="flex flex-col content-between flex-auto overflow-hidden border-gray-200 border-t-1"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200"
     >
-      <div className="flex-auto pb-4 overflow-y-auto">
-        <section className="grid grid-cols-8 px-6 py-3">
+      <div className="flex-auto overflow-y-auto pb-4">
+        <section className="grid grid-cols-8 py-3 px-6">
           <NameInput />
         </section>
 
-        <section className="grid grid-cols-8 px-6 py-3 border-gray-200 border-t-1">
+        <section className="grid grid-cols-8 border-t-1 border-gray-200 py-3 px-6">
           <h2 className="col-span-8 mt-3 mb-1.5 text-sm+ font-bold text-greyscaleDark">
             Columns
           </h2>
