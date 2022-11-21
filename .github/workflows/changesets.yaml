@@ -144,6 +144,7 @@ jobs:
           tags: ${{ steps.meta.outputs.docker_tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
+          push: true
       - name: Create GitHub Release
         uses: taiki-e/create-gh-release-action@v1
         if: steps.tags.outputs.git_tag != ''
