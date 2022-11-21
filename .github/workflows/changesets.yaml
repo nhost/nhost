@@ -52,7 +52,7 @@ jobs:
 
   test:
     needs: version
-    name: Run dashboard tests
+    name: Run Dashboard tests
     if: needs.version.outputs.dashboardVersion != ''
     uses: ./.github/workflows/dashboard.yaml
 
