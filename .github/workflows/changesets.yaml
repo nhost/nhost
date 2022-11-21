@@ -13,7 +13,9 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: nhost
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  DASHBOARD_PACKAGE: '@nhost/dashboard'
+
 jobs:
   version:
     runs-on: ubuntu-latest
@@ -27,6 +29,9 @@ jobs:
           fetch-depth: 0
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       - name: Create PR or Publish release
         id: changesets
         uses: changesets/action@v1
@@ -38,24 +43,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Tag Dashboard
+      - name: Check Dashboard tag
         id: dashboard
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
-          package="@nhost/dashboard"
-          version=$(jq -r .version dashboard/package.json)
-          tag="$package@$version"
-          git tag $tag 2>/dev/null && (git push origin --tags ; echo "dashboardVersion=$version" >> $GITHUB_OUTPUT) || true
+          DASHBOARD_VERSION=$(jq -r .version dashboard/package.json)
+          GIT_TAG="${{ env.DASHBOARD_PACKAGE}}@$DASHBOARD_VERSION"
+          if [ -z "$(git tag -l | grep $GIT_TAG)" ]; then
+            echo "dashboardVersion=$DASHBOARD_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+  test:
+    needs: version
+    name: Dashboard
+    if: needs.version.outputs.dashboardVersion != ''
+    uses: ./.github/workflows/dashboard.yaml
+    secrets: inherit
 
   publish:
     runs-on: ubuntu-latest
-    needs: version
-    if: needs.version.outputs.dashboardVersion != ''
+    needs:
+      - test
+      - version
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Add git tag
+        run: |
+          git tag "${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}"
+          git push origin --tags
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -84,9 +102,21 @@ jobs:
           context: .
           file: ./dashboard/Dockerfile
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             TURBO_TOKEN=${{ env.TURBO_TOKEN }}
             TURBO_TEAM=${{ env.TURBO_TEAM }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
+      - name: Create GitHub Release
+        uses: taiki-e/create-gh-release-action@v1
+        with:
+          changelog: dashboard/CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          prefix: ${{ env.DASHBOARD_PACKAGE }}@
+          ref: refs/tags/${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+      - name: Remove tag on failure
+        if: failure()
+        run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}

@@ -1,11 +1,7 @@
 name: 'Dashboard'
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'packages/**'
-      - 'dashboard/**'
+  workflow_call:
   pull_request:
     branches: [main]
     types: [opened, synchronize]
@@ -15,7 +11,7 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: nhost
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   build:
     name: Build
@@ -28,12 +24,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Build the application
         run: pnpm build:dashboard
-      - uses: actions/cache@v3.0.11
-        with:
-          path: ./*
-          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
 
   tests:
     name: Tests
@@ -46,11 +41,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-      - uses: actions/cache@v3.0.11
-        id: restore-build
         with:
-          path: ./*
-          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
         run: pnpm test:dashboard
 
@@ -65,9 +58,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-      - uses: actions/cache@v3.0.11
-        id: restore-build
         with:
-          path: ./*
-          key: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - run: pnpm lint:dashboard

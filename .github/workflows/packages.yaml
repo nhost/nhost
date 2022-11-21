@@ -1,4 +1,4 @@
-name: Tests
+name: Packages
 
 on:
   push:
@@ -21,7 +21,7 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: nhost
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   build:
     name: Build @nhost packages
@@ -33,6 +33,9 @@ jobs:
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
       # * In a PR, only include packages that have been modified, and their dependencies
       - name: List examples with an e2e script
@@ -61,6 +64,9 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
@@ -92,6 +98,9 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Run every `test` script in the workspace . Dependencies build is cached by Turborepo
       - name: Run unit tests
         run: pnpm run test
@@ -113,6 +122,9 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Run every `lint` script in the workspace . Dependencies build is cached by Turborepo
       - name: Lint
         run: pnpm run lint
