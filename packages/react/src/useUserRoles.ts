@@ -16,7 +16,6 @@ export const useUserRoles = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
-    (state) => state.context.user?.roles || [],
-    (a, b) => a.every((i) => b.includes(i) && b.every((i) => a.includes(i)))
+    (state) => (state.matches('authentication.signedIn') && state.context.user?.roles) || []
   )
 }
