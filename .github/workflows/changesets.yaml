@@ -55,7 +55,7 @@ jobs:
 
   test:
     needs: version
-    name: Run Dashboard tests
+    name: Dashboard
     if: needs.version.outputs.dashboardVersion != ''
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
