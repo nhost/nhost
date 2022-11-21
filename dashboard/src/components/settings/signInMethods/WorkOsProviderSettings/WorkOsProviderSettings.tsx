@@ -160,7 +160,7 @@ export default function WorkOsProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`}
+            placeholder={`https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/workos/callback`}
             className="col-span-6"
             fullWidth
             hideEmptyHelperText
@@ -180,7 +180,7 @@ export default function WorkOsProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`,
+                      `https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/workos/callback`,
                       'Redirect URL',
                     );
                   }}

@@ -95,7 +95,7 @@ export default function GitHubProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-github"
           docsTitle="how to sign in users with GitHub"
-          icon="/logos/GitHub.svg"
+          icon="/logos/Github.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

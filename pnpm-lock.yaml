@@ -112,6 +112,7 @@ importers:
       '@storybook/addon-essentials': ^6.5.13
       '@storybook/addon-interactions': ^6.5.13
       '@storybook/addon-links': ^6.5.13
+      '@storybook/addon-postcss': ^2.0.0
       '@storybook/builder-webpack5': ^6.5.13
       '@storybook/manager-webpack5': ^6.5.13
       '@storybook/react': ^6.5.13
@@ -182,7 +183,6 @@ importers:
       postmark: ^2.7.8
       prettier: ^2.7.1
       prettier-plugin-organize-imports: ^3.2.0
-      prettier-plugin-tailwind-css: ^1.5.0
       prettier-plugin-tailwindcss: ^0.1.13
       prettysize: ^2.0.0
       randomstring: ^1.2.3
@@ -293,6 +293,7 @@ importers:
       '@storybook/addon-essentials': 6.5.13_u2dxw2fwupmqfln4b7pbbqoaze
       '@storybook/addon-interactions': 6.5.13_ne227bvjalmk4zf5jyanirqk64
       '@storybook/addon-links': 6.5.13_biqbaboplfbrettd7655fr4n2y
+      '@storybook/addon-postcss': 2.0.0_webpack@5.75.0
       '@storybook/builder-webpack5': 6.5.13_5msx5wgifzd2n7nm3paor5omae
       '@storybook/manager-webpack5': 6.5.13_5msx5wgifzd2n7nm3paor5omae
       '@storybook/react': 6.5.13_u2clwvxr5k64ivd4ub6wyiekxa
@@ -341,7 +342,6 @@ importers:
       postmark: 2.9.5
       prettier: 2.7.1
       prettier-plugin-organize-imports: 3.2.0_dmjzcauo3cshxeipj7bv64ktgm
-      prettier-plugin-tailwind-css: 1.5.0
       prettier-plugin-tailwindcss: 0.1.13_prettier@2.7.1
       react-date-fns-hooks: 0.9.4_3pf3ktbrffvgnzxoo2eotyjcpi
       react-error-boundary: 3.1.4_react@18.2.0
@@ -9228,6 +9228,19 @@ packages:
       ts-dedent: 2.2.0
     dev: true
 
+  /@storybook/addon-postcss/2.0.0_webpack@5.75.0:
+    resolution: {integrity: sha512-Nt82A7e9zJH4+A+VzLKKswUfru+T6FJTakj4dccP0i8DSn7a0CkzRPrLuZBq8tg4voV6gD74bcDf3gViCVBGtA==}
+    engines: {node: '>=10', yarn: ^1.17.0}
+    dependencies:
+      '@storybook/node-logger': 6.5.13
+      css-loader: 3.6.0_webpack@5.75.0
+      postcss: 7.0.39
+      postcss-loader: 4.3.0_is25vgl4syps62ryudctlza7cy
+      style-loader: 1.3.0_webpack@5.75.0
+    transitivePeerDependencies:
+      - webpack
+    dev: true
+
   /@storybook/addon-toolbars/6.5.13_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-Qgr4wKRSP+gY1VaN7PYT4TM1um7KY341X3GHTglXLFHd8nDsCweawfV2shaX3WxCfZmVro8g4G+Oest30kLLCw==}
     peerDependencies:
@@ -13691,7 +13704,7 @@ packages:
     dependencies:
       '@babel/core': 7.19.3
       find-cache-dir: 3.3.2
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       make-dir: 3.1.0
       schema-utils: 2.7.1
       webpack: 5.74.0
@@ -15498,6 +15511,28 @@ packages:
       webpack: 4.46.0
     dev: true
 
+  /css-loader/3.6.0_webpack@5.75.0:
+    resolution: {integrity: sha512-M5lSukoWi1If8dhQAUCvj4H8vUt3vOnwbQBH9DdTm/s4Ym2B/3dPMtYZeJmq7Q3S3Pa+I94DcZ7pc9bP14cWIQ==}
+    engines: {node: '>= 8.9.0'}
+    peerDependencies:
+      webpack: ^4.0.0 || ^5.0.0
+    dependencies:
+      camelcase: 5.3.1
+      cssesc: 3.0.0
+      icss-utils: 4.1.1
+      loader-utils: 1.4.2
+      normalize-path: 3.0.0
+      postcss: 7.0.39
+      postcss-modules-extract-imports: 2.0.0
+      postcss-modules-local-by-default: 3.0.3
+      postcss-modules-scope: 2.2.0
+      postcss-modules-values: 3.0.0
+      postcss-value-parser: 4.2.0
+      schema-utils: 2.7.1
+      semver: 6.3.0
+      webpack: 5.75.0
+    dev: true
+
   /css-loader/5.2.7_webpack@5.75.0:
     resolution: {integrity: sha512-Q7mOvpBNBG7YrVGMxRxcBJZFL75o+cH2abNASdibkj/fffYD8qWbInZrD0S9ccI6vZclF3DsHE7njGlLtaHbhg==}
     engines: {node: '>= 10.13.0'}
@@ -15505,7 +15540,7 @@ packages:
       webpack: ^4.27.0 || ^5.0.0
     dependencies:
       icss-utils: 5.1.0_postcss@8.4.19
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       postcss: 8.4.19
       postcss-modules-extract-imports: 3.0.0_postcss@8.4.19
       postcss-modules-local-by-default: 4.0.0_postcss@8.4.19
@@ -19592,7 +19627,7 @@ packages:
     peerDependencies:
       webpack: ^4.0.0 || ^5.0.0
     dependencies:
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       schema-utils: 3.1.1
       webpack: 4.46.0
     dev: true
@@ -19603,7 +19638,7 @@ packages:
     peerDependencies:
       webpack: ^4.0.0 || ^5.0.0
     dependencies:
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       schema-utils: 3.1.1
       webpack: 5.74.0
     dev: false
@@ -19614,7 +19649,7 @@ packages:
     peerDependencies:
       webpack: ^4.0.0 || ^5.0.0
     dependencies:
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       schema-utils: 3.1.1
       webpack: 5.75.0
     dev: false
@@ -22855,6 +22890,7 @@ packages:
       big.js: 5.2.2
       emojis-list: 3.0.0
       json5: 2.2.1
+    dev: true
 
   /loader-utils/2.0.4:
     resolution: {integrity: sha512-xXqpXoINfFhgua9xiqD8fPFHgkoq1mmmpE92WlDbm9rNRd/EbRb+Gqf908T2DMfuHjjJlksiK2RbHVOdD/MqSw==}
@@ -22863,7 +22899,6 @@ packages:
       big.js: 5.2.2
       emojis-list: 3.0.0
       json5: 2.2.1
-    dev: true
 
   /loader-utils/3.2.0:
     resolution: {integrity: sha512-HVl9ZqccQihZ7JM85dco1MvO9G+ONvxoGa9rkhzFsneGLKSUg1gJf9bWzhRhcvm2qChhWpebQhP44qxjKIUCaQ==}
@@ -24417,7 +24452,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       bl: 4.1.0
-      chalk: 4.1.1
+      chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.7.0
       is-interactive: 1.0.0
@@ -25209,6 +25244,22 @@ packages:
       webpack: 4.46.0
     dev: true
 
+  /postcss-loader/4.3.0_is25vgl4syps62ryudctlza7cy:
+    resolution: {integrity: sha512-M/dSoIiNDOo8Rk0mUqoj4kpGq91gcxCfb9PoyZVdZ76/AuhxylHDYZblNE8o+EQ9AMSASeMFEKxZf5aU6wlx1Q==}
+    engines: {node: '>= 10.13.0'}
+    peerDependencies:
+      postcss: ^7.0.0 || ^8.0.1
+      webpack: ^4.0.0 || ^5.0.0
+    dependencies:
+      cosmiconfig: 7.0.1
+      klona: 2.0.5
+      loader-utils: 2.0.4
+      postcss: 7.0.39
+      schema-utils: 3.1.1
+      semver: 7.3.8
+      webpack: 5.75.0
+    dev: true
+
   /postcss-loader/7.0.1_sat2ilddhdkv6huwh4d4inpfry:
     resolution: {integrity: sha512-VRviFEyYlLjctSM93gAZtcJJ/iSkPZ79zWbN/1fSH+NisBByEiVLqpdVDrPLVSi8DX0oJo12kL/GppTBdKVXiQ==}
     engines: {node: '>= 14.15.0'}
@@ -25901,12 +25952,6 @@ packages:
     dependencies:
       prettier: 2.7.1
       typescript: 4.8.4
-    dev: true
-
-  /prettier-plugin-tailwind-css/1.5.0:
-    resolution: {integrity: sha512-LUbINk8O0l+r7iPO6fUOQtoZdF7lQ0SGZTrlAl6IjW8zc5URMGqdW2QVoIK2de2HQeKvb9X2xv8aUzf+v2UVYw==}
-    dependencies:
-      prettier: 2.7.1
     dev: true
 
   /prettier-plugin-tailwindcss/0.1.13_prettier@2.7.1:
@@ -28591,13 +28636,24 @@ packages:
       webpack: 4.46.0
     dev: true
 
+  /style-loader/1.3.0_webpack@5.75.0:
+    resolution: {integrity: sha512-V7TCORko8rs9rIqkSrlMfkqA63DfoGBBJmK1kKGCcSi+BWb4cqz0SRsnp4l6rU5iwOEd0/2ePv68SV22VXon4Q==}
+    engines: {node: '>= 8.9.0'}
+    peerDependencies:
+      webpack: ^4.0.0 || ^5.0.0
+    dependencies:
+      loader-utils: 2.0.4
+      schema-utils: 2.7.1
+      webpack: 5.75.0
+    dev: true
+
   /style-loader/2.0.0_webpack@5.75.0:
     resolution: {integrity: sha512-Z0gYUJmzZ6ZdRUqpg1r8GsaFKypE+3xAzuFeMuoHgjc9KZv3wMyCRjQIWEbhoFSq7+7yoHXySDJyyWQaPajeiQ==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       webpack: ^4.0.0 || ^5.0.0
     dependencies:
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       schema-utils: 3.1.1
       webpack: 5.75.0
     dev: true
@@ -30250,7 +30306,7 @@ packages:
         optional: true
     dependencies:
       file-loader: 6.2.0_webpack@4.46.0
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       mime-types: 2.1.35
       schema-utils: 3.1.1
       webpack: 4.46.0
@@ -30267,7 +30323,7 @@ packages:
         optional: true
     dependencies:
       file-loader: 6.2.0_webpack@5.75.0
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       mime-types: 2.1.35
       schema-utils: 3.1.1
       webpack: 5.75.0
@@ -30284,7 +30340,7 @@ packages:
         optional: true
     dependencies:
       file-loader: 6.2.0_webpack@5.74.0
-      loader-utils: 2.0.2
+      loader-utils: 2.0.4
       mime-types: 2.1.35
       schema-utils: 3.1.1
       webpack: 5.74.0
