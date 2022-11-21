@@ -13,7 +13,7 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: nhost
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
   DASHBOARD_PACKAGE: '@nhost/dashboard'
 
 jobs:
@@ -29,6 +29,9 @@ jobs:
           fetch-depth: 0
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       - name: Create PR or Publish release
         id: changesets
         uses: changesets/action@v1
@@ -55,6 +58,7 @@ jobs:
     name: Run dashboard tests
     if: needs.version.outputs.dashboardVersion != ''
     uses: ./.github/workflows/dashboard.yaml
+    secrets: inherit
 
   publish:
     runs-on: ubuntu-latest
@@ -68,7 +72,7 @@ jobs:
           fetch-depth: 0
       - name: Add git tag
         run: |
-          git tag $GIT_TAG
+          git tag "${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}"
           git push origin --tags
       - name: Docker meta
         id: meta
@@ -111,7 +115,8 @@ jobs:
         with:
           changelog: dashboard/CHANGELOG.md
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: refs/tags/{{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+          prefix: ${{ env.DASHBOARD_PACKAGE }}@
+          ref: refs/tags/${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
       - name: Remove tag on failure
         if: failure()
-        run: git push --delete origin {{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+        run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
