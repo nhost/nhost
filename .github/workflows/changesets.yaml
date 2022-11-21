@@ -40,7 +40,6 @@ jobs:
   build:
     name: Build Docker image
     needs: version
-    if: needs.version.outputs.hasChangesets == 'false'
     timeout-minutes: 60
     runs-on: ubuntu-latest
     permissions:
