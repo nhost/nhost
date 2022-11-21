@@ -84,7 +84,7 @@ export const localStorageSetter = (
         if (value) {
           // TODO: Set expires based on the actual refresh token expire time
           // For now, we're using 30 days so the cookie is not removed when the browser is closed because if `expiers` is omitted, the cookie becomes a session cookie.
-          Cookies.set(key, value, { expires: 30 })
+          Cookies.set(key, value, { httpOnly: false, sameSite: 'lax', expires: 30 })
         } else {
           Cookies.remove(key)
         }
