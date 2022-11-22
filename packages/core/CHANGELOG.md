@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.9.3
+
+### Patch Changes
+
+- f2aaff05: Set same-site cookie to `lax`
+
 ## 0.9.2
 
 ### Patch Changes
