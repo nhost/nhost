@@ -10,7 +10,7 @@ runs:
   steps:
     - uses: pnpm/action-setup@v2.2.4
       with:
-        version: 7.9.1
+        version: 7.17.0
         run_install: false
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
