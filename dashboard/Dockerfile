@@ -1,4 +1,3 @@
-
 FROM node:16-alpine AS pruner
 RUN apk add --no-cache libc6-compat
 RUN apk update
@@ -17,10 +16,8 @@ RUN apk update
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV NEXT_PUBLIC_NHOST_PLATFORM false
-ENV NEXT_PUBLIC_NHOST_MIGRATIONS_URL http://localhost:9693
-ENV NEXT_PUBLIC_NHOST_HASURA_URL http://localhost:9695
 ENV NEXT_PUBLIC_ENV dev
+ENV NEXT_PUBLIC_NHOST_PLATFORM false
 
 RUN yarn global add pnpm@7.17.0
 COPY .gitignore .gitignore
