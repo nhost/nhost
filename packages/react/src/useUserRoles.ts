@@ -14,8 +14,10 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  */
 export const useUserRoles = () => {
   const service = useAuthInterpreter()
-  return useSelector(
-    service,
-    (state) => (state.matches('authentication.signedIn') && state.context.user?.roles) || []
-  )
+  return useSelector(service, (state) => {
+    if (!state.matches('authentication.signedIn')) {
+      return []
+    }
+    return state.context.user?.roles || []
+  })
 }
