@@ -86,10 +86,10 @@
   "resolutions": {
     "graphql": "15.7.2"
   },
-  "packageManager": "pnpm@7.9.1",
+  "packageManager": "pnpm@7.17.0",
   "engines": {
     "node": ">=14 <17",
-    "pnpm": ">=7.9.1"
+    "pnpm": ">=7.17.0"
   },
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"
