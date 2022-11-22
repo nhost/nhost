@@ -112,7 +112,7 @@ export default function TwitchProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/twitch/callback`}
             disabled

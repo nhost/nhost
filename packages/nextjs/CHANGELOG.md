@@ -1,5 +1,15 @@
 # @nhost/nextjs
 
+## 1.8.3
+
+### Patch Changes
+
+- 53bdc294: Allow NextJs 13 as peer dependency
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/react@0.14.3
+  - @nhost/nhost-js@1.6.1
+
 ## 1.8.2
 
 ### Patch Changes

@@ -112,7 +112,7 @@ export default function SpotifyProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/spotify/callback`}
             disabled

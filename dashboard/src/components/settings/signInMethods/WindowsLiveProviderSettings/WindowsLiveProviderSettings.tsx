@@ -111,7 +111,7 @@ export default function WindowsLiveProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/microsoft/callback`}
             disabled

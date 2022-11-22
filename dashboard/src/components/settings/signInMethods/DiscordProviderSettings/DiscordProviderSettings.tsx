@@ -112,7 +112,7 @@ export default function DiscordProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/discord/callback`}
             disabled
