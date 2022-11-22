@@ -1,3 +1,5 @@
+import { PropsWithChildren } from 'react'
+
 import { useAuthenticationStatus } from '../useAuthenticationStatus'
 
 /**
@@ -10,12 +12,12 @@ import { useAuthenticationStatus } from '../useAuthenticationStatus'
  *
  * function Page() {
  *   return (
- *    <NhostProvider nhost={nhost}>
- *     <SignedIn>
- *      <h1>Only rendered if the user is authenticated</h1>
- *    </SignedIn>
- *   </NhostProvider>
- *  )
+ *     <NhostProvider nhost={nhost}>
+ *       <SignedIn>
+ *         <h1>Only rendered if the user is authenticated</h1>
+ *       </SignedIn>
+ *     </NhostProvider>
+ *   )
  * }
  * ```
  *
@@ -23,11 +25,12 @@ import { useAuthenticationStatus } from '../useAuthenticationStatus'
  * @category Components
  */
 
-export function SignedIn({ children }: React.PropsWithChildren<unknown>): JSX.Element | null {
+export function SignedIn({ children }: PropsWithChildren<unknown>) {
   const { isAuthenticated } = useAuthenticationStatus()
 
   if (!isAuthenticated) {
     return null
   }
+
   return <>{children}</>
 }
