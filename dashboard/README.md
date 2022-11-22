@@ -49,8 +49,8 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 | `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. |
 | `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migrations endpoint. Used only if local development is enabled.                  |
 | `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.                            |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | URL of the local backend. This is `http://localhost:1337` by default.                            |
 | `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | Backend URL. Not necessary for local development.                                                |
 | `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                                          |
 | `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.                              |
 | `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                                              |

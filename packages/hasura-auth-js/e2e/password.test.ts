@@ -1,9 +1,8 @@
 import { faker } from '@faker-js/faker'
 import axios from 'axios'
-import htmlUrls from 'html-urls'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
+import { auth, getHtmlLink, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 
 describe('passwords', () => {
   afterEach(async () => {
@@ -45,22 +44,11 @@ describe('passwords', () => {
 
     expect(error).toBeNull()
 
-    // get email that was sent
-    const messageResetPassword = await mailhog.latestTo(email)
-
-    if (!messageResetPassword?.html) {
-      throw new Error('email does not exists')
-    }
-
     // get verify email link
-    const resetPasswordLink = htmlUrls({
-      html: messageResetPassword.html
-    }).find((href: { value: string; url: string; uri: string }) =>
-      href.url.includes('passwordReset')
-    )
+    const resetPasswordLink = await getHtmlLink(email, 'passwordReset')
 
     // verify email
-    await axios.get(resetPasswordLink.url, {
+    await axios.get(resetPasswordLink, {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })

@@ -1,387 +1,124 @@
 import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
+import ControlledCheckbox from '@/components/common/ControlledCheckbox';
+import Form from '@/components/common/Form';
 import Container from '@/components/layout/Container';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { useSubmitState } from '@/hooks/useSubmitState';
-import { Button, Toggle } from '@/ui';
-import { Alert } from '@/ui/Alert';
-import DelayedLoading from '@/ui/DelayedLoading';
-import { Input } from '@/ui/Input';
-import { Text } from '@/ui/Text';
-import { showLoadingToast, triggerToast } from '@/utils/toast';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Input from '@/ui/v2/Input';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetSmtpSettingsQuery,
   useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
-import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
-import React, { useEffect, useState } from 'react';
-import type { Control, FieldValues, Path } from 'react-hook-form';
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from 'react-hook-form';
-import toast from 'react-hot-toast';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 
-interface ValInputProps {
-  title: string;
-  type?: 'Input' | 'Toggle';
-  inputType?: string;
-  inputPlaceholder?: string;
-  maxLength?: number;
-  onChange?: (value: string) => void;
-  id:
-    | 'authSmtpSender'
-    | 'authSmtpUser'
-    | 'authSmtpHost'
-    | 'authSmtpPort'
-    | 'AuthSmtpSecure'
-    | 'authSmtpPass'
-    | 'AuthSmtpAuthMethod';
-  control: Control<EditCustomSTMPSettingsFormData>;
-  required?: boolean;
-}
+const settingsSMTPValidationSchema = yup
+  .object({
+    AuthSmtpSecure: yup.bool().label('SMTP Secure'),
+    authSmtpHost: yup
+      .string()
+      .label('SMTP Host')
+      .matches(
+        /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+        'The SMTP host must be a valid URL.',
+      )
+      .required(),
+    authSmtpPort: yup
+      .number()
+      .typeError('The SMTP port should contain only numbers.')
+      .required(),
+    authSmtpUser: yup.string().label('The SMTP Username').required(),
+    authSmtpPass: yup.string().label('The SMTP Password'),
+    AuthSmtpAuthMethod: yup.string().required(),
+    authSmtpSender: yup
+      .string()
+      .label('The SMTP Sender')
+      .email('The sender address should be a valid email.')
+      .required(),
+  })
+  .required();
 
-export function ControlledInput({
-  name,
-  control,
-  children,
-  required,
-}: ControlledInputProps) {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      rules={{
-        required,
-      }}
-      render={({ field }) => React.cloneElement(children, { ...field })}
-    />
-  );
-}
+export type SettingsSMTPValidationSchemaFormData = yup.InferType<
+  typeof settingsSMTPValidationSchema
+>;
 
-function ValInput({
-  title,
-  type,
-  inputType,
-  onChange,
-  inputPlaceholder,
-  id,
-  control,
-  maxLength,
-  required = true,
-}: ValInputProps) {
-  return (
-    <div className="flex flex-row items-center px-2 py-5">
-      <div className="flex w-full">
-        <Text className="text-sm+ font-medium text-greyscaleDark">{title}</Text>
-      </div>
-
-      <div className="flex flex-col w-full">
-        <div className="flex w-full ">
-          {type === 'Input' && (
-            <ControlledInput name={id} control={control} required={required}>
-              <Input
-                id={id}
-                onChange={onChange}
-                placeholder={inputPlaceholder || ''}
-                type={inputType || 'text'}
-                maxLength={maxLength || undefined}
-                error={!!control.getFieldState(id)?.error}
-                autoComplete="new-password"
-              />
-            </ControlledInput>
-          )}
-          {type === 'Toggle' && (
-            <div className="py-1">
-              <ControlledInput name={id} control={control}>
-                <Toggle onChange={() => {}} />
-              </ControlledInput>
-            </div>
-          )}
-        </div>
-        <div className="relative">
-          {control.getFieldState(id)?.error && (
-            <Text
-              size="xtiny"
-              color="red"
-              className="absolute top-[0.1rem] font-medium"
-            >
-              {control.getFieldState(id).error.message}
-            </Text>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export interface EditSenderDetailsFormData {
-  senderName: string;
-  senderAddress: string;
-}
-
-export interface EditCustomSTMPSettingsFormData {
-  authSmtpUser: string;
-  authSmtpHost: string;
-  authSmtpPort: number;
-  AuthSmtpSecure: boolean;
-  authSmtpPass: string;
-  // change to union type
-  AuthSmtpAuthMethod: string;
-  authSmtpSender: string;
-}
-
-function CustomSMTPSettingsForm({
-  handleEditSMSSettings,
-  loading,
-  submitState,
-}: any) {
-  const { control } = useFormContext<EditCustomSTMPSettingsFormData>();
-  const {
-    handleSubmit,
-    formState: { isSubmitting, errors, isValid },
-  } = useFormContext<EditCustomSTMPSettingsFormData>();
-
-  return (
-    <form autoComplete="off" onSubmit={handleSubmit(handleEditSMSSettings)}>
-      <div className="mt-6 border-t border-b divide-y-1">
-        {/* <ValInput
-          control={control}
-          id="authSmtpUser"
-          title="Sender Name"
-          type="Input"
-          inputPlaceholder="Username"
-        /> */}
-
-        <ValInput
-          control={control}
-          id="authSmtpSender"
-          title="From Email"
-          type="Input"
-          inputPlaceholder="e.g. noreply@nhost.app"
-        />
-        <div className="flex flex-row items-center px-2 py-5 place-content-between">
-          <div className="flex w-full">
-            <Text className="text-sm+ font-medium text-greyscaleDark">
-              SMTP Host and Port
-            </Text>
-          </div>
-
-          <div className="w-full">
-            <div className="flex flex-row w-full space-x-2">
-              <div className="flex-auto">
-                <Controller
-                  name="authSmtpHost"
-                  control={control}
-                  rules={{
-                    required: true,
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      required
-                      value={field.value || ''}
-                      id="authSmtpHost"
-                      placeholder="e.g. smtp.sendgrid.net"
-                      type="text"
-                      onChange={(value: string) => {
-                        field.onChange(value);
-                      }}
-                      error={!!errors[field.name]}
-                    />
-                  )}
-                />
-              </div>
-              <div className="w-13">
-                <Controller
-                  name="authSmtpPort"
-                  control={control}
-                  rules={{
-                    required: true,
-                    pattern: {
-                      value: /^[0-9]+$/,
-                      message: 'The SMTP port must contain only numbers.',
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      required
-                      value={field.value || ''}
-                      placeholder="25"
-                      type="text"
-                      maxLength={4}
-                      onChange={(value: string) => {
-                        field.onChange(value);
-                      }}
-                      error={!!errors[field.name]}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            <div className="relative">
-              {errors?.authSmtpHost?.message && !errors?.authSmtpPort?.message && (
-                <Text
-                  size="xtiny"
-                  color="red"
-                  className="absolute top-[0.1rem] font-medium"
-                >
-                  {errors?.authSmtpHost?.message}
-                </Text>
-              )}
-
-              {errors?.authSmtpPort?.message && !errors?.authSmtpHost?.message && (
-                <Text
-                  size="xtiny"
-                  color="red"
-                  className="absolute top-[0.1rem] font-medium"
-                >
-                  {errors?.authSmtpPort?.message}
-                </Text>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <ValInput
-          control={control}
-          id="authSmtpUser"
-          title="SMTP User"
-          type="Input"
-          inputPlaceholder="Username"
-        />
-        <ValInput
-          control={control}
-          title="SMTP Password"
-          id="authSmtpPass"
-          inputPlaceholder="SMTP Password"
-          type="Input"
-          inputType="Password"
-        />
-        <ValInput
-          title="Use SSL"
-          type="Toggle"
-          control={control}
-          id="AuthSmtpSecure"
-          required={false}
-        />
-        <ValInput
-          control={control}
-          id="AuthSmtpAuthMethod"
-          title="SMTP Auth Method"
-          type="Input"
-          inputPlaceholder="LOGIN"
-        />
-      </div>
-      {submitState.error && (
-        <Alert className="mt-4" severity="error">
-          {submitState.error.message}
-        </Alert>
-      )}
-      <div className="flex mt-5 place-content-end">
-        <div>
-          <Button
-            type="submit"
-            variant="primary"
-            className=""
-            loading={loading}
-            disabled={isSubmitting || !isValid}
-          >
-            Save Settings
-          </Button>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-function CustomSTMPSettings() {
+export default function SMTPSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const {
-    data,
-    loading: loadingSMTPQuery,
-    error,
-  } = useGetSmtpSettingsQuery({
+  const { data, loading, error } = useGetSmtpSettingsQuery({
     variables: {
       id: currentApplication.id,
     },
   });
 
-  const [enableCustomSMTPSettings] = useState(true);
-  const client = useApolloClient();
-  const [updateApp, { loading: loadingUpdateAppMutation }] =
-    useUpdateAppMutation();
-  const { submitState, setSubmitState } = useSubmitState();
-  const loading = submitState.loading || loadingUpdateAppMutation;
-  let toastId: string | undefined;
-
-  yup.setLocale({
-    mixed: {
-      default: 'field_invalid',
-      required: 'This field is required.',
-    },
-    string: { email: 'This should be a valid email.' },
-  });
-
-  const schema = yup
-    .object({
-      AuthSmtpSecure: yup.bool(),
-      authSmtpHost: yup
-        .string()
-        .matches(
-          /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
-          'The SMTP host must be a valid URL.',
-        )
-        .required(),
-      authSmtpPort: yup
-        .number()
-        .typeError('The SMTP port should contain only numbers.')
-        .required(),
-      authSmtpUser: yup.string().required(),
-      authSmtpPass: yup.string(),
-      AuthSmtpAuthMethod: yup.string().required(),
-      authSmtpSender: yup
-        .string()
-        .email('The sender address should be a valid email.')
-        .required(),
-    })
-    .required();
-
-  const form = useForm<EditCustomSTMPSettingsFormData>({
-    reValidateMode: 'onChange',
-    resolver: yupResolver(schema),
+  const form = useForm<
+    Optional<SettingsSMTPValidationSchemaFormData, 'authSmtpPass'>
+  >({
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(settingsSMTPValidationSchema),
     defaultValues: {
-      AuthSmtpSecure: data?.app.AuthSmtpSecure,
-      authSmtpHost: data?.app.authSmtpHost,
-      authSmtpPort: data?.app.authSmtpPort,
-      authSmtpUser: data?.app.authSmtpUser,
+      AuthSmtpSecure: data?.app?.AuthSmtpSecure,
+      authSmtpHost: data?.app?.authSmtpHost,
+      authSmtpPort: data?.app?.authSmtpPort,
+      authSmtpUser: data?.app?.authSmtpUser,
       AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
       authSmtpSender: data?.app.authSmtpSender,
     },
+    mode: 'onSubmit',
+    criteriaMode: 'all',
   });
 
   useEffect(() => {
-    if (data) {
-      form.reset({
-        AuthSmtpSecure: data.app.AuthSmtpSecure,
-        authSmtpHost: data.app.authSmtpHost,
-        authSmtpPort: data.app.authSmtpPort,
-        authSmtpUser: data.app.authSmtpUser,
-        AuthSmtpAuthMethod: data.app.AuthSmtpAuthMethod,
-        authSmtpSender: data.app.authSmtpSender,
-      });
-    }
-  }, [data, form]);
+    form.reset(() => ({
+      AuthSmtpSecure: data?.app?.AuthSmtpSecure || false,
+      authSmtpHost: data?.app?.authSmtpHost,
+      authSmtpPort: data?.app?.authSmtpPort,
+      authSmtpUser: data?.app?.authSmtpUser,
+      AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
+      authSmtpSender: data?.app.authSmtpSender,
+    }));
+  }, [data?.app, form, form.reset]);
 
-  if (loadingSMTPQuery) {
-    return <DelayedLoading delay={500} />;
+  const {
+    register,
+    formState: { errors, isDirty, isValid },
+  } = form;
+
+  const [updateApp, { loading: loadingUpdateAppMutation }] =
+    useUpdateAppMutation({
+      refetchQueries: ['getSMTPSettings'],
+    });
+
+  if (currentApplication.plan.isFree) {
+    return (
+      <Container
+        className="grid max-w-5xl grid-flow-row gap-4 bg-fafafa"
+        wrapperClassName="bg-fafafa"
+      >
+        <UnlockFeatureByUpgrading
+          message="Unlock SMTP settings by upgrading your project to the Pro plan."
+          className="mt-4"
+        />
+      </Container>
+    );
+  }
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading SMTP settings..."
+        className="justify-center"
+      />
+    );
   }
 
   if (error) {
@@ -396,94 +133,155 @@ function CustomSTMPSettings() {
     authSmtpUser,
     AuthSmtpAuthMethod,
     AuthSmtpSecure,
-  }: EditCustomSTMPSettingsFormData) => {
-    try {
-      toastId = showLoadingToast('Updating SMTP settings...');
+  }: SettingsSMTPValidationSchemaFormData) => {
+    const dataInputWithoutPass = {
+      authSmtpSender,
+      authSmtpUser,
+      authSmtpHost,
+      authSmtpPort,
+      AuthSmtpSecure,
+      AuthSmtpAuthMethod,
+    };
 
-      const dataInputWithoutPass = {
-        authSmtpSender,
-        authSmtpUser,
-        authSmtpHost,
-        authSmtpPort,
-        AuthSmtpSecure,
-        AuthSmtpAuthMethod,
-      };
+    const updateAppMutation = updateApp({
+      variables: {
+        id: currentApplication.id,
+        app: authSmtpPass
+          ? { ...dataInputWithoutPass, authSmtpPass }
+          : dataInputWithoutPass,
+      },
+    });
 
-      await updateApp({
-        variables: {
-          id: currentApplication.id,
-          app: authSmtpPass
-            ? { ...dataInputWithoutPass, authSmtpPass }
-            : dataInputWithoutPass,
-        },
-      });
-      await client.refetchQueries({ include: ['getSMTPSettings'] });
-      toast.remove(toastId);
-      triggerToast('SMTP settings updated successfully.');
-    } catch (updateAppError) {
-      if (toastId) {
-        toast.remove(toastId);
-      }
-
-      setSubmitState({
-        error: updateAppError,
-        loading: false,
-        fieldsWithError: [],
-      });
-    }
+    await toast.promise(
+      updateAppMutation,
+      {
+        loading: `SMTP settings are being updated...`,
+        success: `SMTP settings updated successfully`,
+        error: `Error while updating SMTP settings`,
+      },
+      { ...toastStyleProps },
+    );
   };
 
   return (
-    <FormProvider {...form}>
-      <div className="flex flex-row place-content-between">
-        <div className="flex w-[38rem] flex-col">
-          <h2 className="text-lg font-medium text-greyscaleDark">
-            SMTP Settings
-          </h2>
-        </div>
-      </div>
+    <Container
+      className="grid max-w-5xl grid-flow-row gap-4 bg-fafafa"
+      wrapperClassName="bg-fafafa"
+    >
+      <FormProvider {...form}>
+        <Form onSubmit={handleEditSMTPSettings}>
+          <SettingsContainer
+            title="SMTP Settings"
+            description="Configure your SMTP settings to send emails from your email domain."
+            submitButtonText="Save"
+            primaryActionButtonProps={{
+              loading: loadingUpdateAppMutation,
+              disabled:
+                !isValid ||
+                !isDirty ||
+                (errors && Object.keys(errors).length > 0),
+            }}
+            className="grid grid-cols-9 gap-4"
+          >
+            <Input
+              {...register('authSmtpSender')}
+              id="authSmtpSender"
+              name="authSmtpSender"
+              label="From Email"
+              placeholder="noreply@nhost.app"
+              className="lg:col-span-4"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errors.authSmtpSender)}
+              helperText={errors.authSmtpSender?.message}
+            />
 
-      {submitState.error && (
-        <Alert severity="error" className="mt-2">
-          {submitState.error.message}
-        </Alert>
-      )}
+            <Input
+              {...register('authSmtpHost')}
+              id="authSmtpHost"
+              name="authSmtpHost"
+              label="SMTP Host"
+              className="lg:col-span-4"
+              placeholder="e.g. smtp.sendgrid.net"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errors.authSmtpHost)}
+              helperText={errors.authSmtpHost?.message}
+            />
 
-      {enableCustomSMTPSettings && (
-        <CustomSMTPSettingsForm
-          handleEditSMSSettings={handleEditSMTPSettings}
-          loading={loading}
-          submitState={submitState}
-        />
-      )}
-    </FormProvider>
-  );
-}
+            <Input
+              {...register('authSmtpPort')}
+              id="authSmtpPort"
+              name="authSmtpPort"
+              label="Port"
+              type="number"
+              placeholder="587"
+              className="lg:col-span-1"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errors.authSmtpPort)}
+              helperText={errors.authSmtpPort?.message}
+            />
 
-export type FieldPath<TFieldValues extends FieldValues> = Path<TFieldValues>;
+            <Input
+              {...register('authSmtpUser')}
+              id="authSmtpUser"
+              label="SMTP Username"
+              placeholder="SMTP Username"
+              className="lg:col-span-4"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errors.authSmtpUser)}
+              helperText={errors.authSmtpUser?.message}
+            />
 
-interface ControlledInputProps {
-  name: FieldPath<EditCustomSTMPSettingsFormData>;
-  control: Control<EditCustomSTMPSettingsFormData, any>;
-  children: any;
-  required?: boolean;
-}
+            <Input
+              {...register('authSmtpPass')}
+              id="authSmtpPass"
+              label="SMTP Password"
+              type="password"
+              placeholder="Enter SMTP password"
+              className="lg:col-span-5"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errors.authSmtpPass)}
+              helperText={errors.authSmtpPass?.message}
+            />
 
-export default function SMTPPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isPlanFree = currentApplication.plan.isFree;
+            <Input
+              {...register('AuthSmtpAuthMethod')}
+              id="AuthSmtpAuthMethod"
+              name="AuthSmtpAuthMethod"
+              label="SMTP Auth Method"
+              placeholder="LOGIN"
+              hideEmptyHelperText
+              className="lg:col-span-4"
+              fullWidth
+              error={Boolean(errors.AuthSmtpAuthMethod)}
+              helperText={errors.AuthSmtpAuthMethod?.message}
+            />
 
-  return (
-    <Container>
-      {isPlanFree && (
-        <UnlockFeatureByUpgrading message="Unlock custom SMTP Settings by upgrading your project to the Pro plan." />
-      )}
-
-      {!isPlanFree && <CustomSTMPSettings />}
+            <ControlledCheckbox
+              name="AuthSmtpSecure"
+              id="AuthSmtpSecure"
+              label="Use SSL"
+              className="lg:col-span-9"
+            />
+          </SettingsContainer>
+        </Form>
+      </FormProvider>
     </Container>
   );
 }
 
-SMTPPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <SettingsLayout
+      mainContainerProps={{
+        className: 'bg-fafafa',
+      }}
+    >
+      {page}
+    </SettingsLayout>
+  );
 };

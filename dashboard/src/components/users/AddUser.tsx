@@ -73,7 +73,7 @@ export function AddUserModal({ modalIsOpen, setModalIsOpen }: any) {
   };
   return (
     <Modal showModal={modalIsOpen} close={() => setModalIsOpen(false)}>
-      <div className="px-4 py-4 text-left w-modal2">
+      <div className="w-modal2 px-4 py-4 text-left">
         <div className="grid grid-flow-row gap-2">
           <Text variant="h3" component="h2" className="text-center">
             Add New User
@@ -150,7 +150,7 @@ export function AddUser() {
       <Button
         variant="outlined"
         color="secondary"
-        className="w-full ml-2"
+        className="ml-2 w-full"
         onClick={() => setModalIsOpen(true)}
       >
         Add User

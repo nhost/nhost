@@ -108,7 +108,7 @@ function AddNewWorkspaceForm({
 
       {workspaceError && <Alert severity="error">{workspaceError}</Alert>}
 
-      <div className="grid justify-between grid-flow-col gap-2">
+      <div className="grid grid-flow-col justify-between gap-2">
         <Button
           variant="outlined"
           color="secondary"
@@ -142,7 +142,7 @@ export default function AddWorkspace() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 py-6 text-left w-modal">
+    <div className="grid w-modal grid-flow-row gap-2 px-6 py-6 text-left">
       <div className="grid w-full grid-flow-row gap-1">
         <Text variant="h3" component="h2">
           New Workspace

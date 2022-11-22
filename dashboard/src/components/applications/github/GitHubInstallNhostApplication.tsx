@@ -1,5 +1,5 @@
-import ExternalLink from '@/components/icons/ExternalIcon';
 import GithubIcon from '@/components/icons/GithubIcon';
+import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 
@@ -27,7 +27,7 @@ export default function GitHubInstallNhostApplication() {
         underline="none"
       >
         Configure the Nhost application on GitHub{' '}
-        <ExternalLink className="h-4 w-4" />
+        <ArrowSquareOutIcon className="h-4 w-4" />
       </Link>
     </div>
   );

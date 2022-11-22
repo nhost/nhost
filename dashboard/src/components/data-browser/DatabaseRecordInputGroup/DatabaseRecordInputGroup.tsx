@@ -121,7 +121,7 @@ export default function DatabaseRecordInputGroup({
 
             const InputLabel = (
               <span className="inline-grid grid-flow-col gap-1">
-                <span className="inline-grid items-center grid-flow-col gap-1">
+                <span className="inline-grid grid-flow-col items-center gap-1">
                   {isPrimary && <KeyIcon className="text-base text-inherit" />}
 
                   <span>{columnId}</span>

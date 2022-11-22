@@ -53,7 +53,7 @@ function ControlledCheckbox(
       name={field.name}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, checked) => {
-        setValue(controllerProps?.name || name, checked);
+        setValue(controllerProps?.name || name, checked, { shouldDirty: true });
 
         if (props.onChange) {
           props.onChange(event, checked);

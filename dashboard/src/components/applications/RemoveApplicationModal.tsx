@@ -7,6 +7,7 @@ import { triggerToast } from '@/utils/toast';
 import { useDeleteApplicationMutation } from '@/utils/__generated__/graphql';
 import router from 'next/router';
 import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export interface RemoveApplicationModalProps {
   /**
@@ -26,6 +27,10 @@ export interface RemoveApplicationModalProps {
    * Description of the modal
    */
   description?: string;
+  /**
+   * Class name to be applied to the modal.
+   */
+  className?: string;
 }
 
 export function RemoveApplicationModal({
@@ -33,6 +38,7 @@ export function RemoveApplicationModal({
   handler,
   title,
   description,
+  className,
 }: RemoveApplicationModalProps) {
   const [deleteApplication, { client }] = useDeleteApplicationMutation();
   const [loadingRemove, setLoadingRemove] = useState(false);
@@ -72,18 +78,14 @@ export function RemoveApplicationModal({
   }
 
   return (
-    <div className="w-modal text-left">
+    <div className={twMerge('w-full max-w-sm p-6 text-left', className)}>
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h2">
           {title || 'Delete Project'}
         </Text>
 
         <Text variant="subtitle2">
-          {description ? (
-            <div>{description}</div>
-          ) : (
-            <div>Are you sure you want to delete this app?</div>
-          )}
+          {description || 'Are you sure you want to delete this app?'}
         </Text>
 
         <Text variant="subtitle2" className="font-bold !text-rose-600">
@@ -98,33 +100,15 @@ export function RemoveApplicationModal({
             checked={remove}
             onChange={(_event, checked) => setRemove(checked)}
             aria-label="Confirm Delete Project #1"
-            componentsProps={{
-              formControlLabel: {
-                componentsProps: {
-                  typography: {
-                    className: '!text-sm+',
-                  },
-                },
-              },
-            }}
           />
 
           <Checkbox
             id="accept-2"
-            label="I understand this action can not be undone"
+            label="I understand this action cannot be undone"
             className="py-2"
             checked={remove2}
             onChange={(_event, checked) => setRemove2(checked)}
             aria-label="Confirm Delete Project #2"
-            componentsProps={{
-              formControlLabel: {
-                componentsProps: {
-                  typography: {
-                    className: '!text-sm+',
-                  },
-                },
-              },
-            }}
           />
         </div>
 

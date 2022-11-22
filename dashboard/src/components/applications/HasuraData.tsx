@@ -1,8 +1,8 @@
 import { ConnectionDetail } from '@/components/applications/ConnectionDetail';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import ExternalLink from '@/components/icons/ExternalIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
+import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { generateRemoteAppUrl } from '@/utils/helpers';
@@ -66,7 +66,7 @@ export function HasuraData({ close }: HasuraDataProps) {
             underline="none"
           >
             Open Hasura
-            <ExternalLink className="ml-0.5 h-4 w-4" />
+            <ArrowSquareOutIcon className="h-4 w-4" />
           </Link>
 
           {close && (

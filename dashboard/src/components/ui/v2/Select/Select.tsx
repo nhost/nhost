@@ -1,18 +1,14 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import FormControl from '@/ui/v2/FormControl';
-import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
-import ChevronUpIcon from '@/ui/v2/icons/ChevronUpIcon';
-import type { ButtonUnstyledProps } from '@mui/base/ButtonUnstyled';
-import ButtonUnstyled from '@mui/base/ButtonUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
 import type { SelectUnstyledProps } from '@mui/base/SelectUnstyled';
-import SelectUnstyled, {
-  selectUnstyledClasses,
-} from '@mui/base/SelectUnstyled';
-import { darken, lighten, styled } from '@mui/material';
+import SelectUnstyled from '@mui/base/SelectUnstyled';
+import { styled } from '@mui/material';
 import clsx from 'clsx';
-import type { ForwardedRef } from 'react';
+import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
+import type { ToggleButtonProps } from './ToggleButton';
+import ToggleButton from './ToggleButton';
 
 export interface SelectProps<TValue extends {}>
   extends SelectUnstyledProps<TValue>,
@@ -30,6 +26,7 @@ export interface SelectProps<TValue extends {}>
    * Props for component slots.
    */
   slotProps?: SelectUnstyledProps<TValue>['slotProps'] & {
+    root?: Partial<PropsWithoutRef<ToggleButtonProps>>;
     label?: Partial<FormControlProps['labelProps']>;
     formControl?: Partial<FormControlProps>;
   };
@@ -38,68 +35,6 @@ export interface SelectProps<TValue extends {}>
    */
   className?: string;
 }
-
-const StyledButton = styled(ButtonUnstyled)(({ theme }) => ({
-  display: 'grid',
-  width: '100%',
-  gridAutoFlow: 'column',
-  justifyContent: 'space-between',
-  gap: theme.spacing(),
-  alignItems: 'center',
-  fontFamily: theme.typography.fontFamily,
-  fontSize: '0.9375rem',
-  lineHeight: '1.375rem',
-  fontWeight: 400,
-  minHeight: '2.5rem',
-  textAlign: 'left',
-  color: theme.palette.text.primary,
-  padding: theme.spacing(1, 1.25),
-  transition: theme.transitions.create([
-    'background-color',
-    'border-color',
-    'box-shadow',
-  ]),
-  border: `1px solid ${theme.palette.grey[400]}`,
-  borderRadius: theme.shape.borderRadius,
-  [`&:not(.${selectUnstyledClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
-  },
-  [`&.${selectUnstyledClasses.disabled}`]: {
-    color: theme.palette.grey[600],
-    borderColor: darken(theme.palette.grey[300], 0.1),
-    backgroundColor: lighten(theme.palette.grey[200], 0.5),
-  },
-  [`&.${selectUnstyledClasses.focusVisible}, &.${selectUnstyledClasses.expanded}`]:
-    {
-      outline: 'none',
-      borderColor: theme.palette.grey[700],
-    },
-  [`&.${selectUnstyledClasses.expanded} .expand`]: {
-    display: 'none',
-  },
-  [`&:not(.${selectUnstyledClasses.expanded}) .expand`]: {
-    display: 'block',
-  },
-  [`&.${selectUnstyledClasses.expanded} .expanded`]: {
-    display: 'block',
-  },
-  [`&:not(.${selectUnstyledClasses.expanded}) .expanded`]: {
-    display: 'none',
-  },
-  '&.error': {
-    borderColor: theme.palette.error.main,
-  },
-  [`&.${selectUnstyledClasses.focusVisible}.error`]: {
-    borderColor: theme.palette.error.dark,
-  },
-}));
-
-const StyledButtonLabel = styled('span')`
-  display: flex;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
 
 const StyledListbox = styled('ul')(({ theme }) => ({
   boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
@@ -118,31 +53,6 @@ const StyledListbox = styled('ul')(({ theme }) => ({
 const StyledPopper = styled(PopperUnstyled)`
   z-index: 10;
 `;
-
-const ToggleButton = forwardRef(
-  (
-    { children, placeholder, ...props }: ButtonUnstyledProps,
-    ref: ForwardedRef<HTMLButtonElement>,
-  ) => (
-    <StyledButton {...props} ref={ref}>
-      <StyledButtonLabel>{children || placeholder}</StyledButtonLabel>
-
-      <ChevronDownIcon
-        aria-label="Chevron down"
-        sx={{ fontSize: '0.75rem' }}
-        className="expand"
-      />
-
-      <ChevronUpIcon
-        aria-label="Chevron up"
-        sx={{ fontSize: '0.75rem' }}
-        className="expanded"
-      />
-    </StyledButton>
-  ),
-);
-
-ToggleButton.displayName = 'NhostToggleButton';
 
 function Select<TValue>(
   {

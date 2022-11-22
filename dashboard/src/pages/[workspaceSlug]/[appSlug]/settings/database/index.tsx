@@ -1,31 +1,23 @@
 import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+
+import { useGetDatabaseConnectionInfoQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { isDevOrStaging } from '@/utils/helpers';
+import type { ReactElement } from 'react';
+
+import SettingsContainer from '@/components/settings/SettingsContainer';
+
+import ResetDatabasePasswordSettings from '@/components/settings/ResetDatabasePasswordSettings';
 import Button from '@/ui/v2/Button';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
-import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import { isDevOrStaging } from '@/utils/helpers';
-import { useGetDatabaseConnectionInfoQuery } from '@/utils/__generated__/graphql';
-import type { ReactElement } from 'react';
+import { triggerToast } from '@/utils/toast';
 import { twMerge } from 'tailwind-merge';
-import type { Optional } from 'utility-types';
-
-export interface CustomDatabaseInputProps
-  extends Optional<Pick<InputProps, 'value' | 'className'>, 'className'> {
-  /**
-   * Label for the input field.
-   */
-  label: string;
-  /**
-   * Disable end adornment for this custom input.
-   */
-  disabledEndAdornment?: boolean;
-}
 
 export default function DatabaseSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -36,7 +28,7 @@ export default function DatabaseSettingsPage() {
 
   const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
     variables: {
-      id: currentApplication.id,
+      id: currentApplication?.id,
     },
   });
 
@@ -51,94 +43,94 @@ export default function DatabaseSettingsPage() {
   }
 
   if (error) {
-    throw error || new Error('Unknown error occurred. Please try again later.');
+    triggerToast('Error loading database connection info');
   }
 
-  const settingsDatabaseCustomInputs: CustomDatabaseInputProps[] = [
+  const settingsDatabaseCustomInputs: InputProps[] = [
     {
+      name: 'postgresHost',
       label: 'Postgres Host',
       value: postgresHost,
+      className: 'col-span-6 lg:col-span-3',
     },
     {
+      name: 'port',
       label: 'Port',
       value: 5432,
-      className: 'lg:col-span-1',
+      className: 'col-span-6 lg:col-span-3',
     },
     {
+      name: 'postgresDatabase',
       label: 'Database Name',
       value: data.app.postgresDatabase,
-      className: 'lg:col-span-2',
+      className: 'col-span-6',
     },
     {
+      name: 'postgresUser',
       label: 'Username',
       value: 'postgres',
+      className: 'col-span-6',
     },
     {
-      label: 'Password',
-      value: 'The one you used when you created the project.',
-      disabledEndAdornment: true,
-    },
-    {
+      name: 'connectiongString',
       label: 'Connection String',
       value: `postgres://postgres:[YOUR-PASSWORD]@${postgresHost}:5432/${data.app.postgresDatabase}`,
-      className: 'lg:col-span-6',
+      className: 'col-span-6',
     },
   ];
 
   return (
-    <Container className="bg-fafafa" wrapperClassName="bg-fafafa">
-      <div className="flex flex-col gap-4 rounded-xl border-1 border-[#E5E7EB] bg-white">
-        <div className="flex flex-col gap-1 px-6 py-4">
-          <Text variant="h3" className="text-greyscaleDark">
-            Connection Info
-          </Text>
-
-          <Text variant="body1">
-            Connect directly to the Postgres database with this information.
-          </Text>
-        </div>
-        <div className="grid grid-flow-row grid-rows-3 gap-4 px-6 lg:grid-cols-6">
-          {settingsDatabaseCustomInputs.map(
-            ({ label, value, className, disabledEndAdornment }) => (
-              <Input
-                disabled
-                key={label}
-                label={label}
-                componentsProps={{
-                  label: {
-                    className: 'text-sm+ font-medium text-greyscaleDark pb-2',
-                  },
-                }}
-                placeholder={label}
-                value={value}
-                className={twMerge('lg:col-span-3', className)}
-                fullWidth
-                endAdornment={
-                  !disabledEndAdornment && (
-                    <InputAdornment position="end" className="absolute right-2">
-                      <Button
-                        sx={{ minWidth: 0, padding: 0 }}
-                        color="secondary"
-                        onClick={() => {
-                          copy(value.toString(), label);
-                        }}
-                        variant="borderless"
-                      >
-                        <CopyIcon className="h-4 w-4" />
-                      </Button>
-                    </InputAdornment>
-                  )
-                }
-              />
-            ),
-          )}
-        </div>
-        <div className="flex flex-col place-items-end border-t py-3.5 px-6">
-          <Button className="" disabled variant="outlined" color="secondary">
-            Save
-          </Button>
-        </div>
-      </div>
+    <Container
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-fafafa"
+      wrapperClassName="bg-fafafa"
+    >
+      <SettingsContainer
+        title="Connection Info"
+        description="Connect directly to the Postgres database with this information."
+        primaryActionButtonProps={{ disabled: true, className: 'invisible' }}
+        className="grid grid-cols-6 gap-4"
+      >
+        {settingsDatabaseCustomInputs.map(
+          ({ name, label, className, disabled, value: inputValue }) => (
+            <Input
+              key={name}
+              label={label}
+              required
+              disabled
+              value={inputValue}
+              componentsProps={{
+                label: {
+                  className: 'text-sm+ font-medium text-greyscaleDark pb-2',
+                },
+                inputRoot: {
+                  className: twMerge(disabled && 'cursor-pointer'),
+                },
+              }}
+              className={className}
+              fullWidth
+              hideEmptyHelperText
+              endAdornment={
+                name !== 'postgresPassword' && (
+                  <InputAdornment position="end" className="absolute right-2">
+                    <Button
+                      sx={{ minWidth: 0, padding: 0 }}
+                      color="secondary"
+                      variant="borderless"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copy(inputValue as string, `${label}`);
+                      }}
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </Button>
+                  </InputAdornment>
+                )
+              }
+            />
+          ),
+        )}
+      </SettingsContainer>
+      <ResetDatabasePasswordSettings />
     </Container>
   );
 }

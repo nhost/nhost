@@ -92,7 +92,7 @@ export default function EditTableForm({
       identityColumnIndex: null,
       foreignKeyRelations: [],
     },
-    reValidateMode: 'onBlur',
+    reValidateMode: 'onSubmit',
     resolver: yupResolver(baseTableValidationSchema),
   });
 

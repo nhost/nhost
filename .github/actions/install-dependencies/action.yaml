@@ -1,11 +1,16 @@
 name: Install Node and package dependencies
 description: 'Install Node dependencies with pnpm'
+inputs:
+  TURBO_TOKEN:
+    description: 'Turborepo token'
+  TURBO_TEAM:
+    description: 'Turborepo team'
 runs:
   using: 'composite'
   steps:
     - uses: pnpm/action-setup@v2.2.4
       with:
-        version: 7.9.1
+        version: 7.17.0
         run_install: false
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
@@ -31,3 +36,6 @@ runs:
     - shell: bash
       name: Build packages
       run: pnpm build
+      env:
+        TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+        TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
