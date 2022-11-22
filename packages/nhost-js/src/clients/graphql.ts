@@ -56,6 +56,14 @@ export class NhostGraphqlClient {
   }
 
   /**
+   * A nice new feature
+   * @returns
+   */
+  sheenaWantsToCommit() {
+    return 'sheena'
+  }
+
+  /**
    * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
    *
    * @example
