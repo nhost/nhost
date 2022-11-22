@@ -25,6 +25,7 @@ const (
 	SvcHasura    = "hasura"
 	SvcTraefik   = "traefik"
 	SvcGraphql   = "graphql"
+	SvcDashboard = "dashboard"
 	// --
 
 	// container ports
@@ -34,6 +35,7 @@ const (
 	// --
 
 	// default docker images
+	svcDashboardDefaultImage = "nhost/dashboard:0.3.0"
 	svcPostgresDefaultImage  = "nhost/postgres:14.5-20221009-1"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.15.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.3.0"
@@ -54,6 +56,19 @@ const (
 	// envs prefixes
 	envPrefixAuth    = "AUTH"
 	envPrefixStorage = "STORAGE"
+
+	// dashboard
+	envDashboardNextPublicNhostBackendURL    = "NEXT_PUBLIC_NHOST_BACKEND_URL"
+	envDashboardNextPublicNhostHasuraURL     = "NEXT_PUBLIC_NHOST_HASURA_URL"
+	envDashboardNextPublicNhostMigrationsURL = "NEXT_PUBLIC_NHOST_MIGRATIONS_URL"
+	envDashboardNextPublicNhostPlatform      = "NEXT_PUBLIC_NHOST_PLATFORM"
+	envDashboardNextPublicEnv                = "NEXT_PUBLIC_ENV"
+	envDashboardNextTelemetryDisabled        = "NEXT_TELEMETRY_DISABLED"
+
+	// dashboard envs values
+	envDashboardNextPublicNhostPlatformValue = "false"
+	envDashboardNextPublicEnvValue           = "dev"
+	envDashboardNextTelemetryDisabledValue   = "1"
 
 	// minio
 	envMinioRootUser     = "MINIO_ROOT_USER"
@@ -133,6 +148,7 @@ func (c *Config) build() *types.Config {
 	// build services, they may be nil
 	services := []*types.ServiceConfig{
 		c.traefikService(),
+		c.dashboardService(),
 		c.postgresService(),
 		c.hasuraService(),
 		c.authService(),
@@ -196,6 +212,10 @@ func (c Config) PublicPostgresConnectionString() string {
 	return fmt.Sprintf("postgres://%s:%s@localhost:%d/%s", user, password, c.ports.DB(), db)
 }
 
+func (c Config) DashboardURL() string {
+	return fmt.Sprintf("http://localhost:%d", c.ports.Dashboard())
+}
+
 func (c Config) mailhogServiceEnvs() env {
 	authEnv := c.authServiceEnvs()
 
@@ -223,6 +243,36 @@ func (c Config) runMailhogService() bool {
 	authEnv := c.authServiceEnvs()
 
 	return authEnv[envAuthSmtpHost] == SvcMailhog
+}
+
+func (c Config) dashboardServiceEnvs() env {
+	e := env{
+		envDashboardNextPublicNhostBackendURL:    fmt.Sprintf("http://localhost:%d", c.ports.Proxy()),
+		envDashboardNextPublicNhostHasuraURL:     fmt.Sprintf("http://localhost:%d", c.ports.HasuraConsole()),
+		envDashboardNextPublicNhostMigrationsURL: fmt.Sprintf("http://localhost:%d", c.ports.HasuraConsoleAPI()),
+		envDashboardNextPublicNhostPlatform:      envDashboardNextPublicNhostPlatformValue,
+		envDashboardNextPublicEnv:                envDashboardNextPublicEnvValue,
+		envDashboardNextTelemetryDisabled:        envDashboardNextTelemetryDisabledValue,
+	}
+
+	e.mergeWithSlice(c.dotenv)
+	return e
+}
+
+func (c Config) dashboardService() *types.ServiceConfig {
+	return &types.ServiceConfig{
+		Name:  SvcDashboard,
+		Image: c.serviceDockerImage(SvcDashboard, svcDashboardDefaultImage),
+		Ports: []types.ServicePortConfig{
+			{
+				Mode:      "ingress",
+				Target:    3000,
+				Published: fmt.Sprint(c.ports.Dashboard()),
+				Protocol:  "tcp",
+			},
+		},
+		Environment: c.dashboardServiceEnvs().dockerServiceConfigEnv(),
+	}
 }
 
 func (c Config) mailhogService() *types.ServiceConfig {

@@ -19,6 +19,7 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 
 ## Services:
 
+- [Dashboard](https://github.com/nhost/nhost/tree/main/dashboard)
 - [Postgres Database](https://www.postgresql.org/)
 - [Hasura's GraphQL Engine](https://github.com/hasura/graphql-engine)
 - [Hasura Auth](https://github.com/nhost/hasura-auth)
@@ -51,6 +52,12 @@ Start the development environment:
 
 ```
 nhost up
+```
+
+You can also use our new dashboard:
+
+```
+nhost up --dashboard
 ```
 
 ## Documentation

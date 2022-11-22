@@ -63,7 +63,7 @@ const (
 	startTimeoutFlag         = "start-timeout"
 )
 
-//  devCmd represents the dev command
+// devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:        "dev [-p port]",
 	Aliases:    []string{"up"},
@@ -170,7 +170,13 @@ var devCmd = &cobra.Command{
 			}
 
 			if !noBrowser {
-				_ = openbrowser(launcher.HasuraConsoleURL())
+				openURL := launcher.HasuraConsoleURL()
+
+				if dashboard {
+					openURL = fmt.Sprintf("http://localhost:%d", ports.Dashboard())
+				}
+
+				_ = openbrowser(openURL)
 			}
 
 			fmt.Println()
@@ -199,7 +205,7 @@ var devCmd = &cobra.Command{
 }
 
 func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
-	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort uint32
+	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort, dashboardPort uint32
 	var err error
 
 	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
@@ -234,7 +240,11 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
-	return ports.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort), nil
+	if dashboardPort, err = fs.GetUint32(ports.FlagPortDashboard); err != nil {
+		return nil, err
+	}
+
+	return ports.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort, dashboardPort), nil
 }
 
 type Printer struct {
@@ -279,8 +289,10 @@ func init() {
 	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMailhog, ports.DefaultMailhogPort, "Port for mailhog UI")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortDashboard, ports.DefaultDashboardPort, "Port for dashboard UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
+	devCmd.PersistentFlags().BoolVar(&dashboard, "dashboard", false, "Use nhost dashboard")
 
 	devCmd.PersistentFlags().StringVar(&userDefinedHasuraCli, userDefinedHasuraCliFlag, viper.GetString(userDefinedHasuraCliFlag), "User-defined path for hasura-cli binary")
 	viper.BindPFlag(userDefinedHasuraCliFlag, devCmd.PersistentFlags().Lookup(userDefinedHasuraCliFlag))
