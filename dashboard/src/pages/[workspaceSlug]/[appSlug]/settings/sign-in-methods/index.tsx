@@ -2,6 +2,7 @@ import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import AnonymousSignInSettings from '@/components/settings/signInMethods/AnonymousSignInSettings';
 import AppleProviderSettings from '@/components/settings/signInMethods/AppleProviderSettings';
+import AzureADProviderSettings from '@/components/settings/signInMethods/AzureADProviderSettings ';
 import DiscordProviderSettings from '@/components/settings/signInMethods/DiscordProviderSettings';
 import EmailSettings from '@/components/settings/signInMethods/EmailSettings';
 import FacebookProviderSettings from '@/components/settings/signInMethods/FacebookProviderSettings';
@@ -66,6 +67,7 @@ export default function SettingsSignInMethodsPage() {
       <DiscordProviderSettings />
       <TwitterProviderSettings />
       <WorkOsProviderSettings />
+      <AzureADProviderSettings />
     </Container>
   );
 }
