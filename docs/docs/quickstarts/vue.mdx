@@ -554,7 +554,7 @@ composable to execute that query when the user submits the form from the profile
           lastName: lastName.value
         }
       })
-      await client.auth.refreshSession()
+      await nhost.auth.refreshSession()
     }
   }
 </script>
@@ -580,7 +580,7 @@ composable to execute that query when the user submits the form from the profile
 ```
 
 :::tip
-You probably have noticed that we are calling `client.auth.refreshSession()` after we updated the user using the GraphQL mutation. The Nhost client only extracts user information from the access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information has been updated, we force an access token refresh so it is kept up to date.
+You probably have noticed that we are calling `nhost.auth.refreshSession()` after we updated the user using the GraphQL mutation. The Nhost client only extracts user information from the access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information has been updated, we force an access token refresh so it is kept up to date.
 :::
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
