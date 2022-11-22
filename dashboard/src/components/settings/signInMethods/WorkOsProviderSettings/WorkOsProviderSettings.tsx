@@ -161,7 +161,7 @@ export default function WorkOsProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/workos/callback`}
             className="col-span-6"
@@ -169,11 +169,6 @@ export default function WorkOsProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             disabled
-            slotProps={{
-              input: {
-                className: 'bg-opacity-5',
-              },
-            }}
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
                 <IconButton
