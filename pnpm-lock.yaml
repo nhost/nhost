@@ -1040,6 +1040,7 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
+      '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^3.2.0
       '@vueuse/core': ^8.9.4
@@ -1053,6 +1054,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@nhost/core': link:../core
+      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 8.9.4_vue@3.2.41
       '@xstate/vue': 1.0.0_vue@3.2.41+xstate@4.33.6
