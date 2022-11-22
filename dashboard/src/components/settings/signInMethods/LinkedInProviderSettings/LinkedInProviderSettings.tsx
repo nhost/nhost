@@ -112,7 +112,7 @@ export default function LinkedInProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/linkedin/callback`}
             disabled
