@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-fix(dashboard): redirect url for oauth providers
+fix(dashboard): correct redirect URL for oauth providers
