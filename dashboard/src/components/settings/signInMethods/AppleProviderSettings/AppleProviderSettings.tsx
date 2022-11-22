@@ -11,6 +11,7 @@ import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
+import { generateRemoteAppUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -167,7 +168,9 @@ export default function AppleProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`}
+            placeholder={`${generateRemoteAppUrl(
+              currentApplication.subdomain,
+            )}/v1/auth/signin/provider/apple/callback`}
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
@@ -182,12 +185,14 @@ export default function AppleProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`,
+                      `${generateRemoteAppUrl(
+                        currentApplication.subdomain,
+                      )}/v1/auth/signin/provider/apple/callback`,
                       'Redirect URL',
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </IconButton>
               </InputAdornment>
             }

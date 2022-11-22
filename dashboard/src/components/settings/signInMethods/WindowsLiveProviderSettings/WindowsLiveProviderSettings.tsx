@@ -111,9 +111,9 @@ export default function WindowsLiveProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`https://${generateRemoteAppUrl(
+            value={`${generateRemoteAppUrl(
               currentApplication.subdomain,
-            )}.nhost.run/v1/auth/signin/provider/microsoft/callback`}
+            )}/v1/auth/signin/provider/microsoft/callback`}
             disabled
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
@@ -124,14 +124,14 @@ export default function WindowsLiveProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `https://${generateRemoteAppUrl(
+                      `${generateRemoteAppUrl(
                         currentApplication.subdomain,
-                      )}.nhost.run/v1/auth/signin/provider/microsoft/callback`,
+                      )}/v1/auth/signin/provider/microsoft/callback`,
                       'Redirect URL',
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </IconButton>
               </InputAdornment>
             }
