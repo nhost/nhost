@@ -11,12 +11,11 @@ import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
+import { generateRemoteAppUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
-
-import { generateRemoteAppUrl } from '@/utils/helpers';
 
 export interface TwitterProviderFormValues {
   authTwitterConsumerSecret: string;
