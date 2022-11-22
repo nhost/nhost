@@ -22,7 +22,7 @@ ENV NEXT_PUBLIC_NHOST_MIGRATIONS_URL http://localhost:9693
 ENV NEXT_PUBLIC_NHOST_HASURA_URL http://localhost:9695
 ENV NEXT_PUBLIC_ENV dev
 
-RUN yarn global add pnpm
+RUN yarn global add pnpm@7.17.0
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-*.yaml .
