@@ -85,5 +85,11 @@ query signInMethods($id: uuid!) {
     authWorkOsDefaultDomain
     authWorkOsDefaultOrganization
     authWorkOsDefaultConnection
+
+    # AzureAD
+    authAzureADEnabled
+    authAzureADClientId
+    authAzureADClientSecret
+    authAzureADTenantId
   }
 }
