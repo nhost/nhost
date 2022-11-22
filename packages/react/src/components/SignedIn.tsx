@@ -20,8 +20,7 @@ import { useAuthenticationStatus } from '../useAuthenticationStatus'
  * ```
  *
  * @docs https://docs.nhost.io/reference/react/signed-in
- *
- * @component
+ * @category Components
  */
 
 export function SignedIn({ children }: React.PropsWithChildren<unknown>): JSX.Element | null {

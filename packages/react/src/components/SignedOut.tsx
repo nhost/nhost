@@ -20,8 +20,7 @@ import { useAuthenticationStatus } from '../useAuthenticationStatus'
  * ```
  *
  * @docs https://docs.nhost.io/reference/react/signed-out
- *
- * @component
+ * @category Components
  */
 
 export function SignedOut({ children }: React.PropsWithChildren<unknown>): JSX.Element | null {
