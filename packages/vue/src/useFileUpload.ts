@@ -1,44 +1,44 @@
 import { InterpreterFrom } from 'xstate'
 
 import {
-	createFileUploadMachine,
-	FileItemRef,
-	FileUploadMachine,
-	FileUploadState,
-	StorageUploadFileParams,
-	UploadFileHandlerResult,
-	uploadFilePromise
+  createFileUploadMachine,
+  FileItemRef,
+  FileUploadMachine,
+  FileUploadState,
+  StorageUploadFileParams,
+  UploadFileHandlerResult,
+  uploadFilePromise
 } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { useNhostClient } from './useNhostClient'
 
-export interface FileUploadHookResult extends FileUploadState {
-	/**
-	 * Add the file without uploading it.
-	 */
-	add: (params: StorageUploadFileParams) => void
+export interface FileUploadComposableResult extends FileUploadState {
+  /**
+   * Add the file without uploading it.
+   */
+  add: (params: StorageUploadFileParams) => void
 
-	/**
-	 * Upload the file given as a parameter, or that has been previously added.
-	 */
-	upload: (params: Partial<StorageUploadFileParams>) => Promise<UploadFileHandlerResult>
+  /**
+   * Upload the file given as a parameter, or that has been previously added.
+   */
+  upload: (params: Partial<StorageUploadFileParams>) => Promise<UploadFileHandlerResult>
 
-	/**
-	 * Cancel the ongoing upload.
-	 */
-	cancel: () => void
+  /**
+   * Cancel the ongoing upload.
+   */
+  cancel: () => void
 
-	/**
-	 * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
-	 */
-	destroy: () => void
+  /**
+   * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
+   */
+  destroy: () => void
 }
 
 export type { FileItemRef }
 
 /**
- * Use the hook `useFileUploadItem` to control the file upload of a file in a multiple file upload.
+ * Use the composable `useFileUploadItem` to control the file upload of a file in a multiple file upload.
  *
  * It has the same signature as `useFileUpload`.
  *
@@ -59,61 +59,61 @@ export type { FileItemRef }
  * ```
  */
 export const useFileUploadItem = (
-	ref: FileItemRef | InterpreterFrom<FileUploadMachine>
-): FileUploadHookResult => {
-	const { nhost } = useNhostClient()
+  ref: FileItemRef | InterpreterFrom<FileUploadMachine>
+): FileUploadComposableResult => {
+  const { nhost } = useNhostClient()
 
-	const add = (params: StorageUploadFileParams) => {
-		ref.send({
-			type: 'ADD',
-			file: params.file,
-			bucketId: params.bucketId || bucketId
-		})
-	}
+  const add = (params: StorageUploadFileParams) => {
+    ref.send({
+      type: 'ADD',
+      file: params.file,
+      bucketId: params.bucketId || bucketId
+    })
+  }
 
-	const upload = (params: Partial<StorageUploadFileParams>) =>
-		uploadFilePromise(nhost, ref, {
-			file: params.file,
-			bucketId: params.bucketId || bucketId,
-			id,
-			name
-		})
+  const upload = (params: Partial<StorageUploadFileParams>) =>
+    uploadFilePromise(nhost, ref, {
+      file: params.file,
+      bucketId: params.bucketId || bucketId,
+      id,
+      name
+    })
 
-	const cancel = () => {
-		ref.send('CANCEL')
-	}
+  const cancel = () => {
+    ref.send('CANCEL')
+  }
 
-	const destroy = () => {
-		ref.send('DESTROY')
-	}
+  const destroy = () => {
+    ref.send('DESTROY')
+  }
 
-	const isUploading = useSelector(ref, (state) => state.matches('uploading')).value
-	const isUploaded = useSelector(ref, (state) => state.matches('uploaded')).value
-	const isError = useSelector(ref, (state) => state.matches('error')).value
-	const error = useSelector(ref, (state) => state.context.error || null).value
-	const progress = useSelector(ref, (state) => state.context.progress).value
-	const id = useSelector(ref, (state) => state.context.id).value
-	const bucketId = useSelector(ref, (state) => state.context.bucketId).value
-	const name = useSelector(ref, (state) => state.context.file?.name).value
+  const isUploading = useSelector(ref, (state) => state.matches('uploading')).value
+  const isUploaded = useSelector(ref, (state) => state.matches('uploaded')).value
+  const isError = useSelector(ref, (state) => state.matches('error')).value
+  const error = useSelector(ref, (state) => state.context.error || null).value
+  const progress = useSelector(ref, (state) => state.context.progress).value
+  const id = useSelector(ref, (state) => state.context.id).value
+  const bucketId = useSelector(ref, (state) => state.context.bucketId).value
+  const name = useSelector(ref, (state) => state.context.file?.name).value
 
-	return {
-		add,
-		upload,
-		cancel,
-		destroy,
-		isUploaded,
-		isUploading,
-		isError,
-		error,
-		progress,
-		id,
-		bucketId,
-		name
-	}
+  return {
+    add,
+    upload,
+    cancel,
+    destroy,
+    isUploaded,
+    isUploading,
+    isError,
+    error,
+    progress,
+    id,
+    bucketId,
+    name
+  }
 }
 
 /**
- * Use the hook `useFileUpload` to upload a file.
+ * Use the composable `useFileUpload` to upload a file.
  *
  * @example
  * ```tsx
@@ -139,8 +139,8 @@ export const useFileUploadItem = (
  *
  * @docs https://docs.nhost.io/reference/vue/use-file-upload
  */
-export const useFileUpload = (): FileUploadHookResult => {
-	const service = useInterpret(createFileUploadMachine)
+export const useFileUpload = (): FileUploadComposableResult => {
+  const service = useInterpret(createFileUploadMachine)
 
-	return useFileUploadItem(service)
+  return useFileUploadItem(service)
 }
