@@ -1,5 +1,14 @@
 # @nhost/vue
 
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/hasura-storage-js@0.7.3
+  - @nhost/nhost-js@1.6.1
+
 ## 0.5.2
 
 ### Patch Changes
