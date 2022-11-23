@@ -103,10 +103,10 @@ importers:
       '@netlify/functions': ^0.7.2
       '@next/bundle-analyzer': ^12.3.1
       '@nhost/core': ^0.9.3
-      '@nhost/nextjs': ^1.8.3
+      '@nhost/nextjs': ^2.0.0
       '@nhost/nhost-js': ^1.6.1
-      '@nhost/react': ^0.14.3
-      '@nhost/react-apollo': ^4.8.3
+      '@nhost/react': ^0.15.0
+      '@nhost/react-apollo': ^5.0.0
       '@segment/snippet': ^4.15.3
       '@storybook/addon-actions': ^6.5.13
       '@storybook/addon-essentials': ^6.5.13

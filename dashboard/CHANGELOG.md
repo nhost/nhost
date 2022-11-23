@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 0.4.2
+
+### Patch Changes
+
+- 89bd37bc: fix(dashboard): correct redirect URL input opacity
+- Updated dependencies [4601d84e]
+- Updated dependencies [843087cb]
+  - @nhost/react@0.15.0
+  - @nhost/nextjs@2.0.0
+  - @nhost/react-apollo@5.0.0
+
 ## 0.4.1
 
 ### Patch Changes
