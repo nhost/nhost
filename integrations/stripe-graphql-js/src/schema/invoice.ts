@@ -32,7 +32,18 @@ builder.objectType('StripeInvoice', {
     amountRemaining: t.exposeInt('amount_remaining', {
       description: `The difference between amount_due and amount_paid, in %s.`
     }),
-    // todo: application
+    application: t.field({
+      type: 'StripeConnectedAccount',
+      nullable: true,
+      resolve: async (invoice) => {
+        const { application } = invoice
+        if (!application) return null
+
+        const connectedAccount = await stripe.accounts.retrieve(application as string)
+
+        return connectedAccount
+      }
+    }),
     applicationFeeAmount: t.exposeInt('application_fee_amount', {
       description: `The fee in %s that will be applied to the invoice and transferred to the application owner's Stripe account when the invoice is paid.`,
       nullable: true
