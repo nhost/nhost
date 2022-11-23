@@ -107,7 +107,6 @@ export default function AzureADProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          {/* <BaseProviderSettings /> */}
           <Input
           {...register('authAzureADClientId')}
           name="authAzureADClientId"
@@ -124,7 +123,7 @@ export default function AzureADProviderSettings() {
           id="authAzureADClientSecret"
           label="Azure AD Client Secret"
           placeholder="Azure AD Client Secret"
-          className="col-span-3"
+          className="col-span-1"
           fullWidth
           hideEmptyHelperText
           />
@@ -134,18 +133,18 @@ export default function AzureADProviderSettings() {
           id="authAzureADTenantId"
           label="Azure AD Tenant ID"
           placeholder="Azure AD Tenant ID"
-          className="col-span-3"
+          className="col-span-1"
           fullWidth
           hideEmptyHelperText
           />
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            className="col-span-2"
+            className="col-span-1"
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`https://${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}.nhost.run/v1/auth/signin/provider/azuread/callback`}
             disabled
@@ -158,7 +157,7 @@ export default function AzureADProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `https://${generateRemoteAppUrl(
+                      `${generateRemoteAppUrl(
                         currentApplication.subdomain,
                       )}.nhost.run/v1/auth/signin/provider/azuread/callback`,
                       'Redirect URL',
