@@ -78,7 +78,7 @@ jobs:
           git push origin --tags
 
   publish:
-    name: Publish
+    name: Publish to Docker Hub
     runs-on: ubuntu-latest
     needs:
       - tag
