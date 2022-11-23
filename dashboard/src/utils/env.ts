@@ -3,7 +3,7 @@
  * enabled.
  */
 export const LOCAL_MIGRATIONS_URL = `http://localhost:${
-  process.env.NEXT_PUBLIC_NHOST_MIGRATIONS_PORT || 9693
+  process.env.NEXT_PUBLIC_NHOST_LOCAL_MIGRATIONS_PORT || 9693
 }`;
 
 /**
@@ -24,7 +24,7 @@ export const LOCAL_SUBDOMAIN = LOCAL_BACKEND_PORT
  * locally.
  */
 export const LOCAL_HASURA_URL = `http://localhost:${
-  process.env.NEXT_PUBLIC_NHOST_HASURA_PORT || 9695
+  process.env.NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT || 9695
 }`;
 
 /**

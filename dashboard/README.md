@@ -39,18 +39,18 @@ NEXT_PUBLIC_NHOST_PLATFORM=false
 
 ### Full list of environment variables
 
-| Name                                   | Description                                                                                                                                          |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_ENV`                      | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                                                                    |
-| `NEXT_PUBLIC_NHOST_PLATFORM`           | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. Setting this to `true` turns off local development. |
-| `NEXT_PUBLIC_NHOST_MIGRATIONS_PORT`    | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `9693`                                                   |
-| `NEXT_PUBLIC_NHOST_HASURA_PORT`        | Custom port that was passed to the CLI. Used only if local development is enabled and `NEXT_PUBLIC_ENV` is `dev`. Default: `9695`                    |
-| `NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT` | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `1337`                                                   |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`        | Backend URL. Not necessary for local development.                                                                                                    |
-| `NEXT_PUBLIC_STRIPE_PK`                | Stripe public key. Not necessary for local development.                                                                                              |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`   | URL of the GitHub application. Not necessary for local development.                                                                                  |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`      | Analytics key. Not necessary for local development.                                                                                                  |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`    | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
+| Name                                      | Description                                                                                                                                          |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_ENV`                         | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                                                                    |
+| `NEXT_PUBLIC_NHOST_PLATFORM`              | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. Setting this to `true` turns off local development. |
+| `NEXT_PUBLIC_NHOST_LOCAL_MIGRATIONS_PORT` | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `9693`                                                   |
+| `NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT`     | Custom port that was passed to the CLI. Used only if local development is enabled and `NEXT_PUBLIC_ENV` is `dev`. Default: `9695`                    |
+| `NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT`    | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `1337`                                                   |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`           | Backend URL. Not necessary for local development.                                                                                                    |
+| `NEXT_PUBLIC_STRIPE_PK`                   | Stripe public key. Not necessary for local development.                                                                                              |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`      | URL of the GitHub application. Not necessary for local development.                                                                                  |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`         | Analytics key. Not necessary for local development.                                                                                                  |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`       | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
 
 ## ESLint Rules
 
