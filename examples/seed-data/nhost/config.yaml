@@ -3,7 +3,6 @@ services:
   hasura:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
-    image: hasura/graphql-engine:v2.10.1
   minio:
     environment:
       minio_root_password: minioaccesskey123123
@@ -12,10 +11,6 @@ services:
     environment:
       postgres_password: postgres
       postgres_user: postgres
-  auth:
-    image: nhost/hasura-auth:0.15.0
-  storage:
-    image: nhost/hasura-storage:0.2.5
 auth:
   access_control:
     email:
