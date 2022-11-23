@@ -80,7 +80,10 @@ export const oauthProviders = Router()
    * Determine the redirect url, and store it in the locals so it is available in next middlewares
    */
   .use(`${OAUTH_ROUTE}/:provider`, ({ query }, { locals }, next) => {
-    locals.redirectTo = redirectToRule.validate(query.redirectTo).value;
+    const customRedirectUrl = redirectToRule.validate(query.redirectTo);
+    if (!customRedirectUrl.error) {
+      locals.redirectTo = customRedirectUrl.value;
+    }
     next();
   })
 
