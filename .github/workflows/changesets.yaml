@@ -18,6 +18,7 @@ env:
 
 jobs:
   version:
+    name: Version
     runs-on: ubuntu-latest
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
@@ -60,7 +61,8 @@ jobs:
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
 
-  publish:
+  tag:
+    name: Tag
     runs-on: ubuntu-latest
     needs:
       - test
@@ -74,6 +76,13 @@ jobs:
         run: |
           git tag "${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}"
           git push origin --tags
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs:
+      - tag
+    steps:
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -117,6 +126,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prefix: ${{ env.DASHBOARD_PACKAGE }}@
           ref: refs/tags/${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
-      - name: Remove tag on failure
-        if: failure()
-        run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - tag
+    steps:
+      - run: curl -X POST -d {} https://api.vercel.com/v1/integrations/deploy/${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}/${{ secrets.DASHBOARD_VERCEL_WEBHOOK_ID }}
