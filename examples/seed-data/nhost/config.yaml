@@ -3,7 +3,7 @@ services:
   hasura:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
-    image: hasura/graphql-engine:v2.15.1
+    image: hasura/graphql-engine:v2.15.2
   minio:
     environment:
       minio_root_password: minioaccesskey123123

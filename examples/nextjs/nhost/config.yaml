@@ -1,7 +1,7 @@
 metadata_directory: metadata
 services:
   hasura:
-    image: hasura/graphql-engine:v2.15.1
+    image: hasura/graphql-engine:v2.15.2
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
