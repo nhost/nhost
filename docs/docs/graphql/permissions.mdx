@@ -88,6 +88,26 @@ custom_claims: '{"organisation-id":"user.profile.organisation.id"}'
 
 JSON columns cannot be used in custom claims, with the exception of the `users.metadata` column.
 
+### Arrays
+
+When the target value is expected to be an array, it is important to explicitly add a `[]` at the end of the expression. For instance: if `organisationIds` is expected to be an array, you must set the expression to `organisationIds[]`. It will otherwise return a litteral when the array is a singleton.
+
+✅ Singleton array with `'{"organisation-ids":"organisationIds[]"}'`
+
+```json
+{
+  "x-hasura-organisation-ids": "{\"org-id-1\"}"
+}
+```
+
+🛑 Singleton array with `'{"organisation-ids":"organisationIds"}'`
+
+```json
+{
+  "x-hasura-organisation-ids": "org-id-1"
+}
+```
+
 ## Roles
 
 Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permisisons**.
