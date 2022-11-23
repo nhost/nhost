@@ -8,8 +8,8 @@
 - Updated dependencies [4601d84e]
 - Updated dependencies [843087cb]
   - @nhost/react@0.15.0
-  - @nhost/nextjs@2.0.0
-  - @nhost/react-apollo@5.0.0
+  - @nhost/nextjs@1.9.0
+  - @nhost/react-apollo@4.9.0
 
 ## 0.4.1
 
