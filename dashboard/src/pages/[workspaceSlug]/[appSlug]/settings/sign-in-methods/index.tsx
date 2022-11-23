@@ -3,7 +3,7 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 import AnonymousSignInSettings from '@/components/settings/signInMethods/AnonymousSignInSettings';
 import AppleProviderSettings from '@/components/settings/signInMethods/AppleProviderSettings';
 import DiscordProviderSettings from '@/components/settings/signInMethods/DiscordProviderSettings';
-import EmailSettings from '@/components/settings/signInMethods/EmailSettings';
+import EmailAndPasswordSettings from '@/components/settings/signInMethods/EmailAndPasswordSettings';
 import FacebookProviderSettings from '@/components/settings/signInMethods/FacebookProviderSettings';
 import GitHubProviderSettings from '@/components/settings/signInMethods/GitHubProviderSettings';
 import GoogleProviderSettings from '@/components/settings/signInMethods/GoogleProviderSettings';
@@ -35,7 +35,7 @@ export default function SettingsSignInMethodsPage() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Sign-In Methods Settings..."
+        label="Loading sign-in method settings..."
         className="justify-center"
       />
     );
@@ -50,21 +50,21 @@ export default function SettingsSignInMethodsPage() {
       className="max-w-5xl space-y-8 bg-fafafa"
       wrapperClassName="bg-fafafa"
     >
-      <EmailSettings />
+      <EmailAndPasswordSettings />
       <MagicLinkSettings />
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
-      <GoogleProviderSettings />
-      <GitHubProviderSettings />
-      <LinkedInProviderSettings />
       <AppleProviderSettings />
-      <WindowsLiveProviderSettings />
+      <DiscordProviderSettings />
       <FacebookProviderSettings />
+      <GitHubProviderSettings />
+      <GoogleProviderSettings />
+      <LinkedInProviderSettings />
       <SpotifyProviderSettings />
       <TwitchProviderSettings />
-      <DiscordProviderSettings />
       <TwitterProviderSettings />
+      <WindowsLiveProviderSettings />
       <WorkOsProviderSettings />
     </Container>
   );
@@ -72,11 +72,7 @@ export default function SettingsSignInMethodsPage() {
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
+    <SettingsLayout mainContainerProps={{ className: 'bg-fafafa' }}>
       {page}
     </SettingsLayout>
   );

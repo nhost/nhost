@@ -23,7 +23,7 @@ export interface EmailAndPasswordFormValues {
   authPasswordHibpEnabled: boolean;
 }
 
-export default function EmailSettings() {
+export default function EmailAndPasswordSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation({
     refetchQueries: [GetAppLoginDataDocument],
@@ -61,7 +61,7 @@ export default function EmailSettings() {
 
   const { formState } = form;
 
-  const handleEmailSettingsChange = async (
+  const handleEmailAndPasswordSettingsChange = async (
     values: EmailAndPasswordFormValues,
   ) => {
     const updateAppMutation = updateApp({
@@ -90,7 +90,7 @@ export default function EmailSettings() {
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleEmailSettingsChange}>
+      <Form onSubmit={handleEmailAndPasswordSettingsChange}>
         <SettingsContainer
           title="Email and Password"
           description="Sign in users using email and password."
@@ -109,10 +109,8 @@ export default function EmailSettings() {
             name="authEmailSigninEmailVerifiedRequired"
             id="authEmailSigninEmailVerifiedRequired"
             label={
-              <span className="inline-grid grid-flow-row gap-y-[2px] text-[15px]">
-                <span className="text-[15px] font-medium">
-                  Require Verified Emails
-                </span>
+              <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
+                <span className="font-medium">Require Verified Emails</span>
                 <span className="font-normal text-greyscaleMedium">
                   Users must verify their email to be able to sign in.
                 </span>
@@ -124,11 +122,9 @@ export default function EmailSettings() {
             name="authPasswordHibpEnabled"
             id="authPasswordHibpEnabled"
             label={
-              <span className="inline-grid grid-flow-row gap-y-[2px] text-[15px]">
-                <span className="text-[15px] font-medium">
-                  Password Protection
-                </span>
-                <span className="text-[12px] font-normal text-greyscaleMedium">
+              <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
+                <span className="font-medium">Password Protection</span>
+                <span className="font-normal text-greyscaleMedium">
                   Passwords must pass haveibeenpwned.com during sign-up.
                 </span>
               </span>
