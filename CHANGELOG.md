@@ -1,5 +1,20 @@
 ## Changelog
 
+## 0.16.2
+
+### Patch Changes
+
+- e0949d7: Try the first characters of the Oauth user profile's locale
+
+  Some Oauth providers returns locales. But it can be `en-GB` whereas hasura-auth only accepts locales coded in two characters.
+  It now tries to validate the two first characters of the user profile locale against the list of allowed locales.
+
+- e0949d7: Don't fail WorkOS transformation when the user profile is incorrect
+
+  When not configuring WorkOS correctly, the `raw_attributes` of the user profile could be null. This fix avoids returning an error when accessing properties of this object that would be null.
+
+- e0949d7: Correct validation of custom locale and redirect urls in Oauth routes
+
 ## 0.16.1
 
 ### Patch Changes
