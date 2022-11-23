@@ -85,7 +85,7 @@ arch='unknown'
 archstr=`uname -m`
 if [[ "$archstr" == 'x86_64' ]]; then
     arch='amd64'
-elif [[ "$archstr" == 'arm64' ]]; then
+elif [[ "$archstr" == 'arm64' || "$archstr" == 'aarch64' ]]; then
     arch='arm64'
 else
     arch='386'
