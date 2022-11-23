@@ -87,7 +87,7 @@ export default function TwitterProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Twitter"
-          description="Allows users to sign in with Twitter."
+          description="Allow users to sign in with Twitter."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

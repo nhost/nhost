@@ -93,7 +93,7 @@ export default function EmailAndPasswordSettings() {
       <Form onSubmit={handleEmailAndPasswordSettingsChange}>
         <SettingsContainer
           title="Email and Password"
-          description="Sign in users using email and password."
+          description="Allow users to sign in with email and password."
           docsLink="https://docs.nhost.io/authentication/sign-in-with-email-and-password"
           docsTitle="how to sign in users with email and password"
           className="grid grid-flow-row"

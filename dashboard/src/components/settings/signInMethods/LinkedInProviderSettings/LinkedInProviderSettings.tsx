@@ -88,7 +88,7 @@ export default function LinkedInProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="LinkedIn"
-          description="Allows users to sign in with LinkedIn"
+          description="Allow users to sign in with LinkedIn."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

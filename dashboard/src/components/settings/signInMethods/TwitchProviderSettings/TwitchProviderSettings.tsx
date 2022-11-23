@@ -88,7 +88,7 @@ export default function TwitchProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Twitch"
-          description="Allows users to sign in with Twitch."
+          description="Allow users to sign in with Twitch."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

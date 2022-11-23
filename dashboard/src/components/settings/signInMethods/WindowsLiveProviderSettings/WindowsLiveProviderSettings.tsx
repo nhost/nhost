@@ -88,7 +88,7 @@ export default function WindowsLiveProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Windows Live"
-          description="Allows users to sign in with Windows Live."
+          description="Allow users to sign in with Windows Live."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
