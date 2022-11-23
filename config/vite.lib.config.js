@@ -18,13 +18,7 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
-      afterBuild: () => {
-        const types = fs.readdirSync(path.join(PWD, 'dist/src'))
-        types.forEach((file) => {
-          fs.renameSync(path.join(PWD, 'dist/src', file), path.join(PWD, 'dist', file))
-        })
-        fs.rmdirSync(path.join(PWD, 'dist/src'))
-      }
+      entryRoot: 'src'
     })
   ],
   test: {
@@ -32,9 +26,6 @@ export default defineConfig({
     environment: 'jsdom',
     reporters: 'verbose',
     include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`],
-    // Note: temporarily disabled threads, because of a bug in vitest
-    // https://github.com/vitest-dev/vitest/issues/1171
-    threads: false,
     coverage: {
       enabled: process.env.CI === 'true',
       reporter: ['json']

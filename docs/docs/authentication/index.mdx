@@ -1,0 +1,32 @@
+---
+title: Authentication
+sidebar_label: Overview
+sidebar_position: 1
+image: /img/og/authentication.png
+---
+
+Nhost Authentication is a ready-to-use authentication service that is integrated with the [GraphQL API](/graphql) and its permission system from Hasura.
+
+Nhost Authentication lets you authenticate users using different sign-in methods:
+
+- [Email and Password](/authentication/sign-in-with-email-and-password)
+- [Magic Link](/authentication/sign-in-with-magic-link)
+- [Phone Number (SMS)](/authentication/sign-in-with-phone-number-sms)
+- [Security Keys (WebAuthn)](/authentication/sign-in-with-phone-number-sms)
+- [Apple](/authentication/sign-in-with-apple)
+- [Discord](/authentication/sign-in-with-discord)
+- [Facebook](/authentication/sign-in-with-facebook)
+- [GitHub](/authentication/sign-in-with-github)
+- [Google](/authentication/sign-in-with-google)
+- [LinkedIn](/authentication/sign-in-with-linkedin)
+- [Spotify](/authentication/sign-in-with-spotify)
+- [Twitch](/authentication/sign-in-with-twitch)
+
+## How it works
+
+1. When a user signs up or is created, the user's information is inserted into the `auth.users` table in your database.
+2. Nhost returns an access token and a refresh token, together with the user's information.
+3. The user sends requests to Nhost services (GraphQL API, Authentication, Storage, Functions) with the access token as a header.
+4. The Nhost services use the user's access token to authorize the requests.
+
+Nhost Autentication is integrated with your [database](/database). All users are stored in the `users` table in the `auth` schema.

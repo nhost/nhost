@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/typescript-types'
 import { rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src/types'
@@ -63,7 +63,7 @@ export const signUpEmailSecurityKeySuccessHandler = rest.post(
         excludeCredentials: [],
         pubKeyCredParams: [],
         rp: {
-          name: faker.company.companyName(),
+          name: faker.company.name(),
           id: faker.internet.domainName()
         }
       })

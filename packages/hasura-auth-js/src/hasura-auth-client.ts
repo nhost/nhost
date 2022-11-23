@@ -18,6 +18,7 @@ import {
   encodeQueryParameters,
   ErrorPayload,
   INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
   JWTClaims,
   JWTHasuraClaims,
   NhostSessionResponse,
@@ -95,12 +96,21 @@ export class HasuraAuthClient {
    * Use `nhost.auth.signUp` to sign up a user using email and password. If you want to sign up a user using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
    *
    * @example
+   * ### Sign up with an email and password
    * ```ts
    * nhost.auth.signUp({
    *   email: 'joe@example.com',
    *   password: 'secret-password'
    * })
    * ```
+   *
+   * @example
+   * ### Sign up with a security key
+   * ```ts
+   * nhost.auth.signUp({
+   *   email: 'joe@example.com',
+   *   securityKey: true
+   * })
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
@@ -151,12 +161,38 @@ export class HasuraAuthClient {
    * nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
    * ```
    *
+   * @example
+   * ### Sign in anonymously
+   * ```ts
+   * // Sign in anonymously
+   * nhost.auth.signIn()
+   *
+   * // Later in the application, the user can complete their registration
+   * nhost.auth.signUp({
+   *   email: 'joe@example.com',
+   *   password: 'secret-password'
+   * })
+   * ```
+   *
+   * @example
+   * ### Sign in with a security key
+   * ```ts
+   * nhost.auth.signIn({
+   *   email: 'joe@example.com',
+   *   securityKey: true
+   * })
+   *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
   async signIn(
-    params: SignInParams
+    params?: SignInParams
   ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
+    // * Anonymous sign-in
+    if (!params) {
+      const anonymousResult = await signInAnonymousPromise(interpreter)
+      return { ...getAuthenticationResult(anonymousResult), mfa: null }
+    }
 
     // * Sign in with a social provider (OAuth)
     if ('provider' in params) {
@@ -227,9 +263,8 @@ export class HasuraAuthClient {
       const res = await signInMfaTotpPromise(interpreter, params.otp, params.ticket)
       return { ...getAuthenticationResult(res), mfa: null }
     }
-    // * Anonymous sign-in
-    const anonymousResult = await signInAnonymousPromise(interpreter)
-    return { ...getAuthenticationResult(anonymousResult), mfa: null }
+
+    return { error: INVALID_SIGN_IN_METHOD, mfa: null, session: null }
   }
 
   /**
@@ -475,6 +510,9 @@ export class HasuraAuthClient {
   /**
    * Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
    *
+   * The promise won't resolve until the authentication status is known.
+   * Attention: when using auto-signin and a refresh token is present in the client storage, the promise won't resolve if the server can't be reached (e.g. offline) or if it returns an internal error.
+   *
    * @example
    * ```ts
    * const isAuthenticated  = await nhost.auth.isAuthenticatedAsync();
@@ -497,6 +535,8 @@ export class HasuraAuthClient {
    * If `isLoading` is `true`, the client doesn't know whether the user is authenticated yet or not
    * because some internal authentication network requests have not been resolved yet.
    *
+   * The `connectionAttempts` returns the number of times the client has tried to connect to the server with no success (offline, or the server retruned an internal error).
+   *
    * @example
    * ```ts
    * const { isAuthenticated, isLoading } = nhost.auth.getAuthenticationStatus();
@@ -515,11 +555,18 @@ export class HasuraAuthClient {
   getAuthenticationStatus(): {
     isAuthenticated: boolean
     isLoading: boolean
+    connectionAttempts: number
   } {
+    const connectionAttempts =
+      this.client.interpreter?.getSnapshot().context.importTokenAttempts || 0
     if (!this.isReady()) {
-      return { isAuthenticated: false, isLoading: true }
+      return {
+        isAuthenticated: false,
+        isLoading: true,
+        connectionAttempts
+      }
     }
-    return { isAuthenticated: this.isAuthenticated(), isLoading: false }
+    return { isAuthenticated: this.isAuthenticated(), isLoading: false, connectionAttempts }
   }
 
   /**

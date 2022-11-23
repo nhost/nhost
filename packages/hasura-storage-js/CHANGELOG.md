@@ -1,5 +1,39 @@
 # @nhost/hasura-storage-js
 
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+
+## 0.7.2
+
+### Patch Changes
+
+- 996e8016: Bump Axios to v1.1.3
+- Updated dependencies [996e8016]
+- Updated dependencies [996e8016]
+- Updated dependencies [869e7253]
+- Updated dependencies [996e8016]
+  - @nhost/core@0.9.2
+
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+
+## 0.7.0
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6] [ba785da1] [3ced63ab]
+- Updated dependencies
+  - @nhost/core@0.9.0
+
 ## 0.6.2
 
 ### Patch Changes

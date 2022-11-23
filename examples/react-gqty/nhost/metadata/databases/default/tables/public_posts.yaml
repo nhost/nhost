@@ -1,0 +1,71 @@
+table:
+  name: posts
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_root_fields:
+    delete: deletePosts
+    delete_by_pk: deletePost
+    insert: insertPosts
+    insert_one: insertPost
+    update: updatePosts
+    update_by_pk: updatePost
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - is_public
+        - title
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - is_public
+        - title
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        is_public:
+          _eq: true
+  - role: user
+    permission:
+      columns:
+        - is_public
+        - title
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        _or:
+          - is_public:
+              _eq: true
+          - user_id:
+              _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - is_public
+        - title
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      backend_only: false
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

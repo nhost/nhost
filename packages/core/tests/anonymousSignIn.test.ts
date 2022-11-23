@@ -1,74 +1,73 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
-  anonymousNetworkErrorHandler,
   anonymousInternalErrorHandler,
+  anonymousNetworkErrorHandler,
   invalidDeamonymisationEmailError
 } from './helpers/handlers'
 import { fakeAnonymousUser } from './helpers/mocks/user'
 
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
 
-type AuthState = GeneralAuthState<Typegen0>
+describe('Anonymous Sign-in', () => {
+  const customStorage = new CustomClientStorage(new Map())
 
-const customStorage = new CustomClientStorage(new Map())
+  const authMachine = createAuthMachine({
+    backendUrl: BASE_URL,
+    clientUrl: 'http://localhost:3000',
+    clientStorage: customStorage,
+    clientStorageType: 'custom'
+  })
 
-const authMachine = createAuthMachine({
-  backendUrl: BASE_URL,
-  clientUrl: 'http://localhost:3000'
-})
+  const authService = interpret(authMachine)
 
-const authService = interpret(authMachine)
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+  afterAll(() => server.close())
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
+  beforeEach(() => {
+    authService.start()
+  })
 
-beforeEach(() => {
-  authService.start()
-})
+  afterEach(() => {
+    authService.stop()
+    customStorage.clear()
+    server.resetHandlers()
+  })
 
-afterEach(() => {
-  authService.stop()
-  customStorage.clear()
-  server.resetHandlers()
-})
+  test(`should fail if network is unavailable`, async () => {
+    server.use(anonymousNetworkErrorHandler)
 
-test(`should fail if network is unavailable`, async () => {
-  server.use(anonymousNetworkErrorHandler)
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
+    const state = await waitFor(authService, (state) =>
+      state.matches('authentication.signedOut.failed')
+    )
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
-  )
-
-  expect(state.context.errors).toMatchInlineSnapshot(`
+    expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
-})
+  })
 
-test(`should fail if server returns an error`, async () => {
-  server.use(anonymousInternalErrorHandler)
+  test(`should fail if server returns an error`, async () => {
+    server.use(anonymousInternalErrorHandler)
 
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
-  )
+    const state = await waitFor(authService, (state) =>
+      state.matches('authentication.signedOut.failed')
+    )
 
-  expect(state.context.errors).toMatchInlineSnapshot(`
+    expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
         "error": "internal-error",
@@ -77,85 +76,86 @@ test(`should fail if server returns an error`, async () => {
       },
     }
   `)
-})
-
-test('should deanonymise a user with email and password', async () => {
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
-
-  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
-
-  authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
-    email: faker.internet.email(),
-    password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: 'signedOut',
-      registration: { incomplete: 'needsEmailVerification' }
+  test('should deanonymise a user with email and password', async () => {
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
+
+    await waitFor(authService, (state) => state.matches('authentication.signedIn'))
+
+    authService.send({
+      type: 'SIGNUP_EMAIL_PASSWORD',
+      email: faker.internet.email(),
+      password: faker.internet.password(15)
     })
-  )
 
-  expect(state.context.user).toBeNull()
-})
+    const state = await waitFor(authService, (state) =>
+      state.matches({
+        authentication: 'signedOut',
+        registration: { incomplete: 'needsEmailVerification' }
+      })
+    )
 
-test('should deanonymise a user with passwordless email', async () => {
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
-
-  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
-
-  authService.send({
-    type: 'PASSWORDLESS_EMAIL',
-    email: faker.internet.email()
+    expect(state.context.user).toBeNull()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: 'signedOut',
-      registration: { incomplete: 'needsEmailVerification' }
+  test('should deanonymise a user with passwordless email', async () => {
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
+
+    await waitFor(authService, (state) => state.matches('authentication.signedIn'))
+
+    authService.send({
+      type: 'PASSWORDLESS_EMAIL',
+      email: faker.internet.email()
     })
-  )
 
-  expect(state.context.user).toBeNull()
-})
+    const state = await waitFor(authService, (state) =>
+      state.matches({
+        authentication: 'signedOut',
+        registration: { incomplete: 'needsEmailVerification' }
+      })
+    )
 
-test('should deanonymise a user with passwordless sms', async () => {
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
-
-  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
-
-  authService.send({
-    type: 'PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    expect(state.context.user).toBeNull()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: 'signedOut',
-      registration: { incomplete: 'needsOtp' }
+  test('should deanonymise a user with passwordless sms', async () => {
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
+
+    await waitFor(authService, (state) => state.matches('authentication.signedIn'))
+
+    authService.send({
+      type: 'PASSWORDLESS_SMS',
+      phoneNumber: faker.phone.number()
     })
-  )
 
-  expect(state.context.user).toBeNull()
-})
+    const state = await waitFor(authService, (state) =>
+      state.matches({
+        authentication: 'signedOut',
+        registration: { incomplete: 'needsOtp' }
+      })
+    )
 
-test('should fail deanonymisation when using an invalid email', async () => {
-  server.use(invalidDeamonymisationEmailError)
-  authService.send({ type: 'SIGNIN_ANONYMOUS' })
-
-  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
-
-  authService.send({
-    type: 'PASSWORDLESS_EMAIL',
-    email: 'invalid//email'
+    expect(state.context.user).toBeNull()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      registration: { incomplete: 'failed' }
-    })
-  )
+  test('should fail deanonymisation when using an invalid email', async () => {
+    server.use(invalidDeamonymisationEmailError)
+    authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
-  expect(state.context.user).toMatchObject(fakeAnonymousUser)
+    await waitFor(authService, (state) => state.matches('authentication.signedIn'))
+
+    authService.send({
+      type: 'PASSWORDLESS_EMAIL',
+      email: 'invalid//email'
+    })
+
+    const state = await waitFor(authService, (state) =>
+      state.matches({
+        registration: { incomplete: 'failed' }
+      })
+    )
+
+    expect(state.context.user).toMatchObject(fakeAnonymousUser)
+  })
 })

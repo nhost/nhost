@@ -4,6 +4,7 @@
 - "!include auth_roles.yaml"
 - "!include auth_user_providers.yaml"
 - "!include auth_user_roles.yaml"
+- "!include auth_user_security_keys.yaml"
 - "!include auth_users.yaml"
 - "!include public_test.yaml"
 - "!include storage_buckets.yaml"

@@ -1,5 +1,57 @@
 # @nhost/nextjs
 
+## 1.8.3
+
+### Patch Changes
+
+- 53bdc294: Allow NextJs 13 as peer dependency
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/react@0.14.3
+  - @nhost/nhost-js@1.6.1
+
+## 1.8.2
+
+### Patch Changes
+
+- Updated dependencies [996e8016]
+- Updated dependencies [996e8016]
+- Updated dependencies [869e7253]
+- Updated dependencies [996e8016]
+- Updated dependencies [b5395be2]
+  - @nhost/core@0.9.2
+  - @nhost/nhost-js@1.6.0
+  - @nhost/react@0.14.2
+
+## 1.8.1
+
+### Patch Changes
+
+- Updated dependencies [6b9d163e]
+  - @nhost/core@0.9.1
+  - @nhost/react@0.14.1
+  - @nhost/nhost-js@1.5.2
+
+## 1.8.0
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6] [ba785da1] [3ced63ab] [6da44bf8]
+  - @nhost/core@0.9.0
+  - @nhost/nhost-js@1.5.1
+  - @nhost/react@0.14.0
+
+## 1.7.7
+
+### Patch Changes
+
+- 1e31a956: read nextjs context cookies in `createServerSideClient`
+- 8eafa198: Fix `createServerSideClient`
+
+  The refresh token was not fetched from the cookie when using `createServerSideClient` since [this PR](https://github.com/nhost/nhost/pull/823).
+  It is now fixed.
+
 ## 1.7.6
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestHeaders } from 'axios'
+import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
 import { ErrorPayload } from '@nhost/core'
@@ -36,7 +36,7 @@ export type FileUploadMachine = ReturnType<typeof createFileUploadMachine>
 export const createFileUploadMachine = () =>
   createMachine(
     {
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       schema: {
         context: {} as FileUploadContext,
         events: {} as FileUploadEvents
@@ -98,7 +98,7 @@ export const createFileUploadMachine = () =>
       },
       services: {
         uploadFile: (context, event) => (callback) => {
-          const headers: AxiosRequestHeaders = {
+          const headers: RawAxiosRequestHeaders = {
             'Content-Type': 'multipart/form-data'
           }
           const fileId = event.id || context.id
@@ -136,13 +136,15 @@ export const createFileUploadMachine = () =>
             }>(event.url + '/files', data, {
               headers,
               signal: controller.signal,
-              onUploadProgress: (event: ProgressEvent) => {
-                const loaded = Math.round((event.loaded * file.size!) / event.total)
+              onUploadProgress: (event: AxiosProgressEvent) => {
+                const loaded = event.total
+                  ? Math.round((event.loaded * file.size!) / event.total)
+                  : 0
                 const additions = loaded - currentLoaded
                 currentLoaded = loaded
                 callback({
                   type: 'UPLOAD_PROGRESS',
-                  progress: Math.round((loaded * 100) / event.total),
+                  progress: event.total ? Math.round((loaded * 100) / event.total) : 0,
                   loaded,
                   additions
                 })

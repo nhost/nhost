@@ -1,0 +1,6 @@
+query getCountries {
+  countries(order_by: { name: asc }) {
+    code
+    name
+  }
+}

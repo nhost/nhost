@@ -1,6 +1,12 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  RawAxiosRequestHeaders
+} from 'axios'
 
-import { FunctionCallResponse } from '../utils/types'
+import { urlFromSubdomain } from '../utils/helpers'
+import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
   /**
    * Serverless Functions endpoint.
@@ -13,9 +19,26 @@ export interface NhostFunctionsConstructorParams {
 }
 
 /**
+ * Creates a client for Functions from either a subdomain or a URL
+ */
+export function createFunctionsClient(params: NhostClientConstructorParams) {
+  const functionsUrl =
+    'subdomain' in params || 'backendUrl' in params
+      ? urlFromSubdomain(params, 'functions')
+      : params.functionsUrl
+
+  if (!functionsUrl) {
+    throw new Error('Please provide `subdomain` or `functionsUrl`.')
+  }
+
+  return new NhostFunctionsClient({ url: functionsUrl, ...params })
+}
+
+/**
  * @alias Functions
  */
 export class NhostFunctionsClient {
+  private url: string
   private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string
@@ -23,6 +46,7 @@ export class NhostFunctionsClient {
   constructor(params: NhostFunctionsConstructorParams) {
     const { url, adminSecret } = params
 
+    this.url = url
     this.accessToken = null
     this.adminSecret = adminSecret
     this.instance = axios.create({
@@ -88,7 +112,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): AxiosRequestHeaders {
+  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

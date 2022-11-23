@@ -1,12 +1,12 @@
 {
   "name": "@nhost-examples/codegen-react-apollo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.6.9",
     "@nhost/react": "*",
     "@nhost/react-apollo": "*",
-    "graphql": "^16.5.0",
+    "graphql": "15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -35,15 +35,15 @@
     ]
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^2.6.2",
-    "@graphql-codegen/typescript-operations": "^2.4.2",
-    "@graphql-codegen/typescript-react-apollo": "^3.2.16",
-    "@types/node": "^16.7.13",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "eslint": "^8.0.0",
+    "@graphql-codegen/cli": "^2.12.0",
+    "@graphql-codegen/typescript-operations": "^2.5.3",
+    "@graphql-codegen/typescript-react-apollo": "^3.3.3",
+    "@types/node": "^16.11.56",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.6",
+    "eslint": "^8.23.0",
     "eslint-config-react-app": "^7.0.1",
-    "typescript": "^4.4.2",
-    "vite": "^2.9.7"
+    "typescript": "^4.8.2",
+    "vite": "^3.2.2"
   }
 }

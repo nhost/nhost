@@ -4,17 +4,19 @@ import { Group } from '../types'
  * Used to convert plural names coming from TypeDoc to singular names.
  */
 const pluralSingularDictionary = new Map([
-  ['Classes', 'Class'],
-  ['Properties', 'Property'],
-  ['Methods', 'Method'],
-  ['Functions', 'Function'],
-  ['Type aliases', 'Type alias'],
-  ['Interfaces', 'Interface'],
-  ['Modules', 'Module'],
-  ['Methods', 'Method'],
-  ['Variables', 'Variable'],
-  ['Accessors', 'Accessor'],
-  ['Constructors', 'Constructor']
+  ['classes', 'Class'],
+  ['properties', 'Property'],
+  ['methods', 'Method'],
+  ['functions', 'Function'],
+  ['type aliases', 'Type alias'],
+  ['interfaces', 'Interface'],
+  ['modules', 'Module'],
+  ['methods', 'Method'],
+  ['variables', 'Variable'],
+  ['accessors', 'Accessor'],
+  ['constructors', 'Constructor'],
+  ['components', 'Component'],
+  ['references', 'Reference']
 ])
 
 /**
@@ -28,12 +30,26 @@ export function getModuleContentMap(
   groups: Array<Group>,
   originalMap: Map<number, string> = new Map()
 ): Map<number, string> {
-  return groups.reduce((contentMap, { title, children }) => {
-    const singularTitle = pluralSingularDictionary.get(title)
+  return groups.reduce((contentMap, { title, children, categories }) => {
+    const singularTitle = pluralSingularDictionary.get(title.toLowerCase())
 
     children.forEach((child) => {
       contentMap.set(child, singularTitle || 'undefined')
     })
+
+    if (categories) {
+      categories.forEach(({ title: categoryTitle, children: categoryChildren }) => {
+        if (categoryTitle === 'Other') {
+          return
+        }
+
+        const singularTitle = pluralSingularDictionary.get(categoryTitle.toLowerCase())
+
+        categoryChildren.forEach((categoryChild) => {
+          contentMap.set(categoryChild, singularTitle || 'undefined')
+        })
+      })
+    }
 
     return contentMap
   }, originalMap)

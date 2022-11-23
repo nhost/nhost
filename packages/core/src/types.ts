@@ -152,18 +152,19 @@ export interface Mfa {
 // TODO share with hasura-auth
 export type Provider =
   | 'apple'
+  | 'azuread'
+  | 'bitbucket'
+  | 'discord'
   | 'facebook'
   | 'github'
+  | 'gitlab'
   | 'google'
   | 'linkedin'
   | 'spotify'
+  | 'strava'
+  | 'twitch'
   | 'twitter'
   | 'windowslive'
-  | 'strava'
-  | 'gitlab'
-  | 'bitbucket'
-  | 'discord'
-  | 'twitch'
   | 'workos'
 
 // TODO share with hasura-auth

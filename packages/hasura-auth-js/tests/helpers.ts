@@ -1,5 +1,5 @@
 import axios from 'axios'
-import htmlUrls from 'html-urls'
+import { load } from 'cheerio'
 import createMailhogClient from 'mailhog'
 import { expect } from 'vitest'
 
@@ -18,26 +18,33 @@ const mailhog = createMailhogClient({
 
 export { auth, mailhog }
 
+/**
+ * Get the value of `a href` that follpws a given pattern
+ * in the last email sent to a given email address.
+ */
+export const getHtmlLink = async (email: string, pattern: string) => {
+  const message = await mailhog.latestTo(email)
+  if (!message?.html) {
+    throw new Error(`No email found for ${email}`)
+  }
+  const link = load(message.html)(`a[href*="${pattern}"]`).attr('href')
+  if (!link) {
+    throw new Error('Link not found')
+  }
+  return link
+}
+
 export const signUpAndVerifyUser = async (params: SignUpParams) => {
   // sign up
   await auth.signUp(params)
 
   const { email } = params
 
-  // get email that was sent
-  const message = await mailhog.latestTo(email)
-
-  if (!message?.html) {
-    throw new Error('email does not exists')
-  }
-
   // get verify email link
-  const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
-  )
+  const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
   // verify email
-  await axios.get(verifyEmailLink.url, {
+  await axios.get(verifyEmailLink, {
     maxRedirects: 0,
     validateStatus: (status) => status === 302
   })
@@ -49,20 +56,11 @@ export const signUpAndInUser = async (params: SignUpParams) => {
 
   const { email, password } = params
 
-  // get email that was sent
-  const message = await mailhog.latestTo(email)
-
-  if (!message?.html) {
-    throw new Error('email does not exists')
-  }
-
   // get verify email link
-  const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
-  )
+  const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
   // verify email
-  await axios.get(verifyEmailLink.url, {
+  await axios.get(verifyEmailLink, {
     maxRedirects: 0,
     validateStatus: (status) => status === 302
   })

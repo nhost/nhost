@@ -1,0 +1,24 @@
+query getProjectLogs(
+  $appID: String!
+  $service: String
+  $from: Timestamp
+  $to: Timestamp
+) {
+  logs(appID: $appID, service: $service, from: $from, to: $to) {
+    log
+    service
+    timestamp
+  }
+}
+
+subscription getLogsSubscription(
+  $appID: String!
+  $service: String
+  $from: Timestamp
+) {
+  logs(appID: $appID, service: $service, from: $from) {
+    log
+    service
+    timestamp
+  }
+}

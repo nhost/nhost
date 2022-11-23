@@ -15,8 +15,8 @@ export const nhostApiClient = (backendUrl: string) => {
             error.message ??
             error.request.responseText ??
             JSON.stringify(error),
-          status: error.response?.status ?? error.response?.data.statusCode ?? NETWORK_ERROR_CODE,
-          error: error.response?.data.error || error.request.statusText || 'network'
+          status: error.response?.status ?? error.response?.data?.statusCode ?? NETWORK_ERROR_CODE,
+          error: error.response?.data?.error || error.request.statusText || 'network'
         }
       })
   )

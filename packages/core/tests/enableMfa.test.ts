@@ -1,11 +1,10 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../src/errors'
 import { createAuthMachine, createEnableMfaMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/enable-mfa.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   activateMfaTotpInternalErrorHandler,
@@ -18,9 +17,6 @@ import {
 import contextWithUser from './helpers/mocks/contextWithUser'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralEnableMfaState } from './helpers/types'
-
-type EnableMfaState = GeneralEnableMfaState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -40,11 +36,12 @@ authClient.interpreter = interpret(
   }).withContext(contextWithUser)
 ).start()
 
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterAll(() => server.close())
+
 describe(`Generation`, () => {
   const enableMfaMachine = createEnableMfaMachine(authClient)
   const enableMfaService = interpret(enableMfaMachine)
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     enableMfaService.start()
@@ -61,15 +58,13 @@ describe(`Generation`, () => {
 
     enableMfaService.send('GENERATE')
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
-      state.matches({ idle: 'error' })
-    )
+    const state = await waitFor(enableMfaService, (state) => state.matches({ idle: 'error' }))
 
     expect(state.context.error).toMatchInlineSnapshot(`
       {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       }
     `)
   })
@@ -79,9 +74,7 @@ describe(`Generation`, () => {
 
     enableMfaService.send('GENERATE')
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
-      state.matches({ idle: 'error' })
-    )
+    const state = await waitFor(enableMfaService, (state) => state.matches({ idle: 'error' }))
 
     expect(state.context.error).toMatchInlineSnapshot(`
       {
@@ -97,9 +90,7 @@ describe(`Generation`, () => {
 
     enableMfaService.send('GENERATE')
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
-      state.matches({ idle: 'error' })
-    )
+    const state = await waitFor(enableMfaService, (state) => state.matches({ idle: 'error' }))
 
     expect(state.context.error).toMatchInlineSnapshot(`
       {
@@ -113,9 +104,7 @@ describe(`Generation`, () => {
   test(`should succeed if authorization token is valid`, async () => {
     enableMfaService.send('GENERATE')
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
-      state.matches({ generated: 'idle' })
-    )
+    const state = await waitFor(enableMfaService, (state) => state.matches({ generated: 'idle' }))
 
     expect(state.context.error).toBeNull()
     expect(state.context.secret).toBeTypeOf('string')
@@ -133,13 +122,8 @@ describe(`Activation`, () => {
   function simulateGenerateMfaTotp() {
     enableMfaService.send('GENERATE')
 
-    return waitFor(enableMfaService, (state: EnableMfaState) =>
-      state.matches({ generated: 'idle' })
-    )
+    return waitFor(enableMfaService, (state) => state.matches({ generated: 'idle' }))
   }
-
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-  afterAll(() => server.close())
 
   beforeEach(() => {
     enableMfaService.start()
@@ -164,7 +148,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send({ type: 'ACTIVATE', activeMfaType: 'totp' })
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: { idle: 'error' } })
     )
 
@@ -184,7 +168,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send({ type: 'ACTIVATE', activeMfaType: 'totp' })
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: { idle: 'error' } })
     )
 
@@ -204,7 +188,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send({ type: 'ACTIVATE', activeMfaType: 'totp' })
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: { idle: 'error' } })
     )
 
@@ -222,7 +206,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send('ACTIVATE')
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: { idle: 'error' } })
     )
 
@@ -234,7 +218,7 @@ describe(`Activation`, () => {
 
     enableMfaService.send({ type: 'ACTIVATE', code: '', activeMfaType: 'totp' })
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: { idle: 'error' } })
     )
 
@@ -250,7 +234,7 @@ describe(`Activation`, () => {
       activeMfaType: 'totp'
     })
 
-    const state: EnableMfaState = await waitFor(enableMfaService, (state: EnableMfaState) =>
+    const state = await waitFor(enableMfaService, (state) =>
       state.matches({ generated: 'activated' })
     )
 

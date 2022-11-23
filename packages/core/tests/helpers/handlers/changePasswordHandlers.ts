@@ -1,4 +1,3 @@
-import faker from '@faker-js/faker'
 import { rest } from 'msw'
 import { BASE_URL } from '../config'
 

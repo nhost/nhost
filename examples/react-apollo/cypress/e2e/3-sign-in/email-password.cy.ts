@@ -1,6 +1,6 @@
 import totp from 'totp-generator'
 
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { Decoder } from '@nuintun/qrcode'
 
 context('Sign in with email+password', () => {

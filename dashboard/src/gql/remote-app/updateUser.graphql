@@ -1,0 +1,5 @@
+mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
+  updateUser(pk_columns: { id: $id }, _set: $user) {
+    id
+  }
+}

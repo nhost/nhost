@@ -1,23 +1,23 @@
-import faker from '@faker-js/faker'
-import { interpret } from 'xstate'
-import { afterAll, afterEach, beforeAll, beforeEach, test, vi } from 'vitest'
+import { faker } from '@faker-js/faker'
 import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
+import { afterAll, afterEach, beforeAll, beforeEach, test, vi } from 'vitest'
+import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 
 import { createAuthMachine } from '../src/machines'
 
 import { BASE_URL } from './helpers/config'
-import server from './helpers/server'
-import CustomClientStorage from './helpers/storage'
 import {
-  emailSecurityKeyNetworkErrorHandler,
-  unverifiedEmailSecurityKeyErrorHandler,
-  userNotFoundSecurityKeyHandler,
   authTokenNetworkErrorHandler,
   correctEmailSecurityKeyHandler,
   correctSecurityKeyVerifyHandler,
-  incorrectSecurityKeyVerifyHandler
+  emailSecurityKeyNetworkErrorHandler,
+  incorrectSecurityKeyVerifyHandler,
+  unverifiedEmailSecurityKeyErrorHandler,
+  userNotFoundSecurityKeyHandler
 } from './helpers/handlers'
+import server from './helpers/server'
+import CustomClientStorage from './helpers/storage'
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -80,7 +80,7 @@ test(`should fail if network is unavailable`, async () => {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -101,7 +101,7 @@ test(`should fail if server returns an error`, async () => {
       "authentication": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)

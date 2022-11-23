@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Starter",
+    "planId": "08dee399-de99-4b21-97e5-96d37ac51424",
+    "priceMonthly": "0",
+    "priceYearly": 290,
+    "desc": "1 GB database, 5 GB of files, 10 GB of traffic."
+  },
+  {
+    "name": "Pro",
+    "planId": "dc5e805e-1bef-4d43-809e-9fdf865e211a",
+    "priceMonthly": "19",
+    "priceYearly": 290,
+    "desc": "10 GB database, 25 GB of files, 50 GB traffic."
+  }
+]

@@ -26,6 +26,9 @@ const config = {
   favicon: 'img/favicon.png',
   organizationName: 'nhost',
   projectName: 'docs',
+  scripts: [
+    { src: 'https://plausible.io/js/script.js', defer: true, 'data-domain': 'docs.nhost.io' }
+  ],
   plugins: [require.resolve('docusaurus-plugin-image-zoom')],
   presets: [
     [
@@ -92,7 +95,7 @@ const config = {
             href: 'https://app.nhost.io',
             className: 'header-get-started-link',
             position: 'right',
-            label: 'Get started'
+            label: 'Dashboard'
           }
         ]
       },

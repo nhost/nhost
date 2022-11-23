@@ -4,17 +4,32 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "umd/**", "build/**", ".next"]
+      "outputs": ["dist/**", "umd/**", "build/**", ".next/**"]
     },
     "@nhost-examples/react-apollo#build": {
-      "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
-      "outputs": ["dist/**"]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
     "@nhost-examples/vue-apollo#build": {
-      "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
-      "outputs": ["dist/**"]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
-    "@nhost/sync-versions#start": { "cache": false },
+    "@nhost/dashboard#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"],
+      "env": [
+        "NEXT_TELEMETRY_DISABLED",
+        "NEXT_PUBLIC_NHOST_PLATFORM",
+        "NEXT_PUBLIC_NHOST_MIGRATIONS_URL",
+        "NEXT_PUBLIC_NHOST_HASURA_URL",
+        "NEXT_PUBLIC_ENV"
+      ]
+    },
+    "@nhost/sync-versions#start": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
@@ -33,7 +48,9 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "lint:fix": { "outputs": [] },
+    "lint:fix": {
+      "outputs": []
+    },
     "start": {}
   }
 }

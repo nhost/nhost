@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.7.6",
+  "version": "1.8.3",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -67,11 +67,11 @@
     "@nhost/nhost-js": "workspace:*",
     "cross-fetch": "^3.1.5",
     "js-cookie": "^3.0.1",
-    "xstate": "^4.32.1"
+    "xstate": "^4.33.5"
   },
   "peerDependencies": {
     "@nhost/react": "workspace:*",
-    "next": "^12.0.10",
+    "next": "^12.0.10 || ^13.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },

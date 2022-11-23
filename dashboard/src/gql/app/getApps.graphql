@@ -1,0 +1,8 @@
+query getApps {
+  apps(order_by: { createdAt: desc }) {
+    id
+    slug
+    name
+    subdomain
+  }
+}

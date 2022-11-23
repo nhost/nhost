@@ -1,8 +1,7 @@
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   signUpConflictErrorHandler,
@@ -12,9 +11,6 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -50,7 +46,7 @@ test(`should fail if network is unavailable`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -59,7 +55,7 @@ test(`should fail if network is unavailable`, async () => {
       "registration": {
         "error": "OK",
         "message": "Network Error",
-        "status": 200,
+        "status": 0,
       },
     }
   `)
@@ -74,7 +70,7 @@ test(`should fail if server returns an error`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -97,7 +93,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(15)
   })
 
-  const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const emailErrorSignInState = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -118,7 +114,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(2)
   })
 
-  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const passwordErrorSignInState = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -142,7 +138,7 @@ test(`should fail if email has already been taken`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -164,7 +160,7 @@ test(`should succeed if email and password are correctly formatted`, async () =>
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({
       registration: { incomplete: 'needsEmailVerification' },
       authentication: { signedOut: 'noErrors' }
@@ -184,7 +180,7 @@ test(`should succeed if email and password are correctly formatted and user is a
     password: faker.internet.password(15)
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 

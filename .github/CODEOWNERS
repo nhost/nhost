@@ -1,8 +1,14 @@
 # Documentation
 # https://help.github.com/en/articles/about-code-owners
 
-/packages                                @plmercereau
+/packages                                @plmercereau @szilarddoro
 /packages/docgen                         @szilarddoro
-/.github/workflows                       @plmercereau
-/docs/                                   @guicurcio
-/examples/                               @plmercereau @guicurcio @FuzzyReason
+/integrations/stripe-graphql-js          @elitan
+/.github                                 @plmercereau
+/dashboard/                              @szilarddoro @guicurcio
+/docs/                                   @guicurcio @elitan
+/config/                                 @plmercereau @szilarddoro
+/examples/                               @plmercereau
+/examples/codegen-react-apollo           @elitan @plmercereau
+/examples/codegen-react-query            @elitan @plmercereau
+/examples/react-apollo-crm               @elitan @plmercereau

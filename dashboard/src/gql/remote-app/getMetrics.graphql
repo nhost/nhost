@@ -1,0 +1,15 @@
+query getRemoteAppMetrics {
+  filesAggregate {
+    aggregate {
+      count
+      sum {
+        size
+      }
+    }
+  }
+  usersAggregate{
+    aggregate {
+      count
+    }
+  }
+}

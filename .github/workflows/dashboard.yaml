@@ -1,0 +1,64 @@
+name: 'Dashboard'
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+    paths:
+      - 'packages/**'
+      - 'dashboard/**'
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_ENV: dev
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Build the application
+        run: pnpm build:dashboard
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_ENV: dev
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Run tests
+        run: pnpm test:dashboard
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_ENV: dev
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - run: pnpm lint:dashboard
