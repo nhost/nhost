@@ -99,6 +99,8 @@ export default function WorkOsProviderSettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
+          docsLink="https://docs.nhost.io/authentication/sign-in-with-workos"
+          docsTitle="how to sign in users with WorkOS"
           icon="/logos/WorkOs.svg"
           switchId="authWorkOsEnabled"
           showSwitch
