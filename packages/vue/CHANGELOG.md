@@ -1,5 +1,15 @@
 # @nhost/vue
 
+## 0.6.0
+
+### Minor Changes
+
+- f6d2042a: `useFileUpload` composable to upload a file useFileUpload composable
+
+### Patch Changes
+
+- 843087cb: Make `useUserRoles` reactive
+
 ## 0.5.3
 
 ### Patch Changes

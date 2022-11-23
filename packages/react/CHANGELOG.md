@@ -1,5 +1,15 @@
 # @nhost/react
 
+## 0.15.0
+
+### Minor Changes
+
+- 4601d84e: Adding `<SignedIn />` and `<SignedOut />` components.
+
+### Patch Changes
+
+- 843087cb: Make `useUserRoles` reactive
+
 ## 0.14.3
 
 ### Patch Changes

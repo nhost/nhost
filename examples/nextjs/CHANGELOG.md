@@ -7,7 +7,7 @@
 - ba785da1: Bump dependencies versions
 - Updated dependencies [ba785da1]
 - Updated dependencies [6da44bf8]
-  - @nhost/nextjs@2.0.0
+  - @nhost/nextjs@1.9.0
   - @nhost/react@0.14.0
   - @nhost/react-apollo@5.0.0
 
