@@ -641,13 +641,17 @@ importers:
       '@nhost/stripe-graphql-js': ^0.0.5
       '@pothos/core': ^3.21.0
       '@types/express': ^4.17.13
+      cross-fetch: ^3.1.5
       graphql: 15.7.2
+      nodemailer: ^6.8.0
       slugify: ^1.6.5
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.7.2
       '@nhost/stripe-graphql-js': link:../../integrations/stripe-graphql-js
       '@pothos/core': 3.21.0_graphql@15.7.2
+      cross-fetch: 3.1.5
       graphql: 15.7.2
+      nodemailer: 6.8.0
       slugify: 1.6.5
     devDependencies:
       '@types/express': 4.17.13
@@ -24108,6 +24112,11 @@ packages:
 
   /node-releases/2.0.6:
     resolution: {integrity: sha512-PiVXnNuFm5+iYkLBNeq5211hvO38y63T0i2KKh2KnUs3RpzJ+JtODFjkD8yjLwnDkTYF1eKXheUwdssR+NRZdg==}
+
+  /nodemailer/6.8.0:
+    resolution: {integrity: sha512-EjYvSmHzekz6VNkNd12aUqAco+bOkRe3Of5jVhltqKhEsjw/y0PYPJfp83+s9Wzh1dspYAkUW/YNQ350NATbSQ==}
+    engines: {node: '>=6.0.0'}
+    dev: false
 
   /normalize-package-data/2.5.0:
     resolution: {integrity: sha512-/5CMN3T0R4XTj4DcGaexo+roZSdSFW/0AOOTROrjxzCG1wrWXEsGbRKevjlIL+ZDE4sZlJr5ED4YW0yqmkK+eA==}
