@@ -88,7 +88,7 @@ export default function SpotifyProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Spotify"
-          description="Allows users to sign in with Spotify."
+          description="Allow users to sign in with Spotify."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

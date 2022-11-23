@@ -94,7 +94,7 @@ export default function WorkOsProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="WorkOS"
-          description="Allows users to sign in with WorkOS."
+          description="Allow users to sign in with WorkOS."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

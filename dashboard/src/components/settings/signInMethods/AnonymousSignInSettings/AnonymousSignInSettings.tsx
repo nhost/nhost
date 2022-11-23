@@ -79,7 +79,7 @@ export default function AnonymousSignInSettings() {
       <Form onSubmit={handlePasswordProtectionSettingsChange}>
         <SettingsContainer
           title="Anonymous Users"
-          description="Allow users to sign-in anonymously."
+          description="Allow users to sign in anonymously."
           primaryActionButtonProps={{
             disabled:
               form.formState.isSubmitting ||

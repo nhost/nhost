@@ -88,7 +88,7 @@ export default function DiscordProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Discord"
-          description="Allows users to sign in with Discord."
+          description="Allow users to sign in with Discord."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

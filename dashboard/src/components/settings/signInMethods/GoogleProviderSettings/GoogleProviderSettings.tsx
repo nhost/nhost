@@ -88,7 +88,7 @@ export default function GoogleProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Google"
-          description="Allows users to sign in with Google."
+          description="Allow users to sign in with Google."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,

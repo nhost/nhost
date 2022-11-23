@@ -81,7 +81,7 @@ export default function WebAuthnSettings() {
       <Form onSubmit={handleWebAuthnSettingsUpdate}>
         <SettingsContainer
           title="Security Keys"
-          description="Allow users to sign-in with security keys using WebAuthn."
+          description="Allow users to sign in with security keys using WebAuthn."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
