@@ -112,8 +112,8 @@ export default function WorkOsProviderSettings() {
             {...register(`authWorkOsClientId`)}
             name="authWorkOsClientId"
             id="authWorkOsClientId"
-            label="WorkOS Client ID"
-            placeholder="WorkOS Client ID"
+            label="Client ID"
+            placeholder="Enter your Client ID"
             className="col-span-3"
             fullWidth
             hideEmptyHelperText
@@ -122,19 +122,9 @@ export default function WorkOsProviderSettings() {
             {...register('authWorkOsClientSecret')}
             name="authWorkOsClientSecret"
             id="authWorkOsClientSecret"
-            label="WorkOS Client Secret"
-            placeholder="WorkOS Client Secret"
+            label="Client Secret"
+            placeholder="Enter your Client Secret"
             className="col-span-3"
-            fullWidth
-            hideEmptyHelperText
-          />
-          <Input
-            {...register('authWorkOsDefaultDomain')}
-            name="authWorkOsDefaultDomain"
-            id="authWorkOsDefaultDomain"
-            label="Default Domain"
-            placeholder="Default Domain"
-            className="col-span-2"
             fullWidth
             hideEmptyHelperText
           />
@@ -142,8 +132,18 @@ export default function WorkOsProviderSettings() {
             {...register('authWorkOsDefaultOrganization')}
             name="authWorkOsDefaultOrganization"
             id="authWorkOsDefaultOrganization"
-            label="Default Organization"
-            placeholder="Default Organization"
+            label="Default Organization ID (optional)"
+            placeholder="Default Organization ID"
+            className="col-span-2"
+            fullWidth
+            hideEmptyHelperText
+          />
+          <Input
+            {...register('authWorkOsDefaultDomain')}
+            name="authWorkOsDefaultDomain"
+            id="authWorkOsDefaultDomain"
+            label="Default Domain (optional)"
+            placeholder="Default Domain"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
@@ -152,7 +152,7 @@ export default function WorkOsProviderSettings() {
             {...register('authWorkOsDefaultConnection')}
             name="authWorkOsDefaultConnection"
             id="authWorkOsDefaultConnection"
-            label="Default Connection"
+            label="Default Connection (optional)"
             placeholder="Default Connection"
             className="col-span-2"
             fullWidth
