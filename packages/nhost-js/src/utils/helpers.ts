@@ -1,6 +1,7 @@
 import { NhostClientConstructorParams } from './types'
 
-const LOCALHOST_REGEX = /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>\d+))?$/
+// a port can be a number or a placeholder string with leading and trailing double underscores, f.e. "8080" or "__PLACEHOLDER_NAME__"
+const LOCALHOST_REGEX = /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>(\d+|__\w+__)))?$/
 
 /**
  * `backendUrl` should now be used only when self-hosting
