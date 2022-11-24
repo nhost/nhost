@@ -227,7 +227,9 @@ export default function RolesSettings() {
                   secondaryAction={
                     <Dropdown.Root>
                       <Tooltip
-                        title="You can't edit system roles"
+                        title={
+                          role.isSystemRole ? "You can't edit system roles" : ''
+                        }
                         placement="right"
                         disableHoverListener={!role.isSystemRole}
                         hasDisabledChildren={role.isSystemRole}
