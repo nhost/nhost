@@ -81,11 +81,38 @@ export default function RolesSettings() {
 
                   <Dropdown.Content
                     menu
+                    PaperProps={{ className: 'w-[160px]' }}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                   >
-                    <Dropdown.Item>Edit Role</Dropdown.Item>
-                    <Dropdown.Item>Delete Role</Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={() =>
+                        openDialog('EDIT_ROLE', {
+                          title: (
+                            <span className="grid grid-flow-row">
+                              <span>Create a New Role</span>
+
+                              <Text variant="subtitle1" component="span">
+                                Enter the name for the role below.
+                              </Text>
+                            </span>
+                          ),
+                          props: { PaperProps: { className: 'max-w-sm' } },
+                          payload: { originalRole: role.name },
+                        })
+                      }
+                    >
+                      <Text className="font-medium">Edit Role</Text>
+                    </Dropdown.Item>
+                    <Divider component="li" />
+                    <Dropdown.Item>
+                      <Text
+                        className="font-medium"
+                        sx={{ color: (theme) => theme.palette.error.main }}
+                      >
+                        Delete Role
+                      </Text>
+                    </Dropdown.Item>
                   </Dropdown.Content>
                 </Dropdown.Root>
               }

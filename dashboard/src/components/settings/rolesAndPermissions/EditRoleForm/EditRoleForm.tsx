@@ -18,18 +18,22 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface CreateRoleFormProps
-  extends Pick<BaseRoleFormProps, 'onCancel'> {
+export interface EditRoleFormProps extends Pick<BaseRoleFormProps, 'onCancel'> {
+  /**
+   * Original role name to be edited.
+   */
+  originalRole: string;
   /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: (values: BaseRoleFormValues) => Promise<void>;
 }
 
-export default function CreateRoleForm({
+export default function EditRoleForm({
+  originalRole,
   onSubmit,
   ...props
-}: CreateRoleFormProps) {
+}: EditRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const {
     data,
@@ -44,7 +48,7 @@ export default function CreateRoleForm({
 
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {
-      roleName: '',
+      roleName: originalRole,
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseRoleFormValidationSchema),
@@ -62,15 +66,19 @@ export default function CreateRoleForm({
 
   async function handleSubmit(values: BaseRoleFormValues) {
     const { authUserDefaultAllowedRoles: existingRoles } = data.app || {};
-    const existingRoleList = existingRoles ? existingRoles.split(',') : [];
+    const existingRoleListWithoutOriginalRole = existingRoles
+      ? existingRoles.split(',').filter((role) => role !== originalRole)
+      : [];
 
-    if (existingRoleList.includes(values.roleName)) {
+    if (existingRoleListWithoutOriginalRole.includes(values.roleName)) {
       setError('roleName', { message: 'This role already exists.' });
 
       return;
     }
 
-    const newRoles = `${existingRoles},${values.roleName}`;
+    const newRoles = `${existingRoleListWithoutOriginalRole.join(',')},${
+      values.roleName
+    }`;
 
     const updateAppPromise = updateApp({
       variables: {
@@ -84,9 +92,9 @@ export default function CreateRoleForm({
     await toast.promise(
       updateAppPromise,
       {
-        loading: 'Creating role...',
-        success: 'Role has been created successfully.',
-        error: 'An error occurred while creating the role.',
+        loading: 'Updating role...',
+        success: 'Role has been updated successfully.',
+        error: 'An error occurred while updating the role.',
       },
       toastStyleProps,
     );
@@ -118,11 +126,7 @@ export default function CreateRoleForm({
         </div>
       )}
 
-      <BaseRoleForm
-        onSubmit={handleSubmit}
-        submitButtonText="Create"
-        {...props}
-      />
+      <BaseRoleForm onSubmit={handleSubmit} {...props} />
     </FormProvider>
   );
 }
