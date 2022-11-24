@@ -8,17 +8,22 @@ export interface ListItemTextProps extends MaterialListItemTextProps {}
 
 const StyledListItemText = styled(MaterialListItemText)(({ theme }) => ({
   color: theme.palette.text.primary,
+  display: 'grid',
+  justifyContent: 'start',
+  gridAutoFlow: 'row',
+  gap: theme.spacing(0.5),
   [`&.${listItemTextClasses.root}`]: {
     margin: 0,
   },
   [`& > .${listItemTextClasses.primary}`]: {
-    fontSize: '0.9375rem',
+    fontSize: theme.typography.pxToRem(15),
     fontWeight: 500,
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
   },
   [`& > .${listItemTextClasses.secondary}`]: {
+    fontSize: theme.typography.pxToRem(15),
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',

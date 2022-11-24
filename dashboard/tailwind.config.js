@@ -55,7 +55,6 @@ module.exports = {
         log: '#F4F7F9',
         input: '#C2CAD6',
         ish: '#f6f9fc',
-        fafafa: '#fafafa',
         picker: 'rgba(33, 50, 75, 1)',
         divide: 'rgba(0, 35, 88, 0.16)',
         greyscaleDark: '#21324B',

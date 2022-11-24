@@ -1,6 +1,7 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { CreateForeignKeyForm } from '@/components/data-browser/CreateForeignKeyForm';
-import { EditForeignKeyForm } from '@/components/data-browser/EditForeignKeyForm';
+import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import CreateRoleForm from '@/components/settings/rolesAndPermissions/CreateRoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -268,6 +269,18 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_FOREIGN_KEY' && (
             <EditForeignKeyForm
+              {...dialogPayload}
+              onSubmit={async (values) => {
+                await dialogPayload?.onSubmit(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'CREATE_ROLE' && (
+            <CreateRoleForm
               {...dialogPayload}
               onSubmit={async (values) => {
                 await dialogPayload?.onSubmit(values);

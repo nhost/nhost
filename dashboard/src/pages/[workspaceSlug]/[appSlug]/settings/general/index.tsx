@@ -126,7 +126,7 @@ export default function SettingsGeneralPage() {
   return (
     <Container
       className="grid max-w-5xl grid-flow-row gap-8 bg-transparent"
-      wrapperClassName="bg-fafafa"
+      rootClassName="bg-transparent"
     >
       <FormProvider {...form}>
         <Form onSubmit={handleProjectNameChange}>
@@ -194,13 +194,5 @@ export default function SettingsGeneralPage() {
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };
