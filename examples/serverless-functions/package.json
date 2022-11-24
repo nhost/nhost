@@ -9,7 +9,9 @@
     "@graphql-yoga/node": "^2.13.13",
     "@nhost/stripe-graphql-js": "^0.0.5",
     "@pothos/core": "^3.21.0",
+    "cross-fetch": "^3.1.5",
     "graphql": "15.7.2",
+    "nodemailer": "^6.8.0",
     "slugify": "^1.6.5"
   }
 }
