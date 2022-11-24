@@ -42,7 +42,6 @@ export default function BaseRoleForm({
   const { onDirtyStateChange } = useDialog();
   const {
     register,
-    setFocus,
     formState: { errors, dirtyFields, isSubmitting },
   } = useFormContext<BaseRoleFormValues>();
 
@@ -53,12 +52,6 @@ export default function BaseRoleForm({
   useEffect(() => {
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
-
-  // Note: For some reason, we need to programatically set focus on the role
-  // name.
-  useEffect(() => {
-    setFocus('roleName');
-  }, [setFocus]);
 
   return (
     <Form
