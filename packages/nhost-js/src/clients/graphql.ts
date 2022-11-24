@@ -36,8 +36,8 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
 export class NhostGraphqlClient extends GraphQLClient {
   // this.url is already defined as a private property in GraphQLClient
   private _url: string
-  private accessToken: string | null
-  private adminSecret?: string
+  private accessToken: string | null = null
+  private adminSecret: string | null = null
 
   constructor({ url, adminSecret }: NhostGraphqlConstructorParams) {
     super(url)
@@ -45,8 +45,10 @@ export class NhostGraphqlClient extends GraphQLClient {
     this._url = url
     this.setEndpoint(url)
 
-    this.accessToken = null
-    this.adminSecret = adminSecret
+    if (adminSecret) {
+      this.adminSecret = adminSecret
+    }
+
     this.resetHeaders()
   }
 
@@ -79,9 +81,19 @@ export class NhostGraphqlClient extends GraphQLClient {
     this.resetHeaders()
   }
 
+  setEndpoint(value: string): GraphQLClient {
+    this._url = value
+    super.setEndpoint(value)
+    return this
+  }
+
+  setHeaders(value: Record<string, string>): GraphQLClient {
+    super.setHeaders({ ...this.generateAccessTokenHeaders(), ...value })
+    return this
+  }
+
   private resetHeaders() {
-    const headers = this.generateAccessTokenHeaders()
-    this.setHeaders(headers)
+    this.setHeaders(this.generateAccessTokenHeaders())
   }
 
   private generateAccessTokenHeaders(): Record<string, string> {
