@@ -1,6 +1,7 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -301,6 +302,18 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_ROLE' && (
             <EditRoleForm
+              {...dialogPayload}
+              onSubmit={async (values) => {
+                await dialogPayload?.onSubmit?.(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'MANAGE_PERMISSION_VARIABLE' && (
+            <PermissionVariableForm
               {...dialogPayload}
               onSubmit={async (values) => {
                 await dialogPayload?.onSubmit?.(values);

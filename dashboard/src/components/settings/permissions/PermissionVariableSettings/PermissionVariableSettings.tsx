@@ -1,6 +1,8 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import useCustomClaims from '@/hooks/useCustomClaims';
+import type { CustomClaim } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
@@ -25,6 +27,7 @@ export interface PermissionVariableSettingsFormValues {
 
 export default function PermissionVariableSettings() {
   const { data: customClaims, loading } = useCustomClaims();
+  const { openDialog, openAlertDialog } = useDialog();
 
   const form = useForm();
 
@@ -36,11 +39,82 @@ export default function PermissionVariableSettings() {
 
   const { formState } = form;
 
-  function handleOpenCreator() {}
+  function handleCreateVariable(values: PermissionVariableSettingsFormValues) {
+    console.log(values);
+  }
 
-  function handleOpenEditor(originalVariableName: string) {}
+  function handleEditVariable(
+    values: PermissionVariableSettingsFormValues,
+    originalVariable: CustomClaim,
+  ) {
+    console.log(values, originalVariable);
+  }
 
-  function handleConfirmDelete(originalVariableName: string) {}
+  function handleDeleteVariable(variable: CustomClaim) {
+    console.log(variable);
+  }
+
+  function handleOpenCreator() {
+    openDialog('MANAGE_PERMISSION_VARIABLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Create Permission Variable</span>
+
+          <Text variant="subtitle1" component="span">
+            Enter the field name and the path you want to use in this permission
+            variable.
+          </Text>
+        </span>
+      ),
+      payload: {
+        availableVariables: customClaims,
+        submitButtonText: 'Create',
+        onSubmit: handleCreateVariable,
+      },
+      props: { PaperProps: { className: 'max-w-sm' } },
+    });
+  }
+
+  function handleOpenEditor(originalVariable: CustomClaim) {
+    openDialog('MANAGE_PERMISSION_VARIABLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Edit Permission Variable</span>
+
+          <Text variant="subtitle1" component="span">
+            Enter the field name and the path you want to use in this permission
+            variable.
+          </Text>
+        </span>
+      ),
+      payload: {
+        availableVariables: customClaims,
+        originalVariable,
+        onSubmit: (values: PermissionVariableSettingsFormValues) =>
+          handleEditVariable(values, originalVariable),
+      },
+      props: { PaperProps: { className: 'max-w-sm' } },
+    });
+  }
+
+  function handleConfirmDelete(originalVariable: CustomClaim) {
+    openAlertDialog({
+      title: 'Delete Permission Variable',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>X-Hasura-{originalVariable.key}</strong>&quot; permission
+          variable? This action cannot be undone once you save the permission
+          variables.
+        </Text>
+      ),
+      props: {
+        onPrimaryAction: () => handleDeleteVariable(originalVariable),
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+      },
+    });
+  }
 
   async function handleSubmit(values: PermissionVariableSettingsFormValues) {
     console.log(values);
@@ -107,7 +181,7 @@ export default function PermissionVariableSettings() {
                         }}
                       >
                         <Dropdown.Item
-                          onClick={() => handleOpenEditor(customClaim.key)}
+                          onClick={() => handleOpenEditor(customClaim)}
                         >
                           <Text className="font-medium">Edit Variable</Text>
                         </Dropdown.Item>
@@ -115,7 +189,7 @@ export default function PermissionVariableSettings() {
                         <Divider component="li" />
 
                         <Dropdown.Item
-                          onClick={() => handleConfirmDelete(customClaim.key)}
+                          onClick={() => handleConfirmDelete(customClaim)}
                         >
                           <Text
                             className="font-medium"
@@ -129,7 +203,7 @@ export default function PermissionVariableSettings() {
                   }
                 >
                   <ListItem.Text
-                    primary={customClaim.key}
+                    primary={`X-Hasura-${customClaim.key}`}
                     secondary={
                       customClaim.isSystemClaim
                         ? 'System Variable'
@@ -137,7 +211,7 @@ export default function PermissionVariableSettings() {
                     }
                   />
 
-                  <Text>{customClaim.value}</Text>
+                  <Text className="font-medium">user.{customClaim.value}</Text>
                 </ListItem.Root>
 
                 <Divider

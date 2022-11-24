@@ -165,7 +165,7 @@ export default function RoleSettings() {
 
   function handleConfirmDelete(originalRoleName: string) {
     openAlertDialog({
-      title: 'Delete role',
+      title: 'Delete Role',
       payload: (
         <Text>
           Are you sure you want to delete the &quot;
