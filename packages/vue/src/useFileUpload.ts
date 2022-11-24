@@ -13,7 +13,7 @@ import { useInterpret, useSelector } from '@xstate/vue'
 
 import { useNhostClient } from './useNhostClient'
 
-export interface FileUploadHookResult extends FileUploadState {
+export interface FileUploadComposableResult extends FileUploadState {
   /**
    * Add the file without uploading it.
    */
@@ -38,7 +38,7 @@ export interface FileUploadHookResult extends FileUploadState {
 export type { FileItemRef }
 
 /**
- * Use the hook `useFileUploadItem` to control the file upload of a file in a multiple file upload.
+ * Use the composable `useFileUploadItem` to control the file upload of a file in a multiple file upload.
  *
  * It has the same signature as `useFileUpload`.
  *
@@ -60,7 +60,7 @@ export type { FileItemRef }
  */
 export const useFileUploadItem = (
   ref: FileItemRef | InterpreterFrom<FileUploadMachine>
-): FileUploadHookResult => {
+): FileUploadComposableResult => {
   const { nhost } = useNhostClient()
 
   const add = (params: StorageUploadFileParams) => {
@@ -74,17 +74,15 @@ export const useFileUploadItem = (
   const upload = (params: Partial<StorageUploadFileParams>) =>
     uploadFilePromise(
       {
-        storageUrl: nhost.storage.url,
+        url: nhost.storage.url,
         accessToken: nhost.auth.getAccessToken(),
-        adminSecret: nhost.adminSecret
-      },
-      ref,
-      {
+        adminSecret: nhost.adminSecret,
         file: params.file,
         bucketId: params.bucketId || bucketId,
         id,
         name
-      }
+      },
+      ref
     )
 
   const cancel = () => {
@@ -121,7 +119,7 @@ export const useFileUploadItem = (
 }
 
 /**
- * Use the hook `useFileUpload` to upload a file.
+ * Use the composable `useFileUpload` to upload a file.
  *
  * @example
  * ```tsx
@@ -147,7 +145,7 @@ export const useFileUploadItem = (
  *
  * @docs https://docs.nhost.io/reference/vue/use-file-upload
  */
-export const useFileUpload = (): FileUploadHookResult => {
+export const useFileUpload = (): FileUploadComposableResult => {
   const service = useInterpret(createFileUploadMachine)
 
   return useFileUploadItem(service)

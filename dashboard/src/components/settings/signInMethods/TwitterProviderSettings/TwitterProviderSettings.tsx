@@ -87,7 +87,7 @@ export default function TwitterProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Twitter"
-          description="Allows users to sign in with Twitter."
+          description="Allow users to sign in with Twitter."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -125,7 +125,7 @@ export default function TwitterProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/twitter/callback`}
             className="col-span-2"
@@ -133,11 +133,6 @@ export default function TwitterProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             disabled
-            slotProps={{
-              input: {
-                className: 'bg-opacity-5',
-              },
-            }}
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
                 <IconButton

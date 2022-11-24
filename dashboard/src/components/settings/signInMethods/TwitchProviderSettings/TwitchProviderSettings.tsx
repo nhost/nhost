@@ -88,7 +88,7 @@ export default function TwitchProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Twitch"
-          description="Allows users to sign in with Twitch."
+          description="Allow users to sign in with Twitch."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -112,7 +112,7 @@ export default function TwitchProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/twitch/callback`}
             disabled

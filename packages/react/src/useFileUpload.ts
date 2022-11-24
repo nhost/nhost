@@ -74,17 +74,15 @@ export const useFileUploadItem = (
   const upload = (params: Partial<StorageUploadFileParams>) =>
     uploadFilePromise(
       {
-        storageUrl: nhost.storage.url,
+        url: nhost.storage.url,
         accessToken: nhost.auth.getAccessToken(),
-        adminSecret: nhost.adminSecret
-      },
-      ref,
-      {
+        adminSecret: nhost.adminSecret,
         file: params.file,
         bucketId: params.bucketId || bucketId,
         id,
         name
-      }
+      },
+      ref
     )
 
   const cancel = () => {

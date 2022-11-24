@@ -74,12 +74,12 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const upload = (params?: UploadMultipleFilesActionParams) =>
     uploadMultipleFilesPromise(
       {
-        storageUrl: nhost.storage.url,
+        url: nhost.storage.url,
         accessToken: nhost.auth.getAccessToken(),
-        adminSecret: nhost.adminSecret
+        adminSecret: nhost.adminSecret,
+        ...params
       },
-      service,
-      params
+      service
     )
 
   const cancel = () => {

@@ -88,7 +88,7 @@ export default function FacebookProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Facebook"
-          description="Allows users to sign in with Facebook."
+          description="Allow users to sign in with Facebook."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -112,7 +112,7 @@ export default function FacebookProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/facebook/callback`}
             disabled

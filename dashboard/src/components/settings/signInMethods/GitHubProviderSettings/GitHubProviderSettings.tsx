@@ -88,7 +88,7 @@ export default function GitHubProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="GitHub"
-          description="Allows users to sign in with GitHub."
+          description="Allow users to sign in with GitHub."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -112,7 +112,7 @@ export default function GitHubProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/github/callback`}
             disabled

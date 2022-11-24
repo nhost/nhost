@@ -44,18 +44,14 @@ export type UploadMultipleFilesActionParams = {
 }
 
 export const uploadMultipleFilesPromise = async (
-  config: FileUploadConfig,
-  service: InterpreterFrom<MultipleFilesUploadMachine>,
-  params?: UploadMultipleFilesActionParams
+  params: FileUploadConfig & UploadMultipleFilesActionParams,
+  service: InterpreterFrom<MultipleFilesUploadMachine>
 ): Promise<MultipleFilesHandlerResult> =>
   new Promise((resolve) => {
     service.send({
       type: 'UPLOAD',
-      url: config.storageUrl,
-      accessToken: config.accessToken,
-      adminSecret: config.adminSecret,
-      bucketId: params?.bucketId,
-      files: params?.files
+      ...params,
+      files: params.files
     })
     service.onTransition((s) => {
       if (s.matches('error')) {

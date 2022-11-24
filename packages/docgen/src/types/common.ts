@@ -29,6 +29,7 @@ export type Group = {
   title: string
   kind: number
   children: Array<number>
+  categories?: Array<{ title: string; children: Array<number> }>
 }
 
 export type Source = {

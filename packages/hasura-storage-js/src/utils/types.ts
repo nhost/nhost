@@ -21,7 +21,7 @@ export interface ActionErrorState {
 // * Avoid circular references and broken links in docusaurus generated docs
 export interface FileUploadConfig {
   accessToken?: string
-  storageUrl: string
+  url: string
   adminSecret?: string
 }
 

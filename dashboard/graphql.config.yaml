@@ -13,11 +13,3 @@ generates:
       - 'typescript-react-apollo'
     config:
       withRefetchFn: true
-  functions/utils/__generated__/graphql-request.ts:
-    documents:
-      - 'functions/**/*.graphql'
-      - 'functions/**/*.gql'
-    plugins:
-      - 'typescript'
-      - 'typescript-operations'
-      - 'typescript-graphql-request'

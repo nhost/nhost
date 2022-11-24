@@ -107,7 +107,7 @@ export default function AppleProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Apple"
-          description="Allows users to sign in with Apple."
+          description="Allow users to sign in with Apple."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -168,7 +168,7 @@ export default function AppleProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/apple/callback`}
             className="col-span-2"

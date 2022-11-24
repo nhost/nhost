@@ -36,16 +36,12 @@ export interface UploadFileHandlerResult extends ActionErrorState {
 export interface FileUploadState extends UploadFileHandlerResult, UploadProgressState {}
 
 export const uploadFilePromise = async (
-  config: FileUploadConfig,
-  interpreter: FileItemRef | InterpreterFrom<FileUploadMachine>,
-  params: Partial<StorageUploadFileParams>
+  params: FileUploadConfig & Partial<StorageUploadFileParams>,
+  interpreter: FileItemRef | InterpreterFrom<FileUploadMachine>
 ): Promise<UploadFileHandlerResult> =>
   new Promise<UploadFileHandlerResult>((resolve) => {
     interpreter.send({
       type: 'UPLOAD',
-      url: config.storageUrl,
-      accessToken: config.accessToken,
-      adminSecret: config.adminSecret,
       ...params
     })
     interpreter.subscribe((s) => {

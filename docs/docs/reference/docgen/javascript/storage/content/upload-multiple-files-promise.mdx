@@ -13,25 +13,10 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 
 ---
 
-**<span className="parameter-name">config</span>** <span className="optional-status">required</span> [`FileUploadConfig`](/reference/docgen/javascript/storage/types/file-upload-config)
-
-| Property                                                                                       | Type                | Required | Notes |
-| :--------------------------------------------------------------------------------------------- | :------------------ | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">config.</span>storageUrl</span>  | <code>string</code> |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">config.</span>accessToken</span> | <code>string</code> |          |       |
-| <span className="parameter-name"><span className="light-grey">config.</span>adminSecret</span> | <code>string</code> |          |       |
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> <code>[`FileUploadConfig`](/reference/docgen/javascript/storage/types/file-upload-config) &amp; [`UploadMultipleFilesActionParams`](/reference/docgen/javascript/storage/types/upload-multiple-files-action-params)</code>
 
 ---
 
-**<span className="parameter-name">service</span>** <span className="optional-status">required</span> <code>Interpreter&lt;MultipleFilesUploadContext, any, { type: "ADD", files: AnyFileList, bucketId: string } &#124; { type: "UPLOAD", url: string, files: AnyFileList, bucketId: string, accessToken: string, adminSecret: string } &#124; { type: "UPLOAD_PROGRESS", additions: number } &#124; { type: "UPLOAD_DONE" } &#124; { type: "UPLOAD_ERROR" } &#124; { type: "CANCEL" } &#124; { type: "REMOVE" } &#124; { type: "CLEAR" }, { value: any, context: MultipleFilesUploadContext }, ResolveTypegenMeta&lt;Typegen0, { type: "ADD", files: AnyFileList, bucketId: string } &#124; { type: "UPLOAD", url: string, files: AnyFileList, bucketId: string, accessToken: string, adminSecret: string } &#124; { type: "UPLOAD_PROGRESS", additions: number } &#124; { type: "UPLOAD_DONE" } &#124; { type: "UPLOAD_ERROR" } &#124; { type: "CANCEL" } &#124; { type: "REMOVE" } &#124; { type: "CLEAR" }, BaseActionObject, ServiceMap&gt;&gt;</code>
-
----
-
-**<span className="parameter-name">params</span>** <span className="optional-status">optional</span> [`UploadMultipleFilesActionParams`](/reference/docgen/javascript/storage/types/upload-multiple-files-action-params)
-
-| Property                                                                                    | Type                                                                      | Required | Notes |
-| :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------ | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | <code>string</code>                                                       |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>files</span>    | [`AnyFileList`](/reference/docgen/javascript/storage/types/any-file-list) |          |       |
+**<span className="parameter-name">service</span>** <span className="optional-status">required</span> <code>Interpreter&lt;MultipleFilesUploadContext, any, { type: "ADD", files: AnyFileList, bucketId: string } &#124; { type: "UPLOAD_PROGRESS", additions: number } &#124; { type: "UPLOAD_DONE" } &#124; { type: "UPLOAD_ERROR" } &#124; { type: "CANCEL" } &#124; { type: "REMOVE" } &#124; { type: "CLEAR" } &#124; { type: "UPLOAD", files: AnyFileList, bucketId: string } &amp; FileUploadConfig, { value: any, context: MultipleFilesUploadContext }, ResolveTypegenMeta&lt;Typegen0, { type: "ADD", files: AnyFileList, bucketId: string } &#124; { type: "UPLOAD_PROGRESS", additions: number } &#124; { type: "UPLOAD_DONE" } &#124; { type: "UPLOAD_ERROR" } &#124; { type: "CANCEL" } &#124; { type: "REMOVE" } &#124; { type: "CLEAR" } &#124; { type: "UPLOAD", files: AnyFileList, bucketId: string } &amp; FileUploadConfig, BaseActionObject, ServiceMap&gt;&gt;</code>
 
 ---

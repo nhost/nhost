@@ -197,6 +197,14 @@ Start the development server:
 pnpm dev
 ```
 
+Include the correct admin secret header for admin access
+
+```js
+{
+  "x-hasura-admin-secret":"<secret value matching your NHOST_ADMIN_SECRET environment variable>"
+}
+```
+
 The GraphQL Server will reload every time the code changes.
 
 Open GraphiQL:

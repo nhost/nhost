@@ -24,7 +24,7 @@ services:
     ports:
       - '5432:5432'
   graphql-engine:
-    image: hasura/graphql-engine:v2.2.0
+    image: hasura/graphql-engine:v2.15.2
     depends_on:
       - 'postgres'
     restart: always
@@ -72,7 +72,7 @@ services:
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
-    image: nhost/hasura-storage:0.2.1
+    image: nhost/hasura-storage:0.3.1
     depends_on:
       - postgres
       - graphql-engine

@@ -88,7 +88,7 @@ export default function LinkedInProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="LinkedIn"
-          description="Allows users to sign in with LinkedIn"
+          description="Allow users to sign in with LinkedIn."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
@@ -112,7 +112,7 @@ export default function LinkedInProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            value={`${generateRemoteAppUrl(
+            defaultValue={`${generateRemoteAppUrl(
               currentApplication.subdomain,
             )}/v1/auth/signin/provider/linkedin/callback`}
             disabled
