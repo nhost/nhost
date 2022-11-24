@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.5.0
+
+### Minor Changes
+
+- a48dd5bf: feat(dashboard): make backend port configurable
+
 ## 0.4.3
 
 ### Patch Changes
