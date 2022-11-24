@@ -3,6 +3,7 @@ import Form from '@/components/common/Form';
 import type { CustomClaim } from '@/types/application';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -97,28 +98,62 @@ export default function PermissionVariableForm({
         className="grid grid-flow-row gap-4 px-6 pb-6"
       >
         <Input
-          {...register('key')}
+          {...register('key', {
+            onChange: (event) => {
+              if (
+                event.target.value &&
+                !/^[a-zA-Z-]+$/gi.test(event.target.value)
+              ) {
+                // we need to prevent invalid characters from being entered
+                // eslint-disable-next-line no-param-reassign
+                event.target.value = event.target.value.replace(
+                  /[^a-zA-Z-]/gi,
+                  '',
+                );
+              }
+            },
+          })}
           id="key"
           label="Field Name"
-          placeholder="Enter value"
           hideEmptyHelperText
           error={!!errors.key}
           helperText={errors?.key?.message}
           fullWidth
           autoComplete="off"
           autoFocus
+          slotProps={{ input: { className: '!pl-px' } }}
+          startAdornment={
+            <Text className="shrink-0 pl-2 text-greyscaleGrey">X-Hasura-</Text>
+          }
         />
 
         <Input
-          {...register('value')}
+          {...register('value', {
+            onChange: (event) => {
+              if (
+                event.target.value &&
+                !/^[a-zA-Z-.[\]]+$/gi.test(event.target.value)
+              ) {
+                // we need to prevent invalid characters from being entered
+                // eslint-disable-next-line no-param-reassign
+                event.target.value = event.target.value.replace(
+                  /[^a-zA-Z-.[\]]/gi,
+                  '',
+                );
+              }
+            },
+          })}
           id="value"
           label="Path"
-          placeholder="Enter value"
           hideEmptyHelperText
           error={!!errors.value}
           helperText={errors?.value?.message}
           fullWidth
           autoComplete="off"
+          slotProps={{ input: { className: '!pl-px' } }}
+          startAdornment={
+            <Text className="shrink-0 pl-2 text-greyscaleGrey">user.</Text>
+          }
         />
 
         <div className="grid grid-flow-row gap-2">
