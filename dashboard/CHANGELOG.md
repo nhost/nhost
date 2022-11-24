@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.4.3
+
+### Patch Changes
+
+- 5de965d9: fix(dashboard): alphabetic ordering of providers
+- b9087a4a: fix(dashboard): console -> dashboard terminology
+- ca012d79: docs(workos): WorkOS Docs
+
 ## 0.4.2
 
 ### Patch Changes

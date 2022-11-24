@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.5
+
+### Patch Changes
+
+- ca012d79: docs(workos): WorkOS Docs
+
 ## 0.0.4
 
 ### Patch Changes
