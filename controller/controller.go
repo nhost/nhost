@@ -119,7 +119,7 @@ func (ctrl *Controller) SetupRouter(
 	}
 
 	// lower values make uploads slower but keeps service memory usage low
-	router.MaxMultipartMemory = 8 << 20 //nolint:gomnd  // 8 MB
+	router.MaxMultipartMemory = 1 << 20 //nolint:gomnd  // 1 MB
 	router.Use(gin.Recovery())
 
 	for _, mw := range middleware {
