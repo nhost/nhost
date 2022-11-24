@@ -1,6 +1,8 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -37,10 +39,19 @@ export default function BaseRoleForm({
   onCancel,
   submitButtonText = 'Save',
 }: BaseRoleFormProps) {
+  const { onDirtyStateChange } = useDialog();
   const {
     register,
-    formState: { errors },
+    formState: { errors, dirtyFields, isSubmitting },
   } = useFormContext<BaseRoleFormValues>();
+
+  // react-hook-form's isDirty gets true even if an input field is focused, then
+  // immediately unfocused - we can't rely on that information
+  const isDirty = Object.keys(dirtyFields).length > 0;
+
+  useEffect(() => {
+    onDirtyStateChange(isDirty, 'dialog');
+  }, [isDirty, onDirtyStateChange]);
 
   return (
     <Form
@@ -56,10 +67,13 @@ export default function BaseRoleForm({
         error={!!errors.roleName}
         helperText={errors?.roleName?.message}
         fullWidth
+        autoFocus
       />
 
       <div className="grid grid-flow-row gap-2">
-        <Button type="submit">{submitButtonText}</Button>
+        <Button type="submit" loading={isSubmitting}>
+          {submitButtonText}
+        </Button>
 
         <Button variant="outlined" color="secondary" onClick={onCancel}>
           Cancel

@@ -9,6 +9,7 @@ import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
@@ -250,7 +251,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         open={dialogOpen}
         onClose={closeDialogWithDirtyGuard}
         TransitionProps={{ onExited: clearDialogContent, unmountOnExit: false }}
-        PaperProps={{ className: 'max-w-md w-full' }}
+        PaperProps={{
+          ...dialogProps?.PaperProps,
+          className: twMerge(
+            'max-w-md w-full',
+            dialogProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}

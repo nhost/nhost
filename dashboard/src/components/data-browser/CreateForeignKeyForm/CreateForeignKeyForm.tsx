@@ -24,7 +24,7 @@ export interface CreateForeignKeyFormProps
   onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void>;
 }
 
-export function CreateForeignKeyForm({
+export default function CreateForeignKeyForm({
   onSubmit,
   selectedColumn,
   ...props

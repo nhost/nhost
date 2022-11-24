@@ -1,7 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import Tooltip from '@/components/ui/v2/Tooltip';
-import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
@@ -12,6 +11,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import Tooltip from '@/ui/v2/Tooltip';
 import { useGetRolesQuery } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -21,7 +21,8 @@ function getUserRoles(roles?: string) {
     return [];
   }
 
-  return roles.split(',').map((role) => ({
+  return roles.split(',').map((role, index) => ({
+    id: `${index}-${role}`,
     name: role.trim(),
     isSystemRole: role === 'user' || role === 'me',
   }));
@@ -29,7 +30,7 @@ function getUserRoles(roles?: string) {
 
 export default function RolesSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openDialog, openAlertDialog } = useDialog();
+  const { openDialog } = useDialog();
   const { data, loading, error } = useGetRolesQuery({
     variables: { id: currentApplication?.id },
   });
@@ -56,7 +57,7 @@ export default function RolesSettings() {
 
       <List>
         {userRoles.map((role, index) => (
-          <Fragment key={role.name}>
+          <Fragment key={role.id}>
             <ListItem.Root
               secondaryAction={
                 <Dropdown.Root>
@@ -121,6 +122,7 @@ export default function RolesSettings() {
                 </Text>
               </span>
             ),
+            props: { PaperProps: { className: 'max-w-sm' } },
           })
         }
       >
