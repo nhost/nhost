@@ -145,7 +145,7 @@ export default function RoleSettings() {
         </span>
       ),
       payload: {
-        originalRole: originalRole.name,
+        originalRole,
         availableRoles,
         onSubmit: (values: RoleFormValues) =>
           handleEditRole(values, originalRole),
