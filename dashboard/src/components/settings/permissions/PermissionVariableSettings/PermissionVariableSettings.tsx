@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import type { PermissionVariableFormValues } from '@/components/settings/permissions/PermissionVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { CustomClaim } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -73,7 +74,12 @@ export default function PermissionVariableSettings() {
     },
   });
 
-  const { reset } = form;
+  const {
+    reset,
+    formState: { dirtyFields },
+  } = form;
+
+  useLeaveConfirm({ isDirty: Object.keys(dirtyFields).length > 0 });
 
   useEffect(() => {
     reset({
@@ -96,7 +102,7 @@ export default function PermissionVariableSettings() {
   const { setValue, formState, watch } = form;
   const availableCustomClaims = watch('authJwtCustomClaims');
 
-  function handleCreateVariable({ key, value }: PermissionVariableFormValues) {
+  function handleAddVariable({ key, value }: PermissionVariableFormValues) {
     setValue(
       'authJwtCustomClaims',
       [...availableCustomClaims, { key, value }],
@@ -118,7 +124,7 @@ export default function PermissionVariableSettings() {
     setValue('authJwtCustomClaims', updatedVariables, { shouldDirty: true });
   }
 
-  function handleDeleteVariable({ key }: CustomClaim) {
+  function handleRemoveVariable({ key }: CustomClaim) {
     const filteredCustomClaims = availableCustomClaims.filter(
       (customClaim) => customClaim.key !== key,
     );
@@ -143,7 +149,7 @@ export default function PermissionVariableSettings() {
       payload: {
         availableVariables: availableCustomClaims,
         submitButtonText: 'Create',
-        onSubmit: handleCreateVariable,
+        onSubmit: handleAddVariable,
       },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
@@ -171,21 +177,20 @@ export default function PermissionVariableSettings() {
     });
   }
 
-  function handleConfirmDelete(originalVariable: CustomClaim) {
+  function handleConfirmRemove(originalVariable: CustomClaim) {
     openAlertDialog({
-      title: 'Delete Permission Variable',
+      title: 'Remove Permission Variable',
       payload: (
         <Text>
-          Are you sure you want to delete the &quot;
+          Are you sure you want to remove the &quot;
           <strong>X-Hasura-{originalVariable.key}</strong>&quot; permission
-          variable? This action cannot be undone once you save the permission
-          variables.
+          variable?
         </Text>
       ),
       props: {
-        onPrimaryAction: () => handleDeleteVariable(originalVariable),
+        onPrimaryAction: () => handleRemoveVariable(originalVariable),
         primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
+        primaryButtonText: 'Remove',
       },
     });
   }
@@ -288,13 +293,13 @@ export default function PermissionVariableSettings() {
                         <Divider component="li" />
 
                         <Dropdown.Item
-                          onClick={() => handleConfirmDelete(customClaim)}
+                          onClick={() => handleConfirmRemove(customClaim)}
                         >
                           <Text
                             className="font-medium"
                             sx={{ color: (theme) => theme.palette.error.main }}
                           >
-                            Delete Variable
+                            Remove Variable
                           </Text>
                         </Dropdown.Item>
                       </Dropdown.Content>
@@ -331,7 +336,7 @@ export default function PermissionVariableSettings() {
             startIcon={<PlusIcon />}
             onClick={handleOpenCreator}
           >
-            Create New Variable
+            Add Variable
           </Button>
         </SettingsContainer>
       </Form>

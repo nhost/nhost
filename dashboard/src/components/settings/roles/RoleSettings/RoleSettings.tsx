@@ -84,7 +84,7 @@ export default function RoleSettings() {
   const { setValue, formState, watch } = form;
   const availableRoles = watch('authUserDefaultAllowedRoles');
 
-  function handleCreateRole({ name }: RoleFormValues) {
+  function handleAddRole({ name }: RoleFormValues) {
     setValue(
       'authUserDefaultAllowedRoles',
       [...availableRoles, { name, isSystemRole: false }],
@@ -105,7 +105,7 @@ export default function RoleSettings() {
     });
   }
 
-  function handleDeleteRole({ name }: Role) {
+  function handleRemoveRole({ name }: Role) {
     const filteredRoles = availableRoles.filter((role) => role.name !== name);
 
     setValue('authUserDefaultAllowedRoles', filteredRoles, {
@@ -117,7 +117,7 @@ export default function RoleSettings() {
     openDialog('MANAGE_ROLE', {
       title: (
         <span className="grid grid-flow-row">
-          <span>Create a New Role</span>
+          <span>Add Role</span>
 
           <Text variant="subtitle1" component="span">
             Enter the name for the role below.
@@ -127,7 +127,7 @@ export default function RoleSettings() {
       payload: {
         availableRoles,
         submitButtonText: 'Create',
-        onSubmit: handleCreateRole,
+        onSubmit: handleAddRole,
       },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
@@ -154,20 +154,19 @@ export default function RoleSettings() {
     });
   }
 
-  function handleConfirmDelete(originalRole: Role) {
+  function handleConfirmRemove(originalRole: Role) {
     openAlertDialog({
-      title: 'Delete Role',
+      title: 'Remove Role',
       payload: (
         <Text>
-          Are you sure you want to delete the &quot;
-          <strong>{originalRole.name}</strong>&quot; role? This action cannot be
-          undone once you save the roles.
+          Are you sure you want to remove the &quot;
+          <strong>{originalRole.name}</strong>&quot; role?
         </Text>
       ),
       props: {
-        onPrimaryAction: () => handleDeleteRole(originalRole),
+        onPrimaryAction: () => handleRemoveRole(originalRole),
         primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
+        primaryButtonText: 'Remove',
       },
     });
   }
@@ -258,13 +257,13 @@ export default function RoleSettings() {
                         <Divider component="li" />
 
                         <Dropdown.Item
-                          onClick={() => handleConfirmDelete(role)}
+                          onClick={() => handleConfirmRemove(role)}
                         >
                           <Text
                             className="font-medium"
                             sx={{ color: (theme) => theme.palette.error.main }}
                           >
-                            Delete Role
+                            Remove Role
                           </Text>
                         </Dropdown.Item>
                       </Dropdown.Content>
@@ -296,7 +295,7 @@ export default function RoleSettings() {
             startIcon={<PlusIcon />}
             onClick={handleOpenCreator}
           >
-            Create New Role
+            Add Role
           </Button>
         </SettingsContainer>
       </Form>
