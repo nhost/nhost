@@ -81,3 +81,8 @@ export type CustomClaim = {
   value: string;
   isSystemClaim?: boolean;
 };
+
+export type Role = {
+  name: string;
+  isSystemRole?: boolean;
+};

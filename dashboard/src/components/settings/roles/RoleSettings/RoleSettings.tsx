@@ -1,8 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { BaseRoleFormValues } from '@/components/settings/roles/BaseRoleForm';
+import type { RoleFormValues } from '@/components/settings/roles/RoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
@@ -28,19 +29,18 @@ export interface RoleSettingsFormValues {
   /**
    * Allowed roles for the project.
    */
-  authUserDefaultAllowedRoles: string;
+  authUserDefaultAllowedRoles: Role[];
 }
 
 function getUserRoles(roles?: string) {
   if (!roles) {
-    return [];
+    return [] as Role[];
   }
 
-  return roles.split(',').map((role, index) => ({
-    id: `${index}-${role}`,
+  return roles.split(',').map((role) => ({
     name: role.trim(),
     isSystemRole: role === 'user' || role === 'me',
-  }));
+  })) as Role[];
 }
 
 export default function RoleSettings() {
@@ -57,18 +57,20 @@ export default function RoleSettings() {
 
   const form = useForm<RoleSettingsFormValues>({
     defaultValues: {
-      authUserDefaultAllowedRoles: data?.app?.authUserDefaultAllowedRoles || '',
+      authUserDefaultAllowedRoles: getUserRoles(
+        data?.app?.authUserDefaultAllowedRoles,
+      ),
     },
   });
 
   const { reset } = form;
 
   useEffect(() => {
-    if (data?.app?.authUserDefaultAllowedRoles) {
-      reset({
-        authUserDefaultAllowedRoles: data.app.authUserDefaultAllowedRoles,
-      });
-    }
+    reset({
+      authUserDefaultAllowedRoles: getUserRoles(
+        data?.app?.authUserDefaultAllowedRoles,
+      ),
+    });
   }, [data, reset]);
 
   if (loading) {
@@ -81,48 +83,38 @@ export default function RoleSettings() {
 
   const { setValue, formState, watch } = form;
   const availableRoles = watch('authUserDefaultAllowedRoles');
-  const userRoles = getUserRoles(availableRoles);
 
-  function handleCreateRole(values: BaseRoleFormValues) {
+  function handleCreateRole({ name }: RoleFormValues) {
     setValue(
       'authUserDefaultAllowedRoles',
-      `${availableRoles},${values.roleName}`,
+      [...availableRoles, { name, isSystemRole: false }],
       { shouldDirty: true },
     );
   }
 
-  function handleEditRole(
-    values: BaseRoleFormValues,
-    originalRoleName: string,
-  ) {
-    const availableRoleList = availableRoles.split(',') || [];
-    const originalIndex = availableRoleList.findIndex(
-      (role) => role === originalRoleName,
+  function handleEditRole({ name }: RoleFormValues, originalRole: Role) {
+    const originalIndex = availableRoles.findIndex(
+      (role) => role.name === originalRole.name,
     );
-    const updatedRoles = availableRoleList
-      .map((role, index) => (index === originalIndex ? values.roleName : role))
-      .join(',');
+    const updatedRoles = availableRoles.map((role, index) =>
+      index === originalIndex ? { name, isSystemRole: false } : role,
+    );
 
     setValue('authUserDefaultAllowedRoles', updatedRoles, {
       shouldDirty: true,
     });
   }
 
-  function handleDeleteRole(originalRoleName: string) {
-    const existingRoleListWithoutOriginalRole = availableRoles
-      .split(',')
-      .filter((role) => role !== originalRoleName)
-      .join(',');
+  function handleDeleteRole({ name }: Role) {
+    const filteredRoles = availableRoles.filter((role) => role.name !== name);
 
-    setValue(
-      'authUserDefaultAllowedRoles',
-      existingRoleListWithoutOriginalRole,
-      { shouldDirty: true },
-    );
+    setValue('authUserDefaultAllowedRoles', filteredRoles, {
+      shouldDirty: true,
+    });
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_ROLE', {
+    openDialog('MANAGE_ROLE', {
       title: (
         <span className="grid grid-flow-row">
           <span>Create a New Role</span>
@@ -134,16 +126,15 @@ export default function RoleSettings() {
       ),
       payload: {
         availableRoles,
+        submitButtonText: 'Create',
         onSubmit: handleCreateRole,
       },
-      props: {
-        PaperProps: { className: 'max-w-sm' },
-      },
+      props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
 
-  function handleOpenEditor(originalRoleName: string) {
-    openDialog('EDIT_ROLE', {
+  function handleOpenEditor(originalRole: Role) {
+    openDialog('MANAGE_ROLE', {
       title: (
         <span className="grid grid-flow-row">
           <span>Edit Role</span>
@@ -153,28 +144,28 @@ export default function RoleSettings() {
           </Text>
         </span>
       ),
-      props: { PaperProps: { className: 'max-w-sm' } },
       payload: {
-        originalRole: originalRoleName,
+        originalRole: originalRole.name,
         availableRoles,
-        onSubmit: (values: BaseRoleFormValues) =>
-          handleEditRole(values, originalRoleName),
+        onSubmit: (values: RoleFormValues) =>
+          handleEditRole(values, originalRole),
       },
+      props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
 
-  function handleConfirmDelete(originalRoleName: string) {
+  function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
       title: 'Delete Role',
       payload: (
         <Text>
           Are you sure you want to delete the &quot;
-          <strong>{originalRoleName}</strong>&quot; role? This action cannot be
+          <strong>{originalRole.name}</strong>&quot; role? This action cannot be
           undone once you save the roles.
         </Text>
       ),
       props: {
-        onPrimaryAction: () => handleDeleteRole(originalRoleName),
+        onPrimaryAction: () => handleDeleteRole(originalRole),
         primaryButtonColor: 'error',
         primaryButtonText: 'Delete',
       },
@@ -186,7 +177,9 @@ export default function RoleSettings() {
       variables: {
         id: currentApplication?.id,
         app: {
-          authUserDefaultAllowedRoles: values.authUserDefaultAllowedRoles,
+          authUserDefaultAllowedRoles: values.authUserDefaultAllowedRoles
+            .map(({ name }) => name)
+            .join(','),
         },
       },
     });
@@ -221,8 +214,8 @@ export default function RoleSettings() {
           </div>
 
           <List>
-            {userRoles.map((role, index) => (
-              <Fragment key={role.id}>
+            {availableRoles.map((role, index) => (
+              <Fragment key={role.name}>
                 <ListItem.Root
                   secondaryAction={
                     <Dropdown.Root>
@@ -258,16 +251,14 @@ export default function RoleSettings() {
                           horizontal: 'right',
                         }}
                       >
-                        <Dropdown.Item
-                          onClick={() => handleOpenEditor(role.name)}
-                        >
+                        <Dropdown.Item onClick={() => handleOpenEditor(role)}>
                           <Text className="font-medium">Edit Role</Text>
                         </Dropdown.Item>
 
                         <Divider component="li" />
 
                         <Dropdown.Item
-                          onClick={() => handleConfirmDelete(role.name)}
+                          onClick={() => handleConfirmDelete(role)}
                         >
                           <Text
                             className="font-medium"
@@ -292,7 +283,7 @@ export default function RoleSettings() {
                 <Divider
                   component="li"
                   className={twMerge(
-                    index === userRoles.length - 1 ? '!mt-4' : '!my-4',
+                    index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
                   )}
                 />
               </Fragment>

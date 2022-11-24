@@ -26,7 +26,7 @@ export interface PermissionVariableFormProps {
    */
   availableVariables: CustomClaim[];
   /**
-   * Original permission variable key. This is defined only if the form was
+   * Original permission variable. This is defined only if the form was
    * opened to edit an existing permission variable.
    */
   originalVariable?: CustomClaim;
