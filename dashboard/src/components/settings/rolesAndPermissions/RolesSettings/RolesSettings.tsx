@@ -12,8 +12,13 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { useGetRolesQuery } from '@/utils/__generated__/graphql';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  useGetRolesQuery,
+  useUpdateAppMutation,
+} from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
+import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 function getUserRoles(roles?: string) {
@@ -30,12 +35,15 @@ function getUserRoles(roles?: string) {
 
 export default function RolesSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openDialog } = useDialog();
+  const { openDialog, openAlertDialog } = useDialog();
   const { data, loading, error } = useGetRolesQuery({
     variables: { id: currentApplication?.id },
   });
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: ['getRoles'],
+  });
 
-  if (loading) {
+  if (loading && !data) {
     return <ActivityIndicator delay={1000} label="Loading user roles..." />;
   }
 
@@ -44,6 +52,82 @@ export default function RolesSettings() {
   }
 
   const userRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+
+  function handleOpenRoleCreator() {
+    openDialog('CREATE_ROLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Create a New Role</span>
+
+          <Text variant="subtitle1" component="span">
+            Enter the name for the role below.
+          </Text>
+        </span>
+      ),
+      props: { PaperProps: { className: 'max-w-sm' } },
+    });
+  }
+
+  function handleOpenRoleEditor(originalRoleName: string) {
+    openDialog('EDIT_ROLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Edit Role</span>
+
+          <Text variant="subtitle1" component="span">
+            Enter the name for the role below.
+          </Text>
+        </span>
+      ),
+      props: { PaperProps: { className: 'max-w-sm' } },
+      payload: { originalRole: originalRoleName },
+    });
+  }
+
+  async function handleDeleteRole(originalRoleName: string) {
+    const { authUserDefaultAllowedRoles: existingRoles } = data.app || {};
+    const existingRoleListWithoutOriginalRole = existingRoles
+      ? existingRoles.split(',').filter((role) => role !== originalRoleName)
+      : [];
+
+    const updateAppPromise = updateApp({
+      variables: {
+        id: currentApplication?.id,
+        app: {
+          authUserDefaultAllowedRoles:
+            existingRoleListWithoutOriginalRole.join(','),
+        },
+      },
+    });
+
+    await toast.promise(
+      updateAppPromise,
+      {
+        loading: 'Deleting role...',
+        success: 'Role has been deleted successfully.',
+        error: 'An error occurred while deleting the role.',
+      },
+      toastStyleProps,
+    );
+  }
+
+  function handleOpenRoleDeleteConfirmation(originalRoleName: string) {
+    openAlertDialog({
+      title: 'Delete Role',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>{originalRoleName}</strong>&quot; role? This action cannot be
+          undone.
+        </Text>
+      ),
+      props: {
+        onPrimaryAction: () => handleDeleteRole(originalRoleName),
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+      },
+    });
+  }
 
   return (
     <SettingsContainer
@@ -86,26 +170,18 @@ export default function RolesSettings() {
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                   >
                     <Dropdown.Item
-                      onClick={() =>
-                        openDialog('EDIT_ROLE', {
-                          title: (
-                            <span className="grid grid-flow-row">
-                              <span>Create a New Role</span>
-
-                              <Text variant="subtitle1" component="span">
-                                Enter the name for the role below.
-                              </Text>
-                            </span>
-                          ),
-                          props: { PaperProps: { className: 'max-w-sm' } },
-                          payload: { originalRole: role.name },
-                        })
-                      }
+                      onClick={() => handleOpenRoleEditor(role.name)}
                     >
                       <Text className="font-medium">Edit Role</Text>
                     </Dropdown.Item>
+
                     <Divider component="li" />
-                    <Dropdown.Item>
+
+                    <Dropdown.Item
+                      onClick={() =>
+                        handleOpenRoleDeleteConfirmation(role.name)
+                      }
+                    >
                       <Text
                         className="font-medium"
                         sx={{ color: (theme) => theme.palette.error.main }}
@@ -138,20 +214,7 @@ export default function RolesSettings() {
         className="justify-self-start mx-4"
         variant="borderless"
         startIcon={<PlusIcon />}
-        onClick={() =>
-          openDialog('CREATE_ROLE', {
-            title: (
-              <span className="grid grid-flow-row">
-                <span>Create a New Role</span>
-
-                <Text variant="subtitle1" component="span">
-                  Enter the name for the role below.
-                </Text>
-              </span>
-            ),
-            props: { PaperProps: { className: 'max-w-sm' } },
-          })
-        }
+        onClick={handleOpenRoleCreator}
       >
         Create New Role
       </Button>

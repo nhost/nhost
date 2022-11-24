@@ -41,6 +41,7 @@ export default function EditRoleForm({
     error: getRolesError,
   } = useGetRolesQuery({
     variables: { id: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
   const [updateApp, { error, reset }] = useUpdateAppMutation({
     refetchQueries: ['getRoles'],
