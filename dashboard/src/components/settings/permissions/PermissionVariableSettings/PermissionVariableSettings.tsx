@@ -1,7 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import type { PermissionVariableFormValues } from '@/components/settings/permissions/PermissionVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import useCustomClaims from '@/hooks/useCustomClaims';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { CustomClaim } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -14,22 +15,73 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { Fragment } from 'react';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  useGetAppCustomClaimsQuery,
+  useUpdateAppMutation,
+} from '@/utils/__generated__/graphql';
+import { Fragment, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface PermissionVariableSettingsFormValues {
   /**
    * Permission variables.
    */
-  authJwtCustomClaims: string;
+  authJwtCustomClaims: CustomClaim[];
+}
+
+function getPermissionVariables(customClaims?: Record<string, any>) {
+  const systemClaims: CustomClaim[] = [
+    { key: 'User-Id', value: 'id', isSystemClaim: true },
+  ];
+
+  if (!customClaims) {
+    return systemClaims;
+  }
+
+  return systemClaims.concat(
+    Object.keys(customClaims)
+      .sort()
+      .map((key) => ({
+        key,
+        value: customClaims[key],
+      })),
+  );
 }
 
 export default function PermissionVariableSettings() {
-  const { data: customClaims, loading } = useCustomClaims();
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const form = useForm();
+  const { data, loading, error } = useGetAppCustomClaimsQuery({
+    variables: {
+      id: currentApplication?.id,
+    },
+  });
+
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: ['getAppCustomClaims'],
+  });
+
+  const form = useForm<PermissionVariableSettingsFormValues>({
+    defaultValues: {
+      authJwtCustomClaims: getPermissionVariables(
+        data?.app?.authJwtCustomClaims,
+      ),
+    },
+  });
+
+  const { reset } = form;
+
+  useEffect(() => {
+    reset({
+      authJwtCustomClaims: getPermissionVariables(
+        data?.app?.authJwtCustomClaims,
+      ),
+    });
+  }, [data, reset]);
 
   if (loading) {
     return (
@@ -37,21 +89,43 @@ export default function PermissionVariableSettings() {
     );
   }
 
-  const { formState } = form;
+  if (error) {
+    throw error;
+  }
 
-  function handleCreateVariable(values: PermissionVariableSettingsFormValues) {
-    console.log(values);
+  const { setValue, formState, watch } = form;
+  const availableCustomClaims = watch('authJwtCustomClaims');
+
+  function handleCreateVariable({ key, value }: PermissionVariableFormValues) {
+    setValue(
+      'authJwtCustomClaims',
+      [...availableCustomClaims, { key, value }],
+      { shouldDirty: true },
+    );
   }
 
   function handleEditVariable(
-    values: PermissionVariableSettingsFormValues,
+    { key, value }: PermissionVariableFormValues,
     originalVariable: CustomClaim,
   ) {
-    console.log(values, originalVariable);
+    const originalIndex = availableCustomClaims.findIndex(
+      (customClaim) => customClaim.key === originalVariable.key,
+    );
+    const updatedVariables = availableCustomClaims.map((customClaim, index) =>
+      index === originalIndex ? { key, value } : customClaim,
+    );
+
+    setValue('authJwtCustomClaims', updatedVariables, { shouldDirty: true });
   }
 
-  function handleDeleteVariable(variable: CustomClaim) {
-    console.log(variable);
+  function handleDeleteVariable({ key }: CustomClaim) {
+    const filteredCustomClaims = availableCustomClaims.filter(
+      (customClaim) => customClaim.key !== key,
+    );
+
+    setValue('authJwtCustomClaims', filteredCustomClaims, {
+      shouldDirty: true,
+    });
   }
 
   function handleOpenCreator() {
@@ -67,7 +141,7 @@ export default function PermissionVariableSettings() {
         </span>
       ),
       payload: {
-        availableVariables: customClaims,
+        availableVariables: availableCustomClaims,
         submitButtonText: 'Create',
         onSubmit: handleCreateVariable,
       },
@@ -88,9 +162,9 @@ export default function PermissionVariableSettings() {
         </span>
       ),
       payload: {
-        availableVariables: customClaims,
+        availableVariables: availableCustomClaims,
         originalVariable,
-        onSubmit: (values: PermissionVariableSettingsFormValues) =>
+        onSubmit: (values: PermissionVariableFormValues) =>
           handleEditVariable(values, originalVariable),
       },
       props: { PaperProps: { className: 'max-w-sm' } },
@@ -117,7 +191,32 @@ export default function PermissionVariableSettings() {
   }
 
   async function handleSubmit(values: PermissionVariableSettingsFormValues) {
-    console.log(values);
+    const updateAppPromise = updateApp({
+      variables: {
+        id: currentApplication.id,
+        app: {
+          authJwtCustomClaims: values.authJwtCustomClaims
+            .filter((customClaim) => !customClaim.isSystemClaim)
+            .reduce(
+              (authJwtCustomClaims, claim) => ({
+                ...authJwtCustomClaims,
+                [claim.key]: claim.value,
+              }),
+              {},
+            ),
+        },
+      },
+    });
+
+    await toast.promise(
+      updateAppPromise,
+      {
+        loading: 'Updating permission variables...',
+        success: 'Permission variables have been updated successfully.',
+        error: 'An error occurred while updating permission variables.',
+      },
+      toastStyleProps,
+    );
   }
 
   return (
@@ -125,14 +224,14 @@ export default function PermissionVariableSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Permission Variables"
-          description="These variables can be used to defined PermissionVariable. They are sent from client to the GraphQL API, and must match the specified property of a queried user."
+          description="These variables can be used to defined permissions. They are sent from client to the GraphQL API, and must match the specified property of a queried user."
+          className="px-0"
           slotProps={{
             submitButtonProps: {
               loading: formState.isSubmitting,
               disabled: !formState.isValid || !formState.isDirty,
             },
           }}
-          className="px-0"
         >
           <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
             <Text className="font-medium">Field name</Text>
@@ -140,7 +239,7 @@ export default function PermissionVariableSettings() {
           </div>
 
           <List>
-            {customClaims.map((customClaim, index) => (
+            {availableCustomClaims.map((customClaim, index) => (
               <Fragment key={customClaim.key}>
                 <ListItem.Root
                   className="px-4 grid grid-cols-2"
@@ -217,7 +316,9 @@ export default function PermissionVariableSettings() {
                 <Divider
                   component="li"
                   className={twMerge(
-                    index === customClaims.length - 1 ? '!mt-4' : '!my-4',
+                    index === availableCustomClaims.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
                   )}
                 />
               </Fragment>
