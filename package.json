@@ -38,7 +38,7 @@
     "test:dashboard": "turbo run test --filter=@nhost/dashboard",
     "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",
-    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :",
+    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && pnpm i && turbo run docgen --filter=!@nhost/docgen --filter=@nhost/* && :",
     "sync-versions": "turbo run start --filter=@nhost/sync-versions --no-deps"
   },
   "workspaces": [
