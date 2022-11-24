@@ -6,6 +6,7 @@ import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
 import type { NextRouter } from 'next/router';
 import slugify from 'slugify';
+import { LOCAL_BACKEND_URL } from './env';
 import type { DeploymentRowFragment } from './__generated__/graphql';
 
 export function getLastLiveDeployment(deployments: DeploymentRowFragment[]) {
@@ -57,11 +58,11 @@ export function getCurrentEnvironment(): Environment {
 
 export function generateRemoteAppUrl(subdomain: string): string {
   if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return 'http://localhost:1337';
+    return LOCAL_BACKEND_URL;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || 'http://localhost:1337';
+    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || LOCAL_BACKEND_URL;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {
