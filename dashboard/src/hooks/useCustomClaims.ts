@@ -1,20 +1,23 @@
 import type { CustomClaim } from '@/types/application';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
-export type UseCustomClaimsProps = {
+export interface UseCustomClaimsProps {
   /**
    * Application identifier.
    */
-  appId: string;
-};
+  appId?: string;
+}
 
-export default function useCustomClaims({ appId }: UseCustomClaimsProps) {
-  const { data, loading, error } = useGetAppCustomClaimsQuery({
-    variables: { id: appId },
+export default function useCustomClaims(props?: UseCustomClaimsProps) {
+  const { appId } = props || {};
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { data, ...rest } = useGetAppCustomClaimsQuery({
+    variables: { id: currentApplication?.id || appId },
   });
 
   const systemClaims: CustomClaim[] = [
-    { key: 'User-Id', value: 'id', system: true },
+    { key: 'User-Id', value: 'id', isSystemClaim: true },
   ];
 
   if (data?.app) {
@@ -29,14 +32,12 @@ export default function useCustomClaims({ appId }: UseCustomClaimsProps) {
 
     return {
       data: systemClaims.concat(storedClaims),
-      loading,
-      error,
+      ...rest,
     };
   }
 
   return {
     data: systemClaims,
-    loading,
-    error,
+    ...rest,
   };
 }

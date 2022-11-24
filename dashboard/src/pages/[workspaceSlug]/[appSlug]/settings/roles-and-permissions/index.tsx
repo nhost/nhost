@@ -1,6 +1,6 @@
 import Container from '@/components/layout/Container';
-import RolesSettings from '@/components/settings/rolesAndPermissions/RolesSettings/RolesSettings';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
+import RolesSettings from '@/components/settings/roles/RoleSettings/RoleSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import type { ReactElement } from 'react';
 
@@ -11,13 +11,7 @@ export default function RolesAndPermissionsPage() {
       rootClassName="bg-transparent"
     >
       <RolesSettings />
-
-      <SettingsContainer
-        title="Permission Variables"
-        description="These variables can be used to defined permissions. They are sent from client to the GraphQL API, and must match the specified property of a queried user."
-      >
-        Hello
-      </SettingsContainer>
+      <PermissionVariableSettings />
     </Container>
   );
 }

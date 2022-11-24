@@ -1,8 +1,8 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
-import CreateRoleForm from '@/components/settings/rolesAndPermissions/CreateRoleForm';
-import EditRoleForm from '@/components/settings/rolesAndPermissions/EditRoleForm';
+import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
+import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';

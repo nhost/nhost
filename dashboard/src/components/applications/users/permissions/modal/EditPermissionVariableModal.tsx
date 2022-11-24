@@ -87,7 +87,7 @@ export default function EditPermissionVariableModal({
               .slice(0, currentIndex)
               .concat(permissionVariable)
               .concat(customClaims.slice(currentIndex + 1))
-              .filter((claim) => !claim.system)
+              .filter((claim) => !claim.isSystemClaim)
               .reduce(
                 (authJwtCustomClaims, claim) => ({
                   ...authJwtCustomClaims,
@@ -124,7 +124,7 @@ export default function EditPermissionVariableModal({
             authJwtCustomClaims: customClaims
               .filter(
                 (claim) =>
-                  claim.key !== originalCustomClaim.key && !claim.system,
+                  claim.key !== originalCustomClaim.key && !claim.isSystemClaim,
               )
               .reduce(
                 (authJwtCustomClaims, claim) => ({

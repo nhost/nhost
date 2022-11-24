@@ -79,5 +79,5 @@ export type Application = {
 export type CustomClaim = {
   key: string;
   value: string;
-  system?: boolean;
+  isSystemClaim?: boolean;
 };

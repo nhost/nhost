@@ -1,10 +1,10 @@
 import type {
   BaseRoleFormProps,
   BaseRoleFormValues,
-} from '@/components/settings/rolesAndPermissions/BaseRoleForm';
+} from '@/components/settings/roles/BaseRoleForm';
 import BaseRoleForm, {
   baseRoleFormValidationSchema,
-} from '@/components/settings/rolesAndPermissions/BaseRoleForm';
+} from '@/components/settings/roles/BaseRoleForm';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 

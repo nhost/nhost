@@ -62,7 +62,7 @@ export default function CreatePermissionVariableModal({
           id: appId,
           app: {
             authJwtCustomClaims: [...customClaims, permissionVariable]
-              .filter((claim) => !claim.system)
+              .filter((claim) => !claim.isSystemClaim)
               .reduce(
                 (authJwtCustomClaims, claim) => ({
                   ...authJwtCustomClaims,

@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { BaseRoleFormValues } from '@/components/settings/rolesAndPermissions/BaseRoleForm';
+import type { BaseRoleFormValues } from '@/components/settings/roles/BaseRoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -24,7 +24,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
-export interface RolesSettingsFormValues {
+export interface RoleSettingsFormValues {
   /**
    * Allowed roles for the project.
    */
@@ -43,7 +43,7 @@ function getUserRoles(roles?: string) {
   }));
 }
 
-export default function RolesSettings() {
+export default function RoleSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -55,7 +55,7 @@ export default function RolesSettings() {
     refetchQueries: ['getRoles'],
   });
 
-  const form = useForm<RolesSettingsFormValues>({
+  const form = useForm<RoleSettingsFormValues>({
     defaultValues: {
       authUserDefaultAllowedRoles: data?.app?.authUserDefaultAllowedRoles || '',
     },
@@ -181,7 +181,7 @@ export default function RolesSettings() {
     });
   }
 
-  async function handleSubmit(values: RolesSettingsFormValues) {
+  async function handleSubmit(values: RoleSettingsFormValues) {
     const updateAppPromise = updateApp({
       variables: {
         id: currentApplication?.id,
@@ -279,7 +279,7 @@ export default function RolesSettings() {
                       </Dropdown.Content>
                     </Dropdown.Root>
                   }
-                  className="px-4 rounded-none"
+                  className="px-4"
                 >
                   <ListItem.Text
                     primary={role.name}
