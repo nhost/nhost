@@ -1,12 +1,7 @@
-import axios, { AxiosInstance, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios'
-import { DocumentNode, print } from 'graphql'
+import { GraphQLClient } from 'graphql-request'
 
 import { urlFromSubdomain } from '../utils/helpers'
-import {
-  GraphqlRequestResponse,
-  GraphqlResponse,
-  NhostClientConstructorParams
-} from '../utils/types'
+import { NhostClientConstructorParams } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
   /**
@@ -38,92 +33,21 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
 /**
  * @alias GraphQL
  */
-export class NhostGraphqlClient {
-  private url: string
-  private instance: AxiosInstance
+export class NhostGraphqlClient extends GraphQLClient {
+  // this.url is already defined as a private property in GraphQLClient
+  private _url: string
   private accessToken: string | null
   private adminSecret?: string
 
-  constructor(params: NhostGraphqlConstructorParams) {
-    const { url, adminSecret } = params
+  constructor({ url, adminSecret }: NhostGraphqlConstructorParams) {
+    super(url)
 
-    this.url = url
+    this._url = url
+    this.setEndpoint(url)
+
     this.accessToken = null
     this.adminSecret = adminSecret
-    this.instance = axios.create({
-      baseURL: url
-    })
-  }
-
-  /**
-   * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
-   *
-   * @example
-   * ```ts
-   * const CUSTOMERS = gql`
-   *  query {
-   *   customers {
-   *    id
-   *    name
-   *  }
-   * }
-   * `
-   * const { data, error } = await nhost.graphql.request(CUSTOMERS)
-   * ```
-   *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/request
-   */
-  async request<T = any, V = any>(
-    document: string | DocumentNode,
-    variables?: V,
-    config?: AxiosRequestConfig
-  ): Promise<GraphqlRequestResponse<T>> {
-    // add auth headers if any
-    const headers = {
-      ...this.generateAccessTokenHeaders(),
-      ...config?.headers
-    }
-
-    try {
-      const operationName = ''
-      const res = await this.instance.post<GraphqlResponse<T>>(
-        '',
-        {
-          operationName: operationName || undefined,
-          query: typeof document === 'string' ? document : print(document),
-          variables
-        },
-        { ...config, headers }
-      )
-
-      const responseData = res.data
-      const { data } = responseData
-
-      if (responseData.errors) {
-        return {
-          data: null,
-          error: responseData.errors
-        }
-      }
-
-      if (typeof data !== 'object' || Array.isArray(data) || data === null) {
-        return {
-          data: null,
-          error: new Error('incorrect response data from GraphQL server')
-        }
-      }
-
-      return { data, error: null }
-    } catch (error) {
-      if (error instanceof Error) {
-        return { data: null, error }
-      }
-      console.error(error)
-      return {
-        data: null,
-        error: new Error('Unable to get do GraphQL request')
-      }
-    }
+    this.resetHeaders()
   }
 
   /**
@@ -137,7 +61,7 @@ export class NhostGraphqlClient {
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-url
    */
   getUrl(): string {
-    return this.url
+    return this._url
   }
 
   /**
@@ -151,15 +75,16 @@ export class NhostGraphqlClient {
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/set-access-token
    */
   setAccessToken(accessToken: string | undefined) {
-    if (!accessToken) {
-      this.accessToken = null
-      return
-    }
-
-    this.accessToken = accessToken
+    this.accessToken = accessToken || null
+    this.resetHeaders()
   }
 
-  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
+  private resetHeaders() {
+    const headers = this.generateAccessTokenHeaders()
+    this.setHeaders(headers)
+  }
+
+  private generateAccessTokenHeaders(): Record<string, string> {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

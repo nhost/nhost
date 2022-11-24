@@ -953,6 +953,7 @@ importers:
       '@nhost/hasura-storage-js': workspace:*
       axios: ^1.1.3
       graphql: 15.7.2
+      graphql-request: ^5.0.0
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
       start-server-and-test: ^1.14.0
@@ -960,6 +961,7 @@ importers:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       axios: 1.1.3
+      graphql-request: 5.0.0_graphql@15.7.2
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
