@@ -8,7 +8,6 @@ import Switch from '@/ui/v2/Switch';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
-
 import { twMerge } from 'tailwind-merge';
 
 export interface SettingsContainerProps
@@ -40,6 +39,8 @@ export interface SettingsContainerProps
   docsLink?: string;
   /**
    * Props for the primary action.
+   *
+   * @deprecated Use `slotProps.submitButtonProps` instead.
    */
   primaryActionButtonProps?: ButtonProps;
   /**
@@ -76,8 +77,31 @@ export interface SettingsContainerProps
   className?: string;
   /**
    * Props to be passed to the Switch component.
+   *
+   * @deprecated Use `slotProps.switchProps` instead.
    */
   switchProps?: SwitchProps;
+  /**
+   * Props to be passed to different slots inside the component.
+   */
+  slotProps?: {
+    /**
+     * Props to be passed to the root element.
+     */
+    rootProps?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    /**
+     * Props to be passed to the `<Switch />` component.
+     */
+    switchProps?: SwitchProps;
+    /**
+     * Props to be passed to the footer element.
+     */
+    submitButtonProps?: ButtonProps;
+    /**
+     * Props to be passed to the footer element.
+     */
+    footerProps?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+  };
 }
 
 export default function SettingsContainer({
@@ -94,14 +118,16 @@ export default function SettingsContainer({
   switchId,
   showSwitch = false,
   rootClassName,
-  switchProps,
+  switchProps: oldSwitchProps,
   docsTitle,
+  slotProps: { rootProps, switchProps, submitButtonProps, footerProps } = {},
 }: SettingsContainerProps) {
   return (
     <div
+      {...rootProps}
       className={twMerge(
         'grid grid-flow-row gap-4 rounded-lg border-1 border-gray-200 bg-white py-4',
-        rootClassName,
+        rootProps?.className || rootClassName,
       )}
     >
       <div className="grid grid-flow-col place-content-between gap-3 px-4">
@@ -131,14 +157,14 @@ export default function SettingsContainer({
             checked={enabled}
             onChange={(e) => onEnabledChange(e.target.checked)}
             className="self-center"
-            {...switchProps}
+            {...(switchProps || oldSwitchProps)}
           />
         )}
         {switchId && showSwitch && (
           <ControlledSwitch
             className="self-center"
             name={switchId}
-            {...switchProps}
+            {...(switchProps || oldSwitchProps)}
           />
         )}
       </div>
@@ -148,9 +174,11 @@ export default function SettingsContainer({
       </div>
 
       <div
+        {...footerProps}
         className={twMerge(
           'grid grid-flow-col items-center gap-x-2 border-t border-gray-200 px-4 pt-3.5',
           docsLink ? 'place-content-between' : 'justify-end',
+          footerProps?.className,
         )}
       >
         {docsLink && (
@@ -173,11 +201,17 @@ export default function SettingsContainer({
 
         <Button
           variant={
-            primaryActionButtonProps?.disabled ? 'outlined' : 'contained'
+            (submitButtonProps || primaryActionButtonProps)?.disabled
+              ? 'outlined'
+              : 'contained'
           }
-          color={primaryActionButtonProps?.disabled ? 'secondary' : 'primary'}
+          color={
+            (submitButtonProps || primaryActionButtonProps)?.disabled
+              ? 'secondary'
+              : 'primary'
+          }
           type="submit"
-          {...primaryActionButtonProps}
+          {...(submitButtonProps || primaryActionButtonProps)}
         >
           {submitButtonText}
         </Button>

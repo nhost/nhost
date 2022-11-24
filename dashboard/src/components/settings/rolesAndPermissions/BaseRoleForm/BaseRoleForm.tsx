@@ -17,7 +17,7 @@ export interface BaseRoleFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: BaseRoleFormValues) => Promise<void>;
+  onSubmit: (values: BaseRoleFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -42,6 +42,7 @@ export default function BaseRoleForm({
   const { onDirtyStateChange } = useDialog();
   const {
     register,
+    setFocus,
     formState: { errors, dirtyFields, isSubmitting },
   } = useFormContext<BaseRoleFormValues>();
 
@@ -52,6 +53,12 @@ export default function BaseRoleForm({
   useEffect(() => {
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
+
+  // Note: For some reason, we need to programatically set focus on the role
+  // name.
+  useEffect(() => {
+    setFocus('roleName');
+  }, [setFocus]);
 
   return (
     <Form
@@ -67,6 +74,7 @@ export default function BaseRoleForm({
         error={!!errors.roleName}
         helperText={errors?.roleName?.message}
         fullWidth
+        autoComplete="off"
         autoFocus
       />
 
