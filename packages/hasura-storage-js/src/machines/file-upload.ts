@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
-import { ErrorPayload } from '@nhost/hasura-auth-js'
+import { ErrorPayload } from '../utils/types'
 
 export type FileUploadContext = {
   progress: number | null

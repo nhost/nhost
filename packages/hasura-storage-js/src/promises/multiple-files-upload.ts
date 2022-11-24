@@ -1,7 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
 import { AnyFileList, FileItemRef, MultipleFilesUploadMachine } from '../machines'
-import { NhostClientReturnType } from '../utils/types'
+import { FileUploadConfig } from '../utils/types'
 
 export interface MultipleUploadProgressState {
   /**
@@ -44,16 +44,16 @@ export type UploadMultipleFilesActionParams = {
 }
 
 export const uploadMultipleFilesPromise = async (
-  nhost: NhostClientReturnType,
+  config: FileUploadConfig,
   service: InterpreterFrom<MultipleFilesUploadMachine>,
   params?: UploadMultipleFilesActionParams
 ): Promise<MultipleFilesHandlerResult> =>
   new Promise((resolve) => {
     service.send({
       type: 'UPLOAD',
-      url: nhost.storage.url,
-      accessToken: nhost.auth.getAccessToken(),
-      adminSecret: nhost.adminSecret,
+      url: config.storageUrl,
+      accessToken: config.accessToken,
+      adminSecret: config.adminSecret,
       bucketId: params?.bucketId,
       files: params?.files
     })

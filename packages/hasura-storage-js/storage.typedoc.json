@@ -20,9 +20,6 @@
       "@nhost/apollo": [
         "../apollo/src/index.ts"
       ],
-      "@nhost/hasura-auth-js": [
-        "../hasura-auth-js/src/index.ts"
-      ],
       "@nhost/hasura-storage-js": [
         "../hasura-storage-js/src/index.ts"
       ],

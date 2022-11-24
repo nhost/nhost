@@ -1,9 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
-import { ActionErrorState } from '@nhost/hasura-auth-js'
-
 import { FileItemRef, FileUploadMachine } from '../machines'
-import { NhostClientReturnType, StorageUploadFileParams } from '../utils/types'
+import { ActionErrorState, FileUploadConfig, StorageUploadFileParams } from '../utils/types'
 
 export interface UploadProgressState {
   /**
@@ -38,16 +36,16 @@ export interface UploadFileHandlerResult extends ActionErrorState {
 export interface FileUploadState extends UploadFileHandlerResult, UploadProgressState {}
 
 export const uploadFilePromise = async (
-  nhost: NhostClientReturnType,
+  config: FileUploadConfig,
   interpreter: FileItemRef | InterpreterFrom<FileUploadMachine>,
   params: Partial<StorageUploadFileParams>
 ): Promise<UploadFileHandlerResult> =>
   new Promise<UploadFileHandlerResult>((resolve) => {
     interpreter.send({
       type: 'UPLOAD',
-      url: nhost.storage.url,
-      accessToken: nhost.auth.getAccessToken(),
-      adminSecret: nhost.adminSecret,
+      url: config.storageUrl,
+      accessToken: config.accessToken,
+      adminSecret: config.adminSecret,
       ...params
     })
     interpreter.subscribe((s) => {
