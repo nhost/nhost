@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 0.0.6
+
+### Patch Changes
+
+- 93db7182: feat(stripe-graphql-js): add charges, payment intents and connected accounts
+
 ## 0.0.5
 
 ### Patch Changes
