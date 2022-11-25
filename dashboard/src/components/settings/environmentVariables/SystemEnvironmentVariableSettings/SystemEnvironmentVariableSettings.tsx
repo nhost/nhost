@@ -1,3 +1,4 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -6,6 +7,7 @@ import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
 import EyeIcon from '@/ui/v2/icons/EyeIcon';
 import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
+import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -14,6 +16,7 @@ export default function SystemEnvironmentVariableSettings() {
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
+  const { openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetAppInjectedVariablesQuery({
     variables: { id: currentApplication?.id },
@@ -30,6 +33,34 @@ export default function SystemEnvironmentVariableSettings() {
 
   if (error) {
     throw error;
+  }
+
+  function showJwtSecret() {
+    openAlertDialog({
+      title: 'Auth JWT Secret',
+      payload: (
+        <div className="grid grid-flow-row gap-2">
+          <Text variant="subtitle2">
+            This is the key used for generating JWTs. It&apos;s HMAC-SHA-based
+            and the same as configured in Hasura.
+          </Text>
+
+          <Input
+            defaultValue={data?.app?.hasuraGraphqlJwtSecret}
+            disabled
+            fullWidth
+            multiline
+            minRows={5}
+            hideEmptyHelperText
+            inputProps={{ className: 'font-mono' }}
+          />
+        </div>
+      ),
+      props: {
+        hidePrimaryAction: true,
+        secondaryButtonText: 'Close',
+      },
+    });
   }
 
   return (
@@ -103,7 +134,7 @@ export default function SystemEnvironmentVariableSettings() {
 
       <div className="grid grid-flow-row gap-2 justify-start">
         <Text className="font-medium">NHOST_JWT_SECRET</Text>
-        <Button variant="borderless">
+        <Button variant="borderless" onClick={showJwtSecret}>
           Show key used for generating the JWT
         </Button>
       </div>
