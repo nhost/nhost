@@ -219,6 +219,7 @@ export default function RoleSettings() {
         <SettingsContainer
           title="Roles"
           description="Roles are used to control access to your application."
+          docsLink="https://docs.nhost.io/authentication/users#roles"
           rootClassName="gap-0"
           className="px-0 my-2"
           slotProps={{
