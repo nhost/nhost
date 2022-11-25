@@ -47,7 +47,7 @@ var (
 	noBrowser bool
 )
 
-//  reportCmd represents the report command
+// reportCmd represents the report command
 var reportCmd = &cobra.Command{
 	Use:   "support",
 	Short: "Reach out to us",

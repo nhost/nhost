@@ -6,7 +6,7 @@ import (
 )
 
 func makeTestPorts() *Ports {
-	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8)
+	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8, 9)
 }
 
 func TestNewPorts(t *testing.T) {
@@ -20,6 +20,7 @@ func TestNewPorts(t *testing.T) {
 		FlagPortSMTP:             6,
 		FlagPortMinioS3:          7,
 		FlagPortMailhog:          8,
+		FlagPortDashboard:        9,
 	})
 }
 

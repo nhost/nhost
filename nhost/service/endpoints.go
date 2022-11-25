@@ -12,10 +12,11 @@ type Endpoints struct {
 	storage   string
 	functions string
 	console   string
+	dashboard string
 	mailhog   string
 }
 
-func newEndpoints(db, graphql, auth, storage, functions, console, mailhog string) *Endpoints {
+func newEndpoints(db, graphql, auth, storage, functions, console, dashboard, mailhog string) *Endpoints {
 	return &Endpoints{
 		db:        db,
 		graphql:   graphql,
@@ -23,6 +24,7 @@ func newEndpoints(db, graphql, auth, storage, functions, console, mailhog string
 		storage:   storage,
 		functions: functions,
 		console:   console,
+		dashboard: dashboard,
 		mailhog:   mailhog,
 	}
 }
@@ -37,11 +39,12 @@ URLs:
 - Storage:		%s
 - Functions:		%s
 
-- Hasura console:	%s
+- Nhost Dashboard:	%s
+- Hasura Console:	%s
 - Mailhog:		%s
 
 - subdomain:		%s
 - region:		(empty)
 
-`, e.db, e.graphql, e.auth, e.storage, e.functions, e.console, e.mailhog, "localhost")
+`, e.db, e.graphql, e.auth, e.storage, e.functions, e.dashboard, e.console, e.mailhog, "localhost")
 }
