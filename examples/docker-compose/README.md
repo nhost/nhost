@@ -13,11 +13,14 @@ docker-compose up -d
 
 The following endpoints are now exposed:
 
-- `http://localhost:1337`: Hasura Console
 - `http://localhost:1337/v1/graphql`: Hasura GraphQL endpoint
 - `http://localhost:1337/v1/auth`: Hasura Auth
 - `http://localhost:1337/v1/storage`: Hasura Storage
 - `http://localhost:1337/v1/functions`: Functions
 
+- `http://localhost:3030`: Nhost Dashboard
+- `http://localhost:1337`: Hasura Console
+- `http://localhost:8025`: Mailhog SMTP testing dashboard
 - `http://localhost:9090`: Traefik dashboad
-- `http://localhost:8025`: Mailhog SMTP testing dashboard 
+
+**Note:** The Nhost Dashboard has only been tested to run locally requires the Hasura admin secret to `nhost-admin-secret`. This will change in the future. If you can't wait, don't hesitate to contribute.
