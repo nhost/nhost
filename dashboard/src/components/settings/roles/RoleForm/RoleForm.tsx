@@ -92,8 +92,9 @@ export default function RoleForm({
       >
         <Input
           {...register('name')}
-          id="roleName"
-          label="Role Name"
+          inputProps={{ maxLength: 100 }}
+          id="name"
+          label="Name"
           placeholder="Enter value"
           hideEmptyHelperText
           error={!!errors.name}

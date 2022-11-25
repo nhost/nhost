@@ -30,7 +30,7 @@ export interface SettingsContainerProps
   /**
    * The description for the section.
    */
-  description: string | ReactNode;
+  description?: string | ReactNode;
   /**
    * Link to the documentation.
    *

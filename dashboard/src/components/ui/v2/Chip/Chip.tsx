@@ -1,18 +1,26 @@
 import { styled } from '@mui/material';
 import type { ChipProps as MaterialChipProps } from '@mui/material/Chip';
-import MaterialChip from '@mui/material/Chip';
+import MaterialChip, { chipClasses } from '@mui/material/Chip';
+import type { ElementType } from 'react';
 
-export interface ChipProps extends MaterialChipProps {}
+export interface ChipProps extends MaterialChipProps {
+  /**
+   * Custom component for the root node.
+   */
+  component?: string | ElementType;
+}
 
-const Chip = styled(MaterialChip)(({ theme }) => ({
+const Chip = styled(MaterialChip)<ChipProps>(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
-  fontSize: '0.75rem',
+  fontSize: theme.typography.pxToRem(12),
+  lineHeight: theme.typography.pxToRem(16),
   fontWeight: 500,
-  lineHeight: '16px',
-  padding: theme.spacing(1.5, 0.25),
-  color: theme.palette.text.primary,
   borderRadius: '9999px',
-  backgroundColor: '#EAEDF0',
+  padding: theme.spacing(0, 0.25),
+  [`&.${chipClasses.colorInfo}`]: {
+    backgroundColor: theme.palette.primary.light,
+    color: theme.palette.primary.main,
+  },
 }));
 
 Chip.displayName = 'NhostChip';

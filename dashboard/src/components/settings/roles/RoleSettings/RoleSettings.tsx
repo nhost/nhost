@@ -2,19 +2,21 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import type { RoleFormValues } from '@/components/settings/roles/RoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
 import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import LockIcon from '@/ui/v2/icons/LockIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import Tooltip from '@/ui/v2/Tooltip';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
@@ -26,6 +28,10 @@ import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface RoleSettingsFormValues {
+  /**
+   * Default role.
+   */
+  authUserDefaultRole: string;
   /**
    * Allowed roles for the project.
    */
@@ -57,16 +63,23 @@ export default function RoleSettings() {
 
   const form = useForm<RoleSettingsFormValues>({
     defaultValues: {
+      authUserDefaultRole: data?.app?.authUserDefaultRole || 'user',
       authUserDefaultAllowedRoles: getUserRoles(
         data?.app?.authUserDefaultAllowedRoles,
       ),
     },
   });
 
-  const { reset } = form;
+  const {
+    reset,
+    formState: { dirtyFields },
+  } = form;
+
+  useLeaveConfirm({ isDirty: Object.keys(dirtyFields).length > 0 });
 
   useEffect(() => {
     reset({
+      authUserDefaultRole: data?.app?.authUserDefaultRole || 'user',
       authUserDefaultAllowedRoles: getUserRoles(
         data?.app?.authUserDefaultAllowedRoles,
       ),
@@ -82,6 +95,7 @@ export default function RoleSettings() {
   }
 
   const { setValue, formState, watch } = form;
+  const defaultRole = watch('authUserDefaultRole');
   const availableRoles = watch('authUserDefaultAllowedRoles');
 
   function handleAddRole({ name }: RoleFormValues) {
@@ -171,11 +185,16 @@ export default function RoleSettings() {
     });
   }
 
+  function handleSetAsDefault(role: Role) {
+    setValue('authUserDefaultRole', role.name, { shouldDirty: true });
+  }
+
   async function handleSubmit(values: RoleSettingsFormValues) {
     const updateAppPromise = updateApp({
       variables: {
         id: currentApplication?.id,
         app: {
+          authUserDefaultRole: values.authUserDefaultRole,
           authUserDefaultAllowedRoles: values.authUserDefaultAllowedRoles
             .map(({ name }) => name)
             .join(','),
@@ -199,8 +218,9 @@ export default function RoleSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Roles"
-          description="Add and change permissions for different roles."
-          className="px-0"
+          description="Roles are used to control access to your application."
+          rootClassName="gap-0"
+          className="px-0 my-2"
           slotProps={{
             submitButtonProps: {
               loading: formState.isSubmitting,
@@ -212,91 +232,115 @@ export default function RoleSettings() {
             <Text className="font-medium">Name</Text>
           </div>
 
-          <List>
-            {availableRoles.map((role, index) => (
-              <Fragment key={role.name}>
-                <ListItem.Root
-                  secondaryAction={
-                    <Dropdown.Root>
-                      <Tooltip
-                        title={
-                          role.isSystemRole ? "You can't edit system roles" : ''
-                        }
-                        placement="right"
-                        disableHoverListener={!role.isSystemRole}
-                        hasDisabledChildren={role.isSystemRole}
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
-                      >
-                        <Dropdown.Trigger asChild hideChevron>
-                          <IconButton
-                            variant="borderless"
-                            color="secondary"
-                            disabled={role.isSystemRole}
-                          >
+          <div className="grid grid-flow-row gap-2">
+            <List>
+              {availableRoles.map((role, index) => (
+                <Fragment key={role.name}>
+                  <ListItem.Root
+                    className="px-4"
+                    secondaryAction={
+                      <Dropdown.Root>
+                        <Dropdown.Trigger
+                          asChild
+                          hideChevron
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                        >
+                          <IconButton variant="borderless" color="secondary">
                             <DotsVerticalIcon />
                           </IconButton>
                         </Dropdown.Trigger>
-                      </Tooltip>
 
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-[160px]' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item onClick={() => handleOpenEditor(role)}>
-                          <Text className="font-medium">Edit Role</Text>
-                        </Dropdown.Item>
-
-                        <Divider component="li" />
-
-                        <Dropdown.Item
-                          onClick={() => handleConfirmRemove(role)}
+                        <Dropdown.Content
+                          menu
+                          PaperProps={{ className: 'w-32' }}
+                          anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                          }}
+                          transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                          }}
                         >
-                          <Text
-                            className="font-medium"
-                            sx={{ color: (theme) => theme.palette.error.main }}
+                          <Dropdown.Item
+                            onClick={() => handleSetAsDefault(role)}
                           >
-                            Remove Role
-                          </Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                  className="px-4"
-                >
-                  <ListItem.Text
-                    primary={role.name}
-                    secondary={
-                      role.isSystemRole ? 'System Role' : 'Custom Role'
+                            <Text className="font-medium">Set as Default</Text>
+                          </Dropdown.Item>
+
+                          <Divider component="li" />
+
+                          <Dropdown.Item
+                            disabled={role.isSystemRole}
+                            onClick={() => handleOpenEditor(role)}
+                          >
+                            <Text className="font-medium">Edit</Text>
+                          </Dropdown.Item>
+
+                          <Divider component="li" />
+
+                          <Dropdown.Item
+                            disabled={role.isSystemRole}
+                            onClick={() => handleConfirmRemove(role)}
+                          >
+                            <Text
+                              className="font-medium"
+                              sx={{
+                                color: (theme) => theme.palette.error.main,
+                              }}
+                            >
+                              Remove
+                            </Text>
+                          </Dropdown.Item>
+                        </Dropdown.Content>
+                      </Dropdown.Root>
                     }
+                  >
+                    <ListItem.Text
+                      primaryTypographyProps={{
+                        className:
+                          'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
+                      }}
+                      primary={
+                        <>
+                          {role.name}
+
+                          {role.isSystemRole && (
+                            <LockIcon className="w-4 h-4" />
+                          )}
+
+                          {defaultRole === role.name && (
+                            <Chip
+                              component="span"
+                              color="info"
+                              size="small"
+                              label="Default"
+                            />
+                          )}
+                        </>
+                      }
+                    />
+                  </ListItem.Root>
+
+                  <Divider
+                    component="li"
+                    className={twMerge(
+                      index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
+                    )}
                   />
-                </ListItem.Root>
+                </Fragment>
+              ))}
+            </List>
 
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
-                  )}
-                />
-              </Fragment>
-            ))}
-          </List>
-
-          <Button
-            className="justify-self-start mx-4"
-            variant="borderless"
-            startIcon={<PlusIcon />}
-            onClick={handleOpenCreator}
-          >
-            Add Role
-          </Button>
+            <Button
+              className="justify-self-start mx-4"
+              variant="borderless"
+              startIcon={<PlusIcon />}
+              onClick={handleOpenCreator}
+            >
+              Add Role
+            </Button>
+          </div>
         </SettingsContainer>
       </Form>
     </FormProvider>

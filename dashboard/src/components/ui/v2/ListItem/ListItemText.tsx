@@ -12,18 +12,17 @@ const StyledListItemText = styled(MaterialListItemText)(({ theme }) => ({
   justifyContent: 'start',
   gridAutoFlow: 'row',
   gap: theme.spacing(0.5),
+  fontSize: theme.typography.pxToRem(15),
   [`&.${listItemTextClasses.root}`]: {
     margin: 0,
   },
   [`& > .${listItemTextClasses.primary}`]: {
-    fontSize: theme.typography.pxToRem(15),
     fontWeight: 500,
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
   },
   [`& > .${listItemTextClasses.secondary}`]: {
-    fontSize: theme.typography.pxToRem(15),
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
