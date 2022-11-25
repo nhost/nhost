@@ -1,0 +1,9 @@
+query getEnvironmentVariables($id: uuid!) {
+  environmentVariables(where: { appId: { _eq: $id } }) {
+    id
+    name
+    updatedAt
+    prodValue
+    devValue
+  }
+}

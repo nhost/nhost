@@ -8,7 +8,7 @@ export default function EnvironmentVariablesPage() {
   return (
     <Container
       className="grid grid-flow-row gap-6 max-w-5xl bg-transparent"
-      wrapperClassName="bg-transparent"
+      rootClassName="bg-transparent"
     >
       <ProjectEnvironmentVariableSettings />
       <SystemEnvironmentVariableSettings />

@@ -80,7 +80,7 @@ export default function SystemEnvironmentVariableSettings() {
                 {currentApplication?.hasuraGraphqlAdminSecret}
               </InlineCode>
             ) : (
-              '●●●●●●●●●●●●●●●●●●●●●●●●'
+              '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
             )}
           </Text>
 
@@ -111,7 +111,7 @@ export default function SystemEnvironmentVariableSettings() {
                 {data?.app?.webhookSecret}
               </InlineCode>
             ) : (
-              '●●●●●●●●●●●●●●●●●●●●●●●●'
+              '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
             )}
           </Text>
 
@@ -134,8 +134,8 @@ export default function SystemEnvironmentVariableSettings() {
 
       <div className="grid grid-flow-row gap-2 justify-start">
         <Text className="font-medium">NHOST_JWT_SECRET</Text>
-        <Button variant="borderless" onClick={showJwtSecret}>
-          Show key used for generating the JWT
+        <Button variant="borderless" onClick={showJwtSecret} size="small">
+          Show JWT Secret
         </Button>
       </div>
     </SettingsContainer>
