@@ -26,5 +26,5 @@ export default function IndexPage() {
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <AuthenticatedLayout title="Console">{page}</AuthenticatedLayout>;
+  return <AuthenticatedLayout title="Dashboard">{page}</AuthenticatedLayout>;
 };

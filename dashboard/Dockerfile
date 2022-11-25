@@ -1,4 +1,3 @@
-
 FROM node:16-alpine AS pruner
 RUN apk add --no-cache libc6-compat
 RUN apk update
@@ -17,10 +16,13 @@ RUN apk update
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV NEXT_PUBLIC_NHOST_PLATFORM false
-ENV NEXT_PUBLIC_NHOST_MIGRATIONS_URL http://localhost:9693
-ENV NEXT_PUBLIC_NHOST_HASURA_URL http://localhost:9695
 ENV NEXT_PUBLIC_ENV dev
+ENV NEXT_PUBLIC_NHOST_PLATFORM false
+
+# placeholders for ports, will be replaced on runtime by entrypoint script
+ENV NEXT_PUBLIC_NHOST_MIGRATIONS_PORT __NEXT_PUBLIC_NHOST_MIGRATIONS_PORT__
+ENV NEXT_PUBLIC_NHOST_HASURA_PORT __NEXT_PUBLIC_NHOST_HASURA_PORT__
+ENV NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT __NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT__
 
 RUN yarn global add pnpm@7.17.0
 COPY .gitignore .gitignore
@@ -40,11 +42,14 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 USER nextjs
 
-COPY --from=builder /app/dashboard/next.config.js .
-COPY --from=builder /app/dashboard/package.json .
-COPY --from=builder /app/dashboard/public ./dashboard/public
+COPY --chown=nextjs:nodejs dashboard/docker-entrypoint.sh .
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/next.config.js .
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/package.json .
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./dashboard/public
+
 
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone/app ./
 COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./dashboard/.next/static
 
-CMD node dashboard/server.js
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["node", "dashboard/server.js"]

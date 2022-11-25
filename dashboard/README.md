@@ -30,31 +30,27 @@ First, you need to run the following command to start your backend locally:
 cd <your_nhost_project> && nhost dev
 ```
 
-Two environment variables are required to connect the Nhost Dashboard to your local backend:
+You can connect the Nhost Dashboard to your locally running backend by setting the following environment variables in `.env.development.local`:
 
-- `NEXT_PUBLIC_NHOST_PLATFORM` should be set to `false`, because otherwise the Nhost Dashboard will try to connect to the Nhost platform.
-- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` should be set to `http://localhost:9693` unless Hasura is configured to run on a different port. This is the URL of Hasura's migrations endpoint.
-
-Example:
-
-```
+```bash
+NEXT_PUBLIC_ENV=dev
 NEXT_PUBLIC_NHOST_PLATFORM=false
-NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 ```
 
 ### Full list of environment variables
 
-| Name                                 | Description                                                                                      |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. |
-| `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migrations endpoint. Used only if local development is enabled.                  |
-| `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.                            |
-| `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | Backend URL. Not necessary for local development.                                                |
-| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                                          |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.                              |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                                              |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. Not necessary for local development.                                 |
+| Name                                      | Description                                                                                                                                          |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_ENV`                         | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                                                                    |
+| `NEXT_PUBLIC_NHOST_PLATFORM`              | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. Setting this to `true` turns off local development. |
+| `NEXT_PUBLIC_NHOST_LOCAL_MIGRATIONS_PORT` | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `9693`                                                   |
+| `NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT`     | Custom port that was passed to the CLI. Used only if local development is enabled and `NEXT_PUBLIC_ENV` is `dev`. Default: `9695`                    |
+| `NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT`    | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `1337`                                                   |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`           | Backend URL. Not necessary for local development.                                                                                                    |
+| `NEXT_PUBLIC_STRIPE_PK`                   | Stripe public key. Not necessary for local development.                                                                                              |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`      | URL of the GitHub application. Not necessary for local development.                                                                                  |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`         | Analytics key. Not necessary for local development.                                                                                                  |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`       | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
 
 ## ESLint Rules
 
@@ -67,6 +63,7 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 | `import/extensions`                          | JS / TS files should be imported without file extensions.                                                                                                    |
 | `react/jsx-filename-extension`               | JSX should only appear in `.jsx` and `.tsx` files.                                                                                                           |
 | `react/jsx-no-bind`                          | Further investigation must be made on the performance impact of functions directly passed as props to components.                                            |
+| `import/order`                               | Until we have a better auto-formatter, we disable this rule.                                                                                                 |
 | `import/no-extraneous-dependencies`          | `devDependencies` should be excluded from the list of disallowed imports.                                                                                    |
 | `curly`                                      | By default it only enforces curly braces for multi-line blocks, but it should be enforced for single-line blocks as well.                                    |
 | `no-restricted-exports`                      | `export { default } from './module'` is used heavily in `@/ui/v2` which is a restricted export by default.                                                   |
