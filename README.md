@@ -54,7 +54,7 @@ Start the development environment:
 nhost up
 ```
 
-You can also use our new dashboard:
+You can also use the Nhost Dashboard:
 
 ```
 nhost up --ui nhost
