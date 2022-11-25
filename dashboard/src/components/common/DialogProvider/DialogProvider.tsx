@@ -1,6 +1,7 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import EnvironmentVariableForm from '@/components/settings/environmentVariables/ProjectEnvironmentVariableForm/ProjectEnvironmentVariableForm';
 import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
 import RoleForm from '@/components/settings/roles/RoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -301,6 +302,18 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'MANAGE_PERMISSION_VARIABLE' && (
             <PermissionVariableForm
+              {...dialogPayload}
+              onSubmit={async (values) => {
+                await dialogPayload?.onSubmit?.(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'MANAGE_ENVIRONMENT_VARIABLE' && (
+            <EnvironmentVariableForm
               {...dialogPayload}
               onSubmit={async (values) => {
                 await dialogPayload?.onSubmit?.(values);

@@ -1,25 +1,23 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import Button from '@/components/ui/v2/Button';
-import Divider from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import IconButton from '@/components/ui/v2/IconButton';
-import DotsVerticalIcon from '@/components/ui/v2/icons/DotsVerticalIcon';
-import PlusIcon from '@/components/ui/v2/icons/PlusIcon';
 import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
+import { Dropdown } from '@/ui/v2/Dropdown';
+import IconButton from '@/ui/v2/IconButton';
+import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import type { GetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { format } from 'date-fns';
 import { Fragment, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
-
-type EnvironmentVariable =
-  GetEnvironmentVariablesQuery['environmentVariables'][number];
 
 export interface PermissionVariableSettingsFormValues {
   /**
@@ -29,6 +27,7 @@ export interface PermissionVariableSettingsFormValues {
 }
 
 export default function ProjectEnvironmentVariableSettings() {
+  const { openDialog, openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: {
@@ -70,15 +69,65 @@ export default function ProjectEnvironmentVariableSettings() {
     throw error;
   }
 
-  function handleOpenCreator() {
-    console.log(`open creator`);
-  }
-
-  function handleOpenEditor(variable: EnvironmentVariable) {}
-  function handleConfirmRemove(variable: EnvironmentVariable) {}
-
   const { formState, watch } = form;
   const availableEnvironmentVariables = watch('environmentVariables');
+
+  function handleOpenCreator() {
+    openDialog('MANAGE_ENVIRONMENT_VARIABLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Create Environment Variable</span>
+
+          <Text variant="subtitle1" component="span">
+            The default value will be available in all environments, unless you
+            override it. All values are encrypted.
+          </Text>
+        </span>
+      ),
+      payload: {
+        availableEnvironmentVariables,
+        submitButtonText: 'Add',
+      },
+      props: { PaperProps: { className: 'max-w-sm' } },
+    });
+  }
+
+  function handleOpenEditor(originalVariable: EnvironmentVariable) {
+    openDialog('MANAGE_ENVIRONMENT_VARIABLE', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Create Environment Variable</span>
+
+          <Text variant="subtitle1" component="span">
+            The default value will be available in all environments, unless you
+            override it. All values are encrypted.
+          </Text>
+        </span>
+      ),
+      payload: {
+        originalEnvironmentVariable: originalVariable,
+        availableEnvironmentVariables,
+      },
+      props: { PaperProps: { className: 'max-w-sm' } },
+    });
+  }
+
+  function handleConfirmDelete(originalVariable: EnvironmentVariable) {
+    openAlertDialog({
+      title: 'Delete Environment Variable',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>{originalVariable.name}</strong>&quot; environment variable?
+          This cannot be undone.
+        </Text>
+      ),
+      props: {
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+      },
+    });
+  }
 
   return (
     <SettingsContainer
@@ -103,7 +152,7 @@ export default function ProjectEnvironmentVariableSettings() {
       <div className="grid grid-flow-row gap-2">
         <List>
           {availableEnvironmentVariables.map((environmentVariable, index) => (
-            <Fragment key={environmentVariable.name}>
+            <Fragment key={environmentVariable.id}>
               <ListItem.Root
                 className="px-4 grid grid-cols-2"
                 secondaryAction={
@@ -139,7 +188,7 @@ export default function ProjectEnvironmentVariableSettings() {
                       <Divider component="li" />
 
                       <Dropdown.Item
-                        onClick={() => handleConfirmRemove(environmentVariable)}
+                        onClick={() => handleConfirmDelete(environmentVariable)}
                       >
                         <Text
                           className="font-medium"
@@ -147,7 +196,7 @@ export default function ProjectEnvironmentVariableSettings() {
                             color: (theme) => theme.palette.error.main,
                           }}
                         >
-                          Remove
+                          Delete
                         </Text>
                       </Dropdown.Item>
                     </Dropdown.Content>

@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { Role } from '@/types/application';
+import type { EnvironmentVariable } from '@/types/application';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -8,27 +8,39 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface RoleFormValues {
+export interface EnvironmentVariableFormValues {
+  /**
+   * Identifier of the environment variable.
+   */
+  id: string;
   /**
    * The name of the role.
    */
   name: string;
+  /**
+   * Development environment variable value.
+   */
+  devValue: string;
+  /**
+   * Production environment variable value.
+   */
+  prodValue: string;
 }
 
-export interface RoleFormProps {
+export interface EnvironmentVariableFormProps {
   /**
-   * Available roles.
+   * Available environment variables.
    */
-  availableRoles: Role[];
+  availableEnvironmentVariables: EnvironmentVariable[];
   /**
-   * Original role. This is defined only if the form was opened to edit an
-   * existing role.
+   * Original environment variable. This is defined only if the form was opened
+   * to edit an existing environment variable.
    */
-  originalRole?: Role;
+  originalEnvironmentVariable?: EnvironmentVariable;
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: RoleFormValues) => void;
+  onSubmit: (values: EnvironmentVariableFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -43,19 +55,24 @@ export interface RoleFormProps {
 
 const validationSchema = Yup.object({
   name: Yup.string().required('This field is required.'),
+  devValue: Yup.string().required('This field is required.'),
+  prodValue: Yup.string().required('This field is required.'),
 });
 
-export default function RoleForm({
-  availableRoles,
-  originalRole,
+export default function EnvironmentVariableForm({
+  availableEnvironmentVariables,
+  originalEnvironmentVariable,
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-}: RoleFormProps) {
+}: EnvironmentVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const form = useForm<RoleFormValues>({
+  const form = useForm<EnvironmentVariableFormValues>({
     defaultValues: {
-      name: originalRole?.name || '',
+      id: originalEnvironmentVariable?.id || '',
+      name: originalEnvironmentVariable?.name || '',
+      devValue: originalEnvironmentVariable?.devValue || '',
+      prodValue: originalEnvironmentVariable?.prodValue || '',
     },
     resolver: yupResolver(validationSchema),
   });
@@ -74,13 +91,13 @@ export default function RoleForm({
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
-  async function handleSubmit(values: RoleFormValues) {
+  async function handleSubmit(values: EnvironmentVariableFormValues) {
     if (
-      availableRoles.some(
-        (role) => role.name === values.name && role.name !== originalRole?.name,
-      )
+      availableEnvironmentVariables?.some((role) => role.name === values.name)
     ) {
-      setError('name', { message: 'This role already exists.' });
+      setError('name', {
+        message: 'This environment variable already exists.',
+      });
 
       return;
     }
@@ -105,7 +122,32 @@ export default function RoleForm({
           helperText={errors?.name?.message}
           fullWidth
           autoComplete="off"
-          autoFocus
+        />
+
+        <Input
+          {...register('prodValue')}
+          inputProps={{ maxLength: 100 }}
+          id="prodValue"
+          label="Production Value"
+          placeholder="Enter value"
+          hideEmptyHelperText
+          error={!!errors.prodValue}
+          helperText={errors?.prodValue?.message}
+          fullWidth
+          autoComplete="off"
+        />
+
+        <Input
+          {...register('devValue')}
+          inputProps={{ maxLength: 100 }}
+          id="devValue"
+          label="Development Value"
+          placeholder="Enter value"
+          hideEmptyHelperText
+          error={!!errors.devValue}
+          helperText={errors?.devValue?.message}
+          fullWidth
+          autoComplete="off"
         />
 
         <div className="grid grid-flow-row gap-2">
