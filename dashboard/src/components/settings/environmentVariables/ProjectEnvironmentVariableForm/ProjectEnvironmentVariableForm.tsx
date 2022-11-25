@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface EnvironmentVariableFormValues {
+export interface ProjectEnvironmentVariableFormValues {
   /**
    * Identifier of the environment variable.
    */
@@ -27,7 +27,7 @@ export interface EnvironmentVariableFormValues {
   prodValue: string;
 }
 
-export interface EnvironmentVariableFormProps {
+export interface ProjectEnvironmentVariableFormProps {
   /**
    * Available environment variables.
    */
@@ -40,7 +40,7 @@ export interface EnvironmentVariableFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: EnvironmentVariableFormValues) => void;
+  onSubmit: (values: ProjectEnvironmentVariableFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -59,15 +59,15 @@ const validationSchema = Yup.object({
   prodValue: Yup.string().required('This field is required.'),
 });
 
-export default function EnvironmentVariableForm({
+export default function ProjectEnvironmentVariableForm({
   availableEnvironmentVariables,
   originalEnvironmentVariable,
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-}: EnvironmentVariableFormProps) {
+}: ProjectEnvironmentVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const form = useForm<EnvironmentVariableFormValues>({
+  const form = useForm<ProjectEnvironmentVariableFormValues>({
     defaultValues: {
       id: originalEnvironmentVariable?.id || '',
       name: originalEnvironmentVariable?.name || '',
@@ -91,9 +91,13 @@ export default function EnvironmentVariableForm({
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
-  async function handleSubmit(values: EnvironmentVariableFormValues) {
+  async function handleSubmit(values: ProjectEnvironmentVariableFormValues) {
     if (
-      availableEnvironmentVariables?.some((role) => role.name === values.name)
+      availableEnvironmentVariables?.some(
+        (environmentVariable) =>
+          environmentVariable.name === values.name &&
+          environmentVariable.name !== originalEnvironmentVariable?.name,
+      )
     ) {
       setError('name', {
         message: 'This environment variable already exists.',
@@ -122,6 +126,7 @@ export default function EnvironmentVariableForm({
           helperText={errors?.name?.message}
           fullWidth
           autoComplete="off"
+          disabled={!!originalEnvironmentVariable}
         />
 
         <Input

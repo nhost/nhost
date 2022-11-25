@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import type { ProjectEnvironmentVariableFormValues } from '@/components/settings/environmentVariables/ProjectEnvironmentVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -13,10 +13,16 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  useDeleteEnvironmentVariableMutation,
+  useGetEnvironmentVariablesQuery,
+  useInsertEnvironmentVariablesMutation,
+  useUpdateEnvironmentVariableMutation,
+} from '@/utils/__generated__/graphql';
 import { format } from 'date-fns';
-import { Fragment, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Fragment } from 'react';
+import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface PermissionVariableSettingsFormValues {
@@ -35,26 +41,17 @@ export default function ProjectEnvironmentVariableSettings() {
     },
   });
 
-  const form = useForm<PermissionVariableSettingsFormValues>({
-    defaultValues: {
-      environmentVariables: data?.environmentVariables || [],
-    },
-    reValidateMode: 'onSubmit',
+  const [insertEnvironmentVariables] = useInsertEnvironmentVariablesMutation({
+    refetchQueries: ['getEnvironmentVariables'],
   });
 
-  const {
-    reset,
-    formState: { dirtyFields },
-  } = form;
+  const [updateEnvironmentVariable] = useUpdateEnvironmentVariableMutation({
+    refetchQueries: ['getEnvironmentVariables'],
+  });
 
-  const isDirty = Object.keys(dirtyFields).length > 0;
-  useLeaveConfirm({ isDirty });
-
-  useEffect(() => {
-    reset({
-      environmentVariables: data?.environmentVariables || [],
-    });
-  }, [data, reset]);
+  const [deleteEnvironmentVariable] = useDeleteEnvironmentVariableMutation({
+    refetchQueries: ['getEnvironmentVariables'],
+  });
 
   if (loading) {
     return (
@@ -69,8 +66,79 @@ export default function ProjectEnvironmentVariableSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
-  const availableEnvironmentVariables = watch('environmentVariables');
+  const availableEnvironmentVariables =
+    [...data.environmentVariables].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    ) || [];
+
+  async function handleInsertVariable({
+    name,
+    prodValue,
+    devValue,
+  }: ProjectEnvironmentVariableFormValues) {
+    const insertEnvironmentVariablePromise = insertEnvironmentVariables({
+      variables: {
+        environmentVariables: [
+          { appId: currentApplication.id, name, prodValue, devValue },
+        ],
+      },
+    });
+
+    await toast.promise(
+      insertEnvironmentVariablePromise,
+      {
+        loading: 'Creating environment variable...',
+        success: 'Environment variable has been created successfully.',
+        error: 'An error occurred while creating the environment variable.',
+      },
+      toastStyleProps,
+    );
+  }
+
+  async function handleEditVariable({
+    id,
+    prodValue,
+    devValue,
+  }: ProjectEnvironmentVariableFormValues) {
+    const updateEnvironmentVariablePromise = updateEnvironmentVariable({
+      variables: {
+        id,
+        environmentVariable: {
+          prodValue,
+          devValue,
+        },
+      },
+    });
+
+    await toast.promise(
+      updateEnvironmentVariablePromise,
+      {
+        loading: 'Updating environment variable...',
+        success: 'Environment variable has been updated successfully.',
+        error: 'An error occurred while updating the environment variable.',
+      },
+      toastStyleProps,
+    );
+  }
+
+  async function handleDeleteVariable({ id }: EnvironmentVariable) {
+    const deleteEnvironmentVariablePromise = deleteEnvironmentVariable({
+      variables: {
+        id,
+      },
+    });
+
+    await toast.promise(
+      deleteEnvironmentVariablePromise,
+      {
+        loading: 'Deleting environment variable...',
+        success: 'Environment variable has been deleted successfully.',
+        error: 'An error occurred while deleting the environment variable.',
+      },
+      toastStyleProps,
+    );
+  }
 
   function handleOpenCreator() {
     openDialog('MANAGE_ENVIRONMENT_VARIABLE', {
@@ -87,6 +155,7 @@ export default function ProjectEnvironmentVariableSettings() {
       payload: {
         availableEnvironmentVariables,
         submitButtonText: 'Add',
+        onSubmit: handleInsertVariable,
       },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
@@ -107,6 +176,7 @@ export default function ProjectEnvironmentVariableSettings() {
       payload: {
         originalEnvironmentVariable: originalVariable,
         availableEnvironmentVariables,
+        onSubmit: handleEditVariable,
       },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
@@ -125,6 +195,7 @@ export default function ProjectEnvironmentVariableSettings() {
       props: {
         primaryButtonColor: 'error',
         primaryButtonText: 'Delete',
+        onPrimaryAction: () => handleDeleteVariable(originalVariable),
       },
     });
   }
@@ -137,12 +208,7 @@ export default function ProjectEnvironmentVariableSettings() {
       docsTitle="Environment Variables"
       rootClassName="gap-0"
       className="px-0 my-2"
-      slotProps={{
-        submitButton: {
-          loading: formState.isSubmitting,
-          disabled: !formState.isValid || !isDirty,
-        },
-      }}
+      slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
@@ -231,7 +297,7 @@ export default function ProjectEnvironmentVariableSettings() {
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
         >
-          Add Environment Variable
+          Create Environment Variable
         </Button>
       </div>
     </SettingsContainer>
