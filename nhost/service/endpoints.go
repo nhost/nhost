@@ -39,7 +39,7 @@ URLs:
 - Storage:		%s
 - Functions:		%s
 
-- Dashboard:		%s
+- Nhost Dashboard:		%s
 - Hasura console:	%s
 - Mailhog:		%s
 
