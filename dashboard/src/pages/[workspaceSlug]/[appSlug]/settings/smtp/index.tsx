@@ -100,8 +100,8 @@ export default function SMTPSettingsPage() {
   if (currentApplication.plan.isFree) {
     return (
       <Container
-        className="grid max-w-5xl grid-flow-row gap-4 bg-fafafa"
-        wrapperClassName="bg-fafafa"
+        className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
+        rootClassName="bg-transparent"
       >
         <UnlockFeatureByUpgrading
           message="Unlock SMTP settings by upgrading your project to the Pro plan."
@@ -165,8 +165,8 @@ export default function SMTPSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-4 bg-fafafa"
-      wrapperClassName="bg-fafafa"
+      className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
+      rootClassName="bg-transparent"
     >
       <FormProvider {...form}>
         <Form onSubmit={handleEditSMTPSettings}>
@@ -275,13 +275,5 @@ export default function SMTPSettingsPage() {
 }
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

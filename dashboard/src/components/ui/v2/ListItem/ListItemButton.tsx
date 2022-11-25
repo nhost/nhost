@@ -37,7 +37,7 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
     padding: theme.spacing(0.75, 1.25),
   },
   [`&.${listItemButtonClasses.selected}`]: {
-    backgroundColor: `#ebf3ff`,
+    backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.main,
   },
   [`&.${listItemButtonClasses.selected} > .${listItemTextClasses.root}`]: {
@@ -50,7 +50,7 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
     color: theme.palette.primary.main,
   },
   [`&.${listItemButtonClasses.selected}:hover`]: {
-    backgroundColor: `#ebf3ff`,
+    backgroundColor: theme.palette.primary.light,
   },
 }));
 
