@@ -40,7 +40,7 @@ URLs:
 - Functions:		%s
 
 - Nhost Dashboard:		%s
-- Hasura console:	%s
+- Hasura Console:	%s
 - Mailhog:		%s
 
 - subdomain:		%s
