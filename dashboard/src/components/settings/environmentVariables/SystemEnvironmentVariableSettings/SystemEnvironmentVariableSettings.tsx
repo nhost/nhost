@@ -76,7 +76,7 @@ export default function SystemEnvironmentVariableSettings() {
         <div className="grid grid-flow-col gap-2 items-center">
           <Text className="text-greyscaleGreyDark">
             {showAdminSecret ? (
-              <InlineCode className="text-sm max-h-[initial] h-[initial]">
+              <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
                 {currentApplication?.hasuraGraphqlAdminSecret}
               </InlineCode>
             ) : (
@@ -107,7 +107,7 @@ export default function SystemEnvironmentVariableSettings() {
         <div className="grid grid-flow-col gap-2 items-center">
           <Text className="text-greyscaleGreyDark">
             {showWebhookSecret ? (
-              <InlineCode className="text-sm max-h-[initial] h-[initial]">
+              <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
                 {data?.app?.webhookSecret}
               </InlineCode>
             ) : (
