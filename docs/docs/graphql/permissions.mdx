@@ -38,9 +38,9 @@ The `x-hasura-user-id` permission variable is always available for all signed-in
 
 You can add custom permission variables in the Nhost console under **Users** and then **Roles and permissions**. These permission variables are then available when creating permissions for your GraphQL API in the Hasura console.
 
-![Permission Variables](/img/permission-variables-preview.svg)
+![Permission Variables](/img/permission-variables-preview.png)
 
-**Example:**: Let's say you add a new permission variable `x-hasura-organisation-id` with path `user.profile.organisation.id`. This means that Nhost Auth will get the value for `x-hasura-organisation-id` by internally generating the following GraphQL query:
+**Example:** Let's say you add a new permission variable `x-hasura-organisation-id` with path `user.profile.organisation.id`. This means that Nhost Auth will get the value for `x-hasura-organisation-id` by internally generating the following GraphQL query:
 
 ```graphql
 query {
@@ -110,7 +110,7 @@ When the target value is expected to be an array, it is important to explicitly 
 
 ## Roles
 
-Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permisisons**.
+Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permissions**.
 
 If the user is not signed in, the GraphQL API resolves permissions using the `public` role.
 
