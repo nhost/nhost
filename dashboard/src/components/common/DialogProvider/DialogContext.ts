@@ -12,7 +12,9 @@ export type DialogType =
   | 'CREATE_TABLE'
   | 'EDIT_TABLE'
   | 'CREATE_FOREIGN_KEY'
-  | 'EDIT_FOREIGN_KEY';
+  | 'EDIT_FOREIGN_KEY'
+  | 'MANAGE_ROLE'
+  | 'MANAGE_PERMISSION_VARIABLE';
 
 export interface DialogConfig<TPayload = unknown> {
   /**

@@ -47,8 +47,8 @@ export default function SettingsSignInMethodsPage() {
 
   return (
     <Container
-      className="max-w-5xl space-y-8 bg-fafafa"
-      wrapperClassName="bg-fafafa"
+      className="max-w-5xl space-y-8 bg-transparent"
+      rootClassName="bg-transparent"
     >
       <EmailAndPasswordSettings />
       <MagicLinkSettings />
@@ -71,9 +71,5 @@ export default function SettingsSignInMethodsPage() {
 }
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout mainContainerProps={{ className: 'bg-fafafa' }}>
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

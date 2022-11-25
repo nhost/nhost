@@ -1,6 +1,8 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { CreateForeignKeyForm } from '@/components/data-browser/CreateForeignKeyForm';
-import { EditForeignKeyForm } from '@/components/data-browser/EditForeignKeyForm';
+import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
+import RoleForm from '@/components/settings/roles/RoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -8,6 +10,7 @@ import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
@@ -249,7 +252,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         open={dialogOpen}
         onClose={closeDialogWithDirtyGuard}
         TransitionProps={{ onExited: clearDialogContent, unmountOnExit: false }}
-        PaperProps={{ className: 'max-w-md w-full' }}
+        PaperProps={{
+          ...dialogProps?.PaperProps,
+          className: twMerge(
+            'max-w-md w-full',
+            dialogProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
@@ -258,7 +267,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             <CreateForeignKeyForm
               {...dialogPayload}
               onSubmit={async (values) => {
-                await dialogPayload?.onSubmit(values);
+                await dialogPayload?.onSubmit?.(values);
 
                 closeDialog();
               }}
@@ -270,7 +279,31 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             <EditForeignKeyForm
               {...dialogPayload}
               onSubmit={async (values) => {
-                await dialogPayload?.onSubmit(values);
+                await dialogPayload?.onSubmit?.(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'MANAGE_ROLE' && (
+            <RoleForm
+              {...dialogPayload}
+              onSubmit={async (values) => {
+                await dialogPayload?.onSubmit?.(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'MANAGE_PERMISSION_VARIABLE' && (
+            <PermissionVariableForm
+              {...dialogPayload}
+              onSubmit={async (values) => {
+                await dialogPayload?.onSubmit?.(values);
 
                 closeDialog();
               }}
