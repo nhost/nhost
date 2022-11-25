@@ -68,7 +68,7 @@ export default function SystemEnvironmentVariableSettings() {
       title="System Environment Variables"
       description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
-      primaryActionButtonProps={{ className: 'invisible' }}
+      slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <div className="grid grid-flow-row gap-2 justify-start">
         <Text className="font-medium">NHOST_ADMIN_SECRET</Text>
