@@ -35,7 +35,7 @@ const (
 	// --
 
 	// default docker images
-	svcDashboardDefaultImage = "nhost/dashboard:0.3.0"
+	svcDashboardDefaultImage = "nhost/dashboard:0.5.0"
 	svcPostgresDefaultImage  = "nhost/postgres:14.5-20221009-1"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.15.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.3.0"
@@ -58,12 +58,13 @@ const (
 	envPrefixStorage = "STORAGE"
 
 	// dashboard
-	envDashboardNextPublicNhostBackendURL    = "NEXT_PUBLIC_NHOST_BACKEND_URL"
-	envDashboardNextPublicNhostHasuraURL     = "NEXT_PUBLIC_NHOST_HASURA_URL"
-	envDashboardNextPublicNhostMigrationsURL = "NEXT_PUBLIC_NHOST_MIGRATIONS_URL"
-	envDashboardNextPublicNhostPlatform      = "NEXT_PUBLIC_NHOST_PLATFORM"
-	envDashboardNextPublicEnv                = "NEXT_PUBLIC_ENV"
-	envDashboardNextTelemetryDisabled        = "NEXT_TELEMETRY_DISABLED"
+	// envDashboardNextPublicNhost
+	envDashboardNextPublicNhostLocalBackendPort = "NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT"
+	envDashboardNextPublicNhostHasuraPort       = "NEXT_PUBLIC_NHOST_HASURA_PORT"
+	envDashboardNextPublicNhostMigrationsPort   = "NEXT_PUBLIC_NHOST_MIGRATIONS_PORT"
+	envDashboardNextPublicNhostPlatform         = "NEXT_PUBLIC_NHOST_PLATFORM"
+	envDashboardNextPublicEnv                   = "NEXT_PUBLIC_ENV"
+	envDashboardNextTelemetryDisabled           = "NEXT_TELEMETRY_DISABLED"
 
 	// dashboard envs values
 	envDashboardNextPublicNhostPlatformValue = "false"
@@ -247,12 +248,12 @@ func (c Config) runMailhogService() bool {
 
 func (c Config) dashboardServiceEnvs() env {
 	e := env{
-		envDashboardNextPublicNhostBackendURL:    fmt.Sprintf("http://localhost:%d", c.ports.Proxy()),
-		envDashboardNextPublicNhostHasuraURL:     fmt.Sprintf("http://localhost:%d", c.ports.HasuraConsole()),
-		envDashboardNextPublicNhostMigrationsURL: fmt.Sprintf("http://localhost:%d", c.ports.HasuraConsoleAPI()),
-		envDashboardNextPublicNhostPlatform:      envDashboardNextPublicNhostPlatformValue,
-		envDashboardNextPublicEnv:                envDashboardNextPublicEnvValue,
-		envDashboardNextTelemetryDisabled:        envDashboardNextTelemetryDisabledValue,
+		envDashboardNextPublicNhostLocalBackendPort: fmt.Sprint(c.ports.Proxy()),
+		envDashboardNextPublicNhostHasuraPort:       fmt.Sprint(c.ports.HasuraConsole()),
+		envDashboardNextPublicNhostMigrationsPort:   fmt.Sprint(c.ports.HasuraConsoleAPI()),
+		envDashboardNextPublicNhostPlatform:         envDashboardNextPublicNhostPlatformValue,
+		envDashboardNextPublicEnv:                   envDashboardNextPublicEnvValue,
+		envDashboardNextTelemetryDisabled:           envDashboardNextTelemetryDisabledValue,
 	}
 
 	e.mergeWithSlice(c.dotenv)

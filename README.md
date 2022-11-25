@@ -57,7 +57,7 @@ nhost up
 You can also use our new dashboard:
 
 ```
-nhost up --dashboard
+nhost up --ui nhost
 ```
 
 ## Documentation

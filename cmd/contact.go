@@ -45,7 +45,6 @@ var (
 	//  wiki    bool
 
 	noBrowser bool
-	dashboard bool
 )
 
 // reportCmd represents the report command

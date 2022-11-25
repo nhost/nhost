@@ -51,16 +51,36 @@ import (
 
 var (
 	//  signal interruption channel
-	stopCh   = make(chan os.Signal, 1)
-	exitCode = 0
+	stopCh      = make(chan os.Signal, 1)
+	exitCode    = 0
+	uiTypeValue string
 )
 
 var userDefinedHasuraCli string
+
+type uiType string
+
+func (u uiType) IsHasura() bool {
+	return u == uiTypeHasura
+}
+
+func (u uiType) IsNhost() bool {
+	return u == uiTypeNhost
+}
+
+func (u uiType) String() string {
+	return string(u)
+}
 
 const (
 	// flags
 	userDefinedHasuraCliFlag = "hasuracli"
 	startTimeoutFlag         = "start-timeout"
+	uiTypeFlag               = "ui"
+
+	// ui types
+	uiTypeHasura uiType = "hasura"
+	uiTypeNhost  uiType = "nhost"
 )
 
 // devCmd represents the dev command
@@ -172,7 +192,7 @@ var devCmd = &cobra.Command{
 			if !noBrowser {
 				openURL := launcher.HasuraConsoleURL()
 
-				if dashboard {
+				if uiType(uiTypeValue).IsNhost() {
 					openURL = fmt.Sprintf("http://localhost:%d", ports.Dashboard())
 				}
 
@@ -292,7 +312,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(ports.FlagPortDashboard, ports.DefaultDashboardPort, "Port for dashboard UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
-	devCmd.PersistentFlags().BoolVar(&dashboard, "dashboard", false, "Use nhost dashboard")
+	devCmd.PersistentFlags().StringVar(&uiTypeValue, uiTypeFlag, uiTypeHasura.String(), "UI type, possible values: [hasura, nhost]")
 
 	devCmd.PersistentFlags().StringVar(&userDefinedHasuraCli, userDefinedHasuraCliFlag, viper.GetString(userDefinedHasuraCliFlag), "User-defined path for hasura-cli binary")
 	viper.BindPFlag(userDefinedHasuraCliFlag, devCmd.PersistentFlags().Lookup(userDefinedHasuraCliFlag))

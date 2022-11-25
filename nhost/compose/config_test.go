@@ -21,7 +21,7 @@ func TestConfig_dashboardService(t *testing.T) {
 
 	svc := c.dashboardService()
 	assert.Equal("dashboard", svc.Name)
-	assert.Equal("nhost/dashboard:0.3.0", svc.Image)
+	assert.Equal("nhost/dashboard:0.5.0", svc.Image)
 	assert.Equal([]types.ServicePortConfig{
 		{
 			Mode:      "ingress",
@@ -33,9 +33,9 @@ func TestConfig_dashboardService(t *testing.T) {
 	assert.Equal(types.NewMappingWithEquals([]string{
 		"FOO=BAR",
 		"BAR=BAZ",
-		"NEXT_PUBLIC_NHOST_BACKEND_URL=http://localhost:1",
-		"NEXT_PUBLIC_NHOST_HASURA_URL=http://localhost:4",
-		"NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:5",
+		"NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT=1",
+		"NEXT_PUBLIC_NHOST_HASURA_PORT=4",
+		"NEXT_PUBLIC_NHOST_MIGRATIONS_PORT=5",
 		"NEXT_PUBLIC_NHOST_PLATFORM=false",
 		"NEXT_PUBLIC_ENV=dev",
 		"NEXT_TELEMETRY_DISABLED=1",
