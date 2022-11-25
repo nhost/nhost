@@ -122,6 +122,10 @@ export default function RoleSettings() {
   function handleRemoveRole({ name }: Role) {
     const filteredRoles = availableRoles.filter((role) => role.name !== name);
 
+    if (name === defaultRole) {
+      setValue('authUserDefaultRole', 'user', { shouldDirty: true });
+    }
+
     setValue('authUserDefaultAllowedRoles', filteredRoles, {
       shouldDirty: true,
     });
