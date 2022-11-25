@@ -229,7 +229,7 @@ export default function PermissionVariableSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Permission Variables"
-          description="These variables can be used to defined permissions. They are sent from client to the GraphQL API, and must match the specified property of a queried user."
+          description="These variables can be used to define permissions. They are sent from the client to the GraphQL API, and must match the specified property of a queried user."
           className="px-0"
           slotProps={{
             submitButtonProps: {
