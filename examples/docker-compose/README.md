@@ -23,4 +23,12 @@ The following endpoints are now exposed:
 - `http://localhost:8025`: Mailhog SMTP testing dashboard
 - `http://localhost:9090`: Traefik dashboad
 
-**Note:** The Nhost Dashboard has only been tested to run locally requires the Hasura admin secret to `nhost-admin-secret`. This will change in the future. If you can't wait, don't hesitate to contribute.
+## Running the Nhost dashboard locally
+
+In order to use the Nhost dashboard, you need to run the [Hasura console locally from the Hasura CLI](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/):
+
+```sh
+hasura console
+```
+
+The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret`. This will change in the future. If you can't wait, don't hesitate to contribute.
