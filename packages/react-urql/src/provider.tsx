@@ -1,4 +1,4 @@
-import { createClient as createWSClient, Event } from 'graphql-ws'
+import { createClient as createWSClient } from 'graphql-ws'
 import React, { PropsWithChildren } from 'react'
 import {
   cacheExchange,
