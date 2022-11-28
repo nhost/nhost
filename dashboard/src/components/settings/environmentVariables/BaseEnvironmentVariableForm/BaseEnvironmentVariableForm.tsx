@@ -28,9 +28,11 @@ export interface BaseEnvironmentVariableFormValues {
 
 export interface BaseEnvironmentVariableFormProps {
   /**
-   * Determines whether or not name should be disabled.
+   * Determines the mode of the form.
+   *
+   * @default 'edit'
    */
-  disableName?: boolean;
+  mode?: 'edit' | 'create';
   /**
    * Function to be called when the form is submitted.
    */
@@ -83,7 +85,7 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
 });
 
 export default function BaseEnvironmentVariableForm({
-  disableName,
+  mode = 'edit',
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
@@ -136,9 +138,9 @@ export default function BaseEnvironmentVariableForm({
           error={!!errors.name}
           helperText={errors?.name?.message}
           fullWidth
-          autoFocus
           autoComplete="off"
-          disabled={disableName}
+          autoFocus={mode === 'create'}
+          disabled={mode === 'edit'}
         />
 
         <Input
@@ -152,6 +154,7 @@ export default function BaseEnvironmentVariableForm({
           helperText={errors?.prodValue?.message}
           fullWidth
           autoComplete="off"
+          autoFocus={mode === 'edit'}
         />
 
         <Input

@@ -118,11 +118,7 @@ export default function EditEnvironmentVariableForm({
 
   return (
     <FormProvider {...form}>
-      <BaseEnvironmentVariableForm
-        disableName
-        onSubmit={handleSubmit}
-        {...props}
-      />
+      <BaseEnvironmentVariableForm onSubmit={handleSubmit} {...props} />
     </FormProvider>
   );
 }

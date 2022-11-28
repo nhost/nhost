@@ -107,6 +107,7 @@ export default function CreateEnvironmentVariableForm({
   return (
     <FormProvider {...form}>
       <BaseEnvironmentVariableForm
+        mode="create"
         submitButtonText="Create"
         onSubmit={handleSubmit}
         {...props}
