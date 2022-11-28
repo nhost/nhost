@@ -127,7 +127,7 @@ export default function BaseProjectEnvironmentVariableForm({
         inputProps={{ maxLength: 100 }}
         id="name"
         label="Name"
-        placeholder="Enter value"
+        placeholder="EXAMPLE_NAME"
         hideEmptyHelperText
         error={!!errors.name}
         helperText={errors?.name?.message}
