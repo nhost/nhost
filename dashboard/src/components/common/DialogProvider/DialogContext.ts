@@ -15,7 +15,8 @@ export type DialogType =
   | 'EDIT_FOREIGN_KEY'
   | 'CREATE_ROLE'
   | 'EDIT_ROLE'
-  | 'MANAGE_PERMISSION_VARIABLE';
+  | 'CREATE_PERMISSION_VARIABLE'
+  | 'EDIT_PERMISSION_VARIABLE';
 
 export interface DialogConfig<TPayload = unknown> {
   /**

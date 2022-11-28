@@ -48,8 +48,6 @@ export default function BaseRoleForm({
     formState: { errors, dirtyFields, isSubmitting },
   } = form;
 
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {

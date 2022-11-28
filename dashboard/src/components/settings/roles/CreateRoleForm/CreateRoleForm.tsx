@@ -41,9 +41,7 @@ export default function CreateRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
-  });
+  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['getRoles'] });
 
   if (loading) {
     return <ActivityIndicator delay={1000} label="Loading roles..." />;
