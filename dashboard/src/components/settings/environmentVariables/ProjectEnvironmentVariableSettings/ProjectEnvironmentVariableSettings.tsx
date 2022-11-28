@@ -166,14 +166,8 @@ export default function ProjectEnvironmentVariableSettings() {
                     <Dropdown.Content
                       menu
                       PaperProps={{ className: 'w-32' }}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                     >
                       <Dropdown.Item
                         onClick={() => handleOpenEditor(environmentVariable)}

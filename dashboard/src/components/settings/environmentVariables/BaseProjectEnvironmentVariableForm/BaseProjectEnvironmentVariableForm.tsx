@@ -1,6 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { EnvironmentVariable } from '@/types/application';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { useEffect } from 'react';
@@ -28,10 +27,9 @@ export interface BaseProjectEnvironmentVariableFormValues {
 
 export interface BaseProjectEnvironmentVariableFormProps {
   /**
-   * Original environment variable. This is defined only if the form was opened
-   * to edit an existing environment variable.
+   * Determines whether or not name should be disabled.
    */
-  originalEnvironmentVariable?: EnvironmentVariable;
+  disableName?: boolean;
   /**
    * Function to be called when the form is submitted.
    */
@@ -49,13 +47,42 @@ export interface BaseProjectEnvironmentVariableFormProps {
 }
 
 export const baseProjectEnvironmentVariableFormValidationSchema = Yup.object({
-  name: Yup.string().required('This field is required.'),
+  name: Yup.string()
+    .required('This field is required.')
+    .test(
+      'isEnvVarPermitted',
+      'This is a reserved name.',
+      (value) =>
+        ![
+          'PATH',
+          'NODE_PATH',
+          'PYTHONPATH',
+          'GEM_PATH',
+          'HOSTNAME',
+          'TERM',
+          'NODE_VERSION',
+          'YARN_VERSION',
+          'NODE_ENV',
+          'HOME',
+        ].includes(value),
+    )
+    .test(
+      'isEnvVarPrefixPermitted',
+      `The name can't start with NHOST_, HASURA_, AUTH_, STORAGE_ or POSTGRES_.`,
+      (value) =>
+        ['NHOST_', 'HASURA_', 'AUTH_', 'STORAGE_', 'POSTGRES_'].every(
+          (prefix) => !value.startsWith(prefix),
+        ),
+    )
+    .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
+      /^[A-Z]{1,}[A-Z0-9_]*$/i.test(value),
+    ),
   devValue: Yup.string().required('This field is required.'),
   prodValue: Yup.string().required('This field is required.'),
 });
 
 export default function BaseProjectEnvironmentVariableForm({
-  originalEnvironmentVariable,
+  disableName,
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
@@ -79,7 +106,21 @@ export default function BaseProjectEnvironmentVariableForm({
   return (
     <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4 px-6 pb-6">
       <Input
-        {...register('name')}
+        {...register('name', {
+          onChange: (event) => {
+            if (
+              event.target.value &&
+              !/^[A-Z]{1,}[A-Z0-9_]*$/g.test(event.target.value)
+            ) {
+              // we need to prevent invalid characters from being entered
+              // eslint-disable-next-line no-param-reassign
+              event.target.value = event.target.value.replace(
+                /[^A-Z0-9_]/g,
+                '',
+              );
+            }
+          },
+        })}
         inputProps={{ maxLength: 100 }}
         id="name"
         label="Name"
@@ -89,7 +130,7 @@ export default function BaseProjectEnvironmentVariableForm({
         helperText={errors?.name?.message}
         fullWidth
         autoComplete="off"
-        disabled={!!originalEnvironmentVariable}
+        disabled={disableName}
       />
 
       <Input

@@ -93,7 +93,7 @@ export default function EditProjectEnvironmentVariableForm({
       return;
     }
 
-    const insertEnvironmentVariablePromise = updateEnvironmentVariable({
+    const updateEnvironmentVariablePromise = updateEnvironmentVariable({
       variables: {
         id,
         environmentVariable: {
@@ -104,7 +104,7 @@ export default function EditProjectEnvironmentVariableForm({
     });
 
     await toast.promise(
-      insertEnvironmentVariablePromise,
+      updateEnvironmentVariablePromise,
       {
         loading: 'Updating environment variable...',
         success: 'Environment variable has been updated successfully.',
@@ -118,7 +118,11 @@ export default function EditProjectEnvironmentVariableForm({
 
   return (
     <FormProvider {...form}>
-      <BaseProjectEnvironmentVariableForm onSubmit={handleSubmit} {...props} />
+      <BaseProjectEnvironmentVariableForm
+        disableName
+        onSubmit={handleSubmit}
+        {...props}
+      />
     </FormProvider>
   );
 }
