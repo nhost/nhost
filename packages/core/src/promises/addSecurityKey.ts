@@ -27,7 +27,7 @@ export const addSecurityKeyPromise = async (
       {},
       {
         headers: {
-          authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+          authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
         }
       }
     )
@@ -42,7 +42,7 @@ export const addSecurityKeyPromise = async (
       { credential, nickname },
       {
         headers: {
-          authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+          authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
         }
       }
     )
