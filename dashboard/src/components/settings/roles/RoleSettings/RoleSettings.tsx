@@ -1,6 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { RoleFormValues } from '@/components/settings/roles/RoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -98,28 +97,7 @@ export default function RoleSettings() {
   const defaultRole = watch('authUserDefaultRole');
   const availableRoles = watch('authUserDefaultAllowedRoles');
 
-  function handleAddRole({ name }: RoleFormValues) {
-    setValue(
-      'authUserDefaultAllowedRoles',
-      [...availableRoles, { name, isSystemRole: false }],
-      { shouldDirty: true },
-    );
-  }
-
-  function handleEditRole({ name }: RoleFormValues, originalRole: Role) {
-    const originalIndex = availableRoles.findIndex(
-      (role) => role.name === originalRole.name,
-    );
-    const updatedRoles = availableRoles.map((role, index) =>
-      index === originalIndex ? { name, isSystemRole: false } : role,
-    );
-
-    setValue('authUserDefaultAllowedRoles', updatedRoles, {
-      shouldDirty: true,
-    });
-  }
-
-  function handleRemoveRole({ name }: Role) {
+  function handleDeleteRole({ name }: Role) {
     const filteredRoles = availableRoles.filter((role) => role.name !== name);
 
     if (name === defaultRole) {
@@ -132,59 +110,40 @@ export default function RoleSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('MANAGE_ROLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Add Role</span>
-
-          <Text variant="subtitle1" component="span">
-            Enter the name for the role below.
-          </Text>
-        </span>
-      ),
-      payload: {
-        availableRoles,
-        submitButtonText: 'Create',
-        onSubmit: handleAddRole,
+    openDialog('CREATE_ROLE', {
+      title: 'Create Role',
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'max-w-sm' },
       },
-      props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
 
   function handleOpenEditor(originalRole: Role) {
-    openDialog('MANAGE_ROLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Edit Role</span>
-
-          <Text variant="subtitle1" component="span">
-            Enter the name for the role below.
-          </Text>
-        </span>
-      ),
-      payload: {
-        originalRole,
-        availableRoles,
-        onSubmit: (values: RoleFormValues) =>
-          handleEditRole(values, originalRole),
+    openDialog('EDIT_ROLE', {
+      title: 'Edit Role',
+      payload: { originalRole },
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'max-w-sm' },
       },
-      props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
 
-  function handleConfirmRemove(originalRole: Role) {
+  function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
-      title: 'Remove Role',
+      title: 'Delete Role',
       payload: (
         <Text>
-          Are you sure you want to remove the &quot;
-          <strong>{originalRole.name}</strong>&quot; role?
+          Are you sure you want to delete the &quot;
+          <strong>{originalRole.name}</strong>&quot; role? This cannot be
+          undone.
         </Text>
       ),
       props: {
-        onPrimaryAction: () => handleRemoveRole(originalRole),
+        onPrimaryAction: () => handleDeleteRole(originalRole),
         primaryButtonColor: 'error',
-        primaryButtonText: 'Remove',
+        primaryButtonText: 'Delete',
       },
     });
   }
@@ -286,7 +245,7 @@ export default function RoleSettings() {
 
                           <Dropdown.Item
                             disabled={role.isSystemRole}
-                            onClick={() => handleConfirmRemove(role)}
+                            onClick={() => handleConfirmDelete(role)}
                           >
                             <Text
                               className="font-medium"
@@ -294,7 +253,7 @@ export default function RoleSettings() {
                                 color: (theme) => theme.palette.error.main,
                               }}
                             >
-                              Remove
+                              Delete
                             </Text>
                           </Dropdown.Item>
                         </Dropdown.Content>

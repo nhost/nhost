@@ -1,34 +1,24 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { Role } from '@/types/application';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { yupResolver } from '@hookform/resolvers/yup';
+import Text from '@/ui/v2/Text';
 import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface RoleFormValues {
+export interface BaseRoleFormValues {
   /**
    * The name of the role.
    */
   name: string;
 }
 
-export interface RoleFormProps {
-  /**
-   * Available roles.
-   */
-  availableRoles: Role[];
-  /**
-   * Original role. This is defined only if the form was opened to edit an
-   * existing role.
-   */
-  originalRole?: Role;
+export interface BaseRoleFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: RoleFormValues) => void;
+  onSubmit: (values: BaseRoleFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -41,28 +31,20 @@ export interface RoleFormProps {
   submitButtonText?: string;
 }
 
-const validationSchema = Yup.object({
+export const baseRoleFormValidationSchema = Yup.object({
   name: Yup.string().required('This field is required.'),
 });
 
-export default function RoleForm({
-  availableRoles,
-  originalRole,
+export default function BaseRoleForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-}: RoleFormProps) {
+}: BaseRoleFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const form = useForm<RoleFormValues>({
-    defaultValues: {
-      name: originalRole?.name || '',
-    },
-    resolver: yupResolver(validationSchema),
-  });
+  const form = useFormContext<BaseRoleFormValues>();
 
   const {
     register,
-    setError,
     formState: { errors, dirtyFields, isSubmitting },
   } = form;
 
@@ -74,22 +56,13 @@ export default function RoleForm({
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
-  async function handleSubmit(values: RoleFormValues) {
-    if (availableRoles.some((role) => role.name === values.name)) {
-      setError('name', { message: 'This role already exists.' });
-
-      return;
-    }
-
-    onSubmit?.(values);
-  }
-
   return (
-    <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="grid grid-flow-row gap-4 px-6 pb-6"
-      >
+    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+      <Text variant="subtitle1" component="span">
+        Enter the name for the role below.
+      </Text>
+
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
           {...register('name')}
           inputProps={{ maxLength: 100 }}
@@ -114,6 +87,6 @@ export default function RoleForm({
           </Button>
         </div>
       </Form>
-    </FormProvider>
+    </div>
   );
 }

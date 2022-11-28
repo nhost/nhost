@@ -2,7 +2,8 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
 import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
-import RoleForm from '@/components/settings/roles/RoleForm';
+import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
+import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -212,6 +213,25 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
   );
 
+  const sharedDialogProps = {
+    ...dialogPayload,
+    onSubmit: async (values: any) => {
+      await dialogPayload?.onSubmit?.(values);
+
+      closeDialog();
+    },
+    onCancel: closeDialogWithDirtyGuard,
+  };
+
+  const sharedDrawerProps = {
+    onSubmit: async () => {
+      await drawerPayload?.onSubmit();
+
+      closeDrawer();
+    },
+    onCancel: closeDrawerWithDirtyGuard,
+  };
+
   return (
     <DialogContext.Provider value={contextValue}>
       <AlertDialog
@@ -264,51 +284,23 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
           {activeDialogType === 'CREATE_FOREIGN_KEY' && (
-            <CreateForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <CreateForeignKeyForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'EDIT_FOREIGN_KEY' && (
-            <EditForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <EditForeignKeyForm {...sharedDialogProps} />
           )}
 
-          {activeDialogType === 'MANAGE_ROLE' && (
-            <RoleForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
+          {activeDialogType === 'CREATE_ROLE' && (
+            <CreateRoleForm {...sharedDialogProps} />
+          )}
 
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+          {activeDialogType === 'EDIT_ROLE' && (
+            <EditRoleForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'MANAGE_PERMISSION_VARIABLE' && (
-            <PermissionVariableForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <PermissionVariableForm {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>
@@ -325,61 +317,34 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         <RetryableErrorBoundary>
           {activeDrawerType === 'CREATE_RECORD' && (
             <CreateRecordForm
+              {...sharedDrawerProps}
               columns={drawerPayload?.columns}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'CREATE_COLUMN' && (
-            <CreateColumnForm
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
+            <CreateColumnForm {...sharedDrawerProps} />
           )}
 
           {activeDrawerType === 'EDIT_COLUMN' && (
             <EditColumnForm
+              {...sharedDrawerProps}
               column={drawerPayload?.column}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'CREATE_TABLE' && (
             <CreateTableForm
+              {...sharedDrawerProps}
               schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'EDIT_TABLE' && (
             <EditTableForm
+              {...sharedDrawerProps}
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
         </RetryableErrorBoundary>
