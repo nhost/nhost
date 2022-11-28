@@ -54,7 +54,7 @@ export class NhostGraphqlClient extends GraphQLClient {
 
   /**
    * Use `nhost.graphql.getUrl` to get the GraphQL URL.
-   *
+   * @deprecated Use `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl` instead.
    * @example
    * ```ts
    * const url = nhost.graphql.getUrl();
@@ -64,6 +64,28 @@ export class NhostGraphqlClient extends GraphQLClient {
    */
   getUrl(): string {
     return this._url
+  }
+
+  /**
+   * Use `nhost.graphql.httpUrl` to get the GraphQL HTTP URL.
+   * @example
+   * ```ts
+   * const url = nhost.graphql.httpUrl;
+   * ```
+   */
+  get httpUrl(): string {
+    return this._url
+  }
+
+  /**
+   * Use `nhost.graphql.wsUrl` to get the GraphQL WebSocket URL.
+   * @example
+   * ```ts
+   * const url = nhost.graphql.wsUrl;
+   * ```
+   */
+  get wsUrl(): string {
+    return this._url.replace(/^(http)(s?):\/\//, 'ws$2://')
   }
 
   /**
