@@ -45,7 +45,7 @@ jobs:
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' $FILTER_MODIFIED \
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
-            | jq -c --slurp)
+            | jq -c --slurp 'map(select(length > 0))')
           echo "matrix=$PACKAGES" >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
