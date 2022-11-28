@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { ProjectEnvironmentVariableFormValues } from '@/components/settings/environmentVariables/ProjectEnvironmentVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
@@ -17,8 +16,6 @@ import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteEnvironmentVariableMutation,
   useGetEnvironmentVariablesQuery,
-  useInsertEnvironmentVariablesMutation,
-  useUpdateEnvironmentVariableMutation,
 } from '@/utils/__generated__/graphql';
 import { format } from 'date-fns';
 import { Fragment } from 'react';
@@ -41,14 +38,6 @@ export default function ProjectEnvironmentVariableSettings() {
     },
   });
 
-  const [insertEnvironmentVariables] = useInsertEnvironmentVariablesMutation({
-    refetchQueries: ['getEnvironmentVariables'],
-  });
-
-  const [updateEnvironmentVariable] = useUpdateEnvironmentVariableMutation({
-    refetchQueries: ['getEnvironmentVariables'],
-  });
-
   const [deleteEnvironmentVariable] = useDeleteEnvironmentVariableMutation({
     refetchQueries: ['getEnvironmentVariables'],
   });
@@ -64,62 +53,6 @@ export default function ProjectEnvironmentVariableSettings() {
 
   if (error) {
     throw error;
-  }
-
-  const availableEnvironmentVariables =
-    [...data.environmentVariables].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    ) || [];
-
-  async function handleInsertVariable({
-    name,
-    prodValue,
-    devValue,
-  }: ProjectEnvironmentVariableFormValues) {
-    const insertEnvironmentVariablePromise = insertEnvironmentVariables({
-      variables: {
-        environmentVariables: [
-          { appId: currentApplication.id, name, prodValue, devValue },
-        ],
-      },
-    });
-
-    await toast.promise(
-      insertEnvironmentVariablePromise,
-      {
-        loading: 'Creating environment variable...',
-        success: 'Environment variable has been created successfully.',
-        error: 'An error occurred while creating the environment variable.',
-      },
-      toastStyleProps,
-    );
-  }
-
-  async function handleEditVariable({
-    id,
-    prodValue,
-    devValue,
-  }: ProjectEnvironmentVariableFormValues) {
-    const updateEnvironmentVariablePromise = updateEnvironmentVariable({
-      variables: {
-        id,
-        environmentVariable: {
-          prodValue,
-          devValue,
-        },
-      },
-    });
-
-    await toast.promise(
-      updateEnvironmentVariablePromise,
-      {
-        loading: 'Updating environment variable...',
-        success: 'Environment variable has been updated successfully.',
-        error: 'An error occurred while updating the environment variable.',
-      },
-      toastStyleProps,
-    );
   }
 
   async function handleDeleteVariable({ id }: EnvironmentVariable) {
@@ -141,7 +74,7 @@ export default function ProjectEnvironmentVariableSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('MANAGE_ENVIRONMENT_VARIABLE', {
+    openDialog('CREATE_ENVIRONMENT_VARIABLE', {
       title: (
         <span className="grid grid-flow-row">
           <span>Create Environment Variable</span>
@@ -152,20 +85,15 @@ export default function ProjectEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        availableEnvironmentVariables,
-        submitButtonText: 'Add',
-        onSubmit: handleInsertVariable,
-      },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
-    openDialog('MANAGE_ENVIRONMENT_VARIABLE', {
+    openDialog('EDIT_ENVIRONMENT_VARIABLE', {
       title: (
         <span className="grid grid-flow-row">
-          <span>Create Environment Variable</span>
+          <span>Edit Environment Variable</span>
 
           <Text variant="subtitle1" component="span">
             The default value will be available in all environments, unless you
@@ -173,11 +101,7 @@ export default function ProjectEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        originalEnvironmentVariable: originalVariable,
-        availableEnvironmentVariables,
-        onSubmit: handleEditVariable,
-      },
+      payload: { originalEnvironmentVariable: originalVariable },
       props: { PaperProps: { className: 'max-w-sm' } },
     });
   }
@@ -199,6 +123,12 @@ export default function ProjectEnvironmentVariableSettings() {
       },
     });
   }
+
+  const availableEnvironmentVariables =
+    [...data.environmentVariables].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    ) || [];
 
   return (
     <SettingsContainer

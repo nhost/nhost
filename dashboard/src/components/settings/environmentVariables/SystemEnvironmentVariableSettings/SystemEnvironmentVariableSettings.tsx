@@ -70,7 +70,7 @@ export default function SystemEnvironmentVariableSettings() {
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="grid grid-flow-row gap-2 justify-start">
+      <div className="grid grid-flow-row gap-2 justify-items-start">
         <Text className="font-medium">NHOST_ADMIN_SECRET</Text>
 
         <div className="grid grid-flow-col gap-2 items-center">
@@ -101,7 +101,7 @@ export default function SystemEnvironmentVariableSettings() {
         </div>
       </div>
 
-      <div className="grid grid-flow-row gap-2 justify-start">
+      <div className="grid grid-flow-row gap-2 justify-items-start">
         <Text className="font-medium">NHOST_WEBHOOK_SECRET</Text>
 
         <div className="grid grid-flow-col gap-2 items-center">
@@ -132,7 +132,7 @@ export default function SystemEnvironmentVariableSettings() {
         </div>
       </div>
 
-      <div className="grid grid-flow-row gap-2 justify-start">
+      <div className="grid grid-flow-row gap-2 justify-items-start">
         <Text className="font-medium">NHOST_JWT_SECRET</Text>
         <Button variant="borderless" onClick={showJwtSecret} size="small">
           Show JWT Secret
