@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.6.0
+
+### Minor Changes
+
+- eef9c914: feat(dashboard): add Roles and Permissions page
+
 ## 0.5.0
 
 ### Minor Changes

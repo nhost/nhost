@@ -61,8 +61,8 @@ jobs:
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
 
-  publish:
-    name: Publish
+  publish-docker:
+    name: Publish to Docker Hub
     runs-on: ubuntu-latest
     needs:
       - test
@@ -112,13 +112,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-      - name: Setup Vercel CLI
-        run: pnpm add -g vercel
-      - name: Trigger a Vercel deployment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
-        run: vercel pull --environment=production && vercel build --prod && vercel deploy --prebuilt --prod
       - name: Create GitHub Release
         uses: taiki-e/create-gh-release-action@v1
         with:
@@ -129,3 +122,29 @@ jobs:
       - name: Remove tag on failure
         if: failure()
         run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - publish-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel
+      - name: Trigger a Vercel deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
