@@ -20,8 +20,3 @@ export const useUserAvatarUrl = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserAvatarUrl} instead */
-export const useAvatarUrl = useUserAvatarUrl

@@ -81,16 +81,14 @@ type AuthServices = {
 export const createAuthMachine = ({
   backendUrl,
   clientUrl,
-  clientStorageGetter,
-  clientStorageSetter,
   clientStorageType = 'web',
   clientStorage,
   refreshIntervalTime,
   autoRefreshToken = true,
   autoSignIn = true
 }: AuthMachineOptions) => {
-  const storageGetter = clientStorageGetter || localStorageGetter(clientStorageType, clientStorage)
-  const storageSetter = clientStorageSetter || localStorageSetter(clientStorageType, clientStorage)
+  const storageGetter = localStorageGetter(clientStorageType, clientStorage)
+  const storageSetter = localStorageSetter(clientStorageType, clientStorage)
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, D = any>(
     url: string,

@@ -4,7 +4,6 @@ import { InterpreterFrom } from 'xstate'
 
 import { ErrorPayload } from './errors'
 import { AuthMachine } from './machines'
-import { StorageGetter, StorageSetter } from './storage'
 
 export interface AuthOptions {
   /** Time interval until token refreshes, in seconds */
@@ -27,13 +26,6 @@ export interface AuthOptions {
    * - `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
    */
   clientStorage?: ClientStorage
-  /**
-   *  @internal @deprecated Use clientStorage / clientStorageType instead  */
-  clientStorageGetter?: StorageGetter
-  /**
-   * Define a way to set information about the refresh token and its exipration date.
-   * @internal @deprecated  Use clientStorage / clientStorageType instead  */
-  clientStorageSetter?: StorageSetter
   /** When set to true, will automatically refresh token before it expires */
   autoRefreshToken?: boolean
   /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */

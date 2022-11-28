@@ -1,7 +1,6 @@
 export type { NhostClientOptions } from './client'
 export { AuthClient } from './client'
 export * from './constants'
-export { AuthClientSSR, AuthCookieClient } from './cookie-client'
 export * from './errors'
 export * from './machines'
 export * from './promises'

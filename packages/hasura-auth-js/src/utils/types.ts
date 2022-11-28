@@ -17,8 +17,6 @@ export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams extends AuthOptions {
   url: string
   start?: boolean
-  /** @internal @deprecated @alias autoSignIn - use autoSignIn instead  */
-  autoLogin?: boolean
 }
 
 // Sign Up
