@@ -95,7 +95,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
             },
             {
               headers: {
-                authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+                authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
               }
             }
           )
