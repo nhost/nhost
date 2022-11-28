@@ -29,7 +29,7 @@ export interface PermissionVariableSettingsFormValues {
   environmentVariables: EnvironmentVariable[];
 }
 
-export default function ProjectEnvironmentVariableSettings() {
+export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({

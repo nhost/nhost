@@ -1,5 +1,5 @@
 import Container from '@/components/layout/Container';
-import ProjectEnvironmentVariableSettings from '@/components/settings/environmentVariables/ProjectEnvironmentVariableSettings';
+import EnvironmentVariableSettings from '@/components/settings/environmentVariables/EnvironmentVariableSettings';
 import SystemEnvironmentVariableSettings from '@/components/settings/environmentVariables/SystemEnvironmentVariableSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import type { ReactElement } from 'react';
@@ -10,7 +10,7 @@ export default function EnvironmentVariablesPage() {
       className="grid grid-flow-row gap-6 max-w-5xl bg-transparent"
       rootClassName="bg-transparent"
     >
-      <ProjectEnvironmentVariableSettings />
+      <EnvironmentVariableSettings />
       <SystemEnvironmentVariableSettings />
     </Container>
   );

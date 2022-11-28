@@ -1,10 +1,10 @@
 import type {
-  BaseProjectEnvironmentVariableFormProps,
-  BaseProjectEnvironmentVariableFormValues,
-} from '@/components/settings/environmentVariables/BaseProjectEnvironmentVariableForm';
-import BaseProjectEnvironmentVariableForm, {
-  baseProjectEnvironmentVariableFormValidationSchema,
-} from '@/components/settings/environmentVariables/BaseProjectEnvironmentVariableForm';
+  BaseEnvironmentVariableFormProps,
+  BaseEnvironmentVariableFormValues,
+} from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
+import BaseEnvironmentVariableForm, {
+  baseEnvironmentVariableFormValidationSchema,
+} from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -17,8 +17,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface EditProjectEnvironmentVariableFormProps
-  extends Pick<BaseProjectEnvironmentVariableFormProps, 'onCancel'> {
+export interface EditEnvironmentVariableFormProps
+  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel'> {
   /**
    * The environment variable to edit.
    */
@@ -29,12 +29,12 @@ export interface EditProjectEnvironmentVariableFormProps
   onSubmit?: () => Promise<void>;
 }
 
-export default function EditProjectEnvironmentVariableForm({
+export default function EditEnvironmentVariableForm({
   originalEnvironmentVariable,
   onSubmit,
   ...props
-}: EditProjectEnvironmentVariableFormProps) {
-  const form = useForm<BaseProjectEnvironmentVariableFormValues>({
+}: EditEnvironmentVariableFormProps) {
+  const form = useForm<BaseEnvironmentVariableFormValues>({
     defaultValues: {
       id: originalEnvironmentVariable.id || '',
       name: originalEnvironmentVariable.name || '',
@@ -42,7 +42,7 @@ export default function EditProjectEnvironmentVariableForm({
       prodValue: originalEnvironmentVariable.prodValue || '',
     },
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseProjectEnvironmentVariableFormValidationSchema),
+    resolver: yupResolver(baseEnvironmentVariableFormValidationSchema),
   });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -78,7 +78,7 @@ export default function EditProjectEnvironmentVariableForm({
     name,
     prodValue,
     devValue,
-  }: BaseProjectEnvironmentVariableFormValues) {
+  }: BaseEnvironmentVariableFormValues) {
     if (
       data?.environmentVariables?.some(
         (environmentVariable) =>
@@ -118,7 +118,7 @@ export default function EditProjectEnvironmentVariableForm({
 
   return (
     <FormProvider {...form}>
-      <BaseProjectEnvironmentVariableForm
+      <BaseEnvironmentVariableForm
         disableName
         onSubmit={handleSubmit}
         {...props}

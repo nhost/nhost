@@ -1,10 +1,10 @@
 import type {
-  BaseProjectEnvironmentVariableFormProps,
-  BaseProjectEnvironmentVariableFormValues,
-} from '@/components/settings/environmentVariables/BaseProjectEnvironmentVariableForm';
-import BaseProjectEnvironmentVariableForm, {
-  baseProjectEnvironmentVariableFormValidationSchema,
-} from '@/components/settings/environmentVariables/BaseProjectEnvironmentVariableForm';
+  BaseEnvironmentVariableFormProps,
+  BaseEnvironmentVariableFormValues,
+} from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
+import BaseEnvironmentVariableForm, {
+  baseEnvironmentVariableFormValidationSchema,
+} from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
@@ -16,26 +16,26 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface CreateProjectEnvironmentVariableFormProps
-  extends Pick<BaseProjectEnvironmentVariableFormProps, 'onCancel'> {
+export interface CreateEnvironmentVariableFormProps
+  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel'> {
   /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: () => Promise<void>;
 }
 
-export default function CreateProjectEnvironmentVariableForm({
+export default function CreateEnvironmentVariableForm({
   onSubmit,
   ...props
-}: CreateProjectEnvironmentVariableFormProps) {
-  const form = useForm<BaseProjectEnvironmentVariableFormValues>({
+}: CreateEnvironmentVariableFormProps) {
+  const form = useForm<BaseEnvironmentVariableFormValues>({
     defaultValues: {
       name: '',
       devValue: '',
       prodValue: '',
     },
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseProjectEnvironmentVariableFormValidationSchema),
+    resolver: yupResolver(baseEnvironmentVariableFormValidationSchema),
   });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -70,7 +70,7 @@ export default function CreateProjectEnvironmentVariableForm({
     name,
     prodValue,
     devValue,
-  }: BaseProjectEnvironmentVariableFormValues) {
+  }: BaseEnvironmentVariableFormValues) {
     if (
       data?.environmentVariables?.some(
         (environmentVariable) => environmentVariable.name === name,
@@ -106,7 +106,7 @@ export default function CreateProjectEnvironmentVariableForm({
 
   return (
     <FormProvider {...form}>
-      <BaseProjectEnvironmentVariableForm
+      <BaseEnvironmentVariableForm
         submitButtonText="Create"
         onSubmit={handleSubmit}
         {...props}

@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseProjectEnvironmentVariableFormValues {
+export interface BaseEnvironmentVariableFormValues {
   /**
    * Identifier of the environment variable.
    */
@@ -26,7 +26,7 @@ export interface BaseProjectEnvironmentVariableFormValues {
   prodValue: string;
 }
 
-export interface BaseProjectEnvironmentVariableFormProps {
+export interface BaseEnvironmentVariableFormProps {
   /**
    * Determines whether or not name should be disabled.
    */
@@ -34,7 +34,7 @@ export interface BaseProjectEnvironmentVariableFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: BaseProjectEnvironmentVariableFormValues) => void;
+  onSubmit: (values: BaseEnvironmentVariableFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -47,7 +47,7 @@ export interface BaseProjectEnvironmentVariableFormProps {
   submitButtonText?: string;
 }
 
-export const baseProjectEnvironmentVariableFormValidationSchema = Yup.object({
+export const baseEnvironmentVariableFormValidationSchema = Yup.object({
   name: Yup.string()
     .required('This field is required.')
     .test(
@@ -82,14 +82,14 @@ export const baseProjectEnvironmentVariableFormValidationSchema = Yup.object({
   prodValue: Yup.string().required('This field is required.'),
 });
 
-export default function BaseProjectEnvironmentVariableForm({
+export default function BaseEnvironmentVariableForm({
   disableName,
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-}: BaseProjectEnvironmentVariableFormProps) {
+}: BaseEnvironmentVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const form = useFormContext<BaseProjectEnvironmentVariableFormValues>();
+  const form = useFormContext<BaseEnvironmentVariableFormValues>();
 
   const {
     register,
@@ -121,13 +121,10 @@ export default function BaseProjectEnvironmentVariableForm({
               ) {
                 // we need to prevent invalid characters from being entered
                 // eslint-disable-next-line no-param-reassign
-                event.target.value = event.target.value
-                  .replace(/[^a-zA-Z0-9_]/g, '')
-                  .toUpperCase();
-              } else {
-                // we want to transform the value to uppercase
-                // eslint-disable-next-line no-param-reassign
-                event.target.value = event.target.value?.toUpperCase() || '';
+                event.target.value = event.target.value.replace(
+                  /[^a-zA-Z0-9_]/g,
+                  '',
+                );
               }
             },
           })}
@@ -139,6 +136,7 @@ export default function BaseProjectEnvironmentVariableForm({
           error={!!errors.name}
           helperText={errors?.name?.message}
           fullWidth
+          autoFocus
           autoComplete="off"
           disabled={disableName}
         />
