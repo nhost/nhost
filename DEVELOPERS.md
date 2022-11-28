@@ -99,11 +99,6 @@ You can take a look at the changeset documentation: [How to add a changeset](htt
 
 You'll notice that `git commit` takes a few seconds to run. We set a commit hook that scans the changes in the code, automatically generates documentation from the inline [TSDoc](https://tsdoc.org/) annotations, and adds these generated documentation files to the commit. They automatically update the [reference documentation](https://docs.nhost.io/reference).
 
-The document generation script that is run in the pre-commit hook requires to be built first. You may need to run the following command before the commit:
-
-```sh
-pnpm run build
-```
 
 <!-- ## Good practices
 - lint

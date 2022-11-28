@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.6
+
+### Patch Changes
+
+- 23274dee: chore(docs): update permission variables image
+
 ## 0.0.5
 
 ### Patch Changes

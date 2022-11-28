@@ -29,7 +29,7 @@ export interface EditForeignKeyFormProps
   onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void>;
 }
 
-export function EditForeignKeyForm({
+export default function EditForeignKeyForm({
   foreignKeyRelation,
   selectedColumn,
   onSubmit,

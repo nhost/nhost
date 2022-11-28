@@ -1,2 +1,2 @@
 export * from './EditForeignKeyForm';
-export { EditForeignKeyForm as default } from './EditForeignKeyForm';
+export { default } from './EditForeignKeyForm';

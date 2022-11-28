@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 0.6.0
+
+### Minor Changes
+
+- eef9c914: feat(dashboard): add Roles and Permissions page
+
+## 0.5.0
+
+### Minor Changes
+
+- a48dd5bf: feat(dashboard): make backend port configurable
+
 ## 0.4.3
 
 ### Patch Changes

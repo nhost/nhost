@@ -1,3 +1,4 @@
+/** @type {import('eslint').Linter.Config} */
 module.exports = {
   root: true,
   extends: ['next', 'airbnb', 'airbnb-typescript', 'airbnb/hooks', 'prettier'],
