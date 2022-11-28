@@ -120,7 +120,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         generate: async (_) => {
           const { data } = await api.get('/mfa/totp/generate', {
             headers: {
-              authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+              authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
             }
           })
           return data
@@ -134,7 +134,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
             },
             {
               headers: {
-                authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+                authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
               }
             }
           )

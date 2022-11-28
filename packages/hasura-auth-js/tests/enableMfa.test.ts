@@ -142,7 +142,7 @@ describe(`Activation`, () => {
   test(`should not do anything if MFA TOTP has not been generated yet`, () => {
     enableMfaService.send('ACTIVATE')
 
-    expect(enableMfaService.state.matches('idle')).toBeTruthy()
+    expect(enableMfaService.getSnapshot().matches('idle')).toBeTruthy()
   })
 
   test(`should fail if network is unavailable`, async () => {

@@ -48,6 +48,10 @@ todo.md
 .netlify
 .monorepo-example
 
+# Local Vercel folder
+.vercel
+
+# Next.js build output
 .next
 
 # TypeDoc output

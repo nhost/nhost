@@ -511,7 +511,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/is-authenticated
    */
   isAuthenticated(): boolean {
-    return !!this._client.interpreter?.state.matches({ authentication: 'signedIn' })
+    return !!this._client.interpreter?.getSnapshot().matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -533,7 +533,7 @@ export class HasuraAuthClient {
    */
   async isAuthenticatedAsync(): Promise<boolean> {
     const interpreter = await this.waitUntilReady()
-    return interpreter.state.matches({ authentication: 'signedIn' })
+    return interpreter.getSnapshot().matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -597,7 +597,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
   getAccessToken(): string | undefined {
-    return this._client.interpreter?.state.context.accessToken.value ?? undefined
+    return this._client.interpreter?.getSnapshot().context.accessToken.value ?? undefined
   }
 
   /**
@@ -673,7 +673,7 @@ export class HasuraAuthClient {
     try {
       const interpreter = await this.waitUntilReady()
       return new Promise((resolve) => {
-        const token = refreshToken || interpreter.state.context.refreshToken.value
+        const token = refreshToken || interpreter.getSnapshot().context.refreshToken.value
         if (!token) {
           return resolve({ session: null, error: NO_REFRESH_TOKEN })
         }
@@ -711,7 +711,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-session
    */
   getSession() {
-    return getSession(this._client.interpreter?.state?.context)
+    return getSession(this._client.interpreter?.getSnapshot()?.context)
   }
 
   /**
@@ -726,7 +726,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-user
    */
   getUser() {
-    return this._client.interpreter?.state?.context?.user || null
+    return this._client.interpreter?.getSnapshot()?.context?.user || null
   }
 
   /**
@@ -739,7 +739,7 @@ export class HasuraAuthClient {
     if (!interpreter) {
       throw Error('Auth interpreter not set')
     }
-    if (!interpreter.state.hasTag('loading')) {
+    if (!interpreter.getSnapshot().hasTag('loading')) {
       return Promise.resolve(interpreter)
     }
     return new Promise((resolve, reject) => {
@@ -757,7 +757,7 @@ export class HasuraAuthClient {
   }
 
   private isReady() {
-    return !this._client.interpreter?.state?.hasTag('loading')
+    return !this._client.interpreter?.getSnapshot()?.hasTag('loading')
   }
 
   get client() {

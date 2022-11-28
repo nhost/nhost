@@ -4,19 +4,19 @@ import { twMerge } from 'tailwind-merge';
 export interface ContainerProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
   /**
-   * Class name passed to the wrapper element.
+   * Class name passed to the root element.
    */
-  wrapperClassName?: string;
+  rootClassName?: string;
 }
 
 export default function Container({
   children,
   className,
-  wrapperClassName,
+  rootClassName,
   ...props
 }: ContainerProps) {
   return (
-    <div className={twMerge('mx-auto w-full bg-white', wrapperClassName)}>
+    <div className={twMerge('mx-auto w-full bg-white', rootClassName)}>
       <div
         className={twMerge(
           'mx-auto max-w-7xl bg-white px-5 pt-6 pb-20',

@@ -32,6 +32,9 @@ const StyledMenu = styled(MaterialMenu)({
   [`& .${materialMenuClasses.list}`]: {
     padding: 0,
   },
+  [`& .${materialMenuClasses.paper}`]: {
+    boxShadow: '0px 4px 10px rgba(33, 50, 75, 0.25)',
+  },
 });
 
 function DropdownContent({
@@ -68,8 +71,7 @@ function DropdownContent({
         sx: [
           {
             borderRadius: '0.5rem',
-            boxShadow:
-              '0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)',
+            boxShadow: '0px 4px 10px rgba(33, 50, 75, 0.25)',
             fontFamily: (theme) => theme.typography.fontFamily,
           },
         ],

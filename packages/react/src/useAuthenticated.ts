@@ -15,7 +15,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 export const useAuthenticated = () => {
   const service = useAuthInterpreter()
   const [isAuthenticated, setIsAuthenticated] = useState(
-    !!service.status && service.state.matches({ authentication: 'signedIn' })
+    !!service.status && service.getSnapshot().matches({ authentication: 'signedIn' })
   )
   useEffect(() => {
     const subscription = service.subscribe((state) => {

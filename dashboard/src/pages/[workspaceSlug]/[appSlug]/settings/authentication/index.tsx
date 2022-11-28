@@ -37,8 +37,8 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-fafafa"
-      wrapperClassName="bg-fafafa"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      rootClassName="bg-transparent"
     >
       <ClientURLSettings />
       <AllowedRedirectURLsSettings />
@@ -52,13 +52,5 @@ export default function SettingsAuthenticationPage() {
 }
 
 SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

@@ -89,7 +89,7 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthCli
             { newPassword: password, ticket: ticket },
             {
               headers: {
-                authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
+                authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
               }
             }
           )

@@ -166,7 +166,7 @@ test(`should succeed if the provided MFA ticket and TOTP were valid`, async () =
 })
 
 test(`should succeed if MFA ticket is already in context and TOTP was valid`, async () => {
-  authService.state.context.mfa = { ticket: `mfaTotp:${faker.datatype.uuid()}` }
+  authService.getSnapshot().context.mfa = { ticket: `mfaTotp:${faker.datatype.uuid()}` }
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',

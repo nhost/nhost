@@ -33,7 +33,7 @@ export default function SettingsLayout({
         {...sidebarProps}
       />
 
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden">
+      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-[#fafafa]">
         {children}
       </div>
     </ProjectLayout>

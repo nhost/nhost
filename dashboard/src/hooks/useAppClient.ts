@@ -1,3 +1,4 @@
+import { LOCAL_SUBDOMAIN } from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { NhostClientConstructorParams } from '@nhost/nhost-js';
 import { NhostClient } from '@nhost/nhost-js';
@@ -20,7 +21,7 @@ export function useAppClient(
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return new NhostClient({
-      subdomain: 'localhost:1337',
+      subdomain: LOCAL_SUBDOMAIN,
       start: false,
       ...options,
     });

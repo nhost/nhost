@@ -50,7 +50,7 @@ export class AuthClient {
         // * Ideally, a single tab should autorefresh and share the new jwt
         this._channel = new BroadcastChannel('nhost')
         this._channel.addEventListener('message', (token) => {
-          const existingToken = this.interpreter?.state.context.refreshToken.value
+          const existingToken = this.interpreter?.getSnapshot().context.refreshToken.value
           if (this.interpreter && token.data !== existingToken) {
             this.interpreter.send('TRY_TOKEN', { token: token.data })
           }

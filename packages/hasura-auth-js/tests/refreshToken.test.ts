@@ -273,9 +273,9 @@ describe('General and disabled auto-sign in', () => {
     const accessToken = faker.datatype.string(40)
     const refreshToken = faker.datatype.uuid()
 
-    expect(authService.state.context.user).toBeNull()
-    expect(authService.state.context.accessToken.value).toBeNull()
-    expect(authService.state.context.refreshToken.value).toBeNull()
+    expect(authService.getSnapshot().context.user).toBeNull()
+    expect(authService.getSnapshot().context.accessToken.value).toBeNull()
+    expect(authService.getSnapshot().context.refreshToken.value).toBeNull()
 
     authService.send({
       type: 'SESSION_UPDATE',

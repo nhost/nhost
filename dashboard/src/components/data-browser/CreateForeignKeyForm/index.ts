@@ -1,2 +1,2 @@
 export * from './CreateForeignKeyForm';
-export { CreateForeignKeyForm as default } from './CreateForeignKeyForm';
+export { default } from './CreateForeignKeyForm';
