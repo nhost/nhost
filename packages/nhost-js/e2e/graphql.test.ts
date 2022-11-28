@@ -9,120 +9,120 @@ const nhost = new NhostClient({
 type User = { id: string; displayName: string }
 
 describe('main tests', () => {
-  it('getUrl()', async () => {
-    const graphqlUrl = await nhost.graphql.getUrl()
+  it('getUrl()', () => {
+    const graphqlUrl = nhost.graphql.getUrl()
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
-  it('GraphQL request as logged out user', async () => {
-    const document = `
-  query {
-    users {
-      id
-      displayName
-    }
-  }
-    `
-    const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
+  it('getHttpUrl()', async () => {
+    const graphqlUrl = nhost.graphql.getHttpUrl()
 
-    expect(error).toBeTruthy()
-    expect(data).toBeNull()
+    expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
+  })
+
+  it('getWsUrl()', () => {
+    const graphqlUrl = nhost.graphql.getWsUrl()
+
+    expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
+  })
+
+  it('GraphQL request as logged out user', () => {
+    const document = `
+      query {
+        users {
+          id
+          displayName
+        }
+      }
+    `
+
+    expect(() => nhost.graphql.request<{ users: User[] }>(document)).rejects.toThrowError()
   })
 
   it('GraphQL request as admin', async () => {
     const document = `
-  query {
-    users {
-      id
-      displayName
-    }
-  }
+      query {
+        users {
+          id
+          displayName
+        }
+      }
     `
-    const { data, error } = await nhost.graphql.request<{ users: User[] }>(
+    const data = await nhost.graphql.request<{ users: User[] }>(
       document,
       {},
       {
-        headers: {
-          'x-hasura-admin-secret': 'nhost-admin-secret'
-        }
+        'x-hasura-admin-secret': 'nhost-admin-secret'
       }
     )
 
-    expect(error).toBeNull()
     expect(data).toBeTruthy()
   })
 
   it('GraphQL with variables', async () => {
     const document = `
-  query ($id: uuid!) {
-    user (id: $id) {
-      id
-      displayName
-    }
-  }
+      query ($id: uuid!) {
+        user (id: $id) {
+          id
+          displayName
+        }
+      }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
+    const data = await nhost.graphql.request<{ user: User }, { id: string }>(
       document,
       {
         id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
       },
       {
-        headers: {
-          'x-hasura-admin-secret': 'nhost-admin-secret'
-        }
+        'x-hasura-admin-secret': 'nhost-admin-secret'
       }
     )
 
-    expect(error).toBeNull()
     expect(data).toBeTruthy()
   })
 
-  it('GraphQL with incorrect variables', async () => {
+  it('GraphQL with incorrect variables', () => {
     const document = `
-  query ($id: uuid!) {
-    user (id: $id) {
-      id
-      displayName
-    }
-  }
-    `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
-      document,
-      {
-        id: 'not-a-uuid'
-      },
-      {
-        headers: {
-          'x-hasura-admin-secret': 'nhost-admin-secret'
+      query ($id: uuid!) {
+        user (id: $id) {
+          id
+          displayName
         }
       }
-    )
+    `
 
-    expect(error).toBeTruthy()
-    expect(data).toBeNull()
+    expect(() =>
+      nhost.graphql.request<{ user: User }, { id: string }>(
+        document,
+        {
+          id: 'not-a-uuid'
+        },
+        {
+          'x-hasura-admin-secret': 'nhost-admin-secret'
+        }
+      )
+    ).rejects.toThrowError()
   })
 
-  it('GraphQL with missing variables', async () => {
+  it('GraphQL with missing variables', () => {
     const document = `
-  query ($id: uuid!) {
-    user (id: $id) {
-      id
-      displayName
-    }
-  }
-    `
-    const { data, error } = await nhost.graphql.request<{ user: User }>(
-      document,
-      {},
-      {
-        headers: {
-          'x-hasura-admin-secret': 'nhost-admin-secret'
+      query ($id: uuid!) {
+        user (id: $id) {
+          id
+          displayName
         }
       }
-    )
+    `
 
-    expect(error).toBeTruthy()
-    expect(data).toBeNull()
+    expect(() =>
+      nhost.graphql.request<{ user: User }>(
+        document,
+        {},
+        {
+          'x-hasura-admin-secret': 'nhost-admin-secret'
+        }
+      )
+    ).rejects.toThrowError()
   })
 })
