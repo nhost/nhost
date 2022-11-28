@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -104,73 +105,80 @@ export default function BaseProjectEnvironmentVariableForm({
   }, [isDirty, onDirtyStateChange]);
 
   return (
-    <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4 px-6 pb-6">
-      <Input
-        {...register('name', {
-          onChange: (event) => {
-            if (
-              event.target.value &&
-              !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
-            ) {
-              // we need to prevent invalid characters from being entered
-              // eslint-disable-next-line no-param-reassign
-              event.target.value = event.target.value
-                .replace(/[^a-zA-Z0-9_]/g, '')
-                .toUpperCase();
-            } else {
-              // we want to transform the value to uppercase
-              // eslint-disable-next-line no-param-reassign
-              event.target.value = event.target.value?.toUpperCase() || '';
-            }
-          },
-        })}
-        inputProps={{ maxLength: 100 }}
-        id="name"
-        label="Name"
-        placeholder="EXAMPLE_NAME"
-        hideEmptyHelperText
-        error={!!errors.name}
-        helperText={errors?.name?.message}
-        fullWidth
-        autoComplete="off"
-        disabled={disableName}
-      />
+    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+      <Text variant="subtitle1" component="span">
+        Environment Variables are made available to all your services. All
+        values are encrypted.
+      </Text>
 
-      <Input
-        {...register('prodValue')}
-        inputProps={{ maxLength: 100 }}
-        id="prodValue"
-        label="Production Value"
-        placeholder="Enter value"
-        hideEmptyHelperText
-        error={!!errors.prodValue}
-        helperText={errors?.prodValue?.message}
-        fullWidth
-        autoComplete="off"
-      />
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
+        <Input
+          {...register('name', {
+            onChange: (event) => {
+              if (
+                event.target.value &&
+                !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
+              ) {
+                // we need to prevent invalid characters from being entered
+                // eslint-disable-next-line no-param-reassign
+                event.target.value = event.target.value
+                  .replace(/[^a-zA-Z0-9_]/g, '')
+                  .toUpperCase();
+              } else {
+                // we want to transform the value to uppercase
+                // eslint-disable-next-line no-param-reassign
+                event.target.value = event.target.value?.toUpperCase() || '';
+              }
+            },
+          })}
+          inputProps={{ maxLength: 100 }}
+          id="name"
+          label="Name"
+          placeholder="EXAMPLE_NAME"
+          hideEmptyHelperText
+          error={!!errors.name}
+          helperText={errors?.name?.message}
+          fullWidth
+          autoComplete="off"
+          disabled={disableName}
+        />
 
-      <Input
-        {...register('devValue')}
-        inputProps={{ maxLength: 100 }}
-        id="devValue"
-        label="Development Value"
-        placeholder="Enter value"
-        hideEmptyHelperText
-        error={!!errors.devValue}
-        helperText={errors?.devValue?.message}
-        fullWidth
-        autoComplete="off"
-      />
+        <Input
+          {...register('prodValue')}
+          inputProps={{ maxLength: 100 }}
+          id="prodValue"
+          label="Production Value"
+          placeholder="Enter value"
+          hideEmptyHelperText
+          error={!!errors.prodValue}
+          helperText={errors?.prodValue?.message}
+          fullWidth
+          autoComplete="off"
+        />
 
-      <div className="grid grid-flow-row gap-2">
-        <Button type="submit" loading={isSubmitting}>
-          {submitButtonText}
-        </Button>
+        <Input
+          {...register('devValue')}
+          inputProps={{ maxLength: 100 }}
+          id="devValue"
+          label="Development Value"
+          placeholder="Enter value"
+          hideEmptyHelperText
+          error={!!errors.devValue}
+          helperText={errors?.devValue?.message}
+          fullWidth
+          autoComplete="off"
+        />
 
-        <Button variant="outlined" color="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </Form>
+        <div className="grid grid-flow-row gap-2">
+          <Button type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </Button>
+
+          <Button variant="outlined" color="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </Form>
+    </div>
   );
 }

@@ -75,34 +75,22 @@ export default function ProjectEnvironmentVariableSettings() {
 
   function handleOpenCreator() {
     openDialog('CREATE_ENVIRONMENT_VARIABLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Create Environment Variable</span>
-
-          <Text variant="subtitle1" component="span">
-            The default value will be available in all environments, unless you
-            override it. All values are encrypted.
-          </Text>
-        </span>
-      ),
-      props: { PaperProps: { className: 'max-w-sm' } },
+      title: 'Create Environment Variable',
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'gap-2 max-w-sm' },
+      },
     });
   }
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
     openDialog('EDIT_ENVIRONMENT_VARIABLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Edit Environment Variable</span>
-
-          <Text variant="subtitle1" component="span">
-            The default value will be available in all environments, unless you
-            override it. All values are encrypted.
-          </Text>
-        </span>
-      ),
+      title: 'Edit Environment Variables',
       payload: { originalEnvironmentVariable: originalVariable },
-      props: { PaperProps: { className: 'max-w-sm' } },
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'gap-2 max-w-sm' },
+      },
     });
   }
 
