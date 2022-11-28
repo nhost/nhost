@@ -13,7 +13,7 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  TURBO_TEAM: nhost
   DASHBOARD_PACKAGE: '@nhost/dashboard'
 
 jobs:
@@ -31,8 +31,8 @@ jobs:
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
         with:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Create PR or Publish release
         id: changesets
         uses: changesets/action@v1
@@ -136,8 +136,8 @@ jobs:
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
         with:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Setup Vercel CLI
         run: pnpm add -g vercel
       - name: Trigger a Vercel deployment
