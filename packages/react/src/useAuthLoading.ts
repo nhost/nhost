@@ -3,6 +3,7 @@ import { useSelector } from '@xstate/react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
+ * @internal
  * @deprecated
  * When using both {@link useAuthLoading} and {@link useAuthenticated} together, their initial state will change
  * three times:

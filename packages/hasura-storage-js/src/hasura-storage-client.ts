@@ -1,5 +1,6 @@
 import FormData from 'form-data'
 
+import { HasuraStorageApi } from './hasura-storage-api'
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -11,7 +12,6 @@ import {
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
-import { HasuraStorageApi } from './hasura-storage-api'
 
 interface NhostStorageConstructorParams {
   /**
@@ -101,6 +101,7 @@ export class HasuraStorageClient {
   }
 
   /**
+   * @internal
    * @deprecated Use `nhost.storage.getPublicUrl()` instead.
    */
   getUrl(params: StorageGetUrlParams): string {
