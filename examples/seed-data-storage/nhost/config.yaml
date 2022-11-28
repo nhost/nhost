@@ -15,7 +15,7 @@ services:
       postgres_password: postgres
       postgres_user: postgres
   auth:
-    image: nhost/hasura-auth:0.16.1
+    image: nhost/hasura-auth:0.16.2
 auth:
   access_control:
     email:
