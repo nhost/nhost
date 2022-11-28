@@ -2,6 +2,6 @@
 '@nhost/nhost-js': minor
 ---
 
-Add new getters `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl`
+Add new getters `nhost.graphql.getHttpUrl` and `nhost.graphql.getWsUrl`
 
 `nhost.graphql.getUrl()` is now deprecated.
