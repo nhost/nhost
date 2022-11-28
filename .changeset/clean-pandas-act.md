@@ -1,5 +1,5 @@
 ---
-'@nhost/nhost-js': minor
+'@nhost/nhost-js': major
 ---
 
 Use the `graphql-request` client at `nhost.graphql`
