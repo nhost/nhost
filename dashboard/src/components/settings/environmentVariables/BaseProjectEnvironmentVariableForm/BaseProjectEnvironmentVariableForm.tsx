@@ -75,7 +75,7 @@ export const baseProjectEnvironmentVariableFormValidationSchema = Yup.object({
         ),
     )
     .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
-      /^[A-Z]{1,}[A-Z0-9_]*$/i.test(value),
+      /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
   devValue: Yup.string().required('This field is required.'),
   prodValue: Yup.string().required('This field is required.'),
@@ -110,14 +110,17 @@ export default function BaseProjectEnvironmentVariableForm({
           onChange: (event) => {
             if (
               event.target.value &&
-              !/^[A-Z]{1,}[A-Z0-9_]*$/g.test(event.target.value)
+              !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
             ) {
               // we need to prevent invalid characters from being entered
               // eslint-disable-next-line no-param-reassign
-              event.target.value = event.target.value.replace(
-                /[^A-Z0-9_]/g,
-                '',
-              );
+              event.target.value = event.target.value
+                .replace(/[^a-zA-Z0-9_]/g, '')
+                .toUpperCase();
+            } else {
+              // we want to transform the value to uppercase
+              // eslint-disable-next-line no-param-reassign
+              event.target.value = event.target.value?.toUpperCase() || '';
             }
           },
         })}
