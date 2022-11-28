@@ -6,8 +6,8 @@ import BaseRoleForm, {
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
@@ -54,13 +54,7 @@ export default function CreateRoleForm({
   }
 
   const { setError } = form;
-
-  const availableRoles = data?.app?.authUserDefaultAllowedRoles
-    .split(',')
-    .map((role) => ({
-      name: role.trim(),
-      isSystemRole: role === 'user' || role === 'me',
-    })) as Role[];
+  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
     if (availableRoles.some((role) => role.name === name)) {
