@@ -60,7 +60,7 @@ const BaseButton = forwardRef(
       ref={ref}
       sx={[
         props.size === 'small' && {
-          padding: (theme) => theme.spacing(0.5, 0.75),
+          padding: (theme) => theme.spacing(0.5, 0.5),
         },
         props.size === 'medium' && {
           padding: (theme) => theme.spacing(0.875, 1),

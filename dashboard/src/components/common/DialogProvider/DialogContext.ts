@@ -16,7 +16,9 @@ export type DialogType =
   | 'CREATE_ROLE'
   | 'EDIT_ROLE'
   | 'CREATE_PERMISSION_VARIABLE'
-  | 'EDIT_PERMISSION_VARIABLE';
+  | 'EDIT_PERMISSION_VARIABLE'
+  | 'CREATE_ENVIRONMENT_VARIABLE'
+  | 'EDIT_ENVIRONMENT_VARIABLE';
 
 export interface DialogConfig<TPayload = unknown> {
   /**

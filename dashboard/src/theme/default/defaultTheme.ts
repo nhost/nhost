@@ -11,6 +11,7 @@ export const theme = createTheme({
     fontFamily: '"Inter", sans-serif',
     body1: {
       fontSize: '0.9375rem',
+      lineHeight: '1.375rem',
     },
     h2: {
       fontSize: '1.625rem',
@@ -26,6 +27,7 @@ export const theme = createTheme({
     },
     subtitle1: {
       fontSize: '0.9375rem',
+      lineHeight: '1.375rem',
     },
     subtitle2: {
       fontSize: '0.75rem',

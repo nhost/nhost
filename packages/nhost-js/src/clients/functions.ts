@@ -38,7 +38,7 @@ export function createFunctionsClient(params: NhostClientConstructorParams) {
  * @alias Functions
  */
 export class NhostFunctionsClient {
-  private url: string
+  readonly url: string
   private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string

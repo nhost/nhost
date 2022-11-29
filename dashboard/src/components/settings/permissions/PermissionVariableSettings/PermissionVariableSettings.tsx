@@ -136,9 +136,7 @@ export default function PermissionVariableSettings() {
       docsLink="https://docs.nhost.io/graphql/permissions"
       rootClassName="gap-0"
       className="px-0 my-2"
-      slotProps={{
-        submitButtonProps: { className: 'invisible' },
-      }}
+      slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
         <Text className="font-medium">Field name</Text>

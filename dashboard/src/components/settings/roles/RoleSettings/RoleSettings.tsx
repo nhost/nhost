@@ -154,9 +154,7 @@ export default function RoleSettings() {
       docsLink="https://docs.nhost.io/authentication/users#roles"
       rootClassName="gap-0"
       className="px-0 my-2"
-      slotProps={{
-        submitButtonProps: { className: 'invisible' },
-      }}
+      slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <div className="border-b-1 border-gray-200 px-4 py-3">
         <Text className="font-medium">Name</Text>

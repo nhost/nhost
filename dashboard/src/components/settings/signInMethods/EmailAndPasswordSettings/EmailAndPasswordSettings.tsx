@@ -99,10 +99,14 @@ export default function EmailAndPasswordSettings() {
           className="grid grid-flow-row"
           showSwitch
           enabled
-          switchProps={{ disabled: true }}
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            switch: {
+              disabled: true,
+            },
+            submitButton: {
+              disabled: !formState.isValid || !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
         >
           <ControlledCheckbox
