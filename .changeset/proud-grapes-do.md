@@ -1,10 +1,10 @@
 ---
-'@nhost/hasura-auth-js': minor
-'@nhost/hasura-storage-js': minor
-'@nhost/nextjs': minor
-'@nhost/nhost-js': minor
-'@nhost/react': minor
-'@nhost/vue': minor
+'@nhost/hasura-auth-js': major
+'@nhost/hasura-storage-js': major
+'@nhost/nextjs': major
+'@nhost/nhost-js': major
+'@nhost/react': major
+'@nhost/vue': major
 ---
 
 Refactor: remove dependency to `@nhost/core`
