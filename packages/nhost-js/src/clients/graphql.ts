@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { DocumentNode, print } from 'graphql'
+
 import { urlFromSubdomain } from '../utils/helpers'
 import {
   GraphqlRequestResponse,
