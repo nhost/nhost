@@ -324,27 +324,11 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           )}
 
           {activeDialogType === 'CREATE_ENVIRONMENT_VARIABLE' && (
-            <CreateEnvironmentVariableForm
-              {...dialogPayload}
-              onSubmit={async () => {
-                await dialogPayload?.onSubmit?.();
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <CreateEnvironmentVariableForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
-            <EditEnvironmentVariableForm
-              {...dialogPayload}
-              onSubmit={async () => {
-                await dialogPayload?.onSubmit?.();
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <EditEnvironmentVariableForm {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>
