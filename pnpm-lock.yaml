@@ -826,13 +826,13 @@ importers:
       '@simplewebauthn/browser': ^6.0.0
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
-      axios: ^1.1.3
+      axios: ^1.2.0
       js-cookie: ^3.0.1
       msw: ^0.47.4
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
-      axios: 1.1.3
+      axios: 1.2.0
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
@@ -874,14 +874,14 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@types/faker': '5'
-      axios: ^1.1.3
+      axios: ^1.2.0
       cheerio: 1.0.0-rc.12
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
       start-server-and-test: ^1.14.0
       xstate: ^4.33.5
     dependencies:
-      axios: 1.1.3
+      axios: 1.2.0
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -899,14 +899,14 @@ importers:
     specifiers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
-      axios: ^1.1.3
+      axios: ^1.2.0
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
       uuid: ^8.3.2
       xstate: ^4.33.5
     dependencies:
-      axios: 1.1.3
+      axios: 1.2.0
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
@@ -951,7 +951,7 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^1.1.3
+      axios: ^1.2.0
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
@@ -959,7 +959,7 @@ importers:
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 1.1.3
+      axios: 1.2.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -13669,8 +13669,8 @@ packages:
       - debug
     dev: false
 
-  /axios/1.1.3:
-    resolution: {integrity: sha512-00tXVRwKx/FZr/IDVFt4C+f9FYairX517WoGCL6dpOntqLkZofjhu43F/Xl44UOpqa+9sLFDrG/XAnFsUYgkDA==}
+  /axios/1.2.0:
+    resolution: {integrity: sha512-zT7wZyNYu3N5Bu0wuZ6QccIf93Qk1eV8LOewxgjOZFd2DenOs98cJ7+Y6703d0wkaXGY6/nZd4EweJaHz9uzQw==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0
