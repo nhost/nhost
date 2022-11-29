@@ -56,12 +56,11 @@ export class NhostClient {
     this.functions = createFunctionsClient({ adminSecret, ...urlParams })
     this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
 
-    // * Set current token if token is already accessable
-    this.storage.setAccessToken(this.auth.getAccessToken())
-    this.functions.setAccessToken(this.auth.getAccessToken())
-    this.graphql.setAccessToken(this.auth.getAccessToken())
-
-    this.auth.client?.onStart(() => {
+    this.auth.client.onStart(() => {
+      // * Set current token if token is already accessable
+      this.storage.setAccessToken(this.auth.getAccessToken())
+      this.functions.setAccessToken(this.auth.getAccessToken())
+      this.graphql.setAccessToken(this.auth.getAccessToken())
       // * Set access token when signing out
       this.auth.onAuthStateChanged((_event, session) => {
         if (_event === 'SIGNED_OUT') {
