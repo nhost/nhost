@@ -77,9 +77,13 @@ export default function SystemEnvironmentVariableSettings() {
       : generateRemoteAppUrl(currentApplication.subdomain);
 
   const systemEnvironmentVariables = [
+    {
+      key: 'NHOST_BACKEND_URL',
+      value: generateRemoteAppUrl(currentApplication.subdomain),
+    },
     { key: 'NHOST_SUBDOMAIN', value: currentApplication.subdomain },
     { key: 'NHOST_REGION', value: currentApplication.region.awsName },
-    { key: 'NHOST_HASURA_URL', value: hasuraUrl },
+    { key: 'NHOST_HASURA_URL', value: `${hasuraUrl}/console` },
     { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
     { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },
     { key: 'NHOST_STORAGE_URL', value: appClient.storage.url },
