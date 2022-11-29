@@ -821,6 +821,25 @@ importers:
     devDependencies:
       '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
 
+  packages/core:
+    specifiers:
+      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/typescript-types': ^6.0.0
+      '@types/js-cookie': ^3.0.2
+      axios: ^1.2.0
+      js-cookie: ^3.0.1
+      msw: ^0.47.4
+      xstate: ^4.33.5
+    dependencies:
+      '@simplewebauthn/browser': 6.0.0
+      axios: 1.2.0
+      js-cookie: 3.0.1
+      xstate: 4.33.6
+    devDependencies:
+      '@simplewebauthn/typescript-types': 6.0.0
+      '@types/js-cookie': 3.0.2
+      msw: 0.47.4
+
   packages/docgen:
     specifiers:
       '@swc/core': ^1.3.11
@@ -856,8 +875,7 @@ importers:
       '@simplewebauthn/browser': ^6.0.0
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/faker': '5'
-      '@types/js-cookie': ^3.0.2
-      axios: ^1.1.3
+      axios: ^1.2.0
       cheerio: 1.0.0-rc.12
       js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
@@ -866,9 +884,7 @@ importers:
       start-server-and-test: ^1.14.0
       xstate: ^4.33.5
     dependencies:
-      '@simplewebauthn/browser': 6.0.0
-      axios: 1.1.3
-      js-cookie: 3.0.1
+      axios: 1.2.0
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -887,14 +903,14 @@ importers:
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': workspace:*
-      axios: ^1.1.3
+      axios: ^1.2.0
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
       uuid: ^8.3.2
       xstate: ^4.33.5
     dependencies:
-      axios: 1.1.3
+      axios: 1.2.0
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
@@ -935,10 +951,11 @@ importers:
 
   packages/nhost-js:
     specifiers:
+      '@faker-js/faker': ^7.6.0
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^1.1.3
+      axios: ^1.2.0
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
@@ -946,10 +963,11 @@ importers:
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 1.1.3
+      axios: 1.2.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
+      '@faker-js/faker': 7.6.0
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
       start-server-and-test: 1.14.0
@@ -13665,8 +13683,8 @@ packages:
       - debug
     dev: false
 
-  /axios/1.1.3:
-    resolution: {integrity: sha512-00tXVRwKx/FZr/IDVFt4C+f9FYairX517WoGCL6dpOntqLkZofjhu43F/Xl44UOpqa+9sLFDrG/XAnFsUYgkDA==}
+  /axios/1.2.0:
+    resolution: {integrity: sha512-zT7wZyNYu3N5Bu0wuZ6QccIf93Qk1eV8LOewxgjOZFd2DenOs98cJ7+Y6703d0wkaXGY6/nZd4EweJaHz9uzQw==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0
