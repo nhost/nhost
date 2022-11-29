@@ -144,7 +144,7 @@ export default function EnvironmentVariableSettings() {
             return (
               <Fragment key={environmentVariable.id}>
                 <ListItem.Root
-                  className="px-4 grid grid-cols-3 gap-2"
+                  className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2"
                   secondaryAction={
                     <Dropdown.Root>
                       <Dropdown.Trigger
@@ -199,7 +199,7 @@ export default function EnvironmentVariableSettings() {
                     {environmentVariable.name}
                   </ListItem.Text>
 
-                  <Text variant="subtitle1" className="col-span-2 truncate">
+                  <Text variant="subtitle1" className="lg:col-span-2 truncate">
                     {timestamp === '0 seconds ago' ||
                     timestamp === 'in 0 seconds'
                       ? 'Now'

@@ -97,14 +97,14 @@ export default function SystemEnvironmentVariableSettings() {
     >
       <div className="grid grid-cols-3 border-b-1 gap-2 border-gray-200 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium col-span-2">Value</Text>
+        <Text className="font-medium lg:col-span-2">Value</Text>
       </div>
 
       <List>
-        <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
+        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col col-span-2 gap-2 items-center justify-start">
+          <div className="grid grid-flow-col lg:col-span-2 gap-2 items-center justify-start">
             <Text className="text-greyscaleGreyDark truncate">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
@@ -134,10 +134,10 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!my-4" />
 
-        <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
+        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col gap-2 col-span-2 items-center justify-start">
+          <div className="grid grid-flow-col gap-2 lg:col-span-2 items-center justify-start">
             <Text className="text-greyscaleGreyDark truncate">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
@@ -171,10 +171,10 @@ export default function SystemEnvironmentVariableSettings() {
 
         {systemEnvironmentVariables.map((environmentVariable, index) => (
           <Fragment key={environmentVariable.key}>
-            <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
+            <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
               <ListItem.Text>{environmentVariable.key}</ListItem.Text>
 
-              <Text className="truncate col-span-2">
+              <Text className="truncate lg:col-span-2">
                 {environmentVariable.value}
               </Text>
             </ListItem.Root>
@@ -187,7 +187,7 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!mt-4 !mb-2.5" />
 
-        <ListItem.Root className="px-4 grid grid-cols-3 justify-start">
+        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 justify-start">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
           <Button
