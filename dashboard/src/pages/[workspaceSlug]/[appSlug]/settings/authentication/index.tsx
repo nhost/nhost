@@ -1,5 +1,5 @@
 import Container from '@/components/layout/Container';
-import AllowedEmailDomainsSettings from '@/components/settings/authentication/AllowedEmailSettings/AllowedEmailSettings';
+import AllowedEmailDomainsSettings from '@/components/settings/authentication/AllowedEmailSettings';
 import AllowedRedirectURLsSettings from '@/components/settings/authentication/AllowedRedirectURLsSettings';
 import BlockedEmailSettings from '@/components/settings/authentication/BlockedEmailSettings';
 import ClientURLSettings from '@/components/settings/authentication/ClientURLSettings';

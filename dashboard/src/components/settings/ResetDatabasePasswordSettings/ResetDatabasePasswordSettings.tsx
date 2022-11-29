@@ -11,7 +11,7 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword/generateRandomDatabasePassword';
+import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
