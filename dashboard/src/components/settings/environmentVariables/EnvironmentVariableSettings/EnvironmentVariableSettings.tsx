@@ -17,7 +17,7 @@ import {
   useDeleteEnvironmentVariableMutation,
   useGetEnvironmentVariablesQuery,
 } from '@/utils/__generated__/graphql';
-import { format } from 'date-fns';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -183,10 +183,10 @@ export default function EnvironmentVariableSettings() {
               >
                 <ListItem.Text>{environmentVariable.name}</ListItem.Text>
 
-                <Text className="font-medium">
-                  {format(
-                    new Date(environmentVariable.updatedAt),
-                    'dd MMM yyyy',
+                <Text variant="subtitle1">
+                  {formatDistanceToNowStrict(
+                    parseISO(environmentVariable.updatedAt),
+                    { addSuffix: true },
                   )}
                 </Text>
               </ListItem.Root>

@@ -4,10 +4,13 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
 import EyeIcon from '@/ui/v2/icons/EyeIcon';
 import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
 import Input from '@/ui/v2/Input';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -68,76 +71,97 @@ export default function SystemEnvironmentVariableSettings() {
       title="System Environment Variables"
       description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
+      rootClassName="gap-0"
+      className="px-0 mt-2 mb-2.5"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="grid grid-flow-row gap-2 justify-items-start">
-        <Text className="font-medium">NHOST_ADMIN_SECRET</Text>
+      <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
+        <Text className="font-medium">Variable Name</Text>
+        <Text className="font-medium">Value</Text>
+      </div>
 
-        <div className="grid grid-flow-col gap-2 items-center">
-          <Text className="text-greyscaleGreyDark">
-            {showAdminSecret ? (
-              <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
-                {currentApplication?.hasuraGraphqlAdminSecret}
-              </InlineCode>
-            ) : (
-              '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-            )}
-          </Text>
+      <List>
+        <ListItem.Root className="px-4 grid grid-cols-2">
+          <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <IconButton
+          <div className="grid grid-flow-col gap-2 items-center justify-start">
+            <Text className="text-greyscaleGreyDark">
+              {showAdminSecret ? (
+                <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
+                  {currentApplication?.hasuraGraphqlAdminSecret}
+                </InlineCode>
+              ) : (
+                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+              )}
+            </Text>
+
+            <IconButton
+              variant="borderless"
+              color="secondary"
+              aria-label={
+                showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
+              }
+              onClick={() => setShowAdminSecret((show) => !show)}
+            >
+              {showAdminSecret ? (
+                <EyeOffIcon className="w-5 h-5" />
+              ) : (
+                <EyeIcon className="w-5 h-5" />
+              )}
+            </IconButton>
+          </div>
+        </ListItem.Root>
+
+        <Divider component="li" className="!my-4" />
+
+        <ListItem.Root className="px-4 grid grid-cols-2">
+          <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
+
+          <div className="grid grid-flow-col gap-2 items-center justify-start">
+            <Text className="text-greyscaleGreyDark">
+              {showWebhookSecret ? (
+                <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
+                  {data?.app?.webhookSecret}
+                </InlineCode>
+              ) : (
+                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+              )}
+            </Text>
+
+            <IconButton
+              variant="borderless"
+              color="secondary"
+              aria-label={
+                showWebhookSecret
+                  ? 'Hide Webhook Secret'
+                  : 'Show Webhook Secret'
+              }
+              onClick={() => setShowWebhookSecret((show) => !show)}
+            >
+              {showWebhookSecret ? (
+                <EyeOffIcon className="w-5 h-5" />
+              ) : (
+                <EyeIcon className="w-5 h-5" />
+              )}
+            </IconButton>
+          </div>
+        </ListItem.Root>
+
+        <Divider component="li" className="!mt-4 !mb-2.5" />
+
+        <ListItem.Root className="px-4 grid grid-cols-2 justify-start">
+          <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
+
+          <Button
             variant="borderless"
-            color="secondary"
-            aria-label={
-              showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
-            }
-            onClick={() => setShowAdminSecret((show) => !show)}
+            onClick={showJwtSecret}
+            size="small"
+            className="justify-self-start"
           >
-            {showAdminSecret ? (
-              <EyeOffIcon className="w-5 h-5" />
-            ) : (
-              <EyeIcon className="w-5 h-5" />
-            )}
-          </IconButton>
-        </div>
-      </div>
-
-      <div className="grid grid-flow-row gap-2 justify-items-start">
-        <Text className="font-medium">NHOST_WEBHOOK_SECRET</Text>
-
-        <div className="grid grid-flow-col gap-2 items-center">
-          <Text className="text-greyscaleGreyDark">
-            {showWebhookSecret ? (
-              <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
-                {data?.app?.webhookSecret}
-              </InlineCode>
-            ) : (
-              '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-            )}
-          </Text>
-
-          <IconButton
-            variant="borderless"
-            color="secondary"
-            aria-label={
-              showWebhookSecret ? 'Hide Webhook Secret' : 'Show Webhook Secret'
-            }
-            onClick={() => setShowWebhookSecret((show) => !show)}
-          >
-            {showWebhookSecret ? (
-              <EyeOffIcon className="w-5 h-5" />
-            ) : (
-              <EyeIcon className="w-5 h-5" />
-            )}
-          </IconButton>
-        </div>
-      </div>
-
-      <div className="grid grid-flow-row gap-2 justify-items-start">
-        <Text className="font-medium">NHOST_JWT_SECRET</Text>
-        <Button variant="borderless" onClick={showJwtSecret} size="small">
-          Show JWT Secret
-        </Button>
-      </div>
+            Show JWT Secret
+          </Button>
+        </ListItem.Root>
+      </List>
     </SettingsContainer>
   );
 }
