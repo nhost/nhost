@@ -28,7 +28,6 @@ importers:
       eslint-plugin-promise: ^6.1.1
       eslint-plugin-react: ^7.31.10
       eslint-plugin-react-hooks: ^4.6.0
-      eslint-plugin-simple-import-sort: ^7.0.0
       eslint-plugin-vue: ^8.7.1
       husky: ^8.0.1
       npm-run-all: ^4.1.5
@@ -62,7 +61,6 @@ importers:
       eslint-plugin-promise: 6.1.1_eslint@8.26.0
       eslint-plugin-react: 7.31.10_eslint@8.26.0
       eslint-plugin-react-hooks: 4.6.0_eslint@8.26.0
-      eslint-plugin-simple-import-sort: 7.0.0_eslint@8.26.0
       eslint-plugin-vue: 8.7.1_eslint@8.26.0
       husky: 8.0.1
       npm-run-all: 4.1.5
@@ -18814,14 +18812,6 @@ packages:
       resolve: 2.0.0-next.4
       semver: 6.3.0
       string.prototype.matchall: 4.0.8
-    dev: true
-
-  /eslint-plugin-simple-import-sort/7.0.0_eslint@8.26.0:
-    resolution: {integrity: sha512-U3vEDB5zhYPNfxT5TYR7u01dboFZp+HNpnGhkDB2g/2E4wZ/g1Q9Ton8UwCLfRV9yAKyYqDh62oHOamvkFxsvw==}
-    peerDependencies:
-      eslint: '>=5.0.0'
-    dependencies:
-      eslint: 8.26.0
     dev: true
 
   /eslint-plugin-testing-library/5.7.2_e24lxsqdqt3oba6r3j443w4ftm:
