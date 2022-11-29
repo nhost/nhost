@@ -1,5 +1,15 @@
 # @nhost/hasura-auth-js
 
+## 1.6.4
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+  - @nhost/core@0.9.4
+
 ## 1.6.3
 
 ### Patch Changes

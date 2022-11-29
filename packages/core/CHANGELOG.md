@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.9.4
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+
 ## 0.9.3
 
 ### Patch Changes
