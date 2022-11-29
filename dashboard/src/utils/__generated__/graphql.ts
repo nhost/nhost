@@ -149,6 +149,17 @@ export type AppStateHistory_Aggregate = {
   nodes: Array<AppStateHistory>;
 };
 
+export type AppStateHistory_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp_Count>;
+};
+
+export type AppStateHistory_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AppStateHistory_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AppStateHistory_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "app_state_history" */
 export type AppStateHistory_Aggregate_Fields = {
   __typename?: 'appStateHistory_aggregate_fields';
@@ -547,7 +558,9 @@ export type AppStates_Bool_Exp = {
   _not?: InputMaybe<AppStates_Bool_Exp>;
   _or?: InputMaybe<Array<AppStates_Bool_Exp>>;
   appStates?: InputMaybe<AppStateHistory_Bool_Exp>;
+  appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   id?: InputMaybe<Int_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
 };
@@ -1004,6 +1017,33 @@ export type Apps_Aggregate = {
   nodes: Array<Apps>;
 };
 
+export type Apps_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Apps_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Apps_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Apps_Aggregate_Bool_Exp_Count>;
+};
+
+export type Apps_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Apps_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Apps_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Apps_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Apps_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Apps_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Apps_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "apps" */
 export type Apps_Aggregate_Fields = {
   __typename?: 'apps_aggregate_fields';
@@ -1090,6 +1130,7 @@ export type Apps_Bool_Exp = {
   _not?: InputMaybe<Apps_Bool_Exp>;
   _or?: InputMaybe<Array<Apps_Bool_Exp>>;
   appStates?: InputMaybe<AppStateHistory_Bool_Exp>;
+  appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp>;
   authAccessControlAllowedEmailDomains?: InputMaybe<String_Comparison_Exp>;
   authAccessControlAllowedEmails?: InputMaybe<String_Comparison_Exp>;
   authAccessControlAllowedRedirectUrls?: InputMaybe<String_Comparison_Exp>;
@@ -1180,15 +1221,19 @@ export type Apps_Bool_Exp = {
   authWorkOsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   autoUpdate?: InputMaybe<Boolean_Comparison_Exp>;
   backups?: InputMaybe<Backups_Bool_Exp>;
+  backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
   creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
   deployments?: InputMaybe<Deployments_Bool_Exp>;
+  deployments_aggregate?: InputMaybe<Deployments_Aggregate_Bool_Exp>;
   desiredAppState?: InputMaybe<AppStates_Bool_Exp>;
   desiredState?: InputMaybe<Int_Comparison_Exp>;
   emailTemplatesS3Key?: InputMaybe<String_Comparison_Exp>;
   environmentVariables?: InputMaybe<EnvironmentVariables_Bool_Exp>;
+  environmentVariables_aggregate?: InputMaybe<EnvironmentVariables_Aggregate_Bool_Exp>;
   featureFlags?: InputMaybe<FeatureFlags_Bool_Exp>;
+  featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
@@ -2326,6 +2371,134 @@ export enum Apps_Select_Column {
   WorkspaceId = 'workspaceId'
 }
 
+/** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
+export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  AuthSmtpSecure = 'AuthSmtpSecure',
+  /** column name */
+  S3SslEnabled = 'S3SslEnabled',
+  /** column name */
+  StorageSwaggerEnabled = 'StorageSwaggerEnabled',
+  /** column name */
+  AuthAnonymousUsersEnabled = 'authAnonymousUsersEnabled',
+  /** column name */
+  AuthAppleEnabled = 'authAppleEnabled',
+  /** column name */
+  AuthDisableNewUsers = 'authDisableNewUsers',
+  /** column name */
+  AuthDiscordEnabled = 'authDiscordEnabled',
+  /** column name */
+  AuthEmailPasswordlessEnabled = 'authEmailPasswordlessEnabled',
+  /** column name */
+  AuthEmailSigninEmailVerifiedRequired = 'authEmailSigninEmailVerifiedRequired',
+  /** column name */
+  AuthEmailsEnabled = 'authEmailsEnabled',
+  /** column name */
+  AuthFacebookEnabled = 'authFacebookEnabled',
+  /** column name */
+  AuthGithubEnabled = 'authGithubEnabled',
+  /** column name */
+  AuthGoogleEnabled = 'authGoogleEnabled',
+  /** column name */
+  AuthGravatarEnabled = 'authGravatarEnabled',
+  /** column name */
+  AuthLinkedinEnabled = 'authLinkedinEnabled',
+  /** column name */
+  AuthMfaEnabled = 'authMfaEnabled',
+  /** column name */
+  AuthPasswordHibpEnabled = 'authPasswordHibpEnabled',
+  /** column name */
+  AuthSmsPasswordlessEnabled = 'authSmsPasswordlessEnabled',
+  /** column name */
+  AuthSpotifyEnabled = 'authSpotifyEnabled',
+  /** column name */
+  AuthTwitchEnabled = 'authTwitchEnabled',
+  /** column name */
+  AuthTwitterEnabled = 'authTwitterEnabled',
+  /** column name */
+  AuthWebAuthnEnabled = 'authWebAuthnEnabled',
+  /** column name */
+  AuthWindowsLiveEnabled = 'authWindowsLiveEnabled',
+  /** column name */
+  AuthWorkOsEnabled = 'authWorkOsEnabled',
+  /** column name */
+  AutoUpdate = 'autoUpdate',
+  /** column name */
+  HasuraGraphqlEnableConsole = 'hasuraGraphqlEnableConsole',
+  /** column name */
+  HasuraGraphqlEnableRemoteSchemaPermissions = 'hasuraGraphqlEnableRemoteSchemaPermissions',
+  /** column name */
+  IsProvisioned = 'isProvisioned',
+  /** column name */
+  Paused = 'paused',
+  /** column name */
+  PostgresPublicAccess = 'postgresPublicAccess'
+}
+
+/** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
+export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  AuthSmtpSecure = 'AuthSmtpSecure',
+  /** column name */
+  S3SslEnabled = 'S3SslEnabled',
+  /** column name */
+  StorageSwaggerEnabled = 'StorageSwaggerEnabled',
+  /** column name */
+  AuthAnonymousUsersEnabled = 'authAnonymousUsersEnabled',
+  /** column name */
+  AuthAppleEnabled = 'authAppleEnabled',
+  /** column name */
+  AuthDisableNewUsers = 'authDisableNewUsers',
+  /** column name */
+  AuthDiscordEnabled = 'authDiscordEnabled',
+  /** column name */
+  AuthEmailPasswordlessEnabled = 'authEmailPasswordlessEnabled',
+  /** column name */
+  AuthEmailSigninEmailVerifiedRequired = 'authEmailSigninEmailVerifiedRequired',
+  /** column name */
+  AuthEmailsEnabled = 'authEmailsEnabled',
+  /** column name */
+  AuthFacebookEnabled = 'authFacebookEnabled',
+  /** column name */
+  AuthGithubEnabled = 'authGithubEnabled',
+  /** column name */
+  AuthGoogleEnabled = 'authGoogleEnabled',
+  /** column name */
+  AuthGravatarEnabled = 'authGravatarEnabled',
+  /** column name */
+  AuthLinkedinEnabled = 'authLinkedinEnabled',
+  /** column name */
+  AuthMfaEnabled = 'authMfaEnabled',
+  /** column name */
+  AuthPasswordHibpEnabled = 'authPasswordHibpEnabled',
+  /** column name */
+  AuthSmsPasswordlessEnabled = 'authSmsPasswordlessEnabled',
+  /** column name */
+  AuthSpotifyEnabled = 'authSpotifyEnabled',
+  /** column name */
+  AuthTwitchEnabled = 'authTwitchEnabled',
+  /** column name */
+  AuthTwitterEnabled = 'authTwitterEnabled',
+  /** column name */
+  AuthWebAuthnEnabled = 'authWebAuthnEnabled',
+  /** column name */
+  AuthWindowsLiveEnabled = 'authWindowsLiveEnabled',
+  /** column name */
+  AuthWorkOsEnabled = 'authWorkOsEnabled',
+  /** column name */
+  AutoUpdate = 'autoUpdate',
+  /** column name */
+  HasuraGraphqlEnableConsole = 'hasuraGraphqlEnableConsole',
+  /** column name */
+  HasuraGraphqlEnableRemoteSchemaPermissions = 'hasuraGraphqlEnableRemoteSchemaPermissions',
+  /** column name */
+  IsProvisioned = 'isProvisioned',
+  /** column name */
+  Paused = 'paused',
+  /** column name */
+  PostgresPublicAccess = 'postgresPublicAccess'
+}
+
 /** input type for updating data in table "apps" */
 export type Apps_Set_Input = {
   AuthSmtpAuthMethod?: InputMaybe<Scalars['String']>;
@@ -3280,6 +3453,7 @@ export type AuthProviders_Bool_Exp = {
   _or?: InputMaybe<Array<AuthProviders_Bool_Exp>>;
   id?: InputMaybe<String_Comparison_Exp>;
   userProviders?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.providers" */
@@ -3392,6 +3566,17 @@ export type AuthRefreshTokens_Aggregate = {
   __typename?: 'authRefreshTokens_aggregate';
   aggregate?: Maybe<AuthRefreshTokens_Aggregate_Fields>;
   nodes: Array<AuthRefreshTokens>;
+};
+
+export type AuthRefreshTokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthRefreshTokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.refresh_tokens" */
@@ -3651,7 +3836,9 @@ export type AuthRoles_Bool_Exp = {
   _or?: InputMaybe<Array<AuthRoles_Bool_Exp>>;
   role?: InputMaybe<String_Comparison_Exp>;
   userRoles?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  userRoles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
   usersByDefaultRole?: InputMaybe<Users_Bool_Exp>;
+  usersByDefaultRole_aggregate?: InputMaybe<Users_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.roles" */
@@ -3772,6 +3959,17 @@ export type AuthUserProviders_Aggregate = {
   __typename?: 'authUserProviders_aggregate';
   aggregate?: Maybe<AuthUserProviders_Aggregate_Fields>;
   nodes: Array<AuthUserProviders>;
+};
+
+export type AuthUserProviders_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserProviders_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.user_providers" */
@@ -4027,6 +4225,17 @@ export type AuthUserRoles_Aggregate = {
   nodes: Array<AuthUserRoles>;
 };
 
+export type AuthUserRoles_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserRoles_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "auth.user_roles" */
 export type AuthUserRoles_Aggregate_Fields = {
   __typename?: 'authUserRoles_aggregate_fields';
@@ -4225,6 +4434,17 @@ export type AuthUserSecurityKeys_Aggregate = {
   __typename?: 'authUserSecurityKeys_aggregate';
   aggregate?: Maybe<AuthUserSecurityKeys_Aggregate_Fields>;
   nodes: Array<AuthUserSecurityKeys>;
+};
+
+export type AuthUserSecurityKeys_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserSecurityKeys_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.user_security_keys" */
@@ -4790,6 +5010,17 @@ export type Backups_Aggregate = {
   nodes: Array<Backups>;
 };
 
+export type Backups_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Backups_Aggregate_Bool_Exp_Count>;
+};
+
+export type Backups_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Backups_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Backups_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "backups" */
 export type Backups_Aggregate_Fields = {
   __typename?: 'backups_aggregate_fields';
@@ -5218,6 +5449,7 @@ export type Buckets_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   downloadExpiration?: InputMaybe<Int_Comparison_Exp>;
   files?: InputMaybe<Files_Bool_Exp>;
+  files_aggregate?: InputMaybe<Files_Aggregate_Bool_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   maxUploadFileSize?: InputMaybe<Int_Comparison_Exp>;
   minUploadFileSize?: InputMaybe<Int_Comparison_Exp>;
@@ -5517,6 +5749,17 @@ export type CliTokens_Aggregate = {
   nodes: Array<CliTokens>;
 };
 
+export type CliTokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<CliTokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type CliTokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<CliTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<CliTokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "cli_tokens" */
 export type CliTokens_Aggregate_Fields = {
   __typename?: 'cliTokens_aggregate_fields';
@@ -5766,6 +6009,7 @@ export type Continents_Bool_Exp = {
   _or?: InputMaybe<Array<Continents_Bool_Exp>>;
   code?: InputMaybe<Bpchar_Comparison_Exp>;
   countries?: InputMaybe<Countries_Bool_Exp>;
+  countries_aggregate?: InputMaybe<Countries_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -5958,6 +6202,17 @@ export type Countries_Aggregate = {
   nodes: Array<Countries>;
 };
 
+export type Countries_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Countries_Aggregate_Bool_Exp_Count>;
+};
+
+export type Countries_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Countries_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Countries_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "countries" */
 export type Countries_Aggregate_Fields = {
   __typename?: 'countries_aggregate_fields';
@@ -6029,8 +6284,10 @@ export type Countries_Bool_Exp = {
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
   isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
+  locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   workspaces?: InputMaybe<Workspaces_Bool_Exp>;
+  workspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "countries" */
@@ -6374,6 +6631,17 @@ export type DeploymentLogs_Aggregate = {
   nodes: Array<DeploymentLogs>;
 };
 
+export type DeploymentLogs_Aggregate_Bool_Exp = {
+  count?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp_Count>;
+};
+
+export type DeploymentLogs_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<DeploymentLogs_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<DeploymentLogs_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "deployment_logs" */
 export type DeploymentLogs_Aggregate_Fields = {
   __typename?: 'deploymentLogs_aggregate_fields';
@@ -6604,6 +6872,17 @@ export type Deployments_Aggregate = {
   nodes: Array<Deployments>;
 };
 
+export type Deployments_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Deployments_Aggregate_Bool_Exp_Count>;
+};
+
+export type Deployments_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Deployments_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Deployments_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "deployments" */
 export type Deployments_Aggregate_Fields = {
   __typename?: 'deployments_aggregate_fields';
@@ -6646,6 +6925,7 @@ export type Deployments_Bool_Exp = {
   commitUserName?: InputMaybe<String_Comparison_Exp>;
   deploymentEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentLogs?: InputMaybe<DeploymentLogs_Bool_Exp>;
+  deploymentLogs_aggregate?: InputMaybe<DeploymentLogs_Aggregate_Bool_Exp>;
   deploymentStartedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deploymentStatus?: InputMaybe<String_Comparison_Exp>;
   functionsEndedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -6991,6 +7271,17 @@ export type EnvironmentVariables_Aggregate = {
   nodes: Array<EnvironmentVariables>;
 };
 
+export type EnvironmentVariables_Aggregate_Bool_Exp = {
+  count?: InputMaybe<EnvironmentVariables_Aggregate_Bool_Exp_Count>;
+};
+
+export type EnvironmentVariables_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<EnvironmentVariables_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<EnvironmentVariables_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "environment_variables" */
 export type EnvironmentVariables_Aggregate_Fields = {
   __typename?: 'environmentVariables_aggregate_fields';
@@ -7225,6 +7516,17 @@ export type FeatureFlags_Aggregate = {
   nodes: Array<FeatureFlags>;
 };
 
+export type FeatureFlags_Aggregate_Bool_Exp = {
+  count?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp_Count>;
+};
+
+export type FeatureFlags_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<FeatureFlags_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<FeatureFlags_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "feature_flags" */
 export type FeatureFlags_Aggregate_Fields = {
   __typename?: 'featureFlags_aggregate_fields';
@@ -7428,6 +7730,17 @@ export type Feedback_Aggregate = {
   __typename?: 'feedback_aggregate';
   aggregate?: Maybe<Feedback_Aggregate_Fields>;
   nodes: Array<Feedback>;
+};
+
+export type Feedback_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Feedback_Aggregate_Bool_Exp_Count>;
+};
+
+export type Feedback_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Feedback_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Feedback_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "feedback" */
@@ -7739,6 +8052,33 @@ export type Files_Aggregate = {
   nodes: Array<Files>;
 };
 
+export type Files_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Files_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Files_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Files_Aggregate_Bool_Exp_Count>;
+};
+
+export type Files_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Files_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Files_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Files_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Files_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Files_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Files_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "storage.files" */
 export type Files_Aggregate_Fields = {
   __typename?: 'files_aggregate_fields';
@@ -7953,6 +8293,18 @@ export enum Files_Select_Column {
   UploadedByUserId = 'uploadedByUserId'
 }
 
+/** select "files_aggregate_bool_exp_bool_and_arguments_columns" columns of table "storage.files" */
+export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsUploaded = 'isUploaded'
+}
+
+/** select "files_aggregate_bool_exp_bool_or_arguments_columns" columns of table "storage.files" */
+export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsUploaded = 'isUploaded'
+}
+
 /** input type for updating data in table "storage.files" */
 export type Files_Set_Input = {
   bucketId?: InputMaybe<Scalars['String']>;
@@ -8152,6 +8504,17 @@ export type GithubAppInstallations_Aggregate = {
   nodes: Array<GithubAppInstallations>;
 };
 
+export type GithubAppInstallations_Aggregate_Bool_Exp = {
+  count?: InputMaybe<GithubAppInstallations_Aggregate_Bool_Exp_Count>;
+};
+
+export type GithubAppInstallations_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<GithubAppInstallations_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "github_app_installations" */
 export type GithubAppInstallations_Aggregate_Fields = {
   __typename?: 'githubAppInstallations_aggregate_fields';
@@ -8226,6 +8589,7 @@ export type GithubAppInstallations_Bool_Exp = {
   externalGithubAppInstallationId?: InputMaybe<Int_Comparison_Exp>;
   githubData?: InputMaybe<Jsonb_Comparison_Exp>;
   githubRepositories?: InputMaybe<GithubRepositories_Bool_Exp>;
+  githubRepositories_aggregate?: InputMaybe<GithubRepositories_Aggregate_Bool_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
@@ -8604,6 +8968,33 @@ export type GithubRepositories_Aggregate = {
   nodes: Array<GithubRepositories>;
 };
 
+export type GithubRepositories_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<GithubRepositories_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<GithubRepositories_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<GithubRepositories_Aggregate_Bool_Exp_Count>;
+};
+
+export type GithubRepositories_Aggregate_Bool_Exp_Bool_And = {
+  arguments: GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<GithubRepositories_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type GithubRepositories_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<GithubRepositories_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type GithubRepositories_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<GithubRepositories_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<GithubRepositories_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "github_repositories" */
 export type GithubRepositories_Aggregate_Fields = {
   __typename?: 'githubRepositories_aggregate_fields';
@@ -8639,6 +9030,7 @@ export type GithubRepositories_Bool_Exp = {
   _not?: InputMaybe<GithubRepositories_Bool_Exp>;
   _or?: InputMaybe<Array<GithubRepositories_Bool_Exp>>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   externalGithubAppRepositoryNodeId?: InputMaybe<String_Comparison_Exp>;
   fullName?: InputMaybe<String_Comparison_Exp>;
@@ -8776,6 +9168,18 @@ export enum GithubRepositories_Select_Column {
   Private = 'private',
   /** column name */
   UpdatedAt = 'updatedAt'
+}
+
+/** select "githubRepositories_aggregate_bool_exp_bool_and_arguments_columns" columns of table "github_repositories" */
+export enum GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Private = 'private'
+}
+
+/** select "githubRepositories_aggregate_bool_exp_bool_or_arguments_columns" columns of table "github_repositories" */
+export enum GithubRepositories_Select_Column_GithubRepositories_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Private = 'private'
 }
 
 /** input type for updating data in table "github_repositories" */
@@ -10923,6 +11327,33 @@ export type PaymentMethods_Aggregate = {
   nodes: Array<PaymentMethods>;
 };
 
+export type PaymentMethods_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp_Count>;
+};
+
+export type PaymentMethods_Aggregate_Bool_Exp_Bool_And = {
+  arguments: PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type PaymentMethods_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type PaymentMethods_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<PaymentMethods_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<PaymentMethods_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "payment_methods" */
 export type PaymentMethods_Aggregate_Fields = {
   __typename?: 'paymentMethods_aggregate_fields';
@@ -11148,6 +11579,18 @@ export enum PaymentMethods_Select_Column {
   StripePaymentMethodId = 'stripePaymentMethodId',
   /** column name */
   WorkspaceId = 'workspaceId'
+}
+
+/** select "paymentMethods_aggregate_bool_exp_bool_and_arguments_columns" columns of table "payment_methods" */
+export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsDefault = 'isDefault'
+}
+
+/** select "paymentMethods_aggregate_bool_exp_bool_or_arguments_columns" columns of table "payment_methods" */
+export enum PaymentMethods_Select_Column_PaymentMethods_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsDefault = 'isDefault'
 }
 
 /** input type for updating data in table "payment_methods" */
@@ -11424,6 +11867,7 @@ export type Plans_Bool_Exp = {
   _not?: InputMaybe<Plans_Bool_Exp>;
   _or?: InputMaybe<Array<Plans_Bool_Exp>>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   auth_cpu_limits?: InputMaybe<String_Comparison_Exp>;
   auth_cpu_requests?: InputMaybe<String_Comparison_Exp>;
   auth_memory_limits?: InputMaybe<String_Comparison_Exp>;
@@ -12963,6 +13407,33 @@ export type Regions_Aggregate = {
   nodes: Array<Regions>;
 };
 
+export type Regions_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Regions_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Regions_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Regions_Aggregate_Bool_Exp_Count>;
+};
+
+export type Regions_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Regions_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Regions_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Regions_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Regions_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Regions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Regions_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "regions" */
 export type Regions_Aggregate_Fields = {
   __typename?: 'regions_aggregate_fields';
@@ -12999,6 +13470,7 @@ export type Regions_Bool_Exp = {
   _or?: InputMaybe<Array<Regions_Bool_Exp>>;
   active?: InputMaybe<Boolean_Comparison_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   awsName?: InputMaybe<String_Comparison_Exp>;
   city?: InputMaybe<String_Comparison_Exp>;
   country?: InputMaybe<Countries_Bool_Exp>;
@@ -13135,6 +13607,22 @@ export enum Regions_Select_Column {
   UpdatedAt = 'updatedAt'
 }
 
+/** select "regions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "regions" */
+export enum Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Active = 'active',
+  /** column name */
+  IsGdprCompliant = 'isGdprCompliant'
+}
+
+/** select "regions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "regions" */
+export enum Regions_Select_Column_Regions_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Active = 'active',
+  /** column name */
+  IsGdprCompliant = 'isGdprCompliant'
+}
+
 /** input type for updating data in table "regions" */
 export type Regions_Set_Input = {
   active?: InputMaybe<Scalars['Boolean']>;
@@ -13218,19 +13706,19 @@ export type Subscription_Root = {
   appStateHistory?: Maybe<AppStateHistory>;
   /** fetch aggregated fields from the table: "app_state_history" */
   appStateHistoryAggregate: AppStateHistory_Aggregate;
-  /** fetch data from the table in a streaming manner : "app_state_history" */
+  /** fetch data from the table in a streaming manner: "app_state_history" */
   appStateHistory_stream: Array<AppStateHistory>;
   /** fetch data from the table: "app_states" */
   appStates: Array<AppStates>;
   /** fetch aggregated fields from the table: "app_states" */
   appStatesAggregate: AppStates_Aggregate;
-  /** fetch data from the table in a streaming manner : "app_states" */
+  /** fetch data from the table in a streaming manner: "app_states" */
   appStates_stream: Array<AppStates>;
   /** An array relationship */
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
-  /** fetch data from the table in a streaming manner : "apps" */
+  /** fetch data from the table in a streaming manner: "apps" */
   apps_stream: Array<Apps>;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
@@ -13240,13 +13728,13 @@ export type Subscription_Root = {
   authProviderRequests: Array<AuthProviderRequests>;
   /** fetch aggregated fields from the table: "auth.provider_requests" */
   authProviderRequestsAggregate: AuthProviderRequests_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.provider_requests" */
+  /** fetch data from the table in a streaming manner: "auth.provider_requests" */
   authProviderRequests_stream: Array<AuthProviderRequests>;
   /** fetch data from the table: "auth.providers" */
   authProviders: Array<AuthProviders>;
   /** fetch aggregated fields from the table: "auth.providers" */
   authProvidersAggregate: AuthProviders_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.providers" */
+  /** fetch data from the table in a streaming manner: "auth.providers" */
   authProviders_stream: Array<AuthProviders>;
   /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
   authRefreshToken?: Maybe<AuthRefreshTokens>;
@@ -13254,7 +13742,7 @@ export type Subscription_Root = {
   authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch aggregated fields from the table: "auth.refresh_tokens" */
   authRefreshTokensAggregate: AuthRefreshTokens_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.refresh_tokens" */
+  /** fetch data from the table in a streaming manner: "auth.refresh_tokens" */
   authRefreshTokens_stream: Array<AuthRefreshTokens>;
   /** fetch data from the table: "auth.roles" using primary key columns */
   authRole?: Maybe<AuthRoles>;
@@ -13262,7 +13750,7 @@ export type Subscription_Root = {
   authRoles: Array<AuthRoles>;
   /** fetch aggregated fields from the table: "auth.roles" */
   authRolesAggregate: AuthRoles_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.roles" */
+  /** fetch data from the table in a streaming manner: "auth.roles" */
   authRoles_stream: Array<AuthRoles>;
   /** fetch data from the table: "auth.user_providers" using primary key columns */
   authUserProvider?: Maybe<AuthUserProviders>;
@@ -13270,7 +13758,7 @@ export type Subscription_Root = {
   authUserProviders: Array<AuthUserProviders>;
   /** fetch aggregated fields from the table: "auth.user_providers" */
   authUserProvidersAggregate: AuthUserProviders_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.user_providers" */
+  /** fetch data from the table in a streaming manner: "auth.user_providers" */
   authUserProviders_stream: Array<AuthUserProviders>;
   /** fetch data from the table: "auth.user_roles" using primary key columns */
   authUserRole?: Maybe<AuthUserRoles>;
@@ -13278,7 +13766,7 @@ export type Subscription_Root = {
   authUserRoles: Array<AuthUserRoles>;
   /** fetch aggregated fields from the table: "auth.user_roles" */
   authUserRolesAggregate: AuthUserRoles_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.user_roles" */
+  /** fetch data from the table in a streaming manner: "auth.user_roles" */
   authUserRoles_stream: Array<AuthUserRoles>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
@@ -13286,7 +13774,7 @@ export type Subscription_Root = {
   authUserSecurityKeys: Array<AuthUserSecurityKeys>;
   /** fetch aggregated fields from the table: "auth.user_security_keys" */
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.user_security_keys" */
+  /** fetch data from the table in a streaming manner: "auth.user_security_keys" */
   authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.migrations" */
   auth_migrations: Array<Auth_Migrations>;
@@ -13294,7 +13782,7 @@ export type Subscription_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** fetch data from the table in a streaming manner : "auth.migrations" */
+  /** fetch data from the table in a streaming manner: "auth.migrations" */
   auth_migrations_stream: Array<Auth_Migrations>;
   /** fetch data from the table: "backups" using primary key columns */
   backup?: Maybe<Backups>;
@@ -13302,7 +13790,7 @@ export type Subscription_Root = {
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
-  /** fetch data from the table in a streaming manner : "backups" */
+  /** fetch data from the table in a streaming manner: "backups" */
   backups_stream: Array<Backups>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
@@ -13310,7 +13798,7 @@ export type Subscription_Root = {
   buckets: Array<Buckets>;
   /** fetch aggregated fields from the table: "storage.buckets" */
   bucketsAggregate: Buckets_Aggregate;
-  /** fetch data from the table in a streaming manner : "storage.buckets" */
+  /** fetch data from the table in a streaming manner: "storage.buckets" */
   buckets_stream: Array<Buckets>;
   /** fetch data from the table: "cli_tokens" using primary key columns */
   cliToken?: Maybe<CliTokens>;
@@ -13318,7 +13806,7 @@ export type Subscription_Root = {
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
-  /** fetch data from the table in a streaming manner : "cli_tokens" */
+  /** fetch data from the table in a streaming manner: "cli_tokens" */
   cliTokens_stream: Array<CliTokens>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
@@ -13326,7 +13814,7 @@ export type Subscription_Root = {
   continents_aggregate: Continents_Aggregate;
   /** fetch data from the table: "continents" using primary key columns */
   continents_by_pk?: Maybe<Continents>;
-  /** fetch data from the table in a streaming manner : "continents" */
+  /** fetch data from the table in a streaming manner: "continents" */
   continents_stream: Array<Continents>;
   /** An array relationship */
   countries: Array<Countries>;
@@ -13334,7 +13822,7 @@ export type Subscription_Root = {
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
-  /** fetch data from the table in a streaming manner : "countries" */
+  /** fetch data from the table in a streaming manner: "countries" */
   countries_stream: Array<Countries>;
   /** fetch data from the table: "deployments" using primary key columns */
   deployment?: Maybe<Deployments>;
@@ -13344,13 +13832,13 @@ export type Subscription_Root = {
   deploymentLogs: Array<DeploymentLogs>;
   /** fetch aggregated fields from the table: "deployment_logs" */
   deploymentLogsAggregate: DeploymentLogs_Aggregate;
-  /** fetch data from the table in a streaming manner : "deployment_logs" */
+  /** fetch data from the table in a streaming manner: "deployment_logs" */
   deploymentLogs_stream: Array<DeploymentLogs>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
-  /** fetch data from the table in a streaming manner : "deployments" */
+  /** fetch data from the table in a streaming manner: "deployments" */
   deployments_stream: Array<Deployments>;
   /** fetch data from the table: "environment_variables" using primary key columns */
   environmentVariable?: Maybe<EnvironmentVariables>;
@@ -13358,7 +13846,7 @@ export type Subscription_Root = {
   environmentVariables: Array<EnvironmentVariables>;
   /** fetch aggregated fields from the table: "environment_variables" */
   environmentVariablesAggregate: EnvironmentVariables_Aggregate;
-  /** fetch data from the table in a streaming manner : "environment_variables" */
+  /** fetch data from the table in a streaming manner: "environment_variables" */
   environmentVariables_stream: Array<EnvironmentVariables>;
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
@@ -13366,7 +13854,7 @@ export type Subscription_Root = {
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
-  /** fetch data from the table in a streaming manner : "feature_flags" */
+  /** fetch data from the table in a streaming manner: "feature_flags" */
   featureFlags_stream: Array<FeatureFlags>;
   /** fetch data from the table: "feedback" */
   feedback: Array<Feedback>;
@@ -13374,7 +13862,7 @@ export type Subscription_Root = {
   feedbackAggreggate: Feedback_Aggregate;
   /** fetch data from the table: "feedback" using primary key columns */
   feedbackOne?: Maybe<Feedback>;
-  /** fetch data from the table in a streaming manner : "feedback" */
+  /** fetch data from the table in a streaming manner: "feedback" */
   feedback_stream: Array<Feedback>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
@@ -13382,7 +13870,7 @@ export type Subscription_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
-  /** fetch data from the table in a streaming manner : "storage.files" */
+  /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
@@ -13390,13 +13878,13 @@ export type Subscription_Root = {
   githubAppInstallations: Array<GithubAppInstallations>;
   /** fetch aggregated fields from the table: "github_app_installations" */
   githubAppInstallationsAggregate: GithubAppInstallations_Aggregate;
-  /** fetch data from the table in a streaming manner : "github_app_installations" */
+  /** fetch data from the table in a streaming manner: "github_app_installations" */
   githubAppInstallations_stream: Array<GithubAppInstallations>;
   /** An array relationship */
   githubRepositories: Array<GithubRepositories>;
   /** fetch aggregated fields from the table: "github_repositories" */
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
-  /** fetch data from the table in a streaming manner : "github_repositories" */
+  /** fetch data from the table in a streaming manner: "github_repositories" */
   githubRepositories_stream: Array<GithubRepositories>;
   /** fetch data from the table: "github_repositories" using primary key columns */
   githubRepository?: Maybe<GithubRepositories>;
@@ -13411,7 +13899,7 @@ export type Subscription_Root = {
   paymentMethods: Array<PaymentMethods>;
   /** fetch aggregated fields from the table: "payment_methods" */
   paymentMethodsAggregate: PaymentMethods_Aggregate;
-  /** fetch data from the table in a streaming manner : "payment_methods" */
+  /** fetch data from the table in a streaming manner: "payment_methods" */
   paymentMethods_stream: Array<PaymentMethods>;
   /** fetch data from the table: "plans" using primary key columns */
   plan?: Maybe<Plans>;
@@ -13419,7 +13907,7 @@ export type Subscription_Root = {
   plans: Array<Plans>;
   /** fetch aggregated fields from the table: "plans" */
   plansAggregate: Plans_Aggregate;
-  /** fetch data from the table in a streaming manner : "plans" */
+  /** fetch data from the table in a streaming manner: "plans" */
   plans_stream: Array<Plans>;
   /** fetch data from the table: "regions" */
   regions: Array<Regions>;
@@ -13427,7 +13915,7 @@ export type Subscription_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
-  /** fetch data from the table in a streaming manner : "regions" */
+  /** fetch data from the table in a streaming manner: "regions" */
   regions_stream: Array<Regions>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
@@ -13435,7 +13923,7 @@ export type Subscription_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
-  /** fetch data from the table in a streaming manner : "auth.users" */
+  /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
@@ -13447,19 +13935,19 @@ export type Subscription_Root = {
   workspaceMemberInvites: Array<WorkspaceMemberInvites>;
   /** fetch aggregated fields from the table: "workspace_member_invites" */
   workspaceMemberInvitesAggregate: WorkspaceMemberInvites_Aggregate;
-  /** fetch data from the table in a streaming manner : "workspace_member_invites" */
+  /** fetch data from the table in a streaming manner: "workspace_member_invites" */
   workspaceMemberInvites_stream: Array<WorkspaceMemberInvites>;
   /** An array relationship */
   workspaceMembers: Array<WorkspaceMembers>;
   /** fetch aggregated fields from the table: "workspace_members" */
   workspaceMembersAggregate: WorkspaceMembers_Aggregate;
-  /** fetch data from the table in a streaming manner : "workspace_members" */
+  /** fetch data from the table in a streaming manner: "workspace_members" */
   workspaceMembers_stream: Array<WorkspaceMembers>;
   /** An array relationship */
   workspaces: Array<Workspaces>;
   /** fetch aggregated fields from the table: "workspaces" */
   workspacesAggregate: Workspaces_Aggregate;
-  /** fetch data from the table in a streaming manner : "workspaces" */
+  /** fetch data from the table in a streaming manner: "workspaces" */
   workspaces_stream: Array<Workspaces>;
 };
 
@@ -14785,6 +15273,33 @@ export type Users_Aggregate = {
   nodes: Array<Users>;
 };
 
+export type Users_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Users_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Users_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Users_Aggregate_Bool_Exp_Count>;
+};
+
+export type Users_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Users_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Users_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Users_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "auth.users" */
 export type Users_Aggregate_Fields = {
   __typename?: 'users_aggregate_fields';
@@ -14826,10 +15341,13 @@ export type Users_Bool_Exp = {
   _or?: InputMaybe<Array<Users_Bool_Exp>>;
   activeMfaType?: InputMaybe<String_Comparison_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   avatarUrl?: InputMaybe<String_Comparison_Exp>;
   cliTokens?: InputMaybe<CliTokens_Bool_Exp>;
+  cliTokens_aggregate?: InputMaybe<CliTokens_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creatorOfWorkspaces?: InputMaybe<Workspaces_Bool_Exp>;
+  creatorOfWorkspaces_aggregate?: InputMaybe<Workspaces_Aggregate_Bool_Exp>;
   currentChallenge?: InputMaybe<String_Comparison_Exp>;
   defaultRole?: InputMaybe<String_Comparison_Exp>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Bool_Exp>;
@@ -14838,7 +15356,9 @@ export type Users_Bool_Exp = {
   email?: InputMaybe<Citext_Comparison_Exp>;
   emailVerified?: InputMaybe<Boolean_Comparison_Exp>;
   feedbacks?: InputMaybe<Feedback_Bool_Exp>;
+  feedbacks_aggregate?: InputMaybe<Feedback_Aggregate_Bool_Exp>;
   github_app_installations?: InputMaybe<GithubAppInstallations_Bool_Exp>;
+  github_app_installations_aggregate?: InputMaybe<GithubAppInstallations_Aggregate_Bool_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isAnonymous?: InputMaybe<Boolean_Comparison_Exp>;
   lastSeen?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -14850,20 +15370,28 @@ export type Users_Bool_Exp = {
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
   passwordHash?: InputMaybe<String_Comparison_Exp>;
   payment_methods?: InputMaybe<PaymentMethods_Bool_Exp>;
+  payment_methods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp>;
   phoneNumber?: InputMaybe<String_Comparison_Exp>;
   phoneNumberVerified?: InputMaybe<Boolean_Comparison_Exp>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+  refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp>;
   role?: InputMaybe<AuthRoles_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
+  securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp>;
   ticket?: InputMaybe<String_Comparison_Exp>;
   ticketExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   totpSecret?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   userProviders?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp>;
   workspaceMemberInvitesByInvitedByUserId?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  workspaceMemberInvitesByInvitedByUserId_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
   workspaceMembers?: InputMaybe<WorkspaceMembers_Bool_Exp>;
+  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp>;
   workspace_member_invites?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  workspace_member_invites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.users" */
@@ -15164,6 +15692,30 @@ export enum Users_Select_Column {
   UpdatedAt = 'updatedAt'
 }
 
+/** select "users_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.users" */
+export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Disabled = 'disabled',
+  /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
+  IsAnonymous = 'isAnonymous',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified'
+}
+
+/** select "users_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.users" */
+export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Disabled = 'disabled',
+  /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
+  IsAnonymous = 'isAnonymous',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified'
+}
+
 /** input type for updating data in table "auth.users" */
 export type Users_Set_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
@@ -15338,6 +15890,33 @@ export type WorkspaceMemberInvites_Aggregate = {
   __typename?: 'workspaceMemberInvites_aggregate';
   aggregate?: Maybe<WorkspaceMemberInvites_Aggregate_Fields>;
   nodes: Array<WorkspaceMemberInvites>;
+};
+
+export type WorkspaceMemberInvites_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp_Count>;
+};
+
+export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And = {
+  arguments: WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type WorkspaceMemberInvites_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<WorkspaceMemberInvites_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "workspace_member_invites" */
@@ -15517,6 +16096,18 @@ export enum WorkspaceMemberInvites_Select_Column {
   WorkspaceId = 'workspaceId'
 }
 
+/** select "workspaceMemberInvites_aggregate_bool_exp_bool_and_arguments_columns" columns of table "workspace_member_invites" */
+export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  IsAccepted = 'isAccepted'
+}
+
+/** select "workspaceMemberInvites_aggregate_bool_exp_bool_or_arguments_columns" columns of table "workspace_member_invites" */
+export enum WorkspaceMemberInvites_Select_Column_WorkspaceMemberInvites_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  IsAccepted = 'isAccepted'
+}
+
 /** input type for updating data in table "workspace_member_invites" */
 export type WorkspaceMemberInvites_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
@@ -15598,6 +16189,17 @@ export type WorkspaceMembers_Aggregate = {
   __typename?: 'workspaceMembers_aggregate';
   aggregate?: Maybe<WorkspaceMembers_Aggregate_Fields>;
   nodes: Array<WorkspaceMembers>;
+};
+
+export type WorkspaceMembers_Aggregate_Bool_Exp = {
+  count?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp_Count>;
+};
+
+export type WorkspaceMembers_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<WorkspaceMembers_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<WorkspaceMembers_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "workspace_members" */
@@ -15949,6 +16551,17 @@ export type Workspaces_Aggregate = {
   nodes: Array<Workspaces>;
 };
 
+export type Workspaces_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Workspaces_Aggregate_Bool_Exp_Count>;
+};
+
+export type Workspaces_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Workspaces_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Workspaces_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "workspaces" */
 export type Workspaces_Aggregate_Fields = {
   __typename?: 'workspaces_aggregate_fields';
@@ -15991,6 +16604,7 @@ export type Workspaces_Bool_Exp = {
   addressPostalCode?: InputMaybe<String_Comparison_Exp>;
   addressState?: InputMaybe<String_Comparison_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   companyName?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creatorUser?: InputMaybe<Users_Bool_Exp>;
@@ -16000,13 +16614,16 @@ export type Workspaces_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   paymentMethod?: InputMaybe<PaymentMethods_Bool_Exp>;
   paymentMethods?: InputMaybe<PaymentMethods_Bool_Exp>;
+  paymentMethods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerId?: InputMaybe<String_Comparison_Exp>;
   taxIdType?: InputMaybe<String_Comparison_Exp>;
   taxIdValue?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   workspaceMemberInvites?: InputMaybe<WorkspaceMemberInvites_Bool_Exp>;
+  workspaceMemberInvites_aggregate?: InputMaybe<WorkspaceMemberInvites_Aggregate_Bool_Exp>;
   workspaceMembers?: InputMaybe<WorkspaceMembers_Bool_Exp>;
+  workspaceMembers_aggregate?: InputMaybe<WorkspaceMembers_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "workspaces" */
@@ -16376,14 +16993,12 @@ export type UpdateEnvironmentVariableMutationVariables = Exact<{
 
 export type UpdateEnvironmentVariableMutation = { __typename?: 'mutation_root', updateEnvironmentVariable?: { __typename?: 'environmentVariables', id: any } | null };
 
-export type EnvironmentVariableFragment = { __typename?: 'environmentVariables', id: any, name: string, updatedAt: any, prodValue: string, devValue: string };
-
-export type GetEnvironmentVariablesWhereQueryVariables = Exact<{
-  where: EnvironmentVariables_Bool_Exp;
+export type GetEnvironmentVariablesQueryVariables = Exact<{
+  id: Scalars['uuid'];
 }>;
 
 
-export type GetEnvironmentVariablesWhereQuery = { __typename?: 'query_root', environmentVariables: Array<{ __typename?: 'environmentVariables', id: any, name: string, updatedAt: any, prodValue: string, devValue: string }> };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', environmentVariables: Array<{ __typename?: 'environmentVariables', id: any, name: string, updatedAt: any, prodValue: string, devValue: string }> };
 
 export type InsertEnvironmentVariablesMutationVariables = Exact<{
   environmentVariables: Array<EnvironmentVariables_Insert_Input> | EnvironmentVariables_Insert_Input;
@@ -17054,15 +17669,6 @@ export type GetWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetWorkspacesQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, createdAt: any, name: string, slug: string, creatorUserId?: any | null }> };
 
-export const EnvironmentVariableFragmentDoc = gql`
-    fragment EnvironmentVariable on environmentVariables {
-  id
-  name
-  updatedAt
-  prodValue
-  devValue
-}
-    `;
 export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
     fragment getAppPlanAndGlobalPlansApp on apps {
   id
@@ -17493,43 +18099,47 @@ export function useUpdateEnvironmentVariableMutation(baseOptions?: Apollo.Mutati
 export type UpdateEnvironmentVariableMutationHookResult = ReturnType<typeof useUpdateEnvironmentVariableMutation>;
 export type UpdateEnvironmentVariableMutationResult = Apollo.MutationResult<UpdateEnvironmentVariableMutation>;
 export type UpdateEnvironmentVariableMutationOptions = Apollo.BaseMutationOptions<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>;
-export const GetEnvironmentVariablesWhereDocument = gql`
-    query getEnvironmentVariablesWhere($where: environmentVariables_bool_exp!) {
-  environmentVariables(where: $where) {
-    ...EnvironmentVariable
+export const GetEnvironmentVariablesDocument = gql`
+    query getEnvironmentVariables($id: uuid!) {
+  environmentVariables(where: {appId: {_eq: $id}}) {
+    id
+    name
+    updatedAt
+    prodValue
+    devValue
   }
 }
-    ${EnvironmentVariableFragmentDoc}`;
+    `;
 
 /**
- * __useGetEnvironmentVariablesWhereQuery__
+ * __useGetEnvironmentVariablesQuery__
  *
- * To run a query within a React component, call `useGetEnvironmentVariablesWhereQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEnvironmentVariablesWhereQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetEnvironmentVariablesWhereQuery({
+ * const { data, loading, error } = useGetEnvironmentVariablesQuery({
  *   variables: {
- *      where: // value for 'where'
+ *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetEnvironmentVariablesWhereQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesWhereQuery, GetEnvironmentVariablesWhereQueryVariables>) {
+export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetEnvironmentVariablesWhereQuery, GetEnvironmentVariablesWhereQueryVariables>(GetEnvironmentVariablesWhereDocument, options);
+        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
       }
-export function useGetEnvironmentVariablesWhereLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesWhereQuery, GetEnvironmentVariablesWhereQueryVariables>) {
+export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetEnvironmentVariablesWhereQuery, GetEnvironmentVariablesWhereQueryVariables>(GetEnvironmentVariablesWhereDocument, options);
+          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
         }
-export type GetEnvironmentVariablesWhereQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesWhereQuery>;
-export type GetEnvironmentVariablesWhereLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesWhereLazyQuery>;
-export type GetEnvironmentVariablesWhereQueryResult = Apollo.QueryResult<GetEnvironmentVariablesWhereQuery, GetEnvironmentVariablesWhereQueryVariables>;
-export function refetchGetEnvironmentVariablesWhereQuery(variables: GetEnvironmentVariablesWhereQueryVariables) {
-      return { query: GetEnvironmentVariablesWhereDocument, variables: variables }
+export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
+export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
+export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
+export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
+      return { query: GetEnvironmentVariablesDocument, variables: variables }
     }
 export const InsertEnvironmentVariablesDocument = gql`
     mutation insertEnvironmentVariables($environmentVariables: [environmentVariables_insert_input!]!) {

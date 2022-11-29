@@ -75,7 +75,11 @@ export default function RoleForm({
   }, [isDirty, onDirtyStateChange]);
 
   async function handleSubmit(values: RoleFormValues) {
-    if (availableRoles.some((role) => role.name === values.name)) {
+    if (
+      availableRoles.some(
+        (role) => role.name === values.name && role.name !== originalRole?.name,
+      )
+    ) {
       setError('name', { message: 'This role already exists.' });
 
       return;

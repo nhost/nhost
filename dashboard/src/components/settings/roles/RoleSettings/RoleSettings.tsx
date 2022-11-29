@@ -75,7 +75,8 @@ export default function RoleSettings() {
     formState: { dirtyFields },
   } = form;
 
-  useLeaveConfirm({ isDirty: Object.keys(dirtyFields).length > 0 });
+  const isDirty = Object.keys(dirtyFields).length > 0;
+  useLeaveConfirm({ isDirty });
 
   useEffect(() => {
     reset({
@@ -227,9 +228,9 @@ export default function RoleSettings() {
           rootClassName="gap-0"
           className="px-0 my-2"
           slotProps={{
-            submitButtonProps: {
+            submitButton: {
               loading: formState.isSubmitting,
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isValid || !isDirty,
             },
           }}
         >
