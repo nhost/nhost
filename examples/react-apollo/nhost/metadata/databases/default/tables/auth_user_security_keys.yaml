@@ -44,7 +44,6 @@ select_permissions:
 delete_permissions:
   - role: user
     permission:
-      backend_only: false
       filter:
         user_id:
           _eq: X-Hasura-User-Id

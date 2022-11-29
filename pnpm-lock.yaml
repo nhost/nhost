@@ -948,6 +948,7 @@ importers:
 
   packages/nhost-js:
     specifiers:
+      '@faker-js/faker': ^7.6.0
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
@@ -965,6 +966,7 @@ importers:
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
+      '@faker-js/faker': 7.6.0
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
       start-server-and-test: 1.14.0

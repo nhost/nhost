@@ -71,6 +71,7 @@
     "query-string": "^7.0.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@nhost/docgen": "workspace:*",
     "graphql": "15.7.2",
     "start-server-and-test": "^1.14.0"

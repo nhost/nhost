@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-
+import { faker } from '@faker-js/faker'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { NhostClient } from '../src'
 
 const nhost = new NhostClient({
@@ -39,7 +39,65 @@ describe('main tests', () => {
 
     expect(() => nhost.graphql.request<{ users: User[] }>(document)).rejects.toThrowError()
   })
+})
 
+describe('authenticated user', () => {
+  beforeAll(async () => {
+    const email = faker.internet.email()
+    const password = faker.internet.password()
+    await nhost.auth.signUp({ email, password })
+  })
+
+  afterAll(async () => {
+    await nhost.auth.signOut()
+  })
+
+  it('GraphQL with variables', async () => {
+    const document = `
+      query ($id: uuid!) {
+        test (where: {id: {_eq: $id }}) {
+          id
+        }
+      }
+    `
+    const data = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+      id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
+    })
+
+    expect(data).toBeTruthy()
+  })
+
+  it('GraphQL with incorrect variables', async () => {
+    const document = `
+      query ($id: uuid!) {
+        user (id: $id) {
+          id
+          displayName
+        }
+      }
+    `
+    expect(() =>
+      nhost.graphql.request<{ user: User }, { id: string }>(document, {
+        id: 'not-a-uuid'
+      })
+    ).rejects.toThrowError()
+  })
+
+  it('GraphQL with missing variables', async () => {
+    const document = `
+      query ($id: uuid!) {
+        user (id: $id) {
+          id
+          displayName
+        }
+      }
+    `
+
+    expect(() => nhost.graphql.request<{ user: User }>(document)).rejects.toThrowError()
+  })
+})
+
+describe('as an admin', () => {
   it('GraphQL request as admin', async () => {
     const document = `
       query {
@@ -105,7 +163,7 @@ describe('main tests', () => {
     ).rejects.toThrowError()
   })
 
-  it('GraphQL with missing variables', () => {
+  it('GraphQL with missing variables', async () => {
     const document = `
       query ($id: uuid!) {
         user (id: $id) {
@@ -114,7 +172,6 @@ describe('main tests', () => {
         }
       }
     `
-
     expect(() =>
       nhost.graphql.request<{ user: User }>(
         document,
