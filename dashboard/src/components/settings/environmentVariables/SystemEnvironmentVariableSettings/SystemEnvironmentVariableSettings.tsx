@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -12,8 +13,10 @@ import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import { LOCAL_HASURA_URL } from '@/utils/env';
+import { generateRemoteAppUrl } from '@/utils/helpers';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {
   const [showAdminSecret, setShowAdminSecret] = useState(false);
@@ -24,6 +27,8 @@ export default function SystemEnvironmentVariableSettings() {
   const { data, loading, error } = useGetAppInjectedVariablesQuery({
     variables: { id: currentApplication?.id },
   });
+
+  const appClient = useAppClient({ start: false });
 
   if (loading) {
     return (
@@ -66,6 +71,21 @@ export default function SystemEnvironmentVariableSettings() {
     });
   }
 
+  const hasuraUrl =
+    process.env.NEXT_PUBLIC_ENV === 'dev'
+      ? LOCAL_HASURA_URL
+      : generateRemoteAppUrl(currentApplication.subdomain);
+
+  const systemEnvironmentVariables = [
+    { key: 'NHOST_SUBDOMAIN', value: currentApplication.subdomain },
+    { key: 'NHOST_REGION', value: currentApplication.region.awsName },
+    { key: 'NHOST_HASURA_URL', value: hasuraUrl },
+    { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
+    { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },
+    { key: 'NHOST_STORAGE_URL', value: appClient.storage.url },
+    { key: 'NHOST_FUNCTIONS_URL', value: appClient.functions.url },
+  ];
+
   return (
     <SettingsContainer
       title="System Environment Variables"
@@ -75,17 +95,17 @@ export default function SystemEnvironmentVariableSettings() {
       className="px-0 mt-2 mb-2.5"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
+      <div className="grid grid-cols-3 border-b-1 gap-2 border-gray-200 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium">Value</Text>
+        <Text className="font-medium col-span-2">Value</Text>
       </div>
 
       <List>
-        <ListItem.Root className="px-4 grid grid-cols-2">
+        <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col gap-2 items-center justify-start">
-            <Text className="text-greyscaleGreyDark">
+          <div className="grid grid-flow-col col-span-2 gap-2 items-center justify-start">
+            <Text className="text-greyscaleGreyDark truncate">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
                   {currentApplication?.hasuraGraphqlAdminSecret}
@@ -114,11 +134,11 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!my-4" />
 
-        <ListItem.Root className="px-4 grid grid-cols-2">
+        <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col gap-2 items-center justify-start">
-            <Text className="text-greyscaleGreyDark">
+          <div className="grid grid-flow-col gap-2 col-span-2 items-center justify-start">
+            <Text className="text-greyscaleGreyDark truncate">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
                   {data?.app?.webhookSecret}
@@ -147,9 +167,27 @@ export default function SystemEnvironmentVariableSettings() {
           </div>
         </ListItem.Root>
 
+        <Divider component="li" className="!my-4" />
+
+        {systemEnvironmentVariables.map((environmentVariable, index) => (
+          <Fragment key={environmentVariable.key}>
+            <ListItem.Root className="px-4 grid grid-cols-3 gap-2">
+              <ListItem.Text>{environmentVariable.key}</ListItem.Text>
+
+              <Text className="truncate col-span-2">
+                {environmentVariable.value}
+              </Text>
+            </ListItem.Root>
+
+            {index !== systemEnvironmentVariables.length - 1 && (
+              <Divider className="!my-4" />
+            )}
+          </Fragment>
+        ))}
+
         <Divider component="li" className="!mt-4 !mb-2.5" />
 
-        <ListItem.Root className="px-4 grid grid-cols-2 justify-start">
+        <ListItem.Root className="px-4 grid grid-cols-3 justify-start">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
           <Button

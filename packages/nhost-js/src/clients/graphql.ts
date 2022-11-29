@@ -39,7 +39,7 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
  * @alias GraphQL
  */
 export class NhostGraphqlClient {
-  private url: string
+  readonly url: string
   private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string
