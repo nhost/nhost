@@ -1,6 +1,8 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
+
 import { NhostClientConstructorParams } from '../utils/types'
+
 import { createAuthClient } from './auth'
 import { createFunctionsClient, NhostFunctionsClient } from './functions'
 import { createGraphqlClient, NhostGraphqlClient } from './graphql'
