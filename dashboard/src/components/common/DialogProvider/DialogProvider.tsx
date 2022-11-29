@@ -1,6 +1,8 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
+import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
 import RoleForm from '@/components/settings/roles/RoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -8,7 +10,12 @@ import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
-import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
+import type {
+  BaseSyntheticEvent,
+  DetailedHTMLProps,
+  HTMLProps,
+  PropsWithChildren,
+} from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
@@ -19,13 +26,21 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function LoadingComponent() {
+function LoadingComponent({
+  className,
+  ...props
+}: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> = {}) {
   return (
-    <div className="grid items-center justify-center px-6 py-4">
+    <div
+      {...props}
+      className={twMerge(
+        'grid items-center justify-center px-6 py-4',
+        className,
+      )}
+    >
       <ActivityIndicator
         circularProgressProps={{ className: 'w-5 h-5' }}
         label="Loading form..."
-        delay={500}
       />
     </div>
   );
@@ -33,27 +48,27 @@ function LoadingComponent() {
 
 const CreateRecordForm = dynamic(
   () => import('@/components/data-browser/CreateRecordForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateColumnForm = dynamic(
   () => import('@/components/data-browser/CreateColumnForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditColumnForm = dynamic(
   () => import('@/components/data-browser/EditColumnForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateTableForm = dynamic(
   () => import('@/components/data-browser/CreateTableForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditTableForm = dynamic(
   () => import('@/components/data-browser/EditTableForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
@@ -304,6 +319,30 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {...dialogPayload}
               onSubmit={async (values) => {
                 await dialogPayload?.onSubmit?.(values);
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'CREATE_ENVIRONMENT_VARIABLE' && (
+            <CreateEnvironmentVariableForm
+              {...dialogPayload}
+              onSubmit={async () => {
+                await dialogPayload?.onSubmit?.();
+
+                closeDialog();
+              }}
+              onCancel={closeDialogWithDirtyGuard}
+            />
+          )}
+
+          {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
+            <EditEnvironmentVariableForm
+              {...dialogPayload}
+              onSubmit={async () => {
+                await dialogPayload?.onSubmit?.();
 
                 closeDialog();
               }}

@@ -15,14 +15,14 @@ describe('main tests', () => {
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
-  it('getHttpUrl()', async () => {
-    const graphqlUrl = nhost.graphql.getHttpUrl()
+  it('httpUrl', async () => {
+    const graphqlUrl = nhost.graphql.httpUrl
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
   it('getWsUrl()', () => {
-    const graphqlUrl = nhost.graphql.getWsUrl()
+    const graphqlUrl = nhost.graphql.wsUrl
 
     expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
   })
