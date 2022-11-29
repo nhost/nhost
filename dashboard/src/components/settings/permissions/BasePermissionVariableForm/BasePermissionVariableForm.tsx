@@ -1,15 +1,13 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import type { CustomClaim } from '@/types/application';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface PermissionVariableFormValues {
+export interface BasePermissionVariableFormValues {
   /**
    * Permission variable key.
    */
@@ -20,20 +18,11 @@ export interface PermissionVariableFormValues {
   value: string;
 }
 
-export interface PermissionVariableFormProps {
-  /**
-   * List of available permission variables.
-   */
-  availableVariables: CustomClaim[];
-  /**
-   * Original permission variable. This is defined only if the form was
-   * opened to edit an existing permission variable.
-   */
-  originalVariable?: CustomClaim;
+export interface BasePermissionVariableFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit: (values: PermissionVariableFormValues) => void;
+  onSubmit: (values: BasePermissionVariableFormValues) => void;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -46,62 +35,38 @@ export interface PermissionVariableFormProps {
   submitButtonText?: string;
 }
 
-const validationSchema = Yup.object({
+export const basePermissionVariableValidationSchema = Yup.object({
   key: Yup.string().required('This field is required.'),
   value: Yup.string().required('This field is required.'),
 });
 
-export default function PermissionVariableForm({
-  availableVariables,
-  originalVariable,
+export default function BasePermissionVariableForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-}: PermissionVariableFormProps) {
+}: BasePermissionVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const form = useForm<PermissionVariableFormValues>({
-    defaultValues: {
-      key: originalVariable?.key || '',
-      value: originalVariable?.value || '',
-    },
-    resolver: yupResolver(validationSchema),
-  });
+  const form = useFormContext<BasePermissionVariableFormValues>();
 
   const {
     register,
-    setError,
     formState: { dirtyFields, errors, isSubmitting },
   } = form;
 
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
-  async function handleSubmit(values: PermissionVariableFormValues) {
-    if (
-      availableVariables.some(
-        (variable) =>
-          variable.key === values.key && variable.key !== originalVariable?.key,
-      )
-    ) {
-      setError('key', { message: 'This key is already in use.' });
-
-      return;
-    }
-
-    onSubmit?.(values);
-  }
-
   return (
-    <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="grid grid-flow-row gap-4 px-6 pb-6"
-      >
+    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+      <Text variant="subtitle1" component="span">
+        Enter the field name and the path you want to use in this permission
+        variable.
+      </Text>
+
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
           {...register('key', {
             onChange: (event) => {
@@ -171,6 +136,6 @@ export default function PermissionVariableForm({
           </Button>
         </div>
       </Form>
-    </FormProvider>
+    </div>
   );
 }
