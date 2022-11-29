@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
 import { urlFromSubdomain } from '../utils/helpers'
@@ -81,7 +81,8 @@ export class NhostGraphqlClient {
     // add auth headers if any
     const headers = {
       ...this.generateAccessTokenHeaders(),
-      ...config?.headers
+      ...config?.headers,
+      'Accept-Encoding': '*'
     }
 
     try {
@@ -159,7 +160,7 @@ export class NhostGraphqlClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
+  private generateAccessTokenHeaders(): Record<string, string> {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret
