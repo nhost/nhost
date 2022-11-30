@@ -37,7 +37,7 @@ jobs:
         id: file_name
         # TODO remove debug lines
         run: |
-          echo ${{ contains(github.event.pull_request.labels.*.name, 'renovate' }}
+          echo ${{ contains(github.event.pull_request.labels.*.name, 'renovate') }}
           echo ${{ github.event.action }}
           cat /usr/share/dict/words | sort -R | head -3
           cat /usr/share/dict/words | sort -R | head -3 | paste -sd "-" - 
