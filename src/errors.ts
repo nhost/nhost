@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { generateRedirectUrl } from './utils';
+import { ENV, generateRedirectUrl } from './utils';
 
 /**
  * This is a custom error middleware for Express.
@@ -38,7 +38,12 @@ export const REQUEST_VALIDATION_ERROR: ErrorPayload = {
 };
 
 const asErrors = <T>(et: {
-  [K in keyof T]: Pick<ErrorPayload, 'status' | 'message'>;
+  [K in keyof T]: Pick<ErrorPayload, 'status' | 'message'> & {
+    /**
+     * Determines if the error can leak information about users to attackers.
+     */
+    sensitive?: boolean;
+  };
 }) => et;
 
 export const ERRORS = asErrors({
@@ -65,10 +70,12 @@ export const ERRORS = asErrors({
   'disabled-user': {
     status: StatusCodes.UNAUTHORIZED,
     message: 'User is disabled',
+    sensitive: true,
   },
   'invalid-email-password': {
     status: StatusCodes.UNAUTHORIZED,
     message: 'Incorrect email or password',
+    sensitive: true,
   },
   'invalid-otp': {
     status: StatusCodes.UNAUTHORIZED,
@@ -93,6 +100,7 @@ export const ERRORS = asErrors({
   'email-already-in-use': {
     status: StatusCodes.CONFLICT,
     message: 'Email already in use',
+    sensitive: true,
   },
   'mfa-type-not-found': {
     status: StatusCodes.BAD_REQUEST,
@@ -101,6 +109,7 @@ export const ERRORS = asErrors({
   'email-already-verified': {
     status: StatusCodes.BAD_REQUEST,
     message: "User's email is already verified",
+    sensitive: true,
   },
   'totp-already-active': {
     status: StatusCodes.BAD_REQUEST,
@@ -109,6 +118,7 @@ export const ERRORS = asErrors({
   'user-not-found': {
     status: StatusCodes.BAD_REQUEST,
     message: 'No user found',
+    sensitive: true,
   },
   'user-not-anonymous': {
     status: StatusCodes.BAD_REQUEST,
@@ -121,10 +131,6 @@ export const ERRORS = asErrors({
   'invalid-refresh-token': {
     status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired refresh token',
-  },
-  'invalid-redirection': {
-    status: StatusCodes.BAD_REQUEST,
-    message: 'Invalid or missing redirectTo',
   },
   'invalid-admin-secret': {
     status: StatusCodes.UNAUTHORIZED,
@@ -146,10 +152,6 @@ export const ERRORS = asErrors({
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     message: 'Error sending SMS',
   },
-  'invalid-sms-provider-type': {
-    status: StatusCodes.INTERNAL_SERVER_ERROR,
-    message: 'Absent or invalid SMS provider type',
-  },
   'internal-error': {
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     message: 'Internal server error',
@@ -169,8 +171,9 @@ export const sendError = (
   }: { customMessage?: string; redirectTo?: string } = {},
   forwardRedirection?: boolean
 ) => {
-  const error = ERRORS[code];
-  const message = customMessage ?? error.message;
+  const isSensitive = ENV.AUTH_CONCEAL_ERRORS && !!ERRORS[code].sensitive;
+  const error = isSensitive ? ERRORS['invalid-request'] : ERRORS[code];
+  const message = (isSensitive ? null : customMessage) ?? error.message;
   const status = error.status;
 
   if (forwardRedirection && redirectTo) {

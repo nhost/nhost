@@ -19,14 +19,9 @@ export const userMFAHandler: RequestHandler<
     activeMfaType: null | 'totp'; // | 'sms';
   }
 > = async (req, res) => {
-  // check if user is logged in
-  if (!req.auth?.userId) {
-    return sendError(res, 'unauthenticated-user');
-  }
-
   const { code, activeMfaType } = req.body;
 
-  const { userId } = req.auth;
+  const { userId } = req.auth as RequestAuth;
 
   const { user } = await gqlSdk.user({
     id: userId,

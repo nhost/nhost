@@ -32,10 +32,6 @@ export const signInEmailPasswordHandler: RequestHandler<
     return sendError(res, 'disabled-user');
   }
 
-  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
-    return sendError(res, 'unverified-user');
-  }
-
   if (!user.passwordHash) {
     return sendError(res, 'invalid-email-password');
   }
@@ -44,6 +40,10 @@ export const signInEmailPasswordHandler: RequestHandler<
 
   if (!isPasswordCorrect) {
     return sendError(res, 'invalid-email-password');
+  }
+
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    return sendError(res, 'unverified-user');
   }
 
   const signInTokens = await getSignInResponse({

@@ -206,6 +206,10 @@ export const ENV = {
   get AUTH_USER_SESSION_VARIABLE_FIELDS(): Record<string, string> {
     return this.AUTH_USER_SESSION_VARIABLE_FIELDS;
   },
+
+  get AUTH_CONCEAL_ERRORS() {
+    return castBooleanEnv('AUTH_CONCEAL_ERRORS', false);
+  },
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {
   //   return castBooleanEnv('AUTH_SKIP_INIT', false);

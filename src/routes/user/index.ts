@@ -111,7 +111,12 @@ router.post(
  * @security BearerAuth
  * @tags Authentication
  */
-router.post('/user/mfa', bodyValidator(userMfaSchema), aw(userMFAHandler));
+router.post(
+  '/user/mfa',
+  bodyValidator(userMfaSchema),
+  authenticationGate,
+  aw(userMFAHandler)
+);
 
 /**
  * POST /user/deanonymize
