@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.2
+
+### Patch Changes
+
+- 44f13f62: chore(dashboard): cleanup unused files
+
 ## 0.7.1
 
 ### Patch Changes
