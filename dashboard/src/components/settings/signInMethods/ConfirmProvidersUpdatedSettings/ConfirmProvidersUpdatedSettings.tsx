@@ -43,7 +43,7 @@ export default function ConfirmProvidersUpdatedSettings() {
       payload: (
         <Text variant="subtitle1" component="span">
           Please make sure to update all providers before continuing. Your
-          signin flows might break if you don't.
+          signin flows might break if you don&apos;t.
         </Text>
       ),
       props: {
@@ -65,12 +65,12 @@ export default function ConfirmProvidersUpdatedSettings() {
         </Text>
 
         <Text className="text-sm+">
-          We are deprecating your project's old DNS name in favor of individual
-          DNS names for each service. Please make sure to update your providers
-          to use the new auth specific URL under <b>Redirect URL</b> before the
-          1st of February 2023.{' '}
+          We are deprecating your project&apos;s old DNS name in favor of
+          individual DNS names for each service. Please make sure to update your
+          providers to use the new auth specific URL under <b>Redirect URL</b>{' '}
+          before the 1st of February 2023.{' '}
           <Link
-            href={'https://docs.nhost.io/'}
+            href="https://docs.nhost.io/"
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
