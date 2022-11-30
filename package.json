@@ -35,6 +35,7 @@
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
+    "test:all": "turbo run test",
     "test:dashboard": "turbo run test --filter=@nhost/dashboard",
     "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",

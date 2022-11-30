@@ -12,14 +12,13 @@ on:
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: nhost
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_ENV: dev
-      NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
     steps:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies
@@ -33,10 +32,6 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_ENV: dev
-      NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
     steps:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies
@@ -50,10 +45,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_ENV: dev
-      NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
     steps:
       - uses: actions/checkout@v3
       - name: Install Node and dependencies

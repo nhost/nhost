@@ -5,6 +5,10 @@ inputs:
     description: 'Turborepo token'
   TURBO_TEAM:
     description: 'Turborepo team'
+  BUILD:
+    description: 'Build packages'
+    default: 'default'
+
 runs:
   using: 'composite'
   steps:
@@ -35,6 +39,14 @@ runs:
     # * They are reused through the Turborepo cache
     - shell: bash
       name: Build packages
+      if: ${{ inputs.BUILD == 'all' }}
+      run: pnpm build:all
+      env:
+        TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+        TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
+    - shell: bash
+      name: Build everything in the monorepo
+      if: ${{ inputs.BUILD == 'default' }}
       run: pnpm build
       env:
         TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
