@@ -39,11 +39,11 @@ export default function ConfirmProvidersUpdatedSettings() {
 
   function handleConfirmDialog() {
     openAlertDialog({
-      title: 'Confirm updated URLs for all providers?',
+      title: 'Confirm all providers updated?',
       payload: (
         <Text variant="subtitle1" component="span">
-          Please make sure to update all providers before confirming because an
-          environment variable will be updated in the auth service.
+          Please make sure to update all providers before continuing. Your
+          signin flows might break if you don't.
         </Text>
       ),
       props: {
