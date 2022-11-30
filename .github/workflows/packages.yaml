@@ -24,8 +24,8 @@ env:
 jobs:
   renovate-changeset:
     name: Add Changesets to Renovate PRs
-    # && github.event.pull_request.action == 'opened'
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'renovate') }}
+    # && github.event.action == 'opened' && contains(github.event.pull_request.labels.*.name, 'renovate')
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
