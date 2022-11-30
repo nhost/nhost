@@ -23,7 +23,7 @@ env:
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
 jobs:
   renovate-changeset:
-    name: Add Changesets to Renovate PRs
+    name: Add Renovate Changesets
     # && github.event.action == 'opened' && contains(github.event.pull_request.labels.*.name, 'renovate')
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
