@@ -161,6 +161,7 @@ jobs:
         with:
           repository: nhost/cli
           token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
       - name: Bump version in source code
         run: |
           IMAGE=$(echo ${{ env.DASHBOARD_PACKAGE }} | sed 's/@\(.\+\)\/\(.\+\)/\1\\\/\2/g')
