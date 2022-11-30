@@ -171,9 +171,9 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GH_PAT }}
-          commit-message: 'chore: bump Dashboard version to ${{ needs.version.outputs.dashboardVersion }}'
+          commit-message: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
           branch: bump-dashboard-version
           delete-branch: true
-          title: 'chore: bump dashboard version to ${{ needs.version.outputs.dashboardVersion }}'
+          title: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
           body: |
-            This PR bumps the Dashboard version to ${{ needs.version.outputs.dashboardVersion }}.
+            This PR bumps the Nhost Dashboard Docker image to version ${{ needs.version.outputs.dashboardVersion }}.
