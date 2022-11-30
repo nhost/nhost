@@ -1,8 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
-import type { RoleFormValues } from '@/components/settings/roles/RoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import useLeaveConfirm from '@/hooks/common/useLeaveConfirm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -17,13 +14,13 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
-import { Fragment, useEffect } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
@@ -38,17 +35,6 @@ export interface RoleSettingsFormValues {
   authUserDefaultAllowedRoles: Role[];
 }
 
-function getUserRoles(roles?: string) {
-  if (!roles) {
-    return [] as Role[];
-  }
-
-  return roles.split(',').map((role) => ({
-    name: role.trim(),
-    isSystemRole: role === 'user' || role === 'me',
-  })) as Role[];
-}
-
 export default function RoleSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
@@ -61,32 +47,6 @@ export default function RoleSettings() {
     refetchQueries: ['getRoles'],
   });
 
-  const form = useForm<RoleSettingsFormValues>({
-    defaultValues: {
-      authUserDefaultRole: data?.app?.authUserDefaultRole || 'user',
-      authUserDefaultAllowedRoles: getUserRoles(
-        data?.app?.authUserDefaultAllowedRoles,
-      ),
-    },
-  });
-
-  const {
-    reset,
-    formState: { dirtyFields },
-  } = form;
-
-  const isDirty = Object.keys(dirtyFields).length > 0;
-  useLeaveConfirm({ isDirty });
-
-  useEffect(() => {
-    reset({
-      authUserDefaultRole: data?.app?.authUserDefaultRole || 'user',
-      authUserDefaultAllowedRoles: getUserRoles(
-        data?.app?.authUserDefaultAllowedRoles,
-      ),
-    });
-  }, [data, reset]);
-
   if (loading) {
     return <ActivityIndicator delay={1000} label="Loading user roles..." />;
   }
@@ -95,114 +55,12 @@ export default function RoleSettings() {
     throw error;
   }
 
-  const { setValue, formState, watch } = form;
-  const defaultRole = watch('authUserDefaultRole');
-  const availableRoles = watch('authUserDefaultAllowedRoles');
-
-  function handleAddRole({ name }: RoleFormValues) {
-    setValue(
-      'authUserDefaultAllowedRoles',
-      [...availableRoles, { name, isSystemRole: false }],
-      { shouldDirty: true },
-    );
-  }
-
-  function handleEditRole({ name }: RoleFormValues, originalRole: Role) {
-    const originalIndex = availableRoles.findIndex(
-      (role) => role.name === originalRole.name,
-    );
-    const updatedRoles = availableRoles.map((role, index) =>
-      index === originalIndex ? { name, isSystemRole: false } : role,
-    );
-
-    setValue('authUserDefaultAllowedRoles', updatedRoles, {
-      shouldDirty: true,
-    });
-  }
-
-  function handleRemoveRole({ name }: Role) {
-    const filteredRoles = availableRoles.filter((role) => role.name !== name);
-
-    if (name === defaultRole) {
-      setValue('authUserDefaultRole', 'user', { shouldDirty: true });
-    }
-
-    setValue('authUserDefaultAllowedRoles', filteredRoles, {
-      shouldDirty: true,
-    });
-  }
-
-  function handleOpenCreator() {
-    openDialog('MANAGE_ROLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Add Role</span>
-
-          <Text variant="subtitle1" component="span">
-            Enter the name for the role below.
-          </Text>
-        </span>
-      ),
-      payload: {
-        availableRoles,
-        submitButtonText: 'Create',
-        onSubmit: handleAddRole,
-      },
-      props: { PaperProps: { className: 'max-w-sm' } },
-    });
-  }
-
-  function handleOpenEditor(originalRole: Role) {
-    openDialog('MANAGE_ROLE', {
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Edit Role</span>
-
-          <Text variant="subtitle1" component="span">
-            Enter the name for the role below.
-          </Text>
-        </span>
-      ),
-      payload: {
-        originalRole,
-        availableRoles,
-        onSubmit: (values: RoleFormValues) =>
-          handleEditRole(values, originalRole),
-      },
-      props: { PaperProps: { className: 'max-w-sm' } },
-    });
-  }
-
-  function handleConfirmRemove(originalRole: Role) {
-    openAlertDialog({
-      title: 'Remove Role',
-      payload: (
-        <Text>
-          Are you sure you want to remove the &quot;
-          <strong>{originalRole.name}</strong>&quot; role?
-        </Text>
-      ),
-      props: {
-        onPrimaryAction: () => handleRemoveRole(originalRole),
-        primaryButtonColor: 'error',
-        primaryButtonText: 'Remove',
-      },
-    });
-  }
-
-  function handleSetAsDefault(role: Role) {
-    setValue('authUserDefaultRole', role.name, { shouldDirty: true });
-  }
-
-  async function handleSubmit(values: RoleSettingsFormValues) {
+  async function handleSetAsDefault({ name }: Role) {
     const updateAppPromise = updateApp({
       variables: {
         id: currentApplication?.id,
         app: {
-          authUserDefaultRole: values.authUserDefaultRole,
-          authUserDefaultAllowedRoles: values.authUserDefaultAllowedRoles
-            .map(({ name }) => name)
-            .join(','),
+          authUserDefaultRole: name,
         },
       },
     });
@@ -210,145 +68,203 @@ export default function RoleSettings() {
     await toast.promise(
       updateAppPromise,
       {
-        loading: 'Updating roles...',
-        success: 'Roles have been updated successfully.',
-        error: 'An error occurred while updating roles.',
+        loading: 'Updating default role...',
+        success: 'Default role has been updated successfully.',
+        error: 'An error occurred while trying to update the default role.',
       },
       toastStyleProps,
     );
   }
 
+  async function handleDeleteRole({ name }: Role) {
+    const filteredRoles = data?.app?.authUserDefaultAllowedRoles
+      .split(',')
+      .filter((role) => role !== name)
+      .join(',');
+
+    const updateAppPromise = updateApp({
+      variables: {
+        id: currentApplication?.id,
+        app: {
+          authUserDefaultAllowedRoles: filteredRoles,
+          authUserDefaultRole:
+            name === data?.app?.authUserDefaultRole
+              ? 'user'
+              : data?.app?.authUserDefaultRole,
+        },
+      },
+    });
+
+    await toast.promise(
+      updateAppPromise,
+      {
+        loading: 'Deleting role...',
+        success: 'Role has been deleted successfully.',
+        error: 'An error occurred while trying to delete the role.',
+      },
+      toastStyleProps,
+    );
+  }
+
+  function handleOpenCreator() {
+    openDialog('CREATE_ROLE', {
+      title: 'Create Role',
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'max-w-sm' },
+      },
+    });
+  }
+
+  function handleOpenEditor(originalRole: Role) {
+    openDialog('EDIT_ROLE', {
+      title: 'Edit Role',
+      payload: { originalRole },
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'max-w-sm' },
+      },
+    });
+  }
+
+  function handleConfirmDelete(originalRole: Role) {
+    openAlertDialog({
+      title: 'Delete Role',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>{originalRole.name}</strong>&quot; role? This cannot be
+          undone.
+        </Text>
+      ),
+      props: {
+        onPrimaryAction: () => handleDeleteRole(originalRole),
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+      },
+    });
+  }
+
+  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+
   return (
-    <FormProvider {...form}>
-      <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Roles"
-          description="Roles are used to control access to your application."
-          docsLink="https://docs.nhost.io/authentication/users#roles"
-          rootClassName="gap-0"
-          className="px-0 my-2"
-          slotProps={{
-            submitButton: {
-              loading: formState.isSubmitting,
-              disabled: !formState.isValid || !isDirty,
-            },
-          }}
-        >
-          <div className="border-b-1 border-gray-200 px-4 py-3">
-            <Text className="font-medium">Name</Text>
-          </div>
+    <SettingsContainer
+      title="Roles"
+      description="Roles are used to control access to your application."
+      docsLink="https://docs.nhost.io/authentication/users#roles"
+      rootClassName="gap-0"
+      className="px-0 my-2"
+      slotProps={{ submitButton: { className: 'invisible' } }}
+    >
+      <div className="border-b-1 border-gray-200 px-4 py-3">
+        <Text className="font-medium">Name</Text>
+      </div>
 
-          <div className="grid grid-flow-row gap-2">
-            <List>
-              {availableRoles.map((role, index) => (
-                <Fragment key={role.name}>
-                  <ListItem.Root
-                    className="px-4"
-                    secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
-                        >
-                          <IconButton variant="borderless" color="secondary">
-                            <DotsVerticalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+      <div className="grid grid-flow-row gap-2">
+        <List>
+          {availableRoles.map((role, index) => (
+            <Fragment key={role.name}>
+              <ListItem.Root
+                className="px-4"
+                secondaryAction={
+                  <Dropdown.Root>
+                    <Dropdown.Trigger
+                      asChild
+                      hideChevron
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                    >
+                      <IconButton variant="borderless" color="secondary">
+                        <DotsVerticalIcon />
+                      </IconButton>
+                    </Dropdown.Trigger>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
-                        >
-                          <Dropdown.Item
-                            onClick={() => handleSetAsDefault(role)}
-                          >
-                            <Text className="font-medium">Set as Default</Text>
-                          </Dropdown.Item>
-
-                          <Divider component="li" />
-
-                          <Dropdown.Item
-                            disabled={role.isSystemRole}
-                            onClick={() => handleOpenEditor(role)}
-                          >
-                            <Text className="font-medium">Edit</Text>
-                          </Dropdown.Item>
-
-                          <Divider component="li" />
-
-                          <Dropdown.Item
-                            disabled={role.isSystemRole}
-                            onClick={() => handleConfirmRemove(role)}
-                          >
-                            <Text
-                              className="font-medium"
-                              sx={{
-                                color: (theme) => theme.palette.error.main,
-                              }}
-                            >
-                              Remove
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
-                  >
-                    <ListItem.Text
-                      primaryTypographyProps={{
-                        className:
-                          'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
+                    <Dropdown.Content
+                      menu
+                      PaperProps={{ className: 'w-32' }}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
                       }}
-                      primary={
-                        <>
-                          {role.name}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                    >
+                      <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
+                        <Text className="font-medium">Set as Default</Text>
+                      </Dropdown.Item>
 
-                          {role.isSystemRole && (
-                            <LockIcon className="w-4 h-4" />
-                          )}
+                      <Divider component="li" />
 
-                          {defaultRole === role.name && (
-                            <Chip
-                              component="span"
-                              color="info"
-                              size="small"
-                              label="Default"
-                            />
-                          )}
-                        </>
-                      }
-                    />
-                  </ListItem.Root>
+                      <Dropdown.Item
+                        disabled={role.isSystemRole}
+                        onClick={() => handleOpenEditor(role)}
+                      >
+                        <Text className="font-medium">Edit</Text>
+                      </Dropdown.Item>
 
-                  <Divider
-                    component="li"
-                    className={twMerge(
-                      index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
-                    )}
-                  />
-                </Fragment>
-              ))}
-            </List>
+                      <Divider component="li" />
 
-            <Button
-              className="justify-self-start mx-4"
-              variant="borderless"
-              startIcon={<PlusIcon />}
-              onClick={handleOpenCreator}
-            >
-              Add Role
-            </Button>
-          </div>
-        </SettingsContainer>
-      </Form>
-    </FormProvider>
+                      <Dropdown.Item
+                        disabled={role.isSystemRole}
+                        onClick={() => handleConfirmDelete(role)}
+                      >
+                        <Text
+                          className="font-medium"
+                          sx={{
+                            color: (theme) => theme.palette.error.main,
+                          }}
+                        >
+                          Delete
+                        </Text>
+                      </Dropdown.Item>
+                    </Dropdown.Content>
+                  </Dropdown.Root>
+                }
+              >
+                <ListItem.Text
+                  primaryTypographyProps={{
+                    className:
+                      'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
+                  }}
+                  primary={
+                    <>
+                      {role.name}
+
+                      {role.isSystemRole && <LockIcon className="w-4 h-4" />}
+
+                      {data?.app?.authUserDefaultRole === role.name && (
+                        <Chip
+                          component="span"
+                          color="info"
+                          size="small"
+                          label="Default"
+                        />
+                      )}
+                    </>
+                  }
+                />
+              </ListItem.Root>
+
+              <Divider
+                component="li"
+                className={twMerge(
+                  index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
+                )}
+              />
+            </Fragment>
+          ))}
+        </List>
+
+        <Button
+          className="justify-self-start mx-4"
+          variant="borderless"
+          startIcon={<PlusIcon />}
+          onClick={handleOpenCreator}
+        >
+          Create Role
+        </Button>
+      </div>
+    </SettingsContainer>
   );
 }
