@@ -1,6 +1,6 @@
 import Container from '@/components/layout/Container';
 import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
-import RolesSettings from '@/components/settings/roles/RoleSettings/RoleSettings';
+import RolesSettings from '@/components/settings/roles/RoleSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import type { ReactElement } from 'react';
 
