@@ -2,6 +2,7 @@ import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import AnonymousSignInSettings from '@/components/settings/signInMethods/AnonymousSignInSettings';
 import AppleProviderSettings from '@/components/settings/signInMethods/AppleProviderSettings';
+import ConfirmProvidersUpdatedSettings from '@/components/settings/signInMethods/ConfirmProvidersUpdatedSettings';
 import DiscordProviderSettings from '@/components/settings/signInMethods/DiscordProviderSettings';
 import EmailAndPasswordSettings from '@/components/settings/signInMethods/EmailAndPasswordSettings';
 import FacebookProviderSettings from '@/components/settings/signInMethods/FacebookProviderSettings';
@@ -55,6 +56,9 @@ export default function SettingsSignInMethodsPage() {
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
+      {!currentApplication.providersUpdated && (
+        <ConfirmProvidersUpdatedSettings />
+      )}
       <AppleProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />
