@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.1
+
+### Patch Changes
+
+- e01cb2ed: chore(dashboard): change settings sidebar menu item density
+
 ## 0.7.0
 
 ### Minor Changes
