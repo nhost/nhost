@@ -18,8 +18,7 @@ export type DialogType =
   | 'CREATE_PERMISSION_VARIABLE'
   | 'EDIT_PERMISSION_VARIABLE'
   | 'CREATE_ENVIRONMENT_VARIABLE'
-  | 'EDIT_ENVIRONMENT_VARIABLE'
-  | 'CONFIRM_PROVIDERS_UPDATED';
+  | 'EDIT_ENVIRONMENT_VARIABLE';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
