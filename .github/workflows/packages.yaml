@@ -47,10 +47,10 @@ jobs:
         run: |
           echo "---" > ${{ steps.file_name.outputs.result }}
           VERSION="patch"
-          if [ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" != "false" ]; then
+          if [ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" = "true" ]; then
             VERSION="minor"
           fi
-          if [ ${{ contains(github.event.pull_request.labels.*.name, 'major') }}" != "false" ]; then
+          if [ ${{ contains(github.event.pull_request.labels.*.name, 'major') }}" = "true" ]; then
             VERSION="major"
           fi
           pnpm recursive list --depth -1 --parseable \
