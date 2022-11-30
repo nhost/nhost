@@ -230,7 +230,7 @@ importers:
       '@mui/material': 5.10.14_thp4wrxo45nyllusrnt46mid4u
       '@mui/system': 5.10.14_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
-      '@nhost/core': 0.9.3
+      '@nhost/core': 0.9.4
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/nhost-js': link:../packages/nhost-js
       '@nhost/react': link:../packages/react
@@ -813,11 +813,11 @@ importers:
       graphql: 15.7.2
       graphql-ws: ^5.10.1
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
       graphql: 15.7.2
       graphql-ws: 5.11.2_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
+      '@nhost/nhost-js': link:../nhost-js
 
   packages/docgen:
     specifiers:
@@ -918,14 +918,14 @@ importers:
       react-dom: ^17.0.2
       xstate: ^4.33.5
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
+      '@nhost/react': link:../react
       cross-fetch: 3.1.5
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
       '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@nhost/react': link:../react
+      '@nhost/nhost-js': link:../nhost-js
       '@types/js-cookie': 3.0.2
       next: 12.0.10_sfoxds7t5ydpegc3knd667wn6m
       react: 17.0.2
@@ -970,8 +970,6 @@ importers:
       react: ^18.2.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju
       immer: 9.0.15
@@ -979,6 +977,8 @@ importers:
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
+      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@types/react': 18.0.24
       react: 18.2.0
 
@@ -1043,7 +1043,6 @@ importers:
       ws: ^8.10.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 8.9.4_vue@3.2.41
       '@xstate/vue': 1.0.0_vue@3.2.41+xstate@4.33.6
@@ -1052,6 +1051,7 @@ importers:
     devDependencies:
       '@nhost/docgen': link:../docgen
       '@nhost/hasura-auth-js': link:../hasura-auth-js
+      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@vitejs/plugin-vue': 3.2.0_vue@3.2.41
       '@xstate/inspect': 0.6.5_ws@8.10.0+xstate@4.33.6
       vue: 3.2.41
@@ -8266,8 +8266,8 @@ packages:
     dev: false
     optional: true
 
-  /@nhost/core/0.9.3:
-    resolution: {integrity: sha512-MXWYEVG8zcuKe+9rlhoPnoa3y9aTK3yXdtRzc8cfjU3dshZQypMgbx1+BRx4sCktAZlubnlSXcPPV3GJkHhdLw==}
+  /@nhost/core/0.9.4:
+    resolution: {integrity: sha512-XqHc5RVh8AWyLSh+pTlEmCXZ3VQaV37xQYUrPzIdNCUNAHiBdvK4KboxGJiSkUz7hEvA4yqgp3ph7N9w8jZR3Q==}
     dependencies:
       '@simplewebauthn/browser': 6.0.0
       axios: 1.2.0
@@ -27412,7 +27412,7 @@ packages:
     resolution: {integrity: sha512-iMDbmAWtfU+MHpxt/I5iWI7cY6YVEZUQ3MBgPQ++XD1PELuJHIl82xBmObyP2KyQmkNB2dsqF7seoQQiAn5yDQ==}
     hasBin: true
     dependencies:
-      is-core-module: 2.10.0
+      is-core-module: 2.11.0
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
     dev: true

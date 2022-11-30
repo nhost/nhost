@@ -64,7 +64,6 @@
     "vue": "^3.2.31"
   },
   "dependencies": {
-    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@vueuse/core": "^8.9.4",
     "@xstate/vue": "^1.0.0",
@@ -73,6 +72,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@vitejs/plugin-vue": "^3.2.0",
     "@xstate/inspect": "^0.6.2",
