@@ -3,6 +3,10 @@
   "extends": [
     "config:base"
   ],
+  "ignoreDeps": [
+    "pnpm",
+    "node"
+  ],
   "labels": [
     "renovate"
   ],
