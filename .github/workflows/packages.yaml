@@ -40,7 +40,7 @@ jobs:
           echo ${{ contains(github.event.pull_request.labels.*.name, 'renovate' }}
           echo ${{ github.event.action }}
           cat /usr/share/dict/words | sort -R | head -3
-          cat /usr/share/dict/words | sort -R | head -3 | paste -sd "-" - |
+          cat /usr/share/dict/words | sort -R | head -3 | paste -sd "-" - 
           FILE_NAME=$(cat /usr/share/dict/words | sort -R | head -3 | paste -sd "-" - | tr '[:upper:]' '[:lower:]')
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
