@@ -1,24 +1,54 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function ConfirmProvidersUpdatedSettings() {
-  const { openDialog } = useDialog();
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { openAlertDialog } = useDialog();
   const [visible, setVisible] = useState(true);
 
-  const removeElement = () => {
+  const [confirmProvidersUpdated] = useConfirmProvidersUpdatedMutation({
+    variables: {
+      id: currentApplication?.id,
+    },
+  });
+
+  async function handleSubmit() {
+    const confirmProvidersUpdatedPromise = confirmProvidersUpdated();
+
+    await toast.promise(
+      confirmProvidersUpdatedPromise,
+      {
+        loading: 'Confirming...',
+        success: 'All done!',
+        error: 'An error occurred while confirming.',
+      },
+      toastStyleProps,
+    );
+
     setVisible((prev) => !prev);
-  };
+  }
 
   function handleConfirmDialog() {
-    openDialog('CONFIRM_PROVIDERS_UPDATED', {
+    openAlertDialog({
       title: 'Confirm updated URLs for all providers?',
-      payload: {
-        onSubmit: () => removeElement(),
+      payload: (
+        <Text variant="subtitle1" component="span">
+          Please make sure to update all providers before confirming because an
+          environment variable will be updated in the auth service.
+        </Text>
+      ),
+      props: {
+        primaryButtonText: 'Confirm',
+        onPrimaryAction: () => handleSubmit(),
       },
     });
   }
@@ -28,13 +58,13 @@ export default function ConfirmProvidersUpdatedSettings() {
   }
 
   return (
-    <Alert className="grid grid-flow-col px-4 place-content-between bg-amber-500">
+    <Alert className="grid items-center grid-flow-col gap-2 p-4 place-content-between bg-amber-500">
       <div className="grid grid-flow-row gap-1 text-left">
-        <Text className="py-2 font-semibold">
+        <Text className="font-semibold">
           Please update the Redirect URL for all providers being used
         </Text>
 
-        <Text className="text-sm">
+        <Text className="text-sm+">
           We are deprecating your project's old DNS name in favor of individual
           DNS names for each service. Please make sure to update your providers
           to use the new auth specific URL under <b>Redirect URL</b> before the

@@ -7,7 +7,6 @@ import CreatePermissionVariableForm from '@/components/settings/permissions/Crea
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
-import ConfirmProvidersUpdated from '@/components/settings/signInMethods/ConfirmProvidersUpdatedForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -330,10 +329,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
             <EditEnvironmentVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CONFIRM_PROVIDERS_UPDATED' && (
-            <ConfirmProvidersUpdated {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>
