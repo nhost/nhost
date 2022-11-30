@@ -1,12 +1,16 @@
 import type { QueryError, QueryResult } from '@/types/data-browser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 
 export interface FetchProjectDatabaseSizeOptions {
   /**
    * Project subdomain.
    */
   subdomain: string;
+  /**
+   * Project region.
+   */
+  region: string;
   /**
    * Admin secret for the project.
    */
@@ -25,24 +29,26 @@ export interface FetchProjectDatabaseSizeReturnType {
  */
 export default async function fetchProjectDatabaseSize({
   subdomain,
+  region,
   adminSecret,
 }: FetchProjectDatabaseSizeOptions): Promise<FetchProjectDatabaseSizeReturnType> {
-  const appEndpoint = `${generateRemoteAppUrl(subdomain)}/v2/query`;
-
-  const response = await fetch(appEndpoint, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      type: 'run_sql',
-      args: {
-        sql: `SELECT pg_database_size('${
-          subdomain === 'localhost' ? 'postgres' : subdomain
-        }');`,
+  const response = await fetch(
+    `${generateAppServiceUrl(subdomain, region, 'hasura')}/v2/query`,
+    {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': adminSecret,
       },
-    }),
-  });
+      body: JSON.stringify({
+        type: 'run_sql',
+        args: {
+          sql: `SELECT pg_database_size('${
+            subdomain === 'localhost' ? 'postgres' : subdomain
+          }');`,
+        },
+      }),
+    },
+  );
 
   const responseData: QueryResult<string[]> | QueryError =
     await response.json();

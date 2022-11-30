@@ -14,7 +14,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { LOCAL_HASURA_URL } from '@/utils/env';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl, generateRemoteAppUrl } from '@/utils/helpers';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
@@ -71,11 +71,6 @@ export default function SystemEnvironmentVariableSettings() {
     });
   }
 
-  const hasuraUrl =
-    process.env.NEXT_PUBLIC_ENV === 'dev'
-      ? LOCAL_HASURA_URL
-      : generateRemoteAppUrl(currentApplication.subdomain);
-
   const systemEnvironmentVariables = [
     {
       key: 'NHOST_BACKEND_URL',
@@ -83,7 +78,17 @@ export default function SystemEnvironmentVariableSettings() {
     },
     { key: 'NHOST_SUBDOMAIN', value: currentApplication.subdomain },
     { key: 'NHOST_REGION', value: currentApplication.region.awsName },
-    { key: 'NHOST_HASURA_URL', value: `${hasuraUrl}/console` },
+    {
+      key: 'NHOST_HASURA_URL',
+      value:
+        process.env.NEXT_PUBLIC_ENV === 'dev'
+          ? LOCAL_HASURA_URL
+          : `${generateAppServiceUrl(
+              currentApplication.subdomain,
+              currentApplication.region.awsName,
+              'hasura',
+            )}/console`,
+    },
     { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
     { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },
     { key: 'NHOST_STORAGE_URL', value: appClient.storage.url },
