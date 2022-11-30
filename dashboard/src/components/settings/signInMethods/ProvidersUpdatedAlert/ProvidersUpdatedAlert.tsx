@@ -10,55 +10,52 @@ import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphq
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-export default function ConfirmProvidersUpdatedSettings() {
+export default function ProvidersUpdatedAlert() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openAlertDialog } = useDialog();
-  const [visible, setVisible] = useState(true);
+  const [confirmed, setConfirmed] = useState(true);
 
   const [confirmProvidersUpdated] = useConfirmProvidersUpdatedMutation({
-    variables: {
-      id: currentApplication?.id,
-    },
+    variables: { id: currentApplication?.id },
   });
 
-  async function handleSubmit() {
+  async function handleSubmitConfirmation() {
     const confirmProvidersUpdatedPromise = confirmProvidersUpdated();
 
     await toast.promise(
       confirmProvidersUpdatedPromise,
       {
         loading: 'Confirming...',
-        success: 'All done!',
-        error: 'An error occurred while confirming.',
+        success: 'Your settings have been updated successfully.',
+        error: 'An error occurred while trying to confirm the message.',
       },
       toastStyleProps,
     );
 
-    setVisible((prev) => !prev);
+    setConfirmed(false);
   }
 
-  function handleConfirmDialog() {
+  function handleOpenConfirmationDialog() {
     openAlertDialog({
       title: 'Confirm all providers updated?',
       payload: (
         <Text variant="subtitle1" component="span">
           Please make sure to update all providers before continuing. Your
-          signin flows might break if you don&apos;t.
+          sign-in flows might break if you don&apos;t.
         </Text>
       ),
       props: {
-        primaryButtonText: 'Confirm',
-        onPrimaryAction: () => handleSubmit(),
+        onPrimaryAction: handleSubmitConfirmation,
       },
     });
   }
 
-  if (!visible) {
+  if (!confirmed) {
     return null;
   }
 
   return (
-    <Alert className="grid items-center grid-flow-col gap-2 p-4 place-content-between bg-amber-500">
+    <Alert className="grid items-center place-items-center grid-flow-row lg:grid-flow-col gap-2 p-4 lg:place-content-between bg-amber-500">
       <div className="grid grid-flow-row gap-1 text-left">
         <Text className="font-semibold">
           Please update the Redirect URL for all providers being used
@@ -82,7 +79,7 @@ export default function ConfirmProvidersUpdatedSettings() {
         </Text>
       </div>
 
-      <Button variant="borderless" onClick={() => handleConfirmDialog()}>
+      <Button variant="borderless" onClick={handleOpenConfirmationDialog}>
         I have updated all Redirect URLs
       </Button>
     </Alert>
