@@ -45,16 +45,16 @@ jobs:
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
         run: |
-          echo "---" > ${{ steps.file_name.outputs.result }}
+          printf '---\n' > ${{ steps.file_name.outputs.result }}
           pnpm recursive list --depth -1 --parseable \
             --filter='!nhost-root' \
-            --filter=...[origin/${{ github.base_ref }}] \
+            --filter=...[origin/main] \
             | xargs -I@ jq ".name" @/package.json \
             | sort \
             | uniq -u \
             | awk '$0=$0": patch"' \
             >> ${{ steps.file_name.outputs.result }}
-          echo "---\n" >> ${{ steps.file_name.outputs.result }}
+          printf '---\n\n' >> ${{ steps.file_name.outputs.result }}
           echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
@@ -78,7 +78,7 @@ jobs:
       - name: List examples with an e2e script
         id: set-matrix
         run: |
-          FILTER_MODIFIED="${{ github.event_name == 'pull_request' && format('--filter=...[origin/{0}]', github.base_ref) || '' }}"
+          FILTER_MODIFIED="${{ github.event_name == 'pull_request' && '--filter=...[origin/main]' }}"
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' $FILTER_MODIFIED \
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
