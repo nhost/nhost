@@ -8,21 +8,9 @@
     "node"
   ],
   "labels": [
-    "renovate"
-  ],
-  "patch": {
-    "addLabels": [
-      "patch"
-    ]
-  },
-  "minor": {
-    "addLabels": [
-      "minor"
-    ]
-  },
-  "major": {
-    "addLabels": [
-      "major"
-    ]
-  }
+    "renovate",
+    "currentValue: {{currentValue}}",
+    "currentValue: {{replace /@}}",
+    "currentVersion: {{currentVersion}}"
+  ]
 }

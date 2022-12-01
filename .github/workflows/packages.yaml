@@ -14,7 +14,6 @@ on:
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
-
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: nhost
@@ -46,20 +45,13 @@ jobs:
       - name: Create changeset file
         run: |
           echo "---" > ${{ steps.file_name.outputs.result }}
-          VERSION="patch"
-          if [ "${{ contains(github.event.pull_request.labels.*.name, 'minor') }}" = "true" ]; then
-            VERSION="minor"
-          fi
-          if [ ${{ contains(github.event.pull_request.labels.*.name, 'major') }}" = "true" ]; then
-            VERSION="major"
-          fi
           pnpm recursive list --depth -1 --parseable \
             --filter='!nhost-root' \
             --filter=...[origin/${{ github.base_ref }}] \
             | xargs -I@ jq ".name" @/package.json \
             | sort \
             | uniq -u \
-            | awk '$0=$0": '$VERSION'"' \
+            | awk '$0=$0": patch"' \
             >> ${{ steps.file_name.outputs.result }}
           echo "---\n" >> ${{ steps.file_name.outputs.result }}
           echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
