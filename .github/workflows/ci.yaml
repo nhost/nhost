@@ -61,12 +61,13 @@ jobs:
       - name: Create changeset file
         if: steps.bumps.outputs.result != ''
         run: |
-          echo "---" > ${{ steps.file_name.outputs.result }}
-          echo "${{ steps.bumps.outputs.result }}" >> ${{ steps.file_name.outputs.result }}
-          echo "---" >> ${{ steps.file_name.outputs.result }}
-          echo >> ${{ steps.file_name.outputs.result }}
-          echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
-          echo "echo present=true" >> $GITHUB_OUTPUT
+          cat <<EOF > ${{ steps.file_name.outputs.result }}
+          ---
+          ${{ steps.bumps.outputs.result }}
+          ---
+
+          ${{ github.event.pull_request.title }}
+          EOF
       - uses: stefanzweifel/git-auto-commit-action@v4
         if: steps.bumps.outputs.result != ''
         with:
