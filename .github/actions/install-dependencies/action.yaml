@@ -1,0 +1,28 @@
+name: Install Node and package dependencies
+description: 'Install Node dependencies with pnpm'
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v2.2.4
+      with:
+        version: 7.9.1
+        run_install: false
+    - name: Get pnpm cache directory
+      id: pnpm-cache-dir
+      shell: bash
+      run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+    - uses: actions/cache@v3
+      id: pnpm-cache
+      with:
+        path: |
+          ${{ steps.pnpm-cache-dir.outputs.dir }}
+          ~/.cache/Cypress
+        key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: ${{ runner.os }}-node-
+    - name: Use Node.js 16
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - shell: bash
+      name: Install packages
+      run: pnpm install --frozen-lockfile

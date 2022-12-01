@@ -41,9 +41,13 @@ export const transformOauthProfile = async (
   const avatarUrl = normalised.avatarUrl || getGravatarUrl(email) || '';
 
   // * check if the locale is allowed, and if not, use the default one
-  const locale =
-    localeValidator.validate(options?.locale || normalised.locale).value ||
-    ENV.AUTH_LOCALE_DEFAULT;
+  let locale = ENV.AUTH_LOCALE_DEFAULT;
+  const customLocale = localeValidator.validate(
+    options?.locale || normalised.locale
+  );
+  if (!customLocale.error) {
+    locale = customLocale.value;
+  }
 
   /**
    * In order of priority:

@@ -1,12 +1,6 @@
 name: Test
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**'
-      - '!docs/**'
-      - '!examples/**'
-      - '!*.md'
+  workflow_call:
   pull_request:
     branches: [main]
     paths:
@@ -25,12 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
+        # TODO bump
         image: nhost/postgres:12-v0.0.6
         env:
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: --restart always --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       graphql-engine:
-        image: hasura/graphql-engine:v2.0.1
+        image: hasura/graphql-engine:v2.10.1
         env:
           HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
           HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
@@ -48,7 +43,7 @@ jobs:
           SMTP_SECURE: 'false'
           SMTP_SENDER: hbp@hbp.com
     container:
-      image: node:16-alpine
+      image: node:16
       env:
         AUTH_PORT: 4000
         HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
@@ -64,18 +59,11 @@ jobs:
         AUTH_CLIENT_URL: http://localhost:3000
       options: --hostname hasura-auth
     steps:
-      - uses: actions/checkout@v2
-      - name: Cache pnpm modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-
-      - uses: pnpm/action-setup@v2.1.0
-        with:
-          version: 7.3.0
-          run_install: |
-            - args: [--frozen-lockfile]
+      - uses: actions/checkout@v3
+
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+
       - name: Run Jest tests
         # env:
         #   AUTH_LOCALE_ALLOWED_LOCALES: en,fr

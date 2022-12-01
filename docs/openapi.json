@@ -232,6 +232,27 @@
             },
             "type" : "object"
          },
+         "InvalidOauthConfigurationError" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "error" : {
+                  "enum" : [
+                     "invalid-oauth-configuration"
+                  ]
+               },
+               "message" : {
+                  "enum" : [
+                     "Invalid OAuth configuration"
+                  ]
+               },
+               "status" : {
+                  "enum" : [
+                     500
+                  ]
+               }
+            },
+            "type" : "object"
+         },
          "InvalidOtpError" : {
             "additionalProperties" : false,
             "properties" : {
@@ -683,14 +704,9 @@
                         "type" : "object"
                      },
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -764,14 +780,9 @@
                         "type" : "object"
                      },
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -910,14 +921,9 @@
                         "type" : "object"
                      },
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -1254,14 +1260,9 @@
                         "type" : "object"
                      },
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -1298,14 +1299,9 @@
                   "additionalProperties" : false,
                   "properties" : {
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -1326,14 +1322,9 @@
                   "additionalProperties" : false,
                   "properties" : {
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -1430,14 +1421,9 @@
                   "additionalProperties" : false,
                   "properties" : {
                      "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
                         "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
+                        "example" : "https://my-app.com/catch-redirection",
+                        "type" : "string"
                      }
                   },
                   "type" : "object"
@@ -1504,14 +1490,9 @@
             "additionalProperties" : false,
             "properties" : {
                "redirectTo" : {
-                  "anyOf" : [
-                     {
-                        "pattern" : "^https:\\/\\/my-app.com",
-                        "type" : "string"
-                     }
-                  ],
                   "default" : "https://my-app.com",
-                  "example" : "https://my-app.com/catch-redirection"
+                  "example" : "https://my-app.com/catch-redirection",
+                  "type" : "string"
                },
                "ticket" : {
                   "type" : "string"
@@ -1540,7 +1521,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.13.0",
+            "example" : "0.16.2",
             "type" : "string"
          }
       },
@@ -1559,7 +1540,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.13.0"
+      "version" : "0.16.2"
    },
    "openapi" : "3.0.0",
    "paths" : {
@@ -2003,7 +1984,8 @@
                         "spotify",
                         "strava",
                         "gitlab",
-                        "bitbucket"
+                        "bitbucket",
+                        "twitch"
                      ],
                      "type" : "string"
                   }
@@ -2061,7 +2043,8 @@
                         "spotify",
                         "strava",
                         "gitlab",
-                        "bitbucket"
+                        "bitbucket",
+                        "twitch"
                      ],
                      "type" : "string"
                   }

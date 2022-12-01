@@ -201,7 +201,7 @@ export const PROVIDERS_CONFIG: Record<
       avatarUrl: picture,
       email,
       emailVerified: email_verified,
-      locale,
+      locale: locale?.slice(0, 2),
     }),
   },
 
@@ -235,7 +235,7 @@ export const PROVIDERS_CONFIG: Record<
         }
       );
 
-      const locale = profile.firstName?.preferredLocale?.language;
+      const locale = profile.firstName?.preferredLocale?.language?.slice(0, 2);
       const displayName = `${profile.localizedFirstName} ${profile.localizedLastName}`;
 
       const avatarUrl = profile.profilePicture?.[
@@ -351,12 +351,12 @@ export const PROVIDERS_CONFIG: Record<
     profile: ({ profile: { raw_attributes, id, email } }) => ({
       id,
       displayName:
-        raw_attributes[
+        raw_attributes?.[
           'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
         ],
-      avatarUrl: raw_attributes['http://schemas.auth0.com/picture'],
+      avatarUrl: raw_attributes?.['http://schemas.auth0.com/picture'],
       email,
-      locale: raw_attributes['http://schemas.auth0.com/locale'],
+      locale: raw_attributes?.['http://schemas.auth0.com/locale']?.slice(0, 2),
     }),
     middleware: (
       {
