@@ -981,15 +981,15 @@ importers:
       immer: ^9.0.16
       jwt-decode: ^3.1.2
       react: ^18.2.0
-      xstate: ^4.33.5
+      xstate: ^4.34.0
     dependencies:
       '@nhost/core': link:../core
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
-      '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
+      '@xstate/react': 3.0.1_ayelwdf2pp374qfpsc6eg4e7aa
       immer: 9.0.16
       jwt-decode: 3.1.2
-      xstate: 4.33.6
+      xstate: 4.34.0
     devDependencies:
       '@nhost/docgen': link:../docgen
       '@types/react': 18.0.25
@@ -13250,6 +13250,26 @@ packages:
       ws: 8.10.0
       xstate: 4.33.6
     dev: true
+
+  /@xstate/react/3.0.1_ayelwdf2pp374qfpsc6eg4e7aa:
+    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
+    peerDependencies:
+      '@xstate/fsm': ^2.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      xstate: ^4.33.0
+    peerDependenciesMeta:
+      '@xstate/fsm':
+        optional: true
+      xstate:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      use-isomorphic-layout-effect: 1.1.2_fan5qbzahqtxlm5dzefqlqx5ia
+      use-sync-external-store: 1.2.0_react@18.2.0
+      xstate: 4.34.0
+    transitivePeerDependencies:
+      - '@types/react'
+    dev: false
 
   /@xstate/react/3.0.1_ixnoqypvvlzhpss4ao4hyykvcy:
     resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
@@ -32468,6 +32488,10 @@ packages:
 
   /xstate/4.33.6:
     resolution: {integrity: sha512-A5R4fsVKADWogK2a43ssu8Fz1AF077SfrKP1ZNyDBD8lNa/l4zfR//Luofp5GSWehOQr36Jp0k2z7b+sH2ivyg==}
+
+  /xstate/4.34.0:
+    resolution: {integrity: sha512-MFnYz7cJrWuXSZ8IPkcCyLB1a2T3C71kzMeShXKmNaEjBR/JQebKZPHTtxHKZpymESaWO31rA3IQ30TC6LW+sw==}
+    dev: false
 
   /xtend/2.1.2:
     resolution: {integrity: sha512-vMNKzr2rHP9Dp/e1NQFnLQlwlhp9L/LfvnsVdHxN1f+uggyVI3i08uD14GPvCToPkdsRfyPqIyYGmIk58V98ZQ==}
