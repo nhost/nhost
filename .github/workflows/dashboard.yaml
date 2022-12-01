@@ -2,12 +2,6 @@ name: 'Dashboard'
 
 on:
   workflow_call:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize]
-    paths:
-      - 'packages/**'
-      - 'dashboard/**'
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
