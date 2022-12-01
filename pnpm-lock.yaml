@@ -976,7 +976,7 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
-      '@types/react': ^18.0.24
+      '@types/react': ^18.0.25
       '@xstate/react': ^3.0.1
       immer: ^9.0.15
       jwt-decode: ^3.1.2
@@ -986,13 +986,13 @@ importers:
       '@nhost/core': link:../core
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
-      '@xstate/react': 3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju
+      '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
       immer: 9.0.15
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@types/react': 18.0.24
+      '@types/react': 18.0.25
       react: 18.2.0
 
   packages/react-apollo:
@@ -13250,26 +13250,6 @@ packages:
       ws: 8.10.0
       xstate: 4.33.6
     dev: true
-
-  /@xstate/react/3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju:
-    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
-    peerDependencies:
-      '@xstate/fsm': ^2.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      xstate: ^4.33.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2_bbvjflvjoibwhtpmedigb26h6y
-      use-sync-external-store: 1.2.0_react@18.2.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
 
   /@xstate/react/3.0.1_ixnoqypvvlzhpss4ao4hyykvcy:
     resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
@@ -30891,19 +30871,6 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0
     dependencies:
-      react: 18.2.0
-    dev: false
-
-  /use-isomorphic-layout-effect/1.1.2_bbvjflvjoibwhtpmedigb26h6y:
-    resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': 18.0.24
       react: 18.2.0
     dev: false
 
