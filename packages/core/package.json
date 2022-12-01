@@ -58,7 +58,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^6.0.0",
+    "@simplewebauthn/browser": "^6.2.2",
     "axios": "^1.2.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.33.5"

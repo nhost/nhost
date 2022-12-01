@@ -821,7 +821,7 @@ importers:
 
   packages/core:
     specifiers:
-      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/browser': ^6.2.2
       '@simplewebauthn/typescript-types': ^6.2.1
       '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
@@ -829,7 +829,7 @@ importers:
       msw: ^0.47.4
       xstate: ^4.33.5
     dependencies:
-      '@simplewebauthn/browser': 6.0.0
+      '@simplewebauthn/browser': 6.2.2
       axios: 1.2.0
       js-cookie: 3.0.1
       xstate: 4.33.6
@@ -9222,6 +9222,10 @@ packages:
 
   /@simplewebauthn/browser/6.0.0:
     resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
+
+  /@simplewebauthn/browser/6.2.2:
+    resolution: {integrity: sha512-VUtne7+s6BmW4usnbitjZEI1VNT/PNh6bYg+AI4OMdfpo5z+yAq+6iVAWBJlIUGVk5InetEQvTUp6OefBam8qg==}
+    dev: false
 
   /@simplewebauthn/typescript-types/6.2.1:
     resolution: {integrity: sha512-qScvkt0nP0Uy/xeeunlXAkJni9wtecsvxwLELSgiWRx/KRVZy1SGDHsKAfQowpIeDmLDyhWxUoN7qUgvgWCiAQ==}
