@@ -1,4 +1,4 @@
-name: Packages
+name: Continuous Integration
 
 on:
   push:
