@@ -38,8 +38,9 @@ jobs:
         run: |
           echo ${{ contains(github.event.pull_request.labels.*.name, 'renovate') }}
           echo ${{ github.event.action }}
-          shuf -n 3 /usr/share/dict/words | paste -sd "-" - | tr '[:upper:]' '[:lower:]'
-          FILE_NAME=$(shuf -n 3 /usr/share/dict/words | paste -sd "-" - | tr '[:upper:]' '[:lower:]')
+          shuf -n 3 /usr/share/dict/words
+          shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$/\n/' | tr '[:upper:]' '[:lower:]'
+          FILE_NAME=$(shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$/\n/' | tr '[:upper:]' '[:lower:]')
           echo "result=./.changeset/${FILE_NAME}.md"
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
