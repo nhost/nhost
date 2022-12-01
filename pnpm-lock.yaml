@@ -822,7 +822,7 @@ importers:
   packages/core:
     specifiers:
       '@simplewebauthn/browser': ^6.0.0
-      '@simplewebauthn/typescript-types': ^6.0.0
+      '@simplewebauthn/typescript-types': ^6.2.1
       '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
       js-cookie: ^3.0.1
@@ -834,7 +834,7 @@ importers:
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
-      '@simplewebauthn/typescript-types': 6.0.0
+      '@simplewebauthn/typescript-types': 6.2.1
       '@types/js-cookie': 3.0.2
       msw: 0.47.4
 
@@ -8882,8 +8882,8 @@ packages:
     resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
     dev: false
 
-  /@simplewebauthn/typescript-types/6.0.0:
-    resolution: {integrity: sha512-zBs5duUHwQ2CCnHckalMJycv8p2mfWGv+m9sI3WxnK3QR7Lw0/014zKkhC+Uygz5XSHuvPAxeMft6FbrP/OmtQ==}
+  /@simplewebauthn/typescript-types/6.2.1:
+    resolution: {integrity: sha512-qScvkt0nP0Uy/xeeunlXAkJni9wtecsvxwLELSgiWRx/KRVZy1SGDHsKAfQowpIeDmLDyhWxUoN7qUgvgWCiAQ==}
     dev: true
 
   /@sinclair/typebox/0.24.47:
