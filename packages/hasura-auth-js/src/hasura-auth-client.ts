@@ -430,6 +430,7 @@ export class HasuraAuthClient {
     const listen = (interpreter: AuthInterpreter) =>
       interpreter.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
+          console.log('TOKEN_CHANGED')
           fn(getSession(context))
         }
       })

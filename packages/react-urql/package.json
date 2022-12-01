@@ -57,21 +57,23 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
+  "dependencies": {
+    "@urql/exchange-refocus": "^1.0.0",
+    "graphql-ws": "^5.11.2"
+  },
   "peerDependencies": {
     "urql": "^3.0.3",
+    "@nhost/react": "workspace:*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
+    "urql": "^3.0.3",
     "@nhost/react": "workspace:*",
     "@types/react": "^18.0.24",
     "graphql": "15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  },
-  "dependencies": {
-    "@urql/exchange-refocus": "^1.0.0",
-    "graphql-ws": "^5.11.2"
   }
 }
