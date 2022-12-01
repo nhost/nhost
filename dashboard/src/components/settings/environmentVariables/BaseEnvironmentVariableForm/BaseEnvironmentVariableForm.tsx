@@ -130,7 +130,6 @@ export default function BaseEnvironmentVariableForm({
               }
             },
           })}
-          inputProps={{ maxLength: 100 }}
           id="name"
           label="Name"
           placeholder="EXAMPLE_NAME"
@@ -145,7 +144,6 @@ export default function BaseEnvironmentVariableForm({
 
         <Input
           {...register('prodValue')}
-          inputProps={{ maxLength: 100 }}
           id="prodValue"
           label="Production Value"
           placeholder="Enter value"
@@ -159,7 +157,6 @@ export default function BaseEnvironmentVariableForm({
 
         <Input
           {...register('devValue')}
-          inputProps={{ maxLength: 100 }}
           id="devValue"
           label="Development Value"
           placeholder="Enter value"

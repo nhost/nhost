@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.3
+
+### Patch Changes
+
+- a1193da4: fix(dashboard): remove character limit from env var inputs
+
 ## 0.7.2
 
 ### Patch Changes
