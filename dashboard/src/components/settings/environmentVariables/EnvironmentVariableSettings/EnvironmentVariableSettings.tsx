@@ -125,7 +125,10 @@ export default function EnvironmentVariableSettings() {
       docsLink="https://docs.nhost.io/platform/environment-variables"
       docsTitle="Environment Variables"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className={twMerge(
+        'px-0 my-2',
+        availableEnvironmentVariables.length === 0 && 'gap-2',
+      )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 border-b-1 border-gray-200 px-4 py-3">
@@ -134,91 +137,98 @@ export default function EnvironmentVariableSettings() {
       </div>
 
       <div className="grid grid-flow-row gap-2">
-        <List>
-          {availableEnvironmentVariables.map((environmentVariable, index) => {
-            const timestamp = formatDistanceToNowStrict(
-              parseISO(environmentVariable.updatedAt),
-              { addSuffix: true, roundingMethod: 'floor' },
-            );
+        {availableEnvironmentVariables.length > 0 && (
+          <List>
+            {availableEnvironmentVariables.map((environmentVariable, index) => {
+              const timestamp = formatDistanceToNowStrict(
+                parseISO(environmentVariable.updatedAt),
+                { addSuffix: true, roundingMethod: 'floor' },
+              );
 
-            return (
-              <Fragment key={environmentVariable.id}>
-                <ListItem.Root
-                  className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2"
-                  secondaryAction={
-                    <Dropdown.Root>
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
-
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-32' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item
-                          onClick={() => handleOpenEditor(environmentVariable)}
+              return (
+                <Fragment key={environmentVariable.id}>
+                  <ListItem.Root
+                    className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2"
+                    secondaryAction={
+                      <Dropdown.Root>
+                        <Dropdown.Trigger
+                          asChild
+                          hideChevron
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
-                          <Text className="font-medium">Edit</Text>
-                        </Dropdown.Item>
+                          <IconButton variant="borderless" color="secondary">
+                            <DotsVerticalIcon />
+                          </IconButton>
+                        </Dropdown.Trigger>
 
-                        <Divider component="li" />
-
-                        <Dropdown.Item
-                          onClick={() =>
-                            handleConfirmDelete(environmentVariable)
-                          }
+                        <Dropdown.Content
+                          menu
+                          PaperProps={{ className: 'w-32' }}
+                          anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                          }}
+                          transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                          }}
                         >
-                          <Text
-                            className="font-medium"
-                            sx={{
-                              color: (theme) => theme.palette.error.main,
-                            }}
+                          <Dropdown.Item
+                            onClick={() =>
+                              handleOpenEditor(environmentVariable)
+                            }
                           >
-                            Delete
-                          </Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
-                  <ListItem.Text className="truncate">
-                    {environmentVariable.name}
-                  </ListItem.Text>
+                            <Text className="font-medium">Edit</Text>
+                          </Dropdown.Item>
 
-                  <Text variant="subtitle1" className="lg:col-span-2 truncate">
-                    {timestamp === '0 seconds ago' ||
-                    timestamp === 'in 0 seconds'
-                      ? 'Now'
-                      : timestamp}
-                  </Text>
-                </ListItem.Root>
+                          <Divider component="li" />
 
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableEnvironmentVariables.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
-            );
-          })}
-        </List>
+                          <Dropdown.Item
+                            onClick={() =>
+                              handleConfirmDelete(environmentVariable)
+                            }
+                          >
+                            <Text
+                              className="font-medium"
+                              sx={{
+                                color: (theme) => theme.palette.error.main,
+                              }}
+                            >
+                              Delete
+                            </Text>
+                          </Dropdown.Item>
+                        </Dropdown.Content>
+                      </Dropdown.Root>
+                    }
+                  >
+                    <ListItem.Text className="truncate">
+                      {environmentVariable.name}
+                    </ListItem.Text>
+
+                    <Text
+                      variant="subtitle1"
+                      className="lg:col-span-2 truncate"
+                    >
+                      {timestamp === '0 seconds ago' ||
+                      timestamp === 'in 0 seconds'
+                        ? 'Now'
+                        : timestamp}
+                    </Text>
+                  </ListItem.Root>
+
+                  <Divider
+                    component="li"
+                    className={twMerge(
+                      index === availableEnvironmentVariables.length - 1
+                        ? '!mt-4'
+                        : '!my-4',
+                    )}
+                  />
+                </Fragment>
+              );
+            })}
+          </List>
+        )}
 
         <Button
           className="justify-self-start mx-4"
