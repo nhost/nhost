@@ -1,5 +1,17 @@
 # @nhost/nhost-js
 
+## 1.6.2
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- ef117c28: Distribute the access token to all the sub-clients
+- aebb8225: chore(nhost-js): expose `url` in Functions and GraphQL client
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+  - @nhost/hasura-auth-js@1.6.4
+  - @nhost/hasura-storage-js@0.7.4
+
 ## 1.6.1
 
 ### Patch Changes

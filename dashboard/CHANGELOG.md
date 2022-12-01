@@ -1,5 +1,42 @@
 # @nhost/dashboard
 
+## 0.7.3
+
+### Patch Changes
+
+- a1193da4: fix(dashboard): remove character limit from env var inputs
+
+## 0.7.2
+
+### Patch Changes
+
+- 44f13f62: chore(dashboard): cleanup unused files
+
+## 0.7.1
+
+### Patch Changes
+
+- e01cb2ed: chore(dashboard): change settings sidebar menu item density
+
+## 0.7.0
+
+### Minor Changes
+
+- db342f45: chore(dashboard): refactor Roles and Permissions settings sections
+- 8b9fa0b1: feat(dashboard): add Environment Variables page
+
+### Patch Changes
+
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/nhost-js@1.6.2
+  - @nhost/nextjs@1.9.1
+  - @nhost/react@0.15.1
+  - @nhost/react-apollo@4.9.1
+
 ## 0.6.0
 
 ### Minor Changes

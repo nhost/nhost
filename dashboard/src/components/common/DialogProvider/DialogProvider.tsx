@@ -1,14 +1,23 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
-import PermissionVariableForm from '@/components/settings/permissions/PermissionVariableForm';
-import RoleForm from '@/components/settings/roles/RoleForm';
+import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
+import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
+import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
+import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
+import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
+import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
-import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
+import type {
+  BaseSyntheticEvent,
+  DetailedHTMLProps,
+  HTMLProps,
+  PropsWithChildren,
+} from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
@@ -19,13 +28,21 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function LoadingComponent() {
+function LoadingComponent({
+  className,
+  ...props
+}: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> = {}) {
   return (
-    <div className="grid items-center justify-center px-6 py-4">
+    <div
+      {...props}
+      className={twMerge(
+        'grid items-center justify-center px-6 py-4',
+        className,
+      )}
+    >
       <ActivityIndicator
         circularProgressProps={{ className: 'w-5 h-5' }}
         label="Loading form..."
-        delay={500}
       />
     </div>
   );
@@ -33,27 +50,27 @@ function LoadingComponent() {
 
 const CreateRecordForm = dynamic(
   () => import('@/components/data-browser/CreateRecordForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateColumnForm = dynamic(
   () => import('@/components/data-browser/CreateColumnForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditColumnForm = dynamic(
   () => import('@/components/data-browser/EditColumnForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateTableForm = dynamic(
   () => import('@/components/data-browser/CreateTableForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditTableForm = dynamic(
   () => import('@/components/data-browser/EditTableForm'),
-  { ssr: false, loading: LoadingComponent },
+  { ssr: false, loading: () => LoadingComponent() },
 );
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
@@ -212,6 +229,25 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
   );
 
+  const sharedDialogProps = {
+    ...dialogPayload,
+    onSubmit: async (values: any) => {
+      await dialogPayload?.onSubmit?.(values);
+
+      closeDialog();
+    },
+    onCancel: closeDialogWithDirtyGuard,
+  };
+
+  const sharedDrawerProps = {
+    onSubmit: async () => {
+      await drawerPayload?.onSubmit();
+
+      closeDrawer();
+    },
+    onCancel: closeDrawerWithDirtyGuard,
+  };
+
   return (
     <DialogContext.Provider value={contextValue}>
       <AlertDialog
@@ -264,51 +300,35 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
           {activeDialogType === 'CREATE_FOREIGN_KEY' && (
-            <CreateForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <CreateForeignKeyForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'EDIT_FOREIGN_KEY' && (
-            <EditForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+            <EditForeignKeyForm {...sharedDialogProps} />
           )}
 
-          {activeDialogType === 'MANAGE_ROLE' && (
-            <RoleForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+          {activeDialogType === 'CREATE_ROLE' && (
+            <CreateRoleForm {...sharedDialogProps} />
           )}
 
-          {activeDialogType === 'MANAGE_PERMISSION_VARIABLE' && (
-            <PermissionVariableForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit?.(values);
+          {activeDialogType === 'EDIT_ROLE' && (
+            <EditRoleForm {...sharedDialogProps} />
+          )}
 
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
+          {activeDialogType === 'CREATE_PERMISSION_VARIABLE' && (
+            <CreatePermissionVariableForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'EDIT_PERMISSION_VARIABLE' && (
+            <EditPermissionVariableForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'CREATE_ENVIRONMENT_VARIABLE' && (
+            <CreateEnvironmentVariableForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
+            <EditEnvironmentVariableForm {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>
@@ -325,61 +345,34 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         <RetryableErrorBoundary>
           {activeDrawerType === 'CREATE_RECORD' && (
             <CreateRecordForm
+              {...sharedDrawerProps}
               columns={drawerPayload?.columns}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'CREATE_COLUMN' && (
-            <CreateColumnForm
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
+            <CreateColumnForm {...sharedDrawerProps} />
           )}
 
           {activeDrawerType === 'EDIT_COLUMN' && (
             <EditColumnForm
+              {...sharedDrawerProps}
               column={drawerPayload?.column}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'CREATE_TABLE' && (
             <CreateTableForm
+              {...sharedDrawerProps}
               schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
 
           {activeDrawerType === 'EDIT_TABLE' && (
             <EditTableForm
+              {...sharedDrawerProps}
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
             />
           )}
         </RetryableErrorBoundary>
