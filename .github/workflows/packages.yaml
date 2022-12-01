@@ -52,10 +52,10 @@ jobs:
           echo "---" > ${{ steps.file_name.outputs.result }}
           pnpm recursive list --depth -1 --parseable \
             --filter='!nhost-root' \
-            --filter=...[origin/${{ format('--filter=...[origin/{0}]', github.base_ref) }}]
+            --filter=...[origin/${{ github.base_ref }}]
           pnpm recursive list --depth -1 --parseable \
             --filter='!nhost-root' \
-            --filter=...[origin/${{ format('--filter=...[origin/{0}]', github.base_ref) }}] \
+            --filter=...[origin/${{ github.base_ref }}] \
             | xargs -I@ jq ".name" @/package.json \
             | sort \
             | uniq -u \
