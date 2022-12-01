@@ -6,11 +6,5 @@
   "ignoreDeps": [
     "pnpm",
     "node"
-  ],
-  "labels": [
-    "renovate",
-    "currentValue: {{currentValue}}",
-    "currentValue: {{replace /@}}",
-    "currentVersion: {{currentVersion}}"
   ]
 }
