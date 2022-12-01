@@ -64,7 +64,7 @@
     "xstate": "^4.33.5"
   },
   "devDependencies": {
-    "@simplewebauthn/typescript-types": "^6.0.0",
+    "@simplewebauthn/typescript-types": "^6.2.1",
     "@types/js-cookie": "^3.0.2",
     "msw": "^0.47.4"
   }
