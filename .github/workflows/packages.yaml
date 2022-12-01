@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install dictionary
-        run: apt-get install wbritish
+        run: sudo apt-get install wbritish
       - name: Generate changeset file name
         id: file_name
         # TODO remove debug lines
