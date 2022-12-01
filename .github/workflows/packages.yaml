@@ -45,7 +45,8 @@ jobs:
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
         run: |
-          printf '---\n' > ${{ steps.file_name.outputs.result }}
+          FILE=${{ steps.file_name.outputs.result }}
+          echo "---" > $FILE
           pnpm recursive list --depth -1 --parseable \
             --filter='!nhost-root' \
             --filter=...[origin/main] \
@@ -54,8 +55,9 @@ jobs:
             | uniq -u \
             | awk '$0=$0": patch"' \
             >> ${{ steps.file_name.outputs.result }}
-          printf '---\n\n' >> ${{ steps.file_name.outputs.result }}
-          echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
+          echo "---" >> $FILE
+          echo >> $FILE
+          echo "${{ github.event.pull_request.title }}" >> $FILE
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: ${{ github.event.pull_request.title }}
