@@ -36,28 +36,39 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
           BUILD: 'none'
+      - name: Determine bumps
+        id: bumps
+        run: |
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          pnpm recursive list --depth -1 --parseable \
+              --filter='!nhost-root' \
+              --filter=...[origin/main] \
+              | xargs -I@ jq ".name" @/package.json \
+              | sort \
+              | uniq -u \
+              | awk '$0=$0": patch"' \
+              >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
       - name: Install dictionary
+        if: steps.bumps.outputs.result != ''
         run: sudo apt-get install wbritish
       - name: Generate changeset file name
         id: file_name
+        if: steps.bumps.outputs.result != ''
         run: |
           FILE_NAME=$(shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$//' | sed 's/'"'"'s//g' | tr '[:upper:]' '[:lower:]')
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
+        if: steps.bumps.outputs.result != ''
         run: |
           echo "---" > ${{ steps.file_name.outputs.result }}
-          pnpm recursive list --depth -1 --parseable \
-            --filter='!nhost-root' \
-            --filter=...[origin/${{ github.base_ref }}] \
-            | xargs -I@ jq ".name" @/package.json \
-            | sort \
-            | uniq -u \
-            | awk '$0=$0": patch"' \
-            >> ${{ steps.file_name.outputs.result }}
+          echo "${{ steps.bumps.outputs.result }}" >> ${{ steps.file_name.outputs.result }}
           echo "---" >> ${{ steps.file_name.outputs.result }}
           echo >> ${{ steps.file_name.outputs.result }}
           echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
+          echo "echo present=true" >> $GITHUB_OUTPUT
       - uses: stefanzweifel/git-auto-commit-action@v4
+        if: steps.bumps.outputs.result != ''
         with:
           commit_message: ${{ github.event.pull_request.title }}
   build:
