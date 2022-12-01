@@ -3,7 +3,7 @@ name: Renovate
 on:
   pull_request:
     branches: [main]
-    types: [opened]
+    types: [closed]
     paths-ignore:
       - 'assets/**'
       - '**.md'
@@ -15,7 +15,7 @@ env:
 jobs:
   renovate-changeset:
     name: Add changeset
-    if: ${{ startsWith(github.head_ref, 'renovate/') }}
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'renovate/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -65,6 +65,4 @@ jobs:
         if: steps.bumps.outputs.result != ''
         with:
           commit_message: ${{ github.event.pull_request.title }}
-          commit_options: '--amend --no-edit'
-          push_options: '--force'
-          skip_fetch: true
+          branch: main
