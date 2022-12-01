@@ -978,7 +978,7 @@ importers:
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.25
       '@xstate/react': ^3.0.1
-      immer: ^9.0.15
+      immer: ^9.0.16
       jwt-decode: ^3.1.2
       react: ^18.2.0
       xstate: ^4.33.5
@@ -987,7 +987,7 @@ importers:
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
-      immer: 9.0.15
+      immer: 9.0.16
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -21719,6 +21719,10 @@ packages:
 
   /immer/9.0.15:
     resolution: {integrity: sha512-2eB/sswms9AEUSkOm4SbV5Y7Vmt/bKRwByd52jfLkW4OLYeaTP3EEiJ9agqU0O/tq6Dk62Zfj+TJSqfm1rLVGQ==}
+    dev: false
+
+  /immer/9.0.16:
+    resolution: {integrity: sha512-qenGE7CstVm1NrHQbMh8YaSzTZTFNP3zPqr3YU0S0UY441j4bJTg4A2Hh5KAhwgaiU6ZZ1Ar6y/2f4TblnMReQ==}
     dev: false
 
   /immutable/3.7.6:
