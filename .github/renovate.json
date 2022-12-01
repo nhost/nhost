@@ -6,5 +6,8 @@
   "ignoreDeps": [
     "pnpm",
     "node"
+  ],
+  "labels": [
+    "dependencies"
   ]
 }
