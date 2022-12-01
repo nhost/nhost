@@ -42,7 +42,7 @@ jobs:
           echo "result<<EOF" >> $GITHUB_OUTPUT
           pnpm recursive list --depth -1 --parseable \
               --filter='!nhost-root' \
-              --filter=...[origin/main] \
+              --filter=[origin/main] \
               | xargs -I@ jq ".name" @/package.json \
               | sort \
               | uniq -u \
