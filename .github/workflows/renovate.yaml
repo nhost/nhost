@@ -32,14 +32,11 @@ jobs:
       - name: Determine bumps
         id: bumps
         run: |
-          echo ${{ github.head_ref }}
-          echo ${{ github.base_ref }}
-          echo ${{ github.sha }}
-          git rev-parse HEAD
+          LAST_NON_PR_SHA=$(git log --no-merges main ${{ github.head_ref }} --format=format:%h | head -2 | tail -1)
           echo "result<<EOF" >> $GITHUB_OUTPUT
           pnpm recursive list --depth -1 --parseable \
               --filter='!nhost-root' \
-              --filter=[origin/main] \
+              --filter=[$LAST_NON_PR_SHA] \
               | xargs -I@ jq ".name" @/package.json \
               | sort \
               | uniq -u \
