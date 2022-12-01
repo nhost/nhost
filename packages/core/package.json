@@ -58,13 +58,13 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^6.2.2",
+    "@simplewebauthn/browser": "^6.0.0",
     "axios": "^1.2.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.33.5"
   },
   "devDependencies": {
-    "@simplewebauthn/typescript-types": "^6.2.1",
+    "@simplewebauthn/typescript-types": "^6.0.0",
     "@types/js-cookie": "^3.0.2",
     "msw": "^0.47.4"
   }

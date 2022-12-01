@@ -150,7 +150,7 @@ importers:
       cross-fetch: ^3.1.5
       csstype: ^3.0.10
       date-fns: ^2.29.3
-      dotenv: ^16.0.0
+      dotenv: ^10.0.0
       eslint: ^8.28.0
       eslint-config-airbnb: 19.0.4
       eslint-config-airbnb-typescript: ^17.0.0
@@ -321,7 +321,7 @@ importers:
       concurrently: 6.5.1
       critters: 0.0.10
       csstype: 3.1.0
-      dotenv: 16.0.3
+      dotenv: 10.0.0
       eslint: 8.28.0
       eslint-config-airbnb: 19.0.4_vt5pco6i6xyxmp2zptq3cuddue
       eslint-config-airbnb-typescript: 17.0.0_ry2w5422ohatqbzq6ftydtuvky
@@ -821,20 +821,20 @@ importers:
 
   packages/core:
     specifiers:
-      '@simplewebauthn/browser': ^6.2.2
-      '@simplewebauthn/typescript-types': ^6.2.1
+      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
       js-cookie: ^3.0.1
       msw: ^0.47.4
       xstate: ^4.33.5
     dependencies:
-      '@simplewebauthn/browser': 6.2.2
+      '@simplewebauthn/browser': 6.0.0
       axios: 1.2.0
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
-      '@simplewebauthn/typescript-types': 6.2.1
+      '@simplewebauthn/typescript-types': 6.0.0
       '@types/js-cookie': 3.0.2
       msw: 0.47.4
 
@@ -901,7 +901,7 @@ importers:
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
-      uuid: ^9.0.0
+      uuid: ^8.3.2
       xstate: ^4.33.5
     dependencies:
       axios: 1.2.0
@@ -912,7 +912,7 @@ importers:
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
-      uuid: 9.0.0
+      uuid: 8.3.2
 
   packages/hasura-storage-js/functions:
     specifiers: {}
@@ -976,23 +976,23 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
-      '@types/react': ^18.0.25
+      '@types/react': ^18.0.24
       '@xstate/react': ^3.0.1
-      immer: ^9.0.16
+      immer: ^9.0.15
       jwt-decode: ^3.1.2
       react: ^18.2.0
-      xstate: ^4.34.0
+      xstate: ^4.33.5
     dependencies:
       '@nhost/core': link:../core
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
-      '@xstate/react': 3.0.1_ayelwdf2pp374qfpsc6eg4e7aa
-      immer: 9.0.16
+      '@xstate/react': 3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju
+      immer: 9.0.15
       jwt-decode: 3.1.2
-      xstate: 4.34.0
+      xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@types/react': 18.0.25
+      '@types/react': 18.0.24
       react: 18.2.0
 
   packages/react-apollo:
@@ -8896,12 +8896,12 @@ packages:
   /@sideway/pinpoint/2.0.0:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
 
-  /@simplewebauthn/browser/6.2.2:
-    resolution: {integrity: sha512-VUtne7+s6BmW4usnbitjZEI1VNT/PNh6bYg+AI4OMdfpo5z+yAq+6iVAWBJlIUGVk5InetEQvTUp6OefBam8qg==}
+  /@simplewebauthn/browser/6.0.0:
+    resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
     dev: false
 
-  /@simplewebauthn/typescript-types/6.2.1:
-    resolution: {integrity: sha512-qScvkt0nP0Uy/xeeunlXAkJni9wtecsvxwLELSgiWRx/KRVZy1SGDHsKAfQowpIeDmLDyhWxUoN7qUgvgWCiAQ==}
+  /@simplewebauthn/typescript-types/6.0.0:
+    resolution: {integrity: sha512-zBs5duUHwQ2CCnHckalMJycv8p2mfWGv+m9sI3WxnK3QR7Lw0/014zKkhC+Uygz5XSHuvPAxeMft6FbrP/OmtQ==}
     dev: true
 
   /@sinclair/typebox/0.24.47:
@@ -12923,7 +12923,7 @@ packages:
       xstate: 4.33.6
     dev: true
 
-  /@xstate/react/3.0.1_ayelwdf2pp374qfpsc6eg4e7aa:
+  /@xstate/react/3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju:
     resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
     peerDependencies:
       '@xstate/fsm': ^2.0.0
@@ -12936,27 +12936,7 @@ packages:
         optional: true
     dependencies:
       react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2_fan5qbzahqtxlm5dzefqlqx5ia
-      use-sync-external-store: 1.2.0_react@18.2.0
-      xstate: 4.34.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  /@xstate/react/3.0.1_ixnoqypvvlzhpss4ao4hyykvcy:
-    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
-    peerDependencies:
-      '@xstate/fsm': ^2.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      xstate: ^4.33.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2_fan5qbzahqtxlm5dzefqlqx5ia
+      use-isomorphic-layout-effect: 1.1.2_bbvjflvjoibwhtpmedigb26h6y
       use-sync-external-store: 1.2.0_react@18.2.0
       xstate: 4.33.6
     transitivePeerDependencies:
@@ -16980,6 +16960,11 @@ packages:
 
   /dotenv-expand/5.1.0:
     resolution: {integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==}
+    dev: true
+
+  /dotenv/10.0.0:
+    resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
+    engines: {node: '>=10'}
     dev: true
 
   /dotenv/16.0.3:
@@ -21338,10 +21323,6 @@ packages:
 
   /immer/9.0.15:
     resolution: {integrity: sha512-2eB/sswms9AEUSkOm4SbV5Y7Vmt/bKRwByd52jfLkW4OLYeaTP3EEiJ9agqU0O/tq6Dk62Zfj+TJSqfm1rLVGQ==}
-    dev: false
-
-  /immer/9.0.16:
-    resolution: {integrity: sha512-qenGE7CstVm1NrHQbMh8YaSzTZTFNP3zPqr3YU0S0UY441j4bJTg4A2Hh5KAhwgaiU6ZZ1Ar6y/2f4TblnMReQ==}
     dev: false
 
   /immutable/3.7.6:
@@ -30501,7 +30482,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /use-isomorphic-layout-effect/1.1.2_fan5qbzahqtxlm5dzefqlqx5ia:
+  /use-isomorphic-layout-effect/1.1.2_bbvjflvjoibwhtpmedigb26h6y:
     resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
     peerDependencies:
       '@types/react': '*'
@@ -30510,7 +30491,7 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@types/react': 18.0.25
+      '@types/react': 18.0.24
       react: 18.2.0
     dev: false
 
@@ -30696,6 +30677,7 @@ packages:
   /uuid/9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
+    dev: false
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -32089,10 +32071,6 @@ packages:
 
   /xstate/4.33.6:
     resolution: {integrity: sha512-A5R4fsVKADWogK2a43ssu8Fz1AF077SfrKP1ZNyDBD8lNa/l4zfR//Luofp5GSWehOQr36Jp0k2z7b+sH2ivyg==}
-
-  /xstate/4.34.0:
-    resolution: {integrity: sha512-MFnYz7cJrWuXSZ8IPkcCyLB1a2T3C71kzMeShXKmNaEjBR/JQebKZPHTtxHKZpymESaWO31rA3IQ30TC6LW+sw==}
-    dev: false
 
   /xtend/2.1.2:
     resolution: {integrity: sha512-vMNKzr2rHP9Dp/e1NQFnLQlwlhp9L/LfvnsVdHxN1f+uggyVI3i08uD14GPvCToPkdsRfyPqIyYGmIk58V98ZQ==}
