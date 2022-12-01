@@ -1048,7 +1048,7 @@ importers:
       '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^3.2.0
       '@vueuse/core': ^8.9.4
-      '@xstate/inspect': ^0.6.2
+      '@xstate/inspect': ^0.7.0
       '@xstate/vue': ^1.0.0
       immer: ^9.0.15
       jwt-decode: ^3.1.2
@@ -1068,7 +1068,7 @@ importers:
       '@nhost/docgen': link:../docgen
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@vitejs/plugin-vue': 3.2.0_vue@3.2.41
-      '@xstate/inspect': 0.6.5_ws@8.10.0+xstate@4.33.6
+      '@xstate/inspect': 0.7.0_ws@8.10.0+xstate@4.33.6
       vue: 3.2.41
       vue-router: 4.1.6_vue@3.2.41
       ws: 8.10.0
@@ -12869,21 +12869,6 @@ packages:
       fast-safe-stringify: 2.1.1
     dev: true
 
-  /@xstate/inspect/0.6.5_ws@8.10.0+xstate@4.33.6:
-    resolution: {integrity: sha512-lUVb/XHaeOl9UP99yQK/rjS+WVx1ymaz0KX8nUsQ4VG/dxvjF0kRcAPCDMuQ7IhWbp0nER+KLE46UFXrqp20Sg==}
-    peerDependencies:
-      '@types/ws': ^8.0.0
-      ws: ^8.0.0
-      xstate: ^4.31.0
-    peerDependenciesMeta:
-      '@types/ws':
-        optional: true
-    dependencies:
-      fast-safe-stringify: 2.1.1
-      ws: 8.10.0
-      xstate: 4.33.6
-    dev: true
-
   /@xstate/inspect/0.6.5_ws@8.9.0+xstate@4.33.6:
     resolution: {integrity: sha512-lUVb/XHaeOl9UP99yQK/rjS+WVx1ymaz0KX8nUsQ4VG/dxvjF0kRcAPCDMuQ7IhWbp0nER+KLE46UFXrqp20Sg==}
     peerDependencies:
@@ -12896,6 +12881,21 @@ packages:
     dependencies:
       fast-safe-stringify: 2.1.1
       ws: 8.9.0
+      xstate: 4.33.6
+    dev: true
+
+  /@xstate/inspect/0.7.0_ws@8.10.0+xstate@4.33.6:
+    resolution: {integrity: sha512-3wrTf8TfBYprH1gBFdxmOQUBDpBazlICWvGdFzr8IHFL4MbiexEZdAsL2QC/WAmW9BqNYTWTwgfbvKHKg+FrlA==}
+    peerDependencies:
+      '@types/ws': ^8.0.0
+      ws: ^8.0.0
+      xstate: ^4.32.0
+    peerDependenciesMeta:
+      '@types/ws':
+        optional: true
+    dependencies:
+      fast-safe-stringify: 2.1.1
+      ws: 8.10.0
       xstate: 4.33.6
     dev: true
 
@@ -14046,6 +14046,7 @@ packages:
 
   /bindings/1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
+    requiresBuild: true
     dependencies:
       file-uri-to-path: 1.0.0
     dev: true
@@ -19649,6 +19650,7 @@ packages:
 
   /file-uri-to-path/1.0.0:
     resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
+    requiresBuild: true
     dev: true
     optional: true
 
@@ -23813,6 +23815,7 @@ packages:
 
   /nan/2.17.0:
     resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
+    requiresBuild: true
     dev: true
     optional: true
 
