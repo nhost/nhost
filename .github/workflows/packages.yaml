@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'dashboard/**'
-      - 'docs/**'
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
@@ -13,16 +11,55 @@ on:
     branches: [main]
     types: [opened, synchronize]
     paths-ignore:
-      - 'dashboard/**'
-      - 'docs/**'
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
-
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: nhost
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
 jobs:
+  renovate-changeset:
+    name: Add Renovate Changesets
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' && startsWith(github.head_ref, 'renovate/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # * Install Node and dependencies. Package downloads will be cached for the next jobs.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+          BUILD: 'none'
+      - name: Install dictionary
+        run: sudo apt-get install wbritish
+      - name: Generate changeset file name
+        id: file_name
+        run: |
+          FILE_NAME=$(shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$//' | sed 's/'"'"'s//g' | tr '[:upper:]' '[:lower:]')
+          echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
+      - name: Create changeset file
+        run: |
+          echo "---" > ${{ steps.file_name.outputs.result }}
+          pnpm recursive list --depth -1 --parseable \
+            --filter='!nhost-root' \
+            --filter=...[origin/${{ github.base_ref }}] \
+            | xargs -I@ jq ".name" @/package.json \
+            | sort \
+            | uniq -u \
+            | awk '$0=$0": patch"' \
+            >> ${{ steps.file_name.outputs.result }}
+          echo "---" >> ${{ steps.file_name.outputs.result }}
+          echo >> ${{ steps.file_name.outputs.result }}
+          echo "${{ github.event.pull_request.title }}" >> ${{ steps.file_name.outputs.result }}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: ${{ github.event.pull_request.title }}
   build:
     name: Build @nhost packages
     runs-on: ubuntu-latest
@@ -36,6 +73,7 @@ jobs:
         with:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
+          BUILD: 'all'
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
       # * In a PR, only include packages that have been modified, and their dependencies
       - name: List examples with an e2e script
@@ -103,7 +141,7 @@ jobs:
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Run every `test` script in the workspace . Dependencies build is cached by Turborepo
       - name: Run unit tests
-        run: pnpm run test
+        run: pnpm run test:all
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -127,4 +165,4 @@ jobs:
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       # * Run every `lint` script in the workspace . Dependencies build is cached by Turborepo
       - name: Lint
-        run: pnpm run lint
+        run: pnpm run lint:all
