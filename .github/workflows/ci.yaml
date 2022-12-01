@@ -29,6 +29,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Install dictionary
+        # if: steps.bumps.outputs.result != ''
+        run: sudo apt-get install wbritish
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
@@ -49,12 +52,9 @@ jobs:
               | awk '$0=$0": patch"' \
               >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
-      - name: Install dictionary
-        if: steps.bumps.outputs.result != ''
-        run: sudo apt-get install wbritish
       - name: Generate changeset file name
         id: file_name
-        if: steps.bumps.outputs.result != ''
+        # if: steps.bumps.outputs.result != ''
         run: |
           FILE_NAME=$(shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$//' | sed 's/'"'"'s//g' | tr '[:upper:]' '[:lower:]')
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
