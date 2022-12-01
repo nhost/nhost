@@ -23,8 +23,7 @@ env:
 jobs:
   renovate-changeset:
     name: Add Renovate Changesets
-    # && github.event.action == 'opened' && startsWith(github.head_ref, 'renovate/')
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' && startsWith(github.head_ref, 'renovate/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -41,12 +40,7 @@ jobs:
         run: sudo apt-get install wbritish
       - name: Generate changeset file name
         id: file_name
-        # TODO remove debug lines
         run: |
-          # echo ${{ contains(github.event.pull_request.labels.*.name, 'renovate') }}
-          # echo ${{ github.head_ref }}
-          echo ${{ startsWith(github.head_ref, 'renovate/') }}
-          echo ${{ github.event.action }}
           FILE_NAME=$(shuf -n 3 /usr/share/dict/words | tr '\n' '-' | sed 's/-$//' | sed 's/'"'"'s//g' | tr '[:upper:]' '[:lower:]')
           echo "result=./.changeset/${FILE_NAME}.md" >> $GITHUB_OUTPUT
       - name: Create changeset file
