@@ -69,7 +69,7 @@ jobs:
           ${{ github.event.pull_request.title }}
           EOF
       - uses: stefanzweifel/git-auto-commit-action@v4
-        if: steps.bumps.outputs.result != ''
+        # if: steps.bumps.outputs.result != ''
         with:
           commit_message: ${{ github.event.pull_request.title }}
   build:
