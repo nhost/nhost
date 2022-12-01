@@ -68,10 +68,20 @@ jobs:
 
           ${{ github.event.pull_request.title }}
           EOF
+      - name: Get last commit message
+        if: steps.bumps.outputs.result != ''
+        id: last-commit-message
+        run: |
+          echo "msg=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
       - uses: stefanzweifel/git-auto-commit-action@v4
         if: steps.bumps.outputs.result != ''
         with:
-          commit_message: ${{ github.event.pull_request.title }}
+          # commit_message: ${{ github.event.pull_request.title }}
+          commit_message: ${{ steps.last-commit-message.outputs.msg }}
+          commit_options: '--amend --no-edit'
+          push_options: '--force'
+          skip_fetch: true
+
   build:
     name: Build @nhost packages
     runs-on: ubuntu-latest
