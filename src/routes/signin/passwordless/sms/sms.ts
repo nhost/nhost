@@ -12,7 +12,7 @@ import {
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber, registrationOptions } from '@/validation';
-import { isVerifySid } from '@/utils/twilio';
+import { isTestingPhoneNumber, isVerifySid } from '@/utils/twilio';
 import { logger } from '@/logger';
 import { renderTemplate } from '@/templates';
 
@@ -77,6 +77,19 @@ export const signInPasswordlessSmsHandler: RequestHandler<
       otpHashExpiresAt,
     },
   });
+
+  if (isTestingPhoneNumber(user.phoneNumber)) {
+    const template = 'signin-passwordless-sms';
+    const message =
+      (await renderTemplate(`${template}/text`, {
+        locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
+        displayName: user.displayName,
+        code: otp,
+      })) ?? `Your code is ${otp}`;
+
+    logger.info(`Message to ${user.phoneNumber}: ${message}`);
+    return res.json(ReasonPhrases.OK);
+  }
 
   if (!ENV.AUTH_SMS_PROVIDER) {
     throw Error('No sms provider set');
