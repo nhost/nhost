@@ -117,7 +117,7 @@
     "@vitejs/plugin-react": "^2.2.0",
     "@vitest/coverage-c8": "^0.25.2",
     "autoprefixer": "^10.4.13",
-    "babel-loader": "^8.3.0",
+    "babel-loader": "^9.0.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "csstype": "^3.0.10",
     "eslint": "^8.28.0",
