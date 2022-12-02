@@ -3,7 +3,7 @@ name: Renovate
 on:
   pull_request:
     branches: [main]
-    types: [opened]
+    types: [closed]
     paths-ignore:
       - 'assets/**'
       - '**.md'
@@ -15,7 +15,7 @@ env:
 jobs:
   renovate-changeset:
     name: Add changeset
-    if: ${{ startsWith(github.head_ref, 'renovate/') }}
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'renovate/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,10 +32,11 @@ jobs:
       - name: Determine bumps
         id: bumps
         run: |
+          LAST_NON_PR_SHA=$(git log --no-merges main origin/${{ github.head_ref }} --format=format:%h | head -2 | tail -1)
           echo "result<<EOF" >> $GITHUB_OUTPUT
           pnpm recursive list --depth -1 --parseable \
               --filter='!nhost-root' \
-              --filter=[origin/main] \
+              --filter=[$LAST_NON_PR_SHA] \
               | xargs -I@ jq ".name" @/package.json \
               | sort \
               | uniq -u \
@@ -65,6 +66,4 @@ jobs:
         if: steps.bumps.outputs.result != ''
         with:
           commit_message: ${{ github.event.pull_request.title }}
-          commit_options: '--amend --no-edit'
-          push_options: '--force'
-          skip_fetch: true
+          branch: main
