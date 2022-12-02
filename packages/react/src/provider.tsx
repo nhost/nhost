@@ -16,19 +16,22 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
   ...props
 }) => {
   const machine = nhost.auth.client.machine
+
+  const context =
+    initial &&
+    produce<AuthContext>(machine.context, (ctx: AuthContext) => {
+      ctx.user = initial.user
+      ctx.refreshToken.value = initial.refreshToken ?? null
+      ctx.accessToken.value = initial.accessToken ?? null
+      ctx.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
+    })
+
   const interpreter = useInterpret(machine, {
     devTools: nhost.devTools,
-    context: produce<AuthContext>(machine.context, (ctx: AuthContext) => {
-      if (initial) {
-        ctx.user = initial.user
-        ctx.refreshToken.value = initial.refreshToken ?? null
-        ctx.accessToken.value = initial.accessToken ?? null
-        ctx.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
-      }
-    })
+    context
   })
 
-  nhost.auth.client.start({ interpreter, devTools: nhost.devTools })
+  nhost.auth.client.start({ interpreter, context: initial && context, devTools: nhost.devTools })
 
   // * Hook to send session update everytime the 'initial' props changed
   const isInitialMount = useRef(true)

@@ -1,5 +1,5 @@
 import { interpret } from 'xstate'
-import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
+import { AuthContext, AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & {
@@ -66,9 +66,11 @@ export class AuthClient {
 
   start({
     devTools = false,
+    context,
     interpreter = interpret(this.machine, { devTools })
-  }: { interpreter?: AuthInterpreter; devTools?: boolean } = {}) {
-    if (this._started) {
+  }: { interpreter?: AuthInterpreter; context?: AuthContext; devTools?: boolean } = {}) {
+    if (this._started && !context) {
+      // * Don't restart the interpreter if it is already started, unless a new context is provided
       return
     }
     this._interpreter = interpreter
