@@ -1,5 +1,24 @@
 # @nhost/nextjs
 
+## 1.9.2
+
+### Patch Changes
+
+- 82124329: chore(deps): update dependency next to v12.3.4
+
+## 1.9.1
+
+### Patch Changes
+
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/nhost-js@1.6.2
+  - @nhost/react@0.15.1
+
 ## 1.9.0
 
 ### Patch Changes

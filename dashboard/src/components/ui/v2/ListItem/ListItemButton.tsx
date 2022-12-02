@@ -34,7 +34,7 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(),
   [`&.${getListItemButtonUtilityClass('dense')}`]: {
-    padding: theme.spacing(0.75, 1.25),
+    padding: theme.spacing(1, 1.25),
   },
   [`&.${listItemButtonClasses.selected}`]: {
     backgroundColor: theme.palette.primary.light,

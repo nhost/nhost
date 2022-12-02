@@ -1,5 +1,23 @@
 # @nhost/vue
 
+## 0.6.2
+
+### Patch Changes
+
+- b030eae9: chore(deps): update dependency @xstate/inspect to ^0.7.0
+
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/hasura-storage-js@0.7.4
+  - @nhost/nhost-js@1.6.2
+
 ## 0.6.0
 
 ### Minor Changes
