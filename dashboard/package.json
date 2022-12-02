@@ -124,7 +124,7 @@
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "concurrently": "^6.3.0",
-    "critters": "^0.0.10",
+    "critters": "^0.0.16",
     "csstype": "^3.0.10",
     "dotenv": "^10.0.0",
     "eslint": "^8.28.0",

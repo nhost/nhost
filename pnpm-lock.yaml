@@ -146,7 +146,7 @@ importers:
       bcryptjs: ^2.4.3
       clsx: ^1.2.1
       concurrently: ^6.3.0
-      critters: ^0.0.10
+      critters: ^0.0.16
       cross-fetch: ^3.1.5
       csstype: ^3.0.10
       date-fns: ^2.29.3
@@ -319,7 +319,7 @@ importers:
       babel-loader: 8.3.0_npabyccmuonwo2rku4k53xo3hi
       babel-plugin-transform-remove-console: 6.9.4
       concurrently: 6.5.1
-      critters: 0.0.10
+      critters: 0.0.16
       csstype: 3.1.0
       dotenv: 10.0.0
       eslint: 8.28.0
@@ -14136,13 +14136,14 @@ packages:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
     dev: true
 
-  /critters/0.0.10:
-    resolution: {integrity: sha512-p5VKhP1803+f+0Jq5P03w1SbiHtpAKm+1EpJHkiPxQPq0Vu9QLZHviJ02GRrWi0dlcJqrmzMWInbwp4d22RsGw==}
+  /critters/0.0.16:
+    resolution: {integrity: sha512-JwjgmO6i3y6RWtLYmXwO5jMd+maZt8Tnfu7VVISmEWyQqfLpB8soBswf8/2bu6SBXxtKA68Al3c+qIG1ApT68A==}
     dependencies:
       chalk: 4.1.2
-      css: 3.0.0
+      css-select: 4.3.0
       parse5: 6.0.1
       parse5-htmlparser2-tree-adapter: 6.0.1
+      postcss: 8.4.19
       pretty-bytes: 5.6.0
     dev: true
 
@@ -14369,14 +14370,6 @@ packages:
 
   /css.escape/1.5.1:
     resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
-    dev: true
-
-  /css/3.0.0:
-    resolution: {integrity: sha512-DG9pFfwOrzc+hawpmqX/dHYHJG+Bsdb0klhyi1sDneOgGOXy9wQIC8hzyVp1e4NRYDBdxcylvywPkkXCHAzTyQ==}
-    dependencies:
-      inherits: 2.0.4
-      source-map: 0.6.1
-      source-map-resolve: 0.6.0
     dev: true
 
   /cssesc/3.0.0:
@@ -26495,14 +26488,6 @@ packages:
       resolve-url: 0.2.1
       source-map-url: 0.4.1
       urix: 0.1.0
-    dev: true
-
-  /source-map-resolve/0.6.0:
-    resolution: {integrity: sha512-KXBr9d/fO/bWo97NXsPIAW1bFSBOuCnjbNTBMO7N59hsv5i9yzRDfcYwwt0l04+VqnKC+EwzvJZIP/qkuMgR/w==}
-    deprecated: See https://github.com/lydell/source-map-resolve#deprecated
-    dependencies:
-      atob: 2.1.2
-      decode-uri-component: 0.2.0
     dev: true
 
   /source-map-support/0.5.21:
