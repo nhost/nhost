@@ -277,7 +277,7 @@ export default function GraphQLPage() {
   };
 
   const fetcher = createGraphiQLFetcher({
-    url: `${appUrl}/v1/graphql`,
+    url: `${appUrl}/v1`,
     headers,
     wsClient: createClient({
       url: subscriptionUrl,
