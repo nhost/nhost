@@ -20,8 +20,8 @@
   "devDependencies": {
     "@gqty/cli": "3.3.0-alpha-d8cdbf6.0",
     "@tailwindcss/forms": "^0.5.3",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^2.1.0",
     "autoprefixer": "^10.4.12",
     "postcss": "^8.4.18",
