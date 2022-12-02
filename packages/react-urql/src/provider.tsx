@@ -28,8 +28,6 @@ export type NhostUrqlClientOptions = {
 function createNhostUrqlClient(options: NhostUrqlClientOptions) {
   const { nhost, headers, requestPolicy = 'cache-and-network' } = options
 
-  console.log('create nhost urql client')
-
   if (!nhost) {
     throw Error('no `nhost` instance provided.')
   }
@@ -61,11 +59,12 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
     const wsUrl = nhost.graphql.getUrl().replace('http', 'ws')
 
     // Close the active socket when token changes.
-    // The WEbSocket client will automatically reconnect with the new token.
+    // The WebSocket client will automatically reconnect with the new access token.
     let activeSocket: any
-    console.log('setting up token change function')
     nhost.auth.onTokenChanged(() => {
-      console.log('custom function: token changed!')
+      if (!activeSocket) {
+        return
+      }
       activeSocket.close()
     })
 
