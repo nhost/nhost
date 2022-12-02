@@ -71,9 +71,7 @@ describe('emails', () => {
     expect(signInA.error).toBeTruthy()
     expect(signInA.session).toBeNull()
 
-    console.log('BEFORE', await mailhog.messages())
     await mailhog.deleteAll()
-    console.log('AFTER', await mailhog.messages())
 
     await auth.sendVerificationEmail({ email })
 

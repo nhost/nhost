@@ -1,8 +1,6 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
-
 import { NhostClientConstructorParams } from '../utils/types'
-
 import { createAuthClient } from './auth'
 import { createFunctionsClient, NhostFunctionsClient } from './functions'
 import { createGraphqlClient, NhostGraphqlClient } from './graphql'
@@ -56,29 +54,22 @@ export class NhostClient {
     this.functions = createFunctionsClient({ adminSecret, ...urlParams })
     this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
 
-    this.auth.client.onStart(() => {
-      // * Set current token if token is already accessable
-      const accessToken = this.auth.getAccessToken()
+    this.auth.onAuthStateChanged((_event, session) => {
+      if (_event === 'SIGNED_OUT') {
+        this.storage.setAccessToken(undefined)
+        this.functions.setAccessToken(undefined)
+        this.graphql.setAccessToken(undefined)
+      }
+    })
+
+    // * Update access token for clients, including when signin in
+    this.auth.onTokenChanged((session) => {
+      const accessToken = session?.accessToken
       this.storage.setAccessToken(accessToken)
       this.functions.setAccessToken(accessToken)
       this.graphql.setAccessToken(accessToken)
-      // * Set access token when signing out
-      this.auth.onAuthStateChanged((_event, session) => {
-        if (_event === 'SIGNED_OUT') {
-          this.storage.setAccessToken(undefined)
-          this.functions.setAccessToken(undefined)
-          this.graphql.setAccessToken(undefined)
-        }
-      })
-
-      // * Update access token for clients, including when signin in
-      this.auth.onTokenChanged((session) => {
-        const accessToken = session?.accessToken
-        this.storage.setAccessToken(accessToken)
-        this.functions.setAccessToken(accessToken)
-        this.graphql.setAccessToken(accessToken)
-      })
     })
+
     this._adminSecret = adminSecret
     this.devTools = devTools
   }

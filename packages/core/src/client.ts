@@ -16,6 +16,7 @@ export class AuthClient {
   readonly clientUrl: string
   readonly machine: AuthMachine
   private _interpreter?: AuthInterpreter
+  private _started = false
   private _channel?: BroadcastChannel
   private _subscriptions: Set<(client: AuthClient) => void> = new Set()
 
@@ -42,7 +43,7 @@ export class AuthClient {
     })
 
     if (start) {
-      this.interpreter = interpret(this.machine, { devTools })
+      this.start({ devTools })
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
@@ -63,20 +64,29 @@ export class AuthClient {
     }
   }
 
-  get interpreter(): AuthInterpreter | undefined {
-    return this._interpreter
-  }
-  set interpreter(interpreter: AuthInterpreter | undefined) {
-    if (!interpreter) {
-      throw new Error('not allowed to set interpreter to undefined')
+  start({
+    devTools = false,
+    interpreter = interpret(this.machine, { devTools })
+  }: { interpreter?: AuthInterpreter; devTools?: boolean } = {}) {
+    if (this._started) {
+      return
     }
     this._interpreter = interpreter
     this._interpreter.start()
     this._subscriptions.forEach((fn) => fn(this))
+    this._subscriptions.clear()
+    this._started = true
   }
 
+  get interpreter(): AuthInterpreter | undefined {
+    return this._interpreter
+  }
+
+  get started(): boolean {
+    return this._started
+  }
   onStart(fn: (client: AuthClient) => void) {
-    if (this.interpreter?.initialized) {
+    if (this.started) {
       // * The interpreter is already available: we can add the listener straight ahead
       fn(this)
     } else {

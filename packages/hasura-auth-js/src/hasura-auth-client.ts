@@ -432,7 +432,7 @@ export class HasuraAuthClient {
         }
       })
 
-    if (this._client.interpreter?.initialized) {
+    if (this._client.started) {
       const subscription = listen()
       return () => subscription?.stop()
     } else {
@@ -465,7 +465,7 @@ export class HasuraAuthClient {
         }
       })
 
-    if (this._client.interpreter?.initialized) {
+    if (this._client.started) {
       const subscription = listen()
       return () => subscription?.stop()
     } else {
