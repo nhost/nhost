@@ -448,7 +448,7 @@ export class HasuraAuthClient {
       })
       return () => {
         console.log(
-          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
+          'onTokenChanged was added before the XState interpreter started. Cannot unsubscribe listener.'
         )
       }
     }
