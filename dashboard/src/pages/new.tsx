@@ -23,7 +23,7 @@ import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment, slugifyString } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
-import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword/generateRandomDatabasePassword';
+import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 
 import { triggerToast } from '@/utils/toast';

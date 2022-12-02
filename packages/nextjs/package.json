@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -79,7 +79,7 @@
     "@nhost/docgen": "workspace:*",
     "@nhost/react": "workspace:*",
     "@types/js-cookie": "^3.0.2",
-    "next": "12.0.10",
+    "next": "12.3.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   }

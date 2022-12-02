@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -75,7 +75,7 @@
     "@nhost/docgen": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@vitejs/plugin-vue": "^3.2.0",
-    "@xstate/inspect": "^0.6.2",
+    "@xstate/inspect": "^0.7.0",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6",
     "ws": "^8.10.0",

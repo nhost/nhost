@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 0.6.2
+
+### Patch Changes
+
+- b030eae9: chore(deps): update dependency @xstate/inspect to ^0.7.0
+
 ## 0.6.1
 
 ### Patch Changes
