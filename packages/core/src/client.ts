@@ -70,9 +70,6 @@ export class AuthClient {
     if (!interpreter) {
       throw new Error('not allowed to set interpreter to undefined')
     }
-    if (this._interpreter?.initialized) {
-      throw new Error('interpreter already initialized')
-    }
     this._interpreter = interpreter
     this._interpreter.start()
     this._subscriptions.forEach((fn) => fn(this))
