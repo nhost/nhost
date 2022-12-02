@@ -23,7 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-*.env.development
+.env.development
+.env
 
 # nhost
 .nhost
