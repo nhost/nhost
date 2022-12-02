@@ -7,7 +7,7 @@ it(
   async () => {
     // * Start the docker-compose
     expect(() => {
-      execSync('docker-compose -f docker-compose.yaml --env-file .env.example up --wait')
+      execSync('docker compose -f docker-compose.yaml --env-file .env.example up --wait')
     }).not.toThrowError()
 
     // * Hasura
@@ -35,7 +35,7 @@ it(
 
     // * Stop the docker-compose
     expect(() => {
-      execSync('docker-compose -f docker-compose.yaml --env-file .env.example down')
+      execSync('docker compose -f docker-compose.yaml --env-file .env.example down')
     }).not.toThrowError()
   },
   { timeout: 5 * 60 * 1000 }
