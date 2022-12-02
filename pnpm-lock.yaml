@@ -851,7 +851,6 @@ importers:
     specifiers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
-      '@types/faker': '5'
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
       jwt-decode: ^3.1.2
@@ -865,7 +864,6 @@ importers:
     devDependencies:
       '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
-      '@types/faker': 5.5.9
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
       start-server-and-test: 1.14.0
@@ -9779,10 +9777,6 @@ packages:
       '@types/qs': 6.9.7
       '@types/serve-static': 1.13.10
     dev: false
-
-  /@types/faker/5.5.9:
-    resolution: {integrity: sha512-uCx6mP3UY5SIO14XlspxsGjgaemrxpssJI0Ol+GfhxtcKpv9pgRZYsS4eeKeHVLje6Qtc8lGszuBI461+gVZBA==}
-    dev: true
 
   /@types/glob/7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
