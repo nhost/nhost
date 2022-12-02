@@ -7,7 +7,9 @@ it(
   async () => {
     // * Start the docker-compose
     expect(() => {
-      execSync('docker compose -f docker-compose.yaml --env-file .env.example up --wait')
+      execSync(
+        'docker compose -f docker-compose.yaml --env-file .env.example up --wait --quiet-pull'
+      )
     }).not.toThrowError()
 
     // * Hasura
