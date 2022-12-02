@@ -1,5 +1,4 @@
 import { interpret } from 'xstate'
-
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import type { AuthInterpreter } from './types'
 
@@ -44,7 +43,6 @@ export class AuthClient {
 
     if (start) {
       this.interpreter = interpret(this.machine, { devTools })
-      this.interpreter.start()
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
@@ -69,14 +67,19 @@ export class AuthClient {
     return this._interpreter
   }
   set interpreter(interpreter: AuthInterpreter | undefined) {
-    this._interpreter = interpreter
-    if (interpreter) {
-      this._subscriptions.forEach((fn) => fn(this))
+    if (!interpreter) {
+      throw new Error('not allowed to set interpreter to undefined')
     }
+    if (this._interpreter?.initialized) {
+      throw new Error('interpreter already initialized')
+    }
+    this._interpreter = interpreter
+    this._interpreter.start()
+    this._subscriptions.forEach((fn) => fn(this))
   }
 
   onStart(fn: (client: AuthClient) => void) {
-    if (this.interpreter) {
+    if (this.interpreter?.initialized) {
       // * The interpreter is already available: we can add the listener straight ahead
       fn(this)
     } else {
