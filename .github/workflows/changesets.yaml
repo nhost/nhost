@@ -48,116 +48,12 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           fi
 
-  # build:
-  #   # TODO not required anymore as it is done again in e2e
-  #   name: Build Docker image
-  #   needs: version
-  #   timeout-minutes: 60
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write
-  #     contents: write
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v2
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2
-  #     - name: Build
-  #       uses: docker/build-push-action@v3
-  #       timeout-minutes: 60
-  #       with:
-  #         context: hasura-auth
-  #         platforms: linux/amd64,linux/arm64
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=max
-  #         tags: |
-  #           nhost/hasura-auth:local
-
   test:
-    name: Service tests
+    name: Tests
     uses: ./.github/workflows/test.yaml
 
-  e2e-lookup:
-    name: Lookup E2E tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: nhost/nhost
-      # * Install Node and dependencies. Package downloads will be cached for the next jobs.
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-          BUILD: 'none'
-      # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
-      # * In a PR, only include packages that have been modified, and their dependencies
-      - name: List examples with an e2e script
-        id: set-matrix
-        run: |
-          PACKAGES=$(pnpm recursive list --depth -1 --parseable \
-            | xargs -I@ echo "test -f @/nhost/config.yaml && echo @" | sh \
-            | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
-            | awk "!/null/" \
-            | jq -c --slurp)
-          echo "matrix=$PACKAGES" >> $GITHUB_OUTPUT
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-
-  e2e:
-    name: CLI E2E tests
-    runs-on: ubuntu-latest
-    # permissions:
-    #   id-token: write
-    #   contents: write
-    needs:
-      - e2e-lookup
-    strategy:
-      matrix:
-        package: ${{ fromJson(needs.e2e-lookup.outputs.matrix) }}
-    steps:
-      - name: Checkout nhost/nhost
-        uses: actions/checkout@v3
-        with:
-          repository: nhost/nhost
-      - name: Checkout hasura-auth
-        uses: actions/checkout@v3
-        with:
-          path: hasura-auth
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build
-        uses: docker/build-push-action@v3
-        timeout-minutes: 60
-        with:
-          context: hasura-auth
-          tags: |
-            nhost/hasura-auth:local
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-      - name: Set Hasura Auth image in the CLI config
-        run: |
-          yq -i '.services.auth.image = "nhost/hasura-auth:local"' ${{ format('{0}/nhost/config.yaml', matrix.package.path) }}
-      - name: Install Nhost CLI
-        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        # TODO use cache and turborepo
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Run e2e tests
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e
-        # ? (enable turborepo e2e, and fine-tune turbo cache e2e config: env vars, nhost/config.yaml)
-        env:
-          SERVICES_AUTH_IMAGE: nhost/hasura-auth:local
-
   publish:
-    name: Publish image & GitHub release
+    name: Publish Docker image
     needs:
       - test
       - e2e
@@ -239,3 +135,22 @@ jobs:
       - name: Remove tag
         if: failure() && needs.version.outputs.version != ''
         run: git push --delete origin ${{ needs.version.outputs.version }}
+
+  release:
+    name: GitHub release
+    needs:
+      - version
+      - publish
+    runs-on: ubuntu-latest
+    if: needs.version.outputs.version != ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create GitHub Release
+        uses: taiki-e/create-gh-release-action@v1
+        if: needs.version.outputs.version != ''
+        with:
+          changelog: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/tags/${{ needs.version.outputs.version }}
