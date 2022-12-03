@@ -13,12 +13,12 @@ describe(
       await promisifiedExec(
         'docker compose -f docker-compose.yaml --env-file .env.example up --wait --quiet-pull'
       )
-    })
+    }, 5 * 60 * 1000)
 
     afterAll(async () => {
       // * Stop docker compose
       await promisifiedExec('docker compose -f docker-compose.yaml --env-file .env.example down')
-    })
+    }, 5 * 60 * 1000)
 
     it(
       'Hasura',
