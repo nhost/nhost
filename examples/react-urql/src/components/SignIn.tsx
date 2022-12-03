@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useState } from 'react'
 
 import { useSignInEmailPasswordless } from '@nhost/react'
 
@@ -9,7 +10,13 @@ export function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    await signInEmailPasswordless(email)
+    const { error } = await signInEmailPasswordless(email)
+
+    if (error) {
+      alert('Error signing in')
+      console.log(error)
+      return
+    }
     alert('Magic Link Sent')
   }
 

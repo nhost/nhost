@@ -26,8 +26,8 @@ export function ListPublicPostsSubscription() {
   const { posts } = data
 
   return (
-    <div>
-      <h1 className="text-3xl">Posts (using subscription)</h1>
+    <div className="my-6">
+      <h1 className="text-3xl">Private Posts (using subscription)</h1>
       <div>
         {posts.map((post) => {
           return (

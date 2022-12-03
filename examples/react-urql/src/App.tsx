@@ -16,9 +16,9 @@ function App() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
           <div className="mx-auto max-w-3xl">
             <SignedIn>
-              <ListPrivatePosts />
               <ListPublicPostsSubscription />
-              <div className="pt-6 mt-6 border-t-2">
+              <ListPrivatePosts />
+              <div className="pt-12 mt-12 border-t-2">
                 <button
                   onClick={() => nhost.auth.signOut()}
                   type="submit"

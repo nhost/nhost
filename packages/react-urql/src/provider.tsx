@@ -25,15 +25,15 @@ export type NhostUrqlClientOptions = {
 }
 
 // TODO: Break out this function to a separate package: @nhost/urql
+// Opinionated urql client for Nhost
 function createNhostUrqlClient(options: NhostUrqlClientOptions) {
   const { nhost, headers, requestPolicy = 'cache-and-network' } = options
 
   if (!nhost) {
-    throw Error('no `nhost` instance provided.')
+    throw Error('No `nhost` instance provided.')
   }
 
   const getHeaders = () => {
-    // add headers
     const resHeaders = {
       ...headers,
       'Sec-WebSocket-Protocol': 'graphql-ws'
