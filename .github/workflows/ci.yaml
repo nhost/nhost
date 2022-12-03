@@ -43,6 +43,7 @@ jobs:
         run: |
           FILTER_MODIFIED="${{ github.event_name == 'pull_request' && format('--filter=...[origin/{0}]', github.base_ref) || '' }}"
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' $FILTER_MODIFIED \
+            | xargs -I@ realpath --relative-to=$PWD @ \
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
             | jq -c --slurp)
@@ -51,7 +52,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
   e2e:
-    name: 'e2e: ${{ matrix.package.name }}'
+    name: 'e2e (${{ matrix.package.path }})'
     needs: build
     if: ${{ needs.build.outputs.matrix != '[]' && needs.build.outputs.matrix != '' }}
     strategy:
