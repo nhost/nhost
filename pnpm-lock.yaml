@@ -623,6 +623,7 @@ importers:
       graphql: 15.7.2
       nodemailer: ^6.8.0
       slugify: ^1.6.5
+      stripe: ^11.1.0
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.7.2
       '@nhost/stripe-graphql-js': link:../../integrations/stripe-graphql-js
@@ -631,6 +632,7 @@ importers:
       graphql: 15.7.2
       nodemailer: 6.8.0
       slugify: 1.6.5
+      stripe: 11.1.0
     devDependencies:
       '@types/express': 4.17.13
 
@@ -26707,6 +26709,14 @@ packages:
   /stripe/10.17.0:
     resolution: {integrity: sha512-JHV2KoL+nMQRXu3m9ervCZZvi4DDCJfzHUE6CmtJxR9TmizyYfrVuhGvnsZLLnheby9Qrnf4Hq6iOEcejGwnGQ==}
     engines: {node: ^8.1 || >=10.*}
+    dependencies:
+      '@types/node': 18.11.9
+      qs: 6.11.0
+    dev: false
+
+  /stripe/11.1.0:
+    resolution: {integrity: sha512-erOslPQZSYKOotQjmKRy4eBon/tdhzLIYzBdPSNVWDdatSQozkkPlh8mVeXNwubYYZYx61/yS23eWiGDF93z2w==}
+    engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 18.11.9
       qs: 6.11.0
