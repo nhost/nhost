@@ -86,15 +86,14 @@ jobs:
     #   id-token: write
     #   contents: write
     steps:
-      - name: Checkout hasura-auth
-        uses: actions/checkout@v3
-        with:
-          path: hasura-auth
       - name: Checkout nhost/nhost
         uses: actions/checkout@v3
         with:
           repository: nhost/nhost
-          path: nhost
+      - name: Checkout hasura-auth
+        uses: actions/checkout@v3
+        with:
+          path: hasura-auth
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build
