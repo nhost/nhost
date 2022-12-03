@@ -879,7 +879,7 @@ importers:
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
-      uuid: ^8.3.2
+      uuid: ^9.0.0
       xstate: ^4.33.5
     dependencies:
       axios: 1.2.0
@@ -890,7 +890,7 @@ importers:
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
-      uuid: 8.3.2
+      uuid: 9.0.0
 
   packages/hasura-storage-js/functions:
     specifiers: {}
@@ -28613,7 +28613,6 @@ packages:
   /uuid/9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
-    dev: false
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
