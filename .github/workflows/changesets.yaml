@@ -137,11 +137,9 @@ jobs:
 
   release:
     name: GitHub release
-    needs:
-      - version
-      - publish
+    needs: publish
     runs-on: ubuntu-latest
-    if: needs.version.outputs.version != ''
+    if: needs.publish.needs.version.outputs.version != ''
 
     steps:
       - name: Checkout
