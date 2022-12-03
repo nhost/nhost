@@ -86,17 +86,22 @@ jobs:
     #   id-token: write
     #   contents: write
     steps:
+      - name: Checkout hasura-auth
+        uses: actions/checkout@v3
+        with:
+          path: hasura-auth
       - name: Checkout nhost/nhost
         uses: actions/checkout@v3
         with:
           repository: nhost/nhost
+          path: nhost
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build
         uses: docker/build-push-action@v3
         timeout-minutes: 60
         with:
-          context: .
+          context: hasura-auth
           tags: |
             nhost/hasura-auth:local
           cache-from: type=gha
@@ -112,7 +117,7 @@ jobs:
         #   TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Force Hasura Auth image
         run: |
-          yq -i '.services.auth.image = "nhost/hasura-auth:local"' examples/react-apollo/nhost/config.yaml
+          yq -i '.services.auth.image = "nhost/hasura-auth:local"' nhost/examples/react-apollo/nhost/config.yaml
       - name: Run e2e tests
         run: pnpm --filter"@nhost-examples/react-apollo" run e2e
         # ? (enable turborepo e2e, and fine-tune turbo cache e2e config: env vars, nhost/config.yaml)
