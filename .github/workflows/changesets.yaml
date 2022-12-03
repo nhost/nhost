@@ -101,6 +101,7 @@ jobs:
             nhost/hasura-auth:local
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          load: true
       - name: Install Nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - name: Install Node and dependencies
