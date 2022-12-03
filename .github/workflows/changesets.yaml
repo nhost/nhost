@@ -48,32 +48,32 @@ jobs:
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           fi
 
-  build:
-    # TODO not required anymore as it is done again in e2e
-    name: Build Docker image
-    needs: version
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build
-        uses: docker/build-push-action@v3
-        timeout-minutes: 60
-        with:
-          context: hasura-auth
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            nhost/hasura-auth:local
+  # build:
+  #   # TODO not required anymore as it is done again in e2e
+  #   name: Build Docker image
+  #   needs: version
+  #   timeout-minutes: 60
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: write
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v2
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     - name: Build
+  #       uses: docker/build-push-action@v3
+  #       timeout-minutes: 60
+  #       with:
+  #         context: hasura-auth
+  #         platforms: linux/amd64,linux/arm64
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
+  #         tags: |
+  #           nhost/hasura-auth:local
 
   test:
     name: Run tests
@@ -81,10 +81,10 @@ jobs:
 
   e2e:
     name: Run e2e tests
-    needs:
-      - build
-      - test
     runs-on: ubuntu-latest
+    # permissions:
+    #   id-token: write
+    #   contents: write
     steps:
       - name: Checkout nhost/nhost
         uses: actions/checkout@v3
@@ -121,7 +121,6 @@ jobs:
   publish:
     name: Publish image & GitHub release
     needs:
-      - build
       - test
       - e2e
       - version
