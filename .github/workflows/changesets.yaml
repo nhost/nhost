@@ -49,6 +49,7 @@ jobs:
           fi
 
   build:
+    # TODO not required anymore as it is done again in e2e
     name: Build Docker image
     needs: version
     timeout-minutes: 60
@@ -71,14 +72,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/hasura-auth-image.tar
           tags: |
             nhost/hasura-auth:local
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: hasura-auth-image
-          path: tmp/hasura-auth-image.tar
 
   test:
     name: Run tests
@@ -97,16 +92,15 @@ jobs:
           repository: nhost/nhost
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Download artifact
-        uses: actions/download-artifact@v3
+      - name: Build
+        uses: docker/build-push-action@v3
+        timeout-minutes: 60
         with:
-          name: hasura-auth-image
-          path: /tmp
-      - name: Load image
-        # TODO remove docker image ls -a
-        run: |
-          docker load --input /tmp/hasura-auth-image.tar
-          docker image ls -a
+          context: .
+          tags: |
+            nhost/hasura-auth:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Install Nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - name: Install Node and dependencies
@@ -152,11 +146,6 @@ jobs:
           git tag "v${{ needs.version.outputs.version }}"
           git push origin --tags
       - name: Determine tags
-        # Create and push a Git tag for the release it doesn't already exist.
-        # If the package version has not been released yet:
-        # 1. push the corresponding git tag
-        # 2. add the corresponding docker tags to the output
-        # 3. add the corresponding git tag to the output
         id: tags
         run: |
           echo "docker_tags<<EOF" >> $GITHUB_OUTPUT
