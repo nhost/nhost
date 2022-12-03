@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 const promisifiedExec = promisify(exec)
 
 describe(
-  'docker-compose',
+  'docker-compose should start, work and stop',
   () => {
     beforeAll(async () => {
       // * Start docker compose
