@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.7
+
+### Patch Changes
+
+- 1b8f5050: fix(deps): update docusaurus monorepo to v2.2.0
+
 ## 0.0.6
 
 ### Patch Changes

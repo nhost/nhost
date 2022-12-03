@@ -1,5 +1,11 @@
 # @nhost/nextjs
 
+## 1.9.2
+
+### Patch Changes
+
+- 82124329: chore(deps): update dependency next to v12.3.4
+
 ## 1.9.1
 
 ### Patch Changes
