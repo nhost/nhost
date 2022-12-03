@@ -106,6 +106,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           load: true
+      - name: Set Hasura Auth image in the CLI config
+        run: |
+          yq -i '.services.auth.image = "nhost/hasura-auth:local"' examples/react-apollo/nhost/config.yaml
       - name: Install Nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - name: Install Node and dependencies
@@ -114,9 +117,6 @@ jobs:
         # with:
         #   TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
         #   TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Force Hasura Auth image
-        run: |
-          yq -i '.services.auth.image = "nhost/hasura-auth:local"' nhost/examples/react-apollo/nhost/config.yaml
       - name: Run e2e tests
         run: pnpm --filter"@nhost-examples/react-apollo" run e2e
         # ? (enable turborepo e2e, and fine-tune turbo cache e2e config: env vars, nhost/config.yaml)
