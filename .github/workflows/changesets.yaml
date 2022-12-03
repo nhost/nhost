@@ -212,4 +212,4 @@ jobs:
           ref: refs/tags/${{ needs.version.outputs.version }}
       - name: Remove tag
         if: failure() && needs.version.outputs.version != ''
-        run: git push --delete origin ${{ sneeds.version.outputs.version }}
+        run: git push --delete origin ${{ needs.version.outputs.version }}
