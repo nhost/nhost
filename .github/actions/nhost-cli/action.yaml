@@ -21,7 +21,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # * Install Nhost CLI if a `nhost/config.yaml` file is found
     - name: Install Nhost CLI
       shell: bash
       run: curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
