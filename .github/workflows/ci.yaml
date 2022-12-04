@@ -2,7 +2,7 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [main, ci/nhost-cli-action]
+    branches: [main]
     paths-ignore:
       - 'assets/**'
       - '**.md'

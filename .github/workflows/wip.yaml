@@ -1,0 +1,51 @@
+name: WIP
+
+on:
+  push:
+    branches: [ci/nhost-cli-action]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+
+jobs:
+  build:
+    name: Build @nhost packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # * Install Node and dependencies. Package downloads will be cached for the next jobs.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+          BUILD: 'all'
+      - name: Install Nhost CLI
+        if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
+        uses: ./.github/actions/nhost-cli
+        with:
+          start: false
+      - name: ping
+        run: |
+          curl http://localhost:1337/v1/auth/version
+      # # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
+      # # * In a PR, only include packages that have been modified, and their dependencies
+      # - name: List examples with an e2e script
+      #   id: set-matrix
+      #   run: |
+      #     FILTER_MODIFIED="${{ github.event_name == 'pull_request' && format('--filter=...[origin/{0}]', github.base_ref) || '' }}"
+      #     PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' $FILTER_MODIFIED \
+      #       | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
+      #       | awk "!/null/" \
+      #       | jq -c --slurp)
+      #     echo "matrix=$PACKAGES" >> $GITHUB_OUTPUT
