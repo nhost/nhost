@@ -13,8 +13,8 @@ inputs:
   path:
     description: 'Path to the application'
     default: '.'
-  version:
-    description: 'Version of the Nhost CLI'
+  # version:
+  #   description: 'Version of the Nhost CLI'
   config:
     description: 'Custom Nhost CLI config'
 
