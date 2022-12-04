@@ -52,10 +52,12 @@ runs:
           --retry 5 \
           --retry-delay 0 \
           --retry-max-time 40 \
+          --retry-connrefused \
           'http://localhost:9695'
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
       shell: bash
+      working-directory: ${{ inputs.path }}
       run: |
         nhost logs
         exit 1
