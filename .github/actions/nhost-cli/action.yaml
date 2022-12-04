@@ -47,7 +47,7 @@ runs:
             yq -i ".$key = $value" nhost/config.yaml
         done
     - name: Start the application
-      if: ${{ inputs.start == 'true' || inputs.start != 'false' }}
+      if: ${{ inputs.start != 'false' || (inputs.stop == 'true' && inputs.start == 'true') }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: nhost dev --no-browser &

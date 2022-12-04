@@ -65,8 +65,20 @@ job:
       - name: Stop
         uses: ./.github/actions/nhost-cli
         with:
-          start: false
           stop: true
+```
+
+### Install a given value of the CLI
+
+```yaml
+job:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nhost CLI
+        uses: ./.github/actions/nhost-cli
+        with:
+          version: v0.8.10
 ```
 
 ### Inject values in nhost/config.yaml
