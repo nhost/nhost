@@ -47,11 +47,12 @@ runs:
       working-directory: ${{ inputs.path }}
       continue-on-error: true
       run: |
-        curl --connect-timeout 3 \
+        curl -sS --connect-timeout 3 \
           --max-time 5 \
+          --retry 300 \
           --retry-delay 1 \
           --retry-max-time 300 \
-          --retry-all-errors \
+          --retry-connrefused \
           'http://localhost:9695'
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
