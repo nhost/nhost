@@ -28,7 +28,7 @@ jobs:
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         uses: ./.github/actions/nhost-cli
         with:
-          start: false
+          start: true
       - name: ping
         run: |
           curl http://localhost:1337/v1/auth/version
