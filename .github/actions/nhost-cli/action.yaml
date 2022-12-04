@@ -43,8 +43,7 @@ runs:
       working-directory: ${{ inputs.path }}
       # TODO
       run: |
-        # while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9695)" != "200" ]]
-        while [[ "$(curl -w ''%{http_code}'' localhost:9695)" != "200" ]]
+        while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9695)" != "200" ]]
         do 
           sleep 5
         done

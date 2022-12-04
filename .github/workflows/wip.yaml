@@ -28,6 +28,7 @@ jobs:
         with:
           path: examples/react-apollo
           start: true
+          wait: false
       - name: ping
         run: |
           curl http://localhost:1337/v1/auth/version
