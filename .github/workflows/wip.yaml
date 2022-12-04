@@ -16,8 +16,7 @@ env:
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
 
 jobs:
-  build:
-    name: Build @nhost packages
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,9 +24,9 @@ jobs:
           fetch-depth: 0
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Nhost CLI
-        if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         uses: ./.github/actions/nhost-cli
         with:
+          path: examples/react-apollo
           start: true
       - name: ping
         run: |
