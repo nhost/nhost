@@ -2,8 +2,7 @@ name: Nhost CLI
 description: 'Install Nhost CLI'
 inputs:
   start:
-    description: 'Start the application'
-    default: 'true'
+    description: "Start the application. If false, the application won't be started"
   wait:
     description: 'If starting the application, wait for the app to be ready'
     default: 'true'
@@ -13,17 +12,30 @@ inputs:
   path:
     description: 'Path to the application'
     default: '.'
-  # version:
-  #   description: 'Version of the Nhost CLI'
+  version:
+    description: 'Version of the Nhost CLI'
+    default: 'latest'
   config:
     description: 'Custom Nhost CLI config'
 
 runs:
   using: 'composite'
   steps:
-    - name: Install Nhost CLI
+    - name: Check if Nhost CLI is already installed
+      id: check-nhost-cli
       shell: bash
-      run: curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+      # TODO check if the version is the same
+      run: |
+        if [ -z "$(which nhost)" ]
+        then
+            echo "installed=false" >> $GITHUB_OUTPUT
+        else
+            echo "installed=true" >> $GITHUB_OUTPUT
+        fi
+    - name: Install Nhost CLI
+      if: ${{ steps.check-nhost-cli.outputs.installed == 'false' }}
+      shell: bash
+      run: bash <(curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh) ${{ inputs.version }}
     - name: Set custom configuration
       if: ${{ inputs.config }}
       shell: bash
@@ -35,7 +47,7 @@ runs:
             yq -i ".$key = $value" nhost/config.yaml
         done
     - name: Start the application
-      if: ${{ inputs.start == 'true' }}
+      if: ${{ inputs.start == 'true' || inputs.start != 'false' }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: nhost dev --no-browser &
