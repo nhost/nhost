@@ -27,7 +27,7 @@ jobs:
           path: examples/react-apollo
           start: true
           config: |
-            services.auth.image: nhost/hasura-auth:0.16.1
+            services.auth.image: nhost/hasura-auth:0.14.0
       - name: ping
         run: |
           curl http://localhost:1337/v1/auth/version
