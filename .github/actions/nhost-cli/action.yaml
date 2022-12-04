@@ -30,10 +30,11 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
+        ls
         config="${{ inputs.config }}"
         for key in $(echo "$config" | yq '. | keys | .[]'); do
             value=$(echo "$config" | yq  -o=json ".\"$key\"")
-            yq -i ".$key = $value" ${{ inputs.path }}/nhost/config.yaml
+            yq -i ".$key = $value" nhost/config.yaml
         done
     - name: Start the application
       if: ${{ inputs.start == 'true' }}
