@@ -82,7 +82,7 @@ job:
           version: v0.8.10
 ```
 
-### Inject values in nhost/config.yaml
+### Inject values into nhost/config.yaml
 
 ```yaml
 job:
@@ -93,5 +93,7 @@ job:
         uses: ./.github/actions/nhost-cli
         with:
           config: |
-            services.auth.image: nhost/hasura-auth:0.16.1
+            services:
+              auth:
+                image: nhost/hasura-auth:0.16.1
 ```
