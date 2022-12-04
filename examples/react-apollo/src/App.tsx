@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { BrandGithub } from 'tabler-icons-react'
+
 import { AppShell, Button, Group, Header, Image, MantineProvider, Title } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
 
