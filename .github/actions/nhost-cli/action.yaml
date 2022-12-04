@@ -25,13 +25,16 @@ runs:
     - name: Install Nhost CLI
       shell: bash
       run: curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-    # TODO config
     - name: Set custom configuration
       if: ${{ inputs.config }}
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        echo TODO
+        config="${{ inputs.config }}"
+        for key in $(echo "$config" | yq '. | keys | .[]'); do
+            value=$(echo "$config" | yq  -o=json ".\"$key\"")
+            yq -i ".$key = $value" ${{ inputs.path }}/nhost/config.yaml
+        done
     - name: Start the application
       if: ${{ inputs.start == 'true' }}
       shell: bash

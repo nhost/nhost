@@ -20,15 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
           path: examples/react-apollo
           start: true
-          wait: false
+          config: |
+            services.auth.image: nhost/hasura-auth:0.10.0
       - name: ping
         run: |
           curl http://localhost:1337/v1/auth/version
