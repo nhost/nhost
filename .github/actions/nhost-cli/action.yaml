@@ -1,0 +1,50 @@
+name: Nhost CLI
+description: 'Install Nhost CLI'
+inputs:
+  start:
+    description: 'Start the application'
+    default: 'true'
+  wait:
+    description: 'If starting the application, wait for the app to be ready'
+    default: 'true'
+  stop:
+    description: 'Stop the application'
+    default: 'false'
+  path:
+    description: 'Path to the application'
+    default: '.'
+  version:
+    description: 'Version of the Nhost CLI'
+  config:
+    description: 'Custom Nhost CLI config'
+
+runs:
+  using: 'composite'
+  steps:
+    # * Install Nhost CLI if a `nhost/config.yaml` file is found
+    - name: Install Nhost CLI
+      shell: bash
+      run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+    # TODO config
+    - name: Set custom configuration
+      if: ${{ inputs.config }}
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        echo TODO
+    - name: Start the application
+      if: ${{ inputs.start == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: nhost run dev --no-browser &
+    - name: Wait for the app to be ready
+      if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      # TODO
+      run: echo wait
+    - name: Stop the application
+      if: ${{ inputs.stop == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: nhost down
