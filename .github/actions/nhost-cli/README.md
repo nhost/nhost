@@ -12,6 +12,19 @@ job:
         uses: ./.github/actions/nhost-cli
 ```
 
+### Install the CLI and start the app
+
+```yaml
+job:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nhost CLI
+        uses: ./.github/actions/nhost-cli
+        with:
+          start: true
+```
+
 ### Set another working directory
 
 ```yaml
@@ -23,19 +36,7 @@ job:
         uses: ./.github/actions/nhost-cli
         with:
           path: examples/react-apollo
-```
-
-### Install the CLI without starting the app
-
-```yaml
-job:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Nhost CLI
-        uses: ./.github/actions/nhost-cli
-        with:
-          start: false
+          start: true
 ```
 
 ### Don't wait for the app to be ready
