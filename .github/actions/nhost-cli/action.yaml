@@ -30,7 +30,6 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        ls
         config="${{ inputs.config }}"
         for key in $(echo "$config" | yq '. | keys | .[]'); do
             value=$(echo "$config" | yq  -o=json ".\"$key\"")
@@ -42,15 +41,24 @@ runs:
       working-directory: ${{ inputs.path }}
       run: nhost dev --no-browser &
     - name: Wait for the app to be ready
+      id: wait
       if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
-      # TODO
+      continue-on-error: true
       run: |
-        while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:9695)" != "200" ]]
-        do 
-          sleep 5
-        done
+        # -s -o /dev/null
+        curl --connect-timeout 5 \
+          --max-time 5 \
+          --retry-delay 0 \
+          --retry-max-time 300 \
+          'http://localhost:9695'
+    - name: Log on failure
+      if: steps.wait.outcome == 'failure'
+      shell: bash
+      run: |
+        nhost logs
+        exit 1
     - name: Stop the application
       if: ${{ inputs.stop == 'true' }}
       shell: bash
