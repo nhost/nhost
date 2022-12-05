@@ -55,7 +55,7 @@ export default function ProvidersUpdatedAlert() {
   }
 
   return (
-    <Alert className="grid items-center place-items-center grid-flow-row lg:grid-flow-col gap-2 p-4 lg:place-content-between bg-amber-500">
+    <Alert className="grid items-center grid-flow-row gap-2 p-4 place-items-center lg:grid-flow-col lg:place-content-between bg-amber-500">
       <div className="grid grid-flow-row gap-1 text-left">
         <Text className="font-semibold">
           Please update the Redirect URL for all providers being used
@@ -67,7 +67,7 @@ export default function ProvidersUpdatedAlert() {
           providers to use the new auth specific URL under <b>Redirect URL</b>{' '}
           before the 1st of February 2023.{' '}
           <Link
-            href="https://docs.nhost.io/"
+            href="https://github.com/nhost/nhost/discussions/1319"
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
