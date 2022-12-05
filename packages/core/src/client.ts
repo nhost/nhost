@@ -19,7 +19,8 @@ export class AuthClient {
   private _interpreter?: AuthInterpreter
   private _started = false
   private _channel?: BroadcastChannel
-  private _subscriptions: Set<(client: AuthClient) => void> = new Set()
+  private _subscriptionsQueue: Set<(client: AuthClient) => void> = new Set()
+  private _subscriptions: Set<() => void> = new Set()
 
   constructor({
     clientStorageType = 'web',
@@ -70,26 +71,39 @@ export class AuthClient {
     initial,
     interpreter
   }: { interpreter?: AuthInterpreter; initial?: NhostSession; devTools?: boolean } = {}) {
+    const context = { ...this.machine.context }
     if (initial) {
-      const context = { ...this.machine.context }
       context.user = initial.user
       context.refreshToken.value = initial.refreshToken ?? null
       context.accessToken.value = initial.accessToken ?? null
       context.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
-      this._machine = this._machine.withContext(context)
     }
 
-    if (this._started) {
-      this._interpreter?.stop()
+    if (interpreter) {
+      if (this._interpreter) {
+        if (typeof window === 'undefined') {
+          this._started = false
+        } else {
+          if (initial) {
+            this._interpreter.send('SESSION_UPDATE', { data: { session: initial } })
+          }
+        }
+      } else {
+        this._interpreter = interpreter
+      }
+    } else {
+      this._interpreter = interpret(this._machine.withContext(context), { devTools })
     }
 
-    if (!interpreter) {
-      interpreter = interpret(this.machine, { devTools })
+    if (!this._started) {
+      if (this._interpreter.initialized) {
+        this._interpreter.stop()
+        this._subscriptions.forEach((fn) => fn())
+      }
+      this._interpreter?.start(this._machine.withContext(context).initialState)
+      this._subscriptionsQueue.forEach((fn) => fn(this))
     }
 
-    this._interpreter = interpreter.start()
-
-    this._subscriptions.forEach((fn) => fn(this))
     this._started = true
   }
 
@@ -108,11 +122,13 @@ export class AuthClient {
   subscribe(fn: (client: AuthClient) => () => void): () => void {
     if (this.started) {
       // * The interpreter is already available: we can add the listener straight ahead
-      return fn(this)
+      const subscription = fn(this)
+      this._subscriptions.add(subscription)
+      return subscription
     } else {
       // * The interpreter is not yet available: we add the listener to a queue that will be started when setting the interpreter
       // * Note: in React, the Xstate interpreter does not start from the global state, but from the root component
-      this._subscriptions.add(fn)
+      this._subscriptionsQueue.add(fn)
       return () => {
         console.log(
           'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
