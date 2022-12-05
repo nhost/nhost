@@ -425,7 +425,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    const listen = () =>
+    const addOnTokenChangedFunction = () =>
       this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
@@ -433,10 +433,10 @@ export class HasuraAuthClient {
       })
 
     if (this._client.started) {
-      const subscription = listen()
+      const subscription = addOnTokenChangedFunction()
       return () => subscription?.stop()
     } else {
-      this._client.onStart(listen)
+      this._client.onStart(addOnTokenChangedFunction)
       return () => {
         console.log(
           'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
