@@ -1,5 +1,6 @@
 import { interpret } from 'xstate'
-import { AuthContext, AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
+import { NhostSession } from '.'
+import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & {
@@ -14,7 +15,7 @@ export type NhostClientOptions = AuthMachineOptions & {
 export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
-  readonly machine: AuthMachine
+  private _machine: AuthMachine
   private _interpreter?: AuthInterpreter
   private _started = false
   private _channel?: BroadcastChannel
@@ -33,7 +34,7 @@ export class AuthClient {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
 
-    this.machine = createAuthMachine({
+    this._machine = createAuthMachine({
       ...defaultOptions,
       backendUrl,
       clientUrl,
@@ -66,18 +67,35 @@ export class AuthClient {
 
   start({
     devTools = false,
-    context,
-    interpreter = interpret(this.machine, { devTools })
-  }: { interpreter?: AuthInterpreter; context?: AuthContext; devTools?: boolean } = {}) {
-    if (this._started && !context) {
-      // * Don't restart the interpreter if it is already started, unless a new context is provided
-      return
+    initial,
+    interpreter
+  }: { interpreter?: AuthInterpreter; initial?: NhostSession; devTools?: boolean } = {}) {
+    if (initial) {
+      const context = { ...this.machine.context }
+      context.user = initial.user
+      context.refreshToken.value = initial.refreshToken ?? null
+      context.accessToken.value = initial.accessToken ?? null
+      context.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
+      this._machine = this._machine.withContext(context)
     }
-    this._interpreter = interpreter
-    this._interpreter.start()
+
+    if (this._started) {
+      this._interpreter?.stop()
+    }
+
+    if (!interpreter) {
+      interpreter = interpret(this.machine, { devTools })
+    }
+
+    this._interpreter = interpreter.start()
+
     this._subscriptions.forEach((fn) => fn(this))
-    this._subscriptions.clear()
+    // this._subscriptions.clear()
     this._started = true
+  }
+
+  public get machine() {
+    return this._machine
   }
 
   get interpreter(): AuthInterpreter | undefined {

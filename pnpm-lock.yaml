@@ -407,8 +407,8 @@ importers:
       vite: ^3.2.2
     dependencies:
       '@apollo/client': 3.6.9_qqqj7xqn73klpidhtp57t4zzwm
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/react': 0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy
+      '@nhost/react-apollo': 4.9.2_kcwooay62h34ta66pwakq6hh5m
       graphql: 15.7.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -442,7 +442,7 @@ importers:
       typescript: ^4.8.2
       vite: ^3.2.2
     dependencies:
-      '@nhost/react': link:../../packages/react
+      '@nhost/react': 0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy
       '@tanstack/react-query': 4.10.3_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-query-devtools': 4.11.0_vhepussragssjkevgznguhxexq
       graphql: 15.7.2
@@ -504,9 +504,9 @@ importers:
       '@mantine/hooks': 4.2.12_react@18.2.0
       '@mantine/next': 4.2.12_3jx24bxa75wondnaoy3z3c5tny
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
-      '@nhost/nextjs': link:../../packages/nextjs
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/nextjs': 1.9.3_4umcnubejb2mvyxfkpzvq3wsvy
+      '@nhost/react': 0.15.2_m5hordlaiiipsw3koqtm26uzoa
+      '@nhost/react-apollo': 4.9.2_kcwooay62h34ta66pwakq6hh5m
       graphql: 15.7.2
       next: 12.1.6_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
@@ -563,8 +563,8 @@ importers:
       '@mantine/hooks': 4.2.12_react@18.2.0
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
       '@mantine/prism': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/react': 0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy
+      '@nhost/react-apollo': 4.9.2_kcwooay62h34ta66pwakq6hh5m
       graphql: 15.7.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -611,7 +611,7 @@ importers:
       vite: ^3.2.2
     dependencies:
       '@gqty/react': 2.1.0_facumlwdezyowqzbzb2sy4uxwu
-      '@nhost/react': link:../../packages/react
+      '@nhost/react': 0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy
       gqty: 2.3.0_graphql@15.7.2
       graphql: 15.7.2
       react: 18.2.0
@@ -976,7 +976,6 @@ importers:
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.24
       '@xstate/react': ^3.0.1
-      immer: ^9.0.15
       jwt-decode: ^3.1.2
       react: ^18.2.0
       xstate: ^4.33.5
@@ -985,7 +984,6 @@ importers:
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_c64ku7quqnjs2eoqgzpaqnc5ju
-      immer: 9.0.15
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -7096,6 +7094,200 @@ packages:
     dev: true
     optional: true
 
+  /@nhost/apollo/0.5.35_@apollo+client@3.6.9:
+    resolution: {integrity: sha512-S4xDn/s76ALjterZQevhQ8YE/3VMis7RQaPe2laZ5T86zdn9wF7I74fYueRnnllvuYQXnRSDG7i1ue6xsmahxA==}
+    peerDependencies:
+      '@apollo/client': ^3.6.2
+    dependencies:
+      '@apollo/client': 3.6.9_qqqj7xqn73klpidhtp57t4zzwm
+      '@nhost/nhost-js': 1.6.2_graphql@15.7.2
+      graphql: 15.7.2
+      graphql-ws: 5.11.2_graphql@15.7.2
+    transitivePeerDependencies:
+      - '@nhost/core'
+      - debug
+    dev: false
+
+  /@nhost/core/0.9.4:
+    resolution: {integrity: sha512-XqHc5RVh8AWyLSh+pTlEmCXZ3VQaV37xQYUrPzIdNCUNAHiBdvK4KboxGJiSkUz7hEvA4yqgp3ph7N9w8jZR3Q==}
+    dependencies:
+      '@simplewebauthn/browser': 6.0.0
+      axios: 1.2.0
+      js-cookie: 3.0.1
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-auth-js/1.6.4:
+    resolution: {integrity: sha512-LfWj1PQhASSZMVOK+LPHahHpjdgsbN1x3TJDE+SvS9DCj0MHQITQvsDNOeA9lPSX3N3h3Pw3tf0TY34w7aBrpA==}
+    peerDependencies:
+      '@nhost/core': 0.9.4
+    dependencies:
+      axios: 1.2.0
+      jwt-decode: 3.1.2
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-auth-js/1.6.4_@nhost+core@0.9.4:
+    resolution: {integrity: sha512-LfWj1PQhASSZMVOK+LPHahHpjdgsbN1x3TJDE+SvS9DCj0MHQITQvsDNOeA9lPSX3N3h3Pw3tf0TY34w7aBrpA==}
+    peerDependencies:
+      '@nhost/core': 0.9.4
+    dependencies:
+      '@nhost/core': 0.9.4
+      axios: 1.2.0
+      jwt-decode: 3.1.2
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-storage-js/0.7.4:
+    resolution: {integrity: sha512-/JOchl92cWSN+TKIUESdv4hmip4RTfdkvq3D/4ijberJVP0zL11Sjyq/A7mEwDMjp923qWYR7ygpjvRVwP2Ojw==}
+    peerDependencies:
+      '@nhost/core': 0.9.4
+    dependencies:
+      axios: 1.2.0
+      form-data: 4.0.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-storage-js/0.7.4_@nhost+core@0.9.4:
+    resolution: {integrity: sha512-/JOchl92cWSN+TKIUESdv4hmip4RTfdkvq3D/4ijberJVP0zL11Sjyq/A7mEwDMjp923qWYR7ygpjvRVwP2Ojw==}
+    peerDependencies:
+      '@nhost/core': 0.9.4
+    dependencies:
+      '@nhost/core': 0.9.4
+      axios: 1.2.0
+      form-data: 4.0.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/nextjs/1.9.3_4umcnubejb2mvyxfkpzvq3wsvy:
+    resolution: {integrity: sha512-oWoz69YODazVfSBtzv6m1cN20Rhud34Gqc7wROezqnWqs99kYx2jd2asQ+tZw1AwovRL1Dx23kxVnCOtPyj9QA==}
+    peerDependencies:
+      '@nhost/react': 0.15.2
+      next: ^12.0.10 || ^13.0.0
+      react: ^17.0.0 || ^18.0.0
+      react-dom: ^17.0.0 || ^18.0.0
+    dependencies:
+      '@nhost/core': 0.9.4
+      '@nhost/nhost-js': 1.6.2_v7bsqeisvp5asclpmdnitonepy
+      '@nhost/react': 0.15.2_m5hordlaiiipsw3koqtm26uzoa
+      cross-fetch: 3.1.5
+      js-cookie: 3.0.1
+      next: 12.1.6_biqbaboplfbrettd7655fr4n2y
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - debug
+      - encoding
+      - graphql
+    dev: false
+
+  /@nhost/nhost-js/1.6.2_graphql@15.7.2:
+    resolution: {integrity: sha512-kpgUJZmXD42+rV8IHa0bs1fjhFF8eFTalEglkluxlXiYMULI90dXLM5ueaT91vbciWwUZXUGdQWkxQO2G9bkhw==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      '@nhost/hasura-auth-js': 1.6.4
+      '@nhost/hasura-storage-js': 0.7.4
+      axios: 1.2.0
+      graphql: 15.7.2
+      jwt-decode: 3.1.2
+      query-string: 7.1.1
+    transitivePeerDependencies:
+      - '@nhost/core'
+      - debug
+    dev: false
+
+  /@nhost/nhost-js/1.6.2_v7bsqeisvp5asclpmdnitonepy:
+    resolution: {integrity: sha512-kpgUJZmXD42+rV8IHa0bs1fjhFF8eFTalEglkluxlXiYMULI90dXLM5ueaT91vbciWwUZXUGdQWkxQO2G9bkhw==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      '@nhost/hasura-auth-js': 1.6.4_@nhost+core@0.9.4
+      '@nhost/hasura-storage-js': 0.7.4_@nhost+core@0.9.4
+      axios: 1.2.0
+      graphql: 15.7.2
+      jwt-decode: 3.1.2
+      query-string: 7.1.1
+    transitivePeerDependencies:
+      - '@nhost/core'
+      - debug
+    dev: false
+
+  /@nhost/react-apollo/4.9.2_kcwooay62h34ta66pwakq6hh5m:
+    resolution: {integrity: sha512-1MAQMRuKhBJnMbZyh/js7mRlNQ1+fDKgBldMwpgf6aivfQmiBVTYnrvxkNrp2M65C8qdePSZPG2vHr3Qs9TadQ==}
+    peerDependencies:
+      '@apollo/client': ^3.6.2
+      '@nhost/react': 0.15.2
+      graphql: ^16.0.0
+      react: ^17.0.0 || ^18.0.0
+      react-dom: ^17.0.0 || ^18.0.0
+    dependencies:
+      '@apollo/client': 3.6.9_qqqj7xqn73klpidhtp57t4zzwm
+      '@nhost/apollo': 0.5.35_@apollo+client@3.6.9
+      '@nhost/react': 0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    transitivePeerDependencies:
+      - '@nhost/core'
+      - debug
+    dev: false
+
+  /@nhost/react/0.15.2_6q6dzps7wzlgpnlbg6prgf2rgy:
+    resolution: {integrity: sha512-LQuBIzyVHWrBRiRjrLgxGlatKIF8lW5nEatX6XGxLymLXoEyBTPYnYO4nRhAjjELy1CXVj52qIQB7VOD/VIgcw==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.1.0
+      react-dom: ^17.0.0 || ^18.1.0
+    dependencies:
+      '@nhost/core': 0.9.4
+      '@nhost/hasura-storage-js': 0.7.4_@nhost+core@0.9.4
+      '@nhost/nhost-js': 1.6.2_v7bsqeisvp5asclpmdnitonepy
+      '@xstate/react': 3.0.1_ptifxsuzjlvytalhuenru25rrq
+      immer: 9.0.15
+      jwt-decode: 3.1.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - debug
+      - graphql
+    dev: false
+
+  /@nhost/react/0.15.2_m5hordlaiiipsw3koqtm26uzoa:
+    resolution: {integrity: sha512-LQuBIzyVHWrBRiRjrLgxGlatKIF8lW5nEatX6XGxLymLXoEyBTPYnYO4nRhAjjELy1CXVj52qIQB7VOD/VIgcw==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.1.0
+      react-dom: ^17.0.0 || ^18.1.0
+    dependencies:
+      '@nhost/core': 0.9.4
+      '@nhost/hasura-storage-js': 0.7.4_@nhost+core@0.9.4
+      '@nhost/nhost-js': 1.6.2_v7bsqeisvp5asclpmdnitonepy
+      '@xstate/react': 3.0.1_v3h3pjnx55qoonncg55ydyjbhi
+      immer: 9.0.15
+      jwt-decode: 3.1.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - debug
+      - graphql
+    dev: false
+
   /@nicolo-ribaudo/eslint-scope-5-internals/5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
     dependencies:
@@ -11734,6 +11926,46 @@ packages:
     dependencies:
       react: 18.2.0
       use-isomorphic-layout-effect: 1.1.2_bbvjflvjoibwhtpmedigb26h6y
+      use-sync-external-store: 1.2.0_react@18.2.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - '@types/react'
+    dev: false
+
+  /@xstate/react/3.0.1_ptifxsuzjlvytalhuenru25rrq:
+    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
+    peerDependencies:
+      '@xstate/fsm': ^2.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      xstate: ^4.33.0
+    peerDependenciesMeta:
+      '@xstate/fsm':
+        optional: true
+      xstate:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      use-isomorphic-layout-effect: 1.1.2_iapumuv4e6jcjznwuxpf4tt22e
+      use-sync-external-store: 1.2.0_react@18.2.0
+      xstate: 4.33.6
+    transitivePeerDependencies:
+      - '@types/react'
+    dev: false
+
+  /@xstate/react/3.0.1_v3h3pjnx55qoonncg55ydyjbhi:
+    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
+    peerDependencies:
+      '@xstate/fsm': ^2.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      xstate: ^4.33.0
+    peerDependenciesMeta:
+      '@xstate/fsm':
+        optional: true
+      xstate:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      use-isomorphic-layout-effect: 1.1.2_gvifxuufrqkj4gcqfnnwrb44ya
       use-sync-external-store: 1.2.0_react@18.2.0
       xstate: 4.33.6
     transitivePeerDependencies:
