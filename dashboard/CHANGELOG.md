@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.7.6
+
+### Patch Changes
+
+- 2d2beb53: fix(dashboard): prevent error on GraphQL page
+- ac8efcbd: chore(dashboard): deprecate old DNS name
+
 ## 0.7.5
 
 ### Patch Changes
