@@ -127,7 +127,7 @@ export default function DatabaseRecordInputGroup({
                   <span>{columnId}</span>
                 </span>
 
-                <InlineCode>
+                <InlineCode className="h-[18px]">
                   {specificType}
                   {maxLength ? `(${maxLength})` : null}
                 </InlineCode>

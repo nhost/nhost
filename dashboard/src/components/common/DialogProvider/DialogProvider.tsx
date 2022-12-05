@@ -73,6 +73,11 @@ const EditTableForm = dynamic(
   { ssr: false, loading: () => LoadingComponent() },
 );
 
+const EditPermissionsForm = dynamic(
+  () => import('@/components/data-browser/EditPermissionsForm'),
+  { ssr: false, loading: () => LoadingComponent() },
+);
+
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const [
     {
@@ -334,13 +339,19 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       </BaseDialog>
 
       <Drawer
+        anchor="right"
         {...drawerProps}
         title={drawerTitle}
         open={drawerOpen}
         onClose={closeDrawerWithDirtyGuard}
         SlideProps={{ onExited: clearDrawerContent, unmountOnExit: false }}
-        anchor="right"
-        PaperProps={{ className: 'max-w-2.5xl w-full' }}
+        PaperProps={{
+          ...drawerProps?.PaperProps,
+          className: twMerge(
+            'max-w-2.5xl w-full',
+            drawerProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary>
           {activeDrawerType === 'CREATE_RECORD' && (
@@ -374,6 +385,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
             />
+          )}
+
+          {activeDrawerType === 'EDIT_PERMISSIONS' && (
+            <EditPermissionsForm {...sharedDrawerProps} />
           )}
         </RetryableErrorBoundary>
       </Drawer>

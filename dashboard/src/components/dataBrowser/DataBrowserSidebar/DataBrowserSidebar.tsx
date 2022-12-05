@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import InlineCode from '@/components/common/InlineCode';
 import NavLink from '@/components/common/NavLink';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -17,6 +18,7 @@ import LockIcon from '@/ui/v2/icons/LockIcon';
 import PencilIcon from '@/ui/v2/icons/PencilIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import TrashIcon from '@/ui/v2/icons/TrashIcon';
+import UsersIcon from '@/ui/v2/icons/UsersIcon';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
@@ -360,6 +362,43 @@ function DataBrowserSidebarContent({
                             <PencilIcon className="h-4 w-4 text-gray-700" />
 
                             <span>Edit Table</span>
+                          </Dropdown.Item>
+
+                          <Divider component="li" />
+
+                          <Dropdown.Item
+                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                            onClick={() =>
+                              openDrawer('EDIT_PERMISSIONS', {
+                                title: (
+                                  <span>
+                                    Permissions{' '}
+                                    <InlineCode className="!text-sm+ font-normal text-greyscaleMedium">
+                                      {table.table_name}
+                                    </InlineCode>
+                                  </span>
+                                ),
+                                props: {
+                                  PaperProps: {
+                                    className: 'w-[65%] max-w-7xl',
+                                  },
+                                },
+                                payload: {
+                                  onSubmit: async () => {
+                                    await queryClient.refetchQueries([
+                                      `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                    ]);
+                                    await refetch();
+                                  },
+                                  schema: table.table_schema,
+                                  table,
+                                },
+                              })
+                            }
+                          >
+                            <UsersIcon className="h-4  w-4 text-gray-700" />
+
+                            <span>Edit Permissions</span>
                           </Dropdown.Item>
 
                           <Divider component="li" />

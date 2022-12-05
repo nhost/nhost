@@ -11,6 +11,7 @@ export type DialogType =
   | 'EDIT_COLUMN'
   | 'CREATE_TABLE'
   | 'EDIT_TABLE'
+  | 'EDIT_PERMISSIONS'
   | 'CREATE_FOREIGN_KEY'
   | 'EDIT_FOREIGN_KEY'
   | 'CREATE_ROLE'
