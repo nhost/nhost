@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3.1.0
       -
         name: Get go.mod details
-        uses: Eun/go-mod-details@v1.0.4
+        uses: Eun/go-mod-details@v1.0.6
         id: go-mod-details
       -
         name: Install Go
