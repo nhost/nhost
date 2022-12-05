@@ -41,19 +41,19 @@ func (w Wrapper) init(workdir, gitBranch string, conf *Config) error {
 		return err
 	}
 
-	jsonConf, err := conf.BuildJSON()
+	yamlConf, err := conf.BuildYAML()
 
-	// write data to a docker-compose.yml file
-	err = os.WriteFile(w.dockerComposePath(), jsonConf, 0600)
+	// write data to a docker-compose.yaml file
+	err = os.WriteFile(w.dockerComposePath(), yamlConf, 0600)
 	if err != nil {
-		return errors.Wrap(err, "could not write docker-compose.yml file")
+		return errors.Wrap(err, "could not write docker-compose.yaml file")
 	}
 
 	return nil
 }
 
 func (w Wrapper) dockerComposePath() string {
-	return filepath.Join(w.workdir, ".nhost/docker-compose.json")
+	return filepath.Join(w.workdir, ".nhost/docker-compose.yaml")
 }
 
 func (w Wrapper) ensureFoldersExistForDockerVolumes(workdir, gitBranch string) error {
@@ -97,7 +97,7 @@ func (w Wrapper) Command(ctx context.Context, args []string, streams *DataStream
 }
 
 func CommandWithExistingConfig(ctx context.Context, projectName string, args []string, streams *DataStreams) (*exec.Cmd, error) {
-	configFilename := filepath.Join(nhost.DOT_NHOST_DIR, "docker-compose.json")
+	configFilename := filepath.Join(nhost.DOT_NHOST_DIR, "docker-compose.yaml")
 
 	if !util.PathExists(configFilename) {
 		return nil, fmt.Errorf("The project hasn't been initialized yet. Please run 'nhost dev' first.")

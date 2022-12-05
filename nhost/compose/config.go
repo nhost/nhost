@@ -1,8 +1,8 @@
 package compose
 
 import (
-	"encoding/json"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"path/filepath"
 	"strings"
 	"time"
@@ -177,8 +177,8 @@ func (c *Config) build() *types.Config {
 	return config
 }
 
-func (c *Config) BuildJSON() ([]byte, error) {
-	return json.MarshalIndent(c.build(), "", "  ")
+func (c *Config) BuildYAML() ([]byte, error) {
+	return yaml.Marshal(c.build())
 }
 
 func (c Config) connectionStringForUser(user string) string {
