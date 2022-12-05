@@ -12,6 +12,7 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
       - name: check
@@ -85,6 +86,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:

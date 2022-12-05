@@ -7,6 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
 ```
@@ -18,6 +19,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI and start the application
         uses: ./.github/actions/nhost-cli
         with:
@@ -31,6 +33,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
@@ -45,6 +48,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI and start app
         uses: ./.github/actions/nhost-cli
         with:
@@ -59,6 +63,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Start app
         uses: ./.github/actions/nhost-cli
         with:
@@ -78,6 +83,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
@@ -91,6 +97,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Install Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
