@@ -1035,7 +1035,7 @@ importers:
       '@vitejs/plugin-vue': ^3.2.0
       '@vueuse/core': ^9.0.0
       '@xstate/inspect': ^0.7.0
-      '@xstate/vue': ^1.0.0
+      '@xstate/vue': ^2.0.0
       immer: ^9.0.15
       jwt-decode: ^3.1.2
       vue: ^3.2.41
@@ -1047,7 +1047,7 @@ importers:
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 9.6.0_vue@3.2.41
-      '@xstate/vue': 1.0.0_vue@3.2.41+xstate@4.33.6
+      '@xstate/vue': 2.0.0_vue@3.2.41+xstate@4.33.6
       immer: 9.0.15
       jwt-decode: 3.1.2
     devDependencies:
@@ -11663,12 +11663,12 @@ packages:
       - '@types/react'
     dev: false
 
-  /@xstate/vue/1.0.0_vue@3.2.41+xstate@4.33.6:
-    resolution: {integrity: sha512-GnJ2WKmef3UvpOj7tMOGkFLF2fSjVFgX/2Ik/0ZttHJCQNXRBWDaaiqNnVVB0XynTUfRPrkOPNeGD4XLqrqeVg==}
+  /@xstate/vue/2.0.0_vue@3.2.41+xstate@4.33.6:
+    resolution: {integrity: sha512-JlrJ3d+I6rZCcFBuu3O4GP+mGJfd11O9o69wRedzPMqZ+hxcMRBsih9L5kKnJHcU9CTmdJTT172oxTaYF7thzA==}
     peerDependencies:
-      '@xstate/fsm': ^1.6.5
+      '@xstate/fsm': ^2.0.0
       vue: ^3.0.0
-      xstate: ^4.30.3
+      xstate: ^4.31.0
     peerDependenciesMeta:
       '@xstate/fsm':
         optional: true
