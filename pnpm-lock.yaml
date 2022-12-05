@@ -1002,7 +1002,7 @@ importers:
 
   packages/sync-versions:
     specifiers:
-      '@pnpm/find-workspace-dir': ^4.0.3
+      '@pnpm/find-workspace-dir': ^5.0.0
       '@swc-node/register': ^1.5.4
       '@swc/core': ^1.3.11
       '@types/glob': ^8.0.0
@@ -1013,7 +1013,7 @@ importers:
       typescript: ^4.8.4
       yaml: ^2.1.1
     dependencies:
-      '@pnpm/find-workspace-dir': 4.0.3
+      '@pnpm/find-workspace-dir': 5.0.0
       glob: 8.0.3
       object-path: 0.11.8
       yaml: 2.1.1
@@ -7175,18 +7175,18 @@ packages:
     engines: {node: '>=14.19'}
     dev: false
 
-  /@pnpm/error/3.1.0:
-    resolution: {integrity: sha512-bmXBD/kzlgHqlIZPP8QJUDAxGqug2qhPdnqNnuXyWQSyIEgeaXyPiUh91MLj9GwLoHA9Zdrx5+dfEougzxf4mA==}
+  /@pnpm/error/4.0.0:
+    resolution: {integrity: sha512-NI4DFCMF6xb1SA0bZiiV5KrMCaJM2QmPJFC6p78FXujn7FpiRSWhT9r032wpuQumsl7DEmN4s3wl/P8TA+bL8w==}
     engines: {node: '>=14.6'}
     dependencies:
       '@pnpm/constants': 6.1.0
     dev: false
 
-  /@pnpm/find-workspace-dir/4.0.3:
-    resolution: {integrity: sha512-BE0LFHCtcjxTUC/R3MMNuHkOtm559g/ObbIOjCjO3h3I9fFsxt7fVtRwaYbfS6NJk7DrzDsPOfFBdX2NipR8iw==}
+  /@pnpm/find-workspace-dir/5.0.0:
+    resolution: {integrity: sha512-x/OERjU3BjUyxrHSl5Zuqqo6PmtbPo4Xi8ypD98wQ/OcUJ1ZCQ276vP2n4E89N5Mb70N2J+4J1dnmPW+OnpEQg==}
     engines: {node: '>=14.6'}
     dependencies:
-      '@pnpm/error': 3.1.0
+      '@pnpm/error': 4.0.0
       find-up: 5.0.0
     dev: false
 
