@@ -15,32 +15,32 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
-      - name: check
-        run: which nhost
+      - name: should succeed running the nhost command
+        run: nhost
 
   start:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install the Nhost CLI and run the application
+      - name: Install the Nhost CLI and start the application
         uses: ./.github/actions/nhost-cli
         with:
           path: packages/nhost-js
           start: true
-      - name: check
+      - name: should be running
         run: curl -sSf 'http://localhost:9695' > /dev/null
 
   stop:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install the Nhost CLI and run the application
+      - name: Install the Nhost CLI, start and stop the application
         uses: ./.github/actions/nhost-cli
         with:
           path: packages/nhost-js
           start: true
           stop: true
-      - name: check
+      - name: should have no live docker container
         run: |
           if [ -z "docker ps -q" ]; then
             echo "Some docker containers are still running"
@@ -52,14 +52,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install the Nhost CLI and run the application
+      - name: Install the Nhost CLI and start the application
         uses: ./.github/actions/nhost-cli
         with:
           path: packages/nhost-js
           start: true
           wait: false
-      - name: check
+      - name: should not be ready
         run: curl -sSf -o /dev/null 'http://localhost:9695' > /dev/null && exit 1 || true
+      - name: should eventually be ready
+        run: |
+          curl -sSf --connect-timeout 3 \
+            --max-time 5 \
+            --retry 300 \
+            --retry-delay 1 \
+            --retry-max-time 300 \
+            --retry-connrefused \
+            'http://localhost:9695' > /dev/null
 
   config:
     runs-on: ubuntu-latest
@@ -74,7 +83,7 @@ jobs:
             services:
               auth:
                 image: nhost/hasura-auth:0.15.0
-      - name: check
+      - name: should find the injected hasura-auth version
         run: |
           VERSION=$(curl -sSf 'http://localhost:1337/v1/auth/version')
           EXPECTED_VERSION='{"version":"v0.15.0"}'
@@ -87,12 +96,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Nhost CLI
+      - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
           version: v0.8.10
-      - name: check
+      - name: should find the correct version
         run: nhost version | head -n 1 | grep v0.8.10 || exit 1
-      # TODO remove this
-      - name: check
-        run: nhost version | head -n 1 | grep XXXYYYZZZ || exit 1
