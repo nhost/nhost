@@ -49,6 +49,7 @@ job:
       - name: Install Nhost CLI and start app
         uses: ./.github/actions/nhost-cli
         with:
+          start: true
           wait: false
 ```
 
@@ -61,6 +62,8 @@ job:
     steps:
       - name: Start app
         uses: ./.github/actions/nhost-cli
+        with:
+          start: true
       - name: Do something
         cmd: echo "do something"
       - name: Stop
