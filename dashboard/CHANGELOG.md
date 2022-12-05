@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.7
+
+### Patch Changes
+
+- 80b604ad: fix(dashboard): use correct Hasura slug
+
 ## 0.7.6
 
 ### Patch Changes
