@@ -132,10 +132,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           load: true
-      - name: Set Hasura Auth image in the CLI config
-        run: yq -i '.services.auth.image = "nhost/hasura-auth:local"' ${{ format('{0}/nhost/config.yaml', matrix.package.path) }}
       - name: Install Nhost CLI
-        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+        uses: ./.github/actions/nhost-cli
+        with:
+          path: ${{ matrix.package.path }}
+          config: |
+            services:
+              auth:
+                image: nhost/hasura-auth:local
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
         # TODO Set turborepo in the nhost/hasura-auth repo
