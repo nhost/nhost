@@ -92,7 +92,7 @@ importers:
       '@graphql-codegen/typescript-operations': ^2.5.1
       '@graphql-codegen/typescript-react-apollo': ^3.3.1
       '@headlessui/react': ^1.6.5
-      '@heroicons/react': ^1.0.6
+      '@heroicons/react': ^2.0.0
       '@hookform/resolvers': ^2.9.10
       '@mui/base': ^5.0.0-alpha.106
       '@mui/material': ^5.10.14
@@ -214,7 +214,7 @@ importers:
       '@graphiql/react': 0.15.0_te5rle7gmjg3syudiw42pabya4
       '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
-      '@heroicons/react': 1.0.6_react@18.2.0
+      '@heroicons/react': 2.0.13_react@18.2.0
       '@hookform/resolvers': 2.9.10_react-hook-form@7.39.5
       '@mui/base': 5.0.0-alpha.106_2zx2umvpluuhvlq44va5bta2da
       '@mui/material': 5.10.14_thp4wrxo45nyllusrnt46mid4u
@@ -5945,8 +5945,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@heroicons/react/1.0.6_react@18.2.0:
-    resolution: {integrity: sha512-JJCXydOFWMDpCP4q13iEplA503MQO3xLoZiKum+955ZCtHINWnx26CUxVxxFQu/uLb4LW3ge15ZpzIkXKkJ8oQ==}
+  /@heroicons/react/2.0.13_react@18.2.0:
+    resolution: {integrity: sha512-iSN5XwmagrnirWlYEWNPdCDj9aRYVD/lnK3JlsC9/+fqGF80k8C7rl+1HCvBX0dBoagKqOFBs6fMhJJ1hOg1EQ==}
     peerDependencies:
       react: '>= 16'
     dependencies:
