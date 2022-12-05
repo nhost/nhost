@@ -1,6 +1,3 @@
-import type { AxiosRequestConfig } from 'axios'
-import { assign, createMachine, send } from 'xstate'
-
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import type {
   AuthenticationCredentialJSON,
@@ -8,7 +5,8 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-
+import type { AxiosRequestConfig } from 'axios'
+import { assign, createMachine, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
@@ -45,7 +43,6 @@ import {
 } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
-
 import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
@@ -860,7 +857,25 @@ export const createAuthMachine = ({
             }
           })
         },
-        importRefreshToken: async () => {
+        importRefreshToken: async (ctx) => {
+          if (
+            !!ctx.user &&
+            !!ctx.refreshToken.value &&
+            !!ctx.accessToken.value &&
+            !!ctx.accessToken.expiresAt
+          ) {
+            // * Do not import refresh token if the session already exists (loaded through initial state)
+            // TODO this should eventually be handled upstream in the state machine
+            return {
+              session: {
+                accessToken: ctx.accessToken.value,
+                accessTokenExpiresIn: ctx.accessToken.expiresAt.getTime() - Date.now(),
+                refreshToken: ctx.refreshToken.value,
+                user: ctx.user
+              },
+              error: null
+            }
+          }
           let error: ErrorPayload | null = null
           if (autoSignIn) {
             const urlToken = getParameterByName('refreshToken') || null
