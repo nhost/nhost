@@ -425,24 +425,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    const addOnTokenChangedFunction = () =>
-      this._client.interpreter?.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
         }
       })
-
-    if (this._client.started) {
-      const subscription = addOnTokenChangedFunction()
       return () => subscription?.stop()
-    } else {
-      this._client.onStart(addOnTokenChangedFunction)
-      return () => {
-        console.log(
-          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+    })
   }
 
   /**
@@ -458,24 +448,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-auth-state-changed
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    const listen = () =>
-      this._client.interpreter?.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT') {
           fn(event.type, getSession(context))
         }
       })
-
-    if (this._client.started) {
-      const subscription = listen()
       return () => subscription?.stop()
-    } else {
-      this._client.onStart(listen)
-      return () => {
-        console.log(
-          'onAuthStateChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+    })
   }
 
   /**
