@@ -28,7 +28,7 @@ importers:
       eslint-plugin-promise: ^6.1.1
       eslint-plugin-react: ^7.31.10
       eslint-plugin-react-hooks: ^4.6.0
-      eslint-plugin-vue: ^8.7.1
+      eslint-plugin-vue: ^9.0.0
       husky: ^8.0.1
       npm-run-all: ^4.1.5
       prettier: ^2.7.1
@@ -61,7 +61,7 @@ importers:
       eslint-plugin-promise: 6.1.1_eslint@8.26.0
       eslint-plugin-react: 7.31.10_eslint@8.26.0
       eslint-plugin-react-hooks: 4.6.0_eslint@8.26.0
-      eslint-plugin-vue: 8.7.1_eslint@8.26.0
+      eslint-plugin-vue: 9.8.0_eslint@8.26.0
       husky: 8.0.1
       npm-run-all: 4.1.5
       prettier: 2.7.1
@@ -84,7 +84,7 @@ importers:
       '@emotion/styled': ^11.10.5
       '@fontsource/inter': ^4.5.14
       '@fontsource/roboto-mono': ^4.5.8
-      '@graphiql/react': ^0.14.0
+      '@graphiql/react': ^0.15.0
       '@graphiql/toolkit': ^0.8.0
       '@graphql-codegen/cli': ^2.8.0
       '@graphql-codegen/typescript': ^2.7.1
@@ -211,7 +211,7 @@ importers:
       '@emotion/styled': 11.10.5_hmjty4frusbltjhl3xd7udcm2y
       '@fontsource/inter': 4.5.14
       '@fontsource/roboto-mono': 4.5.8
-      '@graphiql/react': 0.14.0_te5rle7gmjg3syudiw42pabya4
+      '@graphiql/react': 0.15.0_te5rle7gmjg3syudiw42pabya4
       '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
       '@heroicons/react': 1.0.6_react@18.2.0
@@ -441,6 +441,12 @@ importers:
       typescript: 4.8.3
       vite: 3.2.2
 
+  examples/docker-compose:
+    specifiers:
+      cross-fetch: ^3.1.5
+    devDependencies:
+      cross-fetch: 3.1.5
+
   examples/docker-compose/functions:
     specifiers: {}
 
@@ -623,6 +629,7 @@ importers:
       graphql: 15.7.2
       nodemailer: ^6.8.0
       slugify: ^1.6.5
+      stripe: ^11.1.0
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.7.2
       '@nhost/stripe-graphql-js': link:../../integrations/stripe-graphql-js
@@ -631,6 +638,7 @@ importers:
       graphql: 15.7.2
       nodemailer: 6.8.0
       slugify: 1.6.5
+      stripe: 11.1.0
     devDependencies:
       '@types/express': 4.17.13
 
@@ -851,7 +859,6 @@ importers:
     specifiers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
-      '@types/faker': '5'
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
       jwt-decode: ^3.1.2
@@ -865,7 +872,6 @@ importers:
     devDependencies:
       '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
-      '@types/faker': 5.5.9
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
       start-server-and-test: 1.14.0
@@ -881,7 +887,7 @@ importers:
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
       start-server-and-test: ^1.14.0
-      uuid: ^8.3.2
+      uuid: ^9.0.0
       xstate: ^4.33.5
     dependencies:
       axios: 1.2.0
@@ -892,7 +898,7 @@ importers:
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
-      uuid: 8.3.2
+      uuid: 9.0.0
 
   packages/hasura-storage-js/functions:
     specifiers: {}
@@ -998,7 +1004,7 @@ importers:
 
   packages/sync-versions:
     specifiers:
-      '@pnpm/find-workspace-dir': ^4.0.3
+      '@pnpm/find-workspace-dir': ^5.0.0
       '@swc-node/register': ^1.5.4
       '@swc/core': ^1.3.11
       '@types/glob': ^8.0.0
@@ -1009,7 +1015,7 @@ importers:
       typescript: ^4.8.4
       yaml: ^2.1.1
     dependencies:
-      '@pnpm/find-workspace-dir': 4.0.3
+      '@pnpm/find-workspace-dir': 5.0.0
       glob: 8.0.3
       object-path: 0.11.8
       yaml: 2.1.1
@@ -4997,6 +5003,37 @@ packages:
       - react-is
     dev: false
 
+  /@graphiql/react/0.15.0_te5rle7gmjg3syudiw42pabya4:
+    resolution: {integrity: sha512-kJqkdf6d4Cck05Wt5yCDZXWfs7HZgcpuoWq/v8nOa698qVaNMM3qdG4CpRsZEexku0DSSJzWWuanxd5x+sRcFg==}
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
+      '@reach/combobox': 0.17.0_biqbaboplfbrettd7655fr4n2y
+      '@reach/dialog': 0.17.0_2zx2umvpluuhvlq44va5bta2da
+      '@reach/listbox': 0.17.0_biqbaboplfbrettd7655fr4n2y
+      '@reach/menu-button': 0.17.0_pumtretovylab5lwhztzjp2kuy
+      '@reach/tooltip': 0.17.0_biqbaboplfbrettd7655fr4n2y
+      '@reach/visually-hidden': 0.17.0_biqbaboplfbrettd7655fr4n2y
+      codemirror: 5.65.9
+      codemirror-graphql: 2.0.2_iqwfwa2i4p54k5bdy4wsg4tww4
+      copy-to-clipboard: 3.3.3
+      graphql: 15.7.2
+      graphql-language-service: 5.1.0_graphql@15.7.2
+      markdown-it: 12.3.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      set-value: 4.1.0
+    transitivePeerDependencies:
+      - '@codemirror/language'
+      - '@types/node'
+      - '@types/react'
+      - graphql-ws
+      - react-is
+    dev: false
+
   /@graphiql/toolkit/0.8.0_e4cx3o37mthaippf56xwzxw5re:
     resolution: {integrity: sha512-DbMFhEKejpPzB6k8W3Mj+Rl8geXiw49USDF9Wdi06EEk1XLVh1iebDqveYY+4lViITsV4+BeGikxlqi8umfP4g==}
     peerDependencies:
@@ -7140,18 +7177,18 @@ packages:
     engines: {node: '>=14.19'}
     dev: false
 
-  /@pnpm/error/3.1.0:
-    resolution: {integrity: sha512-bmXBD/kzlgHqlIZPP8QJUDAxGqug2qhPdnqNnuXyWQSyIEgeaXyPiUh91MLj9GwLoHA9Zdrx5+dfEougzxf4mA==}
+  /@pnpm/error/4.0.0:
+    resolution: {integrity: sha512-NI4DFCMF6xb1SA0bZiiV5KrMCaJM2QmPJFC6p78FXujn7FpiRSWhT9r032wpuQumsl7DEmN4s3wl/P8TA+bL8w==}
     engines: {node: '>=14.6'}
     dependencies:
       '@pnpm/constants': 6.1.0
     dev: false
 
-  /@pnpm/find-workspace-dir/4.0.3:
-    resolution: {integrity: sha512-BE0LFHCtcjxTUC/R3MMNuHkOtm559g/ObbIOjCjO3h3I9fFsxt7fVtRwaYbfS6NJk7DrzDsPOfFBdX2NipR8iw==}
+  /@pnpm/find-workspace-dir/5.0.0:
+    resolution: {integrity: sha512-x/OERjU3BjUyxrHSl5Zuqqo6PmtbPo4Xi8ypD98wQ/OcUJ1ZCQ276vP2n4E89N5Mb70N2J+4J1dnmPW+OnpEQg==}
     engines: {node: '>=14.6'}
     dependencies:
-      '@pnpm/error': 3.1.0
+      '@pnpm/error': 4.0.0
       find-up: 5.0.0
     dev: false
 
@@ -9781,10 +9818,6 @@ packages:
       '@types/qs': 6.9.7
       '@types/serve-static': 1.13.10
     dev: false
-
-  /@types/faker/5.5.9:
-    resolution: {integrity: sha512-uCx6mP3UY5SIO14XlspxsGjgaemrxpssJI0Ol+GfhxtcKpv9pgRZYsS4eeKeHVLje6Qtc8lGszuBI461+gVZBA==}
-    dev: true
 
   /@types/glob/7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
@@ -17382,9 +17415,9 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-vue/8.7.1_eslint@8.26.0:
-    resolution: {integrity: sha512-28sbtm4l4cOzoO1LtzQPxfxhQABararUb1JtqusQqObJpWX2e/gmVyeYVfepizPFne0Q5cILkYGiBoV36L12Wg==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  /eslint-plugin-vue/9.8.0_eslint@8.26.0:
+    resolution: {integrity: sha512-E/AXwcTzunyzM83C2QqDHxepMzvI2y6x+mmeYHbVDQlKFqmKYvRrhaVixEeeG27uI44p9oKDFiyCRw4XxgtfHA==}
+    engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^6.2.0 || ^7.0.0 || ^8.0.0
     dependencies:
@@ -17394,7 +17427,8 @@ packages:
       nth-check: 2.1.1
       postcss-selector-parser: 6.0.10
       semver: 7.3.8
-      vue-eslint-parser: 8.3.0_eslint@8.26.0
+      vue-eslint-parser: 9.1.0_eslint@8.26.0
+      xml-name-validator: 4.0.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -26720,6 +26754,14 @@ packages:
       qs: 6.11.0
     dev: false
 
+  /stripe/11.1.0:
+    resolution: {integrity: sha512-erOslPQZSYKOotQjmKRy4eBon/tdhzLIYzBdPSNVWDdatSQozkkPlh8mVeXNwubYYZYx61/yS23eWiGDF93z2w==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@types/node': 18.11.9
+      qs: 6.11.0
+    dev: false
+
   /stubs/3.0.0:
     resolution: {integrity: sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==}
     dev: false
@@ -28621,7 +28663,6 @@ packages:
   /uuid/9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
-    dev: false
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -29103,9 +29144,9 @@ packages:
       - supports-color
     dev: true
 
-  /vue-eslint-parser/8.3.0_eslint@8.26.0:
-    resolution: {integrity: sha512-dzHGG3+sYwSf6zFBa0Gi9ZDshD7+ad14DGOdTLjruRVgZXe2J+DcZ9iUhyR48z5g1PqRa20yt3Njna/veLJL/g==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  /vue-eslint-parser/9.1.0_eslint@8.26.0:
+    resolution: {integrity: sha512-NGn/iQy8/Wb7RrRa4aRkokyCZfOUWk19OP5HP6JEozQFX5AoS/t+Z0ZN7FY4LlmWc4FNI922V7cvX28zctN8dQ==}
+    engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:
