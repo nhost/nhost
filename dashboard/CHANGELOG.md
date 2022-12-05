@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 0.7.5
+
+### Patch Changes
+
+- 132a4f4b: chore(dashboard): remove unused dependencies
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+- db57572f: fix(dashboard): correct section paddings when no env vars
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+  - @nhost/react-apollo@4.9.2
+  - @nhost/nextjs@1.9.3
+
 ## 0.7.4
 
 ### Patch Changes
