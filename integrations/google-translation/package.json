@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@google-cloud/translate": "^7.0.3",
-    "@graphql-yoga/node": "^2.13.13",
+    "@graphql-yoga/node": "^3.0.0",
     "@pothos/core": "^3.22.5",
     "graphql": "^16.6.0",
     "graphql-request": "^5.0.0"
