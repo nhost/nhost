@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -39,7 +39,11 @@ export default function useMetadataQuery(
     isReady,
   } = useRouter();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const appUrl = generateRemoteAppUrl(currentApplication?.subdomain);
+  const appUrl = generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region.awsName,
+    'hasura',
+  );
 
   const query = useQuery<FetchMetadataReturnType>(
     queryKey,
