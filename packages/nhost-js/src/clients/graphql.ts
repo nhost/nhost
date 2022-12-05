@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request'
-
 import { urlFromSubdomain } from '../utils/helpers'
 import { NhostClientConstructorParams } from '../utils/types'
 
@@ -33,7 +32,7 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
 /**
  * @alias GraphQL
  */
-export class NhostGraphqlClient extends GraphQLClient {
+export class NhostGraphqlClient extends GraphQLClient implements GraphQLClient {
   // this.url is already defined as a private property in GraphQLClient
   private _url: string
   private accessToken: string | null = null
