@@ -9,7 +9,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/hashicorp/go-getter v1.6.1
-	github.com/hashicorp/go-version v1.5.0
+	github.com/hashicorp/go-version v1.6.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-colorable v0.1.13
 	github.com/pkg/errors v0.9.1
