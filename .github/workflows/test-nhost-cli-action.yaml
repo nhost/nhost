@@ -1,0 +1,96 @@
+name: Test Nhost CLI action
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+    paths:
+      - '.github/actions/nhost-cli/**'
+      - '!.github/actions/nhost-cli/**/*.md'
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install the Nhost CLI
+        uses: ./.github/actions/nhost-cli
+      - name: check
+        run: which nhost
+
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install the Nhost CLI and run the application
+        uses: ./.github/actions/nhost-cli
+        with:
+          path: packages/nhost-js
+          start: true
+      - name: check
+        run: curl -sSf 'http://localhost:9695' > /dev/null
+
+  stop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install the Nhost CLI and run the application
+        uses: ./.github/actions/nhost-cli
+        with:
+          path: packages/nhost-js
+          start: true
+          stop: true
+      - name: check
+        run: |
+          if [ -z "docker ps -q" ]; then
+            echo "Some docker containers are still running"
+            docker ps
+            exit 1
+          fi
+
+  wait:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install the Nhost CLI and run the application
+        uses: ./.github/actions/nhost-cli
+        with:
+          path: packages/nhost-js
+          start: true
+          wait: false
+      - name: check
+        run: curl -sSf -o /dev/null 'http://localhost:9695' > /dev/null && exit 1 || true
+
+  config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install the Nhost CLI and run the application
+        uses: ./.github/actions/nhost-cli
+        with:
+          path: packages/nhost-js
+          start: true
+          config: |
+            services:
+              auth:
+                image: nhost/hasura-auth:0.15.0
+      - name: check
+        run: |
+          VERSION=$(curl -sSf 'http://localhost:1337/v1/auth/version')
+          EXPECTED_VERSION='{"version":"v0.15.0"}'
+          if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "Expected version $EXPECTED_VERSION but got $VERSION"
+            exit 1
+          fi
+
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nhost CLI
+        uses: ./.github/actions/nhost-cli
+        with:
+          version: v0.8.10
+      - name: check
+        run: nhost version | head -n 1 | grep v0.8.10 || exit 1
+      # TODO remove this
+      - name: check
+        run: nhost version | head -n 1 | grep XXXYYYZZZ || exit 1

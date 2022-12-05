@@ -3,23 +3,22 @@
 ## Usage
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Nhost CLI and start app
+      - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
 ```
 
 ### Install the CLI and start the app
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Nhost CLI
+      - name: Install Nhost CLI and start the application
         uses: ./.github/actions/nhost-cli
         with:
           start: true
@@ -28,7 +27,7 @@ job:
 ### Set another working directory
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +41,7 @@ job:
 ### Don't wait for the app to be ready
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +55,7 @@ job:
 ### Stop the app
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +74,7 @@ job:
 ### Install a given value of the CLI
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +87,7 @@ job:
 ### Inject values into nhost/config.yaml
 
 ```yaml
-job:
+jobs:
   test:
     runs-on: ubuntu-latest
     steps:
