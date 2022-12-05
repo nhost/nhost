@@ -13,7 +13,7 @@ import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -112,9 +112,11 @@ export default function TwitchProviderSettings() {
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            defaultValue={`${generateRemoteAppUrl(
+            defaultValue={`${generateAppServiceUrl(
               currentApplication.subdomain,
-            )}/v1/auth/signin/provider/twitch/callback`}
+              currentApplication.region.awsName,
+              'auth',
+            )}/v1/signin/provider/twitch/callback`}
             disabled
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
@@ -125,9 +127,11 @@ export default function TwitchProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `${generateRemoteAppUrl(
+                      `${generateAppServiceUrl(
                         currentApplication.subdomain,
-                      )}/v1/auth/signin/provider/twitch/callback`,
+                        currentApplication.region.awsName,
+                        'auth',
+                      )}/v1/signin/provider/twitch/callback`,
                       'Redirect URL',
                     );
                   }}

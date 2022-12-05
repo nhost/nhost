@@ -1,4 +1,4 @@
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
@@ -66,9 +66,11 @@ export default function useFiles({
                 init: RequestInit,
                 size?: { width?: number; height?: number },
               ) => {
-                const fetchUrl = `${generateRemoteAppUrl(
+                const fetchUrl = `${generateAppServiceUrl(
                   currentApplication.subdomain,
-                )}/v1/storage/files/${file.id}`;
+                  currentApplication.region.awsName,
+                  'storage',
+                )}/v1/files/${file.id}`;
 
                 const fetchParams = new URLSearchParams();
 
