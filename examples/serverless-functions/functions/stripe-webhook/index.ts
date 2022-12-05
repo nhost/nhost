@@ -1,7 +1,7 @@
 /*
 
 - How to receive Stripe Webhooks. Read more about Stripe Webhooks here: https://stripe.com/docs/webhooks.
-- Make sure to congigure your Stripe Webhook URL in the Stripe Dashboard: https://dashboard.stripe.com/webhooks.
+- Make sure to configure your Stripe Webhook URL in the Stripe Dashboard: https://dashboard.stripe.com/webhooks.
 - You can test your Stripe Webhook by using the Stripe CLI: https://stripe.com/docs/stripe-cli.
 - Make sure to configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in your `.env.development` file during local development. In production, use the `Environment Variables` tab in the Nhost Dashboard.
 
