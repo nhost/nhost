@@ -42,7 +42,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "chalk": "4",
+    "chalk": "5",
     "commander": "^9.4.0",
     "just-kebab-case": "^4.1.1",
     "prettier": "^2.7.1",
