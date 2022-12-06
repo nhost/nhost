@@ -1,5 +1,4 @@
 import { AuthMachineOptions } from '../machines'
-
 import { NhostSession, Provider } from './hasura-auth'
 import { ClientStorage, ClientStorageType, StorageGetter, StorageSetter } from './local-storage'
 import {
