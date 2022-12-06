@@ -6,8 +6,8 @@
 '@nhost-examples/nextjs': patch
 '@nhost-examples/react-apollo': patch
 '@nhost-examples/react-gqty': patch
-'@nhost/nextjs': patch
-'@nhost/react': patch
+'@nhost/nextjs': minor
+'@nhost/react': minor
 ---
 
 Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
