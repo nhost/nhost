@@ -859,10 +859,10 @@ export const createAuthMachine = ({
         },
         importRefreshToken: async (ctx) => {
           if (
-            !!ctx.user &&
-            !!ctx.refreshToken.value &&
-            !!ctx.accessToken.value &&
-            !!ctx.accessToken.expiresAt
+            ctx.user &&
+            ctx.refreshToken.value &&
+            ctx.accessToken.value &&
+            ctx.accessToken.expiresAt
           ) {
             // * Do not import refresh token if the session already exists (loaded through initial state)
             // TODO this should eventually be handled upstream in the state machine
