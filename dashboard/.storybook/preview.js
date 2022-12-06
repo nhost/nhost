@@ -2,6 +2,7 @@ import '@fontsource/inter';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/700.css';
 import { CssBaseline, ThemeProvider } from '@mui/material';
+import '../src/styles/globals.css';
 import defaultTheme from '../src/theme/default';
 
 export const parameters = {

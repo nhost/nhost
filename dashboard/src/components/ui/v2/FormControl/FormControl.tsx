@@ -48,7 +48,7 @@ export interface FormControlProps
    * is not set. By default it's always in the DOM to prevent a jumpy effect
    * when `helperText` is set dynamically (e.g: when there is an error).
    *
-   * @default false
+   * @default true
    */
   hideEmptyHelperText?: boolean;
   /**
@@ -117,7 +117,7 @@ function FormControl({
   label,
   helperText,
   variant = 'normal',
-  hideEmptyHelperText,
+  hideEmptyHelperText = true,
   children,
   sx,
   inlineInputProportion = '75%',

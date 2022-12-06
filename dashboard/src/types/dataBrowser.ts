@@ -484,3 +484,24 @@ export interface DataBrowserGridCellProps<
    */
   row: DataBrowserGridRow<TData>;
 }
+
+/**
+ * Represents a rule. A rule is a single condition in a rule group.
+ */
+export interface Rule {
+  id: string;
+  column: string;
+  operator: string;
+  value: any;
+}
+
+/**
+ * Represents a rule group. A rule group can contain rules and other rule
+ * groups.
+ */
+export interface RuleGroup {
+  id: string;
+  operation: '_and' | '_or';
+  rules: Rule[];
+  groups: RuleGroup[];
+}

@@ -42,6 +42,7 @@ export interface InputProps
 const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
+  overflow: 'hidden',
   transition: theme.transitions.create(['border-color', 'box-shadow']),
   [`& .${inputBaseClasses.input}`]: {
     fontSize: '0.9375rem',
