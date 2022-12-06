@@ -1,5 +1,5 @@
 import { interpret } from 'xstate'
-import { NhostSession } from '.'
+import { NhostSession } from './types'
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import type { AuthInterpreter } from './types'
 
