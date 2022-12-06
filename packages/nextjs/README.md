@@ -22,10 +22,10 @@ Install the Nhost Next.js client, React client together with GraphQL:
 
 ```bash
 # With npm
-npm install @nhost/react @nhost/nextjs graphql
+npm install @nhost/nextjs graphql
 
 # With Yarn
-yarn add @nhost/react @nhost/nextjs graphql
+yarn add @nhost/nextjs graphql
 ```
 
 ## Initializing
