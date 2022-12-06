@@ -64,7 +64,6 @@ export default function RuleGroupEditor({
             <RuleGroupEditor
               initialValue={ruleGroup}
               key={ruleGroup.id}
-              index={ruleGroupIndex}
               onRemove={() => removeGroup(ruleGroupIndex)}
             />
           ))}

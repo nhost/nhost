@@ -10,7 +10,8 @@ export default {
 const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
   args: RuleGroupEditorProps,
 ) {
-  return <RuleGroupEditor {...args} />;
+  // note: Storybook passes `onRemove` as a prop, but we don't want to use it
+  return <RuleGroupEditor {...args} onRemove={null} />;
 };
 
 export const Default = Template.bind({});
