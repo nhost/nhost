@@ -1,15 +1,14 @@
-import { NewCustomer } from './components/new-customer'
-import { Customers } from './components/customers'
-import { NhostReactProvider } from '@nhost/react'
+import { NhostProvider } from '@nhost/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-import { queryClient } from './utils/react-query-client'
+import { Customers } from './components/customers'
+import { NewCustomer } from './components/new-customer'
 import { nhost } from './utils/nhost'
+import { queryClient } from './utils/react-query-client'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <QueryClientProvider client={queryClient}>
         <div>
           <h1>GraphQL Code Generator example with React and React Query</h1>
@@ -22,7 +21,7 @@ function App() {
         </div>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 
