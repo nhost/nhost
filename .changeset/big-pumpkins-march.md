@@ -10,6 +10,6 @@
 '@nhost/react': patch
 ---
 
-Use `NhostProvider instead of `NhostReactProvider`and`NhostNextProvider`
+Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
 
 `NhostReactProvider` and `NhostNextProvider` are now deprecated
