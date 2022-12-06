@@ -44,22 +44,22 @@ const nhost = new NhostClient({
 export { nhost }
 ```
 
-Import `nhost` and wrap your app with the `NhostReactProvider`.
+Import `nhost` and wrap your app with the `NhostProvider`.
 
 ```jsx title=src/App.tsx
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 import { nhost } from './lib/nhost'
 
 import App from './App'
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <App />
-    </NhostReactProvider>
+    </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )

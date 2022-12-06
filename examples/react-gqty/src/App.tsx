@@ -1,7 +1,5 @@
+import { NhostProvider } from '@nhost/react'
 import React, { Suspense } from 'react'
-
-import { NhostReactProvider } from '@nhost/react'
-
 import { SignedIn, SignedOut } from './components/controlls'
 import { ListPrivatePosts } from './components/ListPrivatePosts'
 import { ListPublicPosts } from './components/ListPublicPosts'
@@ -10,7 +8,7 @@ import { nhost } from './utils/nhost'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
         <div className="mx-auto max-w-3xl">
           <SignedIn>
@@ -38,7 +36,7 @@ function App() {
           </SignedOut>
         </div>
       </div>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 

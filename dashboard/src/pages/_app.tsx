@@ -21,7 +21,7 @@ import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
 import { ThemeProvider } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
-import { NhostNextProvider } from '@nhost/nextjs';
+import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import * as snippet from '@segment/snippet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -89,7 +89,7 @@ function MyApp({
 
       <QueryClientProvider client={queryClient}>
         <CacheProvider value={emotionCache}>
-          <NhostNextProvider nhost={nhost}>
+          <NhostProvider nhost={nhost}>
             <NhostApolloProvider
               fetchPolicy="cache-first"
               nhost={nhost}
@@ -118,7 +118,7 @@ function MyApp({
                 </UserDataProvider>
               </WorkspaceProvider>
             </NhostApolloProvider>
-          </NhostNextProvider>
+          </NhostProvider>
         </CacheProvider>
       </QueryClientProvider>
     </ErrorBoundary>
