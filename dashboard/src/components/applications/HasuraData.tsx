@@ -64,7 +64,7 @@ export function HasuraData({ close }: HasuraDataProps) {
 
         <div className="mt-6 grid grid-flow-row gap-2">
           <Link
-            href={`${hasuraUrl}/console`}
+            href={hasuraUrl}
             target="_blank"
             rel="noreferrer noopener"
             className="grid grid-flow-col items-center justify-center gap-1 rounded-[4px] bg-btn p-2 text-sm+ font-medium text-white hover:ring-2 motion-safe:transition-all"

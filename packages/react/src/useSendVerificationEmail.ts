@@ -6,7 +6,7 @@ import {
   SendVerificationEmailOptions,
   sendVerificationEmailPromise,
   SendVerificationEmailState
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'
@@ -14,11 +14,6 @@ import { useNhostClient } from './useNhostClient'
 interface SendVerificationEmailHandler {
   (
     email: string,
-    options?: SendVerificationEmailOptions
-  ): Promise<SendVerificationEmailHandlerResult>
-  /** @deprecated */
-  (
-    email?: unknown,
     options?: SendVerificationEmailOptions
   ): Promise<SendVerificationEmailHandlerResult>
 }
@@ -30,8 +25,6 @@ export interface SendVerificationEmailHookResult extends SendVerificationEmailSt
 
 interface SendVerificationEmailHook {
   (options?: SendVerificationEmailOptions): SendVerificationEmailHookResult
-  /** @deprecated */
-  (email?: string, options?: SendVerificationEmailOptions): SendVerificationEmailHookResult
 }
 
 /**
@@ -55,12 +48,7 @@ interface SendVerificationEmailHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-send-verification-email
  */
-export const useSendVerificationEmail: SendVerificationEmailHook = (
-  a?: string | SendVerificationEmailOptions,
-  b?: SendVerificationEmailOptions
-) => {
-  const stateEmail = typeof a === 'string' ? a : undefined
-  const stateOptions = typeof a !== 'string' ? a : b
+export const useSendVerificationEmail: SendVerificationEmailHook = (options) => {
   const nhost = useNhostClient()
   const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
   const service = useInterpret(machine)
@@ -69,15 +57,8 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
   const error = useSelector(service, (state) => state.context.error)
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
-  const sendEmail: SendVerificationEmailHandler = (
-    valueEmail?: string | unknown,
-    valueOptions = stateOptions
-  ) =>
-    sendVerificationEmailPromise(
-      service,
-      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
-      valueOptions
-    )
+  const sendEmail: SendVerificationEmailHandler = (valueEmail, valueOptions = options) =>
+    sendVerificationEmailPromise(service, valueEmail, valueOptions)
 
   return { sendEmail, isLoading, isSent, isError, error }
 }

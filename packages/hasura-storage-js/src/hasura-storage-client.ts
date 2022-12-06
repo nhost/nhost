@@ -13,7 +13,7 @@ import {
 } from './utils/types'
 import { HasuraStorageApi } from './hasura-storage-api'
 
-interface NhostStorageConstructorParams {
+export interface NhostStorageConstructorParams {
   /**
    * Storage endpoint.
    */
@@ -98,13 +98,6 @@ export class HasuraStorageClient {
     }
 
     return { fileMetadata, error: null }
-  }
-
-  /**
-   * @deprecated Use `nhost.storage.getPublicUrl()` instead.
-   */
-  getUrl(params: StorageGetUrlParams): string {
-    return this.getPublicUrl(params)
   }
 
   /**

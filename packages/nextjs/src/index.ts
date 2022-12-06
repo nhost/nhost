@@ -7,7 +7,7 @@ import {
 
 export * from './create-server-side-client'
 export * from './get-session'
-export type { NhostSession } from '@nhost/core'
+export type { NhostSession } from '@nhost/hasura-auth-js'
 export * from '@nhost/react'
 export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
 
@@ -18,13 +18,7 @@ export interface NhostNextClientConstructorParams
     Partial<Subdomain>,
     Omit<
       NhostAuthConstructorParams,
-      | 'url'
-      | 'start'
-      | 'client'
-      | 'clientStorage'
-      | 'clientStorageType'
-      | 'clientStorageGetter'
-      | 'clientStorageSetter'
+      'url' | 'start' | 'client' | 'clientStorage' | 'clientStorageType'
     > {}
 
 export class NhostClient extends VanillaNhostClient {

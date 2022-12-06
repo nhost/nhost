@@ -27,8 +27,6 @@ export class NhostClient {
    */
   constructor({
     refreshIntervalTime,
-    clientStorageGetter,
-    clientStorageSetter,
     clientStorage,
     clientStorageType,
     autoRefreshToken,
@@ -41,8 +39,6 @@ export class NhostClient {
     // * Set clients for all services
     this.auth = createAuthClient({
       refreshIntervalTime,
-      clientStorageGetter,
-      clientStorageSetter,
       clientStorage,
       clientStorageType,
       autoRefreshToken,

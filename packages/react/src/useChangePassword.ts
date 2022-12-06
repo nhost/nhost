@@ -6,15 +6,13 @@ import {
   ChangePasswordHandlerResult,
   changePasswordPromise,
   createChangePasswordMachine
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'
 
 interface ChangePasswordHandler {
   (password: string): Promise<ChangePasswordHandlerResult>
-  /** @deprecated */
-  (password?: unknown): Promise<ChangePasswordHandlerResult>
 }
 
 export interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
@@ -24,8 +22,6 @@ export interface ChangePasswordHookResult extends ActionErrorState, ActionSucces
 
 interface ChangePasswordHook {
   (): ChangePasswordHookResult
-  /** @deprecated */
-  (email?: string): ChangePasswordHookResult
 }
 
 /**
@@ -46,7 +42,7 @@ interface ChangePasswordHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-change-password
  */
-export const useChangePassword: ChangePasswordHook = (statePassword?: string) => {
+export const useChangePassword: ChangePasswordHook = () => {
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangePasswordMachine(nhost.auth.client), [nhost])
   const service = useInterpret(machine)
@@ -56,11 +52,8 @@ export const useChangePassword: ChangePasswordHook = (statePassword?: string) =>
   const error = useSelector(service, (state) => state.context.error)
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
-  const changePassword: ChangePasswordHandler = (valuePassword?: string | unknown) =>
-    changePasswordPromise(
-      service,
-      typeof valuePassword === 'string' ? valuePassword : (statePassword as string)
-    )
+  const changePassword: ChangePasswordHandler = (valuePassword) =>
+    changePasswordPromise(service, valuePassword)
 
   return { changePassword, isLoading, isSuccess, isError, error }
 }

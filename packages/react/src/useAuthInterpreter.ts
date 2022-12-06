@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine } from '@nhost/core'
+import { AuthMachine } from '@nhost/hasura-auth-js'
 
 import { NhostReactContext } from './provider'
 

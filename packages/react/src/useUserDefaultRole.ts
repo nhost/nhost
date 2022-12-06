@@ -20,8 +20,3 @@ export const useUserDefaultRole = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserDefaultRole} instead */
-export const useDefaultRole = useUserDefaultRole

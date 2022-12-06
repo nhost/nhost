@@ -1,61 +1,69 @@
+import jwt_decode from 'jwt-decode'
+import { interpret } from 'xstate'
 import {
-  addSecurityKeyPromise,
-  AuthClient,
+  EMAIL_NEEDS_VERIFICATION,
+  INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
+  NO_REFRESH_TOKEN,
+  TOKEN_REFRESHER_RUNNING_ERROR
+} from './errors'
+import { AuthClient } from './internal-client'
+import {
   AuthInterpreter,
-  changeEmailPromise,
-  ChangeEmailResponse,
-  changePasswordPromise,
-  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  DeanonymizeResponse,
-  EMAIL_NEEDS_VERIFICATION,
-  encodeQueryParameters,
-  ErrorPayload,
-  INVALID_REFRESH_TOKEN,
-  INVALID_SIGN_IN_METHOD,
-  JWTClaims,
-  JWTHasuraClaims,
-  NhostSessionResponse,
-  NO_REFRESH_TOKEN,
+  createSendVerificationEmailMachine
+} from './machines'
+import {
+  addSecurityKeyPromise,
+  changeEmailPromise,
+  changePasswordPromise,
   resetPasswordPromise,
-  ResetPasswordResponse,
-  rewriteRedirectTo,
-  SecurityKey,
   sendVerificationEmailPromise,
-  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
-  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
-  SignOutResponse,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  SignUpResponse,
-  TOKEN_REFRESHER_RUNNING_ERROR
-} from '@nhost/core'
-import jwt_decode from 'jwt-decode'
-import { interpret } from 'xstate'
-import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
+  signUpEmailSecurityKeyPromise
+} from './promises'
 import {
   AuthChangedFunction,
   ChangeEmailParams,
+  ChangeEmailResponse,
   ChangePasswordParams,
+  ChangePasswordResponse,
   DeanonymizeParams,
+  DeanonymizeResponse,
+  ErrorPayload,
+  JWTClaims,
+  JWTHasuraClaims,
   NhostAuthConstructorParams,
+  NhostSessionResponse,
   OnTokenChangedFunction,
   ResetPasswordParams,
+  ResetPasswordResponse,
+  SecurityKey,
   SendVerificationEmailParams,
+  SendVerificationEmailResponse,
   SignInParams,
-  SignUpParams
-} from './utils/types'
+  SignInResponse,
+  SignOutResponse,
+  SignUpParams,
+  SignUpResponse
+} from './types'
+import {
+  encodeQueryParameters,
+  getAuthenticationResult,
+  getSession,
+  isBrowser,
+  rewriteRedirectTo
+} from './utils'
 
 /**
  * @alias Auth
@@ -67,11 +75,8 @@ export class HasuraAuthClient {
     url,
     autoRefreshToken = true,
     autoSignIn = true,
-    autoLogin,
     clientStorage,
     clientStorageType,
-    clientStorageGetter,
-    clientStorageSetter,
     refreshIntervalTime,
     start = true
   }: NhostAuthConstructorParams) {
@@ -80,12 +85,10 @@ export class HasuraAuthClient {
       backendUrl: url,
       clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
       autoRefreshToken,
-      autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
+      autoSignIn,
       start,
       clientStorage,
       clientStorageType,
-      clientStorageGetter,
-      clientStorageSetter,
       refreshIntervalTime
     })
   }
@@ -542,16 +545,6 @@ export class HasuraAuthClient {
       }
     }
     return { isAuthenticated: this.isAuthenticated(), isLoading: false, connectionAttempts }
-  }
-
-  /**
-   * @internal
-   * @deprecated Use `nhost.auth.getAccessToken()` instead.
-   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
-   */
-
-  getJWTToken(): string | undefined {
-    return this.getAccessToken()
   }
 
   /**
