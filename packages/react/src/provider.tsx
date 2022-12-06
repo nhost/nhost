@@ -19,7 +19,6 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
   nhost.auth.client.start({ interpreter, initialSession: initial, devTools: nhost.devTools })
 
   // * Hook to send session update everytime the 'initial' props changed
-  // TODO check if it is still needed
   const isInitialMount = useRef(true)
   useEffect(() => {
     if (isInitialMount.current) {
