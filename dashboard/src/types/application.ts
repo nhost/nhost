@@ -1,6 +1,8 @@
 // TODO: We should infer the types from GraphQL Codegens and never manually create types like this.
 // It's too easy to get types out-of-sync which will generate bugs down the line
 
+import type { GetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+
 /**
  * The current state of the application.
  */
@@ -74,6 +76,7 @@ export type Application = {
   desiredState: DesiredState;
   nhostBaseFolder?: string;
   featureFlags: FeatureFlag[];
+  providersUpdated: boolean;
 };
 
 export type CustomClaim = {
@@ -86,3 +89,6 @@ export type Role = {
   name: string;
   isSystemRole?: boolean;
 };
+
+export type EnvironmentVariable =
+  GetEnvironmentVariablesQuery['environmentVariables'][number];

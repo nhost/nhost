@@ -1,5 +1,21 @@
 # @nhost/react-apollo
 
+## 4.9.2
+
+### Patch Changes
+
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+
+## 4.9.1
+
+### Patch Changes
+
+- Updated dependencies [2e6923dc]
+  - @nhost/react@0.15.1
+  - @nhost/apollo@0.5.35
+
 ## 4.9.0
 
 ### Patch Changes

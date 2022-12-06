@@ -13,7 +13,7 @@ import DelayedLoading from '@/ui/DelayedLoading';
 import { Modal } from '@/ui/Modal';
 import Status, { StatusEnum } from '@/ui/Status';
 import { Text } from '@/ui/Text';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import clsx from 'clsx';
@@ -252,9 +252,11 @@ export default function FunctionsPage() {
         <div className="text-center">
           <Text size="tiny" color="greyscaleDark" className="font-medium">
             Base URL for function endpoints is{' '}
-            {`${generateRemoteAppUrl(
+            {`${generateAppServiceUrl(
               currentApplication.subdomain,
-            )}/v1/functions/`}
+              currentApplication.region.awsName,
+              'functions',
+            )}/v1`}
           </Text>
         </div>
       </div>

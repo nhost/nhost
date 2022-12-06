@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "docker-compose": {
+    "enabled": true
+  },
+  "ignoreDeps": [
+    "pnpm",
+    "node"
+  ],
+  "labels": [
+    "dependencies"
+  ]
+}

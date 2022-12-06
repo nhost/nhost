@@ -40,7 +40,7 @@ export interface SettingsContainerProps
   /**
    * Props for the primary action.
    *
-   * @deprecated Use `slotProps.submitButtonProps` instead.
+   * @deprecated Use `slotProps.submitButton` instead.
    */
   primaryActionButtonProps?: ButtonProps;
   /**
@@ -76,31 +76,25 @@ export interface SettingsContainerProps
    */
   className?: string;
   /**
-   * Props to be passed to the Switch component.
-   *
-   * @deprecated Use `slotProps.switchProps` instead.
-   */
-  switchProps?: SwitchProps;
-  /**
    * Props to be passed to different slots inside the component.
    */
   slotProps?: {
     /**
      * Props to be passed to the root element.
      */
-    rootProps?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    root?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
     /**
      * Props to be passed to the `<Switch />` component.
      */
-    switchProps?: SwitchProps;
+    switch?: SwitchProps;
     /**
      * Props to be passed to the footer element.
      */
-    submitButtonProps?: ButtonProps;
+    submitButton?: ButtonProps;
     /**
      * Props to be passed to the footer element.
      */
-    footerProps?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    footer?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
   };
 }
 
@@ -118,16 +112,15 @@ export default function SettingsContainer({
   switchId,
   showSwitch = false,
   rootClassName,
-  switchProps: oldSwitchProps,
   docsTitle,
-  slotProps: { rootProps, switchProps, submitButtonProps, footerProps } = {},
+  slotProps: { root, switch: switchSlot, submitButton, footer } = {},
 }: SettingsContainerProps) {
   return (
     <div
-      {...rootProps}
+      {...root}
       className={twMerge(
         'grid grid-flow-row gap-4 rounded-lg border-1 border-gray-200 bg-white py-4',
-        rootProps?.className || rootClassName,
+        root?.className || rootClassName,
       )}
     >
       <div className="grid grid-flow-col place-content-between gap-3 px-4">
@@ -157,14 +150,14 @@ export default function SettingsContainer({
             checked={enabled}
             onChange={(e) => onEnabledChange(e.target.checked)}
             className="self-center"
-            {...(switchProps || oldSwitchProps)}
+            {...switchSlot}
           />
         )}
         {switchId && showSwitch && (
           <ControlledSwitch
             className="self-center"
             name={switchId}
-            {...(switchProps || oldSwitchProps)}
+            {...switchSlot}
           />
         )}
       </div>
@@ -174,11 +167,11 @@ export default function SettingsContainer({
       </div>
 
       <div
-        {...footerProps}
+        {...footer}
         className={twMerge(
           'grid grid-flow-col items-center gap-x-2 border-t border-gray-200 px-4 pt-3.5',
           docsLink ? 'place-content-between' : 'justify-end',
-          footerProps?.className,
+          footer?.className,
         )}
       >
         {docsLink && (
@@ -201,17 +194,17 @@ export default function SettingsContainer({
 
         <Button
           variant={
-            (submitButtonProps || primaryActionButtonProps)?.disabled
+            (submitButton || primaryActionButtonProps)?.disabled
               ? 'outlined'
               : 'contained'
           }
           color={
-            (submitButtonProps || primaryActionButtonProps)?.disabled
+            (submitButton || primaryActionButtonProps)?.disabled
               ? 'secondary'
               : 'primary'
           }
           type="submit"
-          {...(submitButtonProps || primaryActionButtonProps)}
+          {...(submitButton || primaryActionButtonProps)}
         >
           {submitButtonText}
         </Button>

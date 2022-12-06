@@ -33,7 +33,7 @@ string | SampleType
       },
       { wrap: false }
     )
-  ).toBe(`\`string\` | \`SampleType\``)
+  ).toBe(`<code>string</code> | <code>SampleType</code>`)
 })
 
 test('should return a documentation fragment for an intersection type', () => {
@@ -62,7 +62,7 @@ string & SampleType
       },
       { wrap: false }
     )
-  ).toBe(`\`string\` & \`SampleType\``)
+  ).toBe(`<code>string</code> & <code>SampleType</code>`)
 })
 
 test('should not have references to types when the content is wrapped in a code block', () => {

@@ -11,7 +11,7 @@ import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -163,9 +163,11 @@ export default function WorkOsProviderSettings() {
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            defaultValue={`${generateRemoteAppUrl(
+            defaultValue={`${generateAppServiceUrl(
               currentApplication.subdomain,
-            )}/v1/auth/signin/provider/workos/callback`}
+              currentApplication.region.awsName,
+              'auth',
+            )}/v1/signin/provider/workos/callback`}
             className="col-span-6"
             fullWidth
             hideEmptyHelperText
@@ -180,9 +182,11 @@ export default function WorkOsProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `${generateRemoteAppUrl(
+                      `${generateAppServiceUrl(
                         currentApplication.subdomain,
-                      )}/v1/auth/signin/provider/workos/callback`,
+                        currentApplication.region.awsName,
+                        'auth',
+                      )}/v1/signin/provider/workos/callback`,
                       'Redirect URL',
                     );
                   }}

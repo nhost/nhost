@@ -72,12 +72,18 @@ export const useFileUploadItem = (
   }
 
   const upload = (params: Partial<StorageUploadFileParams>) =>
-    uploadFilePromise(nhost, ref, {
-      file: params.file,
-      bucketId: params.bucketId || bucketId,
-      id,
-      name
-    })
+    uploadFilePromise(
+      {
+        url: nhost.storage.url,
+        accessToken: nhost.auth.getAccessToken(),
+        adminSecret: nhost.adminSecret,
+        file: params.file,
+        bucketId: params.bucketId || bucketId,
+        id,
+        name
+      },
+      ref
+    )
 
   const cancel = () => {
     ref.send('CANCEL')

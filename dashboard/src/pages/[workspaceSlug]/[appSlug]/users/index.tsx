@@ -3,7 +3,7 @@ import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import UsersList from '@/components/users/UsersList';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
 
@@ -16,9 +16,11 @@ export default function UsersPage() {
 
   return (
     <NhostApolloProvider
-      graphqlUrl={`${generateRemoteAppUrl(
+      graphqlUrl={`${generateAppServiceUrl(
         currentApplication.subdomain,
-      )}/v1/graphql`}
+        currentApplication.region.awsName,
+        'graphql',
+      )}/v1`}
       fetchPolicy="cache-first"
       headers={{
         'x-hasura-admin-secret':

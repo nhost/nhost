@@ -6,7 +6,7 @@ import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { LOCAL_HASURA_URL } from '@/utils/env';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import Image from 'next/image';
 
 interface HasuraDataProps {
@@ -26,7 +26,11 @@ export function HasuraData({ close }: HasuraDataProps) {
   const hasuraUrl =
     process.env.NEXT_PUBLIC_ENV === 'dev'
       ? LOCAL_HASURA_URL
-      : generateRemoteAppUrl(currentApplication.subdomain);
+      : `${generateAppServiceUrl(
+          currentApplication?.subdomain,
+          currentApplication?.region.awsName,
+          'hasura',
+        )}/console`;
 
   return (
     <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
@@ -60,7 +64,7 @@ export function HasuraData({ close }: HasuraDataProps) {
 
         <div className="mt-6 grid grid-flow-row gap-2">
           <Link
-            href={`${hasuraUrl}/console`}
+            href={hasuraUrl}
             target="_blank"
             rel="noreferrer noopener"
             className="grid grid-flow-col items-center justify-center gap-1 rounded-[4px] bg-btn p-2 text-sm+ font-medium text-white hover:ring-2 motion-safe:transition-all"

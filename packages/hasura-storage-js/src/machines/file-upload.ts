@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
-import { ErrorPayload } from '@nhost/core'
+import { ErrorPayload, FileUploadConfig } from '../utils/types'
 
 export type FileUploadContext = {
   progress: number | null
@@ -12,18 +12,16 @@ export type FileUploadContext = {
   file?: File
 }
 
+export type FileUploadEventPayload = {}
 export type FileUploadEvents =
   | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
-  | {
+  | ({
       type: 'UPLOAD'
-      url: string
       file?: File
       id?: string
-      bucketId?: string
       name?: string
-      accessToken?: string
-      adminSecret?: string
-    }
+      bucketId?: string
+    } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
   | { type: 'UPLOAD_ERROR'; error: ErrorPayload }

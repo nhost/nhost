@@ -5,7 +5,7 @@ import {
   SignInEmailPasswordlessHandlerResult,
   signInEmailPasswordlessPromise,
   SignInEmailPasswordlessState
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/vue'
 
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'

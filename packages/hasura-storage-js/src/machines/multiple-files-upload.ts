@@ -1,5 +1,7 @@
 import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
 
+import { FileUploadConfig } from '../utils/types'
+
 import { createFileUploadMachine, FileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 
 const { pure, sendParent } = actions
@@ -17,14 +19,11 @@ export type MultipleFilesUploadContext = {
 
 export type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: AnyFileList; bucketId?: string }
-  | {
+  | ({
       type: 'UPLOAD'
-      url: string
       files?: AnyFileList
       bucketId?: string
-      accessToken?: string
-      adminSecret?: string
-    }
+    } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }

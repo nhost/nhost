@@ -1,5 +1,13 @@
 # @nhost-examples/codegen-react-query
 
+## 0.1.2
+
+### Patch Changes
+
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+
 ## 0.1.1
 
 ### Patch Changes

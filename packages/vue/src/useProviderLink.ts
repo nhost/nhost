@@ -1,6 +1,11 @@
 import { reactive } from 'vue'
 
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/hasura-auth-js'
 
 import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'

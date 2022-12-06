@@ -47,6 +47,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         createdAt: new Date().toISOString(),
         desiredState: ApplicationStatus.Live,
         featureFlags: [],
+        providersUpdated: true,
       };
 
       setCurrentWorkspaceAndApplication({

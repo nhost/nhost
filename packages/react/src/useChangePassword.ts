@@ -6,7 +6,7 @@ import {
   ChangePasswordHandlerResult,
   changePasswordPromise,
   createChangePasswordMachine
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'

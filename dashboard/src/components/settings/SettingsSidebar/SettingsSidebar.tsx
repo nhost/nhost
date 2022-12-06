@@ -48,6 +48,7 @@ function SettingsNavLink({
   return (
     <ListItem.Root>
       <ListItem.Button
+        dense
         href={finalUrl}
         component={NavLink}
         selected={active}
