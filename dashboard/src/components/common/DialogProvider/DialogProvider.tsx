@@ -1,6 +1,6 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
-import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
@@ -49,27 +49,27 @@ function LoadingComponent({
 }
 
 const CreateRecordForm = dynamic(
-  () => import('@/components/data-browser/CreateRecordForm'),
+  () => import('@/components/dataBrowser/CreateRecordForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateColumnForm = dynamic(
-  () => import('@/components/data-browser/CreateColumnForm'),
+  () => import('@/components/dataBrowser/CreateColumnForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditColumnForm = dynamic(
-  () => import('@/components/data-browser/EditColumnForm'),
+  () => import('@/components/dataBrowser/EditColumnForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateTableForm = dynamic(
-  () => import('@/components/data-browser/CreateTableForm'),
+  () => import('@/components/dataBrowser/CreateTableForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditTableForm = dynamic(
-  () => import('@/components/data-browser/EditTableForm'),
+  () => import('@/components/dataBrowser/EditTableForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 

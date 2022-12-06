@@ -1,7 +1,7 @@
 import type {
   DatabaseColumn,
   DataBrowserGridColumn,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 
 /**

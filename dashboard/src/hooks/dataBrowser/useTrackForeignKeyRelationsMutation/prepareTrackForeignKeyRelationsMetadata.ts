@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { singular } from 'pluralize';
 
 export type ForeignKeyMetadataOperation =

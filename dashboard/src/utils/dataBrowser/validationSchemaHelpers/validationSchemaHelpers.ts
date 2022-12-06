@@ -1,4 +1,4 @@
-import type { DataBrowserGridColumn } from '@/types/data-browser';
+import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import * as yup from 'yup';
 
 export interface ColumnDetails {

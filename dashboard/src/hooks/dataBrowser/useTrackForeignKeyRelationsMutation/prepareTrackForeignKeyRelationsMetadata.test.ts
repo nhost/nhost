@@ -1,4 +1,4 @@
-import type { HasuraMetadata } from '@/types/data-browser';
+import type { HasuraMetadata } from '@/types/dataBrowser';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';

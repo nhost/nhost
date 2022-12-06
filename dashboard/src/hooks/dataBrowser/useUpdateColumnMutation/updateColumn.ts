@@ -4,7 +4,7 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 

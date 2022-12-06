@@ -1,7 +1,7 @@
 import type {
   ForeignKeyRelation,
   PostgresReferentialAction,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 
 /**
  * Extracts foreign key relation data from a raw foreign key constraint. This

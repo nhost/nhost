@@ -1,4 +1,4 @@
-import type { ColumnType } from '@/types/data-browser';
+import type { ColumnType } from '@/types/dataBrowser';
 
 /**
  * Aliases for PostgreSQL error codes.

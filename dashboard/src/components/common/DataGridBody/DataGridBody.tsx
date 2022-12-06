@@ -1,7 +1,7 @@
 import type { DataGridProps } from '@/components/common/DataGrid';
 import DataGridCell from '@/components/common/DataGridCell';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
-import type { DataBrowserGridColumn } from '@/types/data-browser';
+import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';

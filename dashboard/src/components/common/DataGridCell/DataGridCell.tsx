@@ -3,7 +3,7 @@ import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import Tooltip, { useTooltip } from '@/ui/v2/Tooltip';
 import { triggerToast } from '@/utils/toast';
 import type {

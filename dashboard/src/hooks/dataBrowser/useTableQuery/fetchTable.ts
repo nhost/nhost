@@ -5,7 +5,7 @@ import type {
   OrderBy,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import extractForeignKeyRelation from '@/utils/dataBrowser/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';

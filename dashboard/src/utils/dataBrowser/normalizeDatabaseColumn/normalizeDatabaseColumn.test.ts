@@ -1,7 +1,7 @@
 import type {
   DatabaseColumn,
   NormalizedQueryDataRow,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import normalizeDatabaseColumn from './normalizeDatabaseColumn';
 
 const rawColumn: NormalizedQueryDataRow = {

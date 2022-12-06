@@ -3,7 +3,7 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import {
   getEmptyDownMigrationMessage,
   getPreparedHasuraQuery,
