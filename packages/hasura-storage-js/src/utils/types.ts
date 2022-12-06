@@ -105,7 +105,7 @@ export interface ApiDeleteResponse {
   error: Error | null
 }
 
-export interface UploadHeaders {
+export type UploadHeaders = HeadersInit & {
   'x-nhost-bucket-id'?: string
   'x-nhost-file-id'?: string
   'x-nhost-file-name'?: string

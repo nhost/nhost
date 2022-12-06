@@ -1,9 +1,8 @@
 import { assign, createMachine, send } from 'xstate'
-
 import { INVALID_EMAIL_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
 import { ErrorPayload, ResetPasswordOptions, ResetPasswordResponse } from '../types'
-import { nhostApiClient, rewriteRedirectTo } from '../utils'
+import { postFetch, rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../utils/validators'
 
 export type ResetPasswordContext = {
@@ -25,7 +24,6 @@ export type ResetPasswordServices = {
 export type ResetPasswordMachine = ReturnType<typeof createResetPasswordMachine>
 
 export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient) => {
-  const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
@@ -84,7 +82,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
       },
       services: {
         requestChange: (_, { email, options }) =>
-          api.post<string, ResetPasswordResponse>('/user/password/reset', {
+          postFetch<ResetPasswordResponse>(`${backendUrl}/user/password/reset`, {
             email,
             options: rewriteRedirectTo(clientUrl, options)
           })

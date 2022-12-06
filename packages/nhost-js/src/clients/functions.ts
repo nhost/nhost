@@ -1,10 +1,4 @@
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  RawAxiosRequestHeaders
-} from 'axios'
-
+import fetch from 'cross-fetch'
 import { urlFromSubdomain } from '../utils/helpers'
 import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
@@ -39,7 +33,6 @@ export function createFunctionsClient(params: NhostClientConstructorParams) {
  */
 export class NhostFunctionsClient {
   readonly url: string
-  private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string
 
@@ -49,9 +42,6 @@ export class NhostFunctionsClient {
     this.url = url
     this.accessToken = null
     this.adminSecret = adminSecret
-    this.instance = axios.create({
-      baseURL: url
-    })
   }
 
   /**
@@ -66,31 +56,38 @@ export class NhostFunctionsClient {
    */
   async call<T = unknown, D = any>(
     url: string,
-    data: D,
-    config?: AxiosRequestConfig
+    body: D,
+    config?: RequestInit
   ): Promise<FunctionCallResponse<T>> {
-    const headers = {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
       ...config?.headers
     }
 
-    let res
     try {
-      res = await this.instance.post<T, AxiosResponse<T>, D>(url, data, { ...config, headers })
-    } catch (error) {
-      if (error instanceof Error) {
-        return { res: null, error }
+      const result = await fetch(url, {
+        body: JSON.stringify(body),
+        headers,
+        method: 'POST'
+      })
+      if (!result.ok) {
+        throw new Error(result.statusText)
       }
-    }
-
-    if (!res) {
+      let data: T
+      try {
+        data = await result.json()
+      } catch {
+        data = (await result.text()) as unknown as T
+      }
       return {
-        res: null,
-        error: new Error('Unable to make post request to funtion')
+        res: { data, status: result.status, statusText: result.statusText },
+        error: null
       }
+    } catch (e) {
+      const error = e as Error
+      return { res: null, error }
     }
-
-    return { res, error: null }
   }
 
   /**
@@ -112,7 +109,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): RawAxiosRequestHeaders {
+  private generateAccessTokenHeaders(): HeadersInit {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

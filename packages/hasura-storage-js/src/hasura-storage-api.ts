@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import axios, { AxiosInstance } from 'axios'
-
+import fetch from 'cross-fetch'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
@@ -17,31 +15,31 @@ import {
  */
 export class HasuraStorageApi {
   private url: string
-  private httpClient: AxiosInstance
   private accessToken?: string
   private adminSecret?: string
 
   constructor({ url }: { url: string }) {
     this.url = url
-
-    this.httpClient = axios.create({
-      baseURL: this.url
-    })
   }
 
   async upload(params: ApiUploadParams): Promise<ApiUploadResponse> {
     const { formData } = params
 
     try {
-      const res = await this.httpClient.post('/files', formData, {
+      const response = await fetch(`${this.url}/files`, {
+        method: 'POST',
         headers: {
           ...this.generateUploadHeaders(params),
-          ...this.generateAuthHeaders(),
-          'Content-Type': 'multipart/form-data'
-        }
+          ...(this.generateAuthHeaders() as any)
+        },
+        // @ts-ignore https://github.com/form-data/form-data/issues/513
+        body: formData
       })
-
-      return { fileMetadata: res.data, error: null }
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+      const fileMetadata = await response.json()
+      return { fileMetadata, error: null }
     } catch (error) {
       return { fileMetadata: null, error: error as Error }
     }
@@ -50,12 +48,15 @@ export class HasuraStorageApi {
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
       const { fileId } = params
-      const res = await this.httpClient.get(`/files/${fileId}/presignedurl`, {
-        headers: {
-          ...this.generateAuthHeaders()
-        }
+      const response = await fetch(`${this.url}/files/${fileId}/presignedurl`, {
+        method: 'GET',
+        headers: this.generateAuthHeaders()
       })
-      return { presignedUrl: res.data, error: null }
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+      const presignedUrl = await response.json()
+      return { presignedUrl, error: null }
     } catch (error) {
       return { presignedUrl: null, error: error as Error }
     }
@@ -64,11 +65,13 @@ export class HasuraStorageApi {
   async delete(params: ApiDeleteParams): Promise<ApiDeleteResponse> {
     try {
       const { fileId } = params
-      await this.httpClient.delete(`/files/${fileId}`, {
-        headers: {
-          ...this.generateAuthHeaders()
-        }
+      const response = await fetch(`${this.url}/files/${fileId}`, {
+        method: 'DELETE',
+        headers: this.generateAuthHeaders()
       })
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -116,12 +119,9 @@ export class HasuraStorageApi {
     return uploadheaders
   }
 
-  private generateAuthHeaders():
-    | { Authorization: string }
-    | { 'x-hasura-admin-secret': string }
-    | null {
+  private generateAuthHeaders(): HeadersInit | undefined {
     if (!this.adminSecret && !this.accessToken) {
-      return null
+      return undefined
     }
 
     if (this.adminSecret) {

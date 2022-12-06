@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -52,6 +51,7 @@ export default defineConfig({
           '@apollo/client/utilities': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
           xstate: 'xstate',
+          // TODO remove this when we will have removed all of the axios dependencies
           axios: 'axios',
           'js-cookie': 'Cookies',
           react: 'React',

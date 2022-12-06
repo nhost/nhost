@@ -1,8 +1,7 @@
-import axios from 'axios'
 import { load } from 'cheerio'
+import fetch from 'cross-fetch'
 import createMailhogClient from 'mailhog'
 import { expect } from 'vitest'
-
 import { HasuraAuthClient, SignUpParams } from '../src'
 
 const AUTH_BACKEND_URL = 'http://localhost:1337/v1/auth'
@@ -43,11 +42,11 @@ export const signUpAndVerifyUser = async (params: SignUpParams) => {
   // get verify email link
   const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
-  // verify email
-  await axios.get(verifyEmailLink, {
-    maxRedirects: 0,
-    validateStatus: (status) => status === 302
-  })
+  try {
+    await fetch(verifyEmailLink, { method: 'GET', redirect: 'follow' })
+  } catch {
+    // ignore
+  }
 }
 
 export const signUpAndInUser = async (params: SignUpParams) => {
@@ -60,10 +59,11 @@ export const signUpAndInUser = async (params: SignUpParams) => {
   const verifyEmailLink = await getHtmlLink(email, 'verifyEmail')
 
   // verify email
-  await axios.get(verifyEmailLink, {
-    maxRedirects: 0,
-    validateStatus: (status) => status === 302
-  })
+  try {
+    await fetch(verifyEmailLink, { method: 'GET', redirect: 'follow' })
+  } catch {
+    // ignore
+  }
 
   // sign in
   const { session, error } = await auth.signIn({ email, password })

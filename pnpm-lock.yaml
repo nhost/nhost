@@ -137,7 +137,6 @@ importers:
       '@vitest/coverage-c8': ^0.25.2
       analytics-node: ^6.2.0
       autoprefixer: ^10.4.13
-      axios: ^0.27.2
       babel-loader: ^8.3.0
       babel-plugin-transform-remove-console: ^6.9.4
       bcryptjs: ^2.4.3
@@ -231,7 +230,6 @@ importers:
       '@tanstack/react-table': 8.5.30_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-virtual': 3.0.0-beta.23_react@18.2.0
       analytics-node: 6.2.0
-      axios: 0.27.2
       bcryptjs: 2.4.3
       clsx: 1.2.1
       cross-fetch: 3.1.5
@@ -840,8 +838,8 @@ importers:
       '@simplewebauthn/browser': ^6.0.0
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
-      axios: ^1.2.0
       cheerio: 1.0.0-rc.12
+      cross-fetch: ^3.1.5
       js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
@@ -850,7 +848,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
-      axios: 1.2.0
+      cross-fetch: 3.1.5
       js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.33.6
@@ -922,6 +920,7 @@ importers:
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       axios: ^1.2.0
+      cross-fetch: ^3.1.5
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
@@ -930,6 +929,7 @@ importers:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       axios: 1.2.0
+      cross-fetch: 3.1.5
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -27984,6 +27984,7 @@ packages:
     resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}
     engines: {node: '>=0.8.0'}
     hasBin: true
+    requiresBuild: true
 
   /unbox-primitive/1.0.2:
     resolution: {integrity: sha512-61pPlCD9h51VoreyJ0BReideM3MDKMKnh6+V9L08331ipq6Q8OFXZYiqP6n/tbHx4s5I9uRhcye6BrbkizkBDw==}

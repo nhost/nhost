@@ -1,5 +1,3 @@
-import type { AxiosResponse } from 'axios'
-
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
 
 export type { NhostAuthConstructorParams }
@@ -62,9 +60,15 @@ export type GraphqlRequestResponse<T = unknown> =
       error: null
     }
 
+export interface FunctionResponse<T = any> {
+  data: T
+  status: number
+  statusText: string
+}
+
 export type FunctionCallResponse<T = unknown> =
   | {
-      res: AxiosResponse<T>
+      res: FunctionResponse<T>
       error: null
     }
   | {
