@@ -30,12 +30,12 @@ yarn add @nhost/react @nhost/nextjs graphql
 
 ## Initializing
 
-Initialize a single `nhost` instance and wrap your app with the `NhostNextProvider`.
+Initialize a single `nhost` instance and wrap your app with the `NhostProvider`.
 
 ```jsx title=pages/_app.js
 import type { AppProps } from 'next/app'
 
-import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
+import { NhostClient, NhostProvider } from '@nhost/nextjs'
 
 const nhost = new NhostClient({
   subdomain: '<Your Nhost project subdomain>',
@@ -44,9 +44,9 @@ const nhost = new NhostClient({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <Component {...pageProps} />
-    </NhostNextProvider>
+    </NhostProvider>
   )
 }
 
@@ -115,12 +115,12 @@ yarn add @nhost/react-apollo @apollo/client
 
 ### Initializing
 
-Wrap the Next.js app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostNextProvider`.
+Wrap the Next.js app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostProvider`.
 
 ```jsx title=pages/_app.js
 import type { AppProps } from 'next/app'
 
-import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
+import { NhostClient, NhostProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 
 const nhost = new NhostClient({
@@ -130,11 +130,11 @@ const nhost = new NhostClient({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider nhost={nhost}>
         <Component {...pageProps} />
       </NhostApolloProvider>
-    </NhostNextProvider>
+    </NhostProvider>
   )
 }
 
