@@ -16,7 +16,7 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
 }) => {
   const interpreter = useInterpret(nhost.auth.client.machine, { devTools: nhost.devTools })
 
-  nhost.auth.client.start({ interpreter, initial, devTools: nhost.devTools })
+  nhost.auth.client.start({ interpreter, initialSession: initial, devTools: nhost.devTools })
 
   // * Hook to send session update everytime the 'initial' props changed
   // TODO check if it is still needed

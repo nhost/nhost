@@ -68,39 +68,31 @@ export class AuthClient {
 
   start({
     devTools = false,
-    initial,
+    initialSession,
     interpreter
-  }: { interpreter?: AuthInterpreter; initial?: NhostSession; devTools?: boolean } = {}) {
+  }: { interpreter?: AuthInterpreter; initialSession?: NhostSession; devTools?: boolean } = {}) {
     const context = { ...this.machine.context }
-    if (initial) {
-      context.user = initial.user
-      context.refreshToken.value = initial.refreshToken ?? null
-      context.accessToken.value = initial.accessToken ?? null
-      context.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
+    if (initialSession) {
+      context.user = initialSession.user
+      context.refreshToken.value = initialSession.refreshToken ?? null
+      context.accessToken.value = initialSession.accessToken ?? null
+      context.accessToken.expiresAt = new Date(
+        Date.now() + initialSession.accessTokenExpiresIn * 1_000
+      )
+    }
+    const machineWithInitialContext = this.machine.withContext(context)
+
+    if (!this._interpreter) {
+      this._interpreter = interpreter || interpret(machineWithInitialContext, { devTools })
     }
 
-    if (interpreter) {
-      if (this._interpreter) {
-        if (typeof window === 'undefined') {
-          this._started = false
-        } else {
-          if (initial) {
-            this._interpreter.send('SESSION_UPDATE', { data: { session: initial } })
-          }
-        }
-      } else {
-        this._interpreter = interpreter
-      }
-    } else {
-      this._interpreter = interpret(this._machine.withContext(context), { devTools })
-    }
-
-    if (!this._started) {
+    // * Start the interpreter if not started already. Always restart the interpreter when on the server side
+    if (!this._started || typeof window === 'undefined') {
       if (this._interpreter.initialized) {
         this._interpreter.stop()
         this._subscriptions.forEach((fn) => fn())
       }
-      this._interpreter?.start(this._machine.withContext(context).initialState)
+      this._interpreter.start(machineWithInitialContext.initialState)
       this._subscriptionsQueue.forEach((fn) => fn(this))
     }
 
