@@ -31,14 +31,16 @@ const authClient = new AuthClient({
 })
 
 // Adding state machine with pre-existing user to the client
-authClient.interpreter = interpret(
-  createAuthMachine({
-    backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000',
-    clientStorageType: 'custom',
-    clientStorage: customStorage
-  }).withContext(contextWithUser)
-).start()
+authClient.start({
+  interpreter: interpret(
+    createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      clientStorageType: 'custom',
+      clientStorage: customStorage
+    }).withContext(contextWithUser)
+  )
+})
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 afterAll(() => server.close())
