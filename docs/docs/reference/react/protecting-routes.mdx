@@ -40,7 +40,7 @@ If the user is **not** authenticated (not signed-in), the user is redirected to 
 Finally, we use a [layout route](https://reactrouter.com/docs/en/v6/getting-started/concepts#layout-routes) in `App.js` to wrap the `ProtectedRoute` component around the routes we want to protect:
 
 ```jsx title=src/App.js
-import { NhostReactProvider } from '@nhost/react'
+import { NhostProvider } from '@nhost/react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -52,7 +52,7 @@ import Profile from './pages/Profile'
 
 export function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -63,7 +63,7 @@ export function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 ```

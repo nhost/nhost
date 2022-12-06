@@ -4,12 +4,12 @@ import { useInterpret } from '@xstate/react'
 import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'
 
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
-export interface NhostReactProviderProps {
+export interface NhostProviderProps {
   nhost: NhostClient
   initial?: NhostSession
 }
 
-export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderProps>> = ({
+export const NhostProvider: React.FC<PropsWithChildren<NhostProviderProps>> = ({
   nhost,
   initial,
   ...props
@@ -32,3 +32,8 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
 
   return <NhostReactContext.Provider value={nhost}>{props.children}</NhostReactContext.Provider>
 }
+
+/**
+ * @deprecated use `NhostProvider` instead
+ */
+export const NhostReactProvider = NhostProvider
