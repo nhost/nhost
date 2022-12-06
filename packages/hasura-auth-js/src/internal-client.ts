@@ -1,8 +1,12 @@
 import { interpret } from 'xstate'
-
-import { AuthInterpreter, AuthMachine, createAuthMachine } from './machines'
-import { NhostClientOptions } from './types'
+import { AuthInterpreter, AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
+import { NhostSession } from './types'
 import { isBrowser } from './utils'
+
+export type NhostClientOptions = AuthMachineOptions & {
+  /** @internal create and start xstate interpreter on creation. With React, it is started inside the Nhost provider */
+  start?: boolean
+}
 
 /**
  * @internal
@@ -11,10 +15,12 @@ import { isBrowser } from './utils'
 export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
-  readonly machine: AuthMachine
+  private _machine: AuthMachine
   private _interpreter?: AuthInterpreter
+  private _started = false
   private _channel?: BroadcastChannel
-  private _subscriptions: Set<(client: AuthClient) => void> = new Set()
+  private _subscriptionsQueue: Set<(client: AuthClient) => void> = new Set()
+  private _subscriptions: Set<() => void> = new Set()
 
   constructor({
     clientStorageType = 'web',
@@ -29,7 +35,7 @@ export class AuthClient {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
 
-    this.machine = createAuthMachine({
+    this._machine = createAuthMachine({
       ...defaultOptions,
       backendUrl,
       clientUrl,
@@ -39,8 +45,7 @@ export class AuthClient {
     })
 
     if (start) {
-      this.interpreter = interpret(this.machine, { devTools })
-      this.interpreter.start()
+      this.start({ devTools })
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
@@ -61,24 +66,66 @@ export class AuthClient {
     }
   }
 
+  start({
+    devTools = false,
+    initialSession,
+    interpreter
+  }: { interpreter?: AuthInterpreter; initialSession?: NhostSession; devTools?: boolean } = {}) {
+    const context = { ...this.machine.context }
+    if (initialSession) {
+      context.user = initialSession.user
+      context.refreshToken.value = initialSession.refreshToken ?? null
+      context.accessToken.value = initialSession.accessToken ?? null
+      context.accessToken.expiresAt = new Date(
+        Date.now() + initialSession.accessTokenExpiresIn * 1_000
+      )
+    }
+    const machineWithInitialContext = this.machine.withContext(context)
+
+    if (!this._interpreter) {
+      this._interpreter = interpreter || interpret(machineWithInitialContext, { devTools })
+    }
+
+    // * Start the interpreter if not started already. Always restart the interpreter when on the server side
+    if (!this._started || typeof window === 'undefined') {
+      if (this._interpreter.initialized) {
+        this._interpreter.stop()
+        this._subscriptions.forEach((fn) => fn())
+      }
+      this._interpreter.start(machineWithInitialContext.initialState)
+      this._subscriptionsQueue.forEach((fn) => fn(this))
+    }
+
+    this._started = true
+  }
+
+  public get machine() {
+    return this._machine
+  }
+
   get interpreter(): AuthInterpreter | undefined {
     return this._interpreter
   }
-  set interpreter(interpreter: AuthInterpreter | undefined) {
-    this._interpreter = interpreter
-    if (interpreter) {
-      this._subscriptions.forEach((fn) => fn(this))
-    }
+
+  get started(): boolean {
+    return this._started
   }
 
-  onStart(fn: (client: AuthClient) => void) {
-    if (this.interpreter) {
+  subscribe(fn: (client: AuthClient) => () => void): () => void {
+    if (this.started) {
       // * The interpreter is already available: we can add the listener straight ahead
-      fn(this)
+      const subscription = fn(this)
+      this._subscriptions.add(subscription)
+      return subscription
     } else {
       // * The interpreter is not yet available: we add the listener to a queue that will be started when setting the interpreter
       // * Note: in React, the Xstate interpreter does not start from the global state, but from the root component
-      this._subscriptions.add(fn)
+      this._subscriptionsQueue.add(fn)
+      return () => {
+        console.log(
+          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
+        )
+      }
     }
   }
 }
