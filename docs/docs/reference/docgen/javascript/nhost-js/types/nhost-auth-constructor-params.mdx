@@ -4,7 +4,7 @@ title: NhostAuthConstructorParams
 sidebar_label: NhostAuthConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L17
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/types/client.ts#L61
 ---
 
 # `NhostAuthConstructorParams`
@@ -13,13 +13,21 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-j
 
 ---
 
-**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> `number`
+**<span className="parameter-name">url</span>** <span className="optional-status">required</span> <code>string</code>
+
+---
+
+**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+---
+
+**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> <code>number</code>
 
 Time interval until token refreshes, in seconds
 
 ---
 
-**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> <code>ClientStorageType</code>
 
 Define a way to get information about the refresh token and its exipration date.
 
@@ -29,7 +37,7 @@ Define a way to get information about the refresh token and its exipration date.
 
 ---
 
-**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> <code>ClientStorage</code>
 
 Object where the refresh token will be persisted and read locally.
 
@@ -47,28 +55,20 @@ Recommended values:
 
 ---
 
-**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 When set to true, will automatically refresh token before it expires
 
 ---
 
-**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
 
 ---
 
-**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 Activate devTools e.g. the ability to connect to the xstate inspector
-
----
-
-**<span className="parameter-name">url</span>** <span className="optional-status">required</span> `string`
-
----
-
-**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> `boolean`
 
 ---

@@ -13,7 +13,7 @@ import {
 } from './utils/types'
 import { HasuraStorageApi } from './hasura-storage-api'
 
-interface NhostStorageConstructorParams {
+export interface NhostStorageConstructorParams {
   /**
    * Storage endpoint.
    */

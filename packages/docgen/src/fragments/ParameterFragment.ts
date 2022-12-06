@@ -1,4 +1,4 @@
-import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
+import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
 import { Parameter } from '../types'
 import CommentFragment from './CommentFragment'
 import DeprecationNoteFragment from './DeprecationNoteFragment'
@@ -27,7 +27,7 @@ export const ParameterFragment = (
   }</span> ${
     // function signatures behave slightly differently than other types
     kindString === 'Method' && signatures && signatures.length > 0
-      ? `\`${FunctionSignatureTypeFragment(signatures[0], { wrap: false })}\``
+      ? FunctionSignatureTypeFragment(signatures[0], { wrap: 'code-block' })
       : getLabelForType(type, labelOptions)
   }
 

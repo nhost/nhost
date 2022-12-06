@@ -1,11 +1,27 @@
 import FormData from 'form-data'
 
-import { HasuraAuthClient } from '@nhost/hasura-auth-js'
+// TODO shared with other packages
+export type ErrorPayload = {
+  error: string
+  status: number
+  message: string
+}
+
+// TODO shared with other packages
+export interface ActionErrorState {
+  /**
+   * @return `true` if an error occurred
+   * @depreacted use `!isSuccess` or `!!error` instead
+   * */
+  isError: boolean
+  /** Provides details about the error */
+  error: ErrorPayload | null
+}
 
 // * Avoid circular references and broken links in docusaurus generated docs
-export interface NhostClientReturnType {
-  auth: HasuraAuthClient
-  storage: { url: string }
+export interface FileUploadConfig {
+  accessToken?: string
+  url: string
   adminSecret?: string
 }
 

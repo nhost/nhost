@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from 'next'
 
-import { NhostSession } from '@nhost/core'
+import { NhostSession } from '@nhost/hasura-auth-js'
 
 import { createServerSideClient } from './create-server-side-client'
 
