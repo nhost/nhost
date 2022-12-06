@@ -1,7 +1,7 @@
 import produce from 'immer'
 import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'
 
-import { AuthContext, NhostSession } from '@nhost/core'
+import { AuthContext, NhostSession } from '@nhost/hasura-auth-js'
 import { NhostClient } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 

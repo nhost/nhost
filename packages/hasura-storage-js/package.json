@@ -63,11 +63,7 @@
     "form-data": "^4.0.0",
     "xstate": "^4.33.5"
   },
-  "peerDependencies": {
-    "@nhost/core": "workspace:*"
-  },
   "devDependencies": {
-    "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
     "cross-fetch": "^3.1.5",
     "start-server-and-test": "^1.14.0",

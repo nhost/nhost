@@ -1,10 +1,10 @@
-import { SignInMfaTotpHandlerResult } from '@nhost/core'
 import {
   SignInEmailPasswordHandlerResult,
   signInEmailPasswordPromise,
   SignInEmailPasswordState,
+  SignInMfaTotpHandlerResult,
   signInMfaTotpPromise
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

@@ -4,7 +4,7 @@ title: NhostAuthConstructorParams
 sidebar_label: NhostAuthConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L17
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/types/client.ts#L61
 ---
 
 # `NhostAuthConstructorParams`
@@ -13,33 +13,29 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-j
 
 ---
 
-**<span className="parameter-name">url</span>** <span className="optional-status">required</span> `string`
+**<span className="parameter-name">url</span>** <span className="optional-status">required</span> <code>string</code>
 
 ---
 
-**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> `boolean`
-
----
-
-**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 Activate devTools e.g. the ability to connect to the xstate inspector
 
 ---
 
-**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
 
 ---
 
-**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
+**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 When set to true, will automatically refresh token before it expires
 
 ---
 
-**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> [`ClientStorage`](/reference/docgen/javascript/auth/types/client-storage)
 
 Object where the refresh token will be persisted and read locally.
 
@@ -55,9 +51,23 @@ Recommended values:
 - `'capacitor'`: `import { Storage } from @capacitor/storage`
 - `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
 
+| Property                                                                                                  | Type                                                                                         | Required | Notes |
+| :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItem</span>         | <code>(\_key: string, \_value: string) =&gt; void</code>                                     |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItem</span>         | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>removeItem</span>      | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>set</span>             | <code>(options: { key: string, value: string }) =&gt; void</code>                            |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>get</span>             | <code>(options: { key: string }) =&gt; any</code>                                            |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>remove</span>          | <code>(options: { key: string }) =&gt; void</code>                                           |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItemAsync</span>    | <code>(key: string, value: string) =&gt; void</code>                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItemAsync</span>    | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>deleteItemAsync</span> | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customGet</span>       | <code>(key: string) =&gt; null &#124; string &#124; Promise&lt;null &#124; string&gt;</code> |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customSet</span>       | <code>(key: string, value: null &#124; string) =&gt; void &#124; Promise&lt;void&gt;</code>  |          |       |
+
 ---
 
-**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> [`ClientStorageType`](/reference/docgen/javascript/auth/types/client-storage-type)
 
 Define a way to get information about the refresh token and its exipration date.
 
@@ -67,8 +77,12 @@ Define a way to get information about the refresh token and its exipration date.
 
 ---
 
-**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> `number`
+**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> <code>number</code>
 
 Time interval until token refreshes, in seconds
+
+---
+
+**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 ---

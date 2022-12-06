@@ -1,4 +1,5 @@
-import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
+import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
+import codifyValue from '../helpers/codifyValue'
 import { Signature } from '../types'
 
 export type FunctionSignatureTypeFragmentOptions = {
@@ -7,7 +8,7 @@ export type FunctionSignatureTypeFragmentOptions = {
    *
    * @default true
    */
-  wrap?: boolean
+  wrap?: 'triple-backticks' | 'code-block' | 'none'
   /**
    * Original name of the type. This is going to be prepended to the code block
    * if wrap is `true`.
@@ -37,7 +38,7 @@ export type FunctionSignatureTypeFragmentOptions = {
  */
 export const FunctionSignatureTypeFragment = (
   { parameters, type }: Signature,
-  { wrap = true, originalName }: FunctionSignatureTypeFragmentOptions = {},
+  { wrap = 'triple-backticks', originalName }: FunctionSignatureTypeFragmentOptions = {},
   labelOptions?: GetLabelForTypeOptions
 ) => {
   const content = `(${
@@ -54,15 +55,19 @@ export const FunctionSignatureTypeFragment = (
       : ''
   }) => ${getLabelForType(type, { wrap: false })}`
 
-  if (wrap) {
-    return `
+  if (wrap === 'none') {
+    return content
+  }
+
+  if (wrap === 'code-block') {
+    return codifyValue(content)
+  }
+
+  return `
 \`\`\`ts
 ${originalName ? `type ${originalName} = ` : ``}${content.replace(/`/gi, '')}
 \`\`\`
-`.trim()
-  }
-
-  return content
+  `.trim()
 }
 
 export default FunctionSignatureTypeFragment

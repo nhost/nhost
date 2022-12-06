@@ -1,6 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/hasura-auth-js'
 
 import { NhostReactContext } from './provider'
 
