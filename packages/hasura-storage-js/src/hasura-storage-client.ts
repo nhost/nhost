@@ -101,13 +101,6 @@ export class HasuraStorageClient {
   }
 
   /**
-   * @deprecated Use `nhost.storage.getPublicUrl()` instead.
-   */
-  getUrl(params: StorageGetUrlParams): string {
-    return this.getPublicUrl(params)
-  }
-
-  /**
    * Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
    *
    * @example
