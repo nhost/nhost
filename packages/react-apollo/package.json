@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "4.9.1",
+  "version": "4.9.2",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@apollo/client": "^3.7.1",
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.0.24",
+    "@types/react": "^18.0.25",
     "graphql": "15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

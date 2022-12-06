@@ -1,5 +1,52 @@
 # @nhost/dashboard
 
+## 0.7.7
+
+### Patch Changes
+
+- 80b604ad: fix(dashboard): use correct Hasura slug
+
+## 0.7.6
+
+### Patch Changes
+
+- 2d2beb53: fix(dashboard): prevent error on GraphQL page
+- ac8efcbd: chore(dashboard): deprecate old DNS name
+
+## 0.7.5
+
+### Patch Changes
+
+- 132a4f4b: chore(dashboard): remove unused dependencies
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+- db57572f: fix(dashboard): correct section paddings when no env vars
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+  - @nhost/react-apollo@4.9.2
+  - @nhost/nextjs@1.9.3
+
+## 0.7.4
+
+### Patch Changes
+
+- 34d85e54: chore(deps): update dependency critters to ^0.0.16
+- 9b93cf95: chore(deps): update dependency @netlify/functions to ^0.11.0
+- e0439030: chore(deps): update dependency @types/react-dom to v18.0.9
+- Updated dependencies [82124329]
+  - @nhost/nextjs@1.9.2
+
+## 0.7.3
+
+### Patch Changes
+
+- a1193da4: fix(dashboard): remove character limit from env var inputs
+
+## 0.7.2
+
+### Patch Changes
+
+- 44f13f62: chore(dashboard): cleanup unused files
+
 ## 0.7.1
 
 ### Patch Changes

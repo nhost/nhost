@@ -1,5 +1,11 @@
 # @nhost/react
 
+## 0.15.2
+
+### Patch Changes
+
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+
 ## 0.15.1
 
 ### Patch Changes
