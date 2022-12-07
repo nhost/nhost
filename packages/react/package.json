@@ -67,8 +67,6 @@
     "xstate": "^4.33.5"
   },
   "devDependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/docgen": "workspace:*",
     "@types/react": "^18.0.25",
     "react": "^18.2.0"

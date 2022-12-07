@@ -6,7 +6,7 @@ import {
   AddSecurityKeyHandlerResult,
   addSecurityKeyPromise,
   ErrorPayload
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 
 import { useNhostClient } from './useNhostClient'
 

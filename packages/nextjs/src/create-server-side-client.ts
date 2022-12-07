@@ -3,8 +3,7 @@ import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 
-import { AuthMachine, NHOST_REFRESH_TOKEN_KEY } from '@nhost/hasura-auth-js'
-import { NhostClient } from '@nhost/nhost-js'
+import { AuthMachine, NhostClient, NHOST_REFRESH_TOKEN_KEY } from '@nhost/nhost-js'
 
 /**
  * Creates an Nhost client that runs on the server side.

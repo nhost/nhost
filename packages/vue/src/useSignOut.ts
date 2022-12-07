@@ -1,6 +1,6 @@
 import { unref } from 'vue'
 
-import { signOutPromise } from '@nhost/hasura-auth-js'
+import { signOutPromise } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'

@@ -6,17 +6,16 @@ import {
 } from '@nhost/nhost-js'
 import { NhostProvider } from '@nhost/react'
 
-export type { NhostSession } from '@nhost/hasura-auth-js'
+export type { NhostSession } from '@nhost/nhost-js'
 export * from '@nhost/react'
 export { NhostProvider } from '@nhost/react'
 export * from './create-server-side-client'
 export * from './get-session'
-export { NhostNextProvider }
 
 /**
  * @deprecated use `NhostProvider` instead
  */
-const NhostNextProvider: typeof NhostProvider = NhostProvider
+export const NhostNextProvider: typeof NhostProvider = NhostProvider
 
 const isBrowser = typeof window !== 'undefined'
 

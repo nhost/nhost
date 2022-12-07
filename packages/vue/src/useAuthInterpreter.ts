@@ -1,7 +1,7 @@
 import { computed, Ref } from 'vue'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine } from '@nhost/hasura-auth-js'
+import { AuthMachine } from '@nhost/nhost-js'
 
 import { useNhostClient } from './useNhostClient'
 

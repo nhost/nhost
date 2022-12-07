@@ -5,7 +5,7 @@ import {
   Provider,
   ProviderOptions,
   rewriteRedirectTo
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 
 import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
