@@ -1,18 +1,17 @@
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import fetch from 'cross-fetch'
-import { DocumentNode, print } from 'graphql'
-import { urlFromSubdomain } from '../utils/helpers'
-import { GraphqlRequestResponse, NhostClientConstructorParams } from '../utils/types'
-
-export interface NhostGraphqlConstructorParams {
-  /**
-   * GraphQL endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
+import { parseRequestArgs } from './parse-args'
+import { resolveRequestDocument } from './resolve-request-document'
+import {
+  GraphqlRequestResponse,
+  NhostGraphqlConstructorParams,
+  RemoveIndex,
+  RequestDocument,
+  RequestOptions,
+  Variables
+} from './types'
 
 /**
  * Creates a client for GraphQL from either a subdomain or a URL
@@ -29,7 +28,6 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
 
   return new NhostGraphqlClient({ url: graphqlUrl, ...params })
 }
-
 /**
  * @alias GraphQL
  */
@@ -64,17 +62,36 @@ export class NhostGraphqlClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/request
    */
-  async request<T = any, V = any>(
-    document: string | DocumentNode,
-    variables?: V,
-    config: RequestInit = {}
+  request<T = any, V = Variables>(
+    document: RequestDocument | TypedDocumentNode<T, V>,
+    ...variablesAndRequestHeaders: V extends Record<any, never>
+      ? [variables?: V, config?: RequestInit]
+      : keyof RemoveIndex<V> extends never
+      ? [variables?: V, config?: RequestInit]
+      : [variables: V, config?: RequestInit]
+  ): Promise<GraphqlRequestResponse<T>>
+  async request<T = any, V extends Variables = Variables>(
+    options: RequestOptions<V, T>
+  ): Promise<GraphqlRequestResponse<T>>
+  async request<T = any, V extends Variables = Variables>(
+    documentOrOptions: RequestDocument | TypedDocumentNode<T, V> | RequestOptions<V>,
+    ...variablesAndRequestHeaders: V extends Record<any, never>
+      ? [variables?: V, config?: RequestInit]
+      : keyof RemoveIndex<V> extends never
+      ? [variables?: V, config?: RequestInit]
+      : [variables: V, config?: RequestInit]
   ): Promise<GraphqlRequestResponse<T>> {
-    const { headers, ...rest } = config
+    const [variables, config] = variablesAndRequestHeaders
+    const requestOptions = parseRequestArgs(documentOrOptions, variables, config)
+
+    const { headers, ...otherOptions } = config || {}
+    const { query, operationName } = resolveRequestDocument(requestOptions.document)
     try {
-      const response = await fetch(this.url, {
+      const response = await fetch(this.httpUrl, {
         method: 'POST',
         body: JSON.stringify({
-          query: typeof document === 'string' ? document : print(document),
+          operationName,
+          query,
           variables
         }),
         headers: {
@@ -82,7 +99,7 @@ export class NhostGraphqlClient {
           ...this.generateAccessTokenHeaders(),
           ...headers
         },
-        ...rest
+        ...otherOptions
       })
       if (!response.ok) {
         return {

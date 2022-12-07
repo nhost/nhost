@@ -49,17 +49,6 @@ export interface NhostClientConstructorParams
    */
   adminSecret?: string
 }
-
-export type GraphqlRequestResponse<T = unknown> =
-  | {
-      data: null
-      error: Error | object | object[]
-    }
-  | {
-      data: T
-      error: null
-    }
-
 export interface FunctionResponse<T = any> {
   data: T
   status: number

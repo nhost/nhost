@@ -27,7 +27,7 @@ describe('main tests', () => {
     expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
   })
 
-  it('GraphQL request as logged out user', () => {
+  it('GraphQL request as logged out user', async () => {
     const document = `
       query {
         users {
@@ -36,8 +36,20 @@ describe('main tests', () => {
         }
       }
     `
+    const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
 
-    expect(() => nhost.graphql.request<{ users: User[] }>(document)).rejects.toThrowError()
+    expect(data).toBeNull()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$.selectionSet.users",
+          },
+          "message": "field 'users' not found in type: 'query_root'",
+        },
+      ]
+    `)
   })
 })
 
@@ -81,7 +93,17 @@ describe('authenticated user', () => {
       id: 'not-a-uuid'
     })
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$.selectionSet.user",
+          },
+          "message": "field 'user' not found in type: 'query_root'",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 
@@ -96,7 +118,17 @@ describe('authenticated user', () => {
     `
     const { data, error } = await nhost.graphql.request<{ user: User }>(document, {})
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$",
+          },
+          "message": "expecting a value for non-nullable variable: \\"id\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 })
@@ -171,7 +203,17 @@ describe('as an admin', () => {
       }
     )
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "data-exception",
+            "path": "$",
+          },
+          "message": "invalid input syntax for type uuid: \\"not-a-uuid\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 
@@ -194,7 +236,17 @@ describe('as an admin', () => {
       }
     )
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$",
+          },
+          "message": "expecting a value for non-nullable variable: \\"id\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 })

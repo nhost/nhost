@@ -86,7 +86,7 @@ export class HasuraStorageClient {
 
     return await this.api.upload({
       ...params,
-      formData: formData
+      formData
     })
   }
 
