@@ -100,20 +100,25 @@ export const createFileUploadMachine = () =>
           const data = new FormData()
           data.append('file', file)
 
-          // let currentLoaded = 0
-          // const controller = new AbortController()
-          if (typeof window === 'undefined') {
-            // * Non-browser environment: XMLHttpRequest is not available
-          } else {
-            // * Browser environment: XMLHttpRequest is available
-          }
+          let currentLoaded = 0
 
           fetchUpload(event.url, data, {
             fileId: event.id || context.id,
             bucketId: event.bucketId || context.bucketId,
             accessToken: event.accessToken,
-            adminSecret: event.accessToken,
-            name: event.name || file.name
+            adminSecret: event.adminSecret,
+            name: event.name || file.name,
+            onUploadProgress: (event) => {
+              const loaded = event.total ? Math.round((event.loaded * file.size!) / event.total) : 0
+              const additions = loaded - currentLoaded
+              currentLoaded = loaded
+              callback({
+                type: 'UPLOAD_PROGRESS',
+                progress: event.total ? Math.round((loaded * 100) / event.total) : 0,
+                loaded,
+                additions
+              })
+            }
           }).then(({ fileMetadata, error }) => {
             if (error) {
               callback({ type: 'UPLOAD_ERROR', error })
@@ -125,54 +130,7 @@ export const createFileUploadMachine = () =>
             }
           })
 
-          /*
-          axios
-            .post<{
-              bucketId: string
-              createdAt: string
-              etag: string
-              id: string
-              isUploaded: true
-              mimeType: string
-              name: string
-              size: number
-              updatedAt: string
-              uploadedByUserId: string
-            }>(event.url + '/files', data, {
-              headers,
-              signal: controller.signal,
-              onUploadProgress: (event: AxiosProgressEvent) => {
-                const loaded = event.total
-                  ? Math.round((event.loaded * file.size!) / event.total)
-                  : 0
-                const additions = loaded - currentLoaded
-                currentLoaded = loaded
-                callback({
-                  type: 'UPLOAD_PROGRESS',
-                  progress: event.total ? Math.round((loaded * 100) / event.total) : 0,
-                  loaded,
-                  additions
-                })
-              }
-            })
-            .then(({ data: { id, bucketId } }) => {
-              callback({ type: 'UPLOAD_DONE', id, bucketId })
-            })
-            .catch(({ response, message }: AxiosError<{ error?: { message: string } }>) => {
-              callback({
-                type: 'UPLOAD_ERROR',
-                error: {
-                  status: response?.status ?? 0,
-                  message: response?.data?.error?.message || message,
-                  // TODO errors from hasura-storage are not codified
-                  error: response?.data?.error?.message || message
-                }
-              })
-            })
-*/
-          return () => {
-            // controller.abort()
-          }
+          return () => {}
         }
       }
     }
