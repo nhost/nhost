@@ -6,7 +6,7 @@ import {
   changeEmailPromise,
   ChangeEmailState,
   createChangeEmailMachine
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'
