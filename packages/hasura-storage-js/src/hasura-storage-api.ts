@@ -5,9 +5,10 @@ import {
   ApiGetPresignedUrlParams,
   ApiGetPresignedUrlResponse,
   ApiUploadParams,
-  ApiUploadResponse,
+  StorageUploadResponse,
   UploadHeaders
 } from './utils/types'
+import { fetchUpload } from './utils/upload'
 
 /**
  * @internal
@@ -22,27 +23,16 @@ export class HasuraStorageApi {
     this.url = url
   }
 
-  async upload(params: ApiUploadParams): Promise<ApiUploadResponse> {
+  async upload(params: ApiUploadParams): Promise<StorageUploadResponse> {
     const { formData } = params
 
-    try {
-      const response = await fetch(`${this.url}/files`, {
-        method: 'POST',
-        headers: {
-          ...this.generateUploadHeaders(params),
-          ...(this.generateAuthHeaders() as any)
-        },
-        // @ts-ignore https://github.com/form-data/form-data/issues/513
-        body: formData
-      })
-      if (!response.ok) {
-        throw new Error(await response.text())
-      }
-      const fileMetadata = await response.json()
-      return { fileMetadata, error: null }
-    } catch (error) {
-      return { fileMetadata: null, error: error as Error }
-    }
+    return await fetchUpload(this.url, formData, {
+      accessToken: this.accessToken,
+      adminSecret: this.accessToken,
+      bucketId: params.bucketId,
+      fileId: params.id,
+      name: params.name
+    })
   }
 
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {

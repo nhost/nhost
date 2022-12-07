@@ -46,7 +46,7 @@ export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDat
 
 export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: Error }
+  | { fileMetadata: null; error: ErrorPayload }
 
 export interface StorageGetUrlParams {
   fileId: string
@@ -84,10 +84,6 @@ export interface ApiUploadParams {
   name?: string
   bucketId?: string
 }
-
-export type ApiUploadResponse =
-  | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: Error }
 
 export interface ApiGetPresignedUrlParams {
   fileId: string

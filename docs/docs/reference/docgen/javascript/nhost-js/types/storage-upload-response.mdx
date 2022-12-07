@@ -12,5 +12,5 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 ```ts
 type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: Error }
+  | { fileMetadata: null; error: ErrorPayload }
 ```

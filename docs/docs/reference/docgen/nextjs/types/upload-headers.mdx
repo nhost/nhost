@@ -4,23 +4,11 @@ title: UploadHeaders
 sidebar_label: UploadHeaders
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/utils/types.ts#L108
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/utils/types.ts#L104
 ---
 
 # `UploadHeaders`
 
-## Parameters
-
----
-
-**<span className="parameter-name">x-nhost-bucket-id</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">x-nhost-file-id</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">x-nhost-file-name</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
+```ts
+type UploadHeaders = HeadersInit & { x-nhost-bucket-id: string, x-nhost-file-id: string, x-nhost-file-name: string }
+```

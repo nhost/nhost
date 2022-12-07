@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
+import FormData from 'form-data'
 import { assign, createMachine } from 'xstate'
-
 import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { fetchUpload } from '../utils/upload'
 
 export type FileUploadContext = {
   progress: number | null
@@ -96,29 +96,36 @@ export const createFileUploadMachine = () =>
       },
       services: {
         uploadFile: (context, event) => (callback) => {
-          const headers: RawAxiosRequestHeaders = {
-            'Content-Type': 'multipart/form-data'
-          }
-          const fileId = event.id || context.id
-          if (fileId) {
-            headers['x-nhost-file-id'] = fileId
-          }
-          const bucketId = event.bucketId || context.bucketId
-          if (bucketId) {
-            headers['x-nhost-bucket-id'] = bucketId
-          }
           const file = (event.file || context.file)!
-          headers['x-nhost-file-name'] = event.name || file.name
           const data = new FormData()
           data.append('file', file)
-          if (event.adminSecret) {
-            headers['x-hasura-admin-secret'] = event.adminSecret
+
+          // let currentLoaded = 0
+          // const controller = new AbortController()
+          if (typeof window === 'undefined') {
+            // * Non-browser environment: XMLHttpRequest is not available
+          } else {
+            // * Browser environment: XMLHttpRequest is available
           }
-          if (event.accessToken) {
-            headers['Authorization'] = `Bearer ${event.accessToken}`
-          }
-          let currentLoaded = 0
-          const controller = new AbortController()
+
+          fetchUpload(event.url, data, {
+            fileId: event.id || context.id,
+            bucketId: event.bucketId || context.bucketId,
+            accessToken: event.accessToken,
+            adminSecret: event.accessToken,
+            name: event.name || file.name
+          }).then(({ fileMetadata, error }) => {
+            if (error) {
+              callback({ type: 'UPLOAD_ERROR', error })
+            } else {
+            }
+            if (fileMetadata) {
+              const { id, bucketId } = fileMetadata
+              callback({ type: 'UPLOAD_DONE', id, bucketId })
+            }
+          })
+
+          /*
           axios
             .post<{
               bucketId: string
@@ -162,9 +169,9 @@ export const createFileUploadMachine = () =>
                 }
               })
             })
-
+*/
           return () => {
-            controller.abort()
+            // controller.abort()
           }
         }
       }
