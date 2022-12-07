@@ -41,10 +41,6 @@ export default function RuleGroupEditor({
 }: RuleGroupEditorProps) {
   const form = useFormContext();
 
-  if (!form) {
-    throw new Error('RuleGroupEditor must be used in a FormContext.');
-  }
-
   const { control } = form;
 
   // Note: Reason for the type cast to `never`
@@ -68,6 +64,10 @@ export default function RuleGroupEditor({
     control,
     name: `${name}.groups`,
   } as never);
+
+  if (!form) {
+    throw new Error('RuleGroupEditor must be used in a FormContext.');
+  }
 
   return (
     <div

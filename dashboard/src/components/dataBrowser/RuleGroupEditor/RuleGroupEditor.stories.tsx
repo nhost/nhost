@@ -9,7 +9,7 @@ import type { RuleGroupEditorProps } from './RuleGroupEditor';
 import RuleGroupEditor from './RuleGroupEditor';
 
 export default {
-  title: 'RuleGroupEditor',
+  title: 'Data Browser / RuleGroupEditor',
   component: RuleGroupEditor,
   parameters: {
     docs: {

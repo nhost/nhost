@@ -42,7 +42,12 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         ],
         deployments: [],
         subdomain: 'localhost',
-        region: null,
+        region: {
+          awsName: null,
+          countryCode: null,
+          city: null,
+          id: null,
+        },
         isProvisioned: true,
         createdAt: new Date().toISOString(),
         desiredState: ApplicationStatus.Live,

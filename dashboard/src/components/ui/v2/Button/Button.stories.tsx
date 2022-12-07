@@ -6,7 +6,7 @@ import type { ButtonProps } from './Button';
 import Button from './Button';
 
 export default {
-  title: 'Button',
+  title: 'UI Library / Button',
   component: Button,
   argTypes: {
     variant: {

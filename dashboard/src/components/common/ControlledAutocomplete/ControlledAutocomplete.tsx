@@ -37,12 +37,18 @@ function ControlledAutocomplete(
   }: ControlledAutocompleteProps<AutocompleteOption>,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
-  const { setValue } = useFormContext();
+  const form = useFormContext();
   const { field } = useController({
-    ...controllerProps,
+    ...(controllerProps || {}),
     name: controllerProps?.name || name || '',
     control: controllerProps?.control || control,
   });
+
+  if (!form) {
+    throw new Error('ControlledAutocomplete must be used in a FormContext.');
+  }
+
+  const { setValue } = form || {};
 
   return (
     <Autocomplete
@@ -50,7 +56,7 @@ function ControlledAutocomplete(
       {...field}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, options, reason, details) => {
-        setValue(controllerProps?.name || name, options);
+        setValue?.(controllerProps?.name || name, options);
 
         if (props.onChange) {
           props.onChange(event, options, reason, details);
