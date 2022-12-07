@@ -28,26 +28,18 @@ const fetchWrapper = async <T>(
   try {
     const result = await fetch(url, options)
     if (!result.ok) {
-      // console.log('not ok', url, method, token, body, await result.text())
-      return Promise.reject<FetcResponse<T>>({
-        error: {
-          message: (await result.text()) || result.statusText,
-          status: result.statusText || result.status,
-          error: result.statusText
-        }
-      })
+      const error = await result.json()
+      return Promise.reject<FetcResponse<T>>({ error })
     }
     const data = await result.json()
     return { data, error: null }
   } catch (e) {
-    const error = e as Error
-    return Promise.reject<FetcResponse<T>>({
-      error: {
-        message: error.message ?? JSON.stringify(error),
-        status: NETWORK_ERROR_CODE,
-        error: 'network'
-      }
-    })
+    const error = {
+      message: (e as Error).message ?? JSON.stringify(e),
+      status: NETWORK_ERROR_CODE,
+      error: 'network'
+    }
+    return Promise.reject<FetcResponse<T>>({ error })
   }
 }
 

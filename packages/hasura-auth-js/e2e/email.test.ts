@@ -77,7 +77,7 @@ describe('emails', () => {
     await mailhog.deleteAll()
 
     await auth.sendVerificationEmail({ email })
-    await new Promise((resolve) => setTimeout(resolve, 300))
+
     // make sure onle a single message exists
     const messages = await mailhog.messages()
 
