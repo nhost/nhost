@@ -64,6 +64,6 @@ export const resetPasswordUserNotFoundHandler = rest.post(
 export const resetPasswordSuccessHandler = rest.post(
   `${BASE_URL}/user/password/reset`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )

@@ -105,7 +105,10 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
           imageUrl: (_, { data: { imageUrl } }: any) => imageUrl,
           secret: (_, { data: { totpSecret } }: any) => totpSecret
         }),
-        reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
+        reportError: send((ctx, event) => {
+          console.log('REPORT', ctx, event)
+          return { type: 'ERROR', error: ctx.error }
+        }),
         reportSuccess: send('SUCCESS'),
         reportGeneratedSuccess: send('GENERATED'),
         reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error }))

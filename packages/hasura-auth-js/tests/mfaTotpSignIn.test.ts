@@ -53,7 +53,7 @@ test(`should fail if network is unavailable`, async () => {
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
-        "error": "OK",
+        "error": "network",
         "message": "Network Error",
         "status": 0,
       },

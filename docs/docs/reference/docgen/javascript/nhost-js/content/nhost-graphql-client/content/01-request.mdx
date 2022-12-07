@@ -4,7 +4,7 @@ title: request()
 sidebar_label: request()
 slug: /reference/javascript/nhost-js/graphql/request
 description: Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/graphql.ts#L76
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/graphql.ts#L67
 ---
 
 # `request()`
@@ -35,6 +35,6 @@ const { data, error } = await nhost.graphql.request(CUSTOMERS)
 
 ---
 
-**<span className="parameter-name">config</span>** <span className="optional-status">optional</span> <code>AxiosRequestConfig&lt;any&gt;</code>
+**<span className="parameter-name">config</span>** <span className="optional-status">required</span> <code>RequestInit</code>
 
 ---

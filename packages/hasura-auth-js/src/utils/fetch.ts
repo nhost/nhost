@@ -31,11 +31,16 @@ const fetchWrapper = async <T>(
       const error = await result.json()
       return Promise.reject<FetcResponse<T>>({ error })
     }
-    const data = await result.json()
-    return { data, error: null }
+    try {
+      const data = await result.json()
+      return { data, error: null }
+    } catch {
+      console.warn(`Unexpected response: can't parse the response of the server at ${url}`)
+      return { data: 'OK' as any, error: null }
+    }
   } catch (e) {
     const error = {
-      message: (e as Error).message ?? JSON.stringify(e),
+      message: 'Network Error',
       status: NETWORK_ERROR_CODE,
       error: 'network'
     }
@@ -47,10 +52,7 @@ export const postFetch = async <T>(
   url: string,
   body: any,
   token?: string | null
-): Promise<FetcResponse<T>> => {
-  return fetchWrapper<T>(url, 'POST', { token, body })
-}
+): Promise<FetcResponse<T>> => fetchWrapper<T>(url, 'POST', { token, body })
 
-export const getFetch = async <T>(url: string, token?: string | null): Promise<FetcResponse<T>> => {
-  return fetchWrapper<T>(url, 'POST', { token })
-}
+export const getFetch = <T>(url: string, token?: string | null): Promise<FetcResponse<T>> =>
+  fetchWrapper<T>(url, 'GET', { token })

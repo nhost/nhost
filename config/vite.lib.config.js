@@ -51,8 +51,6 @@ export default defineConfig({
           '@apollo/client/utilities': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
           xstate: 'xstate',
-          // TODO remove this when we will have removed all of the axios dependencies
-          axios: 'axios',
           'js-cookie': 'Cookies',
           react: 'React',
           'react-dom': 'ReactDOM',

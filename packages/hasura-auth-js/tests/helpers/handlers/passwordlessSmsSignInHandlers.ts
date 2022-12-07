@@ -11,7 +11,7 @@ import fakeUser from '../mocks/user'
 export const correctPasswordlessSmsHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )
 

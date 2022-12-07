@@ -64,6 +64,6 @@ export const sendVerificationEmailUserNotFoundHandler = rest.post(
 export const sendVerificationEmailSuccessHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )

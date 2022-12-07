@@ -3,9 +3,7 @@ import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-
 import { createAuthMachine } from '../src'
-
 import { BASE_URL } from './helpers/config'
 import {
   authTokenNetworkErrorHandler,
@@ -78,7 +76,7 @@ test(`should fail if network is unavailable`, async () => {
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
-        "error": "OK",
+        "error": "network",
         "message": "Network Error",
         "status": 0,
       },
@@ -99,7 +97,7 @@ test(`should fail if server returns an error`, async () => {
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
-        "error": "OK",
+        "error": "network",
         "message": "Network Error",
         "status": 0,
       },

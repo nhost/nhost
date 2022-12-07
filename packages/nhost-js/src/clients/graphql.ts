@@ -1,12 +1,7 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import fetch from 'cross-fetch'
 import { DocumentNode, print } from 'graphql'
-
 import { urlFromSubdomain } from '../utils/helpers'
-import {
-  GraphqlRequestResponse,
-  GraphqlResponse,
-  NhostClientConstructorParams
-} from '../utils/types'
+import { GraphqlRequestResponse, NhostClientConstructorParams } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
   /**
@@ -40,7 +35,6 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
  */
 export class NhostGraphqlClient {
   readonly url: string
-  private instance: AxiosInstance
   private accessToken: string | null
   private adminSecret?: string
 
@@ -50,9 +44,6 @@ export class NhostGraphqlClient {
     this.url = url
     this.accessToken = null
     this.adminSecret = adminSecret
-    this.instance = axios.create({
-      baseURL: url
-    })
   }
 
   /**
@@ -76,37 +67,37 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: AxiosRequestConfig
+    config: RequestInit = {}
   ): Promise<GraphqlRequestResponse<T>> {
-    // add auth headers if any
-    const headers = {
-      ...this.generateAccessTokenHeaders(),
-      ...config?.headers,
-      'Accept-Encoding': '*'
-    }
-
+    const { headers, ...rest } = config
     try {
-      const operationName = ''
-      const res = await this.instance.post<GraphqlResponse<T>>(
-        '',
-        {
-          operationName: operationName || undefined,
+      const response = await fetch(this.url, {
+        method: 'POST',
+        body: JSON.stringify({
           query: typeof document === 'string' ? document : print(document),
           variables
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...this.generateAccessTokenHeaders(),
+          ...headers
         },
-        { ...config, headers }
-      )
-
-      const responseData = res.data
-      const { data } = responseData
-
-      if (responseData.errors) {
+        ...rest
+      })
+      if (!response.ok) {
         return {
           data: null,
-          error: responseData.errors
+          error: new Error(response.statusText)
         }
       }
+      const { data, errors } = await response.json()
 
+      if (errors) {
+        return {
+          data: null,
+          error: errors
+        }
+      }
       if (typeof data !== 'object' || Array.isArray(data) || data === null) {
         return {
           data: null,
@@ -115,15 +106,8 @@ export class NhostGraphqlClient {
       }
 
       return { data, error: null }
-    } catch (error) {
-      if (error instanceof Error) {
-        return { data: null, error }
-      }
-      console.error(error)
-      return {
-        data: null,
-        error: new Error('Unable to get do GraphQL request')
-      }
+    } catch (e) {
+      return { data: null, error: e as Error }
     }
   }
 
@@ -160,7 +144,7 @@ export class NhostGraphqlClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): Record<string, string> {
+  private generateAccessTokenHeaders(): HeadersInit {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret
