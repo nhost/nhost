@@ -8,7 +8,6 @@ on:
       - '**.md'
       - 'LICENSE'
   pull_request:
-    branches: [main]
     types: [opened, synchronize]
     paths-ignore:
       - 'assets/**'
