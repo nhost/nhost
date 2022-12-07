@@ -1,4 +1,4 @@
-import { signOutPromise } from '@nhost/hasura-auth-js'
+import { signOutPromise } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
