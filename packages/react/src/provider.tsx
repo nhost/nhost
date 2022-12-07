@@ -1,7 +1,7 @@
-import { NhostClient, NhostSession } from '@nhost/nhost-js'
+import { NhostSession } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'
-
+import { NhostClient } from './client'
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
 export interface NhostProviderProps {
   nhost: NhostClient

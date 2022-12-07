@@ -1,4 +1,4 @@
-import { AuthMachine, NhostClient, NHOST_REFRESH_TOKEN_KEY } from '@nhost/react'
+import { AuthMachine, NHOST_REFRESH_TOKEN_KEY, VanillaNhostClient } from '@nhost/react'
 import Cookies from 'js-cookie'
 import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
@@ -17,7 +17,7 @@ export const createServerSideClient = async (
   backendUrl: string,
   context: GetServerSidePropsContext
 ) => {
-  const nhost = new NhostClient({
+  const nhost = new VanillaNhostClient({
     backendUrl,
     clientStorageType: 'custom',
     clientStorage: {
