@@ -43,6 +43,9 @@ type Color =
   | 'red'
   | 'white';
 
+/**
+ * @deprecated Use `@/ui/v2/Text` instead.
+ */
 export const Text: FunctionComponent<TextProps> = forwardRef(
   (
     {

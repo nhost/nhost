@@ -23,6 +23,12 @@ export interface RuleGroupEditorProps
    * Determines whether or not remove should be disabled for the rule group.
    */
   disableRemove?: boolean;
+  /**
+   * Group editor depth.
+   *
+   * @default 0
+   */
+  depth?: number;
 }
 
 export default function RuleGroupEditor({
@@ -30,6 +36,7 @@ export default function RuleGroupEditor({
   name,
   className,
   disableRemove,
+  depth = 0,
   ...props
 }: RuleGroupEditorProps) {
   const form = useFormContext();
@@ -64,7 +71,14 @@ export default function RuleGroupEditor({
 
   return (
     <div
-      className={twMerge('bg-gray-100 rounded-lg px-2', className)}
+      className={twMerge(
+        'rounded-lg px-2',
+        depth === 0 && 'bg-greyscale-50',
+        depth === 1 && 'bg-greyscale-100',
+        depth === 2 && 'bg-greyscale-200',
+        depth > 2 && 'bg-greyscale-300',
+        className,
+      )}
       {...props}
     >
       <div className="flex flex-col flex-auto space-y-4 lg:space-y-2 py-4">
@@ -75,7 +89,9 @@ export default function RuleGroupEditor({
                 <Text className="p-2 !font-medium">Where</Text>
               )}
 
-              {ruleIndex === 1 && <RuleGroupControls name={name} />}
+              {ruleIndex > 0 && (
+                <RuleGroupControls name={name} showSelect={ruleIndex === 1} />
+              )}
             </div>
 
             <RuleEditorRow
@@ -97,17 +113,21 @@ export default function RuleGroupEditor({
                 <Text className="p-2 !font-medium">Where</Text>
               )}
 
-              {((rules.length === 0 && ruleGroupIndex === 1) ||
-                (rules.length === 1 && ruleGroupIndex === 0)) && (
-                <RuleGroupControls name={name} />
-              )}
+              <RuleGroupControls
+                name={name}
+                showSelect={
+                  (rules.length === 0 && ruleGroupIndex === 1) ||
+                  (rules.length === 1 && ruleGroupIndex === 0)
+                }
+              />
             </div>
 
             <RuleGroupEditor
               onRemove={() => removeGroup(ruleGroupIndex)}
               disableRemove={rules.length === 0 && groups.length === 1}
               name={`${name}.groups.${ruleGroupIndex}`}
-              className="bg-gray-200 flex-auto"
+              className="flex-auto"
+              depth={depth + 1}
             />
           </div>
         ))}
@@ -135,6 +155,7 @@ export default function RuleGroupEditor({
                 groups: [],
               })
             }
+            disabled={depth > 2}
           >
             New Group
           </Button>

@@ -78,6 +78,13 @@ module.exports = {
         free: 'rgba(55, 135, 255, 0.1)',
         github: '#24292E;',
         card: '#F4F7F9',
+        'greyscale-50': '#F4F7F9',
+        'greyscale-100': '#E6EAEF',
+        'greyscale-200': '#D8DFE7',
+        'greyscale-300': '#CCD4DE',
+        'greyscale-400': '#BFCAD5',
+        'greyscale-500': '#B4C0CE',
+        'greyscale-600': '#A9B6C7',
       },
       textColor: {
         base: 'var(--text-base)',
