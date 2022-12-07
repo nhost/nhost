@@ -19,12 +19,17 @@ export interface RuleGroupEditorProps
    * Function to be called when the remove button is clicked.
    */
   onRemove?: VoidFunction;
+  /**
+   * Determines whether or not remove should be disabled for the rule group.
+   */
+  disableRemove?: boolean;
 }
 
 export default function RuleGroupEditor({
   onRemove,
   name,
   className,
+  disableRemove,
   ...props
 }: RuleGroupEditorProps) {
   const form = useFormContext();
@@ -62,7 +67,7 @@ export default function RuleGroupEditor({
       className={twMerge('bg-gray-100 rounded-lg px-2', className)}
       {...props}
     >
-      <div className="flex flex-col flex-auto space-y-2 py-4">
+      <div className="flex flex-col flex-auto space-y-4 lg:space-y-2 py-4">
         {(rules as Rule[]).map((rule, ruleIndex) => (
           <div className="flex flex-row flex-auto" key={rule.id}>
             <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
@@ -83,7 +88,10 @@ export default function RuleGroupEditor({
         ))}
 
         {(groups as RuleGroup[]).map((ruleGroup, ruleGroupIndex) => (
-          <div className="flex flex-row flex-auto items-start mt-2">
+          <div
+            className="flex flex-row flex-auto items-start mt-2"
+            key={ruleGroup.id}
+          >
             <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
               {rules.length === 0 && ruleGroupIndex === 0 && (
                 <Text className="p-2 !font-medium">Where</Text>
@@ -96,8 +104,8 @@ export default function RuleGroupEditor({
             </div>
 
             <RuleGroupEditor
-              key={ruleGroup.id}
               onRemove={() => removeGroup(ruleGroupIndex)}
+              disableRemove={rules.length === 0 && groups.length === 1}
               name={`${name}.groups.${ruleGroupIndex}`}
               className="bg-gray-200 flex-auto"
             />
@@ -138,6 +146,7 @@ export default function RuleGroupEditor({
             variant="borderless"
             color="secondary"
             onClick={onRemove}
+            disabled={disableRemove}
           >
             Delete
           </Button>

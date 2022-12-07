@@ -27,10 +27,7 @@ export interface RuleEditorRowProps
 function RemoveButton({
   name,
   onRemove,
-}: {
-  name: string;
-  onRemove?: VoidFunction;
-}) {
+}: Pick<RuleEditorRowProps, 'name' | 'onRemove'>) {
   const rules: Rule[] = useWatch({ name: `${name}.rules` });
   const groups: RuleGroup[] = useWatch({ name: `${name}.groups` });
 
@@ -40,7 +37,7 @@ function RemoveButton({
       color="secondary"
       className="!bg-white lg:!rounded-l-none "
       disabled={rules.length === 1 && groups.length === 0}
-      aria-label="Remove rule"
+      aria-label="Remove Rule"
       onClick={onRemove}
     >
       <XIcon />
@@ -61,18 +58,16 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'flex lg:flex-row flex-col items-stretch lg:max-h-10 flex-1',
+        'flex lg:flex-row flex-col items-stretch lg:max-h-10 flex-1 space-y-1 lg:space-y-0',
         className,
       )}
       {...props}
     >
       <Input
         {...register(`${ruleEditorRowName}.column`)}
-        className="flex-grow-1 flex-shrink-0 lg:flex-[320px] h-10"
+        className="flex-grow-1 lg:flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{
-          root: {
-            className: '!rounded-r-none',
-          },
+          root: { className: 'lg:!rounded-r-none' },
           input: { className: '!bg-white' },
         }}
         fullWidth
@@ -81,8 +76,8 @@ export default function RuleEditorRow({
 
       <ControlledSelect
         name={`${ruleEditorRowName}.operator`}
-        className="flex-grow-1 flex-shrink-0 lg:flex-[140px] h-10"
-        slotProps={{ root: { className: 'bg-white !rounded-none' } }}
+        className="flex-grow-1 lg:flex-shrink-0 lg:flex-[140px] h-10"
+        slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
       >
         <Option value="_eq">_eq</Option>
@@ -106,9 +101,7 @@ export default function RuleEditorRow({
         {...register(`${ruleEditorRowName}.value`)}
         className="flex-auto"
         slotProps={{
-          root: {
-            className: '!rounded-none mb-2 lg:mb-0 h-10',
-          },
+          root: { className: 'lg:!rounded-none h-10' },
           input: { className: '!bg-white' },
         }}
         fullWidth

@@ -1,6 +1,6 @@
 import Form from '@/components/common/Form';
-import Button from '@/components/ui/v2/Button';
 import type { RuleGroup } from '@/types/dataBrowser';
+import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
