@@ -1,11 +1,18 @@
+import ControlledSelect from '@/components/common/ControlledSelect';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import TrashIcon from '@/ui/v2/icons/TrashIcon';
-import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import Option from '@/ui/v2/Option';
+import Text from '@/ui/v2/Text';
+import { FormProvider, useFieldArray, useFormContext } from 'react-hook-form';
 import RuleEditorRow from './RuleEditorRow';
 
 export interface RuleGroupEditorProps {
+  /**
+   * Name of the group editor.
+   */
+  name: string;
   initialValue?: RuleGroup;
   /**
    * Function to be called when the remove button is clicked.
@@ -15,17 +22,8 @@ export interface RuleGroupEditorProps {
 
 export type RuleGroupEditorFormValues = RuleGroup;
 
-export default function RuleGroupEditor({
-  initialValue,
-  onRemove,
-}: RuleGroupEditorProps) {
-  const form = useForm<RuleGroupEditorFormValues>({
-    defaultValues: initialValue || {
-      operation: '_and',
-      rules: [{ column: '', operator: '_eq', value: '' }],
-      groups: [],
-    },
-  });
+export default function RuleGroupEditor({ onRemove }: RuleGroupEditorProps) {
+  const form = useFormContext<RuleGroupEditorFormValues>({});
 
   const { control } = form;
 
@@ -53,18 +51,38 @@ export default function RuleGroupEditor({
       <div className="bg-gray-100 rounded-lg px-2">
         <div className="grid grid-flow-row gap-2 py-4">
           {(rules as Rule[]).map((rule, ruleIndex) => (
-            <RuleEditorRow
-              key={rule.id}
-              index={ruleIndex}
-              onRemove={() => removeRule(ruleIndex)}
-            />
+            <div className="grid grid-cols-12 gap-2 items-start">
+              <div className="col-span-1">
+                {ruleIndex === 0 && (
+                  <Text className="p-2 !font-medium">Where</Text>
+                )}
+
+                {ruleIndex === 1 && (
+                  <ControlledSelect
+                    name="operation"
+                    slotProps={{ root: { className: 'bg-white' } }}
+                    fullWidth
+                  >
+                    <Option value="_and">and</Option>
+                    <Option value="_or">or</Option>
+                  </ControlledSelect>
+                )}
+              </div>
+
+              <RuleEditorRow
+                key={rule.id}
+                index={ruleIndex}
+                onRemove={() => removeRule(ruleIndex)}
+                className="col-span-11"
+              />
+            </div>
           ))}
 
           {(groups as RuleGroup[]).map((ruleGroup, ruleGroupIndex) => (
             <RuleGroupEditor
-              initialValue={ruleGroup}
               key={ruleGroup.id}
               onRemove={() => removeGroup(ruleGroupIndex)}
+              name="asd"
             />
           ))}
         </div>
