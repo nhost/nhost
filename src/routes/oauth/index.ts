@@ -137,9 +137,13 @@ export const oauthProviders = Router()
   .use(
     `${OAUTH_ROUTE}/:provider`,
     ({ session, query }, { locals: { redirectTo } }, next) => {
-      session.options = query;
-      session.redirectTo = redirectTo;
-      session.save(next);
+      // * Don't override the session if it already exists (it means we are in the callback)
+      if (!session.grant) {
+        session.options = query;
+        session.redirectTo = redirectTo;
+        return session.save(next);
+      }
+      next();
     }
   )
 
