@@ -5,7 +5,7 @@ import {
   changePasswordPromise,
   ChangePasswordState,
   createChangePasswordMachine
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'

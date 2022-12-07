@@ -5,7 +5,7 @@ import {
   Provider,
   ProviderOptions,
   rewriteRedirectTo
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 
 import { NhostReactContext } from './provider'
 

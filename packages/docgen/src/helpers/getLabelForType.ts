@@ -52,7 +52,7 @@ export function getLabelForType(
   { reference = true, wrap = true }: GetLabelForTypeOptions = {}
 ): string {
   // TODO: Dependency on the appState should be reviewed
-  const { contentReferences, formattedDocsRoot } = snapshot(appState)
+  const { contentReferences, baseSlug, formattedDocsRoot } = snapshot(appState)
 
   if (!type) {
     return ''
@@ -65,9 +65,17 @@ export function getLabelForType(
       return codifyValue(type.name, wrap)
     }
 
-    return `[\`${type.name}\`](/${formattedDocsRoot ? `${formattedDocsRoot}/` : ''}${
-      originalType !== 'Class' ? 'types/' : ''
-    }${kebabCase(type.name)})`
+    if (originalType === 'Class') {
+      const finalSlug = baseSlug || formattedDocsRoot
+
+      return `[\`${type.name}\`](/${
+        finalSlug ? `${finalSlug.replace(/^\//i, '')}/` : ''
+      }${kebabCase(type.name)})`
+    }
+
+    return `[\`${type.name}\`](/${
+      formattedDocsRoot ? `${formattedDocsRoot}/` : ''
+    }types/${kebabCase(type.name)})`
   }
 
   if (type.type === 'reference' && type.typeArguments) {

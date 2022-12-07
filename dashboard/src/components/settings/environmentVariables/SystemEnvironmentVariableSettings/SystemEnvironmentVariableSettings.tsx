@@ -28,7 +28,7 @@ export default function SystemEnvironmentVariableSettings() {
     variables: { id: currentApplication?.id },
   });
 
-  const appClient = useAppClient({ start: false });
+  const appClient = useAppClient();
 
   if (loading) {
     return (

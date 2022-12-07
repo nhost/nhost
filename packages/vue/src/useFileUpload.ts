@@ -8,7 +8,7 @@ import {
   StorageUploadFileParams,
   UploadFileHandlerResult,
   uploadFilePromise
-} from '@nhost/hasura-storage-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { useNhostClient } from './useNhostClient'
