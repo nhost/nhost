@@ -1,5 +1,26 @@
 ## Changelog
 
+## 0.17.0
+
+### Minor Changes
+
+- 951349b: Optionally conceal sensitive error messages
+
+  Introduce a new `AUTH_CONCEAL_ERRORS` environment variable that conceals error messages to avoid leaking indirect information about users e.g. a user is registered in the application or a given password is invalid.
+
+  It is disabled by default.
+
+### Patch Changes
+
+- d3fe853: Preserve the Oauth session between the initial request and the callback
+
+  Fixes [nhost/nhost#1353](https://github.com/nhost/nhost/issues/1353)
+
+- 9c25b1f: Ability to set test phone numbers for phone auth
+
+  This can be used without any provider set. When sign in via phone auth using a test phone number is invoked **the SMS message with the verification code will be available trough the logs**.
+  This way you can also test your SMS templates.
+
 ## 0.16.2
 
 ### Patch Changes
