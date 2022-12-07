@@ -12,18 +12,20 @@ export default {
 const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
   args: RuleGroupEditorProps,
 ) {
-  const form = useForm<RuleGroup>({
+  const form = useForm<{ ruleGroupEditor: RuleGroup }>({
     defaultValues: {
-      operation: '_and',
-      rules: [{ column: '', operator: '_eq', value: '' }],
-      groups: [],
+      ruleGroupEditor: {
+        operation: '_and',
+        rules: [{ column: '', operator: '_eq', value: '' }],
+        groups: [],
+      },
     },
   });
 
   // note: Storybook passes `onRemove` as a prop, but we don't want to use it
   return (
     <FormProvider {...form}>
-      <RuleGroupEditor {...args} name="groups" onRemove={null} />
+      <RuleGroupEditor {...args} name="ruleGroupEditor" onRemove={null} />
     </FormProvider>
   );
 };

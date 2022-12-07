@@ -11,6 +11,10 @@ import { twMerge } from 'tailwind-merge';
 export interface RuleEditorRowProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
   /**
+   * Name of the parent group editor.
+   */
+  name: string;
+  /**
    * Index of the rule.
    */
   index: number;
@@ -21,12 +25,13 @@ export interface RuleEditorRowProps
 }
 
 export default function RuleEditorRow({
-  onRemove,
+  name,
   index,
+  onRemove,
   className,
   ...props
 }: RuleEditorRowProps) {
-  const rules: Rule[] = useWatch({ name: 'rules' });
+  const rules: Rule[] = useWatch({ name: `${name}.rules` });
 
   return (
     <div className={twMerge('flex items-start flex-1', className)} {...props}>
@@ -40,7 +45,7 @@ export default function RuleEditorRow({
       />
 
       <ControlledSelect
-        name={`rules.${index}.operator`}
+        name={`${name}.rules.${index}.operator`}
         className="flex-grow-1 flex-shrink-0 flex-[140px]"
         slotProps={{ root: { className: 'bg-white !rounded-none' } }}
         fullWidth
