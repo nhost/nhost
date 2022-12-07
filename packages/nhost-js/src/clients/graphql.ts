@@ -34,14 +34,14 @@ export function createGraphqlClient(params: NhostClientConstructorParams) {
  * @alias GraphQL
  */
 export class NhostGraphqlClient {
-  readonly url: string
+  readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
 
   constructor(params: NhostGraphqlConstructorParams) {
     const { url, adminSecret } = params
 
-    this.url = url
+    this._url = url
     this.accessToken = null
     this.adminSecret = adminSecret
   }
@@ -112,17 +112,45 @@ export class NhostGraphqlClient {
   }
 
   /**
-   * Use `nhost.graphql.getUrl` to get the GraphQL URL.
-   *
+   * Use `nhost.graphql.httpUrl` to get the GraphQL HTTP URL.
    * @example
    * ```ts
-   * const url = nhost.graphql.getUrl();
+   * const url = nhost.graphql.httpUrl;
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-url
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-http-url
+   */
+  get httpUrl(): string {
+    return this._url
+  }
+
+  /**
+   * Use `nhost.graphql.wsUrl` to get the GraphQL WebSocket URL.
+   * @example
+   * ```ts
+   * const url = nhost.graphql.wsUrl;
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-ws-url
+   */
+  get wsUrl(): string {
+    return this._url.replace(/^(http)(s?):\/\//, 'ws$2://')
+  }
+
+  /**
+   * Use `nhost.graphql.url` to get the GraphQL URL.
+   * @deprecated Use `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl` instead.
+   */
+  get url(): string {
+    return this._url
+  }
+
+  /**
+   * Use `nhost.graphql.getUrl()` to get the GraphQL URL.
+   * @deprecated Use `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl` instead.
    */
   getUrl(): string {
-    return this.url
+    return this._url
   }
 
   /**

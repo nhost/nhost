@@ -3,14 +3,15 @@
 title: getUrl()
 sidebar_label: getUrl()
 slug: /reference/nextjs/graphql/get-url
-description: Use `nhost.graphql.getUrl` to get the GraphQL URL.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/graphql.ts#L124
+sidebar_class_name: deprecated
+description: Use `nhost.graphql.getUrl()` to get the GraphQL URL.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/graphql.ts#L152
 ---
 
 # `getUrl()`
 
-Use `nhost.graphql.getUrl` to get the GraphQL URL.
+Use `nhost.graphql.getUrl()` to get the GraphQL URL.
 
-```ts
-const url = nhost.graphql.getUrl()
-```
+:::caution Deprecated
+Use `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl` instead.
+:::

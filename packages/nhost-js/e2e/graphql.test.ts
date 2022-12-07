@@ -9,25 +9,35 @@ const nhost = new NhostClient({
 type User = { id: string; displayName: string }
 
 describe('main tests', () => {
-  it('getUrl()', async () => {
+  it('getUrl()', () => {
     const graphqlUrl = nhost.graphql.getUrl()
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
-  it('GraphQL request as logged out user', async () => {
-    const document = `
-  query {
-    users {
-      id
-      displayName
-    }
-  }
-    `
-    const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
+  it('httpUrl', async () => {
+    const graphqlUrl = nhost.graphql.httpUrl
 
-    expect(error).toBeTruthy()
-    expect(data).toBeNull()
+    expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
+  })
+
+  it('getWsUrl()', () => {
+    const graphqlUrl = nhost.graphql.wsUrl
+
+    expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
+  })
+
+  it('GraphQL request as logged out user', () => {
+    const document = `
+      query {
+        users {
+          id
+          displayName
+        }
+      }
+    `
+
+    expect(() => nhost.graphql.request<{ users: User[] }>(document)).rejects.toThrowError()
   })
 })
 
