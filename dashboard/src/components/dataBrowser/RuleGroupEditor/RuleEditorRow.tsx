@@ -1,11 +1,11 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
-import type { Rule } from '@/types/dataBrowser';
+import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import XIcon from '@/ui/v2/icons/XIcon';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export interface RuleEditorRowProps
@@ -24,6 +24,30 @@ export interface RuleEditorRowProps
   onRemove?: VoidFunction;
 }
 
+function RemoveButton({
+  name,
+  onRemove,
+}: {
+  name: string;
+  onRemove?: VoidFunction;
+}) {
+  const rules: Rule[] = useWatch({ name: `${name}.rules` });
+  const groups: RuleGroup[] = useWatch({ name: `${name}.groups` });
+
+  return (
+    <Button
+      variant="outlined"
+      color="secondary"
+      className="!bg-white lg:!rounded-l-none "
+      disabled={rules.length === 1 && groups.length === 0}
+      aria-label="Remove rule"
+      onClick={onRemove}
+    >
+      <XIcon />
+    </Button>
+  );
+}
+
 export default function RuleEditorRow({
   name,
   index,
@@ -31,22 +55,33 @@ export default function RuleEditorRow({
   className,
   ...props
 }: RuleEditorRowProps) {
-  const rules: Rule[] = useWatch({ name: `${name}.rules` });
+  const { register } = useFormContext();
+  const ruleEditorRowName = `${name}.rules.${index}`;
 
   return (
-    <div className={twMerge('flex items-start flex-1', className)} {...props}>
+    <div
+      className={twMerge(
+        'flex lg:flex-row flex-col items-stretch lg:max-h-10 flex-1',
+        className,
+      )}
+      {...props}
+    >
       <Input
-        className="flex-grow-1 flex-shrink-0 flex-[320px]"
+        {...register(`${ruleEditorRowName}.column`)}
+        className="flex-grow-1 flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{
-          root: { className: '!rounded-r-none' },
+          root: {
+            className: '!rounded-r-none',
+          },
           input: { className: '!bg-white' },
         }}
         fullWidth
+        autoComplete="off"
       />
 
       <ControlledSelect
-        name={`${name}.rules.${index}.operator`}
-        className="flex-grow-1 flex-shrink-0 flex-[140px]"
+        name={`${ruleEditorRowName}.operator`}
+        className="flex-grow-1 flex-shrink-0 lg:flex-[140px] h-10"
         slotProps={{ root: { className: 'bg-white !rounded-none' } }}
         fullWidth
       >
@@ -68,24 +103,19 @@ export default function RuleEditorRow({
       </ControlledSelect>
 
       <Input
+        {...register(`${ruleEditorRowName}.value`)}
         className="flex-auto"
         slotProps={{
-          root: { className: '!rounded-none' },
+          root: {
+            className: '!rounded-none mb-2 lg:mb-0 h-10',
+          },
           input: { className: '!bg-white' },
         }}
         fullWidth
+        autoComplete="off"
       />
 
-      <Button
-        variant="outlined"
-        color="secondary"
-        className="!bg-white !rounded-l-none "
-        disabled={rules.length === 1}
-        aria-label="Remove rule"
-        onClick={onRemove}
-      >
-        <XIcon />
-      </Button>
+      <RemoveButton onRemove={onRemove} name={name} />
     </div>
   );
 }

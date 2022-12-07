@@ -4,7 +4,17 @@ module.exports = {
   stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
     '@storybook/addon-links',
-    '@storybook/addon-essentials',
+    [
+      '@storybook/addon-essentials',
+      {
+        options: {
+          actions: {
+            depth: 4,
+            limit: 20,
+          },
+        },
+      },
+    ],
     '@storybook/addon-interactions',
     {
       /**

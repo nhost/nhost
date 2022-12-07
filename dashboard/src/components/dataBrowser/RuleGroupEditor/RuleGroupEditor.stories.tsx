@@ -1,5 +1,9 @@
+import Form from '@/components/common/Form';
+import Button from '@/components/ui/v2/Button';
 import type { RuleGroup } from '@/types/dataBrowser';
+import Text from '@/ui/v2/Text';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { RuleGroupEditorProps } from './RuleGroupEditor';
 import RuleGroupEditor from './RuleGroupEditor';
@@ -7,11 +11,20 @@ import RuleGroupEditor from './RuleGroupEditor';
 export default {
   title: 'RuleGroupEditor',
   component: RuleGroupEditor,
+  parameters: {
+    docs: {
+      source: {
+        type: 'code',
+      },
+    },
+  },
 } as ComponentMeta<typeof RuleGroupEditor>;
 
 const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
   args: RuleGroupEditorProps,
 ) {
+  const [submittedValues, setSubmittedValues] = useState<string>();
+
   const form = useForm<{ ruleGroupEditor: RuleGroup }>({
     defaultValues: {
       ruleGroupEditor: {
@@ -20,13 +33,30 @@ const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
         groups: [],
       },
     },
+    reValidateMode: 'onSubmit',
   });
+
+  function handleSubmit(values: { ruleGroupEditor: RuleGroup }) {
+    setSubmittedValues(JSON.stringify(values, null, 2));
+  }
 
   // note: Storybook passes `onRemove` as a prop, but we don't want to use it
   return (
-    <FormProvider {...form}>
-      <RuleGroupEditor {...args} name="ruleGroupEditor" onRemove={null} />
-    </FormProvider>
+    <div className="grid grid-flow-row gap-2">
+      <FormProvider {...form}>
+        <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
+          <RuleGroupEditor {...args} name="ruleGroupEditor" onRemove={null} />
+
+          <Button type="submit" className="justify-self-start">
+            Submit
+          </Button>
+        </Form>
+      </FormProvider>
+
+      <Text component="pre" className="!font-mono !text-gray-700">
+        {submittedValues || 'The form has not been submitted yet.'}
+      </Text>
+    </div>
   );
 };
 
