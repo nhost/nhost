@@ -25,7 +25,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: --restart always --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       graphql-engine:
-        image: hasura/graphql-engine:v2.10.1
+        image: hasura/graphql-engine:v2.15.2
         env:
           HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
           HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
