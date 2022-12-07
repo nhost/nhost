@@ -1,9 +1,8 @@
+import { AuthMachine, NhostClient, NHOST_REFRESH_TOKEN_KEY } from '@nhost/react'
 import Cookies from 'js-cookie'
 import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-
-import { AuthMachine, NhostClient, NHOST_REFRESH_TOKEN_KEY } from '@nhost/nhost-js'
 
 /**
  * Creates an Nhost client that runs on the server side.
