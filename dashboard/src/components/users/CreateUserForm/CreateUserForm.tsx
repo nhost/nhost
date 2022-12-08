@@ -1,46 +1,46 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
+import { generateAppServiceUrl } from '@/utils/helpers';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
+import axios from 'axios';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface CreateUserFormValues {
   /**
-   * The name of the role.
+   * Email of the user to add to this project.
    */
-  name: string;
+  email: string;
+  /**
+   * Password for the user.
+   */
+  password: string;
 }
 
 export interface CreateUserFormProps {
   /**
-   * Function to be called when the form is submitted.
-   */
-  onSubmit: (values: CreateUserFormValues) => void;
-  /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
-  /**
-   * Submit button text.
-   *
-   * @default 'Save'
-   */
-  submitButtonText?: string;
 }
 
 export const CreateUserFormValidationSchema = Yup.object({
-  name: Yup.string().required('This field is required.'),
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('This field is required.'),
+  password: Yup.string()
+    .label('Users Password')
+    .required('This field is required.'),
 });
 
-export default function CreateUserForm({
-  onSubmit,
-  onCancel,
-  submitButtonText = 'Save',
-}: CreateUserFormProps) {
+export default function CreateUserForm({ onCancel }: CreateUserFormProps) {
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { onDirtyStateChange } = useDialog();
 
   const form = useForm<CreateUserFormValues>({
@@ -48,6 +48,27 @@ export default function CreateUserForm({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(CreateUserFormValidationSchema),
   });
+
+  const signUpUrl = `${generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region.awsName,
+    'auth',
+  )}/v1/signup/email-password`;
+
+  async function handleSubmit({ email, password }: CreateUserFormValues) {
+    await toast.promise(
+      axios.post(signUpUrl, {
+        email,
+        password,
+      }),
+      {
+        loading: 'Creating environment variable...',
+        success: 'Environment variable has been created successfully.',
+        error: 'An error occurred while creating the environment variable.',
+      },
+      toastStyleProps,
+    );
+  }
 
   const {
     register,
@@ -62,37 +83,42 @@ export default function CreateUserForm({
 
   return (
     <FormProvider {...form}>
-      <div className="grid grid-flow-row gap-2 px-6 pb-6">
-        <Text variant="subtitle1" component="span">
-          Enter the name for the role below.
-        </Text>
+      <Form
+        onSubmit={handleSubmit}
+        className="grid grid-flow-row gap-6 p-6 px-6"
+      >
+        <Input
+          {...register('email')}
+          id="email"
+          label="Email"
+          placeholder="Enter Email"
+          hideEmptyHelperText
+          error={!!errors.email}
+          helperText={errors?.email?.message}
+          fullWidth
+          autoComplete="off"
+        />
+        <Input
+          {...register('password')}
+          id="password"
+          label="Password"
+          placeholder="Enter Password"
+          hideEmptyHelperText
+          error={!!errors.password}
+          helperText={errors?.password?.message}
+          fullWidth
+          autoComplete="off"
+        />
+        <div className="grid grid-flow-row gap-2">
+          <Button type="submit" loading={isSubmitting}>
+            Create
+          </Button>
 
-        <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-          <Input
-            {...register('name')}
-            inputProps={{ maxLength: 100 }}
-            id="name"
-            label="Name"
-            placeholder="Enter value"
-            hideEmptyHelperText
-            error={!!errors.name}
-            helperText={errors?.name?.message}
-            fullWidth
-            autoComplete="off"
-            autoFocus
-          />
-
-          <div className="grid grid-flow-row gap-2">
-            <Button type="submit" loading={isSubmitting}>
-              {submitButtonText}
-            </Button>
-
-            <Button variant="outlined" color="secondary" onClick={onCancel}>
-              Cancel
-            </Button>
-          </div>
-        </Form>
-      </div>
+          <Button variant="outlined" color="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </Form>
     </FormProvider>
   );
 }
