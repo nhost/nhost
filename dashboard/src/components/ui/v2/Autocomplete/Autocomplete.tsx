@@ -15,7 +15,7 @@ import MaterialAutocomplete, {
 } from '@mui/material/Autocomplete';
 import clsx from 'clsx';
 import type { ForwardedRef } from 'react';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 export interface AutocompleteOption<TValue = string> {
   /**
@@ -38,6 +38,10 @@ export interface AutocompleteOption<TValue = string> {
    * Value that can be used to group options.
    */
   group?: string;
+  /**
+   * Any additional data to be passed to the option.
+   */
+  metadata?: any;
 }
 
 export interface AutocompleteProps<
@@ -180,6 +184,10 @@ function Autocomplete(
     () => externalInputValue || '',
   );
 
+  useEffect(() => {
+    setInputValue(externalInputValue);
+  }, [externalInputValue]);
+
   const filteredOptions = filterOptions(props.options as AutocompleteOption[], {
     inputValue,
     getOptionLabel: props.getOptionLabel
@@ -252,13 +260,17 @@ function Autocomplete(
 
         return option.value === value.value && option.custom === value.custom;
       }}
-      renderGroup={({ group, key, children }) => (
-        <div key={key}>
-          <OptionGroupBase>{group}</OptionGroupBase>
+      renderGroup={({ group, key, children }) =>
+        group ? (
+          <div key={key}>
+            <OptionGroupBase>{group}</OptionGroupBase>
 
-          {children}
-        </div>
-      )}
+            {children}
+          </div>
+        ) : (
+          <div key={key}>{children}</div>
+        )
+      }
       renderOption={(optionProps, option) => {
         if (typeof option === 'string') {
           return <OptionBase {...optionProps}>{option}</OptionBase>;
