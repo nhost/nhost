@@ -37,7 +37,7 @@ importers:
       typescript: 4.5.5
       vite: ^3.2.2
       vite-plugin-dts: ^1.6.6
-      vite-tsconfig-paths: ^3.5.2
+      vite-tsconfig-paths: ^4.0.0
       vitest: ^0.25.0
     devDependencies:
       '@babel/core': 7.19.6
@@ -70,7 +70,7 @@ importers:
       typescript: 4.5.5
       vite: 3.2.2
       vite-plugin-dts: 1.6.6_vite@3.2.2
-      vite-tsconfig-paths: 3.5.2_vite@3.2.2
+      vite-tsconfig-paths: 4.0.1_4brhtvznnvoxqpj4apqvz5ga3y
       vitest: 0.25.2
 
   dashboard:
@@ -197,7 +197,7 @@ importers:
       utility-types: ^3.10.0
       validator: ^13.7.0
       vite: ^3.2.4
-      vite-tsconfig-paths: ^3.6.0
+      vite-tsconfig-paths: ^4.0.0
       vitest: ^0.25.2
       webpack: ^5.75.0
       yup: ^0.32.11
@@ -328,7 +328,7 @@ importers:
       tsconfig-paths-webpack-plugin: 4.0.0
       typescript: 4.9.3
       vite: 3.2.4_@types+node@18.11.9
-      vite-tsconfig-paths: 3.6.0_vite@3.2.4
+      vite-tsconfig-paths: 4.0.1_vf3nqk3ewnpqc5dulqzhw4xcru
       vitest: 0.25.2_jsdom@20.0.3
       webpack: 5.75.0
 
@@ -3428,10 +3428,6 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
-    dev: true
-
-  /@cush/relative/1.0.0:
-    resolution: {integrity: sha512-RpfLEtTlyIxeNPGKcokS+p3BZII/Q3bYxryFRglh5H3A3T8q9fsLYm72VYAMEOOIBLEa8o93kFLiBDUWKrwXZA==}
     dev: true
 
   /@cypress/request/2.88.10:
@@ -18762,10 +18758,6 @@ packages:
       glob: 7.2.3
     dev: true
 
-  /glob-regex/0.3.2:
-    resolution: {integrity: sha512-m5blUd3/OqDTWwzBBtWBPrGlAzatRywHameHeekAZyZrskYouOGdNB8T/q6JucucvJXtOuyHIn0/Yia7iDasDw==}
-    dev: true
-
   /glob-to-regexp/0.3.0:
     resolution: {integrity: sha512-Iozmtbqv0noj0uDDqoL0zNq0VBEfK2YFoMAZoxJe4cwphvLR+JskfF30QhXHOR4m3KrE6NLRYw+U9MRXvifyig==}
     dev: true
@@ -25183,16 +25175,6 @@ packages:
       resolve: 1.22.1
     dev: false
 
-  /recrawl-sync/2.2.3:
-    resolution: {integrity: sha512-vSaTR9t+cpxlskkdUFrsEpnf67kSmPk66yAGT1fZPrDudxQjoMzPgQhSMImQ0pAw5k0NPirefQfhopSjhdUtpQ==}
-    dependencies:
-      '@cush/relative': 1.0.0
-      glob-regex: 0.3.2
-      slash: 3.0.0
-      sucrase: 3.28.0
-      tslib: 1.14.1
-    dev: true
-
   /recursive-readdir/2.2.2:
     resolution: {integrity: sha512-nRCcW9Sj7NuZwa2XvH9co8NPeXUBhZP7CRKJtU+cS6PW9FpCIFoI5ib0NT1ZrbNuPoRy0ylyCaUL8Gih4LSyFg==}
     engines: {node: '>=0.10.0'}
@@ -26868,19 +26850,6 @@ packages:
       ts-interface-checker: 0.1.13
     dev: true
 
-  /sucrase/3.28.0:
-    resolution: {integrity: sha512-TK9600YInjuiIhVM3729rH4ZKPOsGeyXUwY+Ugu9eilNbdTFyHr6XcAGYbRVZPDgWj6tgI7bx95aaJjHnbffag==}
-    engines: {node: '>=8'}
-    hasBin: true
-    dependencies:
-      commander: 4.1.1
-      glob: 7.1.6
-      lines-and-columns: 1.2.4
-      mz: 2.7.0
-      pirates: 4.0.5
-      ts-interface-checker: 0.1.13
-    dev: true
-
   /superjson/1.10.1:
     resolution: {integrity: sha512-7fvPVDHmkTKg6641B9c6vr6Zz5CwPtF9j0XFExeLxJxrMaeLU2sqebY3/yrI3l0K5zJ+H9QA3H+lIYj5ooCOkg==}
     engines: {node: '>=10'}
@@ -27683,6 +27652,32 @@ packages:
     engines: {node: '>=6'}
     peerDependencies:
       typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      typescript: 4.9.3
+    dev: true
+
+  /tsconfck/2.0.1_typescript@4.5.5:
+    resolution: {integrity: sha512-/ipap2eecmVBmBlsQLBRbUmUNFwNJV/z2E+X0FPtHNjPwroMZQ7m39RMaCywlCulBheYXgMdUlWDd9rzxwMA0Q==}
+    engines: {node: ^14.13.1 || ^16 || >=18, pnpm: ^7.0.1}
+    hasBin: true
+    peerDependencies:
+      typescript: ^4.3.5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      typescript: 4.5.5
+    dev: true
+
+  /tsconfck/2.0.1_typescript@4.9.3:
+    resolution: {integrity: sha512-/ipap2eecmVBmBlsQLBRbUmUNFwNJV/z2E+X0FPtHNjPwroMZQ7m39RMaCywlCulBheYXgMdUlWDd9rzxwMA0Q==}
+    engines: {node: ^14.13.1 || ^16 || >=18, pnpm: ^7.0.1}
+    hasBin: true
+    peerDependencies:
+      typescript: ^4.3.5
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -28781,32 +28776,32 @@ packages:
       - vue
     dev: false
 
-  /vite-tsconfig-paths/3.5.2_vite@3.2.2:
-    resolution: {integrity: sha512-xJMgHA2oJ28QCG2f+hXrcqzo7IttrSRK4A//Tp94CfuX5eetOx33qiwXHUdi3FwkHP2ocpxHuvE45Ix67gwEmQ==}
+  /vite-tsconfig-paths/4.0.1_4brhtvznnvoxqpj4apqvz5ga3y:
+    resolution: {integrity: sha512-CQpI+zxo8/CnqsAaM2+Kpsgaj7UEKlM1fMMcm7RZQlcxRd7JwGpsYhrHJo/dIA3lsd7HI4JtSflH4+Ip+Dymkw==}
     peerDependencies:
       vite: '>2.0.0-0'
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
-      recrawl-sync: 2.2.3
-      tsconfig-paths: 4.1.0
+      tsconfck: 2.0.1_typescript@4.5.5
       vite: 3.2.2
     transitivePeerDependencies:
       - supports-color
+      - typescript
     dev: true
 
-  /vite-tsconfig-paths/3.6.0_vite@3.2.4:
-    resolution: {integrity: sha512-UfsPYonxLqPD633X8cWcPFVuYzx/CMNHAjZTasYwX69sXpa4gNmQkR0XCjj82h7zhLGdTWagMjC1qfb9S+zv0A==}
+  /vite-tsconfig-paths/4.0.1_vf3nqk3ewnpqc5dulqzhw4xcru:
+    resolution: {integrity: sha512-CQpI+zxo8/CnqsAaM2+Kpsgaj7UEKlM1fMMcm7RZQlcxRd7JwGpsYhrHJo/dIA3lsd7HI4JtSflH4+Ip+Dymkw==}
     peerDependencies:
       vite: '>2.0.0-0'
     dependencies:
       debug: 4.3.4
       globrex: 0.1.2
-      recrawl-sync: 2.2.3
-      tsconfig-paths: 4.1.0
+      tsconfck: 2.0.1_typescript@4.9.3
       vite: 3.2.4_@types+node@18.11.9
     transitivePeerDependencies:
       - supports-color
+      - typescript
     dev: true
 
   /vite/2.9.15:
