@@ -74,6 +74,7 @@
     "@faker-js/faker": "^7.6.0",
     "@nhost/docgen": "workspace:*",
     "graphql": "15.7.2",
+    "graphql-tag": "^2.12.6",
     "start-server-and-test": "^1.14.0"
   },
   "peerDependencies": {

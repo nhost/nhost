@@ -912,6 +912,7 @@ importers:
       '@nhost/hasura-storage-js': workspace:*
       cross-fetch: ^3.1.5
       graphql: 15.7.2
+      graphql-tag: ^2.12.6
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
       start-server-and-test: ^1.14.0
@@ -926,6 +927,7 @@ importers:
       '@faker-js/faker': 7.6.0
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
+      graphql-tag: 2.12.6_graphql@15.7.2
       start-server-and-test: 1.14.0
 
   packages/nhost-js/functions:

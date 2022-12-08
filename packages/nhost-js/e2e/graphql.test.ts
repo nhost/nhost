@@ -1,4 +1,6 @@
 import { faker } from '@faker-js/faker'
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import gql from 'graphql-tag'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { NhostClient } from '../src'
 
@@ -72,6 +74,22 @@ describe('authenticated user', () => {
         }
       }
     `
+    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+      id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
+    })
+
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
+  })
+
+  it('should work with TypedDocumentNode', async () => {
+    const document = gql`
+      query ($id: uuid!) {
+        test(where: { id: { _eq: $id } }) {
+          id
+        }
+      }
+    ` as TypedDocumentNode<{ user: User }, { id: string }>
     const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
       id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
     })
