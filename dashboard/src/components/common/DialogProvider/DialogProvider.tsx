@@ -18,7 +18,7 @@ import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
-  PropsWithChildren
+  PropsWithChildren,
 } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -27,7 +27,7 @@ import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
   dialogReducer,
-  drawerReducer
+  drawerReducer,
 } from './dialogReducers';
 
 function LoadingComponent({
@@ -383,7 +383,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           )}
 
           {activeDrawerType === 'EDIT_USER' && (
-            <EditUserForm {...sharedDrawerProps} />
+            <EditUserForm {...sharedDrawerProps} user={drawerPayload?.user} />
           )}
         </RetryableErrorBoundary>
       </Drawer>

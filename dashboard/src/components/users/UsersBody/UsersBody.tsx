@@ -70,9 +70,10 @@ export default function UsersBody() {
     throw error;
   }
 
-  function handleViewUser() {
+  function handleViewUser(user: any) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
+      payload: { user },
     });
   }
 
@@ -122,7 +123,7 @@ export default function UsersBody() {
                       }}
                     >
                       <Dropdown.Item
-                        onClick={handleViewUser}
+                        onClick={() => handleViewUser(user)}
                         className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                       >
                         <UserIcon className="w-4 h-4" />
