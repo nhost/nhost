@@ -2,12 +2,13 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import Button from '@/components/ui/v2/Button';
-import PlusIcon from '@/components/ui/v2/icons/PlusIcon';
-import UserIcon from '@/components/ui/v2/icons/UserIcon';
-import Input from '@/components/ui/v2/Input';
-import Text from '@/components/ui/v2/Text';
+import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Button from '@/ui/v2/Button';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import UserIcon from '@/ui/v2/icons/UserIcon';
+import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/helpers';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
@@ -79,6 +80,7 @@ export default function UsersPage() {
             </Button>
           </div>
         </div>
+        <UsersBody />
       </Container>
     </NhostApolloProvider>
   );
