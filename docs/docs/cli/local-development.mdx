@@ -325,6 +325,18 @@ curl http://localhost:1337/v1/functions/time\?name\=Greg
 Hello Greg! It's now: Wed, 27 Apr 2022 18:52:12 GMT
 ```
 
+## 4. Managing Local Data
+
+Nhost makes it easy to manage data on different branches. Within your project directory there is an `.nhost` directory that tracks database configuration, database seeds, mail data, and functions.
+
+### Seed Data
+See [the section on seed data](https://docs.nhost.io/database#seed-data) for an overview.
+
+If seeds have been applied there will be a file `seeds.applied` within the `.nhost/data/<branch-name>/db` directory.
+
+If you need to re-apply your seeds, delete this file and restart nhost.
+
+
 ## Deploy your project
 
 To deploy your local changes to production, you can commit and push them to
