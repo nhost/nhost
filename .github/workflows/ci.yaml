@@ -43,7 +43,7 @@ jobs:
           files: pnpm-lock.yaml
       - name: filter packages
         id: filter-packages
-        if: steps.changed-lockfile.outputs.any_changed == 'true' && github.event_name == 'pull_request'
+        if: steps.changed-lockfile.outputs.any_changed != 'true' && github.event_name == 'pull_request'
         run: echo "filter=${{ format('--filter=...[origin/{0}]', github.base_ref) }}" >> $GITHUB_OUTPUT
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
       # * In a PR, only include packages that have been modified, and their dependencies
