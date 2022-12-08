@@ -7,6 +7,7 @@ import CreatePermissionVariableForm from '@/components/settings/permissions/Crea
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
+import CreateUserForm from '@/components/users/CreateUserForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -16,7 +17,7 @@ import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
-  PropsWithChildren,
+  PropsWithChildren
 } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -25,7 +26,7 @@ import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
   dialogReducer,
-  drawerReducer,
+  drawerReducer
 } from './dialogReducers';
 
 function LoadingComponent({
@@ -313,6 +314,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_ROLE' && (
             <EditRoleForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'CREATE_USER' && (
+            <CreateUserForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'CREATE_PERMISSION_VARIABLE' && (
