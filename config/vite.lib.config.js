@@ -1,6 +1,6 @@
+import replace from '@rollup/plugin-replace'
 import fs from 'fs'
 import path from 'path'
-
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -41,6 +41,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: (id) => deps.some((dep) => id.startsWith(dep)),
+      plugins: [
+        replace({
+          preventAssignment: true,
+          'exports.hasOwnProperty(': 'Object.prototype.hasOwnProperty.call(exports,'
+        })
+      ],
       output: {
         globals: {
           graphql: 'graphql',
