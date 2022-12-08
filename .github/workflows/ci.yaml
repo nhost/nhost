@@ -41,6 +41,8 @@ jobs:
         uses: tj-actions/changed-files@v34
         with:
           files: pnpm-lock.yaml
+      # * Determine a pnpm filter argument for packages that have been modified.
+      # * If the lockfile has changed, we don't filter anything in order to run all the e2e tests.
       - name: filter packages
         id: filter-packages
         if: steps.changed-lockfile.outputs.any_changed != 'true' && github.event_name == 'pull_request'
