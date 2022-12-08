@@ -310,6 +310,6 @@ export default async function fetchTable({
       JSON.parse(rawRow),
     ) as NormalizedQueryDataRow[],
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: parseInt(rawAggregate, 10),
+    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
   };
 }
