@@ -8,6 +8,7 @@ import EditPermissionVariableForm from '@/components/settings/permissions/EditPe
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import CreateUserForm from '@/components/users/CreateUserForm';
+import EditUserForm from '@/components/users/EditUserForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -379,6 +380,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
             />
+          )}
+
+          {activeDrawerType === 'EDIT_USER' && (
+            <EditUserForm {...sharedDrawerProps} />
           )}
         </RetryableErrorBoundary>
       </Drawer>

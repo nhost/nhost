@@ -1,3 +1,7 @@
+import { useDialog } from '@/components/common/DialogProvider';
+import Chip from '@/components/ui/v2/Chip';
+import TrashIcon from '@/components/ui/v2/icons/TrashIcon';
+import UserIcon from '@/components/ui/v2/icons/UserIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -9,6 +13,8 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import { UserAddIcon } from '@heroicons/react/solid';
+import { format, formatRelative } from 'date-fns';
 import { Fragment, useState } from 'react';
 
 export interface RoleSettingsFormValues {
@@ -24,7 +30,7 @@ export interface RoleSettingsFormValues {
 
 export default function UsersBody() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  // const { openDialog, openAlertDialog } = useDialog();
+  const { openDrawer, openAlertDialog } = useDialog();
   const [searchQuery] = useState('');
   const [currentPage] = useState(1);
 
@@ -57,16 +63,29 @@ export default function UsersBody() {
   });
 
   if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading user roles..." />;
+    return <ActivityIndicator delay={1000} label="Loading users..." />;
   }
 
   if (error) {
     throw error;
   }
 
+  function handleViewUser() {
+    openDrawer('EDIT_USER', {
+      title: 'User Details',
+    });
+  }
+
+  function handleDeleteUser() {
+    openAlertDialog({
+      title: 'Delete Role',
+      payload: <Text>Are you sure you want to delete the &quot; undone.</Text>,
+    });
+  }
+
   return (
     <div className="grid grid-flow-row gap-2">
-      <div className="grid grid-cols-4 gap-2 px-4 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
+      <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
         <Text className="font-medium">Name</Text>
         <Text className="font-medium">Signed up at</Text>
         <Text className="font-medium">Last Seen</Text>
@@ -77,13 +96,13 @@ export default function UsersBody() {
           {data.users.map((user) => (
             <Fragment key={user.id}>
               <ListItem.Root
-                className="grid grid-cols-4 gap-2 px-4 lg:grid-cols-4"
+                className="grid grid-cols-4 gap-2 py-2.5"
                 secondaryAction={
                   <Dropdown.Root>
                     <Dropdown.Trigger
                       asChild
                       hideChevron
-                      className="absolute -translate-y-1/2 right-4 top-1/2"
+                      className="absolute -translate-y-1/2 right-1 top-1/2"
                     >
                       <IconButton variant="borderless" color="secondary">
                         <DotsVerticalIcon />
@@ -102,14 +121,22 @@ export default function UsersBody() {
                         horizontal: 'right',
                       }}
                     >
-                      <Dropdown.Item>
-                        <Text className="font-medium">Set as Default</Text>
+                      <Dropdown.Item
+                        onClick={handleViewUser}
+                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        <Text className="font-medium">View User</Text>
                       </Dropdown.Item>
 
                       <Divider component="li" />
 
-                      <Dropdown.Item>
-                        <Text className="font-medium">Edit</Text>
+                      <Dropdown.Item
+                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                        onClick={handleDeleteUser}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        <Text className="font-medium text-red">Delete</Text>
                       </Dropdown.Item>
 
                       <Divider component="li" />
@@ -117,24 +144,30 @@ export default function UsersBody() {
                   </Dropdown.Root>
                 }
               >
-                <ListItem.Text className="grid grid-flow-col grid-cols-2 gap-x-2">
-                  <div className="">
-                    <div>{user.displayName}</div>
-                    <div>{user.displayName}</div>
-                  </div>
-                </ListItem.Text>
-                <ListItem.Text>{user.displayName}</ListItem.Text>
-                <ListItem.Text>
-                  {user.displayName ||
-                    user.email ||
-                    user.phoneNumber ||
-                    user.id}
+                <ListItem.Text className="grid grid-flow-col gap-x-2">
+                  <Text className="font-medium">{user.displayName}</Text>
+                  <Text className="font-medium">View User</Text>
                 </ListItem.Text>
                 <ListItem.Text>
-                  {user.displayName ||
-                    user.email ||
-                    user.phoneNumber ||
-                    user.id}
+                  <Text
+                    color="greyscaleDark"
+                    className="font-normal"
+                    size="normal"
+                  >
+                    {format(new Date(user.createdAt), 'd MMM yyyy')}
+                  </Text>
+                </ListItem.Text>
+                <ListItem.Text>
+                  {formatRelative(new Date(), new Date(user.createdAt))}
+                </ListItem.Text>
+                <ListItem.Text>
+                  <Chip
+                    component="span"
+                    color="default"
+                    size="small"
+                    label="Email & Password"
+                    icon={<UserAddIcon className="w-4 h-4" />}
+                  />
                 </ListItem.Text>
               </ListItem.Root>
 
