@@ -1,11 +1,11 @@
-import type { ControlledAutocompleteProps } from '@/components/common/ControlledAutocomplete';
 import InlineCode from '@/components/common/InlineCode';
-import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
-import IconButton from '@/components/ui/v2/IconButton';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { AutocompletePopper } from '@/ui/v2/Autocomplete';
+import IconButton from '@/ui/v2/IconButton';
+import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
@@ -19,8 +19,7 @@ import type { PropsWithoutRef } from 'react';
 import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface ColumnAutocompleteProps
-  extends PropsWithoutRef<Omit<ControlledAutocompleteProps, 'options'>> {
+export interface ColumnAutocompleteProps extends PropsWithoutRef<InputProps> {
   /**
    * Schema where the `table` is located.
    */
@@ -126,7 +125,7 @@ export default function ColumnAutocomplete({
     getOptionProps,
     groupedOptions,
   } = useAutocomplete({
-    id: props.name,
+    id: props?.name,
     options: columnOptions,
     openOnFocus: true,
     groupBy: (option) => option.group,
@@ -166,6 +165,7 @@ export default function ColumnAutocomplete({
     <div>
       <div {...getRootProps()}>
         <Input
+          {...props}
           fullWidth
           componentsProps={{
             label: getInputLabelProps(),
