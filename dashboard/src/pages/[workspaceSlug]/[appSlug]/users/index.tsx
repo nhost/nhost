@@ -4,20 +4,27 @@ import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/helpers';
+import { useTotalUsersQuery } from '@/utils/__generated__/graphql';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
 
 export default function UsersPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog } = useDialog();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
-  if (!currentApplication) {
+  const { data, loading } = useTotalUsersQuery({
+    client: remoteProjectGQLClient,
+  });
+
+  if (!currentApplication || loading) {
     return <LoadingScreen />;
   }
 
@@ -31,21 +38,8 @@ export default function UsersPage() {
     });
   }
 
-  return (
-    <NhostApolloProvider
-      graphqlUrl={`${generateAppServiceUrl(
-        currentApplication.subdomain,
-        currentApplication.region.awsName,
-        'graphql',
-      )}/v1`}
-      fetchPolicy="cache-first"
-      headers={{
-        'x-hasura-admin-secret':
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
-            : currentApplication.hasuraGraphqlAdminSecret,
-      }}
-    >
+  if (data.usersAggregate.aggregate.count === 0) {
+    return (
       <Container>
         <div className="flex flex-row place-content-between">
           <Input className="rounded-sm" placeholder="Search users" />
@@ -79,6 +73,37 @@ export default function UsersPage() {
               Create User
             </Button>
           </div>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <NhostApolloProvider
+      graphqlUrl={`${generateAppServiceUrl(
+        currentApplication.subdomain,
+        currentApplication.region.awsName,
+        'graphql',
+      )}/v1`}
+      fetchPolicy="cache-first"
+      headers={{
+        'x-hasura-admin-secret':
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? 'nhost-admin-secret'
+            : currentApplication.hasuraGraphqlAdminSecret,
+      }}
+    >
+      <Container>
+        <div className="flex flex-row place-content-between">
+          <Input className="rounded-sm" placeholder="Search users" />
+          <Button
+            onClick={handleCreateUser}
+            startIcon={<PlusIcon className="w-4 h-4" />}
+            className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
+            size="small"
+          >
+            Create User
+          </Button>
         </div>
         <UsersBody />
       </Container>
