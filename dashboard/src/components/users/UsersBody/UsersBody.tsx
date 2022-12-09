@@ -14,6 +14,7 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { UserAddIcon } from '@heroicons/react/solid';
+import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import { Fragment, useState } from 'react';
 
@@ -97,7 +98,7 @@ export default function UsersBody() {
           {data.users.map((user) => (
             <Fragment key={user.id}>
               <ListItem.Root
-                className="grid grid-cols-4 gap-2 py-2.5"
+                className="grid grid-cols-4 gap-2 py-2.5 items-center"
                 secondaryAction={
                   <Dropdown.Root>
                     <Dropdown.Trigger
@@ -145,9 +146,22 @@ export default function UsersBody() {
                   </Dropdown.Root>
                 }
               >
-                <ListItem.Text className="grid grid-flow-col gap-x-2">
-                  <Text className="font-medium">{user.displayName}</Text>
-                  <Text className="font-medium">View User</Text>
+                <ListItem.Text>
+                  <div className="grid grid-flow-col gap-3 place-content-start">
+                    <Avatar className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-300 rounded-full">
+                      <span className="text-xs font-medium text-gray-600 uppercase">
+                        {user.displayName.slice(0, 2)}
+                      </span>
+                    </Avatar>
+                    <div className="grid items-center grid-flow-row">
+                      <Text className="text-sm+ font-medium">
+                        {user.displayName}
+                      </Text>
+                      <Text className="font-normal text-greyscaleGreyDark">
+                        {user.email}
+                      </Text>
+                    </div>
+                  </div>
                 </ListItem.Text>
                 <ListItem.Text>
                   <Text

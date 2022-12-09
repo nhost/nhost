@@ -10,21 +10,11 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-
-export interface EditUserFormValues {
-  /**
-   * Email of the user to add to this project.
-   */
-  email: string;
-  /**
-   * Password for the user.
-   */
-  password: string;
-}
 
 export interface EditUserFormProps {
   /**
@@ -38,13 +28,20 @@ export interface EditUserFormProps {
 }
 
 export const EditUserFormValidationSchema = Yup.object({
+  displayName: Yup.string().required('This field is required.'),
+  avatarURL: Yup.string().required('This field is required.'),
   email: Yup.string()
     .email('Invalid email address')
     .required('This field is required.'),
-  password: Yup.string()
-    .label('Users Password')
-    .required('This field is required.'),
+  // password: Yup.string()
+  //   .label('Users Password')
+  //   .required('This field is required.'),
+  phoneNumber: Yup.string(),
 });
+
+export type EditUserFormValues = Yup.InferType<
+  typeof EditUserFormValidationSchema
+>;
 
 export default function EditUserForm({
   user,
@@ -54,9 +51,14 @@ export default function EditUserForm({
   const { onDirtyStateChange } = useDialog();
 
   const form = useForm<EditUserFormValues>({
-    defaultValues: {},
     reValidateMode: 'onSubmit',
     resolver: yupResolver(EditUserFormValidationSchema),
+    defaultValues: {
+      avatarURL: user.avatarUrl,
+      displayName: user.displayName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    },
   });
 
   const {
@@ -75,7 +77,10 @@ export default function EditUserForm({
       <Form className="divide-y border-y">
         <section className="grid grid-flow-col grid-cols-7 p-6">
           <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
-            <div className="w-12 h-12 rounded-full bg-greyscaleGrey" />
+            <Avatar
+              src={user.avatarUrl}
+              className="w-12 h-12 border rounded-full"
+            />
             <div className="grid grid-flow-row">
               <Text className="text-lg font-medium">{user.displayName}</Text>
               <Text className="font-medium text-greyscaleGreyDark">
@@ -124,26 +129,26 @@ export default function EditUserForm({
         </section>
         <section className="grid grid-flow-row gap-6 p-6 px-6">
           <Input
-            {...register('email')}
+            {...register('displayName')}
             id="Display Name"
             label="Display Name"
             variant="inline"
             placeholder="Enter Display Name"
             hideEmptyHelperText
-            error={!!errors.email}
-            helperText={errors?.email?.message}
+            error={!!errors.displayName}
+            helperText={errors?.displayName?.message}
             fullWidth
             autoComplete="off"
           />
           <Input
-            {...register('email')}
+            {...register('avatarURL')}
             id="Avatar URL"
             label="Avatar URL"
             variant="inline"
             placeholder="Enter Avatar URL"
             hideEmptyHelperText
-            error={!!errors.email}
-            helperText={errors?.email?.message}
+            error={!!errors.avatarURL}
+            helperText={errors?.avatarURL?.message}
             fullWidth
             autoComplete="off"
           />
@@ -160,7 +165,6 @@ export default function EditUserForm({
             autoComplete="off"
           />
           <Input
-            {...register('email')}
             id="password"
             label="Password"
             variant="inline"
@@ -173,13 +177,13 @@ export default function EditUserForm({
             helperText={<ControlledCheckbox label="Verified" />}
           />
           <Input
-            {...register('email')}
+            {...register('phoneNumber')}
             id="phoneNumber"
             label="Phone Number"
             variant="inline"
             placeholder="Enter Phone Number"
             hideEmptyHelperText
-            error={!!errors.email}
+            error={!!errors.phoneNumber}
             fullWidth
             autoComplete="off"
             helperText={<ControlledCheckbox label="Verified" />}
