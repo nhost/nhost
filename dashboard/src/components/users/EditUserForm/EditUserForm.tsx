@@ -2,13 +2,15 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import InputLabel from '@/components/ui/v2/InputLabel';
-import Option from '@/components/ui/v2/Option';
-import Text from '@/components/ui/v2/Text';
+import Chip from '@/ui/v2/Chip';
 import Input from '@/ui/v2/Input';
+import InputLabel from '@/ui/v2/InputLabel';
+import Option from '@/ui/v2/Option';
+import Select from '@/ui/v2/Select';
+import Text from '@/ui/v2/Text';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { formatRelative } from 'date-fns';
+import { format, formatRelative } from 'date-fns';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -71,11 +73,34 @@ export default function EditUserForm({
   return (
     <FormProvider {...form}>
       <Form className="divide-y border-y">
-        <section className="grid grid-flow-row gap-6 p-6 px-6">
-          <Text className="font-medium">{user.displayName}</Text>
-          <Text className="font-medium text-greyscaleGreyDark">
-            {user.email}
-          </Text>
+        <section className="grid grid-flow-col grid-cols-7 p-6">
+          <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
+            <div className="w-12 h-12 rounded-full bg-greyscaleGrey" />
+            <div className="grid grid-flow-row">
+              <Text className="text-lg font-medium">{user.displayName}</Text>
+              <Text className="font-medium text-greyscaleGreyDark">
+                {user.email}
+              </Text>
+            </div>
+          </div>
+          <div>
+            <Select
+              className="w-full text-sm font-normal text-greyscaleDark"
+              placeholder="Actions"
+              aria-label="Select service"
+              hideEmptyHelperText
+              slotProps={{
+                root: { className: 'min-h-[initial] h-9 leading-[initial]' },
+              }}
+            >
+              <Option
+                value="Actions"
+                className="text-sm+ font-medium text-greyscaleGreyDark"
+              >
+                Actions
+              </Option>
+            </Select>
+          </div>
         </section>
         <section className="grid grid-flow-row grid-cols-4 gap-6 p-6 px-6">
           <InputLabel as="h3" className="col-span-1">
@@ -86,7 +111,9 @@ export default function EditUserForm({
           <InputLabel as="h3" className="col-span-1">
             Created
           </InputLabel>
-          <Text className="col-span-3 font-medium">{user.createdAt}</Text>
+          <Text className="col-span-3 font-medium">
+            {format(new Date(user.createdAt), 'd MMM yyyy')}
+          </Text>
 
           <InputLabel as="h3" className="col-span-1">
             Last Seen
@@ -169,15 +196,18 @@ export default function EditUserForm({
           </ControlledSelect>
         </section>
 
-        <section className="grid grid-flow-row gap-6 p-6 px-6">
-          <InputLabel as="h3">User ID</InputLabel>
-          <InputLabel as="h3">Created</InputLabel>
-          <InputLabel as="h3">Last Seen</InputLabel>
+        <section className="grid grid-flow-col grid-cols-2 p-6 px-6">
+          <div className="col-span-1">
+            <InputLabel as="h3">Sign-In Methods</InputLabel>
+          </div>
+          <div className="grid grid-flow-col col-span-1 place-content-between">
+            <Text className="font-medium">Email + Password</Text>
+            <Chip component="span" color="info" size="small" label="Active" />
+          </div>
         </section>
         <section className="grid grid-flow-row gap-6 p-6 px-6">
-          <InputLabel as="h3">User ID</InputLabel>
-          <InputLabel as="h3">Created</InputLabel>
-          <InputLabel as="h3">Last Seen</InputLabel>
+          <InputLabel as="h3">Default Role</InputLabel>
+          <InputLabel as="h3">Allowed Role</InputLabel>
         </section>
       </Form>
     </FormProvider>
