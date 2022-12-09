@@ -198,12 +198,14 @@ export default function ColumnAutocomplete({
         style={{ width: anchorEl?.parentElement?.clientWidth }}
       >
         <div className={autocompleteClasses.paper}>
-          <div className="px-3 py-2.5 border-b-1 border-greyscale-100">
-            <IconButton>
-              <ArrowLeftIcon />
-            </IconButton>
+          <div className="px-3 py-2.5 border-b-1 border-greyscale-100 grid grid-flow-col gap-2 justify-start items-center">
+            {selectedRelationship !== '' && (
+              <IconButton variant="borderless" color="secondary">
+                <ArrowLeftIcon className="w-4 h-4" />
+              </IconButton>
+            )}
 
-            <Text className="text-greyscaleMedium">{defaultTable}</Text>
+            <Text className="!text-greyscaleMedium">{defaultTable}</Text>
           </div>
 
           {(tableStatus === 'loading' || metadataStatus === 'loading') && (

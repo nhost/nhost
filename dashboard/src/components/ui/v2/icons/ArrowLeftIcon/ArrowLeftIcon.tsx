@@ -1,6 +1,6 @@
 import type { IconProps } from '@/ui/v2/icons';
 
-function ArrowRightIcon(props: IconProps) {
+function ArrowLeftIcon(props: IconProps) {
   return (
     <svg
       width={16}
@@ -8,7 +8,7 @@ function ArrowRightIcon(props: IconProps) {
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-label="An arrow pointing to the right"
+      aria-label="An arrow pointing to the left"
       {...props}
     >
       <path
@@ -22,6 +22,6 @@ function ArrowRightIcon(props: IconProps) {
   );
 }
 
-ArrowRightIcon.displayName = 'NhostArrowRightIcon';
+ArrowLeftIcon.displayName = 'NhostArrowLeftIcon';
 
-export default ArrowRightIcon;
+export default ArrowLeftIcon;
