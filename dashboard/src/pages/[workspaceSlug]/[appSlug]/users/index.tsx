@@ -32,8 +32,8 @@ export default function UsersPage() {
     openDialog('CREATE_USER', {
       title: 'Create User',
       props: {
-        titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
+        titleProps: { className: 'mx-auto' },
+        PaperProps: { className: 'max-w-md' },
       },
     });
   }
@@ -93,7 +93,7 @@ export default function UsersPage() {
             : currentApplication.hasuraGraphqlAdminSecret,
       }}
     >
-      <Container>
+      <Container className="mx-auto max-w-8xl">
         <div className="flex flex-row place-content-between">
           <Input className="rounded-sm" placeholder="Search users" />
           <Button

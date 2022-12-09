@@ -2,6 +2,8 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import IconButton from '@/components/ui/v2/IconButton';
+import InputAdornment from '@/components/ui/v2/InputAdornment';
 import Chip from '@/ui/v2/Chip';
 import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
@@ -48,7 +50,7 @@ export default function EditUserForm({
   onSubmit,
   ...props
 }: EditUserFormProps) {
-  const { onDirtyStateChange } = useDialog();
+  const { onDirtyStateChange, openDialog } = useDialog();
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -72,23 +74,34 @@ export default function EditUserForm({
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
 
+  function handleChangeUserPassword() {
+    openDialog('CREATE_USER', {
+      title: 'Change Password',
+      props: {
+        titleProps: { className: 'mx-auto' },
+        PaperProps: { className: 'max-w-md' },
+      },
+    });
+  }
+
   return (
     <FormProvider {...form}>
       <Form className="divide-y border-y">
         <section className="grid grid-flow-col grid-cols-7 p-6">
           <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
-            <Avatar
-              src={user.avatarUrl}
-              className="w-12 h-12 border rounded-full"
-            />
-            <div className="grid grid-flow-row">
+            <Avatar className="relative inline-flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-300 rounded-full">
+              <span className="text-xs font-medium text-gray-600 uppercase">
+                {user.displayName.slice(0, 2)}
+              </span>
+            </Avatar>
+            <div className="grid items-center grid-flow-row">
               <Text className="text-lg font-medium">{user.displayName}</Text>
-              <Text className="font-medium text-greyscaleGreyDark">
+              <Text className="font-normal text-sm+ text-greyscaleGreyDark">
                 {user.email}
               </Text>
             </div>
           </div>
-          <div>
+          <div className='items-center'>
             <Select
               className="w-full text-sm font-normal text-greyscaleDark"
               placeholder="Actions"
@@ -175,6 +188,18 @@ export default function EditUserForm({
             fullWidth
             autoComplete="off"
             helperText={<ControlledCheckbox label="Verified" />}
+            endAdornment={
+              <InputAdornment position="end" className="absolute right-2">
+                <IconButton
+                  color="primary"
+                  variant="borderless"
+                  className="px-2"
+                  onClick={handleChangeUserPassword}
+                >
+                  Change
+                </IconButton>
+              </InputAdornment>
+            }
           />
           <Input
             {...register('phoneNumber')}
