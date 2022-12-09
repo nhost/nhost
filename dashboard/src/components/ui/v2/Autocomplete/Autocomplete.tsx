@@ -117,17 +117,18 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
   MaterialAutocompleteProps<AutocompleteOption, boolean, boolean, boolean>
 >;
 
-const StyledPopper = styled(PopperUnstyled)(({ theme }) => ({
+export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   zIndex: 1,
   boxShadow: 'none',
   minWidth: 320,
   maxWidth: 600,
   [`& .${materialAutocompleteClasses.paper}`]: {
-    margin: theme.spacing(1.25, 0),
+    borderRadius: theme.shape.borderRadius,
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
     boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
   },
   [`& .${materialAutocompleteClasses.listbox}`]: {
-    borderRadius: theme.shape.borderRadius,
     overflow: 'auto',
     minWidth: 320,
     maxWidth: 600,
@@ -231,6 +232,7 @@ function Autocomplete(
       componentsProps={{
         ...defaultComponentsProps,
         popper: {
+          modifiers: [{ name: 'offset', options: { offset: [0, 10] } }],
           ...defaultComponentsProps.popper,
           placement: 'bottom-start',
         },
@@ -251,7 +253,7 @@ function Autocomplete(
           onInputChange(event, value, reason);
         }
       }}
-      PopperComponent={StyledPopper}
+      PopperComponent={AutocompletePopper}
       popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
       getOptionLabel={(option) => {
         if (typeof option === 'string') {

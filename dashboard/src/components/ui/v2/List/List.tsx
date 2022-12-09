@@ -1,11 +1,16 @@
 import type { ListProps as MaterialListProps } from '@mui/material/List';
 import MaterialList from '@mui/material/List';
+import type { ForwardedRef } from 'react';
+import { forwardRef } from 'react';
 
 export interface ListProps extends MaterialListProps {}
 
-function List({ children, ...props }: ListProps) {
+function List(
+  { children, ...props }: ListProps,
+  ref: ForwardedRef<HTMLUListElement | HTMLOListElement>,
+) {
   return (
-    <MaterialList disablePadding {...props}>
+    <MaterialList ref={ref} disablePadding {...props}>
       {children}
     </MaterialList>
   );
@@ -13,4 +18,4 @@ function List({ children, ...props }: ListProps) {
 
 List.displayName = 'NhostList';
 
-export default List;
+export default forwardRef(List);

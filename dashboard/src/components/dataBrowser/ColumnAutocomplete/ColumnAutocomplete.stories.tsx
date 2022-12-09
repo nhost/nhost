@@ -44,7 +44,7 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
       <FormProvider {...form}>
         <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
           <ColumnAutocomplete {...args} name="firstReference" />
-          <ColumnAutocomplete {...args} name="secondReference" />
+          {/* <ColumnAutocomplete {...args} name="secondReference" /> */}
 
           <Button type="submit" className="justify-self-start">
             Submit

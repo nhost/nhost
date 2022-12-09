@@ -1,12 +1,22 @@
 import type { ControlledAutocompleteProps } from '@/components/common/ControlledAutocomplete';
-import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import InlineCode from '@/components/common/InlineCode';
+import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
+import IconButton from '@/components/ui/v2/IconButton';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
+import { AutocompletePopper } from '@/ui/v2/Autocomplete';
+import Input from '@/ui/v2/Input';
+import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
+import { OptionGroupBase } from '@/ui/v2/OptionGroup';
+import Text from '@/ui/v2/Text';
+import { ArrowLeftIcon } from '@heroicons/react/solid';
+import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
+import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
+import { autocompleteClasses } from '@mui/material';
 import type { PropsWithoutRef } from 'react';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ColumnAutocompleteProps
@@ -105,70 +115,160 @@ export default function ColumnAutocomplete({
       };
     }) || [];
 
+  const {
+    popupOpen,
+    anchorEl,
+    setAnchorEl,
+    getRootProps,
+    getInputLabelProps,
+    getInputProps,
+    getListboxProps,
+    getOptionProps,
+    groupedOptions,
+  } = useAutocomplete({
+    id: props.name,
+    options: columnOptions,
+    openOnFocus: true,
+    groupBy: (option) => option.group,
+    isOptionEqualToValue: (option, value) => {
+      if (!value) {
+        return false;
+      }
+
+      if (typeof value === 'string') {
+        return option.value === value;
+      }
+
+      return option.value === value.value && option.custom === value.custom;
+    },
+    onChange: (_event, value) => {
+      if (typeof value === 'string' || Array.isArray(value) || !value) {
+        return;
+      }
+
+      if (value && 'group' in value && value.group === 'columns') {
+        setSelectedColumn(value.value);
+
+        return;
+      }
+
+      setSelectedRelationship((currentRelationship) =>
+        currentRelationship
+          ? `${currentRelationship}.${value.metadata.target.table}`
+          : value.metadata.target.table,
+      );
+
+      setInputValue('');
+    },
+  });
+
   return (
-    <ControlledAutocomplete
-      slotProps={{
-        input: {
-          slotProps: {
-            input: {
+    <div>
+      <div {...getRootProps()}>
+        <Input
+          fullWidth
+          componentsProps={{
+            label: getInputLabelProps(),
+            input: { ref: setAnchorEl },
+            inputRoot: {
+              ...getInputProps(),
               className: twMerge(hasSelectedColumnOrRelationship && '!pl-0'),
             },
-          },
-          startAdornment: hasSelectedColumnOrRelationship ? (
-            <span className="ml-2">
-              <span className="text-greyscaleGrey">{defaultTable}</span>.
-              {selectedRelationship && <span>{selectedRelationship}.</span>}
-            </span>
-          ) : null,
-        },
-      }}
-      options={columnOptions}
-      groupBy={(option) => option.group}
-      renderOption={(
-        optionProps,
-        { label, value, metadata: optionMetadata, group },
-      ) =>
-        group === 'relationships' ? (
-          <OptionBase {...optionProps}>{label}</OptionBase>
-        ) : (
-          <OptionBase {...optionProps}>
-            <div className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5">
-              <span>{label}</span>
+          }}
+          error={Boolean(tableError || metadataError)}
+          helperText={String(tableError || metadataError || '')}
+          onChange={(event) => setInputValue(event.target.value)}
+          value={inputValue}
+          startAdornment={
+            hasSelectedColumnOrRelationship ? (
+              <span className="ml-2">
+                <span className="text-greyscaleGrey">{defaultTable}</span>.
+                {selectedRelationship && <span>{selectedRelationship}.</span>}
+              </span>
+            ) : null
+          }
+        />
+      </div>
 
-              <InlineCode>{optionMetadata?.type || value}</InlineCode>
+      <AutocompletePopper
+        modifiers={[{ name: 'offset', options: { offset: [0, 10] } }]}
+        placement="bottom-start"
+        open={popupOpen}
+        anchorEl={anchorEl}
+        style={{ width: anchorEl?.parentElement?.clientWidth }}
+      >
+        <div className={autocompleteClasses.paper}>
+          <div className="px-3 py-2.5 border-b-1 border-greyscale-100">
+            <IconButton>
+              <ArrowLeftIcon />
+            </IconButton>
+
+            <Text className="text-greyscaleMedium">{defaultTable}</Text>
+          </div>
+
+          {(tableStatus === 'loading' || metadataStatus === 'loading') && (
+            <div className="p-2">
+              <ActivityIndicator label="Loading..." />
             </div>
-          </OptionBase>
-        )
-      }
-      loading={tableStatus === 'loading' || metadataStatus === 'loading'}
-      error={Boolean(tableError) || Boolean(metadataError)}
-      helperText={
-        tableError || metadataError ? String(tableError || metadataError) : ''
-      }
-      fullWidth
-      freeSolo
-      inputValue={inputValue}
-      onInputChange={(_event, value) => setInputValue(value)}
-      onChange={(_event, value) => {
-        if (typeof value === 'string' || Array.isArray(value)) {
-          return;
-        }
+          )}
 
-        if ('group' in value && value.group === 'columns') {
-          setSelectedColumn(value.value);
+          {groupedOptions.length > 0 && (
+            <List
+              {...getListboxProps()}
+              className={autocompleteClasses.listbox}
+            >
+              {(
+                groupedOptions as AutocompleteGroupedOption<
+                  typeof columnOptions[number]
+                >[]
+              ).map((optionGroup, optionGroupIndex) => {
+                if (typeof optionGroup === 'string') {
+                  return (
+                    <OptionBase
+                      {...getOptionProps({
+                        option: optionGroup,
+                        index: optionGroupIndex,
+                      })}
+                    >
+                      {optionGroup}
+                    </OptionBase>
+                  );
+                }
 
-          return;
-        }
+                return (
+                  <Fragment key={optionGroup.key}>
+                    <OptionGroupBase as="li">
+                      {optionGroup.group}
+                    </OptionGroupBase>
 
-        setSelectedRelationship((currentRelationship) =>
-          currentRelationship
-            ? `${currentRelationship}.${value.metadata.target.table}`
-            : value.metadata.target.table,
-        );
+                    {optionGroup.options.map((option, index) => (
+                      <OptionBase
+                        {...getOptionProps({
+                          option,
+                          index: optionGroupIndex * 10 + index,
+                        })}
+                        className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
+                      >
+                        <span>{option.label}</span>
 
-        setInputValue('');
-      }}
-      {...props}
-    />
+                        {optionGroup.group === 'columns' && (
+                          <InlineCode>
+                            {option.metadata?.type || option.value}
+                          </InlineCode>
+                        )}
+                      </OptionBase>
+                    ))}
+                  </Fragment>
+                );
+              })}
+            </List>
+          )}
+
+          {groupedOptions.length === 0 && Boolean(anchorEl) && (
+            <Text className={autocompleteClasses.noOptions}>No options</Text>
+          )}
+        </div>
+      </AutocompletePopper>
+    </div>
   );
 }
