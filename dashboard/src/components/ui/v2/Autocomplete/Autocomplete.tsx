@@ -48,7 +48,7 @@ export interface AutocompleteProps<
   TOption extends AutocompleteOption = AutocompleteOption,
 > extends Omit<
       MaterialAutocompleteProps<TOption, boolean, boolean, boolean>,
-      'renderInput' | 'autoSelect'
+      'renderInput' | 'autoSelect' | 'componentsProps'
     >,
     Pick<
       InputProps,
@@ -64,14 +64,23 @@ export interface AutocompleteProps<
   /**
    * Props for component slots.
    */
-  componentsProps?: MaterialAutocompleteProps<
+  slotProps?: MaterialAutocompleteProps<
     TOption,
     boolean,
     boolean,
     boolean
   >['componentsProps'] & {
+    /**
+     * Props passed to the root element.
+     */
     root?: Partial<UseAutocompleteProps<any, boolean, boolean, boolean>>;
+    /**
+     * Props passed to the input component.
+     */
     input?: Partial<Omit<InputProps, 'ref'>>;
+    /**
+     * Props passed to the input's `FormControl` component.
+     */
     formControl?: Partial<FormControlProps>;
   };
   /**
@@ -157,7 +166,7 @@ const filterOptions = createFilterOptions<AutocompleteOption>({
 
 function Autocomplete(
   {
-    componentsProps = {},
+    slotProps = {},
     fullWidth,
     placeholder,
     label,
@@ -178,12 +187,14 @@ function Autocomplete(
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const { formControl: formControlSlotProps, ...defaultComponentsProps } =
-    componentsProps || {};
+    slotProps || {};
 
   const [inputValue, setInputValue] = useState<string>(
     () => externalInputValue || '',
   );
 
+  // TODO: Revisit this implementation. We should probably have a better way to
+  // make this component controlled.
   useEffect(() => {
     setInputValue(externalInputValue);
   }, [externalInputValue]);
@@ -319,9 +330,9 @@ function Autocomplete(
           }}
           {...InternalInputProps}
           {...params}
-          {...componentsProps?.input}
-          // prevent className changes from the Autocomplete component
+          {...slotProps?.input}
           value={params?.inputProps?.value || ''}
+          // prevent className changes from the Autocomplete component
           className=""
           autoComplete="off"
           fullWidth={fullWidth}

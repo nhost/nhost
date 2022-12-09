@@ -1,5 +1,9 @@
+import Form from '@/components/common/Form';
+import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { rest } from 'msw';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { ColumnAutocompleteProps } from './ColumnAutocomplete';
 import ColumnAutocomplete from './ColumnAutocomplete';
@@ -19,16 +23,39 @@ export default {
 const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
   args: ColumnAutocompleteProps,
 ) {
-  const form = useForm<{ column: string }>({
+  const [submittedValues, setSubmittedValues] = useState<string>('');
+
+  const form = useForm<{ firstReference: string; secondReference: string }>({
     defaultValues: {
-      column: null,
+      firstReference: null,
+      secondReference: null,
     },
   });
 
+  function handleSubmit(values: {
+    firstReference: string;
+    secondReference: string;
+  }) {
+    setSubmittedValues(JSON.stringify(values, null, 2));
+  }
+
   return (
-    <FormProvider {...form}>
-      <ColumnAutocomplete {...args} name="column" />
-    </FormProvider>
+    <div className="grid grid-flow-row gap-2">
+      <FormProvider {...form}>
+        <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
+          <ColumnAutocomplete {...args} name="firstReference" />
+          <ColumnAutocomplete {...args} name="secondReference" />
+
+          <Button type="submit" className="justify-self-start">
+            Submit
+          </Button>
+        </Form>
+      </FormProvider>
+
+      <Text component="pre" className="!font-mono !text-gray-700">
+        {submittedValues || 'The form has not been submitted yet.'}
+      </Text>
+    </div>
   );
 };
 
@@ -53,8 +80,43 @@ Default.parameters = {
   },
   msw: {
     handlers: [
-      rest.post('http://localhost:1337/v2/query', (req, res, ctx) =>
-        res(
+      rest.post('http://localhost:1337/v2/query', async (req, res, ctx) => {
+        const body = await req.json();
+
+        if (/table_name = 'authors'/gim.exec(body.args[0].args.sql) !== null) {
+          return res(
+            ctx.json([
+              {
+                result_type: 'TuplesOk',
+                result: [
+                  ['row_to_json'],
+                  [
+                    '{"table_catalog":"pqfgbylcwyuertjcrmgy","table_schema":"public","table_name":"authors","column_name":"id","ordinal_position":1,"column_default":"gen_random_uuid()","is_nullable":"NO","data_type":"uuid","character_maximum_length":null,"character_octet_length":null,"numeric_precision":null,"numeric_precision_radix":null,"numeric_scale":null,"datetime_precision":null,"interval_type":null,"interval_precision":null,"character_set_catalog":null,"character_set_schema":null,"character_set_name":null,"collation_catalog":null,"collation_schema":null,"collation_name":null,"domain_catalog":null,"domain_schema":null,"domain_name":null,"udt_catalog":"pqfgbylcwyuertjcrmgy","udt_schema":"pg_catalog","udt_name":"uuid","scope_catalog":null,"scope_schema":null,"scope_name":null,"maximum_cardinality":null,"dtd_identifier":"1","is_self_referencing":"NO","is_identity":"NO","identity_generation":null,"identity_start":null,"identity_increment":null,"identity_maximum":null,"identity_minimum":null,"identity_cycle":"NO","is_generated":"NEVER","generation_expression":null,"is_updatable":"YES","is_primary":true,"is_unique":true,"column_comment":null}',
+                  ],
+                  [
+                    '{"table_catalog":"pqfgbylcwyuertjcrmgy","table_schema":"public","table_name":"authors","column_name":"name","ordinal_position":2,"column_default":null,"is_nullable":"NO","data_type":"text","character_maximum_length":null,"character_octet_length":1073741824,"numeric_precision":null,"numeric_precision_radix":null,"numeric_scale":null,"datetime_precision":null,"interval_type":null,"interval_precision":null,"character_set_catalog":null,"character_set_schema":null,"character_set_name":null,"collation_catalog":null,"collation_schema":null,"collation_name":null,"domain_catalog":null,"domain_schema":null,"domain_name":null,"udt_catalog":"pqfgbylcwyuertjcrmgy","udt_schema":"pg_catalog","udt_name":"text","scope_catalog":null,"scope_schema":null,"scope_name":null,"maximum_cardinality":null,"dtd_identifier":"2","is_self_referencing":"NO","is_identity":"NO","identity_generation":null,"identity_start":null,"identity_increment":null,"identity_maximum":null,"identity_minimum":null,"identity_cycle":"NO","is_generated":"NEVER","generation_expression":null,"is_updatable":"YES","is_primary":false,"is_unique":false,"column_comment":null}',
+                  ],
+                  [
+                    '{"table_catalog":"pqfgbylcwyuertjcrmgy","table_schema":"public","table_name":"authors","column_name":"birth_date","ordinal_position":3,"column_default":null,"is_nullable":"NO","data_type":"timestamp without time zone","character_maximum_length":null,"character_octet_length":null,"numeric_precision":null,"numeric_precision_radix":null,"numeric_scale":null,"datetime_precision":6,"interval_type":null,"interval_precision":null,"character_set_catalog":null,"character_set_schema":null,"character_set_name":null,"collation_catalog":null,"collation_schema":null,"collation_name":null,"domain_catalog":null,"domain_schema":null,"domain_name":null,"udt_catalog":"pqfgbylcwyuertjcrmgy","udt_schema":"pg_catalog","udt_name":"timestamp","scope_catalog":null,"scope_schema":null,"scope_name":null,"maximum_cardinality":null,"dtd_identifier":"3","is_self_referencing":"NO","is_identity":"NO","identity_generation":null,"identity_start":null,"identity_increment":null,"identity_maximum":null,"identity_minimum":null,"identity_cycle":"NO","is_generated":"NEVER","generation_expression":null,"is_updatable":"YES","is_primary":false,"is_unique":false,"column_comment":null}',
+                  ],
+                ],
+              },
+              { result_type: 'TuplesOk', result: [['row_to_json']] },
+              {
+                result_type: 'TuplesOk',
+                result: [
+                  ['row_to_json'],
+                  [
+                    '{"constraint_name":"authors_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
+                  ],
+                ],
+              },
+              { result_type: 'TuplesOk', result: [['count'], ['0']] },
+            ]),
+          );
+        }
+
+        return res(
           ctx.json([
             {
               result_type: 'TuplesOk',
@@ -89,8 +151,8 @@ Default.parameters = {
             },
             { result_type: 'TuplesOk', result: [['count'], ['0']] },
           ]),
-        ),
-      ),
+        );
+      }),
       rest.post('http://localhost:1337/v1/metadata', (req, res, ctx) =>
         res(
           ctx.json({

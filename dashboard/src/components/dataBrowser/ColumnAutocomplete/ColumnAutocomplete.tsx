@@ -22,75 +22,107 @@ export interface ColumnAutocompleteProps
 }
 
 export default function ColumnAutocomplete({
-  schema,
-  table,
+  schema: defaultSchema,
+  table: defaultTable,
   ...props
 }: ColumnAutocompleteProps) {
   const [inputValue, setInputValue] = useState<string>('');
+  const [selectedColumn, setSelectedColumn] = useState<string>('');
+  const [selectedRelationship, setSelectedRelationship] = useState<string>('');
+  const selectedTable =
+    selectedRelationship.split('.').slice(-1)?.[0] || defaultTable;
+  const hasSelectedColumnOrRelationship =
+    Boolean(selectedColumn) || Boolean(selectedRelationship);
 
   const {
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`], {
-    schema,
-    table,
+  } = useTableQuery([`default.${defaultSchema}.${selectedTable}`], {
+    schema: defaultSchema,
+    table: selectedTable,
     queryOptions: { refetchOnWindowFocus: false },
   });
-
-  const { columns, foreignKeyRelations } = tableData || {};
 
   const {
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery([`default.${schema}.${table}.metadata`], {
+  } = useMetadataQuery([`default.metadata`], {
     queryOptions: { refetchOnWindowFocus: false },
   });
 
   const { object_relationships, array_relationships } =
     metadata?.tables?.find(
       ({ table: metadataTable }) =>
-        metadataTable.name === table && metadataTable.schema === schema,
+        metadataTable.name === selectedTable &&
+        metadataTable.schema === defaultSchema,
     ) || {};
 
-  // const lastActiveColumn =
-  //   inputValue?.split('.').slice(-1)?.[0] || inputValue || '';
+  const columnAliasMap = [
+    ...(object_relationships || []),
+    ...(array_relationships || []),
+  ].reduce((map, currentRelationship) => {
+    const { foreign_key_constraint_on } = currentRelationship?.using || {};
+
+    if (typeof foreign_key_constraint_on !== 'string') {
+      return map.set(
+        foreign_key_constraint_on.column,
+        currentRelationship.name,
+      );
+    }
+
+    return map.set(foreign_key_constraint_on, currentRelationship.name);
+  }, new Map<string, string>());
+
+  const { columns, foreignKeyRelations } = tableData || {};
+
+  const columnTargetMap = foreignKeyRelations?.reduce(
+    (map, currentRelation) =>
+      map.set(currentRelation.columnName, {
+        schema: currentRelation.referencedSchema || 'public',
+        table: currentRelation.referencedTable,
+      }),
+    new Map<string, { schema: string; table: string }>(),
+  );
 
   const columnOptions: AutocompleteOption[] =
-    columns
-      ?.filter(
-        (column) =>
-          !foreignKeyRelations?.some(
-            (foreignKeyRelation) =>
-              foreignKeyRelation.columnName === column.column_name,
-          ),
-      )
-      .map((column) => ({
+    columns?.map((column) => {
+      if (columnAliasMap.has(column.column_name)) {
+        return {
+          label: columnAliasMap.get(column.column_name),
+          value: columnAliasMap.get(column.column_name),
+          group: 'relationships',
+          metadata: { target: columnTargetMap.get(column.column_name) || null },
+        };
+      }
+
+      return {
         label: column.column_name,
         value: column.column_name,
         group: 'columns',
         metadata: { type: column.udt_name },
-      })) || [];
-
-  const relationshipOptions: AutocompleteOption[] =
-    foreignKeyRelations?.map((foreignKeyRelation) => ({
-      label: foreignKeyRelation.columnName,
-      value: foreignKeyRelation.columnName,
-      group: 'relationships',
-    })) || [];
+      };
+    }) || [];
 
   return (
     <ControlledAutocomplete
-      componentsProps={{
+      slotProps={{
         input: {
-          slotProps: { input: { className: twMerge(inputValue && '!pl-0') } },
-          startAdornment: inputValue ? (
-            <span className="ml-2">{table}.</span>
+          slotProps: {
+            input: {
+              className: twMerge(hasSelectedColumnOrRelationship && '!pl-0'),
+            },
+          },
+          startAdornment: hasSelectedColumnOrRelationship ? (
+            <span className="ml-2">
+              <span className="text-greyscaleGrey">{defaultTable}</span>.
+              {selectedRelationship && <span>{selectedRelationship}.</span>}
+            </span>
           ) : null,
         },
       }}
-      options={[...columnOptions, ...relationshipOptions] || []}
+      options={columnOptions}
       groupBy={(option) => option.group}
       renderOption={(
         optionProps,
@@ -114,36 +146,27 @@ export default function ColumnAutocomplete({
         tableError || metadataError ? String(tableError || metadataError) : ''
       }
       fullWidth
+      freeSolo
       inputValue={inputValue}
-      onInputChange={(_event, value) => {
-        setInputValue(value);
-        console.log(value);
-      }}
+      onInputChange={(_event, value) => setInputValue(value)}
       onChange={(_event, value) => {
-        if (
-          typeof value === 'string' ||
-          ('group' in value && value.group === 'columns')
-        ) {
+        if (typeof value === 'string' || Array.isArray(value)) {
           return;
         }
 
-        setInputValue((currentInputValue) => `${currentInputValue}.`);
-        // if (typeof value === 'string') {
-        //   setSelectedColumn(value);
-        //   setInputValue(null);
+        if ('group' in value && value.group === 'columns') {
+          setSelectedColumn(value.value);
 
-        //   return;
-        // }
+          return;
+        }
 
-        // if ('group' in value && value.group === 'relationships') {
-        //   setSelectedColumn((currentValue) =>
-        //     currentValue
-        //       ? `${currentValue}${value.value}`
-        //       : `${table}.${value.value}.`,
-        //   );
+        setSelectedRelationship((currentRelationship) =>
+          currentRelationship
+            ? `${currentRelationship}.${value.metadata.target.table}`
+            : value.metadata.target.table,
+        );
 
-        //   setInputValue(null);
-        // }
+        setInputValue('');
       }}
       {...props}
     />
