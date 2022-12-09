@@ -1,10 +1,12 @@
 import CheckIcon from '@/ui/v2/icons/CheckIcon';
+import XIcon from '@/ui/v2/icons/XIcon';
+import type { DefaultToastOptions } from 'react-hot-toast';
 
 /**
  * Common styles for `toast.promise` notifications in the settings page.
  *  @see {@link https://react-hot-toast.com/docs/toast}
  */
-export const toastStyleProps = {
+export const toastStyleProps: DefaultToastOptions = {
   style: {
     minWidth: '400px',
     backgroundColor: 'rgb(33 50 75)',
@@ -12,7 +14,11 @@ export const toastStyleProps = {
   },
   success: {
     duration: 5000,
-    icon: <CheckIcon className="h-4 w-4 bg-transparent" />,
+    icon: <CheckIcon className="h-4 w-4" />,
+  },
+  error: {
+    duration: 5000,
+    icon: <XIcon className="h-4 w-4" />,
   },
 };
 
