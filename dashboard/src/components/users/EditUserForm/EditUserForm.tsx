@@ -75,8 +75,9 @@ export default function EditUserForm({
   }, [isDirty, onDirtyStateChange]);
 
   function handleChangeUserPassword() {
-    openDialog('CREATE_USER', {
+    openDialog('EDIT_USER_PASSWORD', {
       title: 'Change Password',
+      payload:{user},
       props: {
         titleProps: { className: 'mx-auto' },
         PaperProps: { className: 'max-w-md' },
@@ -101,7 +102,7 @@ export default function EditUserForm({
               </Text>
             </div>
           </div>
-          <div className='items-center'>
+          <div className="items-center">
             <Select
               className="w-full text-sm font-normal text-greyscaleDark"
               placeholder="Actions"

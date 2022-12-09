@@ -20,7 +20,8 @@ export type DialogType =
   | 'EDIT_PERMISSION_VARIABLE'
   | 'CREATE_ENVIRONMENT_VARIABLE'
   | 'EDIT_ENVIRONMENT_VARIABLE'
-  | 'EDIT_USER';
+  | 'EDIT_USER'
+  | 'EDIT_USER_PASSWORD';
 
 export interface DialogConfig<TPayload = unknown> {
   /**

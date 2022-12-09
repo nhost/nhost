@@ -9,6 +9,7 @@ import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import CreateUserForm from '@/components/users/CreateUserForm';
 import EditUserForm from '@/components/users/EditUserForm';
+import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -18,7 +19,7 @@ import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
-  PropsWithChildren,
+  PropsWithChildren
 } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -27,7 +28,7 @@ import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
   dialogReducer,
-  drawerReducer,
+  drawerReducer
 } from './dialogReducers';
 
 function LoadingComponent({
@@ -335,6 +336,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
             <EditEnvironmentVariableForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'EDIT_USER_PASSWORD' && (
+            <EditUserPasswordForm
+              {...sharedDialogProps}
+              user={sharedDialogProps?.user}
+            />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>
