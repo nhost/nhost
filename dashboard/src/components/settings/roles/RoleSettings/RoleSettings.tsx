@@ -18,7 +18,7 @@ import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
-  useUpdateAppMutation,
+  useUpdateAppMutation
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -156,7 +156,7 @@ export default function RoleSettings() {
       className="px-0 my-2"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="border-b-1 border-gray-200 px-4 py-3">
+      <div className="px-4 py-3 border-gray-200 border-b-1">
         <Text className="font-medium">Name</Text>
       </div>
 
@@ -171,7 +171,7 @@ export default function RoleSettings() {
                     <Dropdown.Trigger
                       asChild
                       hideChevron
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute -translate-y-1/2 right-4 top-1/2"
                     >
                       <IconButton variant="borderless" color="secondary">
                         <DotsVerticalIcon />
@@ -257,7 +257,7 @@ export default function RoleSettings() {
         </List>
 
         <Button
-          className="justify-self-start mx-4"
+          className="mx-4 justify-self-start"
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}

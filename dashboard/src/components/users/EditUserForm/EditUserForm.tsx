@@ -2,10 +2,10 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import IconButton from '@/components/ui/v2/IconButton';
-import InputAdornment from '@/components/ui/v2/InputAdornment';
-import Chip from '@/ui/v2/Chip';
+import Button from '@/ui/v2/Button';
+import IconButton from '@/ui/v2/IconButton';
 import Input from '@/ui/v2/Input';
+import InputAdornment from '@/ui/v2/InputAdornment';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
@@ -35,9 +35,6 @@ export const EditUserFormValidationSchema = Yup.object({
   email: Yup.string()
     .email('Invalid email address')
     .required('This field is required.'),
-  // password: Yup.string()
-  //   .label('Users Password')
-  //   .required('This field is required.'),
   phoneNumber: Yup.string(),
 });
 
@@ -45,11 +42,7 @@ export type EditUserFormValues = Yup.InferType<
   typeof EditUserFormValidationSchema
 >;
 
-export default function EditUserForm({
-  user,
-  onSubmit,
-  ...props
-}: EditUserFormProps) {
+export default function EditUserForm({ user }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog } = useDialog();
 
   const form = useForm<EditUserFormValues>({
@@ -77,7 +70,7 @@ export default function EditUserForm({
   function handleChangeUserPassword() {
     openDialog('EDIT_USER_PASSWORD', {
       title: 'Change Password',
-      payload:{user},
+      payload: { user },
       props: {
         titleProps: { className: 'mx-auto' },
         PaperProps: { className: 'max-w-md' },
@@ -226,7 +219,7 @@ export default function EditUserForm({
           </ControlledSelect>
         </section>
 
-        <section className="grid grid-flow-col grid-cols-2 p-6 px-6">
+        {/* <section className="grid grid-flow-col grid-cols-2 p-6 px-6">
           <div className="col-span-1">
             <InputLabel as="h3">Sign-In Methods</InputLabel>
           </div>
@@ -238,7 +231,20 @@ export default function EditUserForm({
         <section className="grid grid-flow-row gap-6 p-6 px-6">
           <InputLabel as="h3">Default Role</InputLabel>
           <InputLabel as="h3">Allowed Role</InputLabel>
-        </section>
+        </section> */}
+        <div className="absolute bottom-0 grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
+          <Button
+            variant="outlined"
+            color="secondary"
+            tabIndex={isDirty ? -1 : 0}
+          >
+            Cancel
+          </Button>
+
+          <Button type="submit" className="justify-self-end">
+            Save
+          </Button>
+        </div>
       </Form>
     </FormProvider>
   );
