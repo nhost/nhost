@@ -12,6 +12,7 @@ import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/helpers';
 import {
+  useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
   useTotalUsersQuery
 } from '@/utils/__generated__/graphql';
@@ -20,15 +21,20 @@ import { NhostApolloProvider } from '@nhost/react-apollo';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { toastStyleProps } from '../settings/general';
 
 export default function UsersPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openDialog } = useDialog();
+  const { openDialog, openAlertDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
   const [currentPage] = useState(1);
   const limit = 25;
   const offset = currentPage - 1;
+  const [deleteUser] = useRemoteAppDeleteUserMutation({
+    client: remoteProjectGQLClient,
+  });
 
   // merge with the one below
   const {
@@ -42,7 +48,7 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
 
-  const { data: dataRemoteAppUsers, loading: remoteAppUsersLoading } =
+  const { data: dataRemoteAppUsers, refetch: refetchProjectUsers } =
     useRemoteAppGetUsersQuery({
       variables: {
         where: {
@@ -76,9 +82,53 @@ export default function UsersPage() {
   function handleCreateUser() {
     openDialog('CREATE_USER', {
       title: 'Create User',
+      payload: {
+        onSubmit: async () => {
+          await refetchProjectUsers();
+        },
+      },
       props: {
         titleProps: { className: 'mx-auto' },
         PaperProps: { className: 'max-w-md' },
+      },
+    });
+  }
+
+  async function handleDeleteUser(user) {
+    const deleteUserPromise = deleteUser({
+      variables: {
+        id: user.id,
+      },
+    });
+
+    await toast.promise(
+      deleteUserPromise,
+      {
+        loading: 'Deleting user...',
+        success: 'User deleted successfully.',
+        error: 'An error occurred while trying to delete this user.',
+      },
+      toastStyleProps,
+    );
+
+    await refetchProjectUsers();
+  }
+
+  function handleConfirmDeleteUser(user) {
+    openAlertDialog({
+      title: 'Delete User',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>{user.displayName}</strong>&quot; user? This cannot be undone.
+        </Text>
+      ),
+      props: {
+        onPrimaryAction: () => handleDeleteUser(user),
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+        titleProps: { className: 'mx-auto' },
+        PaperProps: { className: 'max-w-lg mx-auto' },
       },
     });
   }
@@ -169,7 +219,10 @@ export default function UsersPage() {
             Create User
           </Button>
         </div>
-        <UsersBody users={dataRemoteAppUsers?.users} />
+        <UsersBody
+          users={dataRemoteAppUsers?.users}
+          onDeleteUser={handleConfirmDeleteUser}
+        />
       </Container>
     </NhostApolloProvider>
   );

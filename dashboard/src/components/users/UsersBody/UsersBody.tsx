@@ -10,6 +10,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+
 import { UserAddIcon } from '@heroicons/react/solid';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
@@ -31,22 +32,16 @@ export interface UsersBodyProps {
    * Users
    */
   users?: RemoteAppGetUsersQuery['users'];
+  onDeleteUser?: any;
 }
 
-export default function UsersBody({ users }: UsersBodyProps) {
-  const { openDrawer, openAlertDialog } = useDialog();
+export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
+  const { openDrawer } = useDialog();
 
   function handleViewUser(user: any) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
       payload: { user },
-    });
-  }
-
-  function handleDeleteUser() {
-    openAlertDialog({
-      title: 'Delete User',
-      payload: <Text>Are you sure you want to delete this user?</Text>,
     });
   }
 
@@ -105,7 +100,7 @@ export default function UsersBody({ users }: UsersBodyProps) {
 
                       <Dropdown.Item
                         className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
-                        onClick={handleDeleteUser}
+                        onClick={() => onDeleteUser(user)}
                       >
                         <TrashIcon className="w-4 h-4" />
                         <Text className="font-medium text-red">Delete</Text>

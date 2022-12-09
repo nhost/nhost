@@ -28,6 +28,10 @@ export interface CreateUserFormProps {
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
+  /**
+   * Function to be called when the form is submitted.
+   */
+  onSubmit?: () => Promise<void>;
 }
 
 export const CreateUserFormValidationSchema = Yup.object({
@@ -39,9 +43,12 @@ export const CreateUserFormValidationSchema = Yup.object({
     .required('This field is required.'),
 });
 
-export default function CreateUserForm({ onCancel }: CreateUserFormProps) {
+export default function CreateUserForm({
+  onCancel,
+  onSubmit,
+}: CreateUserFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { onDirtyStateChange } = useDialog();
+  const { onDirtyStateChange, closeDialog } = useDialog();
 
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
@@ -55,6 +62,8 @@ export default function CreateUserForm({ onCancel }: CreateUserFormProps) {
     'auth',
   )}/v1/signup/email-password`;
 
+  console.log(onSubmit);
+
   async function handleSubmit({ email, password }: CreateUserFormValues) {
     await toast.promise(
       axios.post(signUpUrl, {
@@ -62,12 +71,15 @@ export default function CreateUserForm({ onCancel }: CreateUserFormProps) {
         password,
       }),
       {
-        loading: 'Creating environment variable...',
-        success: 'Environment variable has been created successfully.',
-        error: 'An error occurred while creating the environment variable.',
+        loading: 'Creating new user...',
+        success: 'New user created successfully.',
+        error: 'An error occurred while creating a new user.',
       },
       toastStyleProps,
     );
+
+    onSubmit?.();
+    closeDialog();
   }
 
   const {
