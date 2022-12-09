@@ -67,7 +67,6 @@
     "xstate": "^4.33.5"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",

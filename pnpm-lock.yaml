@@ -890,11 +890,11 @@ importers:
       uuid: ^9.0.0
       xstate: ^4.33.5
     dependencies:
+      '@nhost/core': link:../core
       axios: 1.2.0
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
