@@ -14,9 +14,10 @@ import Text from '@/ui/v2/Text';
 import { ArrowLeftIcon } from '@heroicons/react/solid';
 import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
-import { autocompleteClasses } from '@mui/material';
+import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
+import { autocompleteClasses } from '@mui/material/Autocomplete';
 import type { PropsWithoutRef } from 'react';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ColumnAutocompleteProps extends PropsWithoutRef<InputProps> {
@@ -161,6 +162,31 @@ export default function ColumnAutocomplete({
     },
   });
 
+  function renderGroup(params: AutocompleteRenderGroupParams) {
+    return (
+      <li key={params.key}>
+        <OptionGroupBase>{params.group}</OptionGroupBase>
+
+        <List>{params.children}</List>
+      </li>
+    );
+  }
+
+  function renderOption(option: AutocompleteOption<string>, index: number) {
+    const optionProps = getOptionProps({ option, index });
+
+    return (
+      <OptionBase
+        {...optionProps}
+        className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
+      >
+        <span>{option.label}</span>
+
+        <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+      </OptionBase>
+    );
+  }
+
   return (
     <div>
       <div {...getRootProps()}>
@@ -223,46 +249,15 @@ export default function ColumnAutocomplete({
                 groupedOptions as AutocompleteGroupedOption<
                   typeof columnOptions[number]
                 >[]
-              ).map((optionGroup, optionGroupIndex) => {
-                if (typeof optionGroup === 'string') {
-                  return (
-                    <OptionBase
-                      {...getOptionProps({
-                        option: optionGroup,
-                        index: optionGroupIndex,
-                      })}
-                    >
-                      {optionGroup}
-                    </OptionBase>
-                  );
-                }
-
-                return (
-                  <Fragment key={optionGroup.key}>
-                    <OptionGroupBase as="li">
-                      {optionGroup.group}
-                    </OptionGroupBase>
-
-                    {optionGroup.options.map((option, index) => (
-                      <OptionBase
-                        {...getOptionProps({
-                          option,
-                          index: optionGroupIndex * 10 + index,
-                        })}
-                        className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
-                      >
-                        <span>{option.label}</span>
-
-                        {optionGroup.group === 'columns' && (
-                          <InlineCode>
-                            {option.metadata?.type || option.value}
-                          </InlineCode>
-                        )}
-                      </OptionBase>
-                    ))}
-                  </Fragment>
-                );
-              })}
+              ).map((optionGroup) =>
+                renderGroup({
+                  key: `${optionGroup.key}`,
+                  group: optionGroup.group,
+                  children: optionGroup.options.map((option, index) =>
+                    renderOption(option, optionGroup.index + index),
+                  ),
+                }),
+              )}
             </List>
           )}
 
