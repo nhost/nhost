@@ -11,22 +11,67 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/helpers';
-import { useTotalUsersQuery } from '@/utils/__generated__/graphql';
+import {
+  useRemoteAppGetUsersQuery,
+  useTotalUsersQuery
+} from '@/utils/__generated__/graphql';
+import { SearchIcon } from '@heroicons/react/solid';
 import { NhostApolloProvider } from '@nhost/react-apollo';
-import type { ReactElement } from 'react';
+import debounce from 'lodash.debounce';
+import type { ChangeEvent, ReactElement } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function UsersPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+  const [searchString, setSearchString] = useState<string>('');
+  const [currentPage] = useState(1);
+  const limit = 25;
+  const offset = currentPage - 1;
 
-  const { data, loading } = useTotalUsersQuery({
+  // merge with the one below
+  const {
+    data: {
+      usersAggregate: {
+        aggregate: { count },
+      },
+    } = { usersAggregate: { aggregate: { count: 0 } } },
+    loading,
+  } = useTotalUsersQuery({
     client: remoteProjectGQLClient,
   });
 
-  if (!currentApplication || loading) {
-    return <LoadingScreen />;
-  }
+  const { data: dataRemoteAppUsers, loading: remoteAppUsersLoading } =
+    useRemoteAppGetUsersQuery({
+      variables: {
+        where: {
+          _or: [
+            {
+              displayName: {
+                _like: `%${searchString}%`,
+              },
+            },
+            {
+              email: {
+                _like: `%${searchString}%`,
+              },
+            },
+          ],
+        },
+        limit,
+        offset: offset * limit,
+      },
+      client: remoteProjectGQLClient,
+    });
+
+  const handleSearchStringChange = useMemo(
+    () =>
+      debounce((event: ChangeEvent<HTMLInputElement>) => {
+        setSearchString(event.target.value);
+      }, 500),
+    [],
+  );
 
   function handleCreateUser() {
     openDialog('CREATE_USER', {
@@ -38,11 +83,23 @@ export default function UsersPage() {
     });
   }
 
-  if (data.usersAggregate.aggregate.count === 0) {
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (count === 0) {
     return (
       <Container>
         <div className="flex flex-row place-content-between">
-          <Input className="rounded-sm" placeholder="Search users" />
+          <Input
+            className="rounded-sm"
+            placeholder="Search users"
+            startAdornment={
+              <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
+            }
+            onChange={handleSearchStringChange}
+            disabled
+          />
           <Button
             onClick={handleCreateUser}
             startIcon={<PlusIcon className="w-4 h-4" />}
@@ -56,10 +113,10 @@ export default function UsersPage() {
           <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
           <div className="flex flex-col space-y-1">
             <Text className="font-medium text-center" variant="h3">
-              You dont have any users yet.
+              You dont have any users yet
             </Text>
             <Text variant="subtitle1" className="text-center">
-              All users for your project will be listed here.
+              All users for your project will be listed here
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
@@ -93,9 +150,16 @@ export default function UsersPage() {
             : currentApplication.hasuraGraphqlAdminSecret,
       }}
     >
-      <Container className="mx-auto max-w-8xl">
+      <Container className="mx-auto max-w-9xl">
         <div className="flex flex-row place-content-between">
-          <Input className="rounded-sm" placeholder="Search users" />
+          <Input
+            className="rounded-sm"
+            placeholder="Search users"
+            startAdornment={
+              <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
+            }
+            onChange={handleSearchStringChange}
+          />
           <Button
             onClick={handleCreateUser}
             startIcon={<PlusIcon className="w-4 h-4" />}
@@ -105,7 +169,7 @@ export default function UsersPage() {
             Create User
           </Button>
         </div>
-        <UsersBody />
+        <UsersBody users={dataRemoteAppUsers?.users} />
       </Container>
     </NhostApolloProvider>
   );

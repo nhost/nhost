@@ -2,9 +2,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Chip from '@/components/ui/v2/Chip';
 import TrashIcon from '@/components/ui/v2/icons/TrashIcon';
 import UserIcon from '@/components/ui/v2/icons/UserIcon';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { Role } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
@@ -12,64 +9,32 @@ import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { UserAddIcon } from '@heroicons/react/solid';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 
-export interface RoleSettingsFormValues {
-  /**
-   * Default role.
-   */
-  authUserDefaultRole: string;
-  /**
-   * Allowed roles for the project.
-   */
-  authUserDefaultAllowedRoles: Role[];
+function UsersBodyHeader() {
+  return (
+    <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
+      <Text className="font-medium">Name</Text>
+      <Text className="font-medium">Signed up at</Text>
+      <Text className="font-medium">Last Seen</Text>
+      <Text className="font-medium">Sign In Methods</Text>
+    </div>
+  );
 }
 
-export default function UsersBody() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+export interface UsersBodyProps {
+  /**
+   * Users
+   */
+  users?: RemoteAppGetUsersQuery['users'];
+}
+
+export default function UsersBody({ users }: UsersBodyProps) {
   const { openDrawer, openAlertDialog } = useDialog();
-  const [searchQuery] = useState('');
-  const [currentPage] = useState(1);
-
-  const limit = 20;
-
-  const offset = currentPage - 1;
-
-  const { data, error, loading } = useRemoteAppGetUsersQuery({
-    variables: {
-      where: {
-        _or: [
-          {
-            displayName: {
-              _like: `%${searchQuery}%`,
-            },
-          },
-          {
-            email: {
-              _like: `%${searchQuery}%`,
-            },
-          },
-        ],
-      },
-      limit,
-      offset: offset * limit,
-    },
-    skip:
-      !currentApplication?.subdomain &&
-      !currentApplication?.hasuraGraphqlAdminSecret,
-  });
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading users..." />;
-  }
-
-  if (error) {
-    throw error;
-  }
 
   function handleViewUser(user: any) {
     openDrawer('EDIT_USER', {
@@ -80,22 +45,27 @@ export default function UsersBody() {
 
   function handleDeleteUser() {
     openAlertDialog({
-      title: 'Delete Role',
-      payload: <Text>Are you sure you want to delete the &quot; undone.</Text>,
+      title: 'Delete User',
+      payload: <Text>Are you sure you want to delete this user?</Text>,
     });
+  }
+
+  if ((users && users.length === 0) || !users) {
+    return (
+      <div className="grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2">
+          <UsersBodyHeader />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="grid grid-flow-row gap-2">
-      <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
-        <Text className="font-medium">Name</Text>
-        <Text className="font-medium">Signed up at</Text>
-        <Text className="font-medium">Last Seen</Text>
-        <Text className="font-medium">Sign In Methods</Text>
-      </div>
       <div className="grid grid-flow-row gap-2">
+        <UsersBodyHeader />
         <List>
-          {data.users.map((user) => (
+          {users.map((user) => (
             <Fragment key={user.id}>
               <ListItem.Root
                 className="grid grid-cols-4 gap-2 py-2.5 items-center"

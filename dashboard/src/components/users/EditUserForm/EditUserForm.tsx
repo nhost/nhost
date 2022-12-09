@@ -1,5 +1,4 @@
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
-import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
@@ -36,6 +35,7 @@ export const EditUserFormValidationSchema = Yup.object({
     .email('Invalid email address')
     .required('This field is required.'),
   phoneNumber: Yup.string(),
+  locale: Yup.string(),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -53,6 +53,7 @@ export default function EditUserForm({ user }: EditUserFormProps) {
       displayName: user.displayName,
       email: user.email,
       phoneNumber: user.phoneNumber,
+      locale: 'en',
     },
   });
 
@@ -167,7 +168,7 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             placeholder="Enter Email"
             hideEmptyHelperText
             error={!!errors.email}
-            helperText={errors?.email?.message}
+            helperText={<ControlledCheckbox label="Verified" />}
             fullWidth
             autoComplete="off"
           />
@@ -181,7 +182,6 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             error={!!errors.email}
             fullWidth
             autoComplete="off"
-            helperText={<ControlledCheckbox label="Verified" />}
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
                 <IconButton
@@ -207,16 +207,18 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             autoComplete="off"
             helperText={<ControlledCheckbox label="Verified" />}
           />
-          <ControlledSelect
+          <Select
+            {...register('locale')}
             id="locale"
             name="locale"
             label="Locale"
             fullWidth
             variant="inline"
             hideEmptyHelperText
+            error={!!errors.locale}
           >
             <Option value="en">en</Option>
-          </ControlledSelect>
+          </Select>
         </section>
 
         {/* <section className="grid grid-flow-col grid-cols-2 p-6 px-6">
