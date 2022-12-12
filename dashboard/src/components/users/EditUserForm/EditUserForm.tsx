@@ -2,6 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import Chip from '@/components/ui/v2/Chip';
 import CopyIcon from '@/components/ui/v2/icons/CopyIcon';
 import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -25,6 +26,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
+import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -81,6 +83,8 @@ export default function EditUserForm({
     () => getUserRoles(data?.app?.authUserDefaultAllowedRoles),
     [data],
   );
+
+  console.log(user);
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -167,7 +171,7 @@ export default function EditUserForm({
               </Text>
             </div>
           </div>
-          <div className="items-center">
+          <div>
             <Select placeholder="Actions" hideEmptyHelperText>
               <Option
                 value="Actions"
@@ -334,28 +338,39 @@ export default function EditUserForm({
             error={!!errors.defaultRole}
             helperText={errors?.defaultRole?.message}
           >
-            <Option value="en">en</Option>
-            <Option value="fr">fr</Option>
+            <Option value="en">English</Option>
+            <Option value="fr">French</Option>
           </ControlledSelect>
         </section>
 
-        {/* <section className="grid grid-flow-col grid-cols-8 p-6">
+        <section className="grid grid-flow-col grid-cols-8 p-6">
           <div className="col-span-2">
             <InputLabel as="h3">Sign-In Methods</InputLabel>
           </div>
-          <div className="grid grid-flow-row col-span-3 gap-y-6">
-            <div className="grid grid-flow-col gap-0">
+          <div className="grid grid-flow-row col-span-6 gap-y-6">
+            {user.userProviders.length === 0 && (
+              <div className="grid grid-flow-col gap-x-1 place-content-between">
+                <div className="grid grid-flow-col span-cols-1">
+                  <Image src="/assets/Envelope.svg" width={12} height={15} />
+                  <Text className="font-medium">Email + Password</Text>
+                </div>
+
+                <Chip
+                  component="span"
+                  color="success"
+                  size="small"
+                  label="Active"
+                />
+              </div>
+            )}
+
+            {/* <div className="grid grid-flow-col gap-0">
               <Image src="/logos/Apple.svg" width={12} height={15} />
               <Text className="font-medium">Email + Password</Text>
               <Chip component="span" color="info" size="small" label="Active" />
-            </div>
-            <div className="grid grid-flow-col gap-0">
-              <Image src="/logos/Apple.svg" width={12} height={15} />
-              <Text className="font-medium">Email + Password</Text>
-              <Chip component="span" color="info" size="small" label="Active" />
-            </div>
+            </div> */}
           </div>
-        </section> */}
+        </section>
 
         <section className="grid grid-flow-row p-6 gap-y-10">
           <ControlledSelect

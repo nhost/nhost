@@ -49,6 +49,10 @@ export const theme = createTheme({
       main: '#f13154',
       dark: '#c91737',
     },
+    success: {
+      main: 'rgba(170, 240, 204, 0.3)',
+      contrastText: '#3BB174',
+    },
     action: {
       hover: '#f3f4f6',
       active: '#f3f4f6',
