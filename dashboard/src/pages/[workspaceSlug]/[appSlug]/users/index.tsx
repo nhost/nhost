@@ -58,40 +58,43 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
 
-  const { data: dataRemoteAppUsers, refetch: refetchProjectUsers } =
-    useRemoteAppGetUsersQuery({
-      variables: {
-        where: {
-          _or: [
-            {
-              displayName: {
-                _ilike: `%${searchString}%`,
-              },
+  const {
+    data: dataRemoteAppUsers,
+    refetch: refetchProjectUsers,
+    loading: loadingRemoteAppUsersQuery,
+  } = useRemoteAppGetUsersQuery({
+    variables: {
+      where: {
+        _or: [
+          {
+            displayName: {
+              _ilike: `%${searchString}%`,
             },
-            {
-              email: {
-                _ilike: `%${searchString}%`,
-              },
+          },
+          {
+            email: {
+              _ilike: `%${searchString}%`,
             },
-          ],
-        },
-        limit,
-        offset: offset * limit,
+          },
+        ],
       },
-      client: remoteProjectGQLClient,
-    });
+      limit,
+      offset: offset * limit,
+    },
+    client: remoteProjectGQLClient,
+  });
 
   const totalNrOfPages = useMemo(() => {
-    if (loading) {
+    if (loadingRemoteAppUsersQuery) {
       return 0;
     }
 
-    if (totalAmountOfUsers === 0) {
-      return 1;
+    if (dataRemoteAppUsers.users.length === 0) {
+      return 0;
     }
 
-    return Math.ceil(totalAmountOfUsers / limit);
-  }, [loading, totalAmountOfUsers]);
+    return Math.ceil(dataRemoteAppUsers.usersAggregate.aggregate.count / limit);
+  }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
 
   const handleSearchStringChange = useMemo(
     () =>
