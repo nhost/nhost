@@ -2,27 +2,26 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import Chip from '@/components/ui/v2/Chip';
-import CopyIcon from '@/components/ui/v2/icons/CopyIcon';
-import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
+import {
+  useGetRolesQuery,
+  useUpdateRemoteAppUserMutation
+} from '@/generated/graphql';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
-import copy from '@/utils/copy';
+import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import {
-  useGetRolesQuery,
-  useUpdateRemoteAppUserMutation
-} from '@/utils/__generated__/graphql';
-
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
@@ -33,6 +32,7 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
+  onCancel?: () => Promise<void>;
   /**
    * The selected user.
    */
@@ -61,11 +61,7 @@ export type EditUserFormValues = Yup.InferType<
   typeof EditUserFormValidationSchema
 >;
 
-export default function EditUserForm({
-  user,
-  onCancel,
-  ...props
-}: EditUserFormProps) {
+export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -83,8 +79,6 @@ export default function EditUserForm({
     () => getUserRoles(data?.app?.authUserDefaultAllowedRoles),
     [data],
   );
-
-  console.log(user);
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',

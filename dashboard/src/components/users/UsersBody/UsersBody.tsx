@@ -16,17 +16,6 @@ import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import { Fragment } from 'react';
 
-function UsersBodyHeader() {
-  return (
-    <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
-      <Text className="font-medium">Name</Text>
-      <Text className="font-medium">Signed up at</Text>
-      <Text className="font-medium">Last Seen</Text>
-      <Text className="font-medium">Sign In Methods</Text>
-    </div>
-  );
-}
-
 export interface UsersBodyProps {
   /**
    * Users
@@ -45,22 +34,17 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
     });
   }
 
-  if ((users && users.length === 0) || !users) {
-    return (
-      <div className="grid grid-flow-row gap-2">
-        <div className="grid grid-flow-row gap-2">
-          <UsersBodyHeader />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="grid grid-flow-row gap-2">
       <div className="grid grid-flow-row gap-2">
-        <UsersBodyHeader />
+        <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
+          <Text className="font-medium">Name</Text>
+          <Text className="font-medium">Signed up at</Text>
+          <Text className="font-medium">Last Seen</Text>
+          <Text className="font-medium">Sign In Methods</Text>
+        </div>
         <List>
-          {users.map((user) => (
+          {users?.map((user) => (
             <Fragment key={user.id}>
               <ListItem.Root
                 className="grid grid-cols-4 gap-2 py-2.5 items-center"
