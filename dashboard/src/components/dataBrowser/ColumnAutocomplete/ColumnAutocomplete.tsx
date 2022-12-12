@@ -54,20 +54,25 @@ function ColumnAutocomplete(
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [selectedValue, setSelectedValue] = useState<AutocompleteOption>(null);
-  const [selectedRelationships, setSelectedRelationships] = useState<string[]>(
-    [],
-  );
+  const [selectedRelationships, setSelectedRelationships] = useState<
+    { schema: string; table: string; name: string }[]
+  >([]);
 
-  const currentRelationshipTable =
+  const activeRelationship =
     selectedRelationships[selectedRelationships.length - 1];
-  const selectedTable = currentRelationshipTable || defaultTable;
+  const selectedSchema = activeRelationship?.schema || defaultSchema;
+  const selectedTable = activeRelationship?.table || defaultTable;
+  const relationshipDotNotation =
+    selectedRelationships?.length > 0
+      ? selectedRelationships.map((relationship) => relationship.name).join('.')
+      : '';
 
   const {
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${defaultSchema}.${selectedTable}`], {
-    schema: defaultSchema,
+  } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
+    schema: selectedSchema,
     table: selectedTable,
     queryOptions: { refetchOnWindowFocus: false },
   });
@@ -84,24 +89,31 @@ function ColumnAutocomplete(
     metadata?.tables?.find(
       ({ table: metadataTable }) =>
         metadataTable.name === selectedTable &&
-        metadataTable.schema === defaultSchema,
+        metadataTable.schema === selectedSchema,
     ) || {};
 
-  const columnAliasMap = [
+  const objectAndArrayRelationships = [
     ...(object_relationships || []),
     ...(array_relationships || []),
-  ].reduce((map, currentRelationship) => {
-    const { foreign_key_constraint_on } = currentRelationship?.using || {};
+  ].map((relationship) => {
+    const { foreign_key_constraint_on } = relationship?.using || {};
 
-    if (typeof foreign_key_constraint_on !== 'string') {
-      return map.set(
-        foreign_key_constraint_on.column,
-        currentRelationship.name,
-      );
+    if (typeof foreign_key_constraint_on === 'string') {
+      return {
+        schema: selectedSchema,
+        table: selectedTable,
+        column: foreign_key_constraint_on,
+        name: relationship.name,
+      };
     }
 
-    return map.set(foreign_key_constraint_on, currentRelationship.name);
-  }, new Map<string, string>());
+    return {
+      schema: foreign_key_constraint_on.table.schema,
+      table: foreign_key_constraint_on.table.name,
+      column: foreign_key_constraint_on.column,
+      name: relationship.name,
+    };
+  });
 
   const { columns, foreignKeyRelations } = tableData || {};
 
@@ -115,23 +127,73 @@ function ColumnAutocomplete(
   );
 
   const columnOptions: AutocompleteOption[] =
-    columns?.map((column) => {
-      if (columnAliasMap.has(column.column_name)) {
-        return {
-          label: columnAliasMap.get(column.column_name),
-          value: columnAliasMap.get(column.column_name),
-          group: 'relationships',
-          metadata: { target: columnTargetMap.get(column.column_name) || null },
-        };
-      }
+    columns?.map((column) => ({
+      label: column.column_name,
+      value: column.column_name,
+      group: 'columns',
+      metadata: { type: column.udt_name },
+    })) || [];
 
-      return {
-        label: column.column_name,
-        value: column.column_name,
-        group: 'columns',
-        metadata: { type: column.udt_name },
-      };
-    }) || [];
+  const columnWithRelationshipOptions: AutocompleteOption[] = [
+    ...columnOptions,
+    ...objectAndArrayRelationships.map((relationship) => ({
+      label: relationship.name,
+      value: relationship.name,
+      group: 'relationships',
+      metadata: {
+        target: {
+          ...(columnTargetMap.get(relationship.column) || {}),
+          name: relationship.name,
+        },
+      },
+    })),
+  ];
+
+  function isOptionEqualToValue(
+    option: AutocompleteOption,
+    value: NonNullable<string | AutocompleteOption>,
+  ) {
+    if (!value) {
+      return false;
+    }
+
+    if (typeof value === 'string') {
+      return option.value === value;
+    }
+
+    return option.value === value.value && option.custom === value.custom;
+  }
+
+  function handleChange(
+    event: SyntheticEvent,
+    value: NonNullable<string | AutocompleteOption>,
+  ) {
+    if (typeof value === 'string' || Array.isArray(value) || !value) {
+      return;
+    }
+
+    if (value && 'group' in value && value.group === 'columns') {
+      setSelectedValue(value);
+      setOpen(false);
+      setInputValue(value.value);
+
+      props.onChange?.(
+        event,
+        selectedRelationships.length > 0
+          ? [relationshipDotNotation, value.value].join('.')
+          : value.value,
+      );
+
+      return;
+    }
+
+    setInputValue('');
+    setSelectedValue(null);
+    setSelectedRelationships((currentRelationships) => [
+      ...currentRelationships,
+      value.metadata?.target,
+    ]);
+  }
 
   const {
     popupOpen,
@@ -147,50 +209,14 @@ function ColumnAutocomplete(
     open,
     inputValue,
     id: props?.name,
-    options: columnOptions,
+    options: columnWithRelationshipOptions,
     openOnFocus: true,
     disableCloseOnSelect: true,
     value: selectedValue,
     onClose: () => setOpen(false),
     groupBy: (option) => option.group,
-    isOptionEqualToValue: (option, value) => {
-      if (!value) {
-        return false;
-      }
-
-      if (typeof value === 'string') {
-        return option.value === value;
-      }
-
-      return option.value === value.value && option.custom === value.custom;
-    },
-    onChange: (event, value) => {
-      if (typeof value === 'string' || Array.isArray(value) || !value) {
-        return;
-      }
-
-      if (value && 'group' in value && value.group === 'columns') {
-        setSelectedValue(value);
-        setOpen(false);
-        setInputValue(value.value);
-
-        props.onChange?.(
-          event,
-          selectedRelationships.length > 0
-            ? [selectedRelationships.join('.'), value.value].join('.')
-            : value.value,
-        );
-
-        return;
-      }
-
-      setInputValue('');
-      setSelectedValue(null);
-      setSelectedRelationships((currentRelationship) => [
-        ...currentRelationship,
-        value.metadata?.target.table,
-      ]);
-    },
+    isOptionEqualToValue,
+    onChange: handleChange,
   });
 
   function renderGroup(params: AutocompleteRenderGroupParams) {
@@ -213,7 +239,9 @@ function ColumnAutocomplete(
       >
         <span>{option.label}</span>
 
-        <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+        {option.group === 'columns' && (
+          <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+        )}
       </OptionBase>
     );
   }
@@ -232,24 +260,25 @@ function ColumnAutocomplete(
             inputRoot: {
               ...getInputProps(),
               className: twMerge(
-                Boolean(selectedValue) || Boolean(currentRelationshipTable)
+                Boolean(selectedValue) || Boolean(activeRelationship)
                   ? '!pl-0'
                   : null,
                 props.slotProps?.inputRoot?.className,
               ),
             },
           }}
+          onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
           error={Boolean(tableError || metadataError)}
           helperText={String(tableError || metadataError || '')}
           onChange={(event) => setInputValue(event.target.value)}
           value={inputValue}
           startAdornment={
-            selectedValue || currentRelationshipTable ? (
+            selectedValue || activeRelationship ? (
               <span className="ml-2">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
-                {selectedRelationships.length > 0 && (
-                  <span>{selectedRelationships.join('.')}.</span>
+                {relationshipDotNotation && (
+                  <span>{relationshipDotNotation}.</span>
                 )}
               </span>
             ) : null
@@ -276,8 +305,8 @@ function ColumnAutocomplete(
 
                   setSelectedValue(null);
                   setInputValue('');
-                  setSelectedRelationships((currentRelationships) =>
-                    currentRelationships.slice(0, -1),
+                  setSelectedRelationships((activeRelationships) =>
+                    activeRelationships.slice(0, -1),
                   );
                 }}
               >
@@ -288,8 +317,8 @@ function ColumnAutocomplete(
             <Text>
               <span className="!text-greyscaleMedium">{defaultTable}</span>
 
-              {selectedRelationships.length > 0 && (
-                <span>.{selectedRelationships.join('.')}</span>
+              {relationshipDotNotation && (
+                <span>.{relationshipDotNotation}</span>
               )}
             </Text>
           </div>
