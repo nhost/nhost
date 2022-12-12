@@ -1,4 +1,5 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
+import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { PermissionOperator } from '@/types/dataBrowser';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
@@ -24,8 +25,19 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
         fullWidth
         slotProps={{ root: { className: 'bg-white lg:!rounded-none h-10' } }}
       >
-        <Option value="true">True</Option>
-        <Option value="false">False</Option>
+        <Option value="true">
+          <ReadOnlyToggle
+            checked
+            slotProps={{ label: { className: '!text-sm' } }}
+          />
+        </Option>
+
+        <Option value="false">
+          <ReadOnlyToggle
+            checked={false}
+            slotProps={{ label: { className: '!text-sm' } }}
+          />
+        </Option>
       </ControlledSelect>
     );
   }
