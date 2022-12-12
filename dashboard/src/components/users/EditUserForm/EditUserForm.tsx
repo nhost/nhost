@@ -102,6 +102,8 @@ export default function EditUserForm({
   }
 
   async function handleUserEdit(values: EditUserFormValues) {
+    console.log(values, 'values');
+    console.log(user, 'user');
     const updateUserMutationPromise = updateUser({
       variables: {
         id: user.id,
@@ -109,6 +111,7 @@ export default function EditUserForm({
           displayName: values.displayName,
           email: values.email,
           avatarUrl: values.avatarURL,
+          emailVerified: values.emailVerified,
         },
       },
     });
@@ -231,10 +234,21 @@ export default function EditUserForm({
             placeholder="Enter Email"
             hideEmptyHelperText
             error={!!errors.email}
-            helperText={<ControlledCheckbox label="Verified" />}
+            helperText={
+              errors.email ? (
+                errors?.email?.message
+              ) : (
+                <ControlledCheckbox
+                  id="emailVerified"
+                  name="emailVerified"
+                  label="Verified"
+                />
+              )
+            }
             fullWidth
             autoComplete="off"
           />
+
           <Input
             id="password"
             label="Password"
@@ -267,8 +281,18 @@ export default function EditUserForm({
             error={!!errors.phoneNumber}
             fullWidth
             autoComplete="off"
-            helperText={errors?.phoneNumber?.message}
-            // helperText={<ControlledCheckbox label="Verified" />}
+            helperText={
+              errors.phoneNumber ? (
+                errors?.phoneNumber?.message
+              ) : (
+                <ControlledCheckbox
+                  id="phoneNumberVerified"
+                  name="phoneNumberVerified"
+                  label="Verified"
+                  disabled={!form.watch('phoneNumber')}
+                />
+              )
+            }
           />
           <ControlledSelect
             {...register('locale')}
