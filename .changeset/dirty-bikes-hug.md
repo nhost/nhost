@@ -1,5 +1,4 @@
 ---
-'@nhost/nextjs': major
 '@nhost/react': major
 ---
 
