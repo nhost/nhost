@@ -2,6 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
 import Input from '@/ui/v2/Input';
@@ -10,12 +11,15 @@ import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import { useUpdateRemoteAppUserMutation } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
@@ -36,7 +40,7 @@ export const EditUserFormValidationSchema = Yup.object({
     .email('Invalid email address')
     .required('This field is required.'),
   emailVerified: Yup.boolean().optional(),
-  phoneNumber: Yup.string().optional(),
+  phoneNumber: Yup.string().nullable(),
   phoneNumberVerified: Yup.boolean().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
@@ -53,6 +57,11 @@ export default function EditUserForm({
   ...props
 }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+
+  const [updateUser] = useUpdateRemoteAppUserMutation({
+    client: remoteProjectGQLClient,
+  });
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -93,24 +102,26 @@ export default function EditUserForm({
   }
 
   async function handleUserEdit(values: EditUserFormValues) {
-    // const updateAppMutation = updateApp({
-    //   variables: {
-    //     id: currentApplication.id,
-    //     app: {
-    //       ...values,
-    //     },
-    //   },
-    // });
+    const updateUserMutationPromise = updateUser({
+      variables: {
+        id: user.id,
+        user: {
+          displayName: values.displayName,
+          email: values.email,
+          avatarUrl: values.avatarURL,
+        },
+      },
+    });
 
-    // await toast.promise(
-    //   updateAppMutation,
-    //   {
-    //     loading: `Apple settings are being updated...`,
-    //     success: `Apple settings have been updated successfully.`,
-    //     error: `An error occurred while trying to update the project's Apple settings.`,
-    //   },
-    //   { ...toastStyleProps },
-    // );
+    await toast.promise(
+      updateUserMutationPromise,
+      {
+        loading: `Updating user's settings...`,
+        success: 'User settings updated successfully!',
+        error: 'Failed to update user settings.',
+      },
+      { ...toastStyleProps },
+    );
 
     form.reset(values);
   }
@@ -120,11 +131,15 @@ export default function EditUserForm({
       <Form className="divide-y border-y" onSubmit={handleUserEdit}>
         <section className="grid grid-flow-col grid-cols-7 p-6">
           <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
-            <Avatar className="relative inline-flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-300 rounded-full">
-              <span className="text-xs font-medium text-gray-600 uppercase">
-                {user.displayName.slice(0, 2)}
-              </span>
-            </Avatar>
+            {!user.avatarUrl.includes('default=blank') ? (
+              <Avatar className="w-12 h-12" src={user.avatarUrl} />
+            ) : (
+              <Avatar className="relative inline-flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-300 rounded-full">
+                <span className="text-xs font-medium text-gray-600 uppercase">
+                  {user.displayName.slice(0, 2)}
+                </span>
+              </Avatar>
+            )}
             <div className="grid items-center grid-flow-row">
               <Text className="text-lg font-medium">{user.displayName}</Text>
               <Text className="font-normal text-sm+ text-greyscaleGreyDark">
@@ -249,22 +264,25 @@ export default function EditUserForm({
             label="Phone Number"
             variant="inline"
             placeholder="Enter Phone Number"
-            hideEmptyHelperText
             error={!!errors.phoneNumber}
             fullWidth
             autoComplete="off"
-            helperText={<ControlledCheckbox label="Verified" />}
+            helperText={errors?.phoneNumber?.message}
+            // helperText={<ControlledCheckbox label="Verified" />}
           />
           <ControlledSelect
             {...register('locale')}
             id="locale"
-            name="locale"
-            label="Locale"
-            fullWidth
             variant="inline"
-            hideEmptyHelperText
-            error={!!errors.locale}
-          />
+            label="Locale"
+            slotProps={{ root: { className: 'truncate' } }}
+            fullWidth
+            error={!!errors.defaultRole}
+            helperText={errors?.defaultRole?.message}
+          >
+            <Option value="en">en</Option>
+            <Option value="fr">fr</Option>
+          </ControlledSelect>
         </section>
 
         {/* <section className="grid grid-flow-col grid-cols-8 p-6">
@@ -284,8 +302,8 @@ export default function EditUserForm({
             </div>
           </div>
         </section> */}
-
-        {/* <section className="grid grid-flow-row p-6 gap-y-10">
+        {/* 
+        <section className="grid grid-flow-row p-6 gap-y-10">
           <ControlledSelect
             {...register('defaultRole')}
             id="defaultRole"

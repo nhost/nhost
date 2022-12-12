@@ -113,11 +113,15 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
               >
                 <ListItem.Text>
                   <div className="grid grid-flow-col gap-3 place-content-start">
-                    <Avatar className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-300 rounded-full">
-                      <span className="text-xs font-medium text-gray-600 uppercase">
-                        {user.displayName.slice(0, 2)}
-                      </span>
-                    </Avatar>
+                    {!user.avatarUrl.includes('default=blank') ? (
+                      <Avatar src={user.avatarUrl} />
+                    ) : (
+                      <Avatar className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-300 rounded-full">
+                        <span className="text-xs font-medium text-gray-600 uppercase">
+                          {user.displayName.slice(0, 2)}
+                        </span>
+                      </Avatar>
+                    )}
                     <div className="grid items-center grid-flow-row">
                       <Text className="text-sm+ font-medium">
                         {user.displayName}
