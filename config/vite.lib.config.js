@@ -1,3 +1,4 @@
+import replace from '@rollup/plugin-replace'
 import fs from 'fs'
 import path from 'path'
 
@@ -41,6 +42,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: (id) => deps.some((dep) => id.startsWith(dep)),
+      plugins: [
+        replace({
+          preventAssignment: true,
+          'exports.hasOwnProperty(': 'Object.prototype.hasOwnProperty.call(exports,'
+        })
+      ],
       output: {
         globals: {
           graphql: 'graphql',
