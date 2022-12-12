@@ -20,31 +20,4 @@ After:
 yarn add @nhost/nextjs graphql
 ```
 
-```
-yarn add next react react-dom
-yarn add @nhost/nextjs graphql
-```
-
-React
-
-```
-yarn add react react-dom
-yarn add @nhost/react graphql
-```
-
-Vue
-
-```
-yarn add vue
-yarn add @nhost/vue graphql
-```
-
-React Apollo
-
-```
-yarn add react react-dom
-yarn add @nhost/react graphql
-yarn add @nhost/react-apollo @apollo/client
-```
-
-Closes #1335
+Closes [#1335](https://github.com/nhost/nhost/issues/1335)
