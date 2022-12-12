@@ -1,8 +1,8 @@
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
+import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import Button from '@/components/ui/v2/Button';
-import Chip from '@/components/ui/v2/Chip';
+import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
@@ -14,7 +14,6 @@ import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
-import Image from 'next/image';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -36,9 +35,12 @@ export const EditUserFormValidationSchema = Yup.object({
   email: Yup.string()
     .email('Invalid email address')
     .required('This field is required.'),
+  emailVerified: Yup.boolean().optional(),
   phoneNumber: Yup.string().optional(),
+  phoneNumberVerified: Yup.boolean().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
+  roles: Yup.array().of(Yup.string()),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -59,8 +61,12 @@ export default function EditUserForm({
       avatarURL: user.avatarUrl,
       displayName: user.displayName,
       email: user.email,
+      emailVerified: user.emailVerified,
       phoneNumber: user.phoneNumber,
-      locale: 'en',
+      phoneNumberVerified: user.phoneNumberVerified,
+      locale: user.locale,
+      defaultRole: user.defaultRole,
+      roles: user.roles.map((role) => role.role),
     },
   });
 
@@ -87,7 +93,6 @@ export default function EditUserForm({
   }
 
   async function handleUserEdit(values: EditUserFormValues) {
-    console.log(values);
     // const updateAppMutation = updateApp({
     //   variables: {
     //     id: currentApplication.id,
@@ -173,7 +178,9 @@ export default function EditUserForm({
             Last Seen
           </InputLabel>
           <Text className="col-span-3 font-medium">
-            {formatRelative(new Date(), new Date(user.createdAt))}
+            {user.lastSeen
+              ? formatRelative(new Date(), new Date(user.lastSeen))
+              : 'Never'}
           </Text>
         </section>
         <section className="grid grid-flow-row gap-8 p-6">
@@ -248,7 +255,7 @@ export default function EditUserForm({
             autoComplete="off"
             helperText={<ControlledCheckbox label="Verified" />}
           />
-          <Select
+          <ControlledSelect
             {...register('locale')}
             id="locale"
             name="locale"
@@ -257,12 +264,10 @@ export default function EditUserForm({
             variant="inline"
             hideEmptyHelperText
             error={!!errors.locale}
-          >
-            <Option value="en">en</Option>
-          </Select>
+          />
         </section>
 
-        <section className="grid grid-flow-col grid-cols-8 p-6">
+        {/* <section className="grid grid-flow-col grid-cols-8 p-6">
           <div className="col-span-2">
             <InputLabel as="h3">Sign-In Methods</InputLabel>
           </div>
@@ -278,37 +283,42 @@ export default function EditUserForm({
               <Chip component="span" color="info" size="small" label="Active" />
             </div>
           </div>
-        </section>
-        <section className="grid grid-flow-row p-6 gap-y-10">
-          <Select
+        </section> */}
+
+        {/* <section className="grid grid-flow-row p-6 gap-y-10">
+          <ControlledSelect
             {...register('defaultRole')}
             id="defaultRole"
             name="defaultRole"
             variant="inline"
             label="Default Role"
+            slotProps={{ root: { className: 'truncate' } }}
             hideEmptyHelperText
             fullWidth
             error={!!errors.defaultRole}
             helperText={errors?.defaultRole?.message}
-            slotProps={{
-              label: { className: 'text-sm+ font-medium' },
-            }}
           >
             <Option value="user">user</Option>
-          </Select>
+            <Option value="me">me</Option>
+          </ControlledSelect>
           <div className="grid grid-flow-col grid-cols-8 gap-6 place-content-start">
             <InputLabel as="h3" className="col-span-2">
               Allowed Roles
             </InputLabel>
             <div className="grid grid-flow-row col-span-3 gap-6">
-              <ControlledCheckbox label="user" />
-              <ControlledCheckbox label="me" />
-              <ControlledCheckbox label="anonymous" />
-              <ControlledCheckbox label="teamMember" />
-              <ControlledCheckbox label="teamAdmin" />
+              {user.roles.map((role) => (
+                <ControlledCheckbox
+                  key={role.role}
+                  name={role.role}
+                  value={role.role}
+                  label={role.role}
+                  defaultChecked={!!role.role}
+                />
+              ))}
             </div>
           </div>
-        </section>
+        </section> */}
+
         <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
           <Button
             variant="outlined"

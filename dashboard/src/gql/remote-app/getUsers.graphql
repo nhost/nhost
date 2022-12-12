@@ -4,9 +4,13 @@ fragment RemoteAppGetUsers on users {
   displayName
   avatarUrl
   email
+  emailVerified
   phoneNumber
+  phoneNumberVerified
   disabled
   defaultRole
+  lastSeen
+  locale
   roles {
     role
   }

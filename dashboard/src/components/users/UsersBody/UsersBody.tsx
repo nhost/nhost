@@ -138,7 +138,9 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
                   </Text>
                 </ListItem.Text>
                 <ListItem.Text>
-                  {formatRelative(new Date(), new Date(user.createdAt))}
+                  {user.lastSeen
+                    ? formatRelative(new Date(), new Date(user.lastSeen))
+                    : 'Never'}
                 </ListItem.Text>
                 <ListItem.Text>
                   <Chip
