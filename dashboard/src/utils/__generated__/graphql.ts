@@ -21669,7 +21669,12 @@ export function refetchGetRemoteAppByIdQuery(variables: GetRemoteAppByIdQueryVar
     }
 export const RemoteAppGetUsersDocument = gql`
     query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(where: $where, limit: $limit, offset: $offset) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: {displayName: asc}
+  ) {
     ...RemoteAppGetUsers
   }
   usersAggregate(where: $where) {
