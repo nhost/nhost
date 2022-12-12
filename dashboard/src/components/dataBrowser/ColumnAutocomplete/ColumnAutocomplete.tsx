@@ -17,7 +17,8 @@ import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
 import type { ForwardedRef, PropsWithoutRef, SyntheticEvent } from 'react';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
+import mergeRefs from 'react-merge-refs';
 import { twMerge } from 'tailwind-merge';
 
 export interface ColumnAutocompleteProps
@@ -49,10 +50,10 @@ function ColumnAutocomplete(
   }: ColumnAutocompleteProps,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
+  const inputRef = useRef<HTMLInputElement>();
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [selectedValue, setSelectedValue] = useState<AutocompleteOption>(null);
-  const [selectedColumn, setSelectedColumn] = useState<string>('');
   const [selectedRelationships, setSelectedRelationships] = useState<string[]>(
     [],
   );
@@ -60,9 +61,6 @@ function ColumnAutocomplete(
   const currentRelationshipTable =
     selectedRelationships[selectedRelationships.length - 1];
   const selectedTable = currentRelationshipTable || defaultTable;
-
-  const hasSelectedColumnOrRelationship =
-    Boolean(selectedColumn) || Boolean(currentRelationshipTable);
 
   const {
     data: tableData,
@@ -146,12 +144,13 @@ function ColumnAutocomplete(
     getOptionProps,
     groupedOptions,
   } = useAutocomplete({
+    open,
+    inputValue,
     id: props?.name,
     options: columnOptions,
     openOnFocus: true,
     disableCloseOnSelect: true,
     value: selectedValue,
-    open,
     onClose: () => setOpen(false),
     groupBy: (option) => option.group,
     isOptionEqualToValue: (option, value) => {
@@ -172,8 +171,8 @@ function ColumnAutocomplete(
 
       if (value && 'group' in value && value.group === 'columns') {
         setSelectedValue(value);
-        setSelectedColumn(value.value);
         setOpen(false);
+        setInputValue(value.value);
 
         props.onChange?.(
           event,
@@ -224,7 +223,7 @@ function ColumnAutocomplete(
       <div {...getRootProps()} className={rootClassName}>
         <Input
           {...props}
-          ref={ref}
+          ref={mergeRefs([inputRef, ref])}
           fullWidth
           slotProps={{
             ...(props.slotProps || {}),
@@ -233,7 +232,9 @@ function ColumnAutocomplete(
             inputRoot: {
               ...getInputProps(),
               className: twMerge(
-                hasSelectedColumnOrRelationship && '!pl-0',
+                Boolean(selectedValue) || Boolean(currentRelationshipTable)
+                  ? '!pl-0'
+                  : null,
                 props.slotProps?.inputRoot?.className,
               ),
             },
@@ -244,7 +245,7 @@ function ColumnAutocomplete(
           onChange={(event) => setInputValue(event.target.value)}
           value={inputValue}
           startAdornment={
-            hasSelectedColumnOrRelationship ? (
+            selectedValue || currentRelationshipTable ? (
               <span className="ml-2">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {selectedRelationships.length > 0 && (
@@ -274,6 +275,7 @@ function ColumnAutocomplete(
                   event.stopPropagation();
 
                   setSelectedValue(null);
+                  setInputValue('');
                   setSelectedRelationships((currentRelationships) =>
                     currentRelationships.slice(0, -1),
                   );

@@ -47,11 +47,17 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
             {...args}
             name="firstReference"
             label="First Reference"
+            onChange={(_event, value) =>
+              form.setValue('firstReference', value, { shouldDirty: true })
+            }
           />
           <ColumnAutocomplete
             {...args}
             name="secondReference"
             label="Second Reference"
+            onChange={(_event, value) =>
+              form.setValue('secondReference', value, { shouldDirty: true })
+            }
           />
 
           <Button type="submit" className="justify-self-start">
