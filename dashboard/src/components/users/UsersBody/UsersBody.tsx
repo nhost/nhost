@@ -9,20 +9,26 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
+import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment } from 'react';
 
 export interface UsersBodyProps {
   /**
    * Users
    */
-  users?: RemoteAppGetUsersQuery['users'];
-  onDeleteUser?: any;
-  onEditUser?: any;
+  users?: RemoteAppUser[];
+  /**
+   * Function to delete a user
+   */
+  onDeleteUser?: (user: RemoteAppUser) => Promise<void>;
+  /**
+   * Function to edit a user
+   */
+  onEditUser?: VoidFunction;
 }
 
 export default function UsersBody({
@@ -32,7 +38,7 @@ export default function UsersBody({
 }: UsersBodyProps) {
   const { openDrawer } = useDialog();
 
-  function handleViewUser(user: any) {
+  function handleViewUser(user: RemoteAppUser) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
       payload: { user, onEditUser },

@@ -12,6 +12,7 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
@@ -21,8 +22,14 @@ import {
 import { SearchIcon } from '@heroicons/react/solid';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+
 import { toast } from 'react-hot-toast';
+
+export type RemoteAppUser = Exclude<
+  RemoteAppGetUsersQuery['users'][0],
+  '__typename'
+>;
 
 export default function UsersPage() {
   const { openDialog, openAlertDialog, closeDrawer } = useDialog();
@@ -35,12 +42,10 @@ export default function UsersPage() {
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
   });
+  const limit = useRef(8);
 
-  const limit = 6;
+  const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  const offset = currentPage - 1;
-
-  // merge with the one below
   const {
     data: {
       usersAggregate: {
@@ -72,8 +77,8 @@ export default function UsersPage() {
           },
         ],
       },
-      limit,
-      offset: offset * limit,
+      limit: limit.current,
+      offset: offset * limit.current,
     },
     client: remoteProjectGQLClient,
   });
@@ -87,7 +92,9 @@ export default function UsersPage() {
       return 0;
     }
 
-    return Math.ceil(dataRemoteAppUsers.usersAggregate.aggregate.count / limit);
+    return Math.ceil(
+      dataRemoteAppUsers.usersAggregate.aggregate.count / limit.current,
+    );
   }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
 
   const handleSearchStringChange = useMemo(
@@ -95,7 +102,7 @@ export default function UsersPage() {
       debounce((event: ChangeEvent<HTMLInputElement>) => {
         event.preventDefault();
         setSearchString(event.target.value);
-      }, 500),
+      }, 250),
     [],
   );
 
@@ -114,7 +121,7 @@ export default function UsersPage() {
     });
   }
 
-  async function handleDeleteUser(user) {
+  async function handleDeleteUser(user: RemoteAppUser) {
     const deleteUserPromise = deleteUser({
       variables: {
         id: user.id,
@@ -134,7 +141,7 @@ export default function UsersPage() {
     await refetchProjectUsers();
   }
 
-  function handleConfirmDeleteUser(user) {
+  function handleConfirmDeleteUser(user: RemoteAppUser) {
     openAlertDialog({
       title: 'Delete User',
       payload: (
@@ -153,7 +160,7 @@ export default function UsersPage() {
     });
   }
 
-  async function handleUserEdit(values: EditUserFormValues, user: any) {
+  async function handleUserEdit(values: EditUserFormValues, user: RemoteAppUser) {
     const updateUserMutationPromise = updateUser({
       variables: {
         id: user.id,
