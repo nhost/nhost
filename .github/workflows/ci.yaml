@@ -36,13 +36,23 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
           BUILD: 'all'
+      - name: Check if the pnpm lockfile changed
+        id: changed-lockfile
+        uses: tj-actions/changed-files@v34
+        with:
+          files: pnpm-lock.yaml
+      # * Determine a pnpm filter argument for packages that have been modified.
+      # * If the lockfile has changed, we don't filter anything in order to run all the e2e tests.
+      - name: filter packages
+        id: filter-packages
+        if: steps.changed-lockfile.outputs.any_changed != 'true' && github.event_name == 'pull_request'
+        run: echo "filter=${{ format('--filter=...[origin/{0}]', github.base_ref) }}" >> $GITHUB_OUTPUT
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
       # * In a PR, only include packages that have been modified, and their dependencies
       - name: List examples with an e2e script
         id: set-matrix
         run: |
-          FILTER_MODIFIED="${{ github.event_name == 'pull_request' && format('--filter=...[origin/{0}]', github.base_ref) || '' }}"
-          PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' $FILTER_MODIFIED \
+          PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' ${{ steps.filter-packages.outputs.filter }} \
             | xargs -I@ realpath --relative-to=$PWD @ \
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
