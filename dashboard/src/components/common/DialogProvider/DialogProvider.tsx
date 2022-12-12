@@ -391,7 +391,11 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           )}
 
           {activeDrawerType === 'EDIT_USER' && (
-            <EditUserForm {...sharedDrawerProps} user={drawerPayload?.user} />
+            <EditUserForm
+              {...sharedDrawerProps}
+              user={drawerPayload?.user}
+              onEditUser={drawerPayload?.onEditUser}
+            />
           )}
         </RetryableErrorBoundary>
       </Drawer>

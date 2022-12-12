@@ -2,12 +2,8 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import {
-  useGetRolesQuery,
-  useUpdateRemoteAppUserMutation
-} from '@/generated/graphql';
+import { useGetRolesQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
@@ -20,7 +16,6 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
@@ -28,19 +23,13 @@ import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
-  onCancel?: () => Promise<void>;
-  /**
-   * The selected user.
-   */
+  //  * The selected user.
+  //  */
   user: RemoteAppGetUsersQuery['users'][0];
-  /**
-   * Function to be called when the form is submitted.
-   */
-  onSubmit?: () => Promise<void>;
+  onEditUser?: any;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -61,14 +50,13 @@ export type EditUserFormValues = Yup.InferType<
   typeof EditUserFormValidationSchema
 >;
 
-export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
+export default function EditUserForm({
+  user,
+  onEditUser,
+  onCancel,
+}: EditUserFormProps) {
   const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
-  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-
-  const [updateUser] = useUpdateRemoteAppUserMutation({
-    client: remoteProjectGQLClient,
-  });
 
   const { data } = useGetRolesQuery({
     variables: { id: currentApplication.id },
@@ -118,35 +106,14 @@ export default function EditUserForm({ user, onCancel }: EditUserFormProps) {
     });
   }
 
-  async function handleUserEdit(values: EditUserFormValues) {
-    const updateUserMutationPromise = updateUser({
-      variables: {
-        id: user.id,
-        user: {
-          displayName: values.displayName,
-          email: values.email,
-          avatarUrl: values.avatarURL,
-          emailVerified: values.emailVerified,
-        },
-      },
-    });
-
-    await toast.promise(
-      updateUserMutationPromise,
-      {
-        loading: `Updating user's settings...`,
-        success: 'User settings updated successfully!',
-        error: 'Failed to update user settings.',
-      },
-      { ...toastStyleProps },
-    );
-
-    form.reset(values);
-  }
-
   return (
     <FormProvider {...form}>
-      <Form className="divide-y border-y" onSubmit={handleUserEdit}>
+      <Form
+        className="divide-y border-y"
+        onSubmit={(values) => {
+          onEditUser(values, user);
+        }}
+      >
         <section className="grid grid-flow-col grid-cols-7 p-6">
           <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
             {!user.avatarUrl.includes('default=blank') ? (

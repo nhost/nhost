@@ -11,9 +11,9 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 
-import { UserAddIcon } from '@heroicons/react/solid';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
+import Image from 'next/image';
 import { Fragment } from 'react';
 
 export interface UsersBodyProps {
@@ -22,22 +22,27 @@ export interface UsersBodyProps {
    */
   users?: RemoteAppGetUsersQuery['users'];
   onDeleteUser?: any;
+  onEditUser?: any;
 }
 
-export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
+export default function UsersBody({
+  users,
+  onDeleteUser,
+  onEditUser,
+}: UsersBodyProps) {
   const { openDrawer } = useDialog();
 
   function handleViewUser(user: any) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
-      payload: { user },
+      payload: { user, onEditUser },
     });
   }
 
   return (
     <div className="grid grid-flow-row gap-2">
-      <div className="grid grid-flow-row gap-2">
-        <div className="grid grid-cols-4 gap-2 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
+      <div className="grid grid-flow-row">
+        <div className="grid grid-cols-4 gap-2 px-3 py-3 border-gray-200 lg:grid-cols-4 border-b-1">
           <Text className="font-medium">Name</Text>
           <Text className="font-medium">Signed up at</Text>
           <Text className="font-medium">Last Seen</Text>
@@ -47,7 +52,8 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
           {users?.map((user) => (
             <Fragment key={user.id}>
               <ListItem.Root
-                className="grid grid-cols-4 gap-2 py-2.5 items-center"
+                // className="grid items-center grid-cols-4 gap-2 px-3 py-3 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
+                className="grid items-center grid-cols-4 gap-2 py-2.5 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                 secondaryAction={
                   <Dropdown.Root>
                     <Dropdown.Trigger
@@ -95,7 +101,7 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
                   </Dropdown.Root>
                 }
               >
-                <ListItem.Text>
+                <ListItem.Button onClick={() => handleViewUser(user)}>
                   <div className="grid grid-flow-col gap-3 place-content-start">
                     {!user.avatarUrl.includes('default=blank') ? (
                       <Avatar src={user.avatarUrl} />
@@ -115,8 +121,8 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
                       </Text>
                     </div>
                   </div>
-                </ListItem.Text>
-                <ListItem.Text>
+                </ListItem.Button>
+                <ListItem.Button onClick={() => handleViewUser(user)}>
                   <Text
                     color="greyscaleDark"
                     className="font-normal"
@@ -124,21 +130,30 @@ export default function UsersBody({ users, onDeleteUser }: UsersBodyProps) {
                   >
                     {format(new Date(user.createdAt), 'd MMM yyyy')}
                   </Text>
-                </ListItem.Text>
-                <ListItem.Text>
+                </ListItem.Button>
+                <ListItem.Button onClick={() => handleViewUser(user)}>
                   {user.lastSeen
                     ? formatRelative(new Date(), new Date(user.lastSeen))
                     : 'Never'}
-                </ListItem.Text>
-                <ListItem.Text>
+                </ListItem.Button>
+                <ListItem.Button>
                   <Chip
                     component="span"
                     color="default"
                     size="small"
                     label="Email & Password"
-                    icon={<UserAddIcon className="w-4 h-4" />}
+                    sx={{
+                      paddingLeft: '0.55rem',
+                    }}
+                    icon={
+                      <Image
+                        src="/assets/Envelope.svg"
+                        width={16}
+                        height={16}
+                      />
+                    }
                   />
-                </ListItem.Text>
+                </ListItem.Button>
               </ListItem.Root>
 
               <Divider component="li" />

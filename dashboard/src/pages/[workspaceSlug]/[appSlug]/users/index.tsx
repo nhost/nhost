@@ -2,6 +2,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import IconButton from '@/components/ui/v2/IconButton';
+import ChevronLeftIcon from '@/components/ui/v2/icons/ChevronLeftIcon';
+import ChevronRightIcon from '@/components/ui/v2/icons/ChevronRightIcon';
+import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -11,10 +15,12 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/helpers';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
   useTotalUsersQuery,
+  useUpdateRemoteAppUserMutation
 } from '@/utils/__generated__/graphql';
 import { SearchIcon } from '@heroicons/react/solid';
 import { NhostApolloProvider } from '@nhost/react-apollo';
@@ -22,19 +28,23 @@ import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { toastStyleProps } from '../settings/general';
 
 export default function UsersPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openDialog, openAlertDialog } = useDialog();
+  const { openDialog, openAlertDialog, closeDrawer } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
-  const [currentPage] = useState(1);
-  const limit = 25;
-  const offset = currentPage - 1;
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleteUser] = useRemoteAppDeleteUserMutation({
     client: remoteProjectGQLClient,
   });
+  const [updateUser] = useUpdateRemoteAppUserMutation({
+    client: remoteProjectGQLClient,
+  });
+
+  const limit = 6;
+
+  const offset = currentPage - 1;
 
   // merge with the one below
   const {
@@ -69,8 +79,19 @@ export default function UsersPage() {
         offset: offset * limit,
       },
       client: remoteProjectGQLClient,
-      fetchPolicy: 'cache-first',
     });
+
+  const totalNrOfPages = useMemo(() => {
+    if (loading) {
+      return 0;
+    }
+
+    if (totalAmountOfUsers === 0) {
+      return 1;
+    }
+
+    return Math.ceil(totalAmountOfUsers / limit);
+  }, [loading, totalAmountOfUsers]);
 
   const handleSearchStringChange = useMemo(
     () =>
@@ -135,13 +156,39 @@ export default function UsersPage() {
     });
   }
 
+  async function handleUserEdit(values: EditUserFormValues, user: any) {
+    const updateUserMutationPromise = updateUser({
+      variables: {
+        id: user.id,
+        user: {
+          displayName: values.displayName,
+          email: values.email,
+          avatarUrl: values.avatarURL,
+          emailVerified: values.emailVerified,
+        },
+      },
+    });
+
+    await toast.promise(
+      updateUserMutationPromise,
+      {
+        loading: `Updating user's settings...`,
+        success: 'User settings updated successfully!',
+        error: 'Failed to update user settings.',
+      },
+      { ...toastStyleProps },
+    );
+    await refetchProjectUsers();
+    closeDrawer();
+  }
+
   if (loading) {
     return <LoadingScreen />;
   }
 
   if (totalAmountOfUsers === 0) {
     return (
-      <Container className="mx-auto max-w-9xl">
+      <Container className="mx-auto max-w-8xl">
         <div className="flex flex-row place-content-between">
           <Input
             className="rounded-sm"
@@ -202,7 +249,7 @@ export default function UsersPage() {
             : currentApplication.hasuraGraphqlAdminSecret,
       }}
     >
-      <Container className="mx-auto max-w-9xl">
+      <Container className="mx-auto max-w-8xl">
         <div className="flex flex-row place-content-between">
           <Input
             className="rounded-sm"
@@ -237,10 +284,58 @@ export default function UsersPage() {
             </div>
           </div>
         ) : (
-          <UsersBody
-            users={dataRemoteAppUsers?.users}
-            onDeleteUser={handleConfirmDeleteUser}
-          />
+          <div className="grid grid-flow-row">
+            <UsersBody
+              users={dataRemoteAppUsers?.users}
+              onDeleteUser={handleConfirmDeleteUser}
+              onEditUser={handleUserEdit}
+            />
+            <div className="flex flex-row py-4 space-x-3">
+              <div>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  className="block text-xs"
+                  // disabled={currentPage === 1}
+                  // onClick={onOpenPrevPage}
+                  aria-label="Previous page"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage((page) => page - 1);
+                  }}
+                >
+                  <ChevronLeftIcon className="w-4 h-4" />
+                  Back
+                </Button>
+              </div>
+              <div className="flex flex-row space-x-1">
+                <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
+                  Page
+                </Text>
+                <IconButton variant="outlined" className="px-3" disabled>
+                  {currentPage}
+                </IconButton>
+                <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
+                  of {totalNrOfPages}
+                </Text>
+              </div>
+              <div>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  className="text-xs"
+                  disabled={currentPage === totalNrOfPages}
+                  aria-label="Next page"
+                  onClick={async () => {
+                    setCurrentPage((page) => page + 1);
+                  }}
+                >
+                  Next
+                  <ChevronRightIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </Container>
     </NhostApolloProvider>
