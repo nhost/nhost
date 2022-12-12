@@ -2,6 +2,8 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import CopyIcon from '@/components/ui/v2/icons/CopyIcon';
+import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
@@ -11,13 +13,19 @@ import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
+import copy from '@/utils/copy';
+import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import { useUpdateRemoteAppUserMutation } from '@/utils/__generated__/graphql';
+import {
+  useGetRolesQuery,
+  useUpdateRemoteAppUserMutation
+} from '@/utils/__generated__/graphql';
+
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -58,10 +66,21 @@ export default function EditUserForm({
 }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
   });
+
+  const { data } = useGetRolesQuery({
+    variables: { id: currentApplication.id },
+    fetchPolicy: 'cache-first',
+  });
+
+  const allAvailableProjectRoles = useMemo(
+    () => getUserRoles(data?.app?.authUserDefaultAllowedRoles),
+    [data],
+  );
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -102,8 +121,6 @@ export default function EditUserForm({
   }
 
   async function handleUserEdit(values: EditUserFormValues) {
-    console.log(values, 'values');
-    console.log(user, 'user');
     const updateUserMutationPromise = updateUser({
       variables: {
         id: user.id,
@@ -183,7 +200,20 @@ export default function EditUserForm({
           <InputLabel as="h3" className="col-span-1">
             User ID
           </InputLabel>
-          <Text className="col-span-3 font-medium">{user.id}</Text>
+          <Text className="col-span-3 font-medium">
+            {user.id}
+            <IconButton
+              color="secondary"
+              variant="borderless"
+              className="ml-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                copy(user.id, 'User ID');
+              }}
+            >
+              <CopyIcon className="w-4 h-4" />
+            </IconButton>
+          </Text>
 
           <InputLabel as="h3" className="col-span-1">
             Created
@@ -326,7 +356,7 @@ export default function EditUserForm({
             </div>
           </div>
         </section> */}
-        {/* 
+
         <section className="grid grid-flow-row p-6 gap-y-10">
           <ControlledSelect
             {...register('defaultRole')}
@@ -348,18 +378,18 @@ export default function EditUserForm({
               Allowed Roles
             </InputLabel>
             <div className="grid grid-flow-row col-span-3 gap-6">
-              {user.roles.map((role) => (
+              {allAvailableProjectRoles.map((role) => (
                 <ControlledCheckbox
-                  key={role.role}
-                  name={role.role}
-                  value={role.role}
-                  label={role.role}
-                  defaultChecked={!!role.role}
+                  key={role.name}
+                  name={role.name}
+                  value={user.roles[role.name]}
+                  label={role.name}
+                  defaultChecked={user.roles.some((r) => r.role === role.name)}
                 />
               ))}
             </div>
           </div>
-        </section> */}
+        </section>
 
         <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
           <Button
