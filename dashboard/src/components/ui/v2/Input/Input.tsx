@@ -19,12 +19,6 @@ export interface InputProps
       | 'inlineInputProportion'
     > {
   /**
-   * Props passed to the form control component.
-   *
-   * @deprecated Use `slotProps.formControl` instead.
-   */
-  formControlProps?: FormControlProps;
-  /**
    * Props for component slots.
    */
   slotProps?: {
@@ -108,10 +102,6 @@ function Input(
     hideEmptyHelperText,
     inlineInputProportion,
     variant = 'normal',
-    formControlProps: {
-      sx: deprecatedFormControlSx,
-      ...deprecatedFormControlProps
-    } = {},
     slotProps,
     className,
     'aria-label': ariaLabel,
@@ -139,9 +129,6 @@ function Input(
     <FormControl
       sx={[
         { alignItems: props.multiline ? 'start' : 'center' },
-        ...(Array.isArray(deprecatedFormControlSx)
-          ? deprecatedFormControlSx
-          : [deprecatedFormControlSx]),
         ...(Array.isArray(formControlSx) ? formControlSx : [formControlSx]),
       ]}
       className={className}
@@ -159,7 +146,6 @@ function Input(
       fullWidth={props.fullWidth}
       error={props.error}
       inlineInputProportion={inlineInputProportion}
-      {...deprecatedFormControlProps}
       {...formControlSlotProps}
     >
       <StyledInputBase

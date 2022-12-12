@@ -1,11 +1,13 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
+import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import XIcon from '@/ui/v2/icons/XIcon';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
+import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export interface RuleEditorRowProps
@@ -52,8 +54,16 @@ export default function RuleEditorRow({
   className,
   ...props
 }: RuleEditorRowProps) {
-  const { register } = useFormContext();
+  const {
+    query: { schemaSlug, tableSlug },
+  } = useRouter();
+  const { control, register, setValue } = useFormContext();
   const ruleEditorRowName = `${name}.rules.${index}`;
+
+  const { field: autocompleteField } = useController({
+    name: `${ruleEditorRowName}.column`,
+    control,
+  });
 
   return (
     <div
@@ -63,15 +73,18 @@ export default function RuleEditorRow({
       )}
       {...props}
     >
-      <Input
-        {...register(`${ruleEditorRowName}.column`)}
-        className="flex-grow-1 lg:flex-shrink-0 lg:flex-[320px] h-10"
+      <ColumnAutocomplete
+        {...autocompleteField}
+        schema={schemaSlug as string}
+        table={tableSlug as string}
+        rootClassName="flex-grow-1 lg:flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{
-          root: { className: 'lg:!rounded-r-none' },
-          input: { className: '!bg-white' },
+          input: { className: 'bg-white lg:!rounded-r-none' },
         }}
         fullWidth
-        autoComplete="off"
+        onChange={(_event, value) => {
+          setValue(`${ruleEditorRowName}.column`, value, { shouldDirty: true });
+        }}
       />
 
       <ControlledSelect
@@ -101,8 +114,8 @@ export default function RuleEditorRow({
         {...register(`${ruleEditorRowName}.value`)}
         className="flex-auto"
         slotProps={{
-          root: { className: 'lg:!rounded-none h-10' },
-          input: { className: '!bg-white' },
+          inputWrapper: { className: '' },
+          input: { className: 'lg:!rounded-none h-10 !bg-white' },
         }}
         fullWidth
         autoComplete="off"

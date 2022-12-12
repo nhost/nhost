@@ -16,11 +16,12 @@ import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
-import type { PropsWithoutRef } from 'react';
-import { useState } from 'react';
+import type { ForwardedRef, PropsWithoutRef, SyntheticEvent } from 'react';
+import { forwardRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface ColumnAutocompleteProps extends PropsWithoutRef<InputProps> {
+export interface ColumnAutocompleteProps
+  extends Omit<PropsWithoutRef<InputProps>, 'onChange'> {
   /**
    * Schema where the `table` is located.
    */
@@ -29,13 +30,25 @@ export interface ColumnAutocompleteProps extends PropsWithoutRef<InputProps> {
    * Table to get the columns from.
    */
   table: string;
+  /**
+   * Function to be called when the value changes.
+   */
+  onChange?: (event: SyntheticEvent, value: string) => void;
+  /**
+   * Class name to be applied to the root element.
+   */
+  rootClassName?: string;
 }
 
-export default function ColumnAutocomplete({
-  schema: defaultSchema,
-  table: defaultTable,
-  ...props
-}: ColumnAutocompleteProps) {
+function ColumnAutocomplete(
+  {
+    rootClassName,
+    schema: defaultSchema,
+    table: defaultTable,
+    ...props
+  }: ColumnAutocompleteProps,
+  ref: ForwardedRef<HTMLInputElement>,
+) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [selectedValue, setSelectedValue] = useState<AutocompleteOption>(null);
@@ -139,10 +152,7 @@ export default function ColumnAutocomplete({
     disableCloseOnSelect: true,
     value: selectedValue,
     open,
-    onClose: (_event, reason) => {
-      console.log(reason);
-      setOpen(false);
-    },
+    onClose: () => setOpen(false),
     groupBy: (option) => option.group,
     isOptionEqualToValue: (option, value) => {
       if (!value) {
@@ -155,26 +165,32 @@ export default function ColumnAutocomplete({
 
       return option.value === value.value && option.custom === value.custom;
     },
-    onChange: (_event, value) => {
+    onChange: (event, value) => {
       if (typeof value === 'string' || Array.isArray(value) || !value) {
         return;
       }
 
       if (value && 'group' in value && value.group === 'columns') {
-        setSelectedColumn(value.value);
         setSelectedValue(value);
+        setSelectedColumn(value.value);
         setOpen(false);
+
+        props.onChange?.(
+          event,
+          selectedRelationships.length > 0
+            ? [selectedRelationships.join('.'), value.value].join('.')
+            : value.value,
+        );
 
         return;
       }
 
+      setInputValue('');
+      setSelectedValue(null);
       setSelectedRelationships((currentRelationship) => [
         ...currentRelationship,
         value.metadata?.target.table,
       ]);
-
-      setSelectedValue(null);
-      setInputValue('');
     },
   });
 
@@ -204,20 +220,25 @@ export default function ColumnAutocomplete({
   }
 
   return (
-    <div>
-      <div {...getRootProps()}>
+    <>
+      <div {...getRootProps()} className={rootClassName}>
         <Input
           {...props}
+          ref={ref}
           fullWidth
           slotProps={{
+            ...(props.slotProps || {}),
             label: getInputLabelProps(),
-            input: { ref: setAnchorEl },
+            input: { ...(props.slotProps?.input || {}), ref: setAnchorEl },
             inputRoot: {
               ...getInputProps(),
-              className: twMerge(hasSelectedColumnOrRelationship && '!pl-0'),
+              className: twMerge(
+                hasSelectedColumnOrRelationship && '!pl-0',
+                props.slotProps?.inputRoot?.className,
+              ),
             },
           }}
-          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           error={Boolean(tableError || metadataError)}
           helperText={String(tableError || metadataError || '')}
           onChange={(event) => setInputValue(event.target.value)}
@@ -252,6 +273,7 @@ export default function ColumnAutocomplete({
                 onClick={(event) => {
                   event.stopPropagation();
 
+                  setSelectedValue(null);
                   setSelectedRelationships((currentRelationships) =>
                     currentRelationships.slice(0, -1),
                   );
@@ -302,6 +324,8 @@ export default function ColumnAutocomplete({
           )}
         </div>
       </AutocompletePopper>
-    </div>
+    </>
   );
 }
+
+export default forwardRef(ColumnAutocomplete);
