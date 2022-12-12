@@ -505,3 +505,33 @@ export interface RuleGroup {
   rules: Rule[];
   groups: RuleGroup[];
 }
+
+/**
+ * Represents an operator for a permission rule.
+ */
+export type PermissionOperator =
+  | '_eq'
+  | '_neq'
+  | '_in'
+  | '_nin'
+  | '_gt'
+  | '_lt'
+  | '_gte'
+  | '_lte'
+  | '_ceq'
+  | '_cne'
+  | '_cgt'
+  | '_clt'
+  | '_cgte'
+  | '_clte'
+  | '_is_null'
+  | '_like'
+  | '_nlike'
+  | '_ilike'
+  | '_nilike'
+  | '_similar'
+  | '_nsimilar'
+  | '_regex'
+  | '_iregex'
+  | '_nregex'
+  | '_niregex';

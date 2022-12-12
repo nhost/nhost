@@ -3,12 +3,13 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import XIcon from '@/ui/v2/icons/XIcon';
-import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
+import { useState } from 'react';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+import RuleValueInput from './RuleValueInput';
 
 export interface RuleEditorRowProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
@@ -57,11 +58,12 @@ export default function RuleEditorRow({
   const {
     query: { schemaSlug, tableSlug },
   } = useRouter();
-  const { control, register, setValue } = useFormContext();
-  const ruleEditorRowName = `${name}.rules.${index}`;
+  const { control, setValue } = useFormContext();
+  const rowName = `${name}.rules.${index}`;
 
+  const [selectedColumnType, setSelectedColumnType] = useState<string>('');
   const { field: autocompleteField } = useController({
-    name: `${ruleEditorRowName}.column`,
+    name: `${rowName}.column`,
     control,
   });
 
@@ -82,13 +84,16 @@ export default function RuleEditorRow({
           input: { className: 'bg-white lg:!rounded-r-none' },
         }}
         fullWidth
-        onChange={(_event, value) => {
-          setValue(`${ruleEditorRowName}.column`, value, { shouldDirty: true });
+        onChange={(_event, { value, type }) => {
+          setSelectedColumnType(type);
+          setValue(`${rowName}.column`, value, { shouldDirty: true });
+          setValue(`${rowName}.operator`, '_eq', { shouldDirty: true });
+          setValue(`${rowName}.value`, '', { shouldDirty: true });
         }}
       />
 
       <ControlledSelect
-        name={`${ruleEditorRowName}.operator`}
+        name={`${rowName}.operator`}
         className="flex-grow-1 lg:flex-shrink-0 lg:flex-[140px] h-10"
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
@@ -108,18 +113,24 @@ export default function RuleEditorRow({
         <Option value="_cgte">_cgte</Option>
         <Option value="_clte">_clte</Option>
         <Option value="_is_null">_is_null</Option>
+
+        {selectedColumnType === 'text' && (
+          <>
+            <Option value="_like">_like</Option>
+            <Option value="_nlike">_nlike</Option>
+            <Option value="_ilike">_ilike</Option>
+            <Option value="_nilike">_nilike</Option>
+            <Option value="_similar">_similar</Option>
+            <Option value="_nsimilar">_nsimilar</Option>
+            <Option value="_regex">_regex</Option>
+            <Option value="_iregex">_iregex</Option>
+            <Option value="_nregex">_nregex</Option>
+            <Option value="_niregex">_niregex</Option>
+          </>
+        )}
       </ControlledSelect>
 
-      <Input
-        {...register(`${ruleEditorRowName}.value`)}
-        className="flex-auto"
-        slotProps={{
-          inputWrapper: { className: '' },
-          input: { className: 'lg:!rounded-none h-10 !bg-white' },
-        }}
-        fullWidth
-        autoComplete="off"
-      />
+      <RuleValueInput name={rowName} />
 
       <RemoveButton onRemove={onRemove} name={name} />
     </div>

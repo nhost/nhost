@@ -34,7 +34,13 @@ export interface ColumnAutocompleteProps
   /**
    * Function to be called when the value changes.
    */
-  onChange?: (event: SyntheticEvent, value: string) => void;
+  onChange?: (
+    event: SyntheticEvent,
+    value: {
+      value: string;
+      type: string;
+    },
+  ) => void;
   /**
    * Class name to be applied to the root element.
    */
@@ -177,12 +183,13 @@ function ColumnAutocomplete(
       setOpen(false);
       setInputValue(value.value);
 
-      props.onChange?.(
-        event,
-        selectedRelationships.length > 0
-          ? [relationshipDotNotation, value.value].join('.')
-          : value.value,
-      );
+      props.onChange?.(event, {
+        value:
+          selectedRelationships.length > 0
+            ? [relationshipDotNotation, value.value].join('.')
+            : value.value,
+        type: value.metadata?.type,
+      });
 
       return;
     }
