@@ -8,7 +8,7 @@ import { forwardRef } from 'react';
 import mergeRefs from 'react-merge-refs';
 
 export interface InputProps
-  extends Omit<MaterialInputBaseProps, 'componentsProps'>,
+  extends Omit<MaterialInputBaseProps, 'componentsProps' | 'slotProps'>,
     Pick<
       FormControlProps,
       | 'label'
@@ -21,20 +21,38 @@ export interface InputProps
   /**
    * Props passed to the form control component.
    *
-   * @deprecated Use `componentsProps` instead.
+   * @deprecated Use `slotProps.formControl` instead.
    */
   formControlProps?: FormControlProps;
   /**
    * Props for component slots.
    */
-  componentsProps?: {
+  slotProps?: {
+    /**
+     * Props passed to MUI's `<Input />` component.
+     */
     input?: Partial<MaterialInputBaseProps>;
+    /**
+     * Props passed to the `<Box />` component wrapping the input.
+     */
     inputWrapper?: Partial<FormControlProps['inputWrapperProps']>;
+    /**
+     * Props passed to the native `<input />` element.
+     */
     inputRoot?: Partial<
       DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>
     >;
+    /**
+     * Props passed to the label in the `<FormControl />` component.
+     */
     label?: Partial<FormControlProps['labelProps']>;
+    /**
+     * Props passed to the `<FormControl />` component.
+     */
     formControl?: Partial<FormControlProps>;
+    /**
+     * Props passed to the helper text in the `<FormControl />` component.
+     */
     helperText?: Partial<FormControlProps['helperTextProps']>;
   };
 }
@@ -94,7 +112,7 @@ function Input(
       sx: deprecatedFormControlSx,
       ...deprecatedFormControlProps
     } = {},
-    componentsProps,
+    slotProps,
     className,
     'aria-label': ariaLabel,
     ...props
@@ -109,12 +127,12 @@ function Input(
     label: labelSlotProps,
     helperText: helperTextSlotProps,
   } = {
-    inputWrapper: componentsProps?.inputWrapper || {},
-    input: componentsProps?.input || {},
-    inputRoot: componentsProps?.inputRoot || {},
-    formControl: componentsProps?.formControl || {},
-    label: componentsProps?.label || {},
-    helperText: componentsProps?.helperText || {},
+    inputWrapper: slotProps?.inputWrapper || {},
+    input: slotProps?.input || {},
+    inputRoot: slotProps?.inputRoot || {},
+    formControl: slotProps?.formControl || {},
+    label: slotProps?.label || {},
+    helperText: slotProps?.helperText || {},
   };
 
   return (

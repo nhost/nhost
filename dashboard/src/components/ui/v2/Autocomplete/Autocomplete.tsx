@@ -325,7 +325,7 @@ function Autocomplete(
         ...params
       }) => (
         <Input
-          componentsProps={{
+          slotProps={{
             inputRoot: { 'aria-label': ariaLabel },
             label: InputLabelProps,
             formControl: formControlSlotProps,

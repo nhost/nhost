@@ -5,13 +5,13 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { AutocompletePopper } from '@/ui/v2/Autocomplete';
 import IconButton from '@/ui/v2/IconButton';
+import ArrowLeftIcon from '@/ui/v2/icons/ArrowLeftIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
 import Text from '@/ui/v2/Text';
-import { ArrowLeftIcon } from '@heroicons/react/solid';
 import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
@@ -36,13 +36,20 @@ export default function ColumnAutocomplete({
   table: defaultTable,
   ...props
 }: ColumnAutocompleteProps) {
+  const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = useState<AutocompleteOption>(null);
   const [selectedColumn, setSelectedColumn] = useState<string>('');
-  const [selectedRelationship, setSelectedRelationship] = useState<string>('');
-  const selectedTable =
-    selectedRelationship.split('.').slice(-1)?.[0] || defaultTable;
+  const [selectedRelationships, setSelectedRelationships] = useState<string[]>(
+    [],
+  );
+
+  const currentRelationshipTable =
+    selectedRelationships[selectedRelationships.length - 1];
+  const selectedTable = currentRelationshipTable || defaultTable;
+
   const hasSelectedColumnOrRelationship =
-    Boolean(selectedColumn) || Boolean(selectedRelationship);
+    Boolean(selectedColumn) || Boolean(currentRelationshipTable);
 
   const {
     data: tableData,
@@ -129,6 +136,13 @@ export default function ColumnAutocomplete({
     id: props?.name,
     options: columnOptions,
     openOnFocus: true,
+    disableCloseOnSelect: true,
+    value: selectedValue,
+    open,
+    onClose: (_event, reason) => {
+      console.log(reason);
+      setOpen(false);
+    },
     groupBy: (option) => option.group,
     isOptionEqualToValue: (option, value) => {
       if (!value) {
@@ -148,16 +162,18 @@ export default function ColumnAutocomplete({
 
       if (value && 'group' in value && value.group === 'columns') {
         setSelectedColumn(value.value);
+        setSelectedValue(value);
+        setOpen(false);
 
         return;
       }
 
-      setSelectedRelationship((currentRelationship) =>
-        currentRelationship
-          ? `${currentRelationship}.${value.metadata.target.table}`
-          : value.metadata.target.table,
-      );
+      setSelectedRelationships((currentRelationship) => [
+        ...currentRelationship,
+        value.metadata?.target.table,
+      ]);
 
+      setSelectedValue(null);
       setInputValue('');
     },
   });
@@ -193,7 +209,7 @@ export default function ColumnAutocomplete({
         <Input
           {...props}
           fullWidth
-          componentsProps={{
+          slotProps={{
             label: getInputLabelProps(),
             input: { ref: setAnchorEl },
             inputRoot: {
@@ -201,6 +217,7 @@ export default function ColumnAutocomplete({
               className: twMerge(hasSelectedColumnOrRelationship && '!pl-0'),
             },
           }}
+          onFocus={() => setOpen(true)}
           error={Boolean(tableError || metadataError)}
           helperText={String(tableError || metadataError || '')}
           onChange={(event) => setInputValue(event.target.value)}
@@ -209,7 +226,9 @@ export default function ColumnAutocomplete({
             hasSelectedColumnOrRelationship ? (
               <span className="ml-2">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
-                {selectedRelationship && <span>{selectedRelationship}.</span>}
+                {selectedRelationships.length > 0 && (
+                  <span>{selectedRelationships.join('.')}.</span>
+                )}
               </span>
             ) : null
           }
@@ -217,6 +236,7 @@ export default function ColumnAutocomplete({
       </div>
 
       <AutocompletePopper
+        onMouseDown={(event) => event.preventDefault()}
         modifiers={[{ name: 'offset', options: { offset: [0, 10] } }]}
         placement="bottom-start"
         open={popupOpen}
@@ -225,13 +245,29 @@ export default function ColumnAutocomplete({
       >
         <div className={autocompleteClasses.paper}>
           <div className="px-3 py-2.5 border-b-1 border-greyscale-100 grid grid-flow-col gap-2 justify-start items-center">
-            {selectedRelationship !== '' && (
-              <IconButton variant="borderless" color="secondary">
+            {selectedRelationships.length > 0 && (
+              <IconButton
+                variant="borderless"
+                color="secondary"
+                onClick={(event) => {
+                  event.stopPropagation();
+
+                  setSelectedRelationships((currentRelationships) =>
+                    currentRelationships.slice(0, -1),
+                  );
+                }}
+              >
                 <ArrowLeftIcon className="w-4 h-4" />
               </IconButton>
             )}
 
-            <Text className="!text-greyscaleMedium">{defaultTable}</Text>
+            <Text>
+              <span className="!text-greyscaleMedium">{defaultTable}</span>
+
+              {selectedRelationships.length > 0 && (
+                <span>.{selectedRelationships.join('.')}</span>
+              )}
+            </Text>
           </div>
 
           {(tableStatus === 'loading' || metadataStatus === 'loading') && (

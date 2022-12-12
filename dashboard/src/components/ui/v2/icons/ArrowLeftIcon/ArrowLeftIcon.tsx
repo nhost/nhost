@@ -12,10 +12,10 @@ function ArrowLeftIcon(props: IconProps) {
       {...props}
     >
       <path
-        d="M2.5 8h11M9 3.5 13.5 8 9 12.5"
+        d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"
         stroke="currentColor"
         fill="none"
-        strokeWidth={1.5}
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
     </svg>

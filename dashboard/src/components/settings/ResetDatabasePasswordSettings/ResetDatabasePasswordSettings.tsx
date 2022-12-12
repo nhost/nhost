@@ -117,7 +117,7 @@ export default function ResetDatabasePasswordSettings() {
             error={Boolean(errors?.databasePassword)}
             fullWidth
             hideEmptyHelperText
-            componentsProps={{
+            slotProps={{
               input: { className: 'lg:w-1/2' },
               helperText: { component: 'div' },
             }}

@@ -204,7 +204,7 @@ export default function DatabaseRecordInputGroup({
                 multiline={isMultiline}
                 rows={5}
                 autoFocus={index === 0 && autoFocusFirstInput}
-                componentsProps={{
+                slotProps={{
                   label: commonLabelProps,
                   inputRoot: { step: 1 },
                 }}

@@ -98,7 +98,7 @@ export default function DatabaseSettingsPage() {
               required
               disabled
               value={inputValue}
-              componentsProps={{
+              slotProps={{
                 label: {
                   className: 'text-sm+ font-medium text-greyscaleDark pb-2',
                 },
