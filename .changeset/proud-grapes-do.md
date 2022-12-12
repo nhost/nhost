@@ -7,4 +7,4 @@
 '@nhost/vue': minor
 ---
 
-Refactor: remove dependency to `@nhost/core`
+Decommission `@nhost/core`
