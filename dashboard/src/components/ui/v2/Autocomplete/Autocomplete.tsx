@@ -201,7 +201,7 @@ function Autocomplete(
   }, [externalInputValue]);
 
   const filteredOptions = filterOptions(props.options as AutocompleteOption[], {
-    inputValue,
+    inputValue: inputValue || '',
     getOptionLabel: props.getOptionLabel
       ? props.getOptionLabel
       : (option) => {
@@ -245,7 +245,7 @@ function Autocomplete(
           ),
         },
       }}
-      inputValue={inputValue}
+      inputValue={inputValue || ''}
       onInputChange={(event, value, reason) => {
         setInputValue(value);
 
@@ -326,6 +326,7 @@ function Autocomplete(
       }) => (
         <Input
           slotProps={{
+            input: { className: slotProps?.input?.className },
             inputRoot: { 'aria-label': ariaLabel },
             label: InputLabelProps,
             formControl: formControlSlotProps,
@@ -335,7 +336,7 @@ function Autocomplete(
           {...slotProps?.input}
           value={params?.inputProps?.value || ''}
           // prevent className changes from the Autocomplete component
-          className=""
+          className={slotProps?.input?.className || ''}
           autoComplete="off"
           fullWidth={fullWidth}
           placeholder={placeholder}

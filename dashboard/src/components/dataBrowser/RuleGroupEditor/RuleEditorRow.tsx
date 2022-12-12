@@ -1,6 +1,6 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
-import type { Rule, RuleGroup } from '@/types/dataBrowser';
+import type { PermissionOperator, Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import XIcon from '@/ui/v2/icons/XIcon';
 import Option from '@/ui/v2/Option';
@@ -79,7 +79,7 @@ export default function RuleEditorRow({
         {...autocompleteField}
         schema={schemaSlug as string}
         table={tableSlug as string}
-        rootClassName="flex-grow-1 lg:flex-shrink-0 lg:flex-[320px] h-10"
+        rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{
           input: { className: 'bg-white lg:!rounded-r-none' },
         }}
@@ -94,9 +94,16 @@ export default function RuleEditorRow({
 
       <ControlledSelect
         name={`${rowName}.operator`}
-        className="flex-grow-1 lg:flex-shrink-0 lg:flex-[140px] h-10"
+        className="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[140px] h-10"
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
+        onChange={(_event, value: PermissionOperator) => {
+          if (value !== '_in' && value !== '_nin') {
+            return;
+          }
+
+          setValue(`${rowName}.value`, [], { shouldDirty: true });
+        }}
       >
         <Option value="_eq">_eq</Option>
         <Option value="_ne">_ne</Option>

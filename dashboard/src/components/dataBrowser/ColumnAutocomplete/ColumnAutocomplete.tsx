@@ -321,7 +321,7 @@ function ColumnAutocomplete(
               </IconButton>
             )}
 
-            <Text>
+            <Text className="truncate">
               <span className="!text-greyscaleMedium">{defaultTable}</span>
 
               {relationshipDotNotation && (

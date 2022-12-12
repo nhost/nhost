@@ -1,3 +1,4 @@
+import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { PermissionOperator } from '@/types/dataBrowser';
@@ -16,6 +17,21 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
   const { register } = useFormContext();
   const inputName = `${name}.value`;
   const operator: PermissionOperator = useWatch({ name: `${name}.operator` });
+
+  if (operator === '_in' || operator === '_nin') {
+    return (
+      <ControlledAutocomplete
+        name={inputName}
+        multiple
+        freeSolo
+        className="flex-auto !bg-white"
+        slotProps={{ input: { className: 'lg:!rounded-none' } }}
+        limitTags={4}
+        options={[]}
+        fullWidth
+      />
+    );
+  }
 
   if (operator === '_is_null') {
     return (
