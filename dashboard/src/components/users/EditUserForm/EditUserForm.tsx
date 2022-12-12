@@ -14,6 +14,7 @@ import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
+import Image from 'next/image';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -35,7 +36,7 @@ export const EditUserFormValidationSchema = Yup.object({
   email: Yup.string()
     .email('Invalid email address')
     .required('This field is required.'),
-  phoneNumber: Yup.string(),
+  phoneNumber: Yup.string().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
 });
@@ -85,9 +86,33 @@ export default function EditUserForm({
     });
   }
 
+  async function handleUserEdit(values: EditUserFormValues) {
+    console.log(values);
+    // const updateAppMutation = updateApp({
+    //   variables: {
+    //     id: currentApplication.id,
+    //     app: {
+    //       ...values,
+    //     },
+    //   },
+    // });
+
+    // await toast.promise(
+    //   updateAppMutation,
+    //   {
+    //     loading: `Apple settings are being updated...`,
+    //     success: `Apple settings have been updated successfully.`,
+    //     error: `An error occurred while trying to update the project's Apple settings.`,
+    //   },
+    //   { ...toastStyleProps },
+    // );
+
+    form.reset(values);
+  }
+
   return (
     <FormProvider {...form}>
-      <Form className="divide-y border-y">
+      <Form className="divide-y border-y" onSubmit={handleUserEdit}>
         <section className="grid grid-flow-col grid-cols-7 p-6">
           <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
             <Avatar className="relative inline-flex items-center justify-center w-12 h-12 overflow-hidden bg-gray-300 rounded-full">
@@ -103,12 +128,7 @@ export default function EditUserForm({
             </div>
           </div>
           <div className="items-center">
-            <Select
-              className="w-full text-sm font-normal text-greyscaleDark"
-              placeholder="Actions"
-              aria-label="Select service"
-              hideEmptyHelperText
-            >
+            <Select placeholder="Actions" hideEmptyHelperText>
               <Option
                 value="Actions"
                 className="text-sm+ font-medium text-red"
@@ -242,13 +262,21 @@ export default function EditUserForm({
           </Select>
         </section>
 
-        <section className="grid grid-flow-col grid-cols-2 p-6">
-          <div className="col-span-1">
+        <section className="grid grid-flow-col grid-cols-8 p-6">
+          <div className="col-span-2">
             <InputLabel as="h3">Sign-In Methods</InputLabel>
           </div>
-          <div className="grid grid-flow-col col-span-1 place-content-between">
-            <Text className="font-medium">Email + Password</Text>
-            <Chip component="span" color="info" size="small" label="Active" />
+          <div className="grid grid-flow-row col-span-3 gap-y-6">
+            <div className="grid grid-flow-col gap-0">
+              <Image src="/logos/Apple.svg" width={12} height={15} />
+              <Text className="font-medium">Email + Password</Text>
+              <Chip component="span" color="info" size="small" label="Active" />
+            </div>
+            <div className="grid grid-flow-col gap-0">
+              <Image src="/logos/Apple.svg" width={12} height={15} />
+              <Text className="font-medium">Email + Password</Text>
+              <Chip component="span" color="info" size="small" label="Active" />
+            </div>
           </div>
         </section>
         <section className="grid grid-flow-row p-6 gap-y-10">
@@ -268,9 +296,11 @@ export default function EditUserForm({
           >
             <Option value="user">user</Option>
           </Select>
-          <div className="grid grid-flow-col grid-cols-2 gap-6 place-content-start">
-            <InputLabel as="h3">Allowed Roles</InputLabel>
-            <div className="grid grid-flow-row gap-6 place-content-start">
+          <div className="grid grid-flow-col grid-cols-8 gap-6 place-content-start">
+            <InputLabel as="h3" className="col-span-2">
+              Allowed Roles
+            </InputLabel>
+            <div className="grid grid-flow-row col-span-3 gap-6">
               <ControlledCheckbox label="user" />
               <ControlledCheckbox label="me" />
               <ControlledCheckbox label="anonymous" />
