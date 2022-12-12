@@ -6,8 +6,6 @@ import { auth, getHtmlLink, mailhog } from './helpers'
 describe('emails', () => {
   afterEach(async () => {
     await auth.signOut()
-    // * Give hasura-auth enough time to process the the previous test
-    await new Promise((resolve) => setTimeout(resolve, 1000))
   })
   it('change email', async () => {
     const email = faker.internet.email().toLocaleLowerCase()
@@ -74,18 +72,10 @@ describe('emails', () => {
     expect(signInA.error).toBeTruthy()
     expect(signInA.session).toBeNull()
 
-    await mailhog.deleteAll()
-
     await auth.sendVerificationEmail({ email })
 
-    // make sure onle a single message exists
-    const messages = await mailhog.messages()
-
-    if (!messages) {
-      throw new Error('no messages')
-    }
-
-    expect(messages.count).toBe(1)
+    const message = await mailhog.latestTo(email)
+    expect(message?.subject).toBe('Verify your email')
 
     // test email link
     // get verify email link
