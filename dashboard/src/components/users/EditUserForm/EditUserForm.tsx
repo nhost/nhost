@@ -1,7 +1,8 @@
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import Button from '@/ui/v2/Button';
+import Button from '@/components/ui/v2/Button';
+import Chip from '@/components/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
@@ -36,14 +37,19 @@ export const EditUserFormValidationSchema = Yup.object({
     .required('This field is required.'),
   phoneNumber: Yup.string(),
   locale: Yup.string(),
+  defaultRole: Yup.string(),
 });
 
 export type EditUserFormValues = Yup.InferType<
   typeof EditUserFormValidationSchema
 >;
 
-export default function EditUserForm({ user }: EditUserFormProps) {
-  const { onDirtyStateChange, openDialog } = useDialog();
+export default function EditUserForm({
+  user,
+  onCancel,
+  ...props
+}: EditUserFormProps) {
+  const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -102,20 +108,35 @@ export default function EditUserForm({ user }: EditUserFormProps) {
               placeholder="Actions"
               aria-label="Select service"
               hideEmptyHelperText
-              slotProps={{
-                root: { className: 'min-h-[initial] h-9 leading-[initial]' },
-              }}
             >
               <Option
                 value="Actions"
-                className="text-sm+ font-medium text-greyscaleGreyDark"
+                className="text-sm+ font-medium text-red"
+                onClick={() => {
+                  openAlertDialog({
+                    title: 'Delete User',
+                    payload: (
+                      <Text>
+                        Are you sure you want to delete the &quot;
+                        <strong>{user.displayName}</strong>&quot; user?
+                        <br /> This cannot be undone.
+                      </Text>
+                    ),
+                    props: {
+                      primaryButtonColor: 'error',
+                      primaryButtonText: 'Delete',
+                      titleProps: { className: 'mx-auto' },
+                      PaperProps: { className: 'max-w-lg mx-auto' },
+                    },
+                  });
+                }}
               >
-                Actions
+                Delete User
               </Option>
             </Select>
           </div>
         </section>
-        <section className="grid grid-flow-row grid-cols-4 gap-6 p-6 px-6">
+        <section className="grid grid-flow-row grid-cols-4 gap-8 p-6">
           <InputLabel as="h3" className="col-span-1">
             User ID
           </InputLabel>
@@ -135,7 +156,7 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             {formatRelative(new Date(), new Date(user.createdAt))}
           </Text>
         </section>
-        <section className="grid grid-flow-row gap-6 p-6 px-6">
+        <section className="grid grid-flow-row gap-8 p-6">
           <Input
             {...register('displayName')}
             id="Display Name"
@@ -221,7 +242,7 @@ export default function EditUserForm({ user }: EditUserFormProps) {
           </Select>
         </section>
 
-        {/* <section className="grid grid-flow-col grid-cols-2 p-6 px-6">
+        <section className="grid grid-flow-col grid-cols-2 p-6">
           <div className="col-span-1">
             <InputLabel as="h3">Sign-In Methods</InputLabel>
           </div>
@@ -230,15 +251,40 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             <Chip component="span" color="info" size="small" label="Active" />
           </div>
         </section>
-        <section className="grid grid-flow-row gap-6 p-6 px-6">
-          <InputLabel as="h3">Default Role</InputLabel>
-          <InputLabel as="h3">Allowed Role</InputLabel>
-        </section> */}
-        <div className="absolute bottom-0 grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
+        <section className="grid grid-flow-row p-6 gap-y-10">
+          <Select
+            {...register('defaultRole')}
+            id="defaultRole"
+            name="defaultRole"
+            variant="inline"
+            label="Default Role"
+            hideEmptyHelperText
+            fullWidth
+            error={!!errors.defaultRole}
+            helperText={errors?.defaultRole?.message}
+            slotProps={{
+              label: { className: 'text-sm+ font-medium' },
+            }}
+          >
+            <Option value="user">user</Option>
+          </Select>
+          <div className="grid grid-flow-col grid-cols-2 gap-6 place-content-start">
+            <InputLabel as="h3">Allowed Roles</InputLabel>
+            <div className="grid grid-flow-row gap-6 place-content-start">
+              <ControlledCheckbox label="user" />
+              <ControlledCheckbox label="me" />
+              <ControlledCheckbox label="anonymous" />
+              <ControlledCheckbox label="teamMember" />
+              <ControlledCheckbox label="teamAdmin" />
+            </div>
+          </div>
+        </section>
+        <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
           <Button
             variant="outlined"
             color="secondary"
             tabIndex={isDirty ? -1 : 0}
+            onClick={onCancel}
           >
             Cancel
           </Button>

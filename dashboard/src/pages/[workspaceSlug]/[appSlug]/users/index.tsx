@@ -40,7 +40,7 @@ export default function UsersPage() {
   const {
     data: {
       usersAggregate: {
-        aggregate: { count },
+        aggregate: { count: totalAmountOfUsers },
       },
     } = { usersAggregate: { aggregate: { count: 0 } } },
     loading,
@@ -74,6 +74,7 @@ export default function UsersPage() {
   const handleSearchStringChange = useMemo(
     () =>
       debounce((event: ChangeEvent<HTMLInputElement>) => {
+        event.preventDefault();
         setSearchString(event.target.value);
       }, 500),
     [],
@@ -137,9 +138,9 @@ export default function UsersPage() {
     return <LoadingScreen />;
   }
 
-  if (count === 0) {
+  if (totalAmountOfUsers === 0) {
     return (
-      <Container>
+      <Container className="mx-auto max-w-9xl">
         <div className="flex flex-row place-content-between">
           <Input
             className="rounded-sm"
@@ -179,6 +180,42 @@ export default function UsersPage() {
             >
               Create User
             </Button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (totalAmountOfUsers !== 0 && dataRemoteAppUsers?.users?.length === 0) {
+    return (
+      <Container className="mx-auto max-w-9xl">
+        <div className="flex flex-row place-content-between">
+          <Input
+            className="rounded-sm"
+            placeholder="Search users"
+            startAdornment={
+              <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
+            }
+            onChange={handleSearchStringChange}
+          />
+          <Button
+            onClick={handleCreateUser}
+            startIcon={<PlusIcon className="w-4 h-4" />}
+            className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
+            size="small"
+          >
+            Create User
+          </Button>
+        </div>
+        <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
+          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
+          <div className="flex flex-col space-y-1">
+            <Text className="font-medium text-center" variant="h3">
+              No results for &quot{searchString}&quot
+            </Text>
+            <Text variant="subtitle1" className="text-center">
+              Try a different search
+            </Text>
           </div>
         </div>
       </Container>

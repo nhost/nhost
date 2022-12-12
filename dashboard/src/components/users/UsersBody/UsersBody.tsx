@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Chip from '@/components/ui/v2/Chip';
-import TrashIcon from '@/components/ui/v2/icons/TrashIcon';
-import UserIcon from '@/components/ui/v2/icons/UserIcon';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
 import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import TrashIcon from '@/ui/v2/icons/TrashIcon';
+import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
