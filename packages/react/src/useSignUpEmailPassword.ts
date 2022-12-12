@@ -2,9 +2,8 @@ import {
   signUpEmailPasswordPromise,
   SignUpEmailPasswordState,
   SignUpOptions
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>

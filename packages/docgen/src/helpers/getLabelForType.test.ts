@@ -1,6 +1,5 @@
 import { snapshot } from 'valtio/vanilla'
 import { afterEach, expect, test } from 'vitest'
-
 import { appState } from '../state'
 import getLabelForType from './getLabelForType'
 
@@ -10,6 +9,7 @@ const initialState = snapshot(appState)
 afterEach(() => {
   appState.verbose = initialState.verbose
   appState.docsRoot = initialState.docsRoot
+  appState.baseSlug = initialState.baseSlug
   appState.contentReferences = initialState.contentReferences
 })
 
@@ -84,6 +84,16 @@ test('should generate label for query types', () => {
       { wrap: false }
     )
   ).toBe('[`Test`](/types/test)')
+})
+
+test('should include only the base slug in the reference URL for classes', () => {
+  appState.baseSlug = '/reference/package'
+  appState.docsRoot = 'reference/docgen/types'
+  appState.contentReferences = new Map([[1, 'Class']])
+
+  expect(getLabelForType({ name: 'AppClient', type: 'reference', id: 1 })).toBe(
+    '[`AppClient`](/reference/package/app-client)'
+  )
 })
 
 test('should generate label for union or intersection types', () => {
