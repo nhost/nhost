@@ -15,6 +15,7 @@ import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment } from 'react';
+import type { EditUserFormValues } from '../EditUserForm';
 
 export interface UsersBodyProps {
   /**
@@ -24,11 +25,14 @@ export interface UsersBodyProps {
   /**
    * Function to delete a user
    */
-  onDeleteUser?: (user: RemoteAppUser) => Promise<void>;
+  onDeleteUser?: (user: RemoteAppUser) => void;
   /**
    * Function to edit a user
    */
-  onEditUser?: VoidFunction;
+  onEditUser?: (
+    values: EditUserFormValues,
+    user: RemoteAppUser,
+  ) => Promise<void>;
 }
 
 export default function UsersBody({

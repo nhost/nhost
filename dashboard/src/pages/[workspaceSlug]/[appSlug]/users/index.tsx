@@ -160,7 +160,10 @@ export default function UsersPage() {
     });
   }
 
-  async function handleUserEdit(values: EditUserFormValues, user: RemoteAppUser) {
+  async function handleUserEdit(
+    values: EditUserFormValues,
+    user: RemoteAppUser,
+  ) {
     const updateUserMutationPromise = updateUser({
       variables: {
         id: user.id,
