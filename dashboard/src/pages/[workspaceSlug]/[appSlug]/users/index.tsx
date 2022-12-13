@@ -278,6 +278,7 @@ export default function UsersPage() {
             onEditUser={handleUserEdit}
           />
           <Pagination
+            className="px-2"
             totalNrOfPages={totalNrOfPages}
             currentPageNumber={currentPage}
             onPrevPageClick={() => {
