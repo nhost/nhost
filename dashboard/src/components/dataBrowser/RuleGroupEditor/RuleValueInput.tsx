@@ -3,6 +3,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { PermissionOperator } from '@/types/dataBrowser';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
@@ -68,12 +69,14 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
     );
   }
 
-  const availableHasuraPermissionVariables = getPermissionVariablesArray(
-    data?.app?.authJwtCustomClaims,
-  ).map(({ key }) => ({
-    value: `X-Hasura-${key}`,
-    label: `X-Hasura-${key}`,
-  }));
+  const availableHasuraPermissionVariables = !loading
+    ? getPermissionVariablesArray(data?.app?.authJwtCustomClaims).map(
+        ({ key }) => ({
+          value: `X-Hasura-${key}`,
+          label: `X-Hasura-${key}`,
+        }),
+      )
+    : [];
 
   return (
     <ControlledAutocomplete
@@ -83,6 +86,7 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
       slotProps={{ input: { className: 'lg:!rounded-none' } }}
       fullWidth
       loading={loading}
+      loadingText={<ActivityIndicator label="Loading..." />}
       error={!!error}
       helperText={error?.message}
       options={

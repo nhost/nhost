@@ -4,6 +4,7 @@ const customClaimsQuery = nhostGraphQLLink.query(
   'getAppCustomClaims',
   (_req, res, ctx) =>
     res(
+      ctx.delay(250),
       ctx.data({
         app: {
           authJwtCustomClaims: {

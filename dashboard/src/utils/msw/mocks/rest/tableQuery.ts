@@ -7,6 +7,7 @@ const tableQuery = rest.post(
 
     if (/table_name = 'authors'/gim.exec(body.args[0].args.sql) !== null) {
       return res(
+        ctx.delay(250),
         ctx.json([
           {
             result_type: 'TuplesOk',
@@ -39,6 +40,7 @@ const tableQuery = rest.post(
     }
 
     return res(
+      ctx.delay(250),
       ctx.json([
         {
           result_type: 'TuplesOk',

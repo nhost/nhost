@@ -4,6 +4,7 @@ const hasuraMetadataQuery = rest.post(
   'http://localhost:1337/v1/metadata',
   (_req, res, ctx) =>
     res(
+      ctx.delay(250),
       ctx.json({
         metadata: {
           version: 3,
