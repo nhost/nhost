@@ -121,26 +121,6 @@ export default function UsersPage() {
     });
   }
 
-  async function handleDeleteUser(user: RemoteAppUser) {
-    const deleteUserPromise = deleteUser({
-      variables: {
-        id: user.id,
-      },
-    });
-
-    await toast.promise(
-      deleteUserPromise,
-      {
-        loading: 'Deleting user...',
-        success: 'User deleted successfully.',
-        error: 'An error occurred while trying to delete this user.',
-      },
-      toastStyleProps,
-    );
-
-    await refetchProjectUsers();
-  }
-
   function handleConfirmDeleteUser(user: RemoteAppUser) {
     openAlertDialog({
       title: 'Delete User',
@@ -151,7 +131,23 @@ export default function UsersPage() {
         </Text>
       ),
       props: {
-        onPrimaryAction: () => handleDeleteUser(user),
+        onPrimaryAction: async () => {
+          await toast.promise(
+            deleteUser({
+              variables: {
+                id: user.id,
+              },
+            }),
+            {
+              loading: 'Deleting user...',
+              success: 'User deleted successfully.',
+              error: 'An error occurred while trying to delete this user.',
+            },
+            toastStyleProps,
+          );
+
+          await refetchProjectUsers();
+        },
         primaryButtonColor: 'error',
         primaryButtonText: 'Delete',
         titleProps: { className: 'mx-auto' },
@@ -172,6 +168,7 @@ export default function UsersPage() {
           email: values.email,
           avatarUrl: values.avatarURL,
           emailVerified: values.emailVerified,
+          defaultRole: values.defaultRole,
         },
       },
     });
@@ -288,6 +285,9 @@ export default function UsersPage() {
             }}
             onNextPageClick={() => {
               setCurrentPage((page) => page + 1);
+            }}
+            onChangePage={(page) => {
+              setCurrentPage(page);
             }}
           />
         </div>

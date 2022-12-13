@@ -1,5 +1,5 @@
+import Input from '@/components/ui/v2/Input';
 import Button from '@/ui/v2/Button';
-import IconButton from '@/ui/v2/IconButton';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import Text from '@/ui/v2/Text';
@@ -35,6 +35,10 @@ export type PaginationProps = DetailedHTMLProps<
    * Props to be passed to the previous button component.
    */
   prevButtonProps?: ButtonProps;
+  /**
+   * Props to be passed to the previous button component.
+   */
+  onChangePage: (page: number) => void;
 };
 
 export default function Pagination({
@@ -45,6 +49,7 @@ export default function Pagination({
   onNextPageClick,
   nextButtonProps,
   prevButtonProps,
+  onChangePage,
   ...props
 }: PaginationProps) {
   return (
@@ -67,13 +72,37 @@ export default function Pagination({
         Back
       </Button>
 
-      <div className="flex flex-row space-x-1">
+      <div className="grid grid-cols-3 gap-1 text-center grid-col">
         <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
           Page
         </Text>
-        <IconButton variant="outlined" className="px-2.5 py-1 text-xs" disabled>
-          {currentPageNumber}
-        </IconButton>
+        <Input
+          value={currentPageNumber}
+          onChange={(e) => {
+            const page = parseInt(e.target.value, 10);
+            if (page > 0 && page <= totalNrOfPages) {
+              onChangePage(page);
+            }
+          }}
+          disabled={totalNrOfPages === 1}
+          color="secondary"
+          sx={{
+            width: 28,
+            height: 28,
+          }}
+          componentsProps={{
+            formControl: {
+              className: 'flex flex-row-reverse text-center',
+            },
+          }}
+          slotProps={{
+            input: {
+              style: {
+                fontSize: '0.70rem',
+              },
+            },
+          }}
+        />
         <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
           of {totalNrOfPages}
         </Text>
