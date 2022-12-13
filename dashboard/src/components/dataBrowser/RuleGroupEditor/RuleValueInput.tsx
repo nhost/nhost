@@ -78,7 +78,7 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
       slotProps={{ input: { className: 'lg:!rounded-none' } }}
       fullWidth
       options={[{ value: 'X-Hasura-User-Id', label: 'X-Hasura-User-Id' }]}
-      onChange={(_event, value, reason, details) => {
+      onChange={(_event, _value, reason, details) => {
         if (
           reason !== 'selectOption' &&
           details.option.value !== 'X-Hasura-User-Id'

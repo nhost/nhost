@@ -25,6 +25,12 @@ export interface RuleEditorRowProps
    * Function to be called when the remove button is clicked.
    */
   onRemove?: VoidFunction;
+  /**
+   * List of operators to be disabled for the rule editor.
+   *
+   * @default []
+   */
+  disabledOperators?: PermissionOperator[];
 }
 
 const commonOperators: {
@@ -51,7 +57,7 @@ const commonOperators: {
   { value: '_is_null', helperText: 'is null' },
 ];
 
-const textOperators: typeof commonOperators = [
+const textSpecificOperators: typeof commonOperators = [
   { value: '_like', helperText: 'is like' },
   { value: '_nlike', helperText: 'is not like' },
   { value: '_ilike', helperText: 'is like (case-insensitive)' },
@@ -89,6 +95,7 @@ export default function RuleEditorRow({
   index,
   onRemove,
   className,
+  disabledOperators = [],
   ...props
 }: RuleEditorRowProps) {
   const {
@@ -102,6 +109,20 @@ export default function RuleEditorRow({
     name: `${rowName}.column`,
     control,
   });
+
+  const disabledOperatorMap = disabledOperators.reduce(
+    (map, currentOperator) => map.set(currentOperator, true),
+    new Map<string, boolean>(),
+  );
+
+  const availableOperators = [
+    ...commonOperators.filter(({ value }) => !disabledOperatorMap.has(value)),
+    ...(selectedColumnType === 'text'
+      ? textSpecificOperators.filter(
+          ({ value }) => !disabledOperatorMap.get(value),
+        )
+      : []),
+  ];
 
   return (
     <div
@@ -162,8 +183,7 @@ export default function RuleEditorRow({
           return <span>{option.value}</span>;
         }}
       >
-        {commonOperators.map(renderOption)}
-        {selectedColumnType === 'text' && textOperators.map(renderOption)}
+        {availableOperators.map(renderOption)}
       </ControlledSelect>
 
       <RuleValueInput name={rowName} />

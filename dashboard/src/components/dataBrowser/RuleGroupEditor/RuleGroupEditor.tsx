@@ -6,11 +6,13 @@ import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+import type { RuleEditorRowProps } from './RuleEditorRow';
 import RuleEditorRow from './RuleEditorRow';
 import RuleGroupControls from './RuleGroupControls';
 
 export interface RuleGroupEditorProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
+    Pick<RuleEditorRowProps, 'disabledOperators'> {
   /**
    * Name of the group editor.
    */
@@ -36,6 +38,7 @@ export default function RuleGroupEditor({
   name,
   className,
   disableRemove,
+  disabledOperators = [],
   depth = 0,
   ...props
 }: RuleGroupEditorProps) {
@@ -99,6 +102,7 @@ export default function RuleGroupEditor({
               index={ruleIndex}
               onRemove={() => removeRule(ruleIndex)}
               className="flex-auto"
+              disabledOperators={disabledOperators}
             />
           </div>
         ))}
@@ -125,6 +129,7 @@ export default function RuleGroupEditor({
             <RuleGroupEditor
               onRemove={() => removeGroup(ruleGroupIndex)}
               disableRemove={rules.length === 0 && groups.length === 1}
+              disabledOperators={disabledOperators}
               name={`${name}.groups.${ruleGroupIndex}`}
               className="flex-auto"
               depth={depth + 1}
