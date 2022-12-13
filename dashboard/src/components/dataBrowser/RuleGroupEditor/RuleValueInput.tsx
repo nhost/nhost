@@ -2,7 +2,6 @@ import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { PermissionOperator } from '@/types/dataBrowser';
-import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -14,7 +13,7 @@ export interface RuleValueInputProps {
 }
 
 export default function RuleValueInput({ name }: RuleValueInputProps) {
-  const { register } = useFormContext();
+  const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: PermissionOperator = useWatch({ name: `${name}.operator` });
 
@@ -27,8 +26,21 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
         className="flex-auto !bg-white"
         slotProps={{ input: { className: 'lg:!rounded-none' } }}
         limitTags={4}
-        options={[]}
+        options={[
+          { value: 'X-Hasura-Allowed-Ids', label: 'X-Hasura-Allowed-Ids' },
+        ]}
         fullWidth
+        filterSelectedOptions
+        onChange={(_event, _value, reason, details) => {
+          if (
+            reason !== 'selectOption' ||
+            details.option.value !== 'X-Hasura-Allowed-Ids'
+          ) {
+            return;
+          }
+
+          setValue(inputName, [details.option.value], { shouldDirty: true });
+        }}
       />
     );
   }
@@ -59,15 +71,23 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
   }
 
   return (
-    <Input
-      {...register(inputName)}
-      className="flex-auto"
-      slotProps={{
-        inputWrapper: { className: '' },
-        input: { className: 'lg:!rounded-none h-10 !bg-white' },
-      }}
+    <ControlledAutocomplete
+      freeSolo
+      name={inputName}
+      className="flex-auto !bg-white"
+      slotProps={{ input: { className: 'lg:!rounded-none' } }}
       fullWidth
-      autoComplete="off"
+      options={[{ value: 'X-Hasura-User-Id', label: 'X-Hasura-User-Id' }]}
+      onChange={(_event, value, reason, details) => {
+        if (
+          reason !== 'selectOption' &&
+          details.option.value !== 'X-Hasura-User-Id'
+        ) {
+          return;
+        }
+
+        setValue(inputName, details.option.value, { shouldDirty: true });
+      }}
     />
   );
 }

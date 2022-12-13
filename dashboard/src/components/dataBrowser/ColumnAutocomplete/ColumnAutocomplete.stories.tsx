@@ -48,7 +48,9 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
             name="firstReference"
             label="First Reference"
             onChange={(_event, value) =>
-              form.setValue('firstReference', value, { shouldDirty: true })
+              form.setValue('firstReference', value.value, {
+                shouldDirty: true,
+              })
             }
           />
           <ColumnAutocomplete
@@ -56,7 +58,9 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
             name="secondReference"
             label="Second Reference"
             onChange={(_event, value) =>
-              form.setValue('secondReference', value, { shouldDirty: true })
+              form.setValue('secondReference', value.value, {
+                shouldDirty: true,
+              })
             }
           />
 

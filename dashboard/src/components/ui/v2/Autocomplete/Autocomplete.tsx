@@ -1,5 +1,7 @@
+import Chip from '@/ui/v2/Chip';
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
+import XIcon from '@/ui/v2/icons/XIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
@@ -8,7 +10,7 @@ import type { StyledComponent } from '@emotion/styled';
 import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
 import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
-import { darken, styled } from '@mui/material';
+import { chipClasses, darken, styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
@@ -102,7 +104,23 @@ export interface AutocompleteProps<
   customOptionLabel?: string | ((customOptionLabel: string) => string);
 }
 
+const StyledTag = styled(Chip)(({ theme }) => ({
+  fontSize: theme.typography.pxToRem(15),
+  lineHeight: theme.typography.pxToRem(22),
+  color: theme.palette.text.secondary,
+  fontWeight: 400,
+}));
+
 const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
+  [`.${chipClasses.root}:first-of-type`]: {
+    margin: theme.spacing(0.375, 0.25, 0.375, 0.375),
+  },
+  [`.${chipClasses.root}:not(:first-of-type)`]: {
+    margin: theme.spacing(0.375, 0.25),
+  },
+  [`.${chipClasses.root} + input`]: {
+    paddingLeft: theme.spacing(0.5),
+  },
   [`.${materialAutocompleteClasses.endAdornment}`]: {
     right: theme.spacing(1.5),
   },
@@ -273,6 +291,16 @@ function Autocomplete(
 
         return option.value === value.value && option.custom === value.custom;
       }}
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) => (
+          <StyledTag
+            deleteIcon={<XIcon />}
+            size="small"
+            label={typeof option === 'string' ? option : option.value}
+            {...getTagProps({ index })}
+          />
+        ))
+      }
       renderGroup={({ group, key, children }) =>
         group ? (
           <div key={key}>

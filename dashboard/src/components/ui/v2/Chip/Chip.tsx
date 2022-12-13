@@ -1,6 +1,9 @@
 import { styled } from '@mui/material';
-import type { ChipProps as MaterialChipProps } from '@mui/material/Chip';
-import MaterialChip, { chipClasses } from '@mui/material/Chip';
+import MaterialChip, {
+  chipClasses,
+  ChipProps as MaterialChipProps,
+  getChipUtilityClass,
+} from '@mui/material/Chip';
 import type { ElementType } from 'react';
 
 export interface ChipProps extends MaterialChipProps {
@@ -17,9 +20,20 @@ const Chip = styled(MaterialChip)<ChipProps>(({ theme }) => ({
   fontWeight: 500,
   borderRadius: '9999px',
   padding: theme.spacing(0, 0.25),
+  [`&.${chipClasses.filledSecondary}`]: {
+    backgroundColor: theme.palette.text.secondary,
+    color: theme.palette.common.white,
+  },
+  [`&.${chipClasses.outlinedSecondary}`]: {
+    border: `1px solid ${theme.palette.text.secondary}`,
+    color: theme.palette.text.secondary,
+  },
   [`&.${chipClasses.colorInfo}`]: {
     backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.main,
+  },
+  [`& .${getChipUtilityClass('deleteIconColorDefault')}`]: {
+    color: theme.palette.text.secondary,
   },
 }));
 
