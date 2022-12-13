@@ -1,6 +1,6 @@
 # @nhost/nextjs
 
-## 2.0.0
+## 1.11.0
 
 ### Minor Changes
 
