@@ -15,3 +15,4 @@ tsconfig.json
 tsconfig.*.json
 *.d.ts
 .next
+**/pnpm-lock.yaml

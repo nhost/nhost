@@ -1,12 +1,12 @@
-import { NewCustomer } from './components/new-customer'
-import { Customers } from './components/customers'
+import { NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
+import { Customers } from './components/customers'
+import { NewCustomer } from './components/new-customer'
 import { nhost } from './utils/nhost'
-import { NhostReactProvider } from '@nhost/react'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <div>
           <h1>GraphQL Code Generator example with React and Apollo</h1>
@@ -18,7 +18,7 @@ function App() {
           </div>
         </div>
       </NhostApolloProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 

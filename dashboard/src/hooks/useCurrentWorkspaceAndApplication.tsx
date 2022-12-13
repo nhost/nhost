@@ -43,10 +43,10 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         deployments: [],
         subdomain: 'localhost',
         region: {
-          awsName: null,
+          id: null,
           countryCode: null,
           city: null,
-          id: null,
+          awsName: null,
         },
         isProvisioned: true,
         createdAt: new Date().toISOString(),

@@ -7,7 +7,7 @@ import { UserDataProvider } from '@/context/workspace1-context';
 import defaultTheme from '@/theme/default';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
-import { NhostNextProvider } from '@nhost/nextjs';
+import { NhostProvider } from '@nhost/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { queries, Queries, RenderOptions } from '@testing-library/react';
 import { render as rtlRender } from '@testing-library/react';
@@ -25,7 +25,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
     <RetryableErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <CacheProvider value={emotionCache}>
-          <NhostNextProvider nhost={nhost}>
+          <NhostProvider nhost={nhost}>
             <WorkspaceProvider>
               <UserDataProvider>
                 <ManagedUIContext>
@@ -36,7 +36,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
                 </ManagedUIContext>
               </UserDataProvider>
             </WorkspaceProvider>
-          </NhostNextProvider>
+          </NhostProvider>
         </CacheProvider>
       </QueryClientProvider>
     </RetryableErrorBoundary>

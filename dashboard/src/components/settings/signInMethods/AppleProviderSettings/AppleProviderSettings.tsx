@@ -23,7 +23,6 @@ export interface AppleProviderFormValues {
   authAppleKeyId: string;
   authAppleClientId: string;
   authApplePrivateKey: string;
-  authAppleScope: string;
 }
 
 export default function AppleProviderSettings() {
@@ -38,7 +37,6 @@ export default function AppleProviderSettings() {
         authAppleKeyId,
         authAppleClientId,
         authApplePrivateKey,
-        authAppleScope,
       },
     },
     loading,
@@ -57,7 +55,6 @@ export default function AppleProviderSettings() {
       authAppleKeyId,
       authAppleClientId,
       authApplePrivateKey,
-      authAppleScope,
       authAppleEnabled,
     },
   });
@@ -83,9 +80,7 @@ export default function AppleProviderSettings() {
     const updateAppMutation = updateApp({
       variables: {
         id: currentApplication.id,
-        app: {
-          ...values,
-        },
+        app: values,
       },
     });
 
@@ -96,7 +91,7 @@ export default function AppleProviderSettings() {
         success: `Apple settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's Apple settings.`,
       },
-      { ...toastStyleProps },
+      toastStyleProps,
     );
 
     form.reset(values);
@@ -108,9 +103,11 @@ export default function AppleProviderSettings() {
         <SettingsContainer
           title="Apple"
           description="Allow users to sign in with Apple."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isValid || !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-apple"
           docsTitle="how to sign in users with Apple"
@@ -134,9 +131,9 @@ export default function AppleProviderSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAppleScope')}
-            name="authAppleScope"
-            id="authAppleScope"
+            {...register('authAppleClientId')}
+            name="authAppleClientId"
+            id="authAppleClientId"
             label="Service ID"
             placeholder="Apple Service ID"
             className="col-span-1"
