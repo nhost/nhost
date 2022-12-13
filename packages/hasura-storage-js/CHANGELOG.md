@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.8.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
 ## 0.7.4
 
 ### Patch Changes
