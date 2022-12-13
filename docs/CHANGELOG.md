@@ -1,5 +1,13 @@
 # @nhost/docs
 
+## 0.0.8
+
+### Patch Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
 ## 0.0.7
 
 ### Patch Changes

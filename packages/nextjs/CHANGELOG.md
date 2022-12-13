@@ -1,5 +1,18 @@
 # @nhost/nextjs
 
+## 2.0.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+### Patch Changes
+
+- Updated dependencies [7f251111]
+  - @nhost/react@0.16.0
+
 ## 1.9.3
 
 ### Patch Changes
