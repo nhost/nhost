@@ -1,44 +1,40 @@
 import React from 'react'
 
-import { NhostReactProvider, SignedIn, SignedOut } from '@nhost/react'
+import { NhostProvider, SignedIn, SignedOut } from '@nhost/react'
 import { NhostUrqlProvider } from '@nhost/react-urql'
 
-import { ListPrivatePosts } from './components/ListPrivatePosts'
-import { ListPublicPosts } from './components/ListPublicPosts'
-import { ListPublicPostsSubscription } from './components/ListPublicPostsSubscription'
+import { Tasks } from './components/Tasks'
 import { SignIn } from './components/SignIn'
 import { nhost } from './utils/nhost'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostUrqlProvider nhost={nhost}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
-          <div className="mx-auto max-w-3xl">
-            <SignedIn>
-              <ListPublicPostsSubscription />
-              <ListPrivatePosts />
-              <div className="pt-12 mt-12 border-t-2">
+        <SignedIn>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mt-6 text-gray-200">
+            <div className="flex justify-between  pb-4 mb-4 border-b border-gray-700">
+              <div>Todo App</div>
+              <div>
                 <button
                   onClick={() => nhost.auth.signOut()}
                   type="submit"
-                  className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="rounded-sm border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full "
                 >
                   Sign Out
                 </button>
               </div>
-            </SignedIn>
-            <SignedOut>
-              <div className="space-y-5">
-                <ListPublicPosts />
-                <hr />
-                <SignIn />
-              </div>
-            </SignedOut>
+            </div>
+            <Tasks />
           </div>
-        </div>
+        </SignedIn>
+        <SignedOut>
+          <div className="h-full">
+            <SignIn />
+          </div>
+        </SignedOut>
       </NhostUrqlProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 

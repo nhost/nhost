@@ -1032,6 +1032,7 @@ importers:
     specifiers:
       '@nhost/react': workspace:*
       '@types/react': ^18.0.25
+      '@urql/devtools': ^2.0.3
       '@urql/exchange-refocus': ^1.0.0
       graphql: 15.7.2
       graphql-ws: ^5.11.2
@@ -1039,6 +1040,7 @@ importers:
       react-dom: ^18.2.0
       urql: ^3.0.3
     dependencies:
+      '@urql/devtools': 2.0.3_graphql@15.7.2
       '@urql/exchange-refocus': 1.0.0_graphql@15.7.2
       graphql-ws: 5.11.2_graphql@15.7.2
     devDependencies:
@@ -11289,6 +11291,16 @@ packages:
       '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
       graphql: 15.7.2
       wonka: 6.1.1
+
+  /@urql/devtools/2.0.3_graphql@15.7.2:
+    resolution: {integrity: sha512-TktPLiBS9LcBPHD6qcnb8wqOVcg3Bx0iCtvQ80uPpfofwwBGJmqnQTjUdEFU6kwaLOFZULQ9+Uo4831G823mQw==}
+    peerDependencies:
+      '@urql/core': '>= 1.14.0'
+      graphql: '>= 0.11.0'
+    dependencies:
+      graphql: 15.7.2
+      wonka: 6.1.1
+    dev: false
 
   /@urql/exchange-refocus/1.0.0_graphql@15.7.2:
     resolution: {integrity: sha512-m2ZrY1ekn9IS+7hhvbVUFSG0Bb9b6s2uJvxx0uFrxscZ3r+Wc5M7wzzxdaImqXca4siSOPxjwME/NCy4/r/zuw==}

@@ -2501,10 +2501,10 @@ export type Mutation_Root = {
   deleteFile?: Maybe<Files>;
   /** delete data from the table: "storage.files" */
   deleteFiles?: Maybe<Files_Mutation_Response>;
-  /** delete single row from the table: "posts" */
-  deletePost?: Maybe<Posts>;
-  /** delete data from the table: "posts" */
-  deletePosts?: Maybe<Posts_Mutation_Response>;
+  /** delete single row from the table: "tasks" */
+  deleteTask?: Maybe<Tasks>;
+  /** delete data from the table: "tasks" */
+  deleteTasks?: Maybe<Tasks_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -2545,10 +2545,10 @@ export type Mutation_Root = {
   insertFile?: Maybe<Files>;
   /** insert data into the table: "storage.files" */
   insertFiles?: Maybe<Files_Mutation_Response>;
-  /** insert a single row into the table: "posts" */
-  insertPost?: Maybe<Posts>;
-  /** insert data into the table: "posts" */
-  insertPosts?: Maybe<Posts_Mutation_Response>;
+  /** insert a single row into the table: "tasks" */
+  insertTask?: Maybe<Tasks>;
+  /** insert data into the table: "tasks" */
+  insertTasks?: Maybe<Tasks_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -2589,10 +2589,12 @@ export type Mutation_Root = {
   updateFile?: Maybe<Files>;
   /** update data of the table: "storage.files" */
   updateFiles?: Maybe<Files_Mutation_Response>;
-  /** update single row of the table: "posts" */
-  updatePost?: Maybe<Posts>;
-  /** update data of the table: "posts" */
-  updatePosts?: Maybe<Posts_Mutation_Response>;
+  /** update multiples rows of table: "tasks" */
+  updateManyTasks?: Maybe<Array<Maybe<Tasks_Mutation_Response>>>;
+  /** update single row of the table: "tasks" */
+  updateTask?: Maybe<Tasks>;
+  /** update data of the table: "tasks" */
+  updateTasks?: Maybe<Tasks_Mutation_Response>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -2615,8 +2617,6 @@ export type Mutation_Root = {
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
-  /** update multiples rows of table: "posts" */
-  update_posts_many?: Maybe<Array<Maybe<Posts_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
 };
@@ -2731,14 +2731,14 @@ export type Mutation_RootDeleteFilesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeletePostArgs = {
+export type Mutation_RootDeleteTaskArgs = {
   id: Scalars['uuid'];
 };
 
 
 /** mutation root */
-export type Mutation_RootDeletePostsArgs = {
-  where: Posts_Bool_Exp;
+export type Mutation_RootDeleteTasksArgs = {
+  where: Tasks_Bool_Exp;
 };
 
 
@@ -2881,16 +2881,16 @@ export type Mutation_RootInsertFilesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertPostArgs = {
-  object: Posts_Insert_Input;
-  on_conflict?: InputMaybe<Posts_On_Conflict>;
+export type Mutation_RootInsertTaskArgs = {
+  object: Tasks_Insert_Input;
+  on_conflict?: InputMaybe<Tasks_On_Conflict>;
 };
 
 
 /** mutation root */
-export type Mutation_RootInsertPostsArgs = {
-  objects: Array<Posts_Insert_Input>;
-  on_conflict?: InputMaybe<Posts_On_Conflict>;
+export type Mutation_RootInsertTasksArgs = {
+  objects: Array<Tasks_Insert_Input>;
+  on_conflict?: InputMaybe<Tasks_On_Conflict>;
 };
 
 
@@ -3051,16 +3051,22 @@ export type Mutation_RootUpdateFilesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdatePostArgs = {
-  _set?: InputMaybe<Posts_Set_Input>;
-  pk_columns: Posts_Pk_Columns_Input;
+export type Mutation_RootUpdateManyTasksArgs = {
+  updates: Array<Tasks_Updates>;
 };
 
 
 /** mutation root */
-export type Mutation_RootUpdatePostsArgs = {
-  _set?: InputMaybe<Posts_Set_Input>;
-  where: Posts_Bool_Exp;
+export type Mutation_RootUpdateTaskArgs = {
+  _set?: InputMaybe<Tasks_Set_Input>;
+  pk_columns: Tasks_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateTasksArgs = {
+  _set?: InputMaybe<Tasks_Set_Input>;
+  where: Tasks_Bool_Exp;
 };
 
 
@@ -3143,12 +3149,6 @@ export type Mutation_RootUpdate_Files_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Posts_ManyArgs = {
-  updates: Array<Posts_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
@@ -3168,261 +3168,6 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
-
-/** columns and relationships of "posts" */
-export type Posts = {
-  __typename?: 'posts';
-  created_at: Scalars['timestamptz'];
-  id: Scalars['uuid'];
-  is_public: Scalars['Boolean'];
-  title: Scalars['String'];
-  updated_at: Scalars['timestamptz'];
-  /** An object relationship */
-  user: Users;
-  user_id: Scalars['uuid'];
-};
-
-/** aggregated selection of "posts" */
-export type Posts_Aggregate = {
-  __typename?: 'posts_aggregate';
-  aggregate?: Maybe<Posts_Aggregate_Fields>;
-  nodes: Array<Posts>;
-};
-
-export type Posts_Aggregate_Bool_Exp = {
-  bool_and?: InputMaybe<Posts_Aggregate_Bool_Exp_Bool_And>;
-  bool_or?: InputMaybe<Posts_Aggregate_Bool_Exp_Bool_Or>;
-  count?: InputMaybe<Posts_Aggregate_Bool_Exp_Count>;
-};
-
-export type Posts_Aggregate_Bool_Exp_Bool_And = {
-  arguments: Posts_Select_Column_Posts_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Posts_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type Posts_Aggregate_Bool_Exp_Bool_Or = {
-  arguments: Posts_Select_Column_Posts_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Posts_Bool_Exp>;
-  predicate: Boolean_Comparison_Exp;
-};
-
-export type Posts_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Posts_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Posts_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "posts" */
-export type Posts_Aggregate_Fields = {
-  __typename?: 'posts_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Posts_Max_Fields>;
-  min?: Maybe<Posts_Min_Fields>;
-};
-
-
-/** aggregate fields of "posts" */
-export type Posts_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Posts_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "posts" */
-export type Posts_Aggregate_Order_By = {
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Posts_Max_Order_By>;
-  min?: InputMaybe<Posts_Min_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "posts" */
-export type Posts_Arr_Rel_Insert_Input = {
-  data: Array<Posts_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Posts_On_Conflict>;
-};
-
-/** Boolean expression to filter rows from the table "posts". All fields are combined with a logical 'AND'. */
-export type Posts_Bool_Exp = {
-  _and?: InputMaybe<Array<Posts_Bool_Exp>>;
-  _not?: InputMaybe<Posts_Bool_Exp>;
-  _or?: InputMaybe<Array<Posts_Bool_Exp>>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  is_public?: InputMaybe<Boolean_Comparison_Exp>;
-  title?: InputMaybe<String_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  user?: InputMaybe<Users_Bool_Exp>;
-  user_id?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "posts" */
-export enum Posts_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  PostsPkey = 'posts_pkey'
-}
-
-/** input type for inserting data into table "posts" */
-export type Posts_Insert_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  is_public?: InputMaybe<Scalars['Boolean']>;
-  title?: InputMaybe<Scalars['String']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type Posts_Max_Fields = {
-  __typename?: 'posts_max_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  title?: Maybe<Scalars['String']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "posts" */
-export type Posts_Max_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  title?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  user_id?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type Posts_Min_Fields = {
-  __typename?: 'posts_min_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
-  id?: Maybe<Scalars['uuid']>;
-  title?: Maybe<Scalars['String']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "posts" */
-export type Posts_Min_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  title?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  user_id?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "posts" */
-export type Posts_Mutation_Response = {
-  __typename?: 'posts_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Posts>;
-};
-
-/** on_conflict condition type for table "posts" */
-export type Posts_On_Conflict = {
-  constraint: Posts_Constraint;
-  update_columns?: Array<Posts_Update_Column>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "posts". */
-export type Posts_Order_By = {
-  created_at?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  is_public?: InputMaybe<Order_By>;
-  title?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
-  user?: InputMaybe<Users_Order_By>;
-  user_id?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: posts */
-export type Posts_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "posts" */
-export enum Posts_Select_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  IsPublic = 'is_public',
-  /** column name */
-  Title = 'title',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  UserId = 'user_id'
-}
-
-/** select "posts_aggregate_bool_exp_bool_and_arguments_columns" columns of table "posts" */
-export enum Posts_Select_Column_Posts_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
-  /** column name */
-  IsPublic = 'is_public'
-}
-
-/** select "posts_aggregate_bool_exp_bool_or_arguments_columns" columns of table "posts" */
-export enum Posts_Select_Column_Posts_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
-  /** column name */
-  IsPublic = 'is_public'
-}
-
-/** input type for updating data in table "posts" */
-export type Posts_Set_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  is_public?: InputMaybe<Scalars['Boolean']>;
-  title?: InputMaybe<Scalars['String']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "posts" */
-export type Posts_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Posts_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Posts_Stream_Cursor_Value_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  is_public?: InputMaybe<Scalars['Boolean']>;
-  title?: InputMaybe<Scalars['String']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "posts" */
-export enum Posts_Update_Column {
-  /** column name */
-  CreatedAt = 'created_at',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  IsPublic = 'is_public',
-  /** column name */
-  Title = 'title',
-  /** column name */
-  UpdatedAt = 'updated_at',
-  /** column name */
-  UserId = 'user_id'
-}
-
-export type Posts_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Posts_Set_Input>;
-  where: Posts_Bool_Exp;
-};
 
 export type Query_Root = {
   __typename?: 'query_root';
@@ -3480,12 +3225,12 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
-  /** An array relationship */
-  posts: Array<Posts>;
-  /** An aggregate relationship */
-  posts_aggregate: Posts_Aggregate;
-  /** fetch data from the table: "posts" using primary key columns */
-  posts_by_pk?: Maybe<Posts>;
+  /** fetch data from the table: "tasks" using primary key columns */
+  task?: Maybe<Tasks>;
+  /** fetch data from the table: "tasks" */
+  tasks: Array<Tasks>;
+  /** fetch aggregated fields from the table: "tasks" */
+  tasksAggregate: Tasks_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -3702,26 +3447,26 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
-export type Query_RootPostsArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-
-export type Query_RootPosts_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-
-export type Query_RootPosts_By_PkArgs = {
+export type Query_RootTaskArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootTasksArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Query_RootTasksAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
 };
 
 
@@ -3821,14 +3566,14 @@ export type Subscription_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
-  /** An array relationship */
-  posts: Array<Posts>;
-  /** An aggregate relationship */
-  posts_aggregate: Posts_Aggregate;
-  /** fetch data from the table: "posts" using primary key columns */
-  posts_by_pk?: Maybe<Posts>;
-  /** fetch data from the table in a streaming manner: "posts" */
-  posts_stream: Array<Posts>;
+  /** fetch data from the table: "tasks" using primary key columns */
+  task?: Maybe<Tasks>;
+  /** fetch data from the table: "tasks" */
+  tasks: Array<Tasks>;
+  /** fetch aggregated fields from the table: "tasks" */
+  tasksAggregate: Tasks_Aggregate;
+  /** fetch data from the table in a streaming manner: "tasks" */
+  tasksStream: Array<Tasks>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -4110,33 +3855,33 @@ export type Subscription_RootFiles_StreamArgs = {
 };
 
 
-export type Subscription_RootPostsArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-
-export type Subscription_RootPosts_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-
-export type Subscription_RootPosts_By_PkArgs = {
+export type Subscription_RootTaskArgs = {
   id: Scalars['uuid'];
 };
 
 
-export type Subscription_RootPosts_StreamArgs = {
+export type Subscription_RootTasksArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Subscription_RootTasksAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Subscription_RootTasksStreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Posts_Stream_Cursor_Input>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
+  cursor: Array<InputMaybe<Tasks_Stream_Cursor_Input>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
 };
 
 
@@ -4167,6 +3912,190 @@ export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+/** columns and relationships of "tasks" */
+export type Tasks = {
+  __typename?: 'tasks';
+  createdAt: Scalars['timestamptz'];
+  done: Scalars['Boolean'];
+  id: Scalars['uuid'];
+  name: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "tasks" */
+export type Tasks_Aggregate = {
+  __typename?: 'tasks_aggregate';
+  aggregate?: Maybe<Tasks_Aggregate_Fields>;
+  nodes: Array<Tasks>;
+};
+
+/** aggregate fields of "tasks" */
+export type Tasks_Aggregate_Fields = {
+  __typename?: 'tasks_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Tasks_Max_Fields>;
+  min?: Maybe<Tasks_Min_Fields>;
+};
+
+
+/** aggregate fields of "tasks" */
+export type Tasks_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Tasks_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "tasks". All fields are combined with a logical 'AND'. */
+export type Tasks_Bool_Exp = {
+  _and?: InputMaybe<Array<Tasks_Bool_Exp>>;
+  _not?: InputMaybe<Tasks_Bool_Exp>;
+  _or?: InputMaybe<Array<Tasks_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  done?: InputMaybe<Boolean_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "tasks" */
+export enum Tasks_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  TasksPkey = 'tasks_pkey'
+}
+
+/** input type for inserting data into table "tasks" */
+export type Tasks_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Tasks_Max_Fields = {
+  __typename?: 'tasks_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Tasks_Min_Fields = {
+  __typename?: 'tasks_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "tasks" */
+export type Tasks_Mutation_Response = {
+  __typename?: 'tasks_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Tasks>;
+};
+
+/** on_conflict condition type for table "tasks" */
+export type Tasks_On_Conflict = {
+  constraint: Tasks_Constraint;
+  update_columns?: Array<Tasks_Update_Column>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "tasks". */
+export type Tasks_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: tasks */
+export type Tasks_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "tasks" */
+export enum Tasks_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "tasks" */
+export type Tasks_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "tasks" */
+export type Tasks_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Tasks_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Tasks_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "tasks" */
+export enum Tasks_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Tasks_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Tasks_Set_Input>;
+  where: Tasks_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
@@ -4209,10 +4138,6 @@ export type Users = {
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified: Scalars['Boolean'];
   /** An array relationship */
-  posts: Array<Posts>;
-  /** An aggregate relationship */
-  posts_aggregate: Posts_Aggregate;
-  /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
   refreshTokens_aggregate: AuthRefreshTokens_Aggregate;
@@ -4238,26 +4163,6 @@ export type Users = {
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersPostsArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersPosts_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Posts_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Posts_Order_By>>;
-  where?: InputMaybe<Posts_Bool_Exp>;
 };
 
 
@@ -4435,8 +4340,6 @@ export type Users_Bool_Exp = {
   passwordHash?: InputMaybe<String_Comparison_Exp>;
   phoneNumber?: InputMaybe<String_Comparison_Exp>;
   phoneNumberVerified?: InputMaybe<Boolean_Comparison_Exp>;
-  posts?: InputMaybe<Posts_Bool_Exp>;
-  posts_aggregate?: InputMaybe<Posts_Aggregate_Bool_Exp>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
@@ -4500,7 +4403,6 @@ export type Users_Insert_Input = {
   passwordHash?: InputMaybe<Scalars['String']>;
   phoneNumber?: InputMaybe<Scalars['String']>;
   phoneNumberVerified?: InputMaybe<Scalars['Boolean']>;
-  posts?: InputMaybe<Posts_Arr_Rel_Insert_Input>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   roles?: InputMaybe<AuthUserRoles_Arr_Rel_Insert_Input>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Arr_Rel_Insert_Input>;
@@ -4656,7 +4558,6 @@ export type Users_Order_By = {
   passwordHash?: InputMaybe<Order_By>;
   phoneNumber?: InputMaybe<Order_By>;
   phoneNumberVerified?: InputMaybe<Order_By>;
-  posts_aggregate?: InputMaybe<Posts_Aggregate_Order_By>;
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Order_By>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Order_By>;
@@ -4904,40 +4805,35 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
-export type GetPrivatePostsQueryVariables = Exact<{
-  userId: Scalars['uuid'];
+export type GetTasksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTasksQuery = { __typename?: 'query_root', tasks: Array<{ __typename?: 'tasks', id: any, name: string, done: boolean }> };
+
+export type InsertTaskMutationVariables = Exact<{
+  task: Tasks_Insert_Input;
 }>;
 
 
-export type GetPrivatePostsQuery = { __typename?: 'query_root', posts: Array<{ __typename?: 'posts', id: any, title: string }> };
+export type InsertTaskMutation = { __typename?: 'mutation_root', insertTasks?: { __typename?: 'tasks_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'tasks', id: any, name: string }> } | null };
 
-export type InsertPostMutationVariables = Exact<{
-  post: Posts_Insert_Input;
+export type UpdateTaskMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  task: Tasks_Set_Input;
 }>;
 
 
-export type InsertPostMutation = { __typename?: 'mutation_root', insertPosts?: { __typename?: 'posts_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'posts', id: any, title: string }> } | null };
+export type UpdateTaskMutation = { __typename?: 'mutation_root', updateTask?: { __typename?: 'tasks', id: any, name: string, done: boolean } | null };
 
-export type DeletePostMutationVariables = Exact<{
+export type DeleteTaskMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type DeletePostMutation = { __typename?: 'mutation_root', deletePost?: { __typename?: 'posts', id: any } | null };
-
-export type GetPublicPostsQueryVariables = Exact<{ [key: string]: never; }>;
+export type DeleteTaskMutation = { __typename?: 'mutation_root', deleteTask?: { __typename?: 'tasks', id: any } | null };
 
 
-export type GetPublicPostsQuery = { __typename?: 'query_root', posts: Array<{ __typename?: 'posts', id: any, title: string }> };
-
-export type GetPublicPostsSubSubscriptionVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetPublicPostsSubSubscription = { __typename?: 'subscription_root', posts: Array<{ __typename?: 'posts', id: any, title: string }> };
-
-
-export const GetPrivatePostsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPrivatePosts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"posts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"where"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"user_id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"_eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetPrivatePostsQuery, GetPrivatePostsQueryVariables>;
-export const InsertPostDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPost"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"post"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"posts_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insertPosts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"objects"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"post"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"affected_rows"}},{"kind":"Field","name":{"kind":"Name","value":"returning"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]}}]} as unknown as DocumentNode<InsertPostMutation, InsertPostMutationVariables>;
-export const DeletePostDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeletePost"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deletePost"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeletePostMutation, DeletePostMutationVariables>;
-export const GetPublicPostsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPublicPosts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"posts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetPublicPostsQuery, GetPublicPostsQueryVariables>;
-export const GetPublicPostsSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"GetPublicPostsSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"posts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<GetPublicPostsSubSubscription, GetPublicPostsSubSubscriptionVariables>;
+export const GetTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTasks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"createdAt"},"value":{"kind":"EnumValue","value":"desc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"done"}}]}}]}}]} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
+export const InsertTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"task"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"tasks_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insertTasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"objects"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"task"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"affected_rows"}},{"kind":"Field","name":{"kind":"Name","value":"returning"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<InsertTaskMutation, InsertTaskMutationVariables>;
+export const UpdateTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"task"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"tasks_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateTask"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"task"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"done"}}]}}]}}]} as unknown as DocumentNode<UpdateTaskMutation, UpdateTaskMutationVariables>;
+export const DeleteTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"uuid"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteTask"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<DeleteTaskMutation, DeleteTaskMutationVariables>;

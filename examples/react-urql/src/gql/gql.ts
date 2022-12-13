@@ -13,33 +13,28 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel-plugin for production.
  */
 const documents = {
-    "\n  query GetPrivatePosts($userId: uuid!) {\n    posts(where: { user_id: { _eq: $userId } }) {\n      id\n      title\n    }\n  }\n": types.GetPrivatePostsDocument,
-    "\n  mutation InsertPost($post: posts_insert_input!) {\n    insertPosts(objects: [$post]) {\n      affected_rows\n      returning {\n        id\n        title\n      }\n    }\n  }\n": types.InsertPostDocument,
-    "\n  mutation DeletePost($id: uuid!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n": types.DeletePostDocument,
-    "\n  query GetPublicPosts {\n    posts {\n      id\n      title\n    }\n  }\n": types.GetPublicPostsDocument,
-    "\n  subscription GetPublicPostsSub {\n    posts {\n      id\n      title\n    }\n  }\n": types.GetPublicPostsSubDocument,
+    "\n  query GetTasks {\n    tasks(order_by: { createdAt: desc }) {\n      id\n      name\n      done\n    }\n  }\n": types.GetTasksDocument,
+    "\n  mutation InsertTask($task: tasks_insert_input!) {\n    insertTasks(objects: [$task]) {\n      affected_rows\n      returning {\n        id\n        name\n      }\n    }\n  }\n": types.InsertTaskDocument,
+    "\n  mutation UpdateTask($id: uuid!, $task: tasks_set_input!) {\n    updateTask(pk_columns: { id: $id }, _set: $task) {\n      id\n      name\n      done\n    }\n  }\n": types.UpdateTaskDocument,
+    "\n  mutation DeleteTask($id: uuid!) {\n    deleteTask(id: $id) {\n      id\n    }\n  }\n": types.DeleteTaskDocument,
 };
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetPrivatePosts($userId: uuid!) {\n    posts(where: { user_id: { _eq: $userId } }) {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  query GetPrivatePosts($userId: uuid!) {\n    posts(where: { user_id: { _eq: $userId } }) {\n      id\n      title\n    }\n  }\n"];
+export function graphql(source: "\n  query GetTasks {\n    tasks(order_by: { createdAt: desc }) {\n      id\n      name\n      done\n    }\n  }\n"): (typeof documents)["\n  query GetTasks {\n    tasks(order_by: { createdAt: desc }) {\n      id\n      name\n      done\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation InsertPost($post: posts_insert_input!) {\n    insertPosts(objects: [$post]) {\n      affected_rows\n      returning {\n        id\n        title\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InsertPost($post: posts_insert_input!) {\n    insertPosts(objects: [$post]) {\n      affected_rows\n      returning {\n        id\n        title\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation InsertTask($task: tasks_insert_input!) {\n    insertTasks(objects: [$task]) {\n      affected_rows\n      returning {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InsertTask($task: tasks_insert_input!) {\n    insertTasks(objects: [$task]) {\n      affected_rows\n      returning {\n        id\n        name\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation DeletePost($id: uuid!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeletePost($id: uuid!) {\n    deletePost(id: $id) {\n      id\n    }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateTask($id: uuid!, $task: tasks_set_input!) {\n    updateTask(pk_columns: { id: $id }, _set: $task) {\n      id\n      name\n      done\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateTask($id: uuid!, $task: tasks_set_input!) {\n    updateTask(pk_columns: { id: $id }, _set: $task) {\n      id\n      name\n      done\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetPublicPosts {\n    posts {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  query GetPublicPosts {\n    posts {\n      id\n      title\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription GetPublicPostsSub {\n    posts {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  subscription GetPublicPostsSub {\n    posts {\n      id\n      title\n    }\n  }\n"];
+export function graphql(source: "\n  mutation DeleteTask($id: uuid!) {\n    deleteTask(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteTask($id: uuid!) {\n    deleteTask(id: $id) {\n      id\n    }\n  }\n"];
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.

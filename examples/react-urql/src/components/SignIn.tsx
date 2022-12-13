@@ -20,10 +20,10 @@ export function SignIn() {
   }
 
   return (
-    <div className="my-4">
+    <div className="my-4 max-w-xs mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-500">
             Email
           </label>
           <div className="mt-1">
@@ -33,16 +33,16 @@ export function SignIn() {
               placeholder="you@example.com"
               onChange={(e) => setEmail(e.target.value)}
               id="email"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="bg-gray-800 border-gray-600 text-gray-100 block w-full rounded-sm shadow-sm focus:shadow-md sm:text-sm"
             />
           </div>
         </div>
         <div>
           <button
             type="submit"
-            className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="rounded-sm border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full "
           >
-            Sign in with a Magic Link
+            Send Magic Link
           </button>
         </div>
         {error && <div>{error.message}</div>}

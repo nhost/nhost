@@ -10,9 +10,10 @@ import {
   RequestPolicy,
   subscriptionExchange
 } from 'urql'
+import { refocusExchange } from '@urql/exchange-refocus'
+import { devtoolsExchange } from '@urql/devtools'
 
 import type { NhostClient } from '@nhost/nhost-js'
-import { refocusExchange } from '@urql/exchange-refocus'
 
 export type NhostUrqlClientOptions = {
   nhost?: NhostClient
@@ -49,6 +50,7 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
   }
 
   let exchanges: Exchange[] | undefined = [
+    devtoolsExchange,
     dedupExchange,
     refocusExchange(),
     cacheExchange,
