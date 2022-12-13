@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- edd6c922: fix(dashboard): don't break the UI when project is not loaded yet
+- a6d31dc2: fix(dashboard): don't break the UI when project is not loaded yet
 
 ## 0.7.8
 
