@@ -16,7 +16,12 @@ import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
-import type { ForwardedRef, PropsWithoutRef, SyntheticEvent } from 'react';
+import type {
+  ForwardedRef,
+  HTMLAttributes,
+  PropsWithoutRef,
+  SyntheticEvent,
+} from 'react';
 import { forwardRef, useRef, useState } from 'react';
 import mergeRefs from 'react-merge-refs';
 import { twMerge } from 'tailwind-merge';
@@ -45,6 +50,34 @@ export interface ColumnAutocompleteProps
    * Class name to be applied to the root element.
    */
   rootClassName?: string;
+}
+
+function renderGroup(params: AutocompleteRenderGroupParams) {
+  return (
+    <li key={params.key}>
+      <OptionGroupBase>{params.group}</OptionGroupBase>
+
+      <List>{params.children}</List>
+    </li>
+  );
+}
+
+function renderOption(
+  option: AutocompleteOption<string>,
+  optionProps: HTMLAttributes<HTMLLIElement>,
+) {
+  return (
+    <OptionBase
+      {...optionProps}
+      className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
+    >
+      <span>{option.label}</span>
+
+      {option.group === 'columns' && (
+        <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+      )}
+    </OptionBase>
+  );
 }
 
 function ColumnAutocomplete(
@@ -226,33 +259,6 @@ function ColumnAutocomplete(
     onChange: handleChange,
   });
 
-  function renderGroup(params: AutocompleteRenderGroupParams) {
-    return (
-      <li key={params.key}>
-        <OptionGroupBase>{params.group}</OptionGroupBase>
-
-        <List>{params.children}</List>
-      </li>
-    );
-  }
-
-  function renderOption(option: AutocompleteOption<string>, index: number) {
-    const optionProps = getOptionProps({ option, index });
-
-    return (
-      <OptionBase
-        {...optionProps}
-        className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
-      >
-        <span>{option.label}</span>
-
-        {option.group === 'columns' && (
-          <InlineCode>{option.metadata?.type || option.value}</InlineCode>
-        )}
-      </OptionBase>
-    );
-  }
-
   return (
     <>
       <div {...getRootProps()} className={rootClassName}>
@@ -282,12 +288,12 @@ function ColumnAutocomplete(
           value={inputValue}
           startAdornment={
             selectedValue || activeRelationship ? (
-              <span className="ml-2">
+              <Text className="!ml-2">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {relationshipDotNotation && (
                   <span>{relationshipDotNotation}.</span>
                 )}
-              </span>
+              </Text>
             ) : null
           }
         />
@@ -350,7 +356,13 @@ function ColumnAutocomplete(
                   key: `${optionGroup.key}`,
                   group: optionGroup.group,
                   children: optionGroup.options.map((option, index) =>
-                    renderOption(option, optionGroup.index + index),
+                    renderOption(
+                      option,
+                      getOptionProps({
+                        option,
+                        index: optionGroup.index + index,
+                      }),
+                    ),
                   ),
                 }),
               )}

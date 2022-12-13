@@ -23,9 +23,9 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
         name={inputName}
         multiple
         freeSolo
+        limitTags={5}
         className="flex-auto !bg-white"
-        slotProps={{ input: { className: 'lg:!rounded-none' } }}
-        limitTags={4}
+        slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
         options={[
           { value: 'X-Hasura-Allowed-Ids', label: 'X-Hasura-Allowed-Ids' },
         ]}

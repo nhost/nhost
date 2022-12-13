@@ -1,14 +1,14 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
-import type { PermissionOperator, Rule, RuleGroup } from '@/types/dataBrowser';
-import Button from '@/ui/v2/Button';
-import XIcon from '@/ui/v2/icons/XIcon';
+import type { PermissionOperator } from '@/types/dataBrowser';
 import Option from '@/ui/v2/Option';
+import Text from '@/ui/v2/Text';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
-import { useController, useFormContext, useWatch } from 'react-hook-form';
+import { useController, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+import RuleRemoveButton from './RuleRemoveButton';
 import RuleValueInput from './RuleValueInput';
 
 export interface RuleEditorRowProps
@@ -27,24 +27,60 @@ export interface RuleEditorRowProps
   onRemove?: VoidFunction;
 }
 
-function RemoveButton({
-  name,
-  onRemove,
-}: Pick<RuleEditorRowProps, 'name' | 'onRemove'>) {
-  const rules: Rule[] = useWatch({ name: `${name}.rules` });
-  const groups: RuleGroup[] = useWatch({ name: `${name}.groups` });
+const commonOperators: {
+  value: PermissionOperator;
+  label?: string;
+  helperText?: string;
+}[] = [
+  { value: '_eq', helperText: 'is equal' },
+  { value: '_neq', helperText: 'is not equal' },
+  { value: '_in_hasura', label: '_in', helperText: 'is in (X-Hasura-)' },
+  { value: '_in', helperText: 'is in (array)' },
+  { value: '_nin_hasura', label: '_nin', helperText: 'is not in (X-Hasura)' },
+  { value: '_nin', helperText: 'is not in (array)' },
+  { value: '_gt', helperText: 'is greater than' },
+  { value: '_lt', helperText: 'is lower than' },
+  { value: '_gte', helperText: 'is greater than or equal' },
+  { value: '_lte', helperText: 'is lower than or equal' },
+  { value: '_ceq', helperText: 'is equal to column' },
+  { value: '_cne', helperText: 'is not equal to column' },
+  { value: '_cgt', helperText: 'is greater than column' },
+  { value: '_clt', helperText: 'is lower than column' },
+  { value: '_cgte', helperText: 'is greater than or equal to column' },
+  { value: '_clte', helperText: 'is lower than or equal to column' },
+  { value: '_is_null', helperText: 'is null' },
+];
 
+const textOperators: typeof commonOperators = [
+  { value: '_like', helperText: 'is like' },
+  { value: '_nlike', helperText: 'is not like' },
+  { value: '_ilike', helperText: 'is like (case-insensitive)' },
+  { value: '_nilike', helperText: 'is not like (case-insensitive)' },
+  { value: '_similar', helperText: 'is similar' },
+  { value: '_nsimilar', helperText: 'is not similar' },
+  { value: '_regex', helperText: 'matches regex' },
+  { value: '_nregex', helperText: `doesn't match regex` },
+  { value: '_iregex', helperText: 'matches case-insensitive regex' },
+  { value: '_niregex', helperText: `doesn't match case-insensitive regex` },
+];
+
+function renderOption({
+  value,
+  label,
+  helperText,
+}: typeof commonOperators[number]) {
   return (
-    <Button
-      variant="outlined"
-      color="secondary"
-      className="!bg-white lg:!rounded-l-none "
-      disabled={rules.length === 1 && groups.length === 0}
-      aria-label="Remove Rule"
-      onClick={onRemove}
-    >
-      <XIcon />
-    </Button>
+    <Option key={value} value={value} className="grid grid-flow-col gap-2">
+      <Text component="span" className="inline-block w-16">
+        {label || value}
+      </Text>
+
+      {helperText && (
+        <Text component="span" className="!text-greyscaleGrey">
+          {helperText}
+        </Text>
+      )}
+    </Option>
   );
 }
 
@@ -98,48 +134,41 @@ export default function RuleEditorRow({
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
         onChange={(_event, value: PermissionOperator) => {
-          if (value !== '_in' && value !== '_nin') {
+          if (!['_in', '_nin', '_in_hasura', '_nin_hasura'].includes(value)) {
+            return;
+          }
+
+          if (value === '_in_hasura' || value === '_nin_hasura') {
+            setValue(`${rowName}.value`, '', { shouldDirty: true });
+
             return;
           }
 
           setValue(`${rowName}.value`, [], { shouldDirty: true });
         }}
-      >
-        <Option value="_eq">_eq</Option>
-        <Option value="_ne">_ne</Option>
-        <Option value="_in">_in</Option>
-        <Option value="_nin">_nin</Option>
-        <Option value="_gt">_gt</Option>
-        <Option value="_lt">_lt</Option>
-        <Option value="_gte">_gte</Option>
-        <Option value="_lte">_lte</Option>
-        <Option value="_ceq">_ceq</Option>
-        <Option value="_cne">_cne</Option>
-        <Option value="_cgt">_cgt</Option>
-        <Option value="_clt">_clt</Option>
-        <Option value="_cgte">_cgte</Option>
-        <Option value="_clte">_clte</Option>
-        <Option value="_is_null">_is_null</Option>
+        renderValue={(option) => {
+          if (!option?.value) {
+            return <span />;
+          }
 
-        {selectedColumnType === 'text' && (
-          <>
-            <Option value="_like">_like</Option>
-            <Option value="_nlike">_nlike</Option>
-            <Option value="_ilike">_ilike</Option>
-            <Option value="_nilike">_nilike</Option>
-            <Option value="_similar">_similar</Option>
-            <Option value="_nsimilar">_nsimilar</Option>
-            <Option value="_regex">_regex</Option>
-            <Option value="_iregex">_iregex</Option>
-            <Option value="_nregex">_nregex</Option>
-            <Option value="_niregex">_niregex</Option>
-          </>
-        )}
+          if (option.value === '_in_hasura') {
+            return <span>_in</span>;
+          }
+
+          if (option.value === '_nin_hasura') {
+            return <span>_nin</span>;
+          }
+
+          return <span>{option.value}</span>;
+        }}
+      >
+        {commonOperators.map(renderOption)}
+        {selectedColumnType === 'text' && textOperators.map(renderOption)}
       </ControlledSelect>
 
       <RuleValueInput name={rowName} />
 
-      <RemoveButton onRemove={onRemove} name={name} />
+      <RuleRemoveButton onRemove={onRemove} name={name} />
     </div>
   );
 }

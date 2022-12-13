@@ -10,7 +10,7 @@ import type { StyledComponent } from '@emotion/styled';
 import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
 import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
-import { chipClasses, darken, styled } from '@mui/material';
+import { darken, inputBaseClasses, styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
@@ -107,20 +107,11 @@ export interface AutocompleteProps<
 const StyledTag = styled(Chip)(({ theme }) => ({
   fontSize: theme.typography.pxToRem(15),
   lineHeight: theme.typography.pxToRem(22),
-  color: theme.palette.text.secondary,
+  color: theme.palette.text.primary,
   fontWeight: 400,
 }));
 
 const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
-  [`.${chipClasses.root}:first-of-type`]: {
-    margin: theme.spacing(0.375, 0.25, 0.375, 0.375),
-  },
-  [`.${chipClasses.root}:not(:first-of-type)`]: {
-    margin: theme.spacing(0.375, 0.25),
-  },
-  [`.${chipClasses.root} + input`]: {
-    paddingLeft: theme.spacing(0.5),
-  },
   [`.${materialAutocompleteClasses.endAdornment}`]: {
     right: theme.spacing(1.5),
   },
@@ -354,7 +345,18 @@ function Autocomplete(
       }) => (
         <Input
           slotProps={{
-            input: { className: slotProps?.input?.className },
+            input: {
+              className: slotProps?.input?.className,
+              sx: props.multiple
+                ? {
+                    flexWrap: 'wrap',
+                    [`& .${inputBaseClasses.input}`]: {
+                      minWidth: 30,
+                      width: 0,
+                    },
+                  }
+                : null,
+            },
             inputRoot: { 'aria-label': ariaLabel },
             label: InputLabelProps,
             formControl: formControlSlotProps,

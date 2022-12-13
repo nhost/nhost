@@ -57,8 +57,8 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   overflow: 'hidden',
   transition: theme.transitions.create(['border-color', 'box-shadow']),
   [`& .${inputBaseClasses.input}`]: {
-    fontSize: '0.9375rem',
-    lineHeight: '1.375rem',
+    fontSize: theme.typography.pxToRem(15),
+    lineHeight: theme.typography.pxToRem(22),
     padding: theme.spacing(1, 1.25),
     color: theme.palette.text.primary,
     outline: 'none',
