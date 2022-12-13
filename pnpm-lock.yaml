@@ -280,7 +280,7 @@ importers:
       '@next/bundle-analyzer': 12.3.1
       '@storybook/addon-actions': 6.5.14_biqbaboplfbrettd7655fr4n2y
       '@storybook/addon-essentials': 6.5.14_3nfhqxhvmmuqh2httldzacusoi
-      '@storybook/addon-interactions': 6.5.14_hic6jbqdomfd2juwkadhzhm7o4
+      '@storybook/addon-interactions': 6.5.14_ivdudmvvzzsf6tsttamhsg5viq
       '@storybook/addon-links': 6.5.14_biqbaboplfbrettd7655fr4n2y
       '@storybook/addon-postcss': 2.0.0_webpack@5.75.0
       '@storybook/builder-webpack5': 6.5.14_gpshdmfc4w665ax2rx6w5ydgtu
@@ -7872,7 +7872,7 @@ packages:
       - webpack-command
     dev: true
 
-  /@storybook/addon-interactions/6.5.14_hic6jbqdomfd2juwkadhzhm7o4:
+  /@storybook/addon-interactions/6.5.14_ivdudmvvzzsf6tsttamhsg5viq:
     resolution: {integrity: sha512-Stw/m3+T6ILrQPwyPgRNYtXZTBk9wE0KOSOUVrc6VixCcXm43nIYkUFiq4NL86lCBR4RKewfgl8U3Rn6chE8Tg==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -7883,7 +7883,7 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      '@devtools-ds/object-inspector': 1.2.0_ib3m5ricvtkl2cll7qpr2f6lvq
+      '@devtools-ds/object-inspector': 1.2.0_2zx2umvpluuhvlq44va5bta2da
       '@storybook/addons': 6.5.14_biqbaboplfbrettd7655fr4n2y
       '@storybook/api': 6.5.14_biqbaboplfbrettd7655fr4n2y
       '@storybook/client-logger': 6.5.14
