@@ -15,6 +15,7 @@ export type PaginationProps = DetailedHTMLProps<
    * Total number of pages.
    */
   totalNrOfPages: number;
+  elementsPerPage?: number;
   /**
    * Current page number.
    */
@@ -54,6 +55,7 @@ export default function Pagination({
   onNextPageClick,
   nextButtonProps,
   prevButtonProps,
+  elementsPerPage,
   onChangePage,
   ...props
 }: PaginationProps) {
@@ -76,7 +78,7 @@ export default function Pagination({
         </Button>
 
         <div className="grid grid-cols-3 gap-1 text-center grid-col">
-          <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
+          <Text className="self-center text-xs align-middle text-greyscaleGreyDark w-">
             Page
           </Text>
           <Input
@@ -92,13 +94,23 @@ export default function Pagination({
             sx={{
               width: 28,
               height: 28,
+              fontSize: '0.70rem',
             }}
             componentsProps={{
               formControl: {
                 className: 'flex flex-row-reverse text-center',
               },
+              inputRoot: {
+                className: 'px-10',
+              },
             }}
             slotProps={{
+              root: {
+                className: twMerge(
+                  'w-9 h-8 text-center px-0.5',
+                  currentPageNumber > 9 ? 'px-0' : 'px-0.5',
+                ),
+              },
               input: {
                 style: {
                   fontSize: '0.70rem',
@@ -125,8 +137,9 @@ export default function Pagination({
       </div>
       <div className="flex flex-row items-center justify-end text-center gap-x-1">
         <Text className="text-xs text-greyscaleGreyDark">
-          {currentPageNumber * 6 - 5}-{currentPageNumber * 6} of{' '}
-          {totalNrOfPages * 6} users
+          {currentPageNumber * elementsPerPage - (elementsPerPage - 1)}-
+          {currentPageNumber * elementsPerPage} of{' '}
+          {totalNrOfPages * elementsPerPage} users
         </Text>
       </div>
     </div>

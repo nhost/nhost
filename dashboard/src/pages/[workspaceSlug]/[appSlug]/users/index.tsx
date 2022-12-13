@@ -5,7 +5,7 @@ import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import UsersBody from '@/components/users/UsersBody';
-import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -25,7 +25,7 @@ import {
 import { SearchIcon } from '@heroicons/react/solid';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { toast } from 'react-hot-toast';
 
@@ -45,7 +45,7 @@ export default function UsersPage() {
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
   });
-  const limit = useRef(8);
+  const limit = useRef(10);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
@@ -107,12 +107,19 @@ export default function UsersPage() {
     );
   }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
 
-  const handleSearchStringChange = useMemo(() => {
-    debounce((event: ChangeEvent<HTMLInputElement>) => {
-      event.preventDefault();
-      setSearchString(event.target.value);
-    }, 250);
-  }, []);
+  const handleSearchStringChange = useMemo(
+    () =>
+      debounce((event: ChangeEvent<HTMLInputElement>) => {
+        setCurrentPage(1);
+        setSearchString(event.target.value);
+      }, 500),
+    [],
+  );
+
+  useEffect(
+    () => () => handleSearchStringChange.cancel(),
+    [handleSearchStringChange],
+  );
 
   function handleCreateUser() {
     openDialog('CREATE_USER', {
@@ -292,6 +299,7 @@ export default function UsersPage() {
             className="px-2"
             totalNrOfPages={totalNrOfPages}
             currentPageNumber={currentPage}
+            elementsPerPage={limit.current}
             onPrevPageClick={() => {
               setCurrentPage((page) => page - 1);
             }}
