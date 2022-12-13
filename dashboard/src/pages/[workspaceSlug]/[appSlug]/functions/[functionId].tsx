@@ -8,7 +8,8 @@ import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { Text } from '@/ui/Text';
-import { generateAppServiceUrl, yieldFunction } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { yieldFunction } from '@/utils/helpers';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -88,7 +89,7 @@ export default function FunctionDetailsPage() {
                   currentApplication.subdomain,
                   currentApplication.region.awsName,
                   'functions',
-                )}/v1${currentFunction?.route}`}
+                )}${currentFunction?.route}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -96,7 +97,7 @@ export default function FunctionDetailsPage() {
                   currentApplication.subdomain,
                   currentApplication.region.awsName,
                   'functions',
-                )}/v1${currentFunction?.route}`}
+                )}${currentFunction?.route}`}
               </a>
             </div>
           </div>
