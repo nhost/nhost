@@ -33,7 +33,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@pnpm/find-workspace-dir": "^4.0.3",
+    "@pnpm/find-workspace-dir": "^5.0.0",
     "glob": "^8.0.3",
     "object-path": "^0.11.8",
     "yaml": "^2.1.1"

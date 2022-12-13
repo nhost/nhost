@@ -4,7 +4,7 @@ import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import { useApolloClient } from '@apollo/client';
 import axios from 'axios';
@@ -43,9 +43,11 @@ export function AddUserModal({ modalIsOpen, setModalIsOpen }: any) {
       return;
     }
 
-    const signUpUrl = `${generateRemoteAppUrl(
+    const signUpUrl = `${generateAppServiceUrl(
       currentApplication?.subdomain,
-    )}/v1/auth/signup/email-password`;
+      currentApplication?.region.awsName,
+      'auth',
+    )}/v1/signup/email-password`;
 
     try {
       await axios.post(signUpUrl, {

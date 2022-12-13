@@ -4,12 +4,19 @@ import {
   NhostClient as VanillaNhostClient,
   Subdomain
 } from '@nhost/nhost-js'
+import { NhostProvider } from '@nhost/react'
 
+export type { NhostSession } from '@nhost/hasura-auth-js'
+export * from '@nhost/react'
+export { NhostProvider } from '@nhost/react'
 export * from './create-server-side-client'
 export * from './get-session'
-export type { NhostSession } from '@nhost/core'
-export * from '@nhost/react'
-export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
+export { NhostNextProvider }
+
+/**
+ * @deprecated use `NhostProvider` instead
+ */
+const NhostNextProvider: typeof NhostProvider = NhostProvider
 
 const isBrowser = typeof window !== 'undefined'
 

@@ -884,6 +884,7 @@ export type Apps = {
   postgresSchemaMigrationUser?: Maybe<Scalars['String']>;
   postgresUser?: Maybe<Scalars['String']>;
   postgresVersion: Scalars['String'];
+  providersUpdated?: Maybe<Scalars['Boolean']>;
   /** An object relationship */
   region: Regions;
   regionId: Scalars['uuid'];
@@ -1262,6 +1263,7 @@ export type Apps_Bool_Exp = {
   postgresSchemaMigrationUser?: InputMaybe<String_Comparison_Exp>;
   postgresUser?: InputMaybe<String_Comparison_Exp>;
   postgresVersion?: InputMaybe<String_Comparison_Exp>;
+  providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
@@ -1453,6 +1455,7 @@ export type Apps_Insert_Input = {
   postgresSchemaMigrationUser?: InputMaybe<Scalars['String']>;
   postgresUser?: InputMaybe<Scalars['String']>;
   postgresVersion?: InputMaybe<Scalars['String']>;
+  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -2070,6 +2073,7 @@ export type Apps_Order_By = {
   postgresSchemaMigrationUser?: InputMaybe<Order_By>;
   postgresUser?: InputMaybe<Order_By>;
   postgresVersion?: InputMaybe<Order_By>;
+  providersUpdated?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
@@ -2354,6 +2358,8 @@ export enum Apps_Select_Column {
   /** column name */
   PostgresVersion = 'postgresVersion',
   /** column name */
+  ProvidersUpdated = 'providersUpdated',
+  /** column name */
   RegionId = 'regionId',
   /** column name */
   RepositoryProductionBranch = 'repositoryProductionBranch',
@@ -2432,7 +2438,9 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
   /** column name */
   Paused = 'paused',
   /** column name */
-  PostgresPublicAccess = 'postgresPublicAccess'
+  PostgresPublicAccess = 'postgresPublicAccess',
+  /** column name */
+  ProvidersUpdated = 'providersUpdated'
 }
 
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
@@ -2496,7 +2504,9 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
   /** column name */
   Paused = 'paused',
   /** column name */
-  PostgresPublicAccess = 'postgresPublicAccess'
+  PostgresPublicAccess = 'postgresPublicAccess',
+  /** column name */
+  ProvidersUpdated = 'providersUpdated'
 }
 
 /** input type for updating data in table "apps" */
@@ -2632,6 +2642,7 @@ export type Apps_Set_Input = {
   postgresSchemaMigrationUser?: InputMaybe<Scalars['String']>;
   postgresUser?: InputMaybe<Scalars['String']>;
   postgresVersion?: InputMaybe<Scalars['String']>;
+  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -2840,6 +2851,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   postgresSchemaMigrationUser?: InputMaybe<Scalars['String']>;
   postgresUser?: InputMaybe<Scalars['String']>;
   postgresVersion?: InputMaybe<Scalars['String']>;
+  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -3129,6 +3141,8 @@ export enum Apps_Update_Column {
   PostgresUser = 'postgresUser',
   /** column name */
   PostgresVersion = 'postgresVersion',
+  /** column name */
+  ProvidersUpdated = 'providersUpdated',
   /** column name */
   RegionId = 'regionId',
   /** column name */
@@ -17042,7 +17056,7 @@ export type GetAppQueryVariables = Exact<{
 
 export type GetAppQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authEmailTemplateFetchUrl?: string | null, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authAccessControlAllowedRedirectUrls: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string } | null };
 
-export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } };
+export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } };
 
 export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
   workspace: Scalars['String'];
@@ -17050,7 +17064,7 @@ export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
 }>;
 
 
-export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } }> };
+export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } }> };
 
 export type GetAppCustomClaimsQueryVariables = Exact<{
   id: Scalars['uuid'];
@@ -17498,6 +17512,13 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
+export type ConfirmProvidersUpdatedMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type ConfirmProvidersUpdatedMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
+
 export type GetDatabaseConnectionInfoQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -17529,7 +17550,7 @@ export type GetOneUserQueryVariables = Exact<{
 }>;
 
 
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, hasuraGraphqlAdminSecret: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
+export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, hasuraGraphqlAdminSecret: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
 
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17758,6 +17779,7 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
   name
   createdAt
   isProvisioned
+  providersUpdated
   githubRepository {
     id
     name
@@ -20748,6 +20770,39 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export const ConfirmProvidersUpdatedDocument = gql`
+    mutation confirmProvidersUpdated($id: uuid!) {
+  updateApp(pk_columns: {id: $id}, _set: {providersUpdated: true}) {
+    id
+  }
+}
+    `;
+export type ConfirmProvidersUpdatedMutationFn = Apollo.MutationFunction<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
+
+/**
+ * __useConfirmProvidersUpdatedMutation__
+ *
+ * To run a mutation, you first call `useConfirmProvidersUpdatedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConfirmProvidersUpdatedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [confirmProvidersUpdatedMutation, { data, loading, error }] = useConfirmProvidersUpdatedMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useConfirmProvidersUpdatedMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>(ConfirmProvidersUpdatedDocument, options);
+      }
+export type ConfirmProvidersUpdatedMutationHookResult = ReturnType<typeof useConfirmProvidersUpdatedMutation>;
+export type ConfirmProvidersUpdatedMutationResult = Apollo.MutationResult<ConfirmProvidersUpdatedMutation>;
+export type ConfirmProvidersUpdatedMutationOptions = Apollo.BaseMutationOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
 export const GetDatabaseConnectionInfoDocument = gql`
     query getDatabaseConnectionInfo($id: uuid!) {
   app(id: $id) {
@@ -20991,6 +21046,7 @@ export const GetOneUserDocument = gql`
           createdAt
           desiredState
           nhostBaseFolder
+          providersUpdated
           featureFlags {
             description
             id

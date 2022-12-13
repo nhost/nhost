@@ -1,5 +1,62 @@
 # @nhost/dashboard
 
+## 0.7.10
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/nextjs@1.11.0
+  - @nhost/nhost-js@1.7.0
+  - @nhost/react@0.17.0
+  - @nhost/react-apollo@4.11.0
+
+## 0.7.9
+
+### Patch Changes
+
+- a6d31dc2: fix(dashboard): don't break the UI when project is not loaded yet
+
+## 0.7.8
+
+### Patch Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+- f4d70f88: fix(dashboard): do not break when region is nullish
+- 4a9471cc: Windows Live Provider displayed link updated to match backend url
+- 594488e4: fix(dashboard): do not show error when submitting Apple provider settings
+- Updated dependencies [7f251111]
+  - @nhost/nextjs@1.10.0
+  - @nhost/react@0.16.0
+  - @nhost/react-apollo@4.10.0
+
+## 0.7.7
+
+### Patch Changes
+
+- 80b604ad: fix(dashboard): use correct Hasura slug
+
+## 0.7.6
+
+### Patch Changes
+
+- 2d2beb53: fix(dashboard): prevent error on GraphQL page
+- ac8efcbd: chore(dashboard): deprecate old DNS name
+
+## 0.7.5
+
+### Patch Changes
+
+- 132a4f4b: chore(dashboard): remove unused dependencies
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+- db57572f: fix(dashboard): correct section paddings when no env vars
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+  - @nhost/react-apollo@4.9.2
+  - @nhost/nextjs@1.9.3
+
 ## 0.7.4
 
 ### Patch Changes

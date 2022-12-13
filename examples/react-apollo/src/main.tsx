@@ -1,10 +1,8 @@
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
-
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 
 const devTools = import.meta.env.MODE === 'development' && import.meta.env.VITE_DEBUG === 'true'
@@ -28,11 +26,11 @@ root.render(
   // * The xstate inspector is hard to use with React 18 strict mode
   // <React.StrictMode>
   <BrowserRouter>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   </BrowserRouter>
   // </React.StrictMode>
 )

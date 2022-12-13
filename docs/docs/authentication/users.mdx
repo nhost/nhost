@@ -40,7 +40,7 @@ query {
 Users should be created using the sign-up or sign-in flows as described under [sign-in methods](/authentication/sign-in-methods).
 
 - **Never** create users directly via GraphQL or database, unless you [import users](#import-users) from an external system.
-- **Never** modify the `auth.users` table.
+- **Never** modify the database schema for the `auth.users` table.
 - **Never** modify the GraphQL root queries or fields for any of the tables in the `auth` schema.
 
 You're allowed to:

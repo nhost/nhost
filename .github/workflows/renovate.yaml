@@ -21,7 +21,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
@@ -32,7 +31,7 @@ jobs:
       - name: Determine bumps
         id: bumps
         run: |
-          LAST_NON_PR_SHA=$(git log --no-merges main origin/${{ github.head_ref }} --format=format:%h | head -2 | tail -1)
+          LAST_NON_PR_SHA=$(git log --no-merges main origin/${{ github.head_ref }} --format=format:%h -- | head -2 | tail -1)
           echo "result<<EOF" >> $GITHUB_OUTPUT
           pnpm recursive list --depth -1 --parseable \
               --filter='!nhost-root' \

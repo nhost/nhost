@@ -22,6 +22,7 @@ export default function useDatabaseSizeOfApplication(
     () =>
       fetchProjectDatabaseSize({
         subdomain: currentApplication?.subdomain,
+        region: currentApplication?.region.awsName,
         adminSecret: currentApplication?.hasuraGraphqlAdminSecret,
       }),
     {

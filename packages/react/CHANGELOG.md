@@ -1,5 +1,32 @@
 # @nhost/react
 
+## 0.17.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/hasura-auth-js@1.7.0
+  - @nhost/hasura-storage-js@0.8.0
+  - @nhost/nhost-js@1.7.0
+
+## 0.16.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+## 0.15.2
+
+### Patch Changes
+
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+
 ## 0.15.1
 
 ### Patch Changes

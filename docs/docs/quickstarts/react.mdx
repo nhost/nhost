@@ -118,7 +118,7 @@ yarn add @nhost/react graphql
 
 Next, open your `App.js` file as we'll now configure Nhost inside our app.
 
-The Nhost React SDK comes with a React provider named `NhostReactProvider` that
+The Nhost React SDK comes with a React provider named `NhostProvider` that
 makes the authentication state and all the provided React hooks available in our
 application.
 
@@ -126,7 +126,7 @@ Use the following code to instantiate a new Nhost client and link it to your
 Nhost backend:
 
 ```jsx title="src/App.js"
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
   subdomain: process.env.REACT_APP_NHOST_SUBDOMAIN,
@@ -135,9 +135,9 @@ const nhost = new NhostClient({
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <BrowserRouter>{/* ... */}</BrowserRouter>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 
@@ -443,7 +443,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <BrowserRouter>
         <Routes>
           <Route path="sign-up" element={<SignUp />} />
@@ -463,7 +463,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 ```
@@ -527,9 +527,9 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 
 function App() {
   return (
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>{/* ... */}</NhostApolloProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   )
 }
 ```

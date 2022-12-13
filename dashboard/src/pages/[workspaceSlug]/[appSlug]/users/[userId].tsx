@@ -20,7 +20,7 @@ import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import type {
   GetRemoteAppUserAuthRolesFragment,
@@ -629,9 +629,11 @@ export default function UserDetailsByIdPage() {
 
   return (
     <NhostApolloProvider
-      graphqlUrl={`${generateRemoteAppUrl(
+      graphqlUrl={`${generateAppServiceUrl(
         currentApplication.subdomain,
-      )}/v1/graphql`}
+        currentApplication.region.awsName,
+        'graphql',
+      )}/v1`}
       fetchPolicy="cache-first"
       headers={{
         'x-hasura-admin-secret':

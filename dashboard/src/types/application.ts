@@ -76,6 +76,7 @@ export type Application = {
   desiredState: DesiredState;
   nhostBaseFolder?: string;
   featureFlags: FeatureFlag[];
+  providersUpdated: boolean;
 };
 
 export type CustomClaim = {

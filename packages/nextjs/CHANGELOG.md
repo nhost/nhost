@@ -1,5 +1,37 @@
 # @nhost/nextjs
 
+## 1.11.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/nhost-js@1.7.0
+  - @nhost/react@0.17.0
+
+## 1.10.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+### Patch Changes
+
+- Updated dependencies [7f251111]
+  - @nhost/react@0.16.0
+
+## 1.9.3
+
+### Patch Changes
+
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+
 ## 1.9.2
 
 ### Patch Changes

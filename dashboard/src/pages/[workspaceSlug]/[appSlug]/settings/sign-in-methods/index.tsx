@@ -9,6 +9,7 @@ import GitHubProviderSettings from '@/components/settings/signInMethods/GitHubPr
 import GoogleProviderSettings from '@/components/settings/signInMethods/GoogleProviderSettings';
 import LinkedInProviderSettings from '@/components/settings/signInMethods/LinkedInProviderSettings';
 import MagicLinkSettings from '@/components/settings/signInMethods/MagicLinkSettings';
+import ProvidersUpdatedAlert from '@/components/settings/signInMethods/ProvidersUpdatedAlert';
 import SMSSettings from '@/components/settings/signInMethods/SMSSettings';
 import SpotifyProviderSettings from '@/components/settings/signInMethods/SpotifyProviderSettings';
 import TwitchProviderSettings from '@/components/settings/signInMethods/TwitchProviderSettings';
@@ -55,6 +56,7 @@ export default function SettingsSignInMethodsPage() {
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
+      {!currentApplication.providersUpdated && <ProvidersUpdatedAlert />}
       <AppleProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />

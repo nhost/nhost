@@ -1,6 +1,6 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -39,7 +39,11 @@ export default function useUpdateColumnMutation({
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const appUrl = generateRemoteAppUrl(currentApplication?.subdomain);
+  const appUrl = generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region.awsName,
+    'hasura',
+  );
   const mutationFn = isPlatform ? updateColumn : updateColumnMigration;
 
   const mutation = useMutation(

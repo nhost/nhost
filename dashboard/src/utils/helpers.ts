@@ -72,6 +72,26 @@ export function generateRemoteAppUrl(subdomain: string): string {
   return `https://${subdomain}.nhost.run`;
 }
 
+export function generateAppServiceUrl(
+  subdomain: string,
+  region: string,
+  service: 'auth' | 'graphql' | 'functions' | 'storage' | 'hasura',
+) {
+  if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
+    return LOCAL_BACKEND_URL;
+  }
+
+  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || LOCAL_BACKEND_URL;
+  }
+
+  if (process.env.NEXT_PUBLIC_ENV === 'staging') {
+    return `https://${subdomain}.${service}.${region}.staging.nhost.run`;
+  }
+
+  return `https://${subdomain}.${service}.${region}.nhost.run`;
+}
+
 export function emptyWorkspace() {
   return {
     id: '',

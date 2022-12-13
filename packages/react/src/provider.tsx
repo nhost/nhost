@@ -1,17 +1,16 @@
+import { AuthContext, NhostSession } from '@nhost/hasura-auth-js'
+import { NhostClient } from '@nhost/nhost-js'
+import { useInterpret } from '@xstate/react'
 import produce from 'immer'
 import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'
 
-import { AuthContext, NhostSession } from '@nhost/core'
-import { NhostClient } from '@nhost/nhost-js'
-import { useInterpret } from '@xstate/react'
-
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
-export interface NhostReactProviderProps {
+export interface NhostProviderProps {
   nhost: NhostClient
   initial?: NhostSession
 }
 
-export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderProps>> = ({
+export const NhostProvider: React.FC<PropsWithChildren<NhostProviderProps>> = ({
   nhost,
   initial,
   ...props
@@ -44,3 +43,8 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
   nhost.auth.client.interpreter = interpreter
   return <NhostReactContext.Provider value={nhost}>{props.children}</NhostReactContext.Provider>
 }
+
+/**
+ * @deprecated use `NhostProvider` instead
+ */
+export const NhostReactProvider = NhostProvider

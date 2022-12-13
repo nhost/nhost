@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo } from 'react';
 
@@ -15,9 +15,11 @@ export function useRemoteApplicationGQLClient() {
       new ApolloClient({
         cache: new InMemoryCache(),
         link: new HttpLink({
-          uri: `${generateRemoteAppUrl(
+          uri: `${generateAppServiceUrl(
             currentApplication?.subdomain,
-          )}/v1/graphql`,
+            currentApplication?.region.awsName,
+            'graphql',
+          )}/v1`,
           headers: {
             'x-hasura-admin-secret':
               process.env.NEXT_PUBLIC_ENV === 'dev'
@@ -28,6 +30,7 @@ export function useRemoteApplicationGQLClient() {
       }),
     [
       currentApplication?.subdomain,
+      currentApplication?.region,
       currentApplication?.hasuraGraphqlAdminSecret,
     ],
   );

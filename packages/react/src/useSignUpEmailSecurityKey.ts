@@ -2,7 +2,7 @@ import {
   signUpEmailSecurityKeyPromise,
   SignUpSecurityKeyOptions,
   SignUpSecurityKeyState
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

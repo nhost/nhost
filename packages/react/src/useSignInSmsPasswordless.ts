@@ -4,9 +4,10 @@ import {
   PasswordlessOptions,
   SignInSmsPasswordlessHandlerResult,
   SignInSmsPasswordlessOtpHandlerResult,
+  signInSmsPasswordlessOtpPromise,
+  signInSmsPasswordlessPromise,
   SignInSmsPasswordlessState
-} from '@nhost/core'
-import { signInSmsPasswordlessOtpPromise, signInSmsPasswordlessPromise } from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

@@ -29,7 +29,7 @@
     "webfontloader": "^1.0.0"
   },
   "devDependencies": {
-    "@nhost/core": "*",
+    "@nhost/hasura-auth-js": "*",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^2.3.4",
     "@xstate/inspect": "^0.6.2",

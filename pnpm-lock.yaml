@@ -28,7 +28,7 @@ importers:
       eslint-plugin-promise: ^6.1.1
       eslint-plugin-react: ^7.31.10
       eslint-plugin-react-hooks: ^4.6.0
-      eslint-plugin-vue: ^8.7.1
+      eslint-plugin-vue: ^9.0.0
       husky: ^8.0.1
       npm-run-all: ^4.1.5
       prettier: ^2.7.1
@@ -61,7 +61,7 @@ importers:
       eslint-plugin-promise: 6.1.1_eslint@8.26.0
       eslint-plugin-react: 7.31.10_eslint@8.26.0
       eslint-plugin-react-hooks: 4.6.0_eslint@8.26.0
-      eslint-plugin-vue: 8.7.1_eslint@8.26.0
+      eslint-plugin-vue: 9.8.0_eslint@8.26.0
       husky: 8.0.1
       npm-run-all: 4.1.5
       prettier: 2.7.1
@@ -84,7 +84,7 @@ importers:
       '@emotion/styled': ^11.10.5
       '@fontsource/inter': ^4.5.14
       '@fontsource/roboto-mono': ^4.5.8
-      '@graphiql/react': ^0.14.0
+      '@graphiql/react': ^0.15.0
       '@graphiql/toolkit': ^0.8.0
       '@graphql-codegen/cli': ^2.8.0
       '@graphql-codegen/typescript': ^2.7.1
@@ -99,7 +99,6 @@ importers:
       '@mui/system': ^5.10.14
       '@mui/x-date-pickers': ^5.0.8
       '@next/bundle-analyzer': ^12.3.1
-      '@nhost/core': workspace:*
       '@nhost/nextjs': workspace:*
       '@nhost/nhost-js': workspace:*
       '@nhost/react': workspace:*
@@ -156,7 +155,7 @@ importers:
       eslint-plugin-react: ^7.31.11
       eslint-plugin-react-hooks: ^4.6.0
       generate-password: ^1.7.0
-      graphiql: ^2.1.0
+      graphiql: ^2.2.0
       graphql: 15.7.2
       graphql-request: ^4.3.0
       graphql-tag: ^2.12.6
@@ -211,7 +210,7 @@ importers:
       '@emotion/styled': 11.10.5_hmjty4frusbltjhl3xd7udcm2y
       '@fontsource/inter': 4.5.14
       '@fontsource/roboto-mono': 4.5.8
-      '@graphiql/react': 0.14.0_te5rle7gmjg3syudiw42pabya4
+      '@graphiql/react': 0.15.0_te5rle7gmjg3syudiw42pabya4
       '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
       '@heroicons/react': 1.0.6_react@18.2.0
@@ -220,7 +219,6 @@ importers:
       '@mui/material': 5.10.14_thp4wrxo45nyllusrnt46mid4u
       '@mui/system': 5.10.14_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
-      '@nhost/core': link:../packages/core
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/nhost-js': link:../packages/nhost-js
       '@nhost/react': link:../packages/react
@@ -239,7 +237,7 @@ importers:
       cross-fetch: 3.1.5
       date-fns: 2.29.3
       generate-password: 1.7.0
-      graphiql: 2.1.0_te5rle7gmjg3syudiw42pabya4
+      graphiql: 2.2.0_te5rle7gmjg3syudiw42pabya4
       graphql: 15.7.2
       graphql-request: 4.3.0_graphql@15.7.2
       graphql-tag: 2.12.6_graphql@15.7.2
@@ -440,6 +438,12 @@ importers:
       eslint: 8.25.0
       typescript: 4.8.3
       vite: 3.2.2
+
+  examples/docker-compose:
+    specifiers:
+      cross-fetch: ^3.1.5
+    devDependencies:
+      cross-fetch: 3.1.5
 
   examples/docker-compose/functions:
     specifiers: {}
@@ -666,6 +670,7 @@ importers:
       graphql: 15.7.2
       nodemailer: ^6.8.0
       slugify: ^1.6.5
+      stripe: ^11.1.0
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@15.7.2
       '@nhost/stripe-graphql-js': link:../../integrations/stripe-graphql-js
@@ -674,6 +679,7 @@ importers:
       graphql: 15.7.2
       nodemailer: 6.8.0
       slugify: 1.6.5
+      stripe: 11.1.0
     devDependencies:
       '@types/express': 4.17.13
 
@@ -682,7 +688,7 @@ importers:
       '@apollo/client': ^3.7.1
       '@mdi/font': 5.9.55
       '@nhost/apollo': '*'
-      '@nhost/core': '*'
+      '@nhost/hasura-auth-js': '*'
       '@nhost/vue': '*'
       '@types/webfontloader': ^1.6.35
       '@vitejs/plugin-vue': ^2.3.4
@@ -715,7 +721,7 @@ importers:
       vuetify: 3.0.0-beta.10_5xmtcui7n2fsr6aaqzp3akxd4q
       webfontloader: 1.6.28
     devDependencies:
-      '@nhost/core': link:../../packages/core
+      '@nhost/hasura-auth-js': link:../../packages/hasura-auth-js
       '@types/webfontloader': 1.6.35
       '@vitejs/plugin-vue': 2.3.4_vite@3.2.2+vue@3.2.41
       '@xstate/inspect': 0.6.5
@@ -842,25 +848,6 @@ importers:
     devDependencies:
       '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
 
-  packages/core:
-    specifiers:
-      '@simplewebauthn/browser': ^6.0.0
-      '@simplewebauthn/typescript-types': ^6.0.0
-      '@types/js-cookie': ^3.0.2
-      axios: ^1.2.0
-      js-cookie: ^3.0.1
-      msw: ^0.49.0
-      xstate: ^4.33.5
-    dependencies:
-      '@simplewebauthn/browser': 6.0.0
-      axios: 1.2.0
-      js-cookie: 3.0.1
-      xstate: 4.33.6
-    devDependencies:
-      '@simplewebauthn/typescript-types': 6.0.0
-      '@types/js-cookie': 3.0.2
-      msw: 0.49.0
-
   packages/docgen:
     specifiers:
       '@swc/core': ^1.3.11
@@ -892,23 +879,31 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/typescript-types': ^6.0.0
+      '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
+      js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
+      msw: ^0.47.4
       start-server-and-test: ^1.14.0
       xstate: ^4.33.5
     dependencies:
+      '@simplewebauthn/browser': 6.0.0
       axios: 1.2.0
+      js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
+      '@simplewebauthn/typescript-types': 6.0.0
+      '@types/js-cookie': 3.0.2
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
+      msw: 0.47.4
       start-server-and-test: 1.14.0
 
   packages/hasura-auth-js/functions:
@@ -916,7 +911,6 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       axios: ^1.2.0
       cross-fetch: ^3.1.5
@@ -929,7 +923,6 @@ importers:
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
@@ -940,8 +933,8 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
@@ -952,13 +945,13 @@ importers:
       react-dom: ^17.0.2
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
       cross-fetch: 3.1.5
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/react': link:../react
       '@types/js-cookie': 3.0.2
       next: 12.3.4_sfoxds7t5ydpegc3knd667wn6m
@@ -993,8 +986,8 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.25
@@ -1004,7 +997,7 @@ importers:
       react: ^18.2.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
@@ -1058,7 +1051,7 @@ importers:
 
   packages/sync-versions:
     specifiers:
-      '@pnpm/find-workspace-dir': ^4.0.3
+      '@pnpm/find-workspace-dir': ^5.0.0
       '@swc-node/register': ^1.5.4
       '@swc/core': ^1.3.11
       '@types/glob': ^8.0.0
@@ -1069,7 +1062,7 @@ importers:
       typescript: ^4.8.4
       yaml: ^2.1.1
     dependencies:
-      '@pnpm/find-workspace-dir': 4.0.3
+      '@pnpm/find-workspace-dir': 5.0.0
       glob: 8.0.3
       object-path: 0.11.8
       yaml: 2.1.1
@@ -1083,15 +1076,14 @@ importers:
 
   packages/vue:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^3.2.0
-      '@vueuse/core': ^8.9.4
+      '@vueuse/core': ^9.0.0
       '@xstate/inspect': ^0.7.0
-      '@xstate/vue': ^1.0.0
+      '@xstate/vue': ^2.0.0
       immer: ^9.0.15
       jwt-decode: ^3.1.2
       vue: ^3.2.41
@@ -1099,11 +1091,10 @@ importers:
       ws: ^8.10.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
-      '@vueuse/core': 8.9.4_vue@3.2.41
-      '@xstate/vue': 1.0.0_vue@3.2.41+xstate@4.33.6
+      '@vueuse/core': 9.6.0_vue@3.2.41
+      '@xstate/vue': 2.0.0_vue@3.2.41+xstate@4.33.6
       immer: 9.0.15
       jwt-decode: 3.1.2
     devDependencies:
@@ -4064,7 +4055,7 @@ packages:
       '@docusaurus/react-loadable': 5.5.2_react@17.0.2
       '@docusaurus/types': 2.2.0_sfoxds7t5ydpegc3knd667wn6m
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       '@types/react-router-config': 5.0.6
       '@types/react-router-dom': 5.3.3
       react: 17.0.2
@@ -4378,7 +4369,7 @@ packages:
     peerDependencies:
       react: '*'
     dependencies:
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       prop-types: 15.8.1
       react: 17.0.2
 
@@ -4448,7 +4439,7 @@ packages:
       '@docusaurus/plugin-content-pages': 2.2.0_56jbash75ng5psbctf36wqywr4
       '@docusaurus/utils': 2.2.0_@docusaurus+types@2.2.0
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       '@types/react-router-config': 5.0.6
       clsx: 1.2.1
       parse-numeric-range: 1.3.0
@@ -4537,7 +4528,7 @@ packages:
       react-dom: ^16.8.4 || ^17.0.0
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       commander: 5.1.0
       joi: 17.6.0
       react: 17.0.2
@@ -5122,8 +5113,8 @@ packages:
   /@gqty/utils/1.0.0:
     resolution: {integrity: sha512-QJMlzts//d0H5mlekOZgx1a4KsTYXfxmRhhx8g/8mvzdaNVPxhFzCsv3+ljTOzbW3A08qy4jXQPWAMoTefSJDQ==}
 
-  /@graphiql/react/0.14.0_te5rle7gmjg3syudiw42pabya4:
-    resolution: {integrity: sha512-BBkbl35akar4/+4P6ggZ99jSmU0D1qV70A2OegkuJ4t/knAis/R713faOs9xKyjkUj8hv6+KcAqBOp48LnP6lA==}
+  /@graphiql/react/0.15.0_te5rle7gmjg3syudiw42pabya4:
+    resolution: {integrity: sha512-kJqkdf6d4Cck05Wt5yCDZXWfs7HZgcpuoWq/v8nOa698qVaNMM3qdG4CpRsZEexku0DSSJzWWuanxd5x+sRcFg==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -7576,18 +7567,18 @@ packages:
     engines: {node: '>=14.19'}
     dev: false
 
-  /@pnpm/error/3.1.0:
-    resolution: {integrity: sha512-bmXBD/kzlgHqlIZPP8QJUDAxGqug2qhPdnqNnuXyWQSyIEgeaXyPiUh91MLj9GwLoHA9Zdrx5+dfEougzxf4mA==}
+  /@pnpm/error/4.0.0:
+    resolution: {integrity: sha512-NI4DFCMF6xb1SA0bZiiV5KrMCaJM2QmPJFC6p78FXujn7FpiRSWhT9r032wpuQumsl7DEmN4s3wl/P8TA+bL8w==}
     engines: {node: '>=14.6'}
     dependencies:
       '@pnpm/constants': 6.1.0
     dev: false
 
-  /@pnpm/find-workspace-dir/4.0.3:
-    resolution: {integrity: sha512-BE0LFHCtcjxTUC/R3MMNuHkOtm559g/ObbIOjCjO3h3I9fFsxt7fVtRwaYbfS6NJk7DrzDsPOfFBdX2NipR8iw==}
+  /@pnpm/find-workspace-dir/5.0.0:
+    resolution: {integrity: sha512-x/OERjU3BjUyxrHSl5Zuqqo6PmtbPo4Xi8ypD98wQ/OcUJ1ZCQ276vP2n4E89N5Mb70N2J+4J1dnmPW+OnpEQg==}
     engines: {node: '>=14.6'}
     dependencies:
-      '@pnpm/error': 3.1.0
+      '@pnpm/error': 4.0.0
       find-up: 5.0.0
     dev: false
 
@@ -10453,43 +10444,50 @@ packages:
   /@types/react-is/17.0.3:
     resolution: {integrity: sha512-aBTIWg1emtu95bLTLx0cpkxwGW3ueZv71nE2YFBpL8k/z5czEW8yYpOo8Dp+UUAFAtKwNaOsh/ioSeQnWlZcfw==}
     dependencies:
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
     dev: false
 
   /@types/react-router-config/5.0.6:
     resolution: {integrity: sha512-db1mx37a1EJDf1XeX8jJN7R3PZABmJQXR8r28yUjVMFSjkmnQo6X6pOEEmNl+Tp2gYQOGPdYbFIipBtdElZ3Yg==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       '@types/react-router': 5.1.18
 
   /@types/react-router-dom/5.3.3:
     resolution: {integrity: sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
       '@types/react-router': 5.1.18
 
   /@types/react-router/5.1.18:
     resolution: {integrity: sha512-YYknwy0D0iOwKQgz9v8nOzt2J6l4gouBmDnWqUUznltOTaon+r8US8ky8HvN0tXvc38U9m6z/t2RsVsnd1zM0g==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
 
   /@types/react-table/7.7.12:
     resolution: {integrity: sha512-bRUent+NR/WwtDGwI/BqhZ8XnHghwHw0HUKeohzB5xN3K2qKWYE5w19e7GCuOkL1CXD9Gi1HFy7TIm2AvgWUHg==}
     dependencies:
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
     dev: true
 
   /@types/react-transition-group/4.4.5:
     resolution: {integrity: sha512-juKD/eiSM3/xZYzjuzH6ZwpP+/lejltmiS3QEzV/vmb/Q8+HfDmxu+Baga8UEMGBqV88Nbg4l2hY/K2DkyaLLA==}
     dependencies:
-      '@types/react': 18.0.25
+      '@types/react': 18.0.26
     dev: false
 
   /@types/react/18.0.25:
     resolution: {integrity: sha512-xD6c0KDT4m7n9uD4ZHi02lzskaiqcBxf4zi+tXZY98a04wvc0hi/TcCPC2FOESZi51Nd7tlUeOJY8RofL799/g==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.2
+      csstype: 3.1.1
+
+  /@types/react/18.0.26:
+    resolution: {integrity: sha512-hCR3PJQsAIXyxhTNSiDFY//LhnMZWpNNr5etoCqx/iUfGc5gXWtQR2Phl908jVR6uPXacojQWTg4qRpkxTuGug==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
@@ -10599,6 +10597,10 @@ packages:
 
   /@types/web-bluetooth/0.0.14:
     resolution: {integrity: sha512-5d2RhCard1nQUC3aHcq/gHzWYO6K0WJmAbjO7mQJgCQKtZpgXxv1rOM6O/dBDhDYYVutk1sciOgNSe+5YyfM8A==}
+
+  /@types/web-bluetooth/0.0.16:
+    resolution: {integrity: sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==}
+    dev: false
 
   /@types/webfontloader/1.6.35:
     resolution: {integrity: sha512-IJlrsiDWq6KghQ7tPlL5tcwSUyOxLDceT+AFUY7Ylj0Fcv3/h3QkANqQxZ0B5mEpEKxhTw76vDmvrruSMV9n9Q==}
@@ -11692,26 +11694,24 @@ packages:
       vue: 3.2.40
       vue-demi: 0.13.4_vue@3.2.40
 
-  /@vueuse/core/8.9.4_vue@3.2.41:
-    resolution: {integrity: sha512-B/Mdj9TK1peFyWaPof+Zf/mP9XuGAngaJZBwPaXBvU3aCTZlx3ltlrFFFyMV4iGBwsjSCeUCgZrtkEj9dS2Y3Q==}
-    peerDependencies:
-      '@vue/composition-api': ^1.1.0
-      vue: ^2.6.0 || ^3.2.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-      vue:
-        optional: true
+  /@vueuse/core/9.6.0_vue@3.2.41:
+    resolution: {integrity: sha512-qGUcjKQXHgN+jqXEgpeZGoxdCbIDCdVPz3QiF1uyecVGbMuM63o96I1GjYx5zskKgRI0FKSNsVWM7rwrRMTf6A==}
     dependencies:
-      '@types/web-bluetooth': 0.0.14
-      '@vueuse/metadata': 8.9.4
-      '@vueuse/shared': 8.9.4_vue@3.2.41
-      vue: 3.2.41
+      '@types/web-bluetooth': 0.0.16
+      '@vueuse/metadata': 9.6.0
+      '@vueuse/shared': 9.6.0_vue@3.2.41
       vue-demi: 0.13.4_vue@3.2.41
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
     dev: false
 
   /@vueuse/metadata/8.9.4:
     resolution: {integrity: sha512-IwSfzH80bnJMzqhaapqJl9JRIiyQU0zsRGEgnxN6jhq7992cPUJIRfV+JHRIZXjYqbwt07E1gTEp0R0zPJ1aqw==}
+
+  /@vueuse/metadata/9.6.0:
+    resolution: {integrity: sha512-sIC8R+kWkIdpi5X2z2Gk8TRYzmczDwHRhEFfCu2P+XW2JdPoXrziqsGpDDsN7ykBx4ilwieS7JUIweVGhvZ93w==}
+    dev: false
 
   /@vueuse/shared/8.9.4_vue@3.2.40:
     resolution: {integrity: sha512-wt+T30c4K6dGRMVqPddexEVLa28YwxW5OFIPmzUHICjphfAuBFTTdDoyqREZNDOFJZ44ARH1WWQNCUK8koJ+Ag==}
@@ -11727,19 +11727,13 @@ packages:
       vue: 3.2.40
       vue-demi: 0.13.4_vue@3.2.40
 
-  /@vueuse/shared/8.9.4_vue@3.2.41:
-    resolution: {integrity: sha512-wt+T30c4K6dGRMVqPddexEVLa28YwxW5OFIPmzUHICjphfAuBFTTdDoyqREZNDOFJZ44ARH1WWQNCUK8koJ+Ag==}
-    peerDependencies:
-      '@vue/composition-api': ^1.1.0
-      vue: ^2.6.0 || ^3.2.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-      vue:
-        optional: true
+  /@vueuse/shared/9.6.0_vue@3.2.41:
+    resolution: {integrity: sha512-/eDchxYYhkHnFyrb00t90UfjCx94kRHxc7J1GtBCqCG4HyPMX+krV9XJgVtWIsAMaxKVU4fC8NSUviG1JkwhUQ==}
     dependencies:
-      vue: 3.2.41
       vue-demi: 0.13.4_vue@3.2.41
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - vue
     dev: false
 
   /@webassemblyjs/ast/1.11.1:
@@ -12102,12 +12096,12 @@ packages:
       - '@types/react'
     dev: false
 
-  /@xstate/vue/1.0.0_vue@3.2.41+xstate@4.33.6:
-    resolution: {integrity: sha512-GnJ2WKmef3UvpOj7tMOGkFLF2fSjVFgX/2Ik/0ZttHJCQNXRBWDaaiqNnVVB0XynTUfRPrkOPNeGD4XLqrqeVg==}
+  /@xstate/vue/2.0.0_vue@3.2.41+xstate@4.33.6:
+    resolution: {integrity: sha512-JlrJ3d+I6rZCcFBuu3O4GP+mGJfd11O9o69wRedzPMqZ+hxcMRBsih9L5kKnJHcU9CTmdJTT172oxTaYF7thzA==}
     peerDependencies:
-      '@xstate/fsm': ^1.6.5
+      '@xstate/fsm': ^2.0.0
       vue: ^3.0.0
-      xstate: ^4.30.3
+      xstate: ^4.31.0
     peerDependenciesMeta:
       '@xstate/fsm':
         optional: true
@@ -17879,9 +17873,9 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-vue/8.7.1_eslint@8.26.0:
-    resolution: {integrity: sha512-28sbtm4l4cOzoO1LtzQPxfxhQABararUb1JtqusQqObJpWX2e/gmVyeYVfepizPFne0Q5cILkYGiBoV36L12Wg==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  /eslint-plugin-vue/9.8.0_eslint@8.26.0:
+    resolution: {integrity: sha512-E/AXwcTzunyzM83C2QqDHxepMzvI2y6x+mmeYHbVDQlKFqmKYvRrhaVixEeeG27uI44p9oKDFiyCRw4XxgtfHA==}
+    engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^6.2.0 || ^7.0.0 || ^8.0.0
     dependencies:
@@ -17891,7 +17885,8 @@ packages:
       nth-check: 2.1.1
       postcss-selector-parser: 6.0.10
       semver: 7.3.8
-      vue-eslint-parser: 8.3.0_eslint@8.26.0
+      vue-eslint-parser: 9.1.0_eslint@8.26.0
+      xml-name-validator: 4.0.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -19498,14 +19493,14 @@ packages:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
     dev: true
 
-  /graphiql/2.1.0_te5rle7gmjg3syudiw42pabya4:
-    resolution: {integrity: sha512-b58o/o7y5x/C4WzH7YTeSWbINE6tcfzZN4TxgvoSZxhE9X6MulXXbXLRiGEl5+FuajIN0LxaoleHTJUHb9H2wg==}
+  /graphiql/2.2.0_te5rle7gmjg3syudiw42pabya4:
+    resolution: {integrity: sha512-w1ujpCKMlkwkoUjeg0HpRiBBTm1WHAjHNkFv1TbMu6trjzz63mQ48GLZlmyQY1yhwmc+diCcvmmAt+AyvKLWWA==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      '@graphiql/react': 0.14.0_te5rle7gmjg3syudiw42pabya4
+      '@graphiql/react': 0.15.0_te5rle7gmjg3syudiw42pabya4
       '@graphiql/toolkit': 0.8.0_e4cx3o37mthaippf56xwzxw5re
       entities: 2.2.0
       graphql: 15.7.2
@@ -22660,13 +22655,13 @@ packages:
   /ms/2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  /msw/0.49.0:
-    resolution: {integrity: sha512-xX5RMSMjN58j8G/V26Uaf5LP464VltuWyd66TQimLueVYfG47RKydGsd4JW165Jb/gjoaQxh5Tdvv31wdZAOlA==}
+  /msw/0.47.4:
+    resolution: {integrity: sha512-Psftt8Yfl0+l+qqg9OlmKEsxF8S/vtda0CmlR6y8wTaWrMMzuCDa55n2hEGC0ZRDwuV6FFWc/4CjoDsBpATKBw==}
     engines: {node: '>=14'}
     hasBin: true
     requiresBuild: true
     peerDependencies:
-      typescript: '>= 4.4.x <= 4.9.x'
+      typescript: '>= 4.2.x <= 4.8.x'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -22687,6 +22682,7 @@ packages:
       node-fetch: 2.6.7
       outvariant: 1.3.0
       path-to-regexp: 6.2.1
+      statuses: 2.0.1
       strict-event-emitter: 0.2.8
       type-fest: 2.19.0
       yargs: 17.6.0
@@ -27264,6 +27260,14 @@ packages:
       qs: 6.11.0
     dev: false
 
+  /stripe/11.1.0:
+    resolution: {integrity: sha512-erOslPQZSYKOotQjmKRy4eBon/tdhzLIYzBdPSNVWDdatSQozkkPlh8mVeXNwubYYZYx61/yS23eWiGDF93z2w==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@types/node': 18.11.9
+      qs: 6.11.0
+    dev: false
+
   /stubs/3.0.0:
     resolution: {integrity: sha512-PdHt7hHUJKxvTCgbKX9C1V/ftOcjJQgz8BZwNfV5c4B6dcGqlpelTbJ999jBGZ2jYiPAwcX5dP6oBwVlBlUbxw==}
     dev: false
@@ -29691,9 +29695,9 @@ packages:
       - supports-color
     dev: true
 
-  /vue-eslint-parser/8.3.0_eslint@8.26.0:
-    resolution: {integrity: sha512-dzHGG3+sYwSf6zFBa0Gi9ZDshD7+ad14DGOdTLjruRVgZXe2J+DcZ9iUhyR48z5g1PqRa20yt3Njna/veLJL/g==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+  /vue-eslint-parser/9.1.0_eslint@8.26.0:
+    resolution: {integrity: sha512-NGn/iQy8/Wb7RrRa4aRkokyCZfOUWk19OP5HP6JEozQFX5AoS/t+Z0ZN7FY4LlmWc4FNI922V7cvX28zctN8dQ==}
+    engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:

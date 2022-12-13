@@ -1,12 +1,10 @@
 #!/usr/bin/env node
+import { findWorkspaceDir } from '@pnpm/find-workspace-dir'
 import fs from 'fs'
-import path from 'path'
-
 import glob from 'glob'
 import { set } from 'object-path'
+import path from 'path'
 import yaml from 'yaml'
-
-import findWorkspaceRoot from '@pnpm/find-workspace-dir'
 
 interface NhostCloudConfig {
   hasura: string
@@ -15,7 +13,7 @@ interface NhostCloudConfig {
 }
 
 const main = async () => {
-  const root = await findWorkspaceRoot(process.cwd())
+  const root = await findWorkspaceDir(process.cwd())
 
   const { hasura, auth, storage }: NhostCloudConfig = yaml.parse(
     fs.readFileSync(path.join(root!, 'nhost-cloud.yaml'), 'utf-8')

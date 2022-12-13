@@ -72,7 +72,15 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   }
 
   const upload = (params?: UploadMultipleFilesActionParams) =>
-    uploadMultipleFilesPromise(nhost, service, params)
+    uploadMultipleFilesPromise(
+      {
+        url: nhost.storage.url,
+        accessToken: nhost.auth.getAccessToken(),
+        adminSecret: nhost.adminSecret,
+        ...params
+      },
+      service
+    )
 
   const cancel = () => {
     service.send('CANCEL')

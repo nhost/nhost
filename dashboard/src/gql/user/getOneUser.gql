@@ -24,6 +24,7 @@ query getOneUser($userId: uuid!) {
           createdAt
           desiredState
           nhostBaseFolder
+          providersUpdated
           featureFlags {
             description
             id

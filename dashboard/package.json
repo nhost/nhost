@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.7.4",
+  "version": "0.7.10",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -25,7 +25,7 @@
     "@emotion/styled": "^11.10.5",
     "@fontsource/inter": "^4.5.14",
     "@fontsource/roboto-mono": "^4.5.8",
-    "@graphiql/react": "^0.14.0",
+    "@graphiql/react": "^0.15.0",
     "@graphiql/toolkit": "^0.8.0",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
@@ -34,7 +34,6 @@
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
     "@mui/x-date-pickers": "^5.0.8",
-    "@nhost/core": "workspace:*",
     "@nhost/nextjs": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@nhost/react": "workspace:*",
@@ -53,7 +52,7 @@
     "cross-fetch": "^3.1.5",
     "date-fns": "^2.29.3",
     "generate-password": "^1.7.0",
-    "graphiql": "^2.1.0",
+    "graphiql": "^2.2.0",
     "graphql": "^16.6.0",
     "graphql-request": "^4.3.0",
     "graphql-tag": "^2.12.6",
