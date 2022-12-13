@@ -1,9 +1,9 @@
 import {
   PasswordlessOptions,
   SignInEmailPasswordlessHandlerResult,
+  signInEmailPasswordlessPromise,
   SignInEmailPasswordState
-} from '@nhost/core'
-import { signInEmailPasswordlessPromise } from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

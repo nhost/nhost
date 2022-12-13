@@ -1,4 +1,4 @@
-import { AuthContext, NhostSession } from '@nhost/core'
+import { AuthContext, NhostSession } from '@nhost/hasura-auth-js'
 import { NhostClient } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 import produce from 'immer'

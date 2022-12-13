@@ -1,4 +1,4 @@
-import { signInAnonymousPromise } from '@nhost/core'
+import { signInAnonymousPromise } from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

@@ -8,7 +8,7 @@ import {
   GenerateQrCodeHandlerResult,
   generateQrCodePromise,
   GenerateQrCodeState
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'

@@ -6,7 +6,7 @@ import {
 } from '@nhost/nhost-js'
 import { NhostProvider } from '@nhost/react'
 
-export type { NhostSession } from '@nhost/core'
+export type { NhostSession } from '@nhost/hasura-auth-js'
 export * from '@nhost/react'
 export { NhostProvider } from '@nhost/react'
 export * from './create-server-side-client'
