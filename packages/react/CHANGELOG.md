@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 0.16.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
 ## 0.15.2
 
 ### Patch Changes
