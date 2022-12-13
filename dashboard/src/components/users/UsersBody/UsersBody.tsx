@@ -52,7 +52,7 @@ export default function UsersBody({
 
   return (
     <div className="grid grid-flow-row gap-2 lg:w-9xl">
-      <div className="grid w-full h-full grid-flow-row overflow-auto ">
+      <div className="grid w-full h-full grid-flow-row overflow-auto">
         <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-5 border-b-1 ">
           <Text className="font-medium md:col-span-2">Name</Text>
           <Text className="font-medium">Signed up at</Text>
@@ -60,7 +60,7 @@ export default function UsersBody({
           <Text className="font-medium">Sign In Methods</Text>
         </div>
 
-        <div className="w-full h-full overflow-hidden">
+        <div className="w-full overflow-hidden">
           {!users && (
             <div className="w-full h-full mx-auto">
               <ActivityIndicator
@@ -72,9 +72,9 @@ export default function UsersBody({
           <List className="relative w-full h-full">
             {users?.map((user) => (
               <Fragment key={user.id}>
-                <ListItem.Root className="h-[64px]">
+                <ListItem.Root className="w-full h-[64px]">
                   <ListItem.Button
-                    className="grid w-full h-full grid-cols-5 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
+                    className="grid grid-cols-5 cursor-pointer py-2.5 h-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                     onClick={() => handleViewUser(user)}
                   >
                     <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">

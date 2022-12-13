@@ -46,6 +46,7 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
   const limit = useRef(10);
+  const [nrOfPages, setNrOfPages] = useState(1);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
@@ -93,17 +94,15 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
 
-  const totalNrOfPages = useMemo(() => {
+  useEffect(() => {
     if (loadingRemoteAppUsersQuery) {
-      return 0;
+      return;
     }
 
-    if (dataRemoteAppUsers.users.length === 0) {
-      return 0;
-    }
-
-    return Math.ceil(
-      dataRemoteAppUsers.usersAggregate.aggregate.count / limit.current,
+    setNrOfPages(
+      Math.ceil(
+        dataRemoteAppUsers.usersAggregate.aggregate.count / limit.current,
+      ),
     );
   }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
 
@@ -297,7 +296,7 @@ export default function UsersPage() {
           />
           <Pagination
             className="px-2"
-            totalNrOfPages={totalNrOfPages}
+            totalNrOfPages={nrOfPages}
             currentPageNumber={currentPage}
             elementsPerPage={limit.current}
             onPrevPageClick={() => {
