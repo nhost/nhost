@@ -8,10 +8,12 @@
     <div py-4 />
     <router-link class="btn" to="/profile">
       Profile
-    </router-link><br>
+    </router-link>
+    <br />
     <router-link class="btn" to="/sign-up">
       Sign Up
-    </router-link><br>
+    </router-link>
+    <br />
     <router-link class="btn" to="/sign-in">
       Sign In
     </router-link>

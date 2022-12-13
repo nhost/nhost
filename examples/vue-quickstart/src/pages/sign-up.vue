@@ -25,10 +25,14 @@ const handleSubmit = async (event: Event) => {
   </p>
 
   <form v-else @submit="handleSubmit">
-    <input v-model="firstName" placeholder="First name" class="input"><br>
-    <input v-model="lastName" placeholder="Last name" class="input"><br>
-    <input v-model="email" type="email" placeholder="Email" class="input"><br>
-    <input v-model="password" type="password" placeholder="Password" class="input"><br>
+    <input v-model="firstName" placeholder="First name" class="input">
+    <br />
+    <input v-model="lastName" placeholder="Last name" class="input">
+    <br />
+    <input v-model="email" type="email" placeholder="Email" class="input">
+    <br />
+    <input v-model="password" type="password" placeholder="Password" class="input">
+    <br />
 
     <button class="btn-submit" type="submit">
       Sign up

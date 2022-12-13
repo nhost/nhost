@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useAuthenticated, useSignOut } from '@nhost/vue'
 import { isDark, toggleDark } from '~/composables'
+
 const isAuthenticated = useAuthenticated()
 const { signOut } = useSignOut()
 const router = useRouter()
