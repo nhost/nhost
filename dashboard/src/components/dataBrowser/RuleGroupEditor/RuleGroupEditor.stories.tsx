@@ -2,8 +2,9 @@ import Form from '@/components/common/Form';
 import type { RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
-import hasuraMetadataQuery from '@/utils/msw/mocks/hasuraMetadataQuery';
-import tableQuery from '@/utils/msw/mocks/tableQuery';
+import customClaimsQuery from '@/utils/msw/mocks/graphql/customClaimsQuery';
+import hasuraMetadataQuery from '@/utils/msw/mocks/rest/hasuraMetadataQuery';
+import tableQuery from '@/utils/msw/mocks/rest/tableQuery';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -35,7 +36,7 @@ const defaultParameters = {
     },
   },
   msw: {
-    handlers: [tableQuery, hasuraMetadataQuery],
+    handlers: [tableQuery, hasuraMetadataQuery, customClaimsQuery],
   },
 };
 

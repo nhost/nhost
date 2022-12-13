@@ -42,7 +42,7 @@ const commonOperators: {
   { value: '_neq', helperText: 'is not equal' },
   { value: '_in_hasura', label: '_in', helperText: 'is in (X-Hasura-)' },
   { value: '_in', helperText: 'is in (array)' },
-  { value: '_nin_hasura', label: '_nin', helperText: 'is not in (X-Hasura)' },
+  { value: '_nin_hasura', label: '_nin', helperText: 'is not in (X-Hasura-)' },
   { value: '_nin', helperText: 'is not in (array)' },
   { value: '_gt', helperText: 'is greater than' },
   { value: '_lt', helperText: 'is lower than' },
@@ -160,7 +160,7 @@ export default function RuleEditorRow({
           }
 
           if (value === '_in_hasura' || value === '_nin_hasura') {
-            setValue(`${rowName}.value`, '', { shouldDirty: true });
+            setValue(`${rowName}.value`, null, { shouldDirty: true });
 
             return;
           }

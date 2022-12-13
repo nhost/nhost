@@ -2,7 +2,7 @@ import { rest } from 'msw';
 
 const hasuraMetadataQuery = rest.post(
   'http://localhost:1337/v1/metadata',
-  (req, res, ctx) =>
+  (_req, res, ctx) =>
     res(
       ctx.json({
         metadata: {
