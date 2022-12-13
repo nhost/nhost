@@ -61,7 +61,7 @@
     "docgen": "pnpm typedoc && docgen --config ./react.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^3.0.1",

@@ -1,4 +1,8 @@
-import { signUpEmailPasswordPromise, SignUpEmailPasswordState, SignUpOptions } from '@nhost/core'
+import {
+  signUpEmailPasswordPromise,
+  SignUpEmailPasswordState,
+  SignUpOptions
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'

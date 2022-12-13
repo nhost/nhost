@@ -4,7 +4,7 @@ title: FileUploadEvents
 sidebar_label: FileUploadEvents
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/file-upload.ts#L15
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/file-upload.ts#L16
 ---
 
 # `FileUploadEvents`
@@ -12,16 +12,13 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 ```ts
 type FileUploadEvents =
   | { type: 'ADD'; file: File; id: string; bucketId: string; name: string }
-  | {
+  | ({
       type: 'UPLOAD'
-      url: string
       file: File
       id: string
-      bucketId: string
       name: string
-      accessToken: string
-      adminSecret: string
-    }
+      bucketId: string
+    } & FileUploadConfig)
   | {
       type: 'UPLOAD_PROGRESS'
       progress: number

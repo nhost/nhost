@@ -4,7 +4,7 @@ title: sendVerificationEmail()
 sidebar_label: sendVerificationEmail()
 slug: /reference/javascript/auth/send-verification-email
 description: Use `nhost.auth.sendVerificationEmail` to send a verification email to the specified email. The email contains a verification-email link. When the user clicks the verification-email link their email is verified.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L338
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L345
 ---
 
 # `sendVerificationEmail()`
@@ -21,9 +21,9 @@ nhost.auth.sendVerificationEmail({ email: 'joe@example.com' })
 
 **<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> [`SendVerificationEmailParams`](/reference/docgen/javascript/auth/types/send-verification-email-params)
 
-| Property                                                                                                | Type             | Required | Notes |
-| :------------------------------------------------------------------------------------------------------ | :--------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>email</span>   | `string`         |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>options</span> | `RedirectOption` |          |       |
+| Property                                                                                                | Type                                                                        | Required | Notes |
+| :------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>email</span>   | <code>string</code>                                                         |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>options</span> | [`RedirectOption`](/reference/docgen/javascript/auth/types/redirect-option) |          |       |
 
 ---

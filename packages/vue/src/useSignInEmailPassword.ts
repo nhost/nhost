@@ -6,7 +6,7 @@ import {
   SignInEmailPasswordState,
   SignInMfaTotpHandlerResult,
   signInMfaTotpPromise
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'

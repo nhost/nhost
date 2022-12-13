@@ -6,7 +6,7 @@ import {
   ResetPasswordOptions,
   resetPasswordPromise,
   ResetPasswordState
-} from '@nhost/core'
+} from '@nhost/hasura-auth-js'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'

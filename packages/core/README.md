@@ -1,1 +1,0 @@
-# nhost/core

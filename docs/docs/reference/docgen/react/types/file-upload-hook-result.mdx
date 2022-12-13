@@ -13,7 +13,43 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/use
 
 ---
 
-**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> `boolean`
+**<span className="parameter-name">isUploading</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when the file is being uploaded.
+
+---
+
+**<span className="parameter-name">progress</span>** <span className="optional-status">required</span> <code>null &#124; number</code>
+
+Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+
+---
+
+**<span className="parameter-name">isUploaded</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when the file has been successfully uploaded.
+
+---
+
+**<span className="parameter-name">id</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the id of the file.
+
+---
+
+**<span className="parameter-name">bucketId</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the bucket id.
+
+---
+
+**<span className="parameter-name">name</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the name of the file.
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
 
 **`@returns`**
 
@@ -25,56 +61,20 @@ use `!isSuccess` or `!!error` instead
 
 ---
 
-**<span className="parameter-name">error</span>** <span className="optional-status">required</span> `null` | `ErrorPayload`
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; ErrorPayload</code>
 
 Provides details about the error
 
 ---
 
-**<span className="parameter-name">isUploading</span>** <span className="optional-status">required</span> `boolean`
-
-Returns `true` when the file is being uploaded.
+**<span className="parameter-name">add</span>** <span className="optional-status">required</span> <code>(params: StorageUploadFileParams) =&gt; void</code>
 
 ---
 
-**<span className="parameter-name">progress</span>** <span className="optional-status">required</span> `null` | `number`
-
-Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> <code>(params: Partial&lt;StorageUploadFileParams&gt;) =&gt; Promise&lt;UploadFileHandlerResult&gt;</code>
 
 ---
 
-**<span className="parameter-name">isUploaded</span>** <span className="optional-status">required</span> `boolean`
-
-Returns `true` when the file has been successfully uploaded.
-
----
-
-**<span className="parameter-name">id</span>** <span className="optional-status">optional</span> `string`
-
-Returns the id of the file.
-
----
-
-**<span className="parameter-name">bucketId</span>** <span className="optional-status">optional</span> `string`
-
-Returns the bucket id.
-
----
-
-**<span className="parameter-name">name</span>** <span className="optional-status">optional</span> `string`
-
-Returns the name of the file.
-
----
-
-**<span className="parameter-name">add</span>** <span className="optional-status">required</span> `(params: StorageUploadFileParams) => void`
-
----
-
-**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> `(params: Partial<StorageUploadFileParams>) => Promise<UploadFileHandlerResult>`
-
----
-
-**<span className="parameter-name">cancel</span>** <span className="optional-status">required</span> `() => void`
+**<span className="parameter-name">cancel</span>** <span className="optional-status">required</span> <code>() =&gt; void</code>
 
 ---

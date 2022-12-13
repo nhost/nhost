@@ -4,7 +4,7 @@ title: MultipleFilesUploadEvents
 sidebar_label: MultipleFilesUploadEvents
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/multiple-files-upload.ts#L18
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/multiple-files-upload.ts#L20
 ---
 
 # `MultipleFilesUploadEvents`
@@ -12,14 +12,11 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 ```ts
 type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: AnyFileList; bucketId: string }
-  | {
+  | ({
       type: 'UPLOAD'
-      url: string
       files: AnyFileList
       bucketId: string
-      accessToken: string
-      adminSecret: string
-    }
+    } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }

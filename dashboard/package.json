@@ -34,7 +34,6 @@
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
     "@mui/x-date-pickers": "^5.0.8",
-    "@nhost/core": "workspace:*",
     "@nhost/nextjs": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@nhost/react": "workspace:*",
