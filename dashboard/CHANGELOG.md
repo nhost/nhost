@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.9
+
+### Patch Changes
+
+- edd6c922: fix(dashboard): don't break the UI when project is not loaded yet
+
 ## 0.7.8
 
 ### Patch Changes

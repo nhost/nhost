@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export default function OverviewProjectInfo() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { region, subdomain } = currentApplication;
+  const { region, subdomain } = currentApplication || {};
   const isRegionAvailable =
     region?.awsName && region?.countryCode && region?.city;
 
