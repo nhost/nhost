@@ -210,7 +210,7 @@ export default function UsersPage() {
 
   if (totalAmountOfUsers === 0) {
     return (
-      <Container className="mx-auto max-w-8xl">
+      <Container className="mx-auto max-w-9xl">
         <div className="flex flex-row place-content-between">
           <Input
             className="rounded-sm"
@@ -257,7 +257,7 @@ export default function UsersPage() {
   }
 
   return (
-    <Container className="mx-auto max-w-8xl">
+    <Container className="mx-auto max-w-9xl">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm"

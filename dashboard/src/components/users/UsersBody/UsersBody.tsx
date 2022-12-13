@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import IconButton from '@/components/ui/v2/IconButton';
+import DotsVerticalIcon from '@/components/ui/v2/icons/DotsVerticalIcon';
+import TrashIcon from '@/components/ui/v2/icons/TrashIcon';
+import UserIcon from '@/components/ui/v2/icons/UserIcon';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import IconButton from '@/ui/v2/IconButton';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import TrashIcon from '@/ui/v2/icons/TrashIcon';
-import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
@@ -51,10 +51,10 @@ export default function UsersBody({
   }
 
   return (
-    <div className="grid grid-flow-row gap-2">
-      <div className="grid w-full h-full grid-flow-row overflow-auto">
-        <div className="grid grid-cols-5 gap-2 px-3 py-3 border-gray-200 lg:grid-cols-5 border-b-1 w-[1280px]">
-          <Text className="col-span-2 font-medium">Name</Text>
+    <div className="grid grid-flow-row gap-2 lg:w-9xl">
+      <div className="grid w-full h-full grid-flow-row overflow-auto ">
+        <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-5 border-b-1 ">
+          <Text className="font-medium md:col-span-2">Name</Text>
           <Text className="font-medium">Signed up at</Text>
           <Text className="font-medium">Last Seen</Text>
           <Text className="font-medium">Sign In Methods</Text>
@@ -69,60 +69,13 @@ export default function UsersBody({
               />
             </div>
           )}
-          <List className="w-full h-full">
+          <List className="relative w-full h-full">
             {users?.map((user) => (
               <Fragment key={user.id}>
-                <ListItem.Root
-                  className="h-[64px]"
-                  // className="grid items-center grid-cols-4 gap-2 px-3 py-3 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
-                  secondaryAction={
-                    <Dropdown.Root>
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        className="absolute -translate-y-1/2 right-1 top-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
-
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-32' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item
-                          onClick={() => handleViewUser(user)}
-                          className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                        >
-                          <UserIcon className="w-4 h-4" />
-                          <Text className="font-medium">View User</Text>
-                        </Dropdown.Item>
-
-                        <Divider component="li" />
-
-                        <Dropdown.Item
-                          className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
-                          onClick={() => onDeleteUser(user)}
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                          <Text className="font-medium text-red">Delete</Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
+                <ListItem.Root className="h-[64px]">
                   <ListItem.Button
+                    className="grid w-full h-full grid-cols-5 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                     onClick={() => handleViewUser(user)}
-                    className="grid w-[1280px] grid-cols-5 gap-2 py-3 cursor-pointer hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                   >
                     <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">
                       {!user.avatarUrl.includes('default=blank') ? (
@@ -158,7 +111,7 @@ export default function UsersBody({
                     >
                       {user.lastSeen
                         ? formatRelative(new Date(), new Date(user.lastSeen))
-                        : 'Never'}
+                        : '-'}
                     </Text>
 
                     <div>
@@ -180,7 +133,50 @@ export default function UsersBody({
                       />
                     </div>
                   </ListItem.Button>
+                  <Dropdown.Root>
+                    <Dropdown.Trigger
+                      asChild
+                      hideChevron
+                      className="absolute -translate-y-1/2 right-1 top-1/2"
+                    >
+                      <IconButton variant="borderless" color="secondary">
+                        <DotsVerticalIcon />
+                      </IconButton>
+                    </Dropdown.Trigger>
+
+                    <Dropdown.Content
+                      menu
+                      PaperProps={{ className: 'w-32' }}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                      }}
+                    >
+                      <Dropdown.Item
+                        onClick={() => handleViewUser(user)}
+                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        <Text className="font-medium">View User</Text>
+                      </Dropdown.Item>
+
+                      <Divider component="li" />
+
+                      <Dropdown.Item
+                        className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                        onClick={() => onDeleteUser(user)}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        <Text className="font-medium text-red">Delete</Text>
+                      </Dropdown.Item>
+                    </Dropdown.Content>
+                  </Dropdown.Root>
                 </ListItem.Root>
+                <Divider component="li" />
               </Fragment>
             ))}
           </List>

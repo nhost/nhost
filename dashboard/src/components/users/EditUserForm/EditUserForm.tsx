@@ -214,7 +214,7 @@ export default function EditUserForm({
           <Text className="col-span-3 font-medium">
             {user.lastSeen
               ? formatRelative(new Date(), new Date(user.lastSeen))
-              : 'Never'}
+              : '-'}
           </Text>
         </section>
         <section className="grid grid-flow-row gap-8 p-6">
