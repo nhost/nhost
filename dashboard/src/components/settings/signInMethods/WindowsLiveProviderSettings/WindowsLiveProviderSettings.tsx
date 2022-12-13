@@ -115,7 +115,7 @@ export default function WindowsLiveProviderSettings() {
               currentApplication.subdomain,
               currentApplication.region.awsName,
               'auth',
-            )}/v1/signin/provider/microsoft/callback`}
+            )}/v1/signin/provider/windowslive/callback`}
             disabled
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
@@ -130,7 +130,7 @@ export default function WindowsLiveProviderSettings() {
                         currentApplication.subdomain,
                         currentApplication.region.awsName,
                         'auth',
-                      )}/v1/signin/provider/microsoft/callback`,
+                      )}/v1/signin/provider/windowslive/callback`,
                       'Redirect URL',
                     );
                   }}

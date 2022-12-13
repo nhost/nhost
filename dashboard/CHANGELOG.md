@@ -1,5 +1,27 @@
 # @nhost/dashboard
 
+## 0.7.9
+
+### Patch Changes
+
+- a6d31dc2: fix(dashboard): don't break the UI when project is not loaded yet
+
+## 0.7.8
+
+### Patch Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+- f4d70f88: fix(dashboard): do not break when region is nullish
+- 4a9471cc: Windows Live Provider displayed link updated to match backend url
+- 594488e4: fix(dashboard): do not show error when submitting Apple provider settings
+- Updated dependencies [7f251111]
+  - @nhost/nextjs@1.10.0
+  - @nhost/react@0.16.0
+  - @nhost/react-apollo@4.10.0
+
 ## 0.7.7
 
 ### Patch Changes
