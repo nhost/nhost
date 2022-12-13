@@ -8,7 +8,7 @@
   - @nhost/nextjs@1.11.0
   - @nhost/nhost-js@1.7.0
   - @nhost/react@0.17.0
-  - @nhost/react-apollo@5.0.0
+  - @nhost/react-apollo@4.11.0
 
 ## 0.7.9
 
