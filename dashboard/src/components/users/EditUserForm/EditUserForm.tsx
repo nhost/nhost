@@ -2,6 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import Checkbox from '@/components/ui/v2/Checkbox';
 import { useGetRolesQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
@@ -43,7 +44,7 @@ export const EditUserFormValidationSchema = Yup.object({
   phoneNumberVerified: Yup.boolean().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
-  roles: Yup.array().of(Yup.string()),
+  roles: Yup.array().of(Yup.bool()),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -60,7 +61,7 @@ export default function EditUserForm({
 
   const { data } = useGetRolesQuery({
     variables: { id: currentApplication.id },
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'cache-only',
   });
 
   const allAvailableProjectRoles = useMemo(
@@ -80,7 +81,10 @@ export default function EditUserForm({
       phoneNumberVerified: user.phoneNumberVerified,
       locale: user.locale,
       defaultRole: user.defaultRole,
-      roles: user.roles.map((role) => role.role),
+      roles: allAvailableProjectRoles?.map((role) => {
+        const userRole = user.roles.find((sr) => sr.role === role.name);
+        return !!userRole;
+      }),
     },
   });
 
@@ -94,6 +98,23 @@ export default function EditUserForm({
   useEffect(() => {
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
+
+  useEffect(() => {
+    form.reset(() => ({
+      avatarURL: user.avatarUrl,
+      displayName: user.displayName,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      phoneNumber: user.phoneNumber,
+      phoneNumberVerified: user.phoneNumberVerified,
+      locale: user.locale,
+      defaultRole: user.defaultRole,
+      roles: allAvailableProjectRoles?.map((role) => {
+        const userRole = user.roles.find((sr) => sr.role === role.name);
+        return !!userRole;
+      }),
+    }));
+  }, [user, form, allAvailableProjectRoles]);
 
   function handleChangeUserPassword() {
     openDialog('EDIT_USER_PASSWORD', {
@@ -296,8 +317,8 @@ export default function EditUserForm({
             label="Locale"
             slotProps={{ root: { className: 'truncate' } }}
             fullWidth
-            error={!!errors.defaultRole}
-            helperText={errors?.defaultRole?.message}
+            error={!!errors.locale}
+            helperText={errors?.locale?.message}
           >
             <Option value="en">English</Option>
             <Option value="fr">French</Option>
@@ -332,7 +353,6 @@ export default function EditUserForm({
             </div> */}
           </div>
         </section>
-
         <section className="grid grid-flow-row p-6 gap-y-10">
           <ControlledSelect
             {...register('defaultRole')}
@@ -355,12 +375,18 @@ export default function EditUserForm({
             </InputLabel>
             <div className="grid grid-flow-row col-span-3 gap-6">
               {allAvailableProjectRoles.map((role) => (
-                <ControlledCheckbox
-                  key={role.name}
-                  name={role.name}
-                  value={user.roles[role.name]}
+                <Checkbox
+                  {...register(
+                    `roles.${allAvailableProjectRoles?.indexOf(role)}`,
+                  )}
+                  disabled={role.isSystemRole}
                   label={role.name}
-                  defaultChecked={user.roles.some((r) => r.role === role.name)}
+                  key={role.name}
+                  defaultChecked={
+                    form.getValues()?.roles[
+                      allAvailableProjectRoles.indexOf(role)
+                    ]
+                  }
                 />
               ))}
             </div>

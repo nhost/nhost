@@ -5,6 +5,7 @@ import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import UsersBody from '@/components/users/UsersBody';
+import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -14,11 +15,13 @@ import Text from '@/ui/v2/Text';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
+  useGetRolesQuery,
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
   useTotalUsersQuery,
   useUpdateRemoteAppUserMutation
 } from '@/utils/__generated__/graphql';
+
 import { SearchIcon } from '@heroicons/react/solid';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
@@ -43,6 +46,7 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
   const limit = useRef(8);
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
@@ -54,6 +58,12 @@ export default function UsersPage() {
     } = { usersAggregate: { aggregate: { count: 0 } } },
     loading,
   } = useTotalUsersQuery({
+    client: remoteProjectGQLClient,
+  });
+
+  useGetRolesQuery({
+    variables: { id: currentApplication.id },
+    fetchPolicy: 'cache-first',
     client: remoteProjectGQLClient,
   });
 
@@ -97,14 +107,12 @@ export default function UsersPage() {
     );
   }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
 
-  const handleSearchStringChange = useMemo(
-    () =>
-      debounce((event: ChangeEvent<HTMLInputElement>) => {
-        event.preventDefault();
-        setSearchString(event.target.value);
-      }, 250),
-    [],
-  );
+  const handleSearchStringChange = useMemo(() => {
+    debounce((event: ChangeEvent<HTMLInputElement>) => {
+      event.preventDefault();
+      setSearchString(event.target.value);
+    }, 250);
+  }, []);
 
   function handleCreateUser() {
     openDialog('CREATE_USER', {
@@ -169,6 +177,9 @@ export default function UsersPage() {
           avatarUrl: values.avatarURL,
           emailVerified: values.emailVerified,
           defaultRole: values.defaultRole,
+          phoneNumber: values.phoneNumber,
+          phoneNumberVerified: values.phoneNumberVerified,
+          locale: values.locale,
         },
       },
     });
@@ -177,7 +188,7 @@ export default function UsersPage() {
       updateUserMutationPromise,
       {
         loading: `Updating user's settings...`,
-        success: 'User settings updated successfully!',
+        success: 'User settings updated successfully',
         error: 'Failed to update user settings.',
       },
       { ...toastStyleProps },

@@ -28,17 +28,22 @@ export type PaginationProps = DetailedHTMLProps<
    */
   onNextPageClick: VoidFunction;
   /**
-   * Props to be passed to the next button component.
-   */
-  nextButtonProps?: ButtonProps;
-  /**
-   * Props to be passed to the previous button component.
-   */
-  prevButtonProps?: ButtonProps;
-  /**
    * Props to be passed to the previous button component.
    */
   onChangePage: (page: number) => void;
+  /**
+   * Props for component slots.
+   */
+  slotProps?: {
+    /**
+     * Props to be passed to the next button component.
+     */
+    nextButtonProps?: Partial<ButtonProps>;
+    /**
+     * Props to be passed to the previous button component.
+     */
+    prevButtonProps?: Partial<ButtonProps>;
+  };
 };
 
 export default function Pagination({
