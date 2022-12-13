@@ -268,7 +268,7 @@ export default function GraphQLPage() {
 
   const subscriptionUrl = `${appUrl
     .replace('https', 'wss')
-    .replace('http', 'ws')}/v1`;
+    .replace('http', 'ws')}`;
 
   const headers = {
     'content-type': 'application/json',
@@ -277,7 +277,7 @@ export default function GraphQLPage() {
   };
 
   const fetcher = createGraphiQLFetcher({
-    url: `${appUrl}/v1`,
+    url: appUrl,
     headers,
     wsClient: createClient({
       url: subscriptionUrl,

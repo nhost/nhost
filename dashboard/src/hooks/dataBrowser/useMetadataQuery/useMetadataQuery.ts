@@ -52,7 +52,9 @@ export default function useMetadataQuery(
         ...options,
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? 'nhost-admin-secret'
+            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {

@@ -48,7 +48,9 @@ export default function useUpdateTableMutation({
         ...variables,
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? 'nhost-admin-secret'
+            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
       }),
