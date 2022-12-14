@@ -24,6 +24,7 @@ import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
@@ -34,8 +35,8 @@ export interface EditUserFormProps {
 }
 
 export const EditUserFormValidationSchema = Yup.object({
-  displayName: Yup.string().required('This field is required.'),
-  avatarURL: Yup.string().required('This field is required.'),
+  displayName: Yup.string(),
+  avatarURL: Yup.string(),
   email: Yup.string()
     .email('Invalid email address')
     .required('This field is required.'),
@@ -68,6 +69,11 @@ export default function EditUserForm({
     () => getUserRoles(data?.app?.authUserDefaultAllowedRoles),
     [data],
   );
+
+  console.log(allAvailableProjectRoles, allAvailableProjectRoles);
+
+  // console.log(user);
+  const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -324,76 +330,86 @@ export default function EditUserForm({
             <Option value="fr">French</Option>
           </ControlledSelect>
         </section>
+        {!isAnonymous && (
+          <section className="grid grid-flow-col grid-cols-8 p-6">
+            <div className="col-span-2">
+              <InputLabel as="h3">Sign-In Methods</InputLabel>
+            </div>
+            <div className="grid grid-flow-row col-span-6 gap-y-6">
+              {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
+              {user.email && (
+                <div className="grid grid-flow-col gap-x-1 place-content-between">
+                  <div className="grid grid-flow-col span-cols-1">
+                    <Image src="/assets/Envelope.svg" width={12} height={15} />
+                    <Text className="font-medium">Email + Password</Text>
+                  </div>
 
-        <section className="grid grid-flow-col grid-cols-8 p-6">
-          <div className="col-span-2">
-            <InputLabel as="h3">Sign-In Methods</InputLabel>
-          </div>
-          <div className="grid grid-flow-row col-span-6 gap-y-6">
-            {user.userProviders.length === 0 && (
-              <div className="grid grid-flow-col gap-x-1 place-content-between">
-                <div className="grid grid-flow-col span-cols-1">
-                  <Image src="/assets/Envelope.svg" width={12} height={15} />
-                  <Text className="font-medium">Email + Password</Text>
+                  <Chip
+                    component="span"
+                    color="success"
+                    size="small"
+                    label="Active"
+                  />
                 </div>
+              )}
 
-                <Chip
-                  component="span"
-                  color="success"
-                  size="small"
-                  label="Active"
-                />
-              </div>
-            )}
-
-            {/* <div className="grid grid-flow-col gap-0">
+              {/* <div className="grid grid-flow-col gap-0">
               <Image src="/logos/Apple.svg" width={12} height={15} />
               <Text className="font-medium">Email + Password</Text>
               <Chip component="span" color="info" size="small" label="Active" />
             </div> */}
-          </div>
-        </section>
-        <section className="grid grid-flow-row p-6 gap-y-10">
-          <ControlledSelect
-            {...register('defaultRole')}
-            id="defaultRole"
-            name="defaultRole"
-            variant="inline"
-            label="Default Role"
-            slotProps={{ root: { className: 'truncate' } }}
-            hideEmptyHelperText
-            fullWidth
-            error={!!errors.defaultRole}
-            helperText={errors?.defaultRole?.message}
-          >
-            <Option value="user">user</Option>
-            <Option value="me">me</Option>
-          </ControlledSelect>
-          <div className="grid grid-flow-col grid-cols-8 gap-6 place-content-start">
-            <InputLabel as="h3" className="col-span-2">
-              Allowed Roles
-            </InputLabel>
-            <div className="grid grid-flow-row col-span-3 gap-6">
-              {allAvailableProjectRoles.map((role) => (
-                <Checkbox
-                  {...register(
-                    `roles.${allAvailableProjectRoles?.indexOf(role)}`,
-                  )}
-                  disabled={role.isSystemRole}
-                  label={role.name}
-                  key={role.name}
-                  defaultChecked={
-                    form.getValues()?.roles[
-                      allAvailableProjectRoles.indexOf(role)
-                    ]
-                  }
-                />
-              ))}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
+        {!isAnonymous && (
+          <section className="grid grid-flow-row p-6 gap-y-10">
+            <ControlledSelect
+              {...register('defaultRole')}
+              id="defaultRole"
+              name="defaultRole"
+              variant="inline"
+              label="Default Role"
+              slotProps={{ root: { className: 'truncate' } }}
+              hideEmptyHelperText
+              fullWidth
+              error={!!errors.defaultRole}
+              helperText={errors?.defaultRole?.message}
+            >
+              {allAvailableProjectRoles.map((role) => (
+                <Option value={role.name}>{role.name}</Option>
+              ))}
+            </ControlledSelect>
+            <div className="grid grid-flow-col grid-cols-8 gap-6 place-content-start">
+              <InputLabel as="h3" className="col-span-2">
+                Allowed Roles
+              </InputLabel>
+              <div className="grid grid-flow-row col-span-3 gap-6">
+                {allAvailableProjectRoles.map((role) => (
+                  <Checkbox
+                    {...register(
+                      `roles.${allAvailableProjectRoles?.indexOf(role)}`,
+                    )}
+                    disabled={role.isSystemRole}
+                    label={role.name}
+                    key={role.name}
+                    defaultChecked={
+                      form.getValues()?.roles[
+                        allAvailableProjectRoles.indexOf(role)
+                      ]
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
-        <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
+        <div
+          className={twMerge(
+            'grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end',
+            isAnonymous && 'absolute bottom-0',
+          )}
+        >
           <Button
             variant="outlined"
             color="secondary"
