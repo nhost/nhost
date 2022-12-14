@@ -6,7 +6,6 @@ import {
   signInMfaTotpPromise
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 interface SignInEmailPasswordHandler {

@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   createMultipleFilesUploadMachine,
   FileItemRef,
@@ -9,7 +7,7 @@ import {
   uploadMultipleFilesPromise
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 export interface MultipleFilesHookResult extends MultipleFilesUploadState {

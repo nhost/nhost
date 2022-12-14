@@ -1,5 +1,3 @@
-import { App, warn } from 'vue'
-
 import {
   BackendUrl,
   NhostAuthConstructorParams,
@@ -7,7 +5,7 @@ import {
   removeParameterFromWindow,
   Subdomain
 } from '@nhost/nhost-js'
-
+import { App, warn } from 'vue'
 import { DefaultNhostClient } from './useNhostClient'
 
 export interface NhostVueClientConstructorParams

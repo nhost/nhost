@@ -1,5 +1,3 @@
-import { InterpreterFrom } from 'xstate'
-
 import {
   createFileUploadMachine,
   FileItemRef,
@@ -10,7 +8,7 @@ import {
   uploadFilePromise
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { InterpreterFrom } from 'xstate'
 import { useNhostClient } from './useNhostClient'
 
 export interface FileUploadHookResult extends FileUploadState {

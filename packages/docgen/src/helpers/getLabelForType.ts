@@ -1,6 +1,5 @@
 import kebabCase from 'just-kebab-case'
 import { snapshot } from 'valtio'
-
 import {
   FunctionSignatureTypeFragment,
   GenericTypeFragment,

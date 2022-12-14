@@ -7,6 +7,7 @@ import {
 
 export * from '@nhost/nhost-js'
 export { VanillaNhostClient }
+
 export interface NhostReactClientConstructorParams
   extends Partial<BackendUrl>,
     Partial<Subdomain>,

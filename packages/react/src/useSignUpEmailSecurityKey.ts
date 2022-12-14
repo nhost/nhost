@@ -4,7 +4,6 @@ import {
   SignUpSecurityKeyState
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 type SignUpSecurityKeyHandlerResult = Omit<SignUpSecurityKeyState, 'isLoading'>

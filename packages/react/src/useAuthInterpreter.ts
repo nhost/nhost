@@ -1,8 +1,6 @@
+import { AuthMachine } from '@nhost/nhost-js'
 import { useContext } from 'react'
 import { InterpreterFrom } from 'xstate'
-
-import { AuthMachine } from '@nhost/nhost-js'
-
 import { NhostReactContext } from './provider'
 
 /** @internal */

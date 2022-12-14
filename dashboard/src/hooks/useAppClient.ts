@@ -1,6 +1,5 @@
 import { LOCAL_SUBDOMAIN } from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
-import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
 import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 

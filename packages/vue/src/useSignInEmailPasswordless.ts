@@ -1,5 +1,3 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   PasswordlessOptions,
   SignInEmailPasswordlessHandlerResult,
@@ -7,7 +5,7 @@ import {
   SignInEmailPasswordlessState
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'

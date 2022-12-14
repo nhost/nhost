@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   PasswordlessOptions,
   SignInSmsPasswordlessHandlerResult,
@@ -9,7 +7,7 @@ import {
   SignInSmsPasswordlessState
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInSmsPasswordlessHandler {

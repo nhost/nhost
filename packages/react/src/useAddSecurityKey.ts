@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   ActionErrorState,
   ActionSuccessState,
@@ -7,7 +5,7 @@ import {
   addSecurityKeyPromise,
   ErrorPayload
 } from '@nhost/nhost-js'
-
+import { useState } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface AddSecurityKeyHandler {

@@ -1,5 +1,3 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   ActivateMfaHandlerResult,
   activateMfaPromise,
@@ -10,7 +8,7 @@ import {
   GenerateQrCodeState
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
