@@ -1,14 +1,12 @@
-import { useCallback, useMemo } from 'react'
-
 import {
   ChangeEmailHandlerResult,
   ChangeEmailOptions,
   changeEmailPromise,
   ChangeEmailState,
   createChangeEmailMachine
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useCallback, useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface ChangeEmailHandler {

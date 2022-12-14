@@ -13,6 +13,7 @@ importers:
       '@babel/plugin-transform-react-jsx': ^7.19.0
       '@changesets/cli': ^2.25.2
       '@faker-js/faker': ^7.6.0
+      '@rollup/plugin-replace': ^5.0.1
       '@types/node': ^17.0.45
       '@typescript-eslint/eslint-plugin': ^5.42.1
       '@typescript-eslint/parser': ^5.42.1
@@ -46,6 +47,7 @@ importers:
       '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.6
       '@changesets/cli': 2.25.2
       '@faker-js/faker': 7.6.0
+      '@rollup/plugin-replace': 5.0.1
       '@types/node': 17.0.45
       '@typescript-eslint/eslint-plugin': 5.43.0_qhv4dmj42iuyoxyfl3vja5veum
       '@typescript-eslint/parser': 5.43.0_v4j2skhpbmb3nyu3p422gvgwf4
@@ -100,8 +102,6 @@ importers:
       '@mui/x-date-pickers': ^5.0.8
       '@next/bundle-analyzer': ^12.3.1
       '@nhost/nextjs': workspace:*
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
       '@nhost/react-apollo': workspace:*
       '@segment/snippet': ^4.15.3
       '@storybook/addon-actions': ^6.5.13
@@ -220,8 +220,6 @@ importers:
       '@mui/system': 5.10.14_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
       '@nhost/nextjs': link:../packages/nextjs
-      '@nhost/nhost-js': link:../packages/nhost-js
-      '@nhost/react': link:../packages/react
       '@nhost/react-apollo': link:../packages/react-apollo
       '@segment/snippet': 4.15.3
       '@stripe/react-stripe-js': 1.14.2_mljfwq7caaxrtdqn7u72ntpebq
@@ -799,11 +797,11 @@ importers:
       graphql: 15.7.2
       graphql-ws: ^5.10.1
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
       graphql: 15.7.2
       graphql-ws: 5.11.2_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
+      '@nhost/nhost-js': link:../nhost-js
 
   packages/docgen:
     specifiers:
@@ -891,8 +889,6 @@ importers:
   packages/nextjs:
     specifiers:
       '@nhost/docgen': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/nhost-js': workspace:*
       '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
       cross-fetch: ^3.1.5
@@ -902,14 +898,12 @@ importers:
       react-dom: ^17.0.2
       xstate: ^4.33.5
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
+      '@nhost/react': link:../react
       cross-fetch: 3.1.5
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@nhost/react': link:../react
       '@types/js-cookie': 3.0.2
       next: 12.3.4_sfoxds7t5ydpegc3knd667wn6m
       react: 17.0.2
@@ -944,8 +938,6 @@ importers:
   packages/react:
     specifiers:
       '@nhost/docgen': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.25
       '@xstate/react': ^3.0.1
@@ -954,8 +946,6 @@ importers:
       react: ^18.2.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
       immer: 9.0.15
@@ -1013,8 +1003,6 @@ importers:
   packages/vue:
     specifiers:
       '@nhost/docgen': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^3.2.0
       '@vueuse/core': ^9.0.0
@@ -1027,7 +1015,6 @@ importers:
       ws: ^8.10.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 9.6.0_vue@3.2.41
       '@xstate/vue': 2.0.0_vue@3.2.41+xstate@4.33.6
@@ -1035,7 +1022,6 @@ importers:
       jwt-decode: 3.1.2
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@vitejs/plugin-vue': 3.2.0_vue@3.2.41
       '@xstate/inspect': 0.7.0_ws@8.10.0+xstate@4.33.6
       vue: 3.2.41
@@ -7533,10 +7519,37 @@ packages:
     resolution: {integrity: sha512-AW8PKd6iX3vAZ0vA43nOUOnbq/X5ihgU+mSXXqunMkeQADGiqw/PY0JNeYtD5sr0PAy51YPgAPbDoeapv9r8WA==}
     dev: false
 
+  /@rollup/plugin-replace/5.0.1:
+    resolution: {integrity: sha512-Z3MfsJ4CK17BfGrZgvrcp/l6WXoKb0kokULO+zt/7bmcyayokDaQ2K3eDJcRLCTAlp5FPI4/gz9MHAsosz4Rag==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 5.0.2
+      magic-string: 0.26.7
+    dev: true
+
   /@rollup/pluginutils/4.2.1:
     resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
     engines: {node: '>= 8.0.0'}
     dependencies:
+      estree-walker: 2.0.2
+      picomatch: 2.3.1
+    dev: true
+
+  /@rollup/pluginutils/5.0.2:
+    resolution: {integrity: sha512-pTd9rIsP92h+B6wWwFbW8RkZv4hiR/xKsqre4SIuAOaOEQRxi0lqLke9k2/7WegC85GgUs9pjmOjCUi3In4vwA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+    dependencies:
+      '@types/estree': 1.0.0
       estree-walker: 2.0.2
       picomatch: 2.3.1
     dev: true
@@ -9733,16 +9746,19 @@ packages:
     resolution: {integrity: sha512-PB3ldyrcnAicT35TWPs5IcwKD8S333HMaa2VVv4+wdvebJkjWuW/xESoB8IwRcog8HYVYamb1g/R31Qv5Bx03g==}
     dependencies:
       '@types/eslint': 8.4.1
-      '@types/estree': 0.0.51
+      '@types/estree': 1.0.0
 
   /@types/eslint/8.4.1:
     resolution: {integrity: sha512-GE44+DNEyxxh2Kc6ro/VkIj+9ma0pO0bwv9+uHSyBrikYOHr8zYcdPvnBOp1aw8s+CjRvuSx7CyWqRrNFQ59mA==}
     dependencies:
-      '@types/estree': 0.0.51
+      '@types/estree': 1.0.0
       '@types/json-schema': 7.0.11
 
   /@types/estree/0.0.51:
     resolution: {integrity: sha512-CuPgU6f3eT/XgKKPqKd/gLZV1Xmvf1a2R5POBOGQa6uv82xpls89HU5zKeVoyR8XzHd1RGNOlQlvUe3CFkjWNQ==}
+
+  /@types/estree/1.0.0:
+    resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
 
   /@types/express-serve-static-core/4.17.28:
     resolution: {integrity: sha512-P1BJAEAW3E2DJUlkgq4tOL3RyMunoWXqbSCygWo5ZIWTjUgN1YnaXWW4VWl/oc8vs/XoYibEGBKP0uZyF4AHig==}
@@ -26265,6 +26281,7 @@ packages:
 
   /sourcemap-codec/1.4.8:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
+    deprecated: Please use @jridgewell/sourcemap-codec instead
 
   /space-separated-tokens/1.1.5:
     resolution: {integrity: sha512-q/JSVd1Lptzhf5bkYm4ob4iWPjx0KiRe3sRFBNrVqbJkFaBm5vbbowy1mymoPNLRa52+oadOhJ+K49wsSeSjTA==}

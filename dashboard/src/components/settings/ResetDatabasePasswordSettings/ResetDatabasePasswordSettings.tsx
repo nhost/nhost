@@ -15,7 +15,7 @@ import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatab
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useUserData } from '@nhost/react';
+import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
