@@ -301,7 +301,11 @@ export default function UsersPage() {
                 className="px-2"
                 totalNrOfPages={nrOfPages}
                 currentPageNumber={currentPage}
-                elementsPerPage={limit.current}
+                elementsPerPage={
+                  dataRemoteAppUsers?.users?.length < limit.current
+                    ? dataRemoteAppUsers?.users?.length
+                    : limit.current
+                }
                 onPrevPageClick={() => {
                   setCurrentPage((page) => page - 1);
                 }}
