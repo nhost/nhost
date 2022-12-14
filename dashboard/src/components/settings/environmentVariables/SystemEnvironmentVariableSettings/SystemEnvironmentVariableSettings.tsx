@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -13,8 +14,12 @@ import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import generateAppServiceUrl, {
+  defaultLocalBackendSlugs,
+  defaultRemoteBackendSlugs,
+} from '@/utils/common/generateAppServiceUrl';
 import { LOCAL_HASURA_URL } from '@/utils/env';
-import { generateAppServiceUrl, generateRemoteAppUrl } from '@/utils/helpers';
+import { generateRemoteAppUrl } from '@/utils/helpers';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
@@ -27,6 +32,7 @@ export default function SystemEnvironmentVariableSettings() {
   const { data, loading, error } = useGetAppInjectedVariablesQuery({
     variables: { id: currentApplication?.id },
   });
+  const isPlatform = useIsPlatform();
 
   const appClient = useAppClient({ start: false });
 
@@ -81,13 +87,15 @@ export default function SystemEnvironmentVariableSettings() {
     {
       key: 'NHOST_HASURA_URL',
       value:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? LOCAL_HASURA_URL
-          : `${generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
+        process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
+          ? `${LOCAL_HASURA_URL}/console`
+          : generateAppServiceUrl(
+              currentApplication?.subdomain,
+              currentApplication?.region.awsName,
               'hasura',
-            )}/console`,
+              defaultLocalBackendSlugs,
+              { ...defaultRemoteBackendSlugs, hasura: '/console' },
+            ),
     },
     { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
     { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },

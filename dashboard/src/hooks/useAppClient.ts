@@ -19,7 +19,7 @@ export function useAppClient(
 ): UseAppClientReturn {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
     return new NhostClient({
       subdomain: LOCAL_SUBDOMAIN,
       start: false,
