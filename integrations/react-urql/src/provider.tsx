@@ -39,6 +39,10 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
     throw new Error('No `nhost` instance provided.')
   }
 
+  if (exchanges && !Array.isArray(exchanges)) {
+    throw new Error('`exchanges` must be an array.')
+  }
+
   const getHeaders = () => {
     const resHeaders = {
       ...headers,
@@ -91,15 +95,16 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
       }
     })
 
-    const subExchange = subscriptionExchange({
-      forwardSubscription: (operation) => ({
-        subscribe: (sink) => ({
-          unsubscribe: wsClient.subscribe(operation, sink)
+    urqlExchanges = [
+      ...urqlExchanges,
+      subscriptionExchange({
+        forwardSubscription: (operation) => ({
+          subscribe: (sink) => ({
+            unsubscribe: wsClient.subscribe(operation, sink)
+          })
         })
       })
-    })
-
-    urqlExchanges.push(subExchange)
+    ]
   }
 
   // Allow users to override the default exchanges
@@ -108,7 +113,7 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
   const client = createUrqlClient({
     url: nhost.graphql.getUrl(),
     requestPolicy,
-    exchanges,
+    exchanges: urqlExchanges,
     fetchOptions: () => {
       return {
         headers: {
