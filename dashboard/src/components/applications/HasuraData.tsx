@@ -1,12 +1,16 @@
 import { ConnectionDetail } from '@/components/applications/ConnectionDetail';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
+import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import generateAppServiceUrl, {
+  defaultLocalBackendSlugs,
+  defaultRemoteBackendSlugs,
+} from '@/utils/common/generateAppServiceUrl';
 import { LOCAL_HASURA_URL } from '@/utils/env';
-import { generateAppServiceUrl } from '@/utils/helpers';
 import Image from 'next/image';
 
 interface HasuraDataProps {
@@ -15,6 +19,7 @@ interface HasuraDataProps {
 
 export function HasuraData({ close }: HasuraDataProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const isPlatform = useIsPlatform();
 
   if (
     !currentApplication?.subdomain ||
@@ -24,13 +29,15 @@ export function HasuraData({ close }: HasuraDataProps) {
   }
 
   const hasuraUrl =
-    process.env.NEXT_PUBLIC_ENV === 'dev'
-      ? LOCAL_HASURA_URL
-      : `${generateAppServiceUrl(
+    process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
+      ? `${LOCAL_HASURA_URL}/console`
+      : generateAppServiceUrl(
           currentApplication?.subdomain,
           currentApplication?.region.awsName,
           'hasura',
-        )}/console`;
+          defaultLocalBackendSlugs,
+          { ...defaultRemoteBackendSlugs, hasura: '/console' },
+        );
 
   return (
     <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
