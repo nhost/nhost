@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { LoadingScreen } from '@/components/common/LoadingScreen';
 import Pagination from '@/components/common/Pagination';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
@@ -18,7 +17,6 @@ import {
   useGetRolesQuery,
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
-  useTotalUsersQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 
@@ -199,10 +197,6 @@ export default function UsersPage() {
     );
     await refetchProjectUsers();
     closeDrawer();
-  }
-
-  if (loading) {
-    return <LoadingScreen />;
   }
 
   if (dataRemoteAppUsers?.usersAggregate?.aggregate?.count === 0) {

@@ -53,8 +53,7 @@ export default function Pagination({
   currentPageNumber,
   onPrevPageClick,
   onNextPageClick,
-  nextButtonProps,
-  prevButtonProps,
+  slotProps,
   elementsPerPage,
   onChangePage,
   ...props
