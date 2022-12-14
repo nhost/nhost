@@ -5,7 +5,7 @@ sidebar_position: 1
 image: /img/og/authentication.png
 ---
 
-Nhost Authentication is a ready-to-use authentication service that is integrated with the [GraphQL API](/graphql) and its permission system from Hasura.
+Nhost Authentication is a ready-to-use authentication service that is integrated with the [GraphQL API](/graphql) and its permission system from Hasura. This allows you to easily add user authentication to your application without having to build and maintain your own authentication system.
 
 Nhost Authentication lets you authenticate users using different sign-in methods:
 
@@ -22,12 +22,3 @@ Nhost Authentication lets you authenticate users using different sign-in methods
 - [Spotify](/authentication/sign-in-with-spotify)
 - [Twitch](/authentication/sign-in-with-twitch)
 - [WorkOS](/authentication/sign-in-with-workos)
-
-## How it works
-
-1. When a user signs up or is created, the user's information is inserted into the `auth.users` table in your database.
-2. Nhost returns an access token and a refresh token, together with the user's information.
-3. The user sends requests to Nhost services (GraphQL API, Authentication, Storage, Functions) with the access token as a header.
-4. The Nhost services use the user's access token to authorize the requests.
-
-Nhost Autentication is integrated with your [database](/database). All users are stored in the `users` table in the `auth` schema.

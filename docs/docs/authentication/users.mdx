@@ -5,7 +5,7 @@ sidebar_position: 1
 image: /img/og/users.png
 ---
 
-Users are stored in the database in the `users` table in the `auth` schema.
+Users are stored in the database in the `auth.users` table.
 
 ## Get User Information using GraphQL
 
@@ -50,24 +50,28 @@ You're allowed to:
 
 ## Roles
 
-Each user can have one or multiple roles for API requests. You can see the roles of a user and set a default role in Nhost Console under **Users**.
+Each user has one **default role** and an array of **allowed roles**. These roles are used to resolve permissions for requests to [GraphQL](/graphql/permissions) and [Storage](http://localhost:3000/storage#permissions).
 
-Every GraphQL request is made with a specific role. This role will be used to resolve permissions when querying the database. In other words, every user can have multiple roles, but only one role will be applied for any given GraphQL request.
+When the user makes a request, only one role is used to resolve permissions. The default role is used if no role is excplicitly specified. Users can only make requests using the default role or one of the allowed roles.
+
+You can manage users' default roles and allowed roles in the Dashboard at **Auth**.
 
 ### Default Role
 
-The default role is used when no role is specified in the GraphQL request. By default, users' default role is `user`.
+The default role is used when no role is specified in the request. By default, users' default role is `user`.
+
+You can change what the default role for new users should be at **Settings -> Roles and Permissions**.
 
 ### Allowed Roles
 
-Allowed roles are roles the user is allowed to use when making a GraphQL request. Usually you would change the role from `user` (the default role) to some other role because you want Hasura to use a different role to resolve permissions for a particular GraphQL request.
+Allowed roles are roles the user is allowed to use when making a request. Usually, you would change the role from `user` (the default role) to some other role because you want to use a different role to resolve permissions for a particular request.
 
 By default, users have two allowed roles:
 
-- `user`
+- `user` (also the default role)
 - `me`
 
-You can manage what allowed roles users should get when they sign up under **Users** -> **Roles & Permissions**.
+You can change what the default role for new users should be at **Settings -> Roles and Permissions**.
 
 :::info
 
@@ -75,7 +79,9 @@ You must also add the roles manually to the `auth.roles` table.
 
 :::
 
-It's also possible to give users a subset of allowed roles during signup.
+#### Assign Allowed Roles
+
+It's possible to give users a subset of allowed roles during signup.
 
 **Example:** Only give the `user` role (without the `me` role) for the user's allowed roles:
 
@@ -91,7 +97,7 @@ await nhost.auth.signUp({
 
 ### Public Role
 
-The `public` role is used to resolve GraphQL permissions for unauthenticated users.
+The `public` role is used to resolve permissions for unauthenticated users.
 
 ### Set Role for GraphQL Requests
 
@@ -101,7 +107,7 @@ When no request role is specified, the user's default role will be used:
 await nhost.graphql.request(QUERY, {})
 ```
 
-Make a GraphQL request with the `me` role:
+If you want to make a GraphQL request using a specific role, you can do so by using the `x-hasura-role` header, like this:
 
 ```js
 await nhost.graphql.request(
@@ -139,7 +145,7 @@ await nhost.auth.signUp({
 
 ## Import Users
 
-If you have users in a different system, you can import them into Nhost. When importing users you should insert the users directly into the database instead of using the authentication endpoints (`/signup/email-password`).
+If you have users in a different system, you can import them into Nhost. When importing users you should insert the users directly into the database instead of using the authentication endpoints (`/signup/email-password`) to avoid sending potential transactional emails.
 
 It's possible to insert users via GraphQL or SQL.
 
@@ -163,4 +169,4 @@ Connect directly to the database and insert a user like this:
 INSERT INTO auth.users (id, email, display_name, password_hash, ..) VALUES ('<user-id>', '<email>', '<display-name>', '<password-hash>', ..);
 ```
 
-User passwords are hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) in Nhost.
+User passwords are hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt).
