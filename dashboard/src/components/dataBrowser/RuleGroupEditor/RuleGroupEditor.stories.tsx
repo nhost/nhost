@@ -49,7 +49,7 @@ const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
     defaultValues: {
       ruleGroupEditor: {
         operation: '_and',
-        rules: [{ column: '', operator: '_eq', value: '' }],
+        rules: [{ column: 'title', operator: '_eq', value: '' }],
         groups: [],
       },
     },

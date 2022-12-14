@@ -45,8 +45,13 @@ export interface ColumnAutocompleteProps
     value: {
       value: string;
       type: string;
+      disableReset?: boolean;
     },
   ) => void;
+  /**
+   * Function to be called when the input is asynchronously initialized.
+   */
+  onInitialized?: (value: { value: string; type: string }) => void;
   /**
    * Class name to be applied to the root element.
    */
@@ -92,6 +97,8 @@ function ColumnAutocomplete(
     table: defaultTable,
     value: externalValue,
     disableRelationships,
+    onChange,
+    onInitialized,
     ...props
   }: ColumnAutocompleteProps,
   ref: ForwardedRef<HTMLInputElement>,
@@ -173,7 +180,7 @@ function ColumnAutocomplete(
       setOpen(false);
       setInputValue(value.value);
 
-      props.onChange?.(event, {
+      onChange?.(event, {
         value:
           selectedRelationships.length > 0
             ? [relationshipDotNotation, value.value].join('.')
@@ -199,6 +206,26 @@ function ColumnAutocomplete(
     metadata,
     disableRelationships,
   });
+
+  useEffect(() => {
+    if (!initialized || !selectedColumn) {
+      return;
+    }
+
+    onInitialized?.({
+      value:
+        selectedRelationships.length > 0
+          ? [relationshipDotNotation, selectedColumn.value].join('.')
+          : selectedColumn.value,
+      type: selectedColumn.metadata?.type,
+    });
+  }, [
+    initialized,
+    onInitialized,
+    relationshipDotNotation,
+    selectedColumn,
+    selectedRelationships.length,
+  ]);
 
   const {
     popupOpen,

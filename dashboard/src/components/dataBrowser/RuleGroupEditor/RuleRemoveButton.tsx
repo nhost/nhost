@@ -29,13 +29,16 @@ function RuleRemoveButton({
     <Button
       variant="outlined"
       color="secondary"
-      className={twMerge('!bg-white lg:!rounded-l-none', className)}
+      className={twMerge(
+        '!bg-white lg:!rounded-l-none lg:flex-grow-0 lg:flex-shrink lg:flex-[40px] !min-w-0',
+        className,
+      )}
       disabled={rules.length === 1 && groups.length === 0}
       aria-label="Remove Rule"
       {...props}
       onClick={onRemove}
     >
-      <XIcon />
+      <XIcon className="!w-4 !h-4" />
     </Button>
   );
 }

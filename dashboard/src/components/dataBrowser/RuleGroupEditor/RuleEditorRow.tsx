@@ -141,11 +141,20 @@ export default function RuleEditorRow({
           input: { className: 'bg-white lg:!rounded-r-none' },
         }}
         fullWidth
-        onChange={(_event, { value, type }) => {
+        onChange={(_event, { value, type, disableReset }) => {
           setSelectedColumnType(type);
           setValue(`${rowName}.column`, value, { shouldDirty: true });
+
+          if (disableReset) {
+            return;
+          }
+
           setValue(`${rowName}.operator`, '_eq', { shouldDirty: true });
           setValue(`${rowName}.value`, '', { shouldDirty: true });
+        }}
+        onInitialized={({ value, type }) => {
+          setSelectedColumnType(type);
+          setValue(`${rowName}.column`, value, { shouldDirty: true });
         }}
       />
 

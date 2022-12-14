@@ -41,13 +41,12 @@ const defaultParameters = {
 const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
   args: ColumnAutocompleteProps,
 ) {
-  const { value } = args || {};
   const [submittedValues, setSubmittedValues] = useState<string>('');
 
   const form = useForm<{ firstReference: string; secondReference: string }>({
     defaultValues: {
-      firstReference: (value as string) || null,
-      secondReference: (value as string) || null,
+      firstReference: null,
+      secondReference: null,
     },
   });
 
@@ -71,6 +70,11 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
                 shouldDirty: true,
               })
             }
+            onInitialized={(newValue) => {
+              form.setValue('firstReference', newValue.value, {
+                shouldDirty: true,
+              });
+            }}
           />
           <ColumnAutocomplete
             {...args}
@@ -81,6 +85,11 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
                 shouldDirty: true,
               })
             }
+            onInitialized={(newValue) => {
+              form.setValue('secondReference', newValue.value, {
+                shouldDirty: true,
+              });
+            }}
           />
 
           <Button type="submit" className="justify-self-start">

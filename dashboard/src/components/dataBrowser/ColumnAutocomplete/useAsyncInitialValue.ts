@@ -95,9 +95,12 @@ export default function useAsyncInitialValue({
       value: activeColumn,
       label: activeColumn,
       group: 'columns',
-      metadata: tableData.columns.find(
-        (column) => column.column_name === activeColumn,
-      ),
+      metadata: {
+        type:
+          tableData.columns.find(
+            (column) => column.column_name === activeColumn,
+          )?.udt_name || null,
+      },
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
     setInputValue(activeColumn);
