@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -52,7 +52,9 @@ export default function useMetadataQuery(
         ...options,
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? 'nhost-admin-secret'
+            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {

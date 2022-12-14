@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.11
+
+### Patch Changes
+
+- d6527122: fix(dashboard): use correct service URLs
+
 ## 0.7.10
 
 ### Patch Changes
