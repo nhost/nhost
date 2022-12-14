@@ -19,7 +19,7 @@ import {
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
   useTotalUsersQuery,
-  useUpdateRemoteAppUserMutation
+  useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 
 import { SearchIcon } from '@heroicons/react/solid';
@@ -62,6 +62,11 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
 
+  /**
+   * We want to fetch the queries of the application on this page since we're
+   * going to use once the user selects a user of their application; we use it
+   * in the drawer form.
+   */
   useGetRolesQuery({
     variables: { id: currentApplication.id },
     fetchPolicy: 'cache-first',
@@ -94,6 +99,10 @@ export default function UsersPage() {
     client: remoteProjectGQLClient,
   });
 
+  /**
+   * We want to update the number of pages when the data changes
+   * (either fetch for the first time or making a search).
+   */
   useEffect(() => {
     if (loadingRemoteAppUsersQuery) {
       return;
@@ -135,7 +144,7 @@ export default function UsersPage() {
     });
   }
 
-  function handleConfirmDeleteUser(user: RemoteAppUser) {
+  function handleDeleteUser(user: RemoteAppUser) {
     openAlertDialog({
       title: 'Delete User',
       payload: (
@@ -170,7 +179,7 @@ export default function UsersPage() {
     });
   }
 
-  async function handleUserEdit(
+  async function handleEditUser(
     values: EditUserFormValues,
     user: RemoteAppUser,
   ) {
@@ -275,42 +284,56 @@ export default function UsersPage() {
           Create User
         </Button>
       </div>
-      {totalAmountOfUsers !== 0 && dataRemoteAppUsers?.users?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
-          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
-          <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
-              No results for &quot;{searchString}&quot;
-            </Text>
-            <Text variant="subtitle1" className="text-center">
-              Try a different search
-            </Text>
+      <div className="grid grid-flow-row gap-2 lg:w-9xl">
+        <div className="grid w-full h-full grid-flow-row gap-4 overflow-hidden">
+          <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-5 border-b-1 ">
+            <Text className="font-medium md:col-span-2">Name</Text>
+            <Text className="font-medium">Signed up at</Text>
+            <Text className="font-medium">Last Seen</Text>
+            <Text className="font-medium">Sign In Methods</Text>
           </div>
+          {totalAmountOfUsers !== 0 &&
+          dataRemoteAppUsers?.users?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
+              <UserIcon
+                strokeWidth={1}
+                className="w-10 h-10 text-greyscaleDark"
+              />
+              <div className="flex flex-col space-y-1">
+                <Text className="font-medium text-center" variant="h3">
+                  No results for &quot;{searchString}&quot;
+                </Text>
+                <Text variant="subtitle1" className="text-center">
+                  Try a different search
+                </Text>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-flow-row gap-y-4">
+              <UsersBody
+                users={dataRemoteAppUsers?.users}
+                onDeleteUser={handleDeleteUser}
+                onEditUser={handleEditUser}
+              />
+              <Pagination
+                className="px-2"
+                totalNrOfPages={nrOfPages}
+                currentPageNumber={currentPage}
+                elementsPerPage={limit.current}
+                onPrevPageClick={() => {
+                  setCurrentPage((page) => page - 1);
+                }}
+                onNextPageClick={() => {
+                  setCurrentPage((page) => page + 1);
+                }}
+                onChangePage={(page) => {
+                  setCurrentPage(page);
+                }}
+              />
+            </div>
+          )}{' '}
         </div>
-      ) : (
-        <div className="grid grid-flow-row gap-y-4">
-          <UsersBody
-            users={dataRemoteAppUsers?.users}
-            onDeleteUser={handleConfirmDeleteUser}
-            onEditUser={handleUserEdit}
-          />
-          <Pagination
-            className="px-2"
-            totalNrOfPages={nrOfPages}
-            currentPageNumber={currentPage}
-            elementsPerPage={limit.current}
-            onPrevPageClick={() => {
-              setCurrentPage((page) => page - 1);
-            }}
-            onNextPageClick={() => {
-              setCurrentPage((page) => page + 1);
-            }}
-            onChangePage={(page) => {
-              setCurrentPage(page);
-            }}
-          />
-        </div>
-      )}
+      </div>
     </Container>
   );
 }
