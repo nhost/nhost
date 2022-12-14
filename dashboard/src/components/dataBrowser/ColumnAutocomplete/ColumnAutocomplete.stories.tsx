@@ -21,6 +21,23 @@ export default {
   },
 } as ComponentMeta<typeof ColumnAutocomplete>;
 
+const defaultParameters = {
+  nextRouter: {
+    path: '/[workspaceSlug]/[appSlug]/database/browser/[dataSourceSlug]/[schemaSlug]/[tableSlug]',
+    asPath: '/workspace/app/database/browser/default/public/users',
+    query: {
+      workspaceSlug: 'workspace',
+      appSlug: 'app',
+      dataSourceSlug: 'default',
+      schemaSlug: 'public',
+      tableSlug: 'books',
+    },
+  },
+  msw: {
+    handlers: [tableQuery, hasuraMetadataQuery],
+  },
+};
+
 const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
   args: ColumnAutocompleteProps,
 ) {
@@ -78,26 +95,25 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
   );
 };
 
-export const Default = Template.bind({});
-
-Default.args = {
+export const Basic = Template.bind({});
+Basic.args = {
   schema: 'public',
   table: 'books',
 };
+Basic.parameters = defaultParameters;
 
-Default.parameters = {
-  nextRouter: {
-    path: '/[workspaceSlug]/[appSlug]/database/browser/[dataSourceSlug]/[schemaSlug]/[tableSlug]',
-    asPath: '/workspace/app/database/browser/default/public/users',
-    query: {
-      workspaceSlug: 'workspace',
-      appSlug: 'app',
-      dataSourceSlug: 'default',
-      schemaSlug: 'public',
-      tableSlug: 'books',
-    },
-  },
-  msw: {
-    handlers: [tableQuery, hasuraMetadataQuery],
-  },
+export const DefaultValue = Template.bind({});
+DefaultValue.args = {
+  schema: 'public',
+  table: 'books',
+  value: 'author.books.author.id',
 };
+DefaultValue.parameters = defaultParameters;
+
+export const DisabledRelationships = Template.bind({});
+DisabledRelationships.args = {
+  schema: 'public',
+  table: 'books',
+  disableRelationships: true,
+};
+DisabledRelationships.parameters = defaultParameters;

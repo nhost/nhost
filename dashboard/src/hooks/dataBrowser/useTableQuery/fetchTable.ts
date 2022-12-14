@@ -9,6 +9,7 @@ import type {
 import extractForeignKeyRelation from '@/utils/dataBrowser/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';
+import fetch from 'cross-fetch';
 import { formatWithArray } from 'node-pg-format';
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {

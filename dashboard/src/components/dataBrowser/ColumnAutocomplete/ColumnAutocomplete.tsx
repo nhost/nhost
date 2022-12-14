@@ -1,6 +1,7 @@
 import InlineCode from '@/components/common/InlineCode';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
+import type { HasuraMetadataTable } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { AutocompletePopper } from '@/ui/v2/Autocomplete';
@@ -22,8 +23,7 @@ import type {
   PropsWithoutRef,
   SyntheticEvent,
 } from 'react';
-import { forwardRef, useRef, useState } from 'react';
-import mergeRefs from 'react-merge-refs';
+import { forwardRef, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ColumnAutocompleteProps
@@ -50,6 +50,10 @@ export interface ColumnAutocompleteProps
    * Class name to be applied to the root element.
    */
   rootClassName?: string;
+  /**
+   * Determines if the autocomplete should allow relationships.
+   */
+  disableRelationships?: boolean;
 }
 
 function renderGroup(params: AutocompleteRenderGroupParams) {
@@ -85,22 +89,43 @@ function ColumnAutocomplete(
     rootClassName,
     schema: defaultSchema,
     table: defaultTable,
+    value: externalValue,
+    disableRelationships,
     ...props
   }: ColumnAutocompleteProps,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
-  const inputRef = useRef<HTMLInputElement>();
+  const [initialized, setInitialized] = useState(false);
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState<string>('');
-  const [selectedValue, setSelectedValue] = useState<AutocompleteOption>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [selectedColumn, setSelectedColumn] =
+    useState<AutocompleteOption>(null);
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
   >([]);
+  const [asyncSelectedRelationships, setAsyncSelectedRelationships] = useState<
+    { schema: string; table: string; name: string }[]
+  >([]);
+
+  const columnPath = (externalValue as string)?.split('.');
+  const [remainingPath, setRemainingPath] = useState(
+    columnPath?.slice(selectedRelationships.length - columnPath.length) || [],
+  );
 
   const activeRelationship =
     selectedRelationships[selectedRelationships.length - 1];
-  const selectedSchema = activeRelationship?.schema || defaultSchema;
-  const selectedTable = activeRelationship?.table || defaultTable;
+
+  const activeAsyncRelationship =
+    asyncSelectedRelationships[asyncSelectedRelationships.length - 1];
+
+  const selectedSchema = !initialized
+    ? activeAsyncRelationship?.schema || defaultSchema
+    : activeRelationship?.schema || defaultSchema;
+
+  const selectedTable = !initialized
+    ? activeAsyncRelationship?.table || defaultTable
+    : activeRelationship?.table || defaultTable;
+
   const relationshipDotNotation =
     selectedRelationships?.length > 0
       ? selectedRelationships.map((relationship) => relationship.name).join('.')
@@ -110,6 +135,7 @@ function ColumnAutocomplete(
     data: tableData,
     status: tableStatus,
     error: tableError,
+    isFetching: isTableFetching,
   } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
     schema: selectedSchema,
     table: selectedTable,
@@ -120,6 +146,7 @@ function ColumnAutocomplete(
     data: metadata,
     status: metadataStatus,
     error: metadataError,
+    isFetching: isMetadataFetching,
   } = useMetadataQuery([`default.metadata`], {
     queryOptions: { refetchOnWindowFocus: false },
   });
@@ -130,6 +157,146 @@ function ColumnAutocomplete(
         metadataTable.name === selectedTable &&
         metadataTable.schema === selectedSchema,
     ) || {};
+
+  useEffect(() => {
+    if (
+      remainingPath?.length !== 1 ||
+      isTableFetching ||
+      tableStatus === 'loading' ||
+      !tableData?.columns
+    ) {
+      return;
+    }
+
+    const [activeColumn] = remainingPath;
+
+    // If there is a single column in the path, it means that we can look for it
+    // in the table columns
+    if (
+      tableData.columns.some((column) => column.column_name === activeColumn)
+    ) {
+      setSelectedColumn({
+        value: activeColumn,
+        label: activeColumn,
+        group: 'columns',
+        metadata: tableData.columns.find(
+          (column) => column.column_name === activeColumn,
+        ),
+      });
+      setRemainingPath(remainingPath.slice(1));
+      setInputValue(activeColumn);
+    }
+  }, [remainingPath, isTableFetching, tableData?.columns, tableStatus]);
+
+  useEffect(() => {
+    if (
+      remainingPath.length < 2 ||
+      tableStatus === 'loading' ||
+      isTableFetching ||
+      metadataStatus === 'loading' ||
+      isMetadataFetching ||
+      !tableData?.columns
+    ) {
+      return;
+    }
+
+    const metadataMap = metadata.tables.reduce(
+      (map, metadataTable) =>
+        map.set(
+          `${metadataTable.table.schema}.${metadataTable.table.name}`,
+          metadataTable,
+        ),
+      new Map<string, HasuraMetadataTable>(),
+    );
+
+    const [nextPath] = remainingPath.slice(0, remainingPath.length - 1);
+    const tableMetadata = metadataMap.get(`${selectedSchema}.${selectedTable}`);
+    const currentRelationship = [
+      ...(tableMetadata.object_relationships || []),
+      ...(tableMetadata.array_relationships || []),
+    ].find(({ name }) => name === nextPath);
+
+    if (!currentRelationship) {
+      return;
+    }
+
+    const { foreign_key_constraint_on: metadataConstraint } =
+      currentRelationship.using || {};
+
+    // In some cases the metadata already contains the schema and table name
+    if (typeof metadataConstraint !== 'string') {
+      setAsyncSelectedRelationships((currentRelationships) => [
+        ...currentRelationships,
+        {
+          schema: metadataConstraint.table.schema || 'public',
+          table: metadataConstraint.table.name,
+          name: nextPath,
+        },
+      ]);
+
+      setRemainingPath(remainingPath.slice(1));
+
+      return;
+    }
+
+    const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
+      ({ columnName }) => {
+        const { foreign_key_constraint_on } = currentRelationship.using || {};
+
+        if (!foreign_key_constraint_on) {
+          return false;
+        }
+
+        if (typeof foreign_key_constraint_on === 'string') {
+          return foreign_key_constraint_on === columnName;
+        }
+
+        return foreign_key_constraint_on.column === columnName;
+      },
+    );
+
+    if (!foreignKeyRelation) {
+      return;
+    }
+
+    setAsyncSelectedRelationships((currentRelationships) => [
+      ...currentRelationships,
+      {
+        schema: foreignKeyRelation.referencedSchema || 'public',
+        table: foreignKeyRelation.referencedTable,
+        name: nextPath,
+      },
+    ]);
+
+    setRemainingPath(remainingPath.slice(1));
+  }, [
+    isMetadataFetching,
+    isTableFetching,
+    remainingPath,
+    selectedSchema,
+    selectedTable,
+    metadata?.tables,
+    tableData?.columns,
+    tableData?.foreignKeyRelations,
+    tableStatus,
+    metadataStatus,
+  ]);
+
+  useEffect(() => {
+    if (remainingPath?.length > 0 || initialized) {
+      return;
+    }
+
+    setInitialized(true);
+  }, [initialized, remainingPath.length]);
+
+  useEffect(() => {
+    if (!initialized || selectedRelationships.length > 0) {
+      return;
+    }
+
+    setSelectedRelationships(asyncSelectedRelationships);
+  }, [initialized, asyncSelectedRelationships, selectedRelationships.length]);
 
   const objectAndArrayRelationships = [
     ...(object_relationships || []),
@@ -211,8 +378,8 @@ function ColumnAutocomplete(
       return;
     }
 
-    if (value && 'group' in value && value.group === 'columns') {
-      setSelectedValue(value);
+    if ('group' in value && value.group === 'columns') {
+      setSelectedColumn(value);
       setOpen(false);
       setInputValue(value.value);
 
@@ -228,7 +395,7 @@ function ColumnAutocomplete(
     }
 
     setInputValue('');
-    setSelectedValue(null);
+    setSelectedColumn(null);
     setSelectedRelationships((currentRelationships) => [
       ...currentRelationships,
       value.metadata?.target,
@@ -249,10 +416,12 @@ function ColumnAutocomplete(
     open,
     inputValue,
     id: props?.name,
-    options: columnWithRelationshipOptions,
+    options: disableRelationships
+      ? columnOptions
+      : columnWithRelationshipOptions,
     openOnFocus: true,
     disableCloseOnSelect: true,
-    value: selectedValue,
+    value: selectedColumn,
     onClose: () => setOpen(false),
     groupBy: (option) => option.group,
     isOptionEqualToValue,
@@ -264,7 +433,7 @@ function ColumnAutocomplete(
       <div {...getRootProps()} className={rootClassName}>
         <Input
           {...props}
-          ref={mergeRefs([inputRef, ref])}
+          ref={ref}
           fullWidth
           slotProps={{
             ...(props.slotProps || {}),
@@ -273,7 +442,7 @@ function ColumnAutocomplete(
             inputRoot: {
               ...getInputProps(),
               className: twMerge(
-                Boolean(selectedValue) || Boolean(activeRelationship)
+                Boolean(selectedColumn) || Boolean(activeRelationship)
                   ? '!pl-0'
                   : null,
                 props.slotProps?.inputRoot?.className,
@@ -287,13 +456,20 @@ function ColumnAutocomplete(
           onChange={(event) => setInputValue(event.target.value)}
           value={inputValue}
           startAdornment={
-            selectedValue || activeRelationship ? (
+            selectedColumn || activeRelationship ? (
               <Text className="!ml-2">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {relationshipDotNotation && (
                   <span>{relationshipDotNotation}.</span>
                 )}
               </Text>
+            ) : null
+          }
+          endAdornment={
+            tableStatus === 'loading' ||
+            metadataStatus === 'loading' ||
+            !initialized ? (
+              <ActivityIndicator className="mr-2" />
             ) : null
           }
         />
@@ -316,8 +492,8 @@ function ColumnAutocomplete(
                 onClick={(event) => {
                   event.stopPropagation();
 
-                  setSelectedValue(null);
                   setInputValue('');
+                  setSelectedColumn(null);
                   setSelectedRelationships((activeRelationships) =>
                     activeRelationships.slice(0, -1),
                   );
@@ -336,7 +512,9 @@ function ColumnAutocomplete(
             </Text>
           </div>
 
-          {(tableStatus === 'loading' || metadataStatus === 'loading') && (
+          {(tableStatus === 'loading' ||
+            metadataStatus === 'loading' ||
+            !initialized) && (
             <div className="p-2">
               <ActivityIndicator label="Loading..." />
             </div>
