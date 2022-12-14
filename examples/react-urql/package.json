@@ -11,6 +11,7 @@
   "dependencies": {
     "@nhost/react": "*",
     "@nhost/react-urql": "*",
+    "clsx": "^1.2.1",
     "graphql": "15.7.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",

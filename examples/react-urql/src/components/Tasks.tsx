@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import React, { useMemo, useState } from 'react'
 import { useMutation, useQuery } from 'urql'
 
@@ -87,32 +88,38 @@ export function Tasks() {
       <h1 className="text-3xl">Todos</h1>
       <div>
         {tasks.map((task) => {
+          const style = clsx('p-2', {
+            'line-through text-green-600': task.done
+          })
+
           return (
             <div
               key={task.id}
               className="flex justify-between hover:bg-gray-900 transition-all duration-300 ease-in-out"
             >
-              <div className="p-2">{task.name}</div>
-              <div
-                className="p-2 cursor-pointer"
-                onClick={() => {
-                  updateTask({
-                    id: task.id,
-                    task: {
-                      done: !task.done
-                    }
-                  })
-                }}
-              >
-                {task.done ? 'yes' : 'no'}
-              </div>
-              <div
-                onClick={() => {
-                  deleteTask({ id: task.id })
-                }}
-                className="cursor-pointer p-2"
-              >
-                delete
+              <div className={style}>{task.name}</div>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    updateTask({
+                      id: task.id,
+                      task: {
+                        done: !task.done
+                      }
+                    })
+                  }}
+                  className="cursor-pointer p-2 hover:bg-gray-700 rounded-sm"
+                >
+                  {task.done ? 'Not Done' : 'Done'}
+                </button>
+                <button
+                  onClick={() => {
+                    deleteTask({ id: task.id })
+                  }}
+                  className="cursor-pointer p-2 hover:bg-gray-700 rounded-sm"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           )
@@ -142,7 +149,7 @@ export function Tasks() {
                 className="rounded-sm border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full "
                 disabled={insertPostIsLoading}
               >
-                Add Task
+                Add
               </button>
             </div>
           </form>
