@@ -1,5 +1,5 @@
 <h1 align="center">@nhost/react-urql</h1>
-<h2 align="center">Nhost React URQL client</h2>
+<h2 align="center">Nhost - React - URQL</h2>
 
 <p align="center">
   <img alt="npm" src="https://img.shields.io/npm/v/@nhost/react-urql">
@@ -9,24 +9,20 @@
   </a>
 </p>
 
-## Documentation
+This package contains a `<NhostUrqlProvider />` with good defaults settings to quickly get started with [Nhost](http://nhost.io/), [React](https://reactjs.org/), and [URQL](https://formidable.com/open-source/urql/).
 
-[Reference documentation](https://docs.nhost.io/reference/react/urql)
+## Get Started
 
-## Install
+### Install
 
-`$ npm install @nhost/react-urql urql graphql`
+`npm install @nhost/react @nhost/react-urql urql graphql`
 
-or
-
-`$ yarn add @nhost/react-urql urql graphql`
-
-## Usage
+### Usage
 
 ```js
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 import { NhostUrqlProvider } from '@nhost/react-urql'
 
 import App from './App'
@@ -38,12 +34,16 @@ const nhost = new NhostClient({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostUrqlProvider nhost={nhost}>
         <App />
       </NhostUrqlProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )
 ```
+
+## Customization
+
+This package contains a URQL provider and client for Nhost with good default settings. If you want to customize them, it's recommended to use this code as inspiration and set up your own URQL provider and client in your own code base.
