@@ -1,4 +1,4 @@
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
@@ -70,7 +70,7 @@ export default function useFiles({
                   currentApplication.subdomain,
                   currentApplication.region.awsName,
                   'storage',
-                )}/v1/files/${file.id}`;
+                )}/${file.id}`;
 
                 const fetchParams = new URLSearchParams();
 
