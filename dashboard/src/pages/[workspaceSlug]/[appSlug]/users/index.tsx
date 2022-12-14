@@ -45,7 +45,7 @@ export default function UsersPage() {
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
   });
-  const limit = useRef(10);
+  const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
