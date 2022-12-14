@@ -13,14 +13,14 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  Email: any;
-  Locale: any;
-  Port: any;
+  ConfigEmail: any;
+  ConfigLocale: any;
+  ConfigPort: any;
+  ConfigUint8: any;
+  ConfigUint32: any;
+  ConfigUrl: any;
+  ConfigUserRole: any;
   Timestamp: any;
-  Uint8: any;
-  Uint32: any;
-  Url: any;
-  UserRole: any;
   bigint: any;
   bpchar: any;
   bytea: any;
@@ -30,870 +30,6 @@ export type Scalars = {
   timestamp: any;
   timestamptz: any;
   uuid: any;
-};
-
-export type AppCloudEnvironment = {
-  __typename?: 'AppCloudEnvironment';
-  appID: Scalars['uuid'];
-  environment: Array<EnvironmentVariable>;
-};
-
-export type AppConfig = {
-  __typename?: 'AppConfig';
-  appID: Scalars['uuid'];
-  config: Config;
-};
-
-export type Auth = {
-  __typename?: 'Auth';
-  accessToken?: Maybe<AuthAccessToken>;
-  anonymous?: Maybe<AuthAnonymous>;
-  email?: Maybe<AuthEmail>;
-  gravatar?: Maybe<AuthGravatar>;
-  locale?: Maybe<AuthLocale>;
-  mfa?: Maybe<AuthMfa>;
-  password?: Maybe<AuthPassword>;
-  providers?: Maybe<AuthProviders>;
-  redirections?: Maybe<AuthRedirections>;
-  refreshToken?: Maybe<AuthRefreshToken>;
-  roles?: Maybe<AuthRoles>;
-  signUp?: Maybe<AuthSignUp>;
-  sms?: Maybe<AuthSms>;
-  webauthn?: Maybe<AuthWebauthn>;
-};
-
-export type AuthAccessToken = {
-  __typename?: 'AuthAccessToken';
-  customClaims?: Maybe<Array<AuthaccessTokenCustomClaims>>;
-  expiresIn?: Maybe<Scalars['Uint32']>;
-};
-
-export type AuthAccessTokenComparisonExp = {
-  _and?: InputMaybe<Array<AuthAccessTokenComparisonExp>>;
-  _not?: InputMaybe<AuthAccessTokenComparisonExp>;
-  _or?: InputMaybe<Array<AuthAccessTokenComparisonExp>>;
-  customClaims?: InputMaybe<AuthaccessTokenCustomClaimsComparisonExp>;
-  expiresIn?: InputMaybe<Uint32ComparisonExp>;
-};
-
-export type AuthAccessTokenInsertInput = {
-  customClaims?: InputMaybe<Array<AuthaccessTokenCustomClaimsInsertInput>>;
-  expiresIn?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthAccessTokenUpdateInput = {
-  customClaims: Array<AuthaccessTokenCustomClaimsUpdateInput>;
-  expiresIn?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthAnonymous = {
-  __typename?: 'AuthAnonymous';
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthAnonymousComparisonExp = {
-  _and?: InputMaybe<Array<AuthAnonymousComparisonExp>>;
-  _not?: InputMaybe<AuthAnonymousComparisonExp>;
-  _or?: InputMaybe<Array<AuthAnonymousComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthAnonymousInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthAnonymousUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthComparisonExp = {
-  _and?: InputMaybe<Array<AuthComparisonExp>>;
-  _not?: InputMaybe<AuthComparisonExp>;
-  _or?: InputMaybe<Array<AuthComparisonExp>>;
-  accessToken?: InputMaybe<AuthAccessTokenComparisonExp>;
-  anonymous?: InputMaybe<AuthAnonymousComparisonExp>;
-  email?: InputMaybe<AuthEmailComparisonExp>;
-  gravatar?: InputMaybe<AuthGravatarComparisonExp>;
-  locale?: InputMaybe<AuthLocaleComparisonExp>;
-  mfa?: InputMaybe<AuthMfaComparisonExp>;
-  password?: InputMaybe<AuthPasswordComparisonExp>;
-  providers?: InputMaybe<AuthProvidersComparisonExp>;
-  redirections?: InputMaybe<AuthRedirectionsComparisonExp>;
-  refreshToken?: InputMaybe<AuthRefreshTokenComparisonExp>;
-  roles?: InputMaybe<AuthRolesComparisonExp>;
-  signUp?: InputMaybe<AuthSignUpComparisonExp>;
-  sms?: InputMaybe<AuthSmsComparisonExp>;
-  webauthn?: InputMaybe<AuthWebauthnComparisonExp>;
-};
-
-export type AuthEmail = {
-  __typename?: 'AuthEmail';
-  domains?: Maybe<AuthEmailDomains>;
-  emails?: Maybe<AuthEmailEmails>;
-  passwordless?: Maybe<AuthEmailPasswordless>;
-  verification?: Maybe<AuthEmailVerification>;
-};
-
-export type AuthEmailComparisonExp = {
-  _and?: InputMaybe<Array<AuthEmailComparisonExp>>;
-  _not?: InputMaybe<AuthEmailComparisonExp>;
-  _or?: InputMaybe<Array<AuthEmailComparisonExp>>;
-  domains?: InputMaybe<AuthEmailDomainsComparisonExp>;
-  emails?: InputMaybe<AuthEmailEmailsComparisonExp>;
-  passwordless?: InputMaybe<AuthEmailPasswordlessComparisonExp>;
-  verification?: InputMaybe<AuthEmailVerificationComparisonExp>;
-};
-
-export type AuthEmailDomains = {
-  __typename?: 'AuthEmailDomains';
-  allowed?: Maybe<Array<Scalars['String']>>;
-  blocked?: Maybe<Array<Scalars['String']>>;
-};
-
-export type AuthEmailDomainsComparisonExp = {
-  _and?: InputMaybe<Array<AuthEmailDomainsComparisonExp>>;
-  _not?: InputMaybe<AuthEmailDomainsComparisonExp>;
-  _or?: InputMaybe<Array<AuthEmailDomainsComparisonExp>>;
-  allowed?: InputMaybe<StringComparisonExp>;
-  blocked?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthEmailDomainsInsertInput = {
-  allowed?: InputMaybe<Array<Scalars['String']>>;
-  blocked?: InputMaybe<Array<Scalars['String']>>;
-};
-
-export type AuthEmailDomainsUpdateInput = {
-  allowed: Array<Scalars['String']>;
-  blocked: Array<Scalars['String']>;
-};
-
-export type AuthEmailEmails = {
-  __typename?: 'AuthEmailEmails';
-  allowed?: Maybe<Array<Scalars['Email']>>;
-  blocked?: Maybe<Array<Scalars['Email']>>;
-};
-
-export type AuthEmailEmailsComparisonExp = {
-  _and?: InputMaybe<Array<AuthEmailEmailsComparisonExp>>;
-  _not?: InputMaybe<AuthEmailEmailsComparisonExp>;
-  _or?: InputMaybe<Array<AuthEmailEmailsComparisonExp>>;
-  allowed?: InputMaybe<EmailComparisonExp>;
-  blocked?: InputMaybe<EmailComparisonExp>;
-};
-
-export type AuthEmailEmailsInsertInput = {
-  allowed?: InputMaybe<Array<Scalars['Email']>>;
-  blocked?: InputMaybe<Array<Scalars['Email']>>;
-};
-
-export type AuthEmailEmailsUpdateInput = {
-  allowed: Array<Scalars['Email']>;
-  blocked: Array<Scalars['Email']>;
-};
-
-export type AuthEmailInsertInput = {
-  domains?: InputMaybe<AuthEmailDomainsInsertInput>;
-  emails?: InputMaybe<AuthEmailEmailsInsertInput>;
-  passwordless?: InputMaybe<AuthEmailPasswordlessInsertInput>;
-  verification?: InputMaybe<AuthEmailVerificationInsertInput>;
-};
-
-export type AuthEmailPasswordless = {
-  __typename?: 'AuthEmailPasswordless';
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthEmailPasswordlessComparisonExp = {
-  _and?: InputMaybe<Array<AuthEmailPasswordlessComparisonExp>>;
-  _not?: InputMaybe<AuthEmailPasswordlessComparisonExp>;
-  _or?: InputMaybe<Array<AuthEmailPasswordlessComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthEmailPasswordlessInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthEmailPasswordlessUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthEmailUpdateInput = {
-  domains?: InputMaybe<AuthEmailDomainsUpdateInput>;
-  emails?: InputMaybe<AuthEmailEmailsUpdateInput>;
-  passwordless?: InputMaybe<AuthEmailPasswordlessUpdateInput>;
-  verification?: InputMaybe<AuthEmailVerificationUpdateInput>;
-};
-
-export type AuthEmailVerification = {
-  __typename?: 'AuthEmailVerification';
-  required?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthEmailVerificationComparisonExp = {
-  _and?: InputMaybe<Array<AuthEmailVerificationComparisonExp>>;
-  _not?: InputMaybe<AuthEmailVerificationComparisonExp>;
-  _or?: InputMaybe<Array<AuthEmailVerificationComparisonExp>>;
-  required?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthEmailVerificationInsertInput = {
-  required?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthEmailVerificationUpdateInput = {
-  required?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthGravatar = {
-  __typename?: 'AuthGravatar';
-  default?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-  rating?: Maybe<Scalars['String']>;
-};
-
-export type AuthGravatarComparisonExp = {
-  _and?: InputMaybe<Array<AuthGravatarComparisonExp>>;
-  _not?: InputMaybe<AuthGravatarComparisonExp>;
-  _or?: InputMaybe<Array<AuthGravatarComparisonExp>>;
-  default?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  rating?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthGravatarInsertInput = {
-  default?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  rating?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthGravatarUpdateInput = {
-  default?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  rating?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthInsertInput = {
-  accessToken?: InputMaybe<AuthAccessTokenInsertInput>;
-  anonymous?: InputMaybe<AuthAnonymousInsertInput>;
-  email?: InputMaybe<AuthEmailInsertInput>;
-  gravatar?: InputMaybe<AuthGravatarInsertInput>;
-  locale?: InputMaybe<AuthLocaleInsertInput>;
-  mfa?: InputMaybe<AuthMfaInsertInput>;
-  password?: InputMaybe<AuthPasswordInsertInput>;
-  providers?: InputMaybe<AuthProvidersInsertInput>;
-  redirections?: InputMaybe<AuthRedirectionsInsertInput>;
-  refreshToken?: InputMaybe<AuthRefreshTokenInsertInput>;
-  roles?: InputMaybe<AuthRolesInsertInput>;
-  signUp?: InputMaybe<AuthSignUpInsertInput>;
-  sms?: InputMaybe<AuthSmsInsertInput>;
-  webauthn?: InputMaybe<AuthWebauthnInsertInput>;
-};
-
-export type AuthLocale = {
-  __typename?: 'AuthLocale';
-  allowed?: Maybe<Array<Scalars['Locale']>>;
-  default?: Maybe<Scalars['Locale']>;
-};
-
-export type AuthLocaleComparisonExp = {
-  _and?: InputMaybe<Array<AuthLocaleComparisonExp>>;
-  _not?: InputMaybe<AuthLocaleComparisonExp>;
-  _or?: InputMaybe<Array<AuthLocaleComparisonExp>>;
-  allowed?: InputMaybe<LocaleComparisonExp>;
-  default?: InputMaybe<LocaleComparisonExp>;
-};
-
-export type AuthLocaleInsertInput = {
-  allowed?: InputMaybe<Array<Scalars['Locale']>>;
-  default?: InputMaybe<Scalars['Locale']>;
-};
-
-export type AuthLocaleUpdateInput = {
-  allowed: Array<Scalars['Locale']>;
-  default?: InputMaybe<Scalars['Locale']>;
-};
-
-export type AuthMfa = {
-  __typename?: 'AuthMfa';
-  enabled?: Maybe<Scalars['Boolean']>;
-  totp?: Maybe<AuthMfaTotp>;
-};
-
-export type AuthMfaComparisonExp = {
-  _and?: InputMaybe<Array<AuthMfaComparisonExp>>;
-  _not?: InputMaybe<AuthMfaComparisonExp>;
-  _or?: InputMaybe<Array<AuthMfaComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  totp?: InputMaybe<AuthMfaTotpComparisonExp>;
-};
-
-export type AuthMfaInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  totp?: InputMaybe<AuthMfaTotpInsertInput>;
-};
-
-export type AuthMfaTotp = {
-  __typename?: 'AuthMfaTotp';
-  issuer?: Maybe<Scalars['String']>;
-};
-
-export type AuthMfaTotpComparisonExp = {
-  _and?: InputMaybe<Array<AuthMfaTotpComparisonExp>>;
-  _not?: InputMaybe<AuthMfaTotpComparisonExp>;
-  _or?: InputMaybe<Array<AuthMfaTotpComparisonExp>>;
-  issuer?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthMfaTotpInsertInput = {
-  issuer?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthMfaTotpUpdateInput = {
-  issuer?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthMfaUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  totp?: InputMaybe<AuthMfaTotpUpdateInput>;
-};
-
-export type AuthPassword = {
-  __typename?: 'AuthPassword';
-  hibp?: Maybe<AuthPasswordHibp>;
-  minLength?: Maybe<Scalars['Uint8']>;
-};
-
-export type AuthPasswordComparisonExp = {
-  _and?: InputMaybe<Array<AuthPasswordComparisonExp>>;
-  _not?: InputMaybe<AuthPasswordComparisonExp>;
-  _or?: InputMaybe<Array<AuthPasswordComparisonExp>>;
-  hibp?: InputMaybe<AuthPasswordHibpComparisonExp>;
-  minLength?: InputMaybe<Uint8ComparisonExp>;
-};
-
-export type AuthPasswordHibp = {
-  __typename?: 'AuthPasswordHibp';
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthPasswordHibpComparisonExp = {
-  _and?: InputMaybe<Array<AuthPasswordHibpComparisonExp>>;
-  _not?: InputMaybe<AuthPasswordHibpComparisonExp>;
-  _or?: InputMaybe<Array<AuthPasswordHibpComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthPasswordHibpInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthPasswordHibpUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthPasswordInsertInput = {
-  hibp?: InputMaybe<AuthPasswordHibpInsertInput>;
-  minLength?: InputMaybe<Scalars['Uint8']>;
-};
-
-export type AuthPasswordUpdateInput = {
-  hibp?: InputMaybe<AuthPasswordHibpUpdateInput>;
-  minLength?: InputMaybe<Scalars['Uint8']>;
-};
-
-export type AuthProviders = {
-  __typename?: 'AuthProviders';
-  apple?: Maybe<AuthProvidersApple>;
-  azuread?: Maybe<AuthProvidersAzuread>;
-  bitbucket?: Maybe<StandardOauthProvider>;
-  discord?: Maybe<StandardOauthProvider>;
-  facebook?: Maybe<StandardOauthProvider>;
-  github?: Maybe<StandardOauthProvider>;
-  gitlab?: Maybe<StandardOauthProvider>;
-  google?: Maybe<StandardOauthProvider>;
-  linkedin?: Maybe<StandardOauthProvider>;
-  spotify?: Maybe<StandardOauthProvider>;
-  strava?: Maybe<StandardOauthProvider>;
-  twitch?: Maybe<StandardOauthProvider>;
-  twitter?: Maybe<AuthProvidersTwitter>;
-  windowslive?: Maybe<StandardOauthProvider>;
-  workos?: Maybe<AuthProvidersWorkos>;
-};
-
-export type AuthProvidersApple = {
-  __typename?: 'AuthProvidersApple';
-  clientId?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-  keyId?: Maybe<Scalars['String']>;
-  privateKey?: Maybe<Scalars['String']>;
-  teamId?: Maybe<Scalars['String']>;
-};
-
-export type AuthProvidersAppleComparisonExp = {
-  _and?: InputMaybe<Array<AuthProvidersAppleComparisonExp>>;
-  _not?: InputMaybe<AuthProvidersAppleComparisonExp>;
-  _or?: InputMaybe<Array<AuthProvidersAppleComparisonExp>>;
-  clientId?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  keyId?: InputMaybe<StringComparisonExp>;
-  privateKey?: InputMaybe<StringComparisonExp>;
-  teamId?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthProvidersAppleInsertInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  keyId?: InputMaybe<Scalars['String']>;
-  privateKey?: InputMaybe<Scalars['String']>;
-  teamId?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthProvidersAppleUpdateInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  keyId?: InputMaybe<Scalars['String']>;
-  privateKey?: InputMaybe<Scalars['String']>;
-  teamId?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthProvidersAzuread = {
-  __typename?: 'AuthProvidersAzuread';
-  clientId?: Maybe<Scalars['String']>;
-  clientSecret?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-  tenant?: Maybe<Scalars['String']>;
-};
-
-export type AuthProvidersAzureadComparisonExp = {
-  _and?: InputMaybe<Array<AuthProvidersAzureadComparisonExp>>;
-  _not?: InputMaybe<AuthProvidersAzureadComparisonExp>;
-  _or?: InputMaybe<Array<AuthProvidersAzureadComparisonExp>>;
-  clientId?: InputMaybe<StringComparisonExp>;
-  clientSecret?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  tenant?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthProvidersAzureadInsertInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  tenant?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthProvidersAzureadUpdateInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  tenant?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthProvidersComparisonExp = {
-  _and?: InputMaybe<Array<AuthProvidersComparisonExp>>;
-  _not?: InputMaybe<AuthProvidersComparisonExp>;
-  _or?: InputMaybe<Array<AuthProvidersComparisonExp>>;
-  apple?: InputMaybe<AuthProvidersAppleComparisonExp>;
-  azuread?: InputMaybe<AuthProvidersAzureadComparisonExp>;
-  bitbucket?: InputMaybe<StandardOauthProviderComparisonExp>;
-  discord?: InputMaybe<StandardOauthProviderComparisonExp>;
-  facebook?: InputMaybe<StandardOauthProviderComparisonExp>;
-  github?: InputMaybe<StandardOauthProviderComparisonExp>;
-  gitlab?: InputMaybe<StandardOauthProviderComparisonExp>;
-  google?: InputMaybe<StandardOauthProviderComparisonExp>;
-  linkedin?: InputMaybe<StandardOauthProviderComparisonExp>;
-  spotify?: InputMaybe<StandardOauthProviderComparisonExp>;
-  strava?: InputMaybe<StandardOauthProviderComparisonExp>;
-  twitch?: InputMaybe<StandardOauthProviderComparisonExp>;
-  twitter?: InputMaybe<AuthProvidersTwitterComparisonExp>;
-  windowslive?: InputMaybe<StandardOauthProviderComparisonExp>;
-  workos?: InputMaybe<AuthProvidersWorkosComparisonExp>;
-};
-
-export type AuthProvidersInsertInput = {
-  apple?: InputMaybe<AuthProvidersAppleInsertInput>;
-  azuread?: InputMaybe<AuthProvidersAzureadInsertInput>;
-  bitbucket?: InputMaybe<StandardOauthProviderInsertInput>;
-  discord?: InputMaybe<StandardOauthProviderInsertInput>;
-  facebook?: InputMaybe<StandardOauthProviderInsertInput>;
-  github?: InputMaybe<StandardOauthProviderInsertInput>;
-  gitlab?: InputMaybe<StandardOauthProviderInsertInput>;
-  google?: InputMaybe<StandardOauthProviderInsertInput>;
-  linkedin?: InputMaybe<StandardOauthProviderInsertInput>;
-  spotify?: InputMaybe<StandardOauthProviderInsertInput>;
-  strava?: InputMaybe<StandardOauthProviderInsertInput>;
-  twitch?: InputMaybe<StandardOauthProviderInsertInput>;
-  twitter?: InputMaybe<AuthProvidersTwitterInsertInput>;
-  windowslive?: InputMaybe<StandardOauthProviderInsertInput>;
-  workos?: InputMaybe<AuthProvidersWorkosInsertInput>;
-};
-
-export type AuthProvidersTwitter = {
-  __typename?: 'AuthProvidersTwitter';
-  consumerKey?: Maybe<Scalars['String']>;
-  consumerSecret?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthProvidersTwitterComparisonExp = {
-  _and?: InputMaybe<Array<AuthProvidersTwitterComparisonExp>>;
-  _not?: InputMaybe<AuthProvidersTwitterComparisonExp>;
-  _or?: InputMaybe<Array<AuthProvidersTwitterComparisonExp>>;
-  consumerKey?: InputMaybe<StringComparisonExp>;
-  consumerSecret?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthProvidersTwitterInsertInput = {
-  consumerKey?: InputMaybe<Scalars['String']>;
-  consumerSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthProvidersTwitterUpdateInput = {
-  consumerKey?: InputMaybe<Scalars['String']>;
-  consumerSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthProvidersUpdateInput = {
-  apple?: InputMaybe<AuthProvidersAppleUpdateInput>;
-  azuread?: InputMaybe<AuthProvidersAzureadUpdateInput>;
-  bitbucket?: InputMaybe<StandardOauthProviderUpdateInput>;
-  discord?: InputMaybe<StandardOauthProviderUpdateInput>;
-  facebook?: InputMaybe<StandardOauthProviderUpdateInput>;
-  github?: InputMaybe<StandardOauthProviderUpdateInput>;
-  gitlab?: InputMaybe<StandardOauthProviderUpdateInput>;
-  google?: InputMaybe<StandardOauthProviderUpdateInput>;
-  linkedin?: InputMaybe<StandardOauthProviderUpdateInput>;
-  spotify?: InputMaybe<StandardOauthProviderUpdateInput>;
-  strava?: InputMaybe<StandardOauthProviderUpdateInput>;
-  twitch?: InputMaybe<StandardOauthProviderUpdateInput>;
-  twitter?: InputMaybe<AuthProvidersTwitterUpdateInput>;
-  windowslive?: InputMaybe<StandardOauthProviderUpdateInput>;
-  workos?: InputMaybe<AuthProvidersWorkosUpdateInput>;
-};
-
-export type AuthProvidersWorkos = {
-  __typename?: 'AuthProvidersWorkos';
-  clientId?: Maybe<Scalars['String']>;
-  clientSecret?: Maybe<Scalars['String']>;
-  connection?: Maybe<Scalars['String']>;
-  domain?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-  organization?: Maybe<Scalars['String']>;
-};
-
-export type AuthProvidersWorkosComparisonExp = {
-  _and?: InputMaybe<Array<AuthProvidersWorkosComparisonExp>>;
-  _not?: InputMaybe<AuthProvidersWorkosComparisonExp>;
-  _or?: InputMaybe<Array<AuthProvidersWorkosComparisonExp>>;
-  clientId?: InputMaybe<StringComparisonExp>;
-  clientSecret?: InputMaybe<StringComparisonExp>;
-  connection?: InputMaybe<StringComparisonExp>;
-  domain?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  organization?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthProvidersWorkosInsertInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  connection?: InputMaybe<Scalars['String']>;
-  domain?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  organization?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthProvidersWorkosUpdateInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  connection?: InputMaybe<Scalars['String']>;
-  domain?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  organization?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthRedirections = {
-  __typename?: 'AuthRedirections';
-  allowedUrls?: Maybe<Array<Scalars['String']>>;
-  clientUrl?: Maybe<Scalars['Url']>;
-};
-
-export type AuthRedirectionsComparisonExp = {
-  _and?: InputMaybe<Array<AuthRedirectionsComparisonExp>>;
-  _not?: InputMaybe<AuthRedirectionsComparisonExp>;
-  _or?: InputMaybe<Array<AuthRedirectionsComparisonExp>>;
-  allowedUrls?: InputMaybe<StringComparisonExp>;
-  clientUrl?: InputMaybe<UrlComparisonExp>;
-};
-
-export type AuthRedirectionsInsertInput = {
-  allowedUrls?: InputMaybe<Array<Scalars['String']>>;
-  clientUrl?: InputMaybe<Scalars['Url']>;
-};
-
-export type AuthRedirectionsUpdateInput = {
-  allowedUrls: Array<Scalars['String']>;
-  clientUrl?: InputMaybe<Scalars['Url']>;
-};
-
-export type AuthRefreshToken = {
-  __typename?: 'AuthRefreshToken';
-  expiresIn?: Maybe<Scalars['Uint32']>;
-};
-
-export type AuthRefreshTokenComparisonExp = {
-  _and?: InputMaybe<Array<AuthRefreshTokenComparisonExp>>;
-  _not?: InputMaybe<AuthRefreshTokenComparisonExp>;
-  _or?: InputMaybe<Array<AuthRefreshTokenComparisonExp>>;
-  expiresIn?: InputMaybe<Uint32ComparisonExp>;
-};
-
-export type AuthRefreshTokenInsertInput = {
-  expiresIn?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthRefreshTokenUpdateInput = {
-  expiresIn?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthRoles = {
-  __typename?: 'AuthRoles';
-  allowed?: Maybe<Array<Scalars['UserRole']>>;
-  default?: Maybe<Scalars['UserRole']>;
-};
-
-export type AuthRolesComparisonExp = {
-  _and?: InputMaybe<Array<AuthRolesComparisonExp>>;
-  _not?: InputMaybe<AuthRolesComparisonExp>;
-  _or?: InputMaybe<Array<AuthRolesComparisonExp>>;
-  allowed?: InputMaybe<UserRoleComparisonExp>;
-  default?: InputMaybe<UserRoleComparisonExp>;
-};
-
-export type AuthRolesInsertInput = {
-  allowed?: InputMaybe<Array<Scalars['UserRole']>>;
-  default?: InputMaybe<Scalars['UserRole']>;
-};
-
-export type AuthRolesUpdateInput = {
-  allowed: Array<Scalars['UserRole']>;
-  default?: InputMaybe<Scalars['UserRole']>;
-};
-
-export type AuthSignUp = {
-  __typename?: 'AuthSignUp';
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthSignUpComparisonExp = {
-  _and?: InputMaybe<Array<AuthSignUpComparisonExp>>;
-  _not?: InputMaybe<AuthSignUpComparisonExp>;
-  _or?: InputMaybe<Array<AuthSignUpComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthSignUpInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthSignUpUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthSms = {
-  __typename?: 'AuthSms';
-  passwordless?: Maybe<AuthSmsPasswordless>;
-  provider?: Maybe<Scalars['String']>;
-  twilio?: Maybe<AuthSmsTwilio>;
-};
-
-export type AuthSmsComparisonExp = {
-  _and?: InputMaybe<Array<AuthSmsComparisonExp>>;
-  _not?: InputMaybe<AuthSmsComparisonExp>;
-  _or?: InputMaybe<Array<AuthSmsComparisonExp>>;
-  passwordless?: InputMaybe<AuthSmsPasswordlessComparisonExp>;
-  provider?: InputMaybe<StringComparisonExp>;
-  twilio?: InputMaybe<AuthSmsTwilioComparisonExp>;
-};
-
-export type AuthSmsInsertInput = {
-  passwordless?: InputMaybe<AuthSmsPasswordlessInsertInput>;
-  provider?: InputMaybe<Scalars['String']>;
-  twilio?: InputMaybe<AuthSmsTwilioInsertInput>;
-};
-
-export type AuthSmsPasswordless = {
-  __typename?: 'AuthSmsPasswordless';
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type AuthSmsPasswordlessComparisonExp = {
-  _and?: InputMaybe<Array<AuthSmsPasswordlessComparisonExp>>;
-  _not?: InputMaybe<AuthSmsPasswordlessComparisonExp>;
-  _or?: InputMaybe<Array<AuthSmsPasswordlessComparisonExp>>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type AuthSmsPasswordlessInsertInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthSmsPasswordlessUpdateInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type AuthSmsTwilio = {
-  __typename?: 'AuthSmsTwilio';
-  accountSid?: Maybe<Scalars['String']>;
-  authToken?: Maybe<Scalars['String']>;
-  from?: Maybe<Scalars['String']>;
-  messagingServiceId?: Maybe<Scalars['String']>;
-};
-
-export type AuthSmsTwilioComparisonExp = {
-  _and?: InputMaybe<Array<AuthSmsTwilioComparisonExp>>;
-  _not?: InputMaybe<AuthSmsTwilioComparisonExp>;
-  _or?: InputMaybe<Array<AuthSmsTwilioComparisonExp>>;
-  accountSid?: InputMaybe<StringComparisonExp>;
-  authToken?: InputMaybe<StringComparisonExp>;
-  from?: InputMaybe<StringComparisonExp>;
-  messagingServiceId?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthSmsTwilioInsertInput = {
-  accountSid?: InputMaybe<Scalars['String']>;
-  authToken?: InputMaybe<Scalars['String']>;
-  from?: InputMaybe<Scalars['String']>;
-  messagingServiceId?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthSmsTwilioUpdateInput = {
-  accountSid?: InputMaybe<Scalars['String']>;
-  authToken?: InputMaybe<Scalars['String']>;
-  from?: InputMaybe<Scalars['String']>;
-  messagingServiceId?: InputMaybe<Scalars['String']>;
-};
-
-export type AuthSmsUpdateInput = {
-  passwordless?: InputMaybe<AuthSmsPasswordlessUpdateInput>;
-  provider?: InputMaybe<Scalars['String']>;
-  twilio?: InputMaybe<AuthSmsTwilioUpdateInput>;
-};
-
-export type AuthUpdateInput = {
-  accessToken?: InputMaybe<AuthAccessTokenUpdateInput>;
-  anonymous?: InputMaybe<AuthAnonymousUpdateInput>;
-  email?: InputMaybe<AuthEmailUpdateInput>;
-  gravatar?: InputMaybe<AuthGravatarUpdateInput>;
-  locale?: InputMaybe<AuthLocaleUpdateInput>;
-  mfa?: InputMaybe<AuthMfaUpdateInput>;
-  password?: InputMaybe<AuthPasswordUpdateInput>;
-  providers?: InputMaybe<AuthProvidersUpdateInput>;
-  redirections?: InputMaybe<AuthRedirectionsUpdateInput>;
-  refreshToken?: InputMaybe<AuthRefreshTokenUpdateInput>;
-  roles?: InputMaybe<AuthRolesUpdateInput>;
-  signUp?: InputMaybe<AuthSignUpUpdateInput>;
-  sms?: InputMaybe<AuthSmsUpdateInput>;
-  webauthn?: InputMaybe<AuthWebauthnUpdateInput>;
-};
-
-export type AuthWebauthn = {
-  __typename?: 'AuthWebauthn';
-  attestation?: Maybe<AuthWebauthnAttestation>;
-  enabled?: Maybe<Scalars['Boolean']>;
-  relyingParty?: Maybe<AuthWebauthnRelyingParty>;
-};
-
-export type AuthWebauthnAttestation = {
-  __typename?: 'AuthWebauthnAttestation';
-  timeout?: Maybe<Scalars['Uint32']>;
-};
-
-export type AuthWebauthnAttestationComparisonExp = {
-  _and?: InputMaybe<Array<AuthWebauthnAttestationComparisonExp>>;
-  _not?: InputMaybe<AuthWebauthnAttestationComparisonExp>;
-  _or?: InputMaybe<Array<AuthWebauthnAttestationComparisonExp>>;
-  timeout?: InputMaybe<Uint32ComparisonExp>;
-};
-
-export type AuthWebauthnAttestationInsertInput = {
-  timeout?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthWebauthnAttestationUpdateInput = {
-  timeout?: InputMaybe<Scalars['Uint32']>;
-};
-
-export type AuthWebauthnComparisonExp = {
-  _and?: InputMaybe<Array<AuthWebauthnComparisonExp>>;
-  _not?: InputMaybe<AuthWebauthnComparisonExp>;
-  _or?: InputMaybe<Array<AuthWebauthnComparisonExp>>;
-  attestation?: InputMaybe<AuthWebauthnAttestationComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-  relyingParty?: InputMaybe<AuthWebauthnRelyingPartyComparisonExp>;
-};
-
-export type AuthWebauthnInsertInput = {
-  attestation?: InputMaybe<AuthWebauthnAttestationInsertInput>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  relyingParty?: InputMaybe<AuthWebauthnRelyingPartyInsertInput>;
-};
-
-export type AuthWebauthnRelyingParty = {
-  __typename?: 'AuthWebauthnRelyingParty';
-  name?: Maybe<Scalars['String']>;
-  origins?: Maybe<Array<Scalars['Url']>>;
-};
-
-export type AuthWebauthnRelyingPartyComparisonExp = {
-  _and?: InputMaybe<Array<AuthWebauthnRelyingPartyComparisonExp>>;
-  _not?: InputMaybe<AuthWebauthnRelyingPartyComparisonExp>;
-  _or?: InputMaybe<Array<AuthWebauthnRelyingPartyComparisonExp>>;
-  name?: InputMaybe<StringComparisonExp>;
-  origins?: InputMaybe<UrlComparisonExp>;
-};
-
-export type AuthWebauthnRelyingPartyInsertInput = {
-  name?: InputMaybe<Scalars['String']>;
-  origins?: InputMaybe<Array<Scalars['Url']>>;
-};
-
-export type AuthWebauthnRelyingPartyUpdateInput = {
-  name?: InputMaybe<Scalars['String']>;
-  origins: Array<Scalars['Url']>;
-};
-
-export type AuthWebauthnUpdateInput = {
-  attestation?: InputMaybe<AuthWebauthnAttestationUpdateInput>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-  relyingParty?: InputMaybe<AuthWebauthnRelyingPartyUpdateInput>;
-};
-
-export type AuthaccessTokenCustomClaims = {
-  __typename?: 'AuthaccessTokenCustomClaims';
-  key: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type AuthaccessTokenCustomClaimsComparisonExp = {
-  _and?: InputMaybe<Array<AuthaccessTokenCustomClaimsComparisonExp>>;
-  _not?: InputMaybe<AuthaccessTokenCustomClaimsComparisonExp>;
-  _or?: InputMaybe<Array<AuthaccessTokenCustomClaimsComparisonExp>>;
-  key?: InputMaybe<StringComparisonExp>;
-  value?: InputMaybe<StringComparisonExp>;
-};
-
-export type AuthaccessTokenCustomClaimsInsertInput = {
-  key: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type AuthaccessTokenCustomClaimsUpdateInput = {
-  key?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
 };
 
 export type BackupResult = {
@@ -911,13 +47,6 @@ export type BackupResultsItem = {
   success: Scalars['Boolean'];
 };
 
-export type BooleanComparisonExp = {
-  _eq?: InputMaybe<Scalars['Boolean']>;
-  _in?: InputMaybe<Array<Scalars['Boolean']>>;
-  _neq?: InputMaybe<Scalars['Boolean']>;
-  _nin?: InputMaybe<Array<Scalars['Boolean']>>;
-};
-
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
 export type Boolean_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Boolean']>;
@@ -931,40 +60,1190 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
 };
 
-export type Config = {
-  __typename?: 'Config';
-  auth?: Maybe<Auth>;
-  functions?: Maybe<Functions>;
-  global?: Maybe<Global>;
-  hasura?: Maybe<Hasura>;
-  smtp: Smtp;
+export type ConfigAppCloudEnvironment = {
+  __typename?: 'ConfigAppCloudEnvironment';
+  appID: Scalars['uuid'];
+  environment: Array<ConfigEnvironmentVariable>;
 };
 
-export type ConfigComparisonExp = {
-  _and?: InputMaybe<Array<ConfigComparisonExp>>;
-  _not?: InputMaybe<ConfigComparisonExp>;
-  _or?: InputMaybe<Array<ConfigComparisonExp>>;
-  auth?: InputMaybe<AuthComparisonExp>;
-  functions?: InputMaybe<FunctionsComparisonExp>;
-  global?: InputMaybe<GlobalComparisonExp>;
-  hasura?: InputMaybe<HasuraComparisonExp>;
-  smtp?: InputMaybe<SmtpComparisonExp>;
+export type ConfigAppConfig = {
+  __typename?: 'ConfigAppConfig';
+  appID: Scalars['uuid'];
+  config: ConfigConfig;
 };
 
-export type ConfigInsertInput = {
-  auth?: InputMaybe<AuthInsertInput>;
-  functions?: InputMaybe<FunctionsInsertInput>;
-  global?: InputMaybe<GlobalInsertInput>;
-  hasura?: InputMaybe<HasuraInsertInput>;
-  smtp: SmtpInsertInput;
+export type ConfigAuth = {
+  __typename?: 'ConfigAuth';
+  method?: Maybe<ConfigAuthMethod>;
+  redirections?: Maybe<ConfigAuthRedirections>;
+  session?: Maybe<ConfigAuthSession>;
+  signUp?: Maybe<ConfigAuthSignUp>;
+  totp?: Maybe<ConfigAuthTotp>;
+  user?: Maybe<ConfigAuthUser>;
 };
 
-export type ConfigUpdateInput = {
-  auth?: InputMaybe<AuthUpdateInput>;
-  functions?: InputMaybe<FunctionsUpdateInput>;
-  global?: InputMaybe<GlobalUpdateInput>;
-  hasura?: InputMaybe<HasuraUpdateInput>;
-  smtp?: InputMaybe<SmtpUpdateInput>;
+export type ConfigAuthComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
+  method?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
+  session?: InputMaybe<ConfigAuthSessionComparisonExp>;
+  signUp?: InputMaybe<ConfigAuthSignUpComparisonExp>;
+  totp?: InputMaybe<ConfigAuthTotpComparisonExp>;
+  user?: InputMaybe<ConfigAuthUserComparisonExp>;
+};
+
+export type ConfigAuthInsertInput = {
+  method?: InputMaybe<ConfigAuthMethodInsertInput>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
+  session?: InputMaybe<ConfigAuthSessionInsertInput>;
+  signUp?: InputMaybe<ConfigAuthSignUpInsertInput>;
+  totp?: InputMaybe<ConfigAuthTotpInsertInput>;
+  user?: InputMaybe<ConfigAuthUserInsertInput>;
+};
+
+export type ConfigAuthMethod = {
+  __typename?: 'ConfigAuthMethod';
+  anonymous?: Maybe<ConfigAuthMethodAnonymous>;
+  emailPassword?: Maybe<ConfigAuthMethodEmailPassword>;
+  emailPasswordless?: Maybe<ConfigAuthMethodEmailPasswordless>;
+  oauth?: Maybe<ConfigAuthMethodOauth>;
+  smsPasswordless?: Maybe<ConfigAuthMethodSmsPasswordless>;
+  webauthn?: Maybe<ConfigAuthMethodWebauthn>;
+};
+
+export type ConfigAuthMethodAnonymous = {
+  __typename?: 'ConfigAuthMethodAnonymous';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodAnonymousComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodAnonymousComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodAnonymousComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodAnonymousComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodAnonymousInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodAnonymousUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodComparisonExp>>;
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousComparisonExp>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordComparisonExp>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessComparisonExp>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthComparisonExp>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessComparisonExp>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPassword = {
+  __typename?: 'ConfigAuthMethodEmailPassword';
+  emailVerificationRequired?: Maybe<Scalars['Boolean']>;
+  hibpEnabled?: Maybe<Scalars['Boolean']>;
+  passwordMinLength?: Maybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodEmailPasswordComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodEmailPasswordComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodEmailPasswordComparisonExp>>;
+  emailVerificationRequired?: InputMaybe<ConfigBooleanComparisonExp>;
+  hibpEnabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  passwordMinLength?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPasswordInsertInput = {
+  emailVerificationRequired?: InputMaybe<Scalars['Boolean']>;
+  hibpEnabled?: InputMaybe<Scalars['Boolean']>;
+  passwordMinLength?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordUpdateInput = {
+  emailVerificationRequired?: InputMaybe<Scalars['Boolean']>;
+  hibpEnabled?: InputMaybe<Scalars['Boolean']>;
+  passwordMinLength?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordless = {
+  __typename?: 'ConfigAuthMethodEmailPasswordless';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodEmailPasswordlessComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodEmailPasswordlessComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodEmailPasswordlessComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodInsertInput = {
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousInsertInput>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordInsertInput>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessInsertInput>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthInsertInput>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessInsertInput>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnInsertInput>;
+};
+
+export type ConfigAuthMethodOauth = {
+  __typename?: 'ConfigAuthMethodOauth';
+  apple?: Maybe<ConfigAuthMethodOauthApple>;
+  azuread?: Maybe<ConfigAuthMethodOauthAzuread>;
+  bitbucket?: Maybe<ConfigStandardOauthProvider>;
+  discord?: Maybe<ConfigStandardOauthProvider>;
+  facebook?: Maybe<ConfigStandardOauthProvider>;
+  github?: Maybe<ConfigStandardOauthProvider>;
+  gitlab?: Maybe<ConfigStandardOauthProvider>;
+  google?: Maybe<ConfigStandardOauthProvider>;
+  linkedin?: Maybe<ConfigStandardOauthProvider>;
+  spotify?: Maybe<ConfigStandardOauthProvider>;
+  strava?: Maybe<ConfigStandardOauthProvider>;
+  twitch?: Maybe<ConfigStandardOauthProvider>;
+  twitter?: Maybe<ConfigAuthMethodOauthTwitter>;
+  windowslive?: Maybe<ConfigStandardOauthProvider>;
+  workos?: Maybe<ConfigAuthMethodOauthWorkos>;
+};
+
+export type ConfigAuthMethodOauthApple = {
+  __typename?: 'ConfigAuthMethodOauthApple';
+  clientId?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  keyId?: Maybe<Scalars['String']>;
+  privateKey?: Maybe<Scalars['String']>;
+  teamId?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAppleComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthAppleComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthAppleComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthAppleComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  keyId?: InputMaybe<ConfigStringComparisonExp>;
+  privateKey?: InputMaybe<ConfigStringComparisonExp>;
+  teamId?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthAppleInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  keyId?: InputMaybe<Scalars['String']>;
+  privateKey?: InputMaybe<Scalars['String']>;
+  teamId?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAppleUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  keyId?: InputMaybe<Scalars['String']>;
+  privateKey?: InputMaybe<Scalars['String']>;
+  teamId?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzuread = {
+  __typename?: 'ConfigAuthMethodOauthAzuread';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  tenant?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzureadComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthAzureadComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthAzureadComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  tenant?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthAzureadInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzureadUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthComparisonExp>>;
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleComparisonExp>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  discord?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  github?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  google?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  strava?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterComparisonExp>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthInsertInput = {
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleInsertInput>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadInsertInput>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterInsertInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosInsertInput>;
+};
+
+export type ConfigAuthMethodOauthTwitter = {
+  __typename?: 'ConfigAuthMethodOauthTwitter';
+  consumerKey?: Maybe<Scalars['String']>;
+  consumerSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthTwitterComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthTwitterComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthTwitterComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthTwitterComparisonExp>>;
+  consumerKey?: InputMaybe<ConfigStringComparisonExp>;
+  consumerSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthTwitterInsertInput = {
+  consumerKey?: InputMaybe<Scalars['String']>;
+  consumerSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthTwitterUpdateInput = {
+  consumerKey?: InputMaybe<Scalars['String']>;
+  consumerSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthUpdateInput = {
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleUpdateInput>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadUpdateInput>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterUpdateInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosUpdateInput>;
+};
+
+export type ConfigAuthMethodOauthWorkos = {
+  __typename?: 'ConfigAuthMethodOauthWorkos';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  connection?: Maybe<Scalars['String']>;
+  domain?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  organization?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthWorkosComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthWorkosComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthWorkosComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  connection?: InputMaybe<ConfigStringComparisonExp>;
+  domain?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  organization?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthWorkosInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  connection?: InputMaybe<Scalars['String']>;
+  domain?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthWorkosUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  connection?: InputMaybe<Scalars['String']>;
+  domain?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodSmsPasswordless = {
+  __typename?: 'ConfigAuthMethodSmsPasswordless';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodSmsPasswordlessComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodSmsPasswordlessComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodSmsPasswordlessComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodUpdateInput = {
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousUpdateInput>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordUpdateInput>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessUpdateInput>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthUpdateInput>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessUpdateInput>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnUpdateInput>;
+};
+
+export type ConfigAuthMethodWebauthn = {
+  __typename?: 'ConfigAuthMethodWebauthn';
+  attestation?: Maybe<ConfigAuthMethodWebauthnAttestation>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  relyingParty?: Maybe<ConfigAuthMethodWebauthnRelyingParty>;
+};
+
+export type ConfigAuthMethodWebauthnAttestation = {
+  __typename?: 'ConfigAuthMethodWebauthnAttestation';
+  timeout?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnAttestationComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnAttestationComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnAttestationComparisonExp>>;
+  timeout?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationInsertInput = {
+  timeout?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationUpdateInput = {
+  timeout?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnComparisonExp>>;
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnInsertInput = {
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationInsertInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyInsertInput>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingParty = {
+  __typename?: 'ConfigAuthMethodWebauthnRelyingParty';
+  name?: Maybe<Scalars['String']>;
+  origins?: Maybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  origins?: InputMaybe<ConfigUrlComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyInsertInput = {
+  name?: InputMaybe<Scalars['String']>;
+  origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyUpdateInput = {
+  name?: InputMaybe<Scalars['String']>;
+  origins: Array<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthMethodWebauthnUpdateInput = {
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationUpdateInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyUpdateInput>;
+};
+
+export type ConfigAuthRedirections = {
+  __typename?: 'ConfigAuthRedirections';
+  allowedUrls?: Maybe<Array<Scalars['String']>>;
+  clientUrl?: Maybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthRedirectionsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthRedirectionsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthRedirectionsComparisonExp>>;
+  allowedUrls?: InputMaybe<ConfigStringComparisonExp>;
+  clientUrl?: InputMaybe<ConfigUrlComparisonExp>;
+};
+
+export type ConfigAuthRedirectionsInsertInput = {
+  allowedUrls?: InputMaybe<Array<Scalars['String']>>;
+  clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthRedirectionsUpdateInput = {
+  allowedUrls: Array<Scalars['String']>;
+  clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthSession = {
+  __typename?: 'ConfigAuthSession';
+  accessToken?: Maybe<ConfigAuthSessionAccessToken>;
+  refreshToken?: Maybe<ConfigAuthSessionRefreshToken>;
+};
+
+export type ConfigAuthSessionAccessToken = {
+  __typename?: 'ConfigAuthSessionAccessToken';
+  customClaims?: Maybe<Array<ConfigAuthsessionaccessTokenCustomClaims>>;
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionAccessTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionAccessTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionAccessTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionAccessTokenComparisonExp>>;
+  customClaims?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthSessionAccessTokenInsertInput = {
+  customClaims?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsInsertInput>>;
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionAccessTokenUpdateInput = {
+  customClaims: Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>;
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionComparisonExp>>;
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenComparisonExp>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenComparisonExp>;
+};
+
+export type ConfigAuthSessionInsertInput = {
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenInsertInput>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenInsertInput>;
+};
+
+export type ConfigAuthSessionRefreshToken = {
+  __typename?: 'ConfigAuthSessionRefreshToken';
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionRefreshTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionRefreshTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionRefreshTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionRefreshTokenComparisonExp>>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthSessionRefreshTokenInsertInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionRefreshTokenUpdateInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionUpdateInput = {
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenUpdateInput>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenUpdateInput>;
+};
+
+export type ConfigAuthSignUp = {
+  __typename?: 'ConfigAuthSignUp';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthSignUpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSignUpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthSignUpInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthSignUpUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthTotp = {
+  __typename?: 'ConfigAuthTotp';
+  enabled?: Maybe<Scalars['Boolean']>;
+  issuer?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthTotpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthTotpComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthTotpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthTotpComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  issuer?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthTotpInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  issuer?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthTotpUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  issuer?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUpdateInput = {
+  method?: InputMaybe<ConfigAuthMethodUpdateInput>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
+  session?: InputMaybe<ConfigAuthSessionUpdateInput>;
+  signUp?: InputMaybe<ConfigAuthSignUpUpdateInput>;
+  totp?: InputMaybe<ConfigAuthTotpUpdateInput>;
+  user?: InputMaybe<ConfigAuthUserUpdateInput>;
+};
+
+export type ConfigAuthUser = {
+  __typename?: 'ConfigAuthUser';
+  email?: Maybe<ConfigAuthUserEmail>;
+  emailDomains?: Maybe<ConfigAuthUserEmailDomains>;
+  gravatar?: Maybe<ConfigAuthUserGravatar>;
+  locale?: Maybe<ConfigAuthUserLocale>;
+  roles?: Maybe<ConfigAuthUserRoles>;
+};
+
+export type ConfigAuthUserComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserComparisonExp>>;
+  email?: InputMaybe<ConfigAuthUserEmailComparisonExp>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsComparisonExp>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarComparisonExp>;
+  locale?: InputMaybe<ConfigAuthUserLocaleComparisonExp>;
+  roles?: InputMaybe<ConfigAuthUserRolesComparisonExp>;
+};
+
+export type ConfigAuthUserEmail = {
+  __typename?: 'ConfigAuthUserEmail';
+  allowed?: Maybe<Array<Scalars['ConfigEmail']>>;
+  blocked?: Maybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigAuthUserEmailComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserEmailComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserEmailComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserEmailComparisonExp>>;
+  allowed?: InputMaybe<ConfigEmailComparisonExp>;
+  blocked?: InputMaybe<ConfigEmailComparisonExp>;
+};
+
+export type ConfigAuthUserEmailDomains = {
+  __typename?: 'ConfigAuthUserEmailDomains';
+  allowed?: Maybe<Array<Scalars['String']>>;
+  blocked?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ConfigAuthUserEmailDomainsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserEmailDomainsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserEmailDomainsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserEmailDomainsComparisonExp>>;
+  allowed?: InputMaybe<ConfigStringComparisonExp>;
+  blocked?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthUserEmailDomainsInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['String']>>;
+  blocked?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigAuthUserEmailDomainsUpdateInput = {
+  allowed: Array<Scalars['String']>;
+  blocked: Array<Scalars['String']>;
+};
+
+export type ConfigAuthUserEmailInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+  blocked?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigAuthUserEmailUpdateInput = {
+  allowed: Array<Scalars['ConfigEmail']>;
+  blocked: Array<Scalars['ConfigEmail']>;
+};
+
+export type ConfigAuthUserGravatar = {
+  __typename?: 'ConfigAuthUserGravatar';
+  default?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  rating?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserGravatarComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserGravatarComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserGravatarComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserGravatarComparisonExp>>;
+  default?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  rating?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthUserGravatarInsertInput = {
+  default?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  rating?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserGravatarUpdateInput = {
+  default?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  rating?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserInsertInput = {
+  email?: InputMaybe<ConfigAuthUserEmailInsertInput>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsInsertInput>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarInsertInput>;
+  locale?: InputMaybe<ConfigAuthUserLocaleInsertInput>;
+  roles?: InputMaybe<ConfigAuthUserRolesInsertInput>;
+};
+
+export type ConfigAuthUserLocale = {
+  __typename?: 'ConfigAuthUserLocale';
+  allowed?: Maybe<Array<Scalars['ConfigLocale']>>;
+  default?: Maybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserLocaleComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserLocaleComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserLocaleComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserLocaleComparisonExp>>;
+  allowed?: InputMaybe<ConfigLocaleComparisonExp>;
+  default?: InputMaybe<ConfigLocaleComparisonExp>;
+};
+
+export type ConfigAuthUserLocaleInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+  default?: InputMaybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserLocaleUpdateInput = {
+  allowed: Array<Scalars['ConfigLocale']>;
+  default?: InputMaybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserRoles = {
+  __typename?: 'ConfigAuthUserRoles';
+  allowed?: Maybe<Array<Scalars['ConfigUserRole']>>;
+  default?: Maybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserRolesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserRolesComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserRolesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserRolesComparisonExp>>;
+  allowed?: InputMaybe<ConfigUserRoleComparisonExp>;
+  default?: InputMaybe<ConfigUserRoleComparisonExp>;
+};
+
+export type ConfigAuthUserRolesInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
+  default?: InputMaybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserRolesUpdateInput = {
+  allowed: Array<Scalars['ConfigUserRole']>;
+  default?: InputMaybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserUpdateInput = {
+  email?: InputMaybe<ConfigAuthUserEmailUpdateInput>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsUpdateInput>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarUpdateInput>;
+  locale?: InputMaybe<ConfigAuthUserLocaleUpdateInput>;
+  roles?: InputMaybe<ConfigAuthUserRolesUpdateInput>;
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaims = {
+  __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  key?: InputMaybe<ConfigStringComparisonExp>;
+  value?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsInsertInput = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput = {
+  key?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigBooleanComparisonExp = {
+  _eq?: InputMaybe<Scalars['Boolean']>;
+  _in?: InputMaybe<Array<Scalars['Boolean']>>;
+  _neq?: InputMaybe<Scalars['Boolean']>;
+  _nin?: InputMaybe<Array<Scalars['Boolean']>>;
+};
+
+export type ConfigConfig = {
+  __typename?: 'ConfigConfig';
+  auth?: Maybe<ConfigAuth>;
+  functions?: Maybe<ConfigFunctions>;
+  global?: Maybe<ConfigGlobal>;
+  hasura?: Maybe<ConfigHasura>;
+  provider: ConfigProvider;
+};
+
+export type ConfigConfigComparisonExp = {
+  _and?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  _not?: InputMaybe<ConfigConfigComparisonExp>;
+  _or?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  auth?: InputMaybe<ConfigAuthComparisonExp>;
+  functions?: InputMaybe<ConfigFunctionsComparisonExp>;
+  global?: InputMaybe<ConfigGlobalComparisonExp>;
+  hasura?: InputMaybe<ConfigHasuraComparisonExp>;
+  provider?: InputMaybe<ConfigProviderComparisonExp>;
+};
+
+export type ConfigConfigInsertInput = {
+  auth?: InputMaybe<ConfigAuthInsertInput>;
+  functions?: InputMaybe<ConfigFunctionsInsertInput>;
+  global?: InputMaybe<ConfigGlobalInsertInput>;
+  hasura?: InputMaybe<ConfigHasuraInsertInput>;
+  provider: ConfigProviderInsertInput;
+};
+
+export type ConfigConfigUpdateInput = {
+  auth?: InputMaybe<ConfigAuthUpdateInput>;
+  functions?: InputMaybe<ConfigFunctionsUpdateInput>;
+  global?: InputMaybe<ConfigGlobalUpdateInput>;
+  hasura?: InputMaybe<ConfigHasuraUpdateInput>;
+  provider?: InputMaybe<ConfigProviderUpdateInput>;
+};
+
+export type ConfigEmailComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigEmail']>;
+  _in?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+  _neq?: InputMaybe<Scalars['ConfigEmail']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigEnvironmentVariable = {
+  __typename?: 'ConfigEnvironmentVariable';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigEnvironmentVariableComparisonExp = {
+  _and?: InputMaybe<Array<ConfigEnvironmentVariableComparisonExp>>;
+  _not?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  _or?: InputMaybe<Array<ConfigEnvironmentVariableComparisonExp>>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  value?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigEnvironmentVariableInsertInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigEnvironmentVariableUpdateInput = {
+  name?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigFunctions = {
+  __typename?: 'ConfigFunctions';
+  node?: Maybe<ConfigFunctionsNode>;
+};
+
+export type ConfigFunctionsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
+  node?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+};
+
+export type ConfigFunctionsInsertInput = {
+  node?: InputMaybe<ConfigFunctionsNodeInsertInput>;
+};
+
+export type ConfigFunctionsNode = {
+  __typename?: 'ConfigFunctionsNode';
+  version?: Maybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsNodeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsNodeComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsNodeComparisonExp>>;
+  version?: InputMaybe<ConfigIntComparisonExp>;
+};
+
+export type ConfigFunctionsNodeInsertInput = {
+  version?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsNodeUpdateInput = {
+  version?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsUpdateInput = {
+  node?: InputMaybe<ConfigFunctionsNodeUpdateInput>;
+};
+
+export type ConfigGlobal = {
+  __typename?: 'ConfigGlobal';
+  environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+  name?: Maybe<Scalars['String']>;
+};
+
+export type ConfigGlobalComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
+  _not?: InputMaybe<ConfigGlobalComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
+  environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGlobalInsertInput = {
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  name?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigGlobalUpdateInput = {
+  environment: Array<ConfigEnvironmentVariableUpdateInput>;
+  name?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigHasura = {
+  __typename?: 'ConfigHasura';
+  jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+};
+
+export type ConfigHasuraComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
+  jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
+};
+
+export type ConfigHasuraInsertInput = {
+  jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
+};
+
+export type ConfigHasuraUpdateInput = {
+  jwtSecrets: Array<ConfigJwtSecretUpdateInput>;
+};
+
+export type ConfigIntComparisonExp = {
+  _eq?: InputMaybe<Scalars['Int']>;
+  _in?: InputMaybe<Array<Scalars['Int']>>;
+  _neq?: InputMaybe<Scalars['Int']>;
+  _nin?: InputMaybe<Array<Scalars['Int']>>;
+};
+
+export type ConfigJwtSecret = {
+  __typename?: 'ConfigJWTSecret';
+  allowed_skew?: Maybe<Scalars['ConfigUint32']>;
+  audience?: Maybe<Scalars['String']>;
+  claims_format?: Maybe<Scalars['String']>;
+  claims_namespace?: Maybe<Scalars['String']>;
+  claims_namespace_path?: Maybe<Scalars['String']>;
+  header?: Maybe<Scalars['String']>;
+  issuer?: Maybe<Scalars['String']>;
+  jwk_url?: Maybe<Scalars['ConfigUrl']>;
+  key?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+export type ConfigJwtSecretComparisonExp = {
+  _and?: InputMaybe<Array<ConfigJwtSecretComparisonExp>>;
+  _not?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  _or?: InputMaybe<Array<ConfigJwtSecretComparisonExp>>;
+  allowed_skew?: InputMaybe<ConfigUint32ComparisonExp>;
+  audience?: InputMaybe<ConfigStringComparisonExp>;
+  claims_format?: InputMaybe<ConfigStringComparisonExp>;
+  claims_namespace?: InputMaybe<ConfigStringComparisonExp>;
+  claims_namespace_path?: InputMaybe<ConfigStringComparisonExp>;
+  header?: InputMaybe<ConfigStringComparisonExp>;
+  issuer?: InputMaybe<ConfigStringComparisonExp>;
+  jwk_url?: InputMaybe<ConfigUrlComparisonExp>;
+  key?: InputMaybe<ConfigStringComparisonExp>;
+  type?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigJwtSecretInsertInput = {
+  allowed_skew?: InputMaybe<Scalars['ConfigUint32']>;
+  audience?: InputMaybe<Scalars['String']>;
+  claims_format?: InputMaybe<Scalars['String']>;
+  claims_namespace?: InputMaybe<Scalars['String']>;
+  claims_namespace_path?: InputMaybe<Scalars['String']>;
+  header?: InputMaybe<Scalars['String']>;
+  issuer?: InputMaybe<Scalars['String']>;
+  jwk_url?: InputMaybe<Scalars['ConfigUrl']>;
+  key?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigJwtSecretUpdateInput = {
+  allowed_skew?: InputMaybe<Scalars['ConfigUint32']>;
+  audience?: InputMaybe<Scalars['String']>;
+  claims_format?: InputMaybe<Scalars['String']>;
+  claims_namespace?: InputMaybe<Scalars['String']>;
+  claims_namespace_path?: InputMaybe<Scalars['String']>;
+  header?: InputMaybe<Scalars['String']>;
+  issuer?: InputMaybe<Scalars['String']>;
+  jwk_url?: InputMaybe<Scalars['ConfigUrl']>;
+  key?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigLocaleComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigLocale']>;
+  _in?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+  _neq?: InputMaybe<Scalars['ConfigLocale']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+};
+
+export type ConfigPortComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigPort']>;
+  _in?: InputMaybe<Array<Scalars['ConfigPort']>>;
+  _neq?: InputMaybe<Scalars['ConfigPort']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigPort']>>;
+};
+
+export type ConfigProvider = {
+  __typename?: 'ConfigProvider';
+  sms?: Maybe<ConfigSms>;
+  smtp: ConfigSmtp;
+};
+
+export type ConfigProviderComparisonExp = {
+  _and?: InputMaybe<Array<ConfigProviderComparisonExp>>;
+  _not?: InputMaybe<ConfigProviderComparisonExp>;
+  _or?: InputMaybe<Array<ConfigProviderComparisonExp>>;
+  sms?: InputMaybe<ConfigSmsComparisonExp>;
+  smtp?: InputMaybe<ConfigSmtpComparisonExp>;
+};
+
+export type ConfigProviderInsertInput = {
+  sms?: InputMaybe<ConfigSmsInsertInput>;
+  smtp: ConfigSmtpInsertInput;
+};
+
+export type ConfigProviderUpdateInput = {
+  sms?: InputMaybe<ConfigSmsUpdateInput>;
+  smtp?: InputMaybe<ConfigSmtpUpdateInput>;
+};
+
+export type ConfigSms = {
+  __typename?: 'ConfigSms';
+  accountSid: Scalars['String'];
+  authToken: Scalars['String'];
+  from: Scalars['String'];
+  messagingServiceId: Scalars['String'];
+  provider?: Maybe<Scalars['String']>;
+};
+
+export type ConfigSmsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSmsComparisonExp>>;
+  _not?: InputMaybe<ConfigSmsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSmsComparisonExp>>;
+  accountSid?: InputMaybe<ConfigStringComparisonExp>;
+  authToken?: InputMaybe<ConfigStringComparisonExp>;
+  from?: InputMaybe<ConfigStringComparisonExp>;
+  messagingServiceId?: InputMaybe<ConfigStringComparisonExp>;
+  provider?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSmsInsertInput = {
+  accountSid: Scalars['String'];
+  authToken: Scalars['String'];
+  from: Scalars['String'];
+  messagingServiceId: Scalars['String'];
+  provider?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSmsUpdateInput = {
+  accountSid?: InputMaybe<Scalars['String']>;
+  authToken?: InputMaybe<Scalars['String']>;
+  from?: InputMaybe<Scalars['String']>;
+  messagingServiceId?: InputMaybe<Scalars['String']>;
+  provider?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSmtp = {
+  __typename?: 'ConfigSmtp';
+  host: Scalars['String'];
+  method?: Maybe<Scalars['String']>;
+  password: Scalars['String'];
+  port?: Maybe<Scalars['ConfigPort']>;
+  secure?: Maybe<Scalars['Boolean']>;
+  sender?: Maybe<Scalars['String']>;
+  user: Scalars['String'];
+};
+
+export type ConfigSmtpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSmtpComparisonExp>>;
+  _not?: InputMaybe<ConfigSmtpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSmtpComparisonExp>>;
+  host?: InputMaybe<ConfigStringComparisonExp>;
+  method?: InputMaybe<ConfigStringComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  secure?: InputMaybe<ConfigBooleanComparisonExp>;
+  sender?: InputMaybe<ConfigStringComparisonExp>;
+  user?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSmtpInsertInput = {
+  host: Scalars['String'];
+  method?: InputMaybe<Scalars['String']>;
+  password: Scalars['String'];
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  secure?: InputMaybe<Scalars['Boolean']>;
+  sender?: InputMaybe<Scalars['String']>;
+  user: Scalars['String'];
+};
+
+export type ConfigSmtpUpdateInput = {
+  host?: InputMaybe<Scalars['String']>;
+  method?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  secure?: InputMaybe<Scalars['Boolean']>;
+  sender?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStandardOauthProvider = {
+  __typename?: 'ConfigStandardOauthProvider';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStandardOauthProviderComparisonExp>>;
+  _not?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStandardOauthProviderComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigStandardOauthProviderInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigStringComparisonExp = {
+  _eq?: InputMaybe<Scalars['String']>;
+  _in?: InputMaybe<Array<Scalars['String']>>;
+  _neq?: InputMaybe<Scalars['String']>;
+  _nin?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigUint8ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint8']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint8']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint8']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint8']>>;
+};
+
+export type ConfigUint32ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint32']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint32']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+};
+
+export type ConfigUrlComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUrl']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+  _neq?: InputMaybe<Scalars['ConfigUrl']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigUserRoleComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUserRole']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
+  _neq?: InputMaybe<Scalars['ConfigUserRole']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
 /** Database Backups */
@@ -972,37 +1251,6 @@ export type DatabaseBackupEntry = {
   __typename?: 'DatabaseBackupEntry';
   id: Scalars['uuid'];
   size: Scalars['Int'];
-};
-
-export type EmailComparisonExp = {
-  _eq?: InputMaybe<Scalars['Email']>;
-  _in?: InputMaybe<Array<Scalars['Email']>>;
-  _neq?: InputMaybe<Scalars['Email']>;
-  _nin?: InputMaybe<Array<Scalars['Email']>>;
-};
-
-export type EnvironmentVariable = {
-  __typename?: 'EnvironmentVariable';
-  name: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type EnvironmentVariableComparisonExp = {
-  _and?: InputMaybe<Array<EnvironmentVariableComparisonExp>>;
-  _not?: InputMaybe<EnvironmentVariableComparisonExp>;
-  _or?: InputMaybe<Array<EnvironmentVariableComparisonExp>>;
-  name?: InputMaybe<StringComparisonExp>;
-  value?: InputMaybe<StringComparisonExp>;
-};
-
-export type EnvironmentVariableInsertInput = {
-  name: Scalars['String'];
-  value: Scalars['String'];
-};
-
-export type EnvironmentVariableUpdateInput = {
-  name?: InputMaybe<Scalars['String']>;
-  value?: InputMaybe<Scalars['String']>;
 };
 
 /** Function Logs */
@@ -1013,102 +1261,11 @@ export type FunctionLogEntry = {
   message: Scalars['String'];
 };
 
-export type Functions = {
-  __typename?: 'Functions';
-  node?: Maybe<FunctionsNode>;
-};
-
-export type FunctionsComparisonExp = {
-  _and?: InputMaybe<Array<FunctionsComparisonExp>>;
-  _not?: InputMaybe<FunctionsComparisonExp>;
-  _or?: InputMaybe<Array<FunctionsComparisonExp>>;
-  node?: InputMaybe<FunctionsNodeComparisonExp>;
-};
-
-export type FunctionsInsertInput = {
-  node?: InputMaybe<FunctionsNodeInsertInput>;
-};
-
-export type FunctionsNode = {
-  __typename?: 'FunctionsNode';
-  version?: Maybe<Scalars['Int']>;
-};
-
-export type FunctionsNodeComparisonExp = {
-  _and?: InputMaybe<Array<FunctionsNodeComparisonExp>>;
-  _not?: InputMaybe<FunctionsNodeComparisonExp>;
-  _or?: InputMaybe<Array<FunctionsNodeComparisonExp>>;
-  version?: InputMaybe<IntComparisonExp>;
-};
-
-export type FunctionsNodeInsertInput = {
-  version?: InputMaybe<Scalars['Int']>;
-};
-
-export type FunctionsNodeUpdateInput = {
-  version?: InputMaybe<Scalars['Int']>;
-};
-
-export type FunctionsUpdateInput = {
-  node?: InputMaybe<FunctionsNodeUpdateInput>;
-};
-
-export type Global = {
-  __typename?: 'Global';
-  environment?: Maybe<Array<EnvironmentVariable>>;
-  name?: Maybe<Scalars['String']>;
-};
-
-export type GlobalComparisonExp = {
-  _and?: InputMaybe<Array<GlobalComparisonExp>>;
-  _not?: InputMaybe<GlobalComparisonExp>;
-  _or?: InputMaybe<Array<GlobalComparisonExp>>;
-  environment?: InputMaybe<EnvironmentVariableComparisonExp>;
-  name?: InputMaybe<StringComparisonExp>;
-};
-
-export type GlobalInsertInput = {
-  environment?: InputMaybe<Array<EnvironmentVariableInsertInput>>;
-  name?: InputMaybe<Scalars['String']>;
-};
-
-export type GlobalUpdateInput = {
-  environment: Array<EnvironmentVariableUpdateInput>;
-  name?: InputMaybe<Scalars['String']>;
-};
-
-export type Hasura = {
-  __typename?: 'Hasura';
-  jwtSecrets?: Maybe<Array<JwtSecret>>;
-};
-
-export type HasuraComparisonExp = {
-  _and?: InputMaybe<Array<HasuraComparisonExp>>;
-  _not?: InputMaybe<HasuraComparisonExp>;
-  _or?: InputMaybe<Array<HasuraComparisonExp>>;
-  jwtSecrets?: InputMaybe<JwtSecretComparisonExp>;
-};
-
-export type HasuraInsertInput = {
-  jwtSecrets?: InputMaybe<Array<JwtSecretInsertInput>>;
-};
-
-export type HasuraUpdateInput = {
-  jwtSecrets: Array<JwtSecretUpdateInput>;
-};
-
 /** Health */
 export type Health = {
   __typename?: 'Health';
   status: Scalars['String'];
   version: Scalars['String'];
-};
-
-export type IntComparisonExp = {
-  _eq?: InputMaybe<Scalars['Int']>;
-  _in?: InputMaybe<Array<Scalars['Int']>>;
-  _neq?: InputMaybe<Scalars['Int']>;
-  _nin?: InputMaybe<Array<Scalars['Int']>>;
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
@@ -1124,160 +1281,11 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Int']>>;
 };
 
-export type JwtSecret = {
-  __typename?: 'JWTSecret';
-  allowed_skew?: Maybe<Scalars['Uint32']>;
-  audience?: Maybe<Scalars['String']>;
-  claims_format?: Maybe<Scalars['String']>;
-  claims_namespace?: Maybe<Scalars['String']>;
-  claims_namespace_path?: Maybe<Scalars['String']>;
-  header?: Maybe<Scalars['String']>;
-  issuer?: Maybe<Scalars['String']>;
-  jwk_url?: Maybe<Scalars['Url']>;
-  key?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
-};
-
-export type JwtSecretComparisonExp = {
-  _and?: InputMaybe<Array<JwtSecretComparisonExp>>;
-  _not?: InputMaybe<JwtSecretComparisonExp>;
-  _or?: InputMaybe<Array<JwtSecretComparisonExp>>;
-  allowed_skew?: InputMaybe<Uint32ComparisonExp>;
-  audience?: InputMaybe<StringComparisonExp>;
-  claims_format?: InputMaybe<StringComparisonExp>;
-  claims_namespace?: InputMaybe<StringComparisonExp>;
-  claims_namespace_path?: InputMaybe<StringComparisonExp>;
-  header?: InputMaybe<StringComparisonExp>;
-  issuer?: InputMaybe<StringComparisonExp>;
-  jwk_url?: InputMaybe<UrlComparisonExp>;
-  key?: InputMaybe<StringComparisonExp>;
-  type?: InputMaybe<StringComparisonExp>;
-};
-
-export type JwtSecretInsertInput = {
-  allowed_skew?: InputMaybe<Scalars['Uint32']>;
-  audience?: InputMaybe<Scalars['String']>;
-  claims_format?: InputMaybe<Scalars['String']>;
-  claims_namespace?: InputMaybe<Scalars['String']>;
-  claims_namespace_path?: InputMaybe<Scalars['String']>;
-  header?: InputMaybe<Scalars['String']>;
-  issuer?: InputMaybe<Scalars['String']>;
-  jwk_url?: InputMaybe<Scalars['Url']>;
-  key?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
-};
-
-export type JwtSecretUpdateInput = {
-  allowed_skew?: InputMaybe<Scalars['Uint32']>;
-  audience?: InputMaybe<Scalars['String']>;
-  claims_format?: InputMaybe<Scalars['String']>;
-  claims_namespace?: InputMaybe<Scalars['String']>;
-  claims_namespace_path?: InputMaybe<Scalars['String']>;
-  header?: InputMaybe<Scalars['String']>;
-  issuer?: InputMaybe<Scalars['String']>;
-  jwk_url?: InputMaybe<Scalars['Url']>;
-  key?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
-};
-
-export type LocaleComparisonExp = {
-  _eq?: InputMaybe<Scalars['Locale']>;
-  _in?: InputMaybe<Array<Scalars['Locale']>>;
-  _neq?: InputMaybe<Scalars['Locale']>;
-  _nin?: InputMaybe<Array<Scalars['Locale']>>;
-};
-
 export type Log = {
   __typename?: 'Log';
   log: Scalars['String'];
   service: Scalars['String'];
   timestamp: Scalars['Timestamp'];
-};
-
-export type PortComparisonExp = {
-  _eq?: InputMaybe<Scalars['Port']>;
-  _in?: InputMaybe<Array<Scalars['Port']>>;
-  _neq?: InputMaybe<Scalars['Port']>;
-  _nin?: InputMaybe<Array<Scalars['Port']>>;
-};
-
-export type Smtp = {
-  __typename?: 'Smtp';
-  host: Scalars['String'];
-  method?: Maybe<Scalars['String']>;
-  password: Scalars['String'];
-  port?: Maybe<Scalars['Port']>;
-  secure?: Maybe<Scalars['Boolean']>;
-  sender?: Maybe<Scalars['String']>;
-  user: Scalars['String'];
-};
-
-export type SmtpComparisonExp = {
-  _and?: InputMaybe<Array<SmtpComparisonExp>>;
-  _not?: InputMaybe<SmtpComparisonExp>;
-  _or?: InputMaybe<Array<SmtpComparisonExp>>;
-  host?: InputMaybe<StringComparisonExp>;
-  method?: InputMaybe<StringComparisonExp>;
-  password?: InputMaybe<StringComparisonExp>;
-  port?: InputMaybe<PortComparisonExp>;
-  secure?: InputMaybe<BooleanComparisonExp>;
-  sender?: InputMaybe<StringComparisonExp>;
-  user?: InputMaybe<StringComparisonExp>;
-};
-
-export type SmtpInsertInput = {
-  host: Scalars['String'];
-  method?: InputMaybe<Scalars['String']>;
-  password: Scalars['String'];
-  port?: InputMaybe<Scalars['Port']>;
-  secure?: InputMaybe<Scalars['Boolean']>;
-  sender?: InputMaybe<Scalars['String']>;
-  user: Scalars['String'];
-};
-
-export type SmtpUpdateInput = {
-  host?: InputMaybe<Scalars['String']>;
-  method?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
-  port?: InputMaybe<Scalars['Port']>;
-  secure?: InputMaybe<Scalars['Boolean']>;
-  sender?: InputMaybe<Scalars['String']>;
-  user?: InputMaybe<Scalars['String']>;
-};
-
-export type StandardOauthProvider = {
-  __typename?: 'StandardOauthProvider';
-  clientId?: Maybe<Scalars['String']>;
-  clientSecret?: Maybe<Scalars['String']>;
-  enabled?: Maybe<Scalars['Boolean']>;
-};
-
-export type StandardOauthProviderComparisonExp = {
-  _and?: InputMaybe<Array<StandardOauthProviderComparisonExp>>;
-  _not?: InputMaybe<StandardOauthProviderComparisonExp>;
-  _or?: InputMaybe<Array<StandardOauthProviderComparisonExp>>;
-  clientId?: InputMaybe<StringComparisonExp>;
-  clientSecret?: InputMaybe<StringComparisonExp>;
-  enabled?: InputMaybe<BooleanComparisonExp>;
-};
-
-export type StandardOauthProviderInsertInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type StandardOauthProviderUpdateInput = {
-  clientId?: InputMaybe<Scalars['String']>;
-  clientSecret?: InputMaybe<Scalars['String']>;
-  enabled?: InputMaybe<Scalars['Boolean']>;
-};
-
-export type StringComparisonExp = {
-  _eq?: InputMaybe<Scalars['String']>;
-  _in?: InputMaybe<Array<Scalars['String']>>;
-  _neq?: InputMaybe<Scalars['String']>;
-  _nin?: InputMaybe<Array<Scalars['String']>>;
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -1311,34 +1319,6 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars['String']>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['String']>;
-};
-
-export type Uint8ComparisonExp = {
-  _eq?: InputMaybe<Scalars['Uint8']>;
-  _in?: InputMaybe<Array<Scalars['Uint8']>>;
-  _neq?: InputMaybe<Scalars['Uint8']>;
-  _nin?: InputMaybe<Array<Scalars['Uint8']>>;
-};
-
-export type Uint32ComparisonExp = {
-  _eq?: InputMaybe<Scalars['Uint32']>;
-  _in?: InputMaybe<Array<Scalars['Uint32']>>;
-  _neq?: InputMaybe<Scalars['Uint32']>;
-  _nin?: InputMaybe<Array<Scalars['Uint32']>>;
-};
-
-export type UrlComparisonExp = {
-  _eq?: InputMaybe<Scalars['Url']>;
-  _in?: InputMaybe<Array<Scalars['Url']>>;
-  _neq?: InputMaybe<Scalars['Url']>;
-  _nin?: InputMaybe<Array<Scalars['Url']>>;
-};
-
-export type UserRoleComparisonExp = {
-  _eq?: InputMaybe<Scalars['UserRole']>;
-  _in?: InputMaybe<Array<Scalars['UserRole']>>;
-  _neq?: InputMaybe<Scalars['UserRole']>;
-  _nin?: InputMaybe<Array<Scalars['UserRole']>>;
 };
 
 /** columns and relationships of "app_state_history" */
@@ -2045,6 +2025,8 @@ export type Apps = {
   backups: Array<Backups>;
   /** An aggregate relationship */
   backups_aggregate: Backups_Aggregate;
+  cloudEnvironment: Array<ConfigEnvironmentVariable>;
+  config: ConfigConfig;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
   creator?: Maybe<Users>;
@@ -2156,6 +2138,12 @@ export type AppsBackups_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Backups_Order_By>>;
   where?: InputMaybe<Backups_Bool_Exp>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsConfigArgs = {
+  resolveCloudEnvironment: Scalars['Boolean'];
 };
 
 
@@ -10554,8 +10542,8 @@ export type Mutation_Root = {
   deleteCliToken?: Maybe<CliTokens>;
   /** delete data from the table: "cli_tokens" */
   deleteCliTokens?: Maybe<CliTokens_Mutation_Response>;
-  deleteCloudEnvironmentVariable: EnvironmentVariable;
-  deleteConfig: Config;
+  deleteCloudEnvironmentVariable: ConfigEnvironmentVariable;
+  deleteConfig: ConfigConfig;
   /** delete single row from the table: "deployments" */
   deleteDeployment?: Maybe<Deployments>;
   /** delete single row from the table: "deployment_logs" */
@@ -10680,8 +10668,8 @@ export type Mutation_Root = {
   insertCliToken?: Maybe<CliTokens>;
   /** insert data into the table: "cli_tokens" */
   insertCliTokens?: Maybe<CliTokens_Mutation_Response>;
-  insertCloudEnvironmentVariable: EnvironmentVariable;
-  insertConfig: Config;
+  insertCloudEnvironmentVariable: ConfigEnvironmentVariable;
+  insertConfig: ConfigConfig;
   /** insert a single row into the table: "deployments" */
   insertDeployment?: Maybe<Deployments>;
   /** insert a single row into the table: "deployment_logs" */
@@ -10823,8 +10811,8 @@ export type Mutation_Root = {
   updateCliToken?: Maybe<CliTokens>;
   /** update data of the table: "cli_tokens" */
   updateCliTokens?: Maybe<CliTokens_Mutation_Response>;
-  updateCloudEnvironmentVariable: EnvironmentVariable;
-  updateConfig: Config;
+  updateCloudEnvironmentVariable: ConfigEnvironmentVariable;
+  updateConfig: ConfigConfig;
   /** update single row of the table: "deployments" */
   updateDeployment?: Maybe<Deployments>;
   /** update single row of the table: "deployment_logs" */
@@ -11544,14 +11532,14 @@ export type Mutation_RootInsertCliTokensArgs = {
 /** mutation root */
 export type Mutation_RootInsertCloudEnvironmentVariableArgs = {
   appID: Scalars['uuid'];
-  input: EnvironmentVariableInsertInput;
+  input: ConfigEnvironmentVariableInsertInput;
 };
 
 
 /** mutation root */
 export type Mutation_RootInsertConfigArgs = {
   appID: Scalars['uuid'];
-  input: ConfigInsertInput;
+  input: ConfigConfigInsertInput;
 };
 
 
@@ -12077,14 +12065,14 @@ export type Mutation_RootUpdateCliTokensArgs = {
 /** mutation root */
 export type Mutation_RootUpdateCloudEnvironmentVariableArgs = {
   appID: Scalars['uuid'];
-  input: EnvironmentVariableInsertInput;
+  input: ConfigEnvironmentVariableInsertInput;
 };
 
 
 /** mutation root */
 export type Mutation_RootUpdateConfigArgs = {
   appID: Scalars['uuid'];
-  input: ConfigUpdateInput;
+  input: ConfigConfigUpdateInput;
 };
 
 
@@ -13792,10 +13780,10 @@ export type Query_Root = {
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
-  cloudEnvironment: Array<EnvironmentVariable>;
-  cloudEnvironments: Array<AppCloudEnvironment>;
-  config: Config;
-  configs: Array<AppConfig>;
+  cloudEnvironment: Array<ConfigEnvironmentVariable>;
+  cloudEnvironments: Array<ConfigAppCloudEnvironment>;
+  config: ConfigConfig;
+  configs: Array<ConfigAppConfig>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
   /** fetch aggregated fields from the table: "continents" */
@@ -14240,13 +14228,13 @@ export type Query_RootCloudEnvironmentArgs = {
 
 export type Query_RootConfigArgs = {
   appID: Scalars['uuid'];
-  resolveCloudEnvironment?: Scalars['Boolean'];
+  resolveCloudEnvironment: Scalars['Boolean'];
 };
 
 
 export type Query_RootConfigsArgs = {
-  resolveCloudEnvironment?: Scalars['Boolean'];
-  where?: InputMaybe<ConfigComparisonExp>;
+  resolveCloudEnvironment: Scalars['Boolean'];
+  where?: InputMaybe<ConfigConfigComparisonExp>;
 };
 
 
@@ -18723,7 +18711,7 @@ export type RemoteAppGetUsersQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -21673,11 +21661,16 @@ export const RemoteAppGetUsersDocument = gql`
     where: $where
     limit: $limit
     offset: $offset
-    order_by: {displayName: asc}
+    order_by: {createdAt: desc}
   ) {
     ...RemoteAppGetUsers
   }
-  usersAggregate(where: $where) {
+  filteredUsersAggreggate: usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+  usersAggregate {
     aggregate {
       count
     }

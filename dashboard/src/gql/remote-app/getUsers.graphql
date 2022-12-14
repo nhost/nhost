@@ -24,12 +24,16 @@ query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
     where: $where
     limit: $limit
     offset: $offset
-    order_by: { displayName: asc }
+    order_by: {createdAt: desc}
   ) {
     ...RemoteAppGetUsers
   }
-  usersAggregate(where: $where) {
-    # make same where query here
+  filteredUsersAggreggate: usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+  usersAggregate {
     aggregate {
       count
     }

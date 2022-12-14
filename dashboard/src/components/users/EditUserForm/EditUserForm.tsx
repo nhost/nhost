@@ -2,10 +2,10 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import Checkbox from '@/components/ui/v2/Checkbox';
 import { useGetRolesQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
+import Checkbox from '@/ui/v2/Checkbox';
 import Chip from '@/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
@@ -22,6 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
+import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -31,7 +32,17 @@ export interface EditUserFormProps {
   //  * The selected user.
   //  */
   user: RemoteAppGetUsersQuery['users'][0];
-  onEditUser?: any;
+  /**
+   * Function to be called when the form is submitted.
+   */
+  onEditUser?: (
+    values: EditUserFormValues,
+    user: RemoteAppUser,
+  ) => Promise<void>;
+  /**
+   * Function to be called when the operation is cancelled.
+   */
+  onCancel?: VoidFunction;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -315,7 +326,6 @@ export default function EditUserForm({
               )
             }
           />
-          {console.log(user)}
           <ControlledSelect
             {...register('locale')}
             id="locale"

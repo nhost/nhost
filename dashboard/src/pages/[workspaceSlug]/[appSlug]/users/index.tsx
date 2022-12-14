@@ -51,17 +51,6 @@ export default function UsersPage() {
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  const {
-    data: {
-      usersAggregate: {
-        aggregate: { count: totalAmountOfUsers },
-      },
-    } = { usersAggregate: { aggregate: { count: 0 } } },
-    loading,
-  } = useTotalUsersQuery({
-    client: remoteProjectGQLClient,
-  });
-
   /**
    * We want to fetch the queries of the application on this page since we're
    * going to use once the user selects a user of their application; we use it
@@ -216,7 +205,7 @@ export default function UsersPage() {
     return <LoadingScreen />;
   }
 
-  if (totalAmountOfUsers === 0) {
+  if (dataRemoteAppUsers?.usersAggregate?.aggregate?.count === 0) {
     return (
       <Container className="mx-auto max-w-9xl">
         <div className="flex flex-row place-content-between">
@@ -285,15 +274,14 @@ export default function UsersPage() {
         </Button>
       </div>
       <div className="grid grid-flow-row gap-2 lg:w-9xl">
-        <div className="grid w-full h-full grid-flow-row gap-4 overflow-hidden">
+        <div className="grid w-full h-full grid-flow-row overflow-hidden gap-x-4">
           <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-6 border-b-1 ">
             <Text className="font-medium md:col-span-2">Name</Text>
             <Text className="font-medium">Signed up at</Text>
             <Text className="font-medium">Last Seen</Text>
             <Text className="font-medium md:col-span-2">Sign In Methods</Text>
           </div>
-          {totalAmountOfUsers !== 0 &&
-          dataRemoteAppUsers?.users?.length === 0 ? (
+          {dataRemoteAppUsers?.users?.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
               <UserIcon
                 strokeWidth={1}
