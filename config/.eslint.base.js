@@ -19,7 +19,9 @@ module.exports = {
     '*.spec.ts',
     '*.spec.tsx',
     'tests/**/*.ts',
-    'tests/**/*.d.ts'
+    'tests/**/*.d.ts',
+    'e2e/**/*.ts',
+    'e2e/**/*.d.ts'
   ],
   plugins: ['@typescript-eslint', 'cypress'],
   extends: ['plugin:cypress/recommended'],

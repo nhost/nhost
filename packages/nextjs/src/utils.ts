@@ -1,6 +1,6 @@
 import fetch from 'cross-fetch'
 
-import { NhostSession } from '@nhost/core'
+import { NhostSession } from '@nhost/hasura-auth-js'
 
 export const refresh = async (nhostUrl: string, refreshToken: string): Promise<NhostSession> => {
   const result = await fetch(`${nhostUrl}/v1/auth/token`, {

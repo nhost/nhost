@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.7.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
 ## 1.6.4
 
 ### Patch Changes

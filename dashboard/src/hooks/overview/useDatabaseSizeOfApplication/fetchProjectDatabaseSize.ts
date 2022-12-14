@@ -1,6 +1,6 @@
 import type { QueryError, QueryResult } from '@/types/dataBrowser';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { generateAppServiceUrl } from '@/utils/helpers';
 
 export interface FetchProjectDatabaseSizeOptions {
   /**

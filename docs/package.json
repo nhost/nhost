@@ -1,11 +1,11 @@
 {
   "name": "@nhost/docs",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start --no-open",
-    "build": "docusaurus build",
+    "start": "pnpm run -w docgen && docusaurus start --no-open",
+    "build": "pnpm run -w docgen && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

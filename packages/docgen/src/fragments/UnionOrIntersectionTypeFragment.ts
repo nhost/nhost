@@ -1,4 +1,4 @@
-import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
+import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
 import { UnionOrIntersectionType } from '../types'
 
 export type UnionOrIntersectionTypeFragmentOptions = {
@@ -35,19 +35,21 @@ export const UnionOrIntersectionTypeFragment = (
     return ''
   }
 
-  const content = unionOrIntersection.types
-    // note: we would not able to provide references for types that are wrapped
-    // in a code block because of markdown limitations
-    .map((type) => getLabelForType(type, { reference: false, ...labelOptions }))
-    .join(unionOrIntersection.type === 'union' ? ` | ` : ' & ')
-
+  // note: we would not able to provide references for types that are wrapped
+  // in a code block because of markdown limitations
   if (wrap) {
     return `\`\`\`ts
-${originalName ? `type ${originalName} = ` : ``}${content.replace(/`/gi, '')}
+${originalName ? `type ${originalName} = ` : ``}${unionOrIntersection.types
+      .map((type) => getLabelForType(type, { reference: false, ...labelOptions, wrap: false }))
+      .join(unionOrIntersection.type === 'union' ? ` | ` : ' & ')
+      .replace(/`/gi, '')}
 \`\`\``.trim()
   }
 
-  return `${content.replace(/\|/gi, '|')}`
+  return `${unionOrIntersection.types
+    .map((type) => getLabelForType(type, { ...labelOptions }))
+    .join(unionOrIntersection.type === 'union' ? ` | ` : ' & ')
+    .replace(/\|/gi, '|')}`
 }
 
 export default UnionOrIntersectionTypeFragment

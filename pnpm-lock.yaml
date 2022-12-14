@@ -99,7 +99,6 @@ importers:
       '@mui/system': ^5.10.14
       '@mui/x-date-pickers': ^5.0.8
       '@next/bundle-analyzer': ^12.3.1
-      '@nhost/core': workspace:*
       '@nhost/nextjs': workspace:*
       '@nhost/nhost-js': workspace:*
       '@nhost/react': workspace:*
@@ -222,7 +221,6 @@ importers:
       '@mui/material': 5.10.14_thp4wrxo45nyllusrnt46mid4u
       '@mui/system': 5.10.14_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
-      '@nhost/core': link:../packages/core
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/nhost-js': link:../packages/nhost-js
       '@nhost/react': link:../packages/react
@@ -651,7 +649,7 @@ importers:
       '@apollo/client': ^3.7.1
       '@mdi/font': 5.9.55
       '@nhost/apollo': '*'
-      '@nhost/core': '*'
+      '@nhost/hasura-auth-js': '*'
       '@nhost/vue': '*'
       '@types/webfontloader': ^1.6.35
       '@vitejs/plugin-vue': ^2.3.4
@@ -684,7 +682,7 @@ importers:
       vuetify: 3.0.0-beta.10_5xmtcui7n2fsr6aaqzp3akxd4q
       webfontloader: 1.6.28
     devDependencies:
-      '@nhost/core': link:../../packages/core
+      '@nhost/hasura-auth-js': link:../../packages/hasura-auth-js
       '@types/webfontloader': 1.6.35
       '@vitejs/plugin-vue': 2.3.4_vite@3.2.2+vue@3.2.41
       '@xstate/inspect': 0.6.5
@@ -811,25 +809,6 @@ importers:
     devDependencies:
       '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
 
-  packages/core:
-    specifiers:
-      '@simplewebauthn/browser': ^6.0.0
-      '@simplewebauthn/typescript-types': ^6.0.0
-      '@types/js-cookie': ^3.0.2
-      axios: ^1.2.0
-      js-cookie: ^3.0.1
-      msw: ^0.49.0
-      xstate: ^4.33.5
-    dependencies:
-      '@simplewebauthn/browser': 6.0.0
-      axios: 1.2.0
-      js-cookie: 3.0.1
-      xstate: 4.33.6
-    devDependencies:
-      '@simplewebauthn/typescript-types': 6.0.0
-      '@types/js-cookie': 3.0.2
-      msw: 0.49.0
-
   packages/docgen:
     specifiers:
       '@swc/core': ^1.3.11
@@ -861,23 +840,31 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/typescript-types': ^6.0.0
+      '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
+      js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
+      msw: ^0.47.4
       start-server-and-test: ^1.14.0
       xstate: ^4.33.5
     dependencies:
+      '@simplewebauthn/browser': 6.0.0
       axios: 1.2.0
+      js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
+      '@simplewebauthn/typescript-types': 6.0.0
+      '@types/js-cookie': 3.0.2
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
+      msw: 0.47.4
       start-server-and-test: 1.14.0
 
   packages/hasura-auth-js/functions:
@@ -885,7 +872,6 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       axios: ^1.2.0
       cross-fetch: ^3.1.5
@@ -898,7 +884,6 @@ importers:
       form-data: 4.0.0
       xstate: 4.33.6
     devDependencies:
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
       start-server-and-test: 1.14.0
@@ -909,8 +894,8 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
@@ -921,13 +906,13 @@ importers:
       react-dom: ^17.0.2
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
       cross-fetch: 3.1.5
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/react': link:../react
       '@types/js-cookie': 3.0.2
       next: 12.3.4_sfoxds7t5ydpegc3knd667wn6m
@@ -962,8 +947,8 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.25
@@ -973,7 +958,7 @@ importers:
       react: ^18.2.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
@@ -1031,7 +1016,6 @@ importers:
 
   packages/vue:
     specifiers:
-      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
@@ -1047,7 +1031,6 @@ importers:
       ws: ^8.10.0
       xstate: ^4.33.5
     dependencies:
-      '@nhost/core': link:../core
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 9.6.0_vue@3.2.41
@@ -22282,7 +22265,7 @@ packages:
     hasBin: true
     requiresBuild: true
     peerDependencies:
-      typescript: '>= 4.4.x <= 4.9.x'
+      typescript: '>= 4.2.x <= 4.8.x'
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -22303,6 +22286,7 @@ packages:
       node-fetch: 2.6.7
       outvariant: 1.3.0
       path-to-regexp: 6.2.1
+      statuses: 2.0.1
       strict-event-emitter: 0.2.8
       type-fest: 2.19.0
       yargs: 17.6.0
