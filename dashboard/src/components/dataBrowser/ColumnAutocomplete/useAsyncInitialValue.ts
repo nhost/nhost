@@ -84,19 +84,23 @@ export default function useAsyncInitialValue({
     // If there is a single column in the path, it means that we can look for it
     // in the table columns
     if (
-      tableData.columns.some((column) => column.column_name === activeColumn)
+      !tableData.columns.some((column) => column.column_name === activeColumn)
     ) {
-      setSelectedColumn({
-        value: activeColumn,
-        label: activeColumn,
-        group: 'columns',
-        metadata: tableData.columns.find(
-          (column) => column.column_name === activeColumn,
-        ),
-      });
-      setRemainingColumnPath((columnPath) => columnPath.slice(1));
-      setInputValue(activeColumn);
+      setRemainingColumnPath([]);
+
+      return;
     }
+
+    setSelectedColumn({
+      value: activeColumn,
+      label: activeColumn,
+      group: 'columns',
+      metadata: tableData.columns.find(
+        (column) => column.column_name === activeColumn,
+      ),
+    });
+    setRemainingColumnPath((columnPath) => columnPath.slice(1));
+    setInputValue(activeColumn);
   }, [remainingColumnPath, isTableLoading, tableData?.columns]);
 
   useEffect(() => {
@@ -122,6 +126,7 @@ export default function useAsyncInitialValue({
       0,
       remainingColumnPath.length - 1,
     );
+
     const tableMetadata = metadataMap.get(`${selectedSchema}.${selectedTable}`);
     const currentRelationship = [
       ...(tableMetadata.object_relationships || []),
@@ -129,6 +134,7 @@ export default function useAsyncInitialValue({
     ].find(({ name }) => name === nextPath);
 
     if (!currentRelationship) {
+      setRemainingColumnPath([]);
       return;
     }
 
@@ -168,6 +174,7 @@ export default function useAsyncInitialValue({
     );
 
     if (!foreignKeyRelation) {
+      setRemainingColumnPath([]);
       return;
     }
 
