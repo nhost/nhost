@@ -30,13 +30,13 @@ The rule above make it so users can only select posts where the value of `user_i
 
 ## What is `x-hasura-user-id`?
 
-`x-hasura-user-id` is a permission variable that is used to create permission rules in Hasura. The permission variable comes from the [access token](/authentication#access-tokens) that signed-in users have.
+`x-hasura-user-id` is a permission variable that is used to create permission rules in Hasura. The permission variable comes from the [access token](/authentication/tokens#access-token) that authenticated users have.
 
-The `x-hasura-user-id` permission variable is always available for all signed-in users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your project.
+The `x-hasura-user-id` permission variable is always available for all authenticated users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your project.
 
 ## Custom Permission Variables
 
-You can add custom permission variables in the Nhost console under **Users** and then **Roles and permissions**. These permission variables are then available when creating permissions for your GraphQL API in the Hasura console.
+You can add custom permission variables in the Nhost Dashboard under **Settings -> Roles and permissions**. These custom permission variables will be automatically added to users' [access tokens](/authentication/tokens#access-token). This way, custom permission variables can be used when creating permissions for your GraphQL API in the Hasura Console.
 
 ![Permission Variables](/img/permission-variables-preview.png)
 
@@ -56,7 +56,9 @@ query {
 
 ### Local Custom Permission Variables
 
-To use custom permission variables locally, add your claims to the `config.yml` as following:
+To use custom permission variables locally, add your claims to the `config.yml`.
+
+**Example:** Add a custom permission variable `x-hasura-organisation-id`:
 
 ```
 auth:
@@ -64,11 +66,9 @@ auth:
     custom_claims: '{"organisation-id":"profile.organisation.id"}'
 ```
 
-Your custom claim will be automatically prefixed with `x-hasura-`, therefore, the example above results in a custom permission variable named `x-hasura-organisation-id`.
-
 :::caution
 
-The custom claim path should **not** start with `user` when being defined in the `config.yaml` file.
+The custom claim path should **not** start with `user` when defined in the `config.yaml` file.
 
 ✅ Correct:
 
