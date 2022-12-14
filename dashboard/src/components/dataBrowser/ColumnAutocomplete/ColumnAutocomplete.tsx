@@ -129,6 +129,7 @@ function ColumnAutocomplete(
     setSelectedColumn,
     selectedRelationships,
     setSelectedRelationships,
+    relationshipDotNotation,
     activeRelationship: asyncActiveRelationship,
   } = useAsyncInitialValue({
     selectedSchema,
@@ -139,11 +140,6 @@ function ColumnAutocomplete(
     tableData,
     metadata,
   });
-
-  const relationshipDotNotation =
-    selectedRelationships?.length > 0
-      ? selectedRelationships.map((relationship) => relationship.name).join('.')
-      : '';
 
   useEffect(() => {
     setActiveRelationship(asyncActiveRelationship);

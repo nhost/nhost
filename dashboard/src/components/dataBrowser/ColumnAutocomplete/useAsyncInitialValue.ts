@@ -52,6 +52,10 @@ export default function useAsyncInitialValue({
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
   >([]);
+  const relationshipDotNotation =
+    initialized && selectedRelationships?.length > 0
+      ? selectedRelationships.map((relationship) => relationship.name).join('.')
+      : '';
   const [selectedColumn, setSelectedColumn] =
     useState<AutocompleteOption>(null);
 
@@ -194,8 +198,9 @@ export default function useAsyncInitialValue({
     setInputValue,
     activeRelationship,
     selectedRelationships: initialized ? selectedRelationships : [],
-    setSelectedRelationships,
     selectedColumn: initialized ? selectedColumn : null,
+    setSelectedRelationships,
     setSelectedColumn,
+    relationshipDotNotation,
   };
 }

@@ -41,12 +41,13 @@ const defaultParameters = {
 const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
   args: ColumnAutocompleteProps,
 ) {
+  const { value } = args || {};
   const [submittedValues, setSubmittedValues] = useState<string>('');
 
   const form = useForm<{ firstReference: string; secondReference: string }>({
     defaultValues: {
-      firstReference: null,
-      secondReference: null,
+      firstReference: (value as string) || null,
+      secondReference: (value as string) || null,
     },
   });
 
@@ -65,8 +66,8 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
             {...args}
             name="firstReference"
             label="First Reference"
-            onChange={(_event, value) =>
-              form.setValue('firstReference', value.value, {
+            onChange={(_event, newValue) =>
+              form.setValue('firstReference', newValue.value, {
                 shouldDirty: true,
               })
             }
@@ -75,8 +76,8 @@ const Template: ComponentStory<typeof ColumnAutocomplete> = function Template(
             {...args}
             name="secondReference"
             label="Second Reference"
-            onChange={(_event, value) =>
-              form.setValue('secondReference', value.value, {
+            onChange={(_event, newValue) =>
+              form.setValue('secondReference', newValue.value, {
                 shouldDirty: true,
               })
             }
@@ -106,7 +107,7 @@ export const DefaultValue = Template.bind({});
 DefaultValue.args = {
   schema: 'public',
   table: 'books',
-  value: 'author.books.author.id',
+  value: 'author.id',
 };
 DefaultValue.parameters = defaultParameters;
 
