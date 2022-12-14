@@ -1,5 +1,7 @@
 # Nhost with React and URQL Example
 
+![Demo](assets/demo.png)
+
 ## Get Started
 
 1. Clone the repository
