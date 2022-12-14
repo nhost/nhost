@@ -70,9 +70,6 @@ export default function EditUserForm({
     [data],
   );
 
-  console.log(allAvailableProjectRoles, allAvailableProjectRoles);
-
-  // console.log(user);
   const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
 
   const form = useForm<EditUserFormValues>({
@@ -132,6 +129,8 @@ export default function EditUserForm({
       },
     });
   }
+
+  const signInMethodsAvailable = user.email || user.userProviders.length !== 0;
 
   return (
     <FormProvider {...form}>
@@ -316,6 +315,7 @@ export default function EditUserForm({
               )
             }
           />
+          {console.log(user)}
           <ControlledSelect
             {...register('locale')}
             id="locale"
@@ -330,17 +330,17 @@ export default function EditUserForm({
             <Option value="fr">French</Option>
           </ControlledSelect>
         </section>
-        {!isAnonymous && (
-          <section className="grid grid-flow-col grid-cols-8 p-6">
-            <div className="col-span-2">
+        {signInMethodsAvailable && (
+          <section className="grid grid-cols-4 p-6 place-content-start">
+            <div className="col-span-1">
               <InputLabel as="h3">Sign-In Methods</InputLabel>
             </div>
-            <div className="grid grid-flow-row col-span-6 gap-y-6">
+            <div className="grid w-full grid-flow-row col-span-2 gap-y-6">
               {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
               {user.email && (
                 <div className="grid grid-flow-col gap-x-1 place-content-between">
-                  <div className="grid grid-flow-col span-cols-1">
-                    <Image src="/assets/Envelope.svg" width={12} height={15} />
+                  <div className="grid grid-flow-col gap-3 span-cols-1">
+                    <Image src="/assets/Envelope.svg" width={25} height={25} />
                     <Text className="font-medium">Email + Password</Text>
                   </div>
 
@@ -353,11 +353,30 @@ export default function EditUserForm({
                 </div>
               )}
 
-              {/* <div className="grid grid-flow-col gap-0">
-              <Image src="/logos/Apple.svg" width={12} height={15} />
-              <Text className="font-medium">Email + Password</Text>
-              <Chip component="span" color="info" size="small" label="Active" />
-            </div> */}
+              {user.userProviders.map((provider) => (
+                <div className="grid grid-flow-col gap-3 place-content-between">
+                  <div className="grid grid-flow-col gap-3 span-cols-1">
+                    <Image
+                      src={`/logos/${
+                        provider.providerId[0].toUpperCase() +
+                        provider.providerId.slice(1)
+                      }.svg`}
+                      width={25}
+                      height={25}
+                    />
+                    <Text className="font-medium capitalize">
+                      {provider.providerId}
+                    </Text>
+                  </div>
+
+                  <Chip
+                    component="span"
+                    color="success"
+                    size="small"
+                    label="Active"
+                  />
+                </div>
+              ))}
             </div>
           </section>
         )}

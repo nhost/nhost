@@ -286,11 +286,11 @@ export default function UsersPage() {
       </div>
       <div className="grid grid-flow-row gap-2 lg:w-9xl">
         <div className="grid w-full h-full grid-flow-row gap-4 overflow-hidden">
-          <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-5 border-b-1 ">
+          <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-6 border-b-1 ">
             <Text className="font-medium md:col-span-2">Name</Text>
             <Text className="font-medium">Signed up at</Text>
             <Text className="font-medium">Last Seen</Text>
-            <Text className="font-medium">Sign In Methods</Text>
+            <Text className="font-medium md:col-span-2">Sign In Methods</Text>
           </div>
           {totalAmountOfUsers !== 0 &&
           dataRemoteAppUsers?.users?.length === 0 ? (

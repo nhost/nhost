@@ -70,7 +70,7 @@ export default function UsersBody({
           <Fragment key={user.id}>
             <ListItem.Root className="w-full h-[64px]">
               <ListItem.Button
-                className="grid grid-cols-5 cursor-pointer py-2.5 h-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
+                className="grid grid-cols-6 cursor-pointer py-2.5 h-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                 onClick={() => handleViewUser(user)}
               >
                 <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">
@@ -110,23 +110,53 @@ export default function UsersBody({
                     : '-'}
                 </Text>
 
-                <div>
-                  <Chip
-                    component="span"
-                    color="default"
-                    size="small"
-                    label="Email & Password"
-                    sx={{
-                      paddingLeft: '0.55rem',
-                    }}
-                    icon={
-                      <Image
-                        src="/assets/Envelope.svg"
-                        width={16}
-                        height={16}
-                      />
-                    }
-                  />
+                <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">
+                  {!user.email && user.userProviders.length === 0 && (
+                    <Text className="col-span-3 font-medium">-</Text>
+                  )}
+                  {user.email && (
+                    <Chip
+                      component="span"
+                      color="default"
+                      size="small"
+                      label="Email & Password"
+                      sx={{
+                        paddingLeft: '0.55rem',
+                      }}
+                      icon={
+                        <Image
+                          src="/assets/Envelope.svg"
+                          width={16}
+                          height={16}
+                        />
+                      }
+                    />
+                  )}
+
+                  {user.userProviders.map((provider) => (
+                    <Chip
+                      component="span"
+                      color="default"
+                      size="small"
+                      label={
+                        provider.providerId[0].toUpperCase() +
+                        provider.providerId.slice(1)
+                      }
+                      sx={{
+                        paddingLeft: '0.55rem',
+                      }}
+                      icon={
+                        <Image
+                          src={`/logos/${
+                            provider.providerId[0].toUpperCase() +
+                            provider.providerId.slice(1)
+                          }.svg`}
+                          width={16}
+                          height={16}
+                        />
+                      }
+                    />
+                  ))}
                 </div>
               </ListItem.Button>
               <Dropdown.Root>
