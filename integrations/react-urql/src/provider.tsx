@@ -16,19 +16,24 @@ import { devtoolsExchange } from '@urql/devtools'
 import type { NhostClient } from '@nhost/nhost-js'
 
 export type NhostUrqlClientOptions = {
+  /* Nhost client instance */
   nhost?: NhostClient
+  /* GraphQL endpoint URL */
   graphqlUrl?: string
+  /* Additional headers to send with every request */
   headers?: {
     [header: string]: string
   }
+  /* Request policy. */
   requestPolicy?: RequestPolicy
+  /* Custom URQL exchanges. */
   exchanges?: Exchange[]
 }
 
 // TODO: Break out this function to a separate package: @nhost/urql
 // Opinionated urql client for Nhost
 function createNhostUrqlClient(options: NhostUrqlClientOptions) {
-  const { nhost, headers, requestPolicy = 'cache-and-network' } = options
+  const { nhost, headers, requestPolicy = 'cache-and-network', exchanges } = options
 
   if (!nhost) {
     throw new Error('No `nhost` instance provided.')
@@ -49,7 +54,7 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
     return resHeaders
   }
 
-  let exchanges: Exchange[] | undefined = [
+  let urqlExchanges: Exchange[] = [
     devtoolsExchange,
     dedupExchange,
     refocusExchange(),
@@ -94,8 +99,11 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
       })
     })
 
-    exchanges.push(subExchange)
+    urqlExchanges.push(subExchange)
   }
+
+  // Allow users to override the default exchanges
+  urqlExchanges = [...urqlExchanges, ...(exchanges || [])]
 
   const client = createUrqlClient({
     url: nhost.graphql.getUrl(),
