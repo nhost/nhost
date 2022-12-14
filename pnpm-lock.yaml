@@ -638,7 +638,7 @@ importers:
       vite: ^3.2.2
     dependencies:
       '@nhost/react': link:../../packages/react
-      '@nhost/react-urql': link:../../packages/react-urql
+      '@nhost/react-urql': link:../../integrations/react-urql
       clsx: 1.2.1
       graphql: 15.7.2
       react: 18.2.0
@@ -809,6 +809,29 @@ importers:
       '@types/node': 18.11.9
       dotenv: 16.0.3
       typescript: 4.8.4
+
+  integrations/react-urql:
+    specifiers:
+      '@nhost/react': workspace:*
+      '@types/react': ^18.0.25
+      '@urql/devtools': ^2.0.3
+      '@urql/exchange-refocus': ^1.0.0
+      graphql: 15.7.2
+      graphql-ws: ^5.11.2
+      react: ^18.2.0
+      react-dom: ^18.2.0
+      urql: ^3.0.3
+    dependencies:
+      '@urql/devtools': 2.0.3_graphql@15.7.2
+      '@urql/exchange-refocus': 1.0.0_graphql@15.7.2
+      graphql-ws: 5.11.2_graphql@15.7.2
+    devDependencies:
+      '@nhost/react': link:../../packages/react
+      '@types/react': 18.0.26
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      urql: 3.0.3_qqqj7xqn73klpidhtp57t4zzwm
 
   integrations/stripe-graphql-js:
     specifiers:
@@ -1029,29 +1052,6 @@ importers:
       graphql: 15.7.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-
-  packages/react-urql:
-    specifiers:
-      '@nhost/react': workspace:*
-      '@types/react': ^18.0.25
-      '@urql/devtools': ^2.0.3
-      '@urql/exchange-refocus': ^1.0.0
-      graphql: 15.7.2
-      graphql-ws: ^5.11.2
-      react: ^18.2.0
-      react-dom: ^18.2.0
-      urql: ^3.0.3
-    dependencies:
-      '@urql/devtools': 2.0.3_graphql@15.7.2
-      '@urql/exchange-refocus': 1.0.0_graphql@15.7.2
-      graphql-ws: 5.11.2_graphql@15.7.2
-    devDependencies:
-      '@nhost/react': link:../react
-      '@types/react': 18.0.25
-      graphql: 15.7.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      urql: 3.0.3_qqqj7xqn73klpidhtp57t4zzwm
 
   packages/sync-versions:
     specifiers:
