@@ -31,7 +31,7 @@ function createNhostUrqlClient(options: NhostUrqlClientOptions) {
   const { nhost, headers, requestPolicy = 'cache-and-network' } = options
 
   if (!nhost) {
-    throw Error('No `nhost` instance provided.')
+    throw new Error('No `nhost` instance provided.')
   }
 
   const getHeaders = () => {
