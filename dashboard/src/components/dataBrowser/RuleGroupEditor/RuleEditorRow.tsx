@@ -1,6 +1,6 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
-import type { PermissionOperator } from '@/types/dataBrowser';
+import type { HasuraOperator } from '@/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import { useRouter } from 'next/router';
@@ -30,11 +30,11 @@ export interface RuleEditorRowProps
    *
    * @default []
    */
-  disabledOperators?: PermissionOperator[];
+  disabledOperators?: HasuraOperator[];
 }
 
 const commonOperators: {
-  value: PermissionOperator;
+  value: HasuraOperator;
   label?: string;
   helperText?: string;
 }[] = [
@@ -170,7 +170,7 @@ export default function RuleEditorRow({
         className="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[140px] h-10"
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
-        onChange={(_event, value: PermissionOperator) => {
+        onChange={(_event, value: HasuraOperator) => {
           if (!['_in', '_nin', '_in_hasura', '_nin_hasura'].includes(value)) {
             return;
           }

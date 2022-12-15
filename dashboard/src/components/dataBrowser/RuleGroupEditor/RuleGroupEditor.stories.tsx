@@ -48,7 +48,7 @@ const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
   const form = useForm<{ ruleGroupEditor: RuleGroup }>({
     defaultValues: {
       ruleGroupEditor: {
-        operation: '_and',
+        operator: '_and',
         rules: [{ column: '', operator: '_eq', value: '' }],
         groups: [],
       },

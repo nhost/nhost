@@ -3,7 +3,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { PermissionOperator } from '@/types/dataBrowser';
+import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
@@ -29,7 +29,7 @@ export default function RuleValueInput({
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
-  const operator: PermissionOperator = useWatch({ name: `${name}.operator` });
+  const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
   const {
     query: { schemaSlug, tableSlug },

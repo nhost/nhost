@@ -14,12 +14,12 @@ export interface RuleGroupControlsProps
   name: string;
   /**
    * Determines whether or not select should be shown or just a label with the
-   * operation name.
+   * operator name.
    */
   showSelect?: boolean;
 }
 
-const operationDictionary: Record<RuleGroup['operation'], string> = {
+const operatorDictionary: Record<RuleGroup['operator'], string> = {
   _and: 'and',
   _or: 'or',
 };
@@ -30,8 +30,8 @@ export default function RuleGroupControls({
   className,
   ...props
 }: RuleGroupControlsProps) {
-  const currentOperation: RuleGroup['operation'] = useWatch({
-    name: `${name}.operation`,
+  const currentOperator: RuleGroup['operator'] = useWatch({
+    name: `${name}.operator`,
   });
 
   return (
@@ -41,7 +41,7 @@ export default function RuleGroupControls({
     >
       {showSelect ? (
         <ControlledSelect
-          name={`${name}.operation`}
+          name={`${name}.operator`}
           slotProps={{ root: { className: 'bg-white' } }}
           fullWidth
         >
@@ -50,7 +50,7 @@ export default function RuleGroupControls({
         </ControlledSelect>
       ) : (
         <Text className="p-2 !font-medium">
-          {operationDictionary[currentOperation]}
+          {operatorDictionary[currentOperator]}
         </Text>
       )}
     </div>

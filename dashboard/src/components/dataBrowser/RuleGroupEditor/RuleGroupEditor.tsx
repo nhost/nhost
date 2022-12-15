@@ -85,7 +85,7 @@ export default function RuleGroupEditor({
       {...props}
     >
       <div className="flex flex-col flex-auto space-y-4 lg:space-y-2 py-4">
-        {(rules as Rule[]).map((rule, ruleIndex) => (
+        {(rules as (Rule & { id: string })[]).map((rule, ruleIndex) => (
           <div className="flex flex-row flex-auto" key={rule.id}>
             <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
               {ruleIndex === 0 && (
@@ -107,35 +107,37 @@ export default function RuleGroupEditor({
           </div>
         ))}
 
-        {(groups as RuleGroup[]).map((ruleGroup, ruleGroupIndex) => (
-          <div
-            className="flex flex-row flex-auto items-start mt-2"
-            key={ruleGroup.id}
-          >
-            <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
-              {rules.length === 0 && ruleGroupIndex === 0 && (
-                <Text className="p-2 !font-medium">Where</Text>
-              )}
+        {(groups as (RuleGroup & { id: string })[]).map(
+          (ruleGroup, ruleGroupIndex) => (
+            <div
+              className="flex flex-row flex-auto items-start mt-2"
+              key={ruleGroup.id}
+            >
+              <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
+                {rules.length === 0 && ruleGroupIndex === 0 && (
+                  <Text className="p-2 !font-medium">Where</Text>
+                )}
 
-              <RuleGroupControls
-                name={name}
-                showSelect={
-                  (rules.length === 0 && ruleGroupIndex === 1) ||
-                  (rules.length === 1 && ruleGroupIndex === 0)
-                }
+                <RuleGroupControls
+                  name={name}
+                  showSelect={
+                    (rules.length === 0 && ruleGroupIndex === 1) ||
+                    (rules.length === 1 && ruleGroupIndex === 0)
+                  }
+                />
+              </div>
+
+              <RuleGroupEditor
+                onRemove={() => removeGroup(ruleGroupIndex)}
+                disableRemove={rules.length === 0 && groups.length === 1}
+                disabledOperators={disabledOperators}
+                name={`${name}.groups.${ruleGroupIndex}`}
+                className="flex-auto"
+                depth={depth + 1}
               />
             </div>
-
-            <RuleGroupEditor
-              onRemove={() => removeGroup(ruleGroupIndex)}
-              disableRemove={rules.length === 0 && groups.length === 1}
-              disabledOperators={disabledOperators}
-              name={`${name}.groups.${ruleGroupIndex}`}
-              className="flex-auto"
-              depth={depth + 1}
-            />
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
       <div className="grid grid-flow-col justify-between gap-2 pb-2">
@@ -155,7 +157,7 @@ export default function RuleGroupEditor({
             variant="borderless"
             onClick={() =>
               appendGroup({
-                operation: '_and',
+                operator: '_and',
                 rules: [{ column: '', operator: '_eq', value: '' }],
                 groups: [],
               })

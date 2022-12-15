@@ -486,30 +486,9 @@ export interface DataBrowserGridCellProps<
 }
 
 /**
- * Represents a rule. A rule is a single condition in a rule group.
+ * Represents a Hasura operator.
  */
-export interface Rule {
-  id: string;
-  column: string;
-  operator: string;
-  value: any;
-}
-
-/**
- * Represents a rule group. A rule group can contain rules and other rule
- * groups.
- */
-export interface RuleGroup {
-  id: string;
-  operation: '_and' | '_or';
-  rules: Rule[];
-  groups: RuleGroup[];
-}
-
-/**
- * Represents an operator for a permission rule.
- */
-export type PermissionOperator =
+export type HasuraOperator =
   | '_eq'
   | '_neq'
   | '_in'
@@ -520,13 +499,6 @@ export type PermissionOperator =
   | '_lt'
   | '_gte'
   | '_lte'
-  | '_ceq'
-  | '_cne'
-  | '_cgt'
-  | '_clt'
-  | '_cgte'
-  | '_clte'
-  | '_is_null'
   | '_like'
   | '_nlike'
   | '_ilike'
@@ -536,4 +508,30 @@ export type PermissionOperator =
   | '_regex'
   | '_iregex'
   | '_nregex'
-  | '_niregex';
+  | '_niregex'
+  | '_ceq'
+  | '_cne'
+  | '_cgt'
+  | '_clt'
+  | '_cgte'
+  | '_clte'
+  | '_is_null';
+
+/**
+ * Represents a rule. A rule is a single condition in a rule group.
+ */
+export interface Rule {
+  column: string;
+  operator: HasuraOperator;
+  value: any;
+}
+
+/**
+ * Represents a rule group. A rule group can contain rules and other rule
+ * groups.
+ */
+export interface RuleGroup {
+  operator: '_and' | '_or';
+  rules: Rule[];
+  groups: RuleGroup[];
+}
