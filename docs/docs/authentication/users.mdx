@@ -73,12 +73,6 @@ By default, users have two allowed roles:
 
 You can change what the default role for new users should be at **Settings -> Roles and Permissions**.
 
-:::info
-
-You must also add the roles manually to the `auth.roles` table.
-
-:::
-
 #### Assign Allowed Roles
 
 It's possible to give users a subset of allowed roles during signup.
@@ -94,10 +88,6 @@ await nhost.auth.signUp({
   }
 })
 ```
-
-### Public Role
-
-The `public` role is used to resolve permissions for unauthenticated users.
 
 ### Set Role for GraphQL Requests
 
@@ -127,7 +117,7 @@ If the request is not part of the user's allowed roles, the request will fail.
 
 You can store custom information about the user in the `metadata` column of the `users` table. The `metadata` column is of type JSONB so any JSON data can be stored.
 
-This is how you attach custom metadata to a user during sign-up:
+**Example:** Add metadata to a user during sign-up:
 
 ```js
 await nhost.auth.signUp({
@@ -169,4 +159,4 @@ Connect directly to the database and insert a user like this:
 INSERT INTO auth.users (id, email, display_name, password_hash, ..) VALUES ('<user-id>', '<email>', '<display-name>', '<password-hash>', ..);
 ```
 
-User passwords are hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt).
+Passwords are hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt).
