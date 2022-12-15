@@ -17,6 +17,7 @@ fragment RemoteAppGetUsers on users {
   userProviders {
     providerId
   }
+  disabled
 }
 
 query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {

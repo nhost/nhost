@@ -19,7 +19,7 @@ import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
-  PropsWithChildren
+  PropsWithChildren,
 } from 'react';
 import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -28,7 +28,7 @@ import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
   dialogReducer,
-  drawerReducer
+  drawerReducer,
 } from './dialogReducers';
 
 function LoadingComponent({
@@ -395,6 +395,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {...sharedDrawerProps}
               user={drawerPayload?.user}
               onEditUser={drawerPayload?.onEditUser}
+              onBanUser={drawerPayload?.onBanUser}
             />
           )}
         </RetryableErrorBoundary>

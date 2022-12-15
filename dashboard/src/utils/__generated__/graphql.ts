@@ -19270,6 +19270,7 @@ export const RemoteAppGetUsersFragmentDoc = gql`
   userProviders {
     providerId
   }
+  disabled
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`

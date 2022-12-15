@@ -33,7 +33,7 @@ export type RemoteAppUser = Exclude<
 >;
 
 export default function UsersPage() {
-  const { openDialog, openAlertDialog, closeDrawer } = useDialog();
+  const { openDialog, openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -131,6 +131,28 @@ export default function UsersPage() {
     });
   }
 
+  async function handleBanUser(user: RemoteAppUser) {
+    const banUser = updateUser({
+      variables: {
+        id: user.id,
+        user: {
+          disabled: !user.disabled,
+        },
+      },
+    });
+
+    await toast.promise(
+      banUser,
+      {
+        loading: 'Banning User...',
+        success: 'User banned successfully.',
+        error: 'Failed to update user settings.',
+      },
+      { ...toastStyleProps },
+    );
+    await refetchProjectUsers();
+  }
+
   function handleDeleteUser(user: RemoteAppUser) {
     openAlertDialog({
       title: 'Delete User',
@@ -197,6 +219,13 @@ export default function UsersPage() {
     );
     await refetchProjectUsers();
     closeDrawer();
+  }
+
+  function handleViewUser(user: RemoteAppUser) {
+    openDrawer('EDIT_USER', {
+      title: 'User Details',
+      payload: { user, onEditUser: handleEditUser, onBanUser: handleBanUser },
+    });
   }
 
   if (dataRemoteAppUsers?.usersAggregate?.aggregate?.count === 0) {
@@ -295,7 +324,7 @@ export default function UsersPage() {
               <UsersBody
                 users={dataRemoteAppUsers?.users}
                 onDeleteUser={handleDeleteUser}
-                onEditUser={handleEditUser}
+                onViewUser={handleViewUser}
               />
               <Pagination
                 className="px-2"

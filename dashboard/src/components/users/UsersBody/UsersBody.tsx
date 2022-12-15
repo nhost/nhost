@@ -1,4 +1,3 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import IconButton from '@/components/ui/v2/IconButton';
@@ -16,7 +15,6 @@ import { format, formatRelative } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment } from 'react';
-import type { EditUserFormValues } from '../EditUserForm';
 
 export interface UsersBodyProps {
   /**
@@ -30,26 +28,14 @@ export interface UsersBodyProps {
   /**
    * Function to edit a user
    */
-  onEditUser?: (
-    values: EditUserFormValues,
-    user: RemoteAppUser,
-  ) => Promise<void>;
+  onViewUser: (user: RemoteAppUser) => void;
 }
 
 export default function UsersBody({
   users,
   onDeleteUser,
-  onEditUser,
+  onViewUser,
 }: UsersBodyProps) {
-  const { openDrawer } = useDialog();
-
-  function handleViewUser(user: RemoteAppUser) {
-    openDrawer('EDIT_USER', {
-      title: 'User Details',
-      payload: { user, onEditUser },
-    });
-  }
-
   return (
     <>
       {!users && (
@@ -71,7 +57,7 @@ export default function UsersBody({
             <ListItem.Root className="w-full h-[64px]">
               <ListItem.Button
                 className="grid grid-cols-6 cursor-pointer py-2.5 h-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
-                onClick={() => handleViewUser(user)}
+                onClick={() => onViewUser(user)}
               >
                 <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">
                   {!user.avatarUrl.includes('default=blank') ? (
@@ -183,7 +169,9 @@ export default function UsersBody({
                   }}
                 >
                   <Dropdown.Item
-                    onClick={() => handleViewUser(user)}
+                    onClick={() => {
+                      onViewUser(user);
+                    }}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
                     <UserIcon className="w-4 h-4" />

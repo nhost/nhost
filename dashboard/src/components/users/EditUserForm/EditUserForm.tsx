@@ -43,6 +43,11 @@ export interface EditUserFormProps {
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
+
+  /**
+   * Function to be called when the operation is cancelled.
+   */
+  onBanUser: (user: RemoteAppUser) => Promise<void>;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -67,6 +72,7 @@ export default function EditUserForm({
   user,
   onEditUser,
   onCancel,
+  onBanUser,
 }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -152,7 +158,7 @@ export default function EditUserForm({
         }}
       >
         <section className="grid grid-flow-col grid-cols-7 p-6">
-          <div className="grid grid-flow-col col-span-6 gap-4 place-content-start">
+          <div className="grid items-center grid-flow-col col-span-6 gap-4 place-content-start">
             {!user.avatarUrl.includes('default=blank') ? (
               <Avatar className="w-12 h-12" src={user.avatarUrl} />
             ) : (
@@ -162,15 +168,34 @@ export default function EditUserForm({
                 </span>
               </Avatar>
             )}
+
             <div className="grid items-center grid-flow-row">
               <Text className="text-lg font-medium">{user.displayName}</Text>
               <Text className="font-normal text-sm+ text-greyscaleGreyDark">
                 {user.email}
               </Text>
             </div>
+            {user.disabled && (
+              <Chip
+                component="span"
+                color="error"
+                size="small"
+                label="Banned"
+                className="self-center align-middle"
+              />
+            )}
           </div>
           <div>
             <Select placeholder="Actions" hideEmptyHelperText>
+              <Option
+                value="Actions"
+                className="text-sm+ font-medium text-red"
+                onClick={() => {
+                  onBanUser(user);
+                }}
+              >
+                {user.disabled ? 'Unban User' : 'Ban User'}
+              </Option>
               <Option
                 value="Actions"
                 className="text-sm+ font-medium text-red"
