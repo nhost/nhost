@@ -51,13 +51,13 @@ The decoded payload of this access token is a JSON object that looks like this:
 
 The token contains information about the user id, default role, allowed roles, if the user is anonymous or not, and other metadata.
 
-The claims under `https://hasura.io/jwt/claims` are the same claims that are used by the GraphQL API to create [permissions](/graphql/permissions). The claims (`x-hasura-*`) are also called permission variables. It's possible to add custom [permission variables](/graphql/permissions#custom-permission-variables).
+The claims under `https://hasura.io/jwt/claims` are the same claims that are used by the GraphQL API to create [permissions](/graphql/permissions). The claims (`x-hasura-*`) are also called permission variables. It's possible to add more [permission variables](/graphql/permissions#permission-variables) to the access token.
 
 :::info
 You can manually decode an access token using [JWT.io](https://jwt.io/).
 :::
 
-The token is cryptographically signed by Nhost Authentication, which means that all other Nhost services can trust the information in the token.
+The token is cryptographically signed by Nhost Auth, which means that all other Nhost services can trust the information in the token.
 
 :::info
 Use the `NHOST_JWT_SECRET` [system environment variable](/platform/environment-variables#system-environment-variables) to verify access tokens in [Serverless Functions](/serverless-functions). Here's a guide on how to [Get the authenticated user in a Serverless Function](https://github.com/nhost/nhost/discussions/278).
