@@ -104,6 +104,7 @@ export default function RuleEditorRow({
   const { control, setValue } = useFormContext();
   const rowName = `${name}.rules.${index}`;
 
+  const [selectedTablePath, setSelectedTablePath] = useState<string>('');
   const [selectedColumnType, setSelectedColumnType] = useState<string>('');
   const { field: autocompleteField } = useController({
     name: `${rowName}.column`,
@@ -141,8 +142,11 @@ export default function RuleEditorRow({
           input: { className: 'bg-white lg:!rounded-r-none' },
         }}
         fullWidth
-        onChange={(_event, { value, metadata, disableReset }) => {
-          setSelectedColumnType(metadata?.udt_name);
+        onChange={(_event, { value, columnMetadata, disableReset }) => {
+          setSelectedTablePath(
+            `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
+          );
+          setSelectedColumnType(columnMetadata?.udt_name);
           setValue(`${rowName}.column`, value, { shouldDirty: true });
 
           if (disableReset) {
@@ -152,8 +156,11 @@ export default function RuleEditorRow({
           setValue(`${rowName}.operator`, '_eq', { shouldDirty: true });
           setValue(`${rowName}.value`, '', { shouldDirty: true });
         }}
-        onInitialized={({ value, metadata }) => {
-          setSelectedColumnType(metadata?.udt_name);
+        onInitialized={({ value, columnMetadata }) => {
+          setSelectedTablePath(
+            `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
+          );
+          setSelectedColumnType(columnMetadata?.udt_name);
           setValue(`${rowName}.column`, value, { shouldDirty: true });
         }}
       />
@@ -195,7 +202,7 @@ export default function RuleEditorRow({
         {availableOperators.map(renderOption)}
       </ControlledSelect>
 
-      <RuleValueInput name={rowName} />
+      <RuleValueInput selectedTablePath={selectedTablePath} name={rowName} />
 
       <RuleRemoveButton onRemove={onRemove} name={name} />
     </div>

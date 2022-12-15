@@ -38,7 +38,7 @@ export interface UseAsyncInitialValueOptions {
    */
   onInitialized?: (value: {
     value: string;
-    metadata?: Record<string, any>;
+    columnMetadata?: Record<string, any>;
   }) => void;
 }
 
@@ -81,7 +81,7 @@ export default function useAsyncInitialValue({
         selectedRelationships.length > 0
           ? [relationshipDotNotation, selectedColumn.value].join('.')
           : selectedColumn.value,
-      metadata: selectedColumn.metadata,
+      columnMetadata: selectedColumn.metadata,
     });
   }, [
     initialized,

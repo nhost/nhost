@@ -1,12 +1,14 @@
 import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
+import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { PermissionOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import { useRouter } from 'next/router';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface RuleValueInputProps {
@@ -14,14 +16,24 @@ export interface RuleValueInputProps {
    * Name of the parent group editor.
    */
   name: string;
+  /**
+   * Path of the table selected through the column input.
+   */
+  selectedTablePath?: string;
 }
 
-export default function RuleValueInput({ name }: RuleValueInputProps) {
+export default function RuleValueInput({
+  name,
+  selectedTablePath,
+}: RuleValueInputProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: PermissionOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
+  const {
+    query: { schemaSlug, tableSlug },
+  } = useRouter();
 
   const { data, loading, error } = useGetAppCustomClaimsQuery({
     variables: { id: currentApplication?.id },
@@ -65,6 +77,29 @@ export default function RuleValueInput({ name }: RuleValueInputProps) {
         options={[]}
         fullWidth
         filterSelectedOptions
+      />
+    );
+  }
+
+  if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
+    return (
+      <ColumnAutocomplete
+        disableRelationships
+        schema={schemaSlug as string}
+        table={tableSlug as string}
+        rootClassName="flex-auto"
+        slotProps={{
+          input: { className: 'lg:!rounded-none !bg-white !z-10' },
+        }}
+        onChange={(_event, { value }) => {
+          if (selectedTablePath === `${schemaSlug}.${tableSlug}`) {
+            setValue(inputName, [value], { shouldDirty: true });
+            return;
+          }
+
+          // For more information, see https://github.com/hasura/graphql-engine/issues/3459#issuecomment-1085666541
+          setValue(inputName, ['$', value], { shouldDirty: true });
+        }}
       />
     );
   }

@@ -46,7 +46,7 @@ export interface ColumnAutocompleteProps
     event: SyntheticEvent,
     value: {
       value: string;
-      metadata?: Record<string, any>;
+      columnMetadata?: Record<string, any>;
       disableReset?: boolean;
     },
   ) => void;
@@ -188,7 +188,7 @@ function ColumnAutocomplete(
           selectedRelationships.length > 0
             ? [relationshipDotNotation, value.value].join('.')
             : value.value,
-        metadata: value.metadata,
+        columnMetadata: value.metadata,
       });
 
       return;
