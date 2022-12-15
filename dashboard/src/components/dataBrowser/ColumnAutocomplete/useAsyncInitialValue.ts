@@ -76,6 +76,11 @@ export default function useAsyncInitialValue({
     }
 
     setInitialized(true);
+
+    if (!selectedColumn) {
+      return;
+    }
+
     onInitialized?.({
       value:
         selectedRelationships.length > 0
@@ -88,8 +93,7 @@ export default function useAsyncInitialValue({
     onInitialized,
     relationshipDotNotation,
     remainingColumnPath?.length,
-    selectedColumn?.metadata,
-    selectedColumn?.value,
+    selectedColumn,
     selectedRelationships.length,
   ]);
 

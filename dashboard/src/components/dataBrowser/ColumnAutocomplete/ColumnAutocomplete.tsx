@@ -12,6 +12,7 @@ import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
 import Text from '@/ui/v2/Text';
+import getTruncatedText from '@/utils/common/getTruncatedText';
 import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
@@ -263,10 +264,18 @@ function ColumnAutocomplete(
           value={inputValue}
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
-              <Text className="!ml-2">
+              <Text className="!ml-2 lg:max-w-[200px] flex-shrink-0 truncate">
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {relationshipDotNotation && (
-                  <span>{relationshipDotNotation}.</span>
+                  <>
+                    <span className="hidden lg:inline">
+                      {getTruncatedText(relationshipDotNotation, 15, 'start')}.
+                    </span>
+
+                    <span className="inline lg:hidden">
+                      {relationshipDotNotation}.
+                    </span>
+                  </>
                 )}
               </Text>
             ) : null
@@ -275,7 +284,7 @@ function ColumnAutocomplete(
             tableStatus === 'loading' ||
             metadataStatus === 'loading' ||
             !initialized ? (
-              <ActivityIndicator className="mr-2" />
+              <ActivityIndicator className="mr-2" delay={500} />
             ) : null
           }
         />
@@ -309,11 +318,19 @@ function ColumnAutocomplete(
               </IconButton>
             )}
 
-            <Text className="truncate">
+            <Text className="truncate direction-rtl text-left">
               <span className="!text-greyscaleMedium">{defaultTable}</span>
 
               {relationshipDotNotation && (
-                <span>.{relationshipDotNotation}</span>
+                <>
+                  <span className="hidden lg:inline">
+                    .{getTruncatedText(relationshipDotNotation, 20, 'start')}
+                  </span>
+
+                  <span className="inline lg:hidden">
+                    .{relationshipDotNotation}
+                  </span>
+                </>
               )}
             </Text>
           </div>
