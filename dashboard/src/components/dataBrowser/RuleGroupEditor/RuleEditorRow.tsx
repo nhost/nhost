@@ -141,8 +141,8 @@ export default function RuleEditorRow({
           input: { className: 'bg-white lg:!rounded-r-none' },
         }}
         fullWidth
-        onChange={(_event, { value, type, disableReset }) => {
-          setSelectedColumnType(type);
+        onChange={(_event, { value, metadata, disableReset }) => {
+          setSelectedColumnType(metadata?.udt_name);
           setValue(`${rowName}.column`, value, { shouldDirty: true });
 
           if (disableReset) {
@@ -152,8 +152,8 @@ export default function RuleEditorRow({
           setValue(`${rowName}.operator`, '_eq', { shouldDirty: true });
           setValue(`${rowName}.value`, '', { shouldDirty: true });
         }}
-        onInitialized={({ value, type }) => {
-          setSelectedColumnType(type);
+        onInitialized={({ value, metadata }) => {
+          setSelectedColumnType(metadata?.udt_name);
           setValue(`${rowName}.column`, value, { shouldDirty: true });
         }}
       />

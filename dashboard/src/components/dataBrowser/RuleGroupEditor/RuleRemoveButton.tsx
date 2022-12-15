@@ -30,7 +30,7 @@ function RuleRemoveButton({
       variant="outlined"
       color="secondary"
       className={twMerge(
-        '!bg-white lg:!rounded-l-none lg:flex-grow-0 lg:flex-shrink lg:flex-[40px] !min-w-0',
+        '!bg-white lg:!rounded-l-none lg:flex-grow-0 lg:flex-shrink lg:flex-[40px] !min-w-0 h-10',
         className,
       )}
       disabled={rules.length === 1 && groups.length === 0}

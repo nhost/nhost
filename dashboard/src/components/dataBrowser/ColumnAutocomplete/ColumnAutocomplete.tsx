@@ -24,7 +24,9 @@ import type {
 } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import type { UseAsyncInitialValueOptions } from './useAsyncInitialValue';
 import useAsyncInitialValue from './useAsyncInitialValue';
+import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
 
 export interface ColumnAutocompleteProps
@@ -44,14 +46,14 @@ export interface ColumnAutocompleteProps
     event: SyntheticEvent,
     value: {
       value: string;
-      type: string;
+      metadata?: Record<string, any>;
       disableReset?: boolean;
     },
   ) => void;
   /**
    * Function to be called when the input is asynchronously initialized.
    */
-  onInitialized?: (value: { value: string; type: string }) => void;
+  onInitialized?: UseAsyncInitialValueOptions['onInitialized'];
   /**
    * Class name to be applied to the root element.
    */
@@ -59,7 +61,7 @@ export interface ColumnAutocompleteProps
   /**
    * Determines if the autocomplete should allow relationships.
    */
-  disableRelationships?: boolean;
+  disableRelationships?: UseColumnGroupsOptions['disableRelationships'];
 }
 
 function renderGroup(params: AutocompleteRenderGroupParams) {
@@ -146,6 +148,7 @@ function ColumnAutocomplete(
     isMetadataLoading: metadataStatus === 'loading' || isMetadataFetching,
     tableData,
     metadata,
+    onInitialized,
   });
 
   useEffect(() => {
@@ -185,7 +188,7 @@ function ColumnAutocomplete(
           selectedRelationships.length > 0
             ? [relationshipDotNotation, value.value].join('.')
             : value.value,
-        type: value.metadata?.type,
+        metadata: value.metadata,
       });
 
       return;
@@ -206,26 +209,6 @@ function ColumnAutocomplete(
     metadata,
     disableRelationships,
   });
-
-  useEffect(() => {
-    if (!initialized || !selectedColumn) {
-      return;
-    }
-
-    onInitialized?.({
-      value:
-        selectedRelationships.length > 0
-          ? [relationshipDotNotation, selectedColumn.value].join('.')
-          : selectedColumn.value,
-      type: selectedColumn.metadata?.type,
-    });
-  }, [
-    initialized,
-    onInitialized,
-    relationshipDotNotation,
-    selectedColumn,
-    selectedRelationships.length,
-  ]);
 
   const {
     popupOpen,

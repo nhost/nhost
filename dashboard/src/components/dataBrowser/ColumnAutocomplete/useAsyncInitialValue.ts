@@ -4,7 +4,7 @@ import type { HasuraMetadataTable } from '@/types/dataBrowser';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { useEffect, useState } from 'react';
 
-export interface UseAsyncValueOptions {
+export interface UseAsyncInitialValueOptions {
   /**
    * Selected schema to be used to determine the initial value.
    */
@@ -33,6 +33,13 @@ export interface UseAsyncValueOptions {
    * Metadata to be used to determine the initial value.
    */
   metadata?: FetchMetadataReturnType;
+  /**
+   * Function to be called when the input is asynchronously initialized.
+   */
+  onInitialized?: (value: {
+    value: string;
+    metadata?: Record<string, any>;
+  }) => void;
 }
 
 export default function useAsyncInitialValue({
@@ -43,7 +50,8 @@ export default function useAsyncInitialValue({
   isMetadataLoading,
   tableData,
   metadata,
-}: UseAsyncValueOptions) {
+  onInitialized,
+}: UseAsyncInitialValueOptions) {
   const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [remainingColumnPath, setRemainingColumnPath] = useState(
@@ -68,7 +76,22 @@ export default function useAsyncInitialValue({
     }
 
     setInitialized(true);
-  }, [initialized, remainingColumnPath.length]);
+    onInitialized?.({
+      value:
+        selectedRelationships.length > 0
+          ? [relationshipDotNotation, selectedColumn.value].join('.')
+          : selectedColumn.value,
+      metadata: selectedColumn.metadata,
+    });
+  }, [
+    initialized,
+    onInitialized,
+    relationshipDotNotation,
+    remainingColumnPath?.length,
+    selectedColumn?.metadata,
+    selectedColumn?.value,
+    selectedRelationships.length,
+  ]);
 
   useEffect(() => {
     if (
@@ -95,12 +118,9 @@ export default function useAsyncInitialValue({
       value: activeColumn,
       label: activeColumn,
       group: 'columns',
-      metadata: {
-        type:
-          tableData.columns.find(
-            (column) => column.column_name === activeColumn,
-          )?.udt_name || null,
-      },
+      metadata: tableData.columns.find(
+        (column) => column.column_name === activeColumn,
+      ),
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
     setInputValue(activeColumn);

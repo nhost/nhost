@@ -48,7 +48,7 @@ export default function useColumnGroups({
       label: column.column_name,
       value: column.column_name,
       group: 'columns',
-      metadata: { type: column.udt_name },
+      metadata: column,
     })) || [];
 
   if (disableRelationships) {
