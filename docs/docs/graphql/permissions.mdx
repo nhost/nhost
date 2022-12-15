@@ -32,21 +32,39 @@ The rule above make it so users can only select posts where the value of `user_i
 
 `x-hasura-user-id` is a permission variable that is used to create permission rules in Hasura. The permission variable comes from the [access token](/authentication/tokens#access-token) that authenticated users have.
 
-The `x-hasura-user-id` permission variable is always available for all authenticated users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your project.
+The `x-hasura-user-id` permission variable is always available for all authenticated users. You can add [permission variables](#permission-variables) to create more complex permission rules unique to your project.
 
-## Custom Permission Variables
+## Permission Variables
 
-You can add custom permission variables in the Nhost Dashboard under **Settings -> Roles and permissions**. These custom permission variables will be automatically added to users' [access tokens](/authentication/tokens#access-token). This way, custom permission variables can be used when creating permissions for your GraphQL API in the Hasura Console.
+You can add permission variables in the Nhost Dashboard under **Settings -> Roles and permissions**. These permission variables are automatically added to users' [access tokens](/authentication/tokens#access-token). This way, permission variables are available when creating permissions for your GraphQL API in the Hasura Console.
 
 ![Permission Variables](/img/permission-variables-preview.png)
 
-**Example:** Let's say you add a new permission variable `x-hasura-organisation-id` with path `user.profile.organisation.id`. This means that Nhost Auth will get the value for `x-hasura-organisation-id` by internally generating the following GraphQL query:
+**Example:** Let's say you add a new permission variable `x-hasura-company-id` with path `user.company.id`. This means that Nhost Auth will get the value for `x-hasura-company-id` by internally generating the following GraphQL query:
 
 ```graphql
 query {
-  user(id: "<User's ID>") {
+  user(id: "<user-id>") {
+    company {
+      id
+    }
+  }
+}
+```
+
+### Arrays
+
+You must add `[]` at the end of the path for permission variables that are arrays.
+
+**Example**: Let's say you have a permission variable `x-hasura-organization-ids`, the path should be, e.g., `user.profile.organizations.id[]`.
+
+This will result in the following GraphQL query internally:
+
+```graphql
+query {
+  user(id: "<user-id>") {
     profile {
-      organisation {
+      organization {
         id
       }
     }
@@ -54,83 +72,69 @@ query {
 }
 ```
 
-### Local Custom Permission Variables
+And result in the following permission variable:
 
-To use custom permission variables locally, add your claims to the `config.yml`.
+```json
+{
+  "x-hasura-organization-ids": "{\"13\",\"37\"}"
+}
+```
 
-**Example:** Add a custom permission variable `x-hasura-organisation-id`:
+### Limitation on JSON/JSONB columns
+
+JSON columns cannot be used in custom claims, except the `users.metadata` column.
+
+### Local Permission Variables
+
+To use permission variables locally, add your claims to the `config.yml`.
+
+**Example:** Add a permission variable `x-hasura-organization-id`:
 
 ```
 auth:
   jwt:
-    custom_claims: '{"organisation-id":"profile.organisation.id"}'
+    custom_claims: '{"organization-id":"profile.organization.id"}'
 ```
 
 :::caution
 
-The custom claim path should **not** start with `user` when defined in the `config.yaml` file.
+The claim path should **not** start with `user` when defined in the `config.yaml` file.
 
 ✅ Correct:
 
 ```
-custom_claims: '{"organisation-id":"profile.organisation.id"}'
+custom_claims: '{"organization-id":"profile.organization.id"}'
 ```
 
 🛑 Incorrect:
 
 ```
-custom_claims: '{"organisation-id":"user.profile.organisation.id"}'
+custom_claims: '{"organization-id":"user.profile.organization.id"}'
 ```
 
 :::
 
-### Limitation on JSON/JSONB columns
-
-JSON columns cannot be used in custom claims, with the exception of the `users.metadata` column.
-
-### Arrays
-
-When the target value is expected to be an array, it is important to explicitly add a `[]` at the end of the expression. For instance: if `organisationIds` is expected to be an array, you must set the expression to `organisationIds[]`. It will otherwise return a litteral when the array is a singleton.
-
-✅ Singleton array with `'{"organisation-ids":"organisationIds[]"}'`
-
-```json
-{
-  "x-hasura-organisation-ids": "{\"org-id-1\"}"
-}
-```
-
-🛑 Singleton array with `'{"organisation-ids":"organisationIds"}'`
-
-```json
-{
-  "x-hasura-organisation-ids": "org-id-1"
-}
-```
-
 ## Roles
 
-Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permissions**.
-
-If the user is not signed in, the GraphQL API resolves permissions using the `public` role.
+Every GraphQL request resolves permissions using a **single role**.
 
 ### Default Role
 
-Every user have one **default role**. The default role is used to resolve permissions if no other role is specified using the `x-hasura-role` header in the GraphQL request. By default, the default role is `user` for signed-in users.
+Every user has one **default role**. The default role is used to resolve permissions if no role is specified using the `x-hasura-role` header in the GraphQL request. By default, the default role is `user` for authenticated users.
 
 ### Allowed Roles
 
-Every user also has a one or more **allowed roles**. Allowed roles are roles that the user is allowed to use to override the default role when making a GraphQL request. To override the default role, add a header `x-hasura-role = <role>` to the GraphQL request.
+Every user also has an array of **allowed roles**. Allowed roles are roles that the user is allowed to use to override the default role when making a GraphQL request. To override the default role, add a header `x-hasura-role = <role>` to the GraphQL request.
 
-## Public Access
+## Public Access and Unauthenticated Users
 
-GraphQL requests from unauthenticated users are resolved using the `public` role.
+GraphQL requests from unauthenticated users resolve permissions using the `public` role.
 
-## Insert permissions
+## Insert Permissions
 
 ![Insert permissions](/img/graphql/permissions/insert-permissions.png)
 
-Here is a popular approach for insert permission for signed-in users.
+Here is a popular approach for insert permission for authenticated users.
 
 1. At the top of the page, click **"insert"** on the **"user"** role.
 2. Select **"Without any checks"**.
@@ -142,7 +146,7 @@ We also want every new record's `user_id` value to be set to the ID of the user 
 
 4. Under **Column presets**, set `user_id` to `x-hasura-user-id`.
 
-Now, users who are signed-in can insert posts. Users can add a title when inserting a post. The post's `id` is automatically generated by the database and the `user_id` is automatically set to the user's id using the `user_id = x-hasura-user-id` column preset.
+Now, authenticated users are allowed to insert posts. Users are allowed to add a title when inserting a post. The post's `id` is automatically generated by the database and the `user_id` is automatically set to the user's id using the `user_id = x-hasura-user-id` column preset.
 
 ## Select, Update and Delete Permissions
 
@@ -150,7 +154,7 @@ Select, update, and delete permissions usually follows the same pattern. Here's 
 
 ![Select permissions](/img/permission-select.png)
 
-One of the most common permission requirements is that signed-in users should only be able to read their own data. This is how to do that:
+One of the most common permission requirements is that authenticated users should only be able to read their own data. This is how to do that:
 
 1. Go to **Hasura Console**
 1. Select your table and open the **Permissions** tab
@@ -162,10 +166,8 @@ This means that in order for users to read data, the user ID value in the databa
 
 To further refine this rule, do the following:
 
-1. Limit number of rows to 100 (or some other relevant number).
-1. Select the columns you want the user to be able to read. In our case we'll allow the user to read all columns.
-
-Note that if you add columns to your table table later, you must check new columns here to let users read them.
+1. Limit the number of rows to 100 (or some other relevant number).
+1. Select the columns you want the user to be able to read. In our case, we'll allow the user to read all columns.
 
 ## Next Steps
 
