@@ -11,6 +11,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
+import { generateAppServiceUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
@@ -21,6 +22,7 @@ import {
 } from '@/utils/__generated__/graphql';
 
 import { SearchIcon } from '@heroicons/react/solid';
+import axios from 'axios';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -33,7 +35,8 @@ export type RemoteAppUser = Exclude<
 >;
 
 export default function UsersPage() {
-  const { openDialog, openAlertDialog, openDrawer, closeDrawer } = useDialog();
+  const { openDialog, openAlertDialog, openDrawer, closeDrawer, closeDialog } =
+    useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,11 +120,22 @@ export default function UsersPage() {
   );
 
   function handleCreateUser() {
+    const signUpUrl = `${generateAppServiceUrl(
+      currentApplication?.subdomain,
+      currentApplication?.region.awsName,
+      'auth',
+    )}/v1/signup/email-password`;
+
     openDialog('CREATE_USER', {
       title: 'Create User',
       payload: {
-        onSubmit: async () => {
+        onSubmit: async ({ email, password }) => {
+          await axios.post(signUpUrl, {
+            email,
+            password,
+          });
           await refetchProjectUsers();
+          closeDialog();
         },
       },
       props: {
@@ -231,7 +245,12 @@ export default function UsersPage() {
   function handleViewUser(user: RemoteAppUser) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
-      payload: { user, onEditUser: handleEditUser, onBanUser: handleBanUser },
+      payload: {
+        user,
+        onEditUser: handleEditUser,
+        onBanUser: handleBanUser,
+        onDeleteUser: handleDeleteUser,
+      },
     });
   }
 

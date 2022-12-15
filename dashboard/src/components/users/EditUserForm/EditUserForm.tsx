@@ -47,6 +47,10 @@ export interface EditUserFormProps {
    * Function to be called when banning the user.
    */
   onBanUser: (user: RemoteAppUser) => Promise<void>;
+  /**
+   * Function to be called when deleting the user.
+   */
+  onDeleteUser: (user: RemoteAppUser) => Promise<void>;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -72,13 +76,13 @@ export default function EditUserForm({
   onEditUser,
   onCancel,
   onBanUser,
+  onDeleteUser,
 }: EditUserFormProps) {
-  const { onDirtyStateChange, openDialog, openAlertDialog } = useDialog();
+  const { onDirtyStateChange, openDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data } = useGetRolesQuery({
     variables: { id: currentApplication.id },
-    fetchPolicy: 'cache-only',
   });
 
   const allAvailableProjectRoles = useMemo(
@@ -199,22 +203,7 @@ export default function EditUserForm({
                 value="Actions"
                 className="text-sm+ font-medium text-red"
                 onClick={() => {
-                  openAlertDialog({
-                    title: 'Delete User',
-                    payload: (
-                      <Text>
-                        Are you sure you want to delete the &quot;
-                        <strong>{user.displayName}</strong>&quot; user?
-                        <br /> This cannot be undone.
-                      </Text>
-                    ),
-                    props: {
-                      primaryButtonColor: 'error',
-                      primaryButtonText: 'Delete',
-                      titleProps: { className: 'mx-auto' },
-                      PaperProps: { className: 'max-w-lg mx-auto' },
-                    },
-                  });
+                  onDeleteUser(user);
                 }}
               >
                 Delete User
@@ -360,8 +349,8 @@ export default function EditUserForm({
             error={!!errors.locale}
             helperText={errors?.locale?.message}
           >
-            <Option value="en">English</Option>
-            <Option value="fr">French</Option>
+            <Option value="en">en</Option>
+            <Option value="fr">fr</Option>
           </ControlledSelect>
         </section>
         {signInMethodsAvailable && (
@@ -369,9 +358,9 @@ export default function EditUserForm({
             <div className="col-span-1">
               <InputLabel as="h3">Sign-In Methods</InputLabel>
             </div>
-            <div className="grid w-full grid-flow-row col-span-2 gap-y-6">
+            <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
               {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
-              {user.email && (
+              {user.email && user.userProviders.length === 0 && (
                 <div className="grid grid-flow-col gap-x-1 place-content-between">
                   <div className="grid grid-flow-col gap-3 span-cols-1">
                     <Image src="/assets/Envelope.svg" width={25} height={25} />
@@ -472,7 +461,12 @@ export default function EditUserForm({
             Cancel
           </Button>
 
-          <Button type="submit" className="justify-self-end">
+          <Button
+            type="submit"
+            className="justify-self-end"
+            disabled={!form.formState.isDirty}
+            loading={form.formState.isSubmitting}
+          >
             Save
           </Button>
         </div>

@@ -1,15 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { generateAppServiceUrl } from '@/utils/helpers';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface CreateUserFormValues {
@@ -47,40 +42,13 @@ export default function CreateUserForm({
   onCancel,
   onSubmit,
 }: CreateUserFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { onDirtyStateChange, closeDialog } = useDialog();
+  const { onDirtyStateChange } = useDialog();
 
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
     resolver: yupResolver(CreateUserFormValidationSchema),
   });
-
-  const signUpUrl = `${generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region.awsName,
-    'auth',
-  )}/v1/signup/email-password`;
-
-  console.log(onSubmit);
-
-  async function handleSubmit({ email, password }: CreateUserFormValues) {
-    await toast.promise(
-      axios.post(signUpUrl, {
-        email,
-        password,
-      }),
-      {
-        loading: 'Creating new user...',
-        success: 'New user created successfully.',
-        error: 'An error occurred while creating a new user.',
-      },
-      toastStyleProps,
-    );
-
-    onSubmit?.();
-    closeDialog();
-  }
 
   const {
     register,
@@ -95,10 +63,7 @@ export default function CreateUserForm({
 
   return (
     <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="grid grid-flow-row gap-6 p-6 px-6"
-      >
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-6 p-6 px-6">
         <Input
           {...register('email')}
           id="email"
