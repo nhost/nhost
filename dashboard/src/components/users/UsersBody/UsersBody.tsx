@@ -114,7 +114,7 @@ export default function UsersBody({
                   {!user.email && user.userProviders.length === 0 && (
                     <Text className="col-span-3 font-medium">-</Text>
                   )}
-                  {user.email && (
+                  {user.email && user.userProviders.length === 0 && (
                     <Chip
                       component="span"
                       color="default"
