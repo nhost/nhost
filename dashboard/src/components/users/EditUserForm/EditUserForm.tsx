@@ -17,7 +17,6 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatRelative } from 'date-fns';
@@ -29,9 +28,10 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
-  //  * The selected user.
-  //  */
-  user: RemoteAppGetUsersQuery['users'][0];
+  /**
+   * This is the selected user from the user's table.
+   */
+  user: RemoteAppUser;
   /**
    * Function to be called when the form is submitted.
    */
@@ -43,9 +43,8 @@ export interface EditUserFormProps {
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
-
   /**
-   * Function to be called when the operation is cancelled.
+   * Function to be called when banning the user.
    */
   onBanUser: (user: RemoteAppUser) => Promise<void>;
 }

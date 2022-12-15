@@ -18,15 +18,16 @@ import { Fragment } from 'react';
 
 export interface UsersBodyProps {
   /**
-   * Users
+   * The users fetched from entering the users page given a limit and offset.
+   * @remark users will be an empty array if there are no users.
    */
   users?: RemoteAppUser[];
   /**
-   * Function to delete a user
+   * Function to delete a user.
    */
   onDeleteUser?: (user: RemoteAppUser) => void;
   /**
-   * Function to edit a user
+   * Function to open a drawer with the user's configuration.
    */
   onViewUser: (user: RemoteAppUser) => void;
 }

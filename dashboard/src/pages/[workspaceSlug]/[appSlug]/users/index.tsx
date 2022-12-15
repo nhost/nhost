@@ -131,6 +131,9 @@ export default function UsersPage() {
     });
   }
 
+  /**
+   * This will change the `disabled` field in the user to its opposite.
+   */
   async function handleBanUser(user: RemoteAppUser) {
     const banUser = updateUser({
       variables: {
@@ -144,9 +147,13 @@ export default function UsersPage() {
     await toast.promise(
       banUser,
       {
-        loading: 'Banning User...',
-        success: 'User banned successfully.',
-        error: 'Failed to update user settings.',
+        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
+        success: user.disabled
+          ? 'User unbanned succesfully.'
+          : 'User banned succesfully',
+        error: user.disabled
+          ? 'Error trying to unban user.'
+          : 'Error trying to ban user.',
       },
       { ...toastStyleProps },
     );
