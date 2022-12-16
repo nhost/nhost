@@ -1,10 +1,10 @@
 import { LOCAL_SUBDOMAIN } from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
-import type { NhostClientConstructorParams } from '@nhost/nextjs';
+import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
 import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
-export type UseAppClientOptions = NhostClientConstructorParams;
+export type UseAppClientOptions = NhostNextClientConstructorParams;
 export type UseAppClientReturn = NhostClient;
 
 /**
@@ -22,7 +22,6 @@ export function useAppClient(
   if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
     return new NhostClient({
       subdomain: LOCAL_SUBDOMAIN,
-      start: false,
       ...options,
     });
   }
@@ -32,7 +31,6 @@ export function useAppClient(
     region: isDevOrStaging()
       ? `${currentApplication.region.awsName}.staging`
       : currentApplication.region.awsName,
-    start: false,
     ...options,
   });
 }

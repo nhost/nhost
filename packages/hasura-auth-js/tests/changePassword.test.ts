@@ -25,14 +25,16 @@ const authClient = new AuthClient({
   start: false
 })
 
-authClient.interpreter = interpret(
-  createAuthMachine({
-    backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000',
-    clientStorage: customStorage,
-    clientStorageType: 'custom'
-  }).withContext(contextWithUser)
-).start()
+authClient.start({
+  interpreter: interpret(
+    createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      clientStorage: customStorage,
+      clientStorageType: 'custom'
+    }).withContext(contextWithUser)
+  )
+})
 
 const changePasswordMachine = createChangePasswordMachine(authClient)
 const changePasswordService = interpret(changePasswordMachine)

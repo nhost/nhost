@@ -1,4 +1,4 @@
-import { NhostSession } from '@nhost/nhost-js'
+import { NhostSession } from '@nhost/react'
 import { GetServerSidePropsContext } from 'next'
 import { createServerSideClient } from './create-server-side-client'
 
