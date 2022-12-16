@@ -433,14 +433,30 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    return this._client.subscribe(() => {
-      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
+    const addOnTokenChangedFunction = (interpreter: AuthInterpreter, fn: OnTokenChangedFunction) =>
+      interpreter.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
         }
       })
-      return () => subscription?.stop()
-    })
+    if (this._client.interpreter) {
+      // If the interpreter is already initialized, add the function
+      // immediately.
+      const service = addOnTokenChangedFunction(this._client.interpreter, fn)
+      return () => service.stop()
+    } else {
+      // If the interpreter is not yet ready, we add the function to the
+      // `onInterpreterReady` array, so that it will be called when the
+      // interpreter is ready.
+      this._client.onStart((client) => {
+        addOnTokenChangedFunction(client.interpreter as AuthInterpreter, fn)
+      })
+      return () => {
+        console.log(
+          'onTokenChanged was added before the XState interpreter started. Cannot unsubscribe listener.'
+        )
+      }
+    }
   }
 
   /**
