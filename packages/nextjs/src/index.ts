@@ -12,7 +12,7 @@ export * from './get-session'
 /**
  * @deprecated use `NhostProvider` instead
  */
-const NhostNextProvider: typeof NhostProvider = NhostProvider
+export const NhostNextProvider: typeof NhostProvider = NhostProvider
 
 const isBrowser = typeof window !== 'undefined'
 

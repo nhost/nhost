@@ -941,14 +941,12 @@ importers:
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.25
       '@xstate/react': ^3.0.1
-      immer: ^9.0.15
       jwt-decode: ^3.1.2
       react: ^18.2.0
       xstate: ^4.33.5
     dependencies:
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
-      immer: 9.0.15
       jwt-decode: 3.1.2
       xstate: 4.33.6
     devDependencies:
@@ -1008,7 +1006,6 @@ importers:
       '@vueuse/core': ^9.0.0
       '@xstate/inspect': ^0.7.0
       '@xstate/vue': ^2.0.0
-      immer: ^9.0.15
       jwt-decode: ^3.1.2
       vue: ^3.2.41
       vue-router: ^4.1.6
@@ -1018,7 +1015,6 @@ importers:
       '@nhost/nhost-js': link:../nhost-js
       '@vueuse/core': 9.6.0_vue@3.2.41
       '@xstate/vue': 2.0.0_vue@3.2.41+xstate@4.33.6
-      immer: 9.0.15
       jwt-decode: 3.1.2
     devDependencies:
       '@nhost/docgen': link:../docgen

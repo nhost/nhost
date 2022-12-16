@@ -1,6 +1,5 @@
 import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
-
 import {
   EMAIL_NEEDS_VERIFICATION,
   INVALID_REFRESH_TOKEN,
@@ -434,26 +433,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
         }
       })
-
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**
@@ -469,25 +456,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-auth-state-changed
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT') {
           fn(event.type, getSession(context))
         }
       })
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onAuthStateChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**

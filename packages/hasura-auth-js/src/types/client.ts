@@ -1,5 +1,3 @@
-import { AuthMachineOptions } from '../machines'
-
 import { NhostSession, Provider } from './hasura-auth'
 import { ClientStorage, ClientStorageType, StorageGetter, StorageSetter } from './local-storage'
 import {
@@ -152,9 +150,4 @@ export interface AuthOptions {
   autoSignIn?: boolean
   /** Activate devTools e.g. the ability to connect to the xstate inspector */
   devTools?: boolean
-}
-
-export type NhostClientOptions = AuthMachineOptions & {
-  /** @internal create and start xstate interpreter on creation. With React, it is started inside the Nhost provider */
-  start?: boolean
 }
