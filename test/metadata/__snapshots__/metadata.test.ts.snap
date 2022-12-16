@@ -51,6 +51,7 @@ Object {
             "custom_column_names": Object {
               "created_at": "createdAt",
               "expires_at": "expiresAt",
+              "hashed_refresh_token": "hashedRefreshToken",
               "refresh_token": "refreshToken",
               "user_id": "userId",
             },
