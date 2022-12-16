@@ -1,6 +1,10 @@
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 
-function createNestedObjectFromRule({ column, operator, value }: Rule) {
+function createNestedObjectFromRule({
+  column,
+  operator,
+  value,
+}: Rule): Record<string, any> {
   const columnNameParts = column.split('.');
 
   if (columnNameParts.length === 1) {
@@ -22,18 +26,21 @@ function createNestedObjectFromRule({ column, operator, value }: Rule) {
   };
 }
 
+/**
+ * Converts a RuleGroup to a Hasura permission object.
+ *
+ * @param ruleGroup - The RuleGroup to convert
+ * @returns - A Hasura permission object
+ */
 export default function convertToHasuraPermissions(ruleGroup: RuleGroup) {
   if (ruleGroup.rules.length === 1 && ruleGroup.groups.length === 0) {
     return createNestedObjectFromRule(ruleGroup.rules[0]);
   }
 
-  if (ruleGroup.rules.length > 0 && ruleGroup.groups.length === 0) {
-    return {
-      [ruleGroup.operator]: ruleGroup.rules.map((rule) =>
-        createNestedObjectFromRule(rule),
-      ),
-    };
-  }
+  const convertedRules = ruleGroup.rules.map(createNestedObjectFromRule);
+  const subGroupRules = ruleGroup.groups.map(convertToHasuraPermissions);
 
-  return {};
+  return {
+    [ruleGroup.operator]: [...convertedRules, ...subGroupRules],
+  };
 }

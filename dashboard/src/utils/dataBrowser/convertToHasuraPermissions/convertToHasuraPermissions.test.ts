@@ -34,6 +34,28 @@ test('should break down a column path into a nested object', () => {
       },
     },
   });
+
+  expect(
+    convertToHasuraPermissions({
+      operator: '_and',
+      rules: [
+        {
+          column: 'author.books.title',
+          operator: '_eq',
+          value: 'Sample Book',
+        },
+      ],
+      groups: [],
+    }),
+  ).toMatchObject({
+    author: {
+      books: {
+        title: {
+          _eq: 'Sample Book',
+        },
+      },
+    },
+  });
 });
 
 test('should return and _and or _or operator if there are multiple rules in a group', () => {
@@ -62,7 +84,7 @@ test('should return and _and or _or operator if there are multiple rules in a gr
   });
 });
 
-test.skip('should return a single array joined by _or if a nested group contains only one rule', () => {
+test('should return a single array joined by _or if a nested group contains only one rule', () => {
   expect(
     convertToHasuraPermissions({
       operator: '_or',
@@ -103,7 +125,7 @@ test.skip('should return a single array joined by _or if a nested group contains
   });
 });
 
-test.skip('should return nested groups', () => {
+test('should return nested groups', () => {
   expect(
     convertToHasuraPermissions({
       operator: '_or',
