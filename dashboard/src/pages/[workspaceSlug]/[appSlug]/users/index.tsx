@@ -7,12 +7,10 @@ import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import UserIcon from '@/ui/v2/icons/UserIcon';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { generateAppServiceUrl } from '@/utils/helpers';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useGetRolesQuery,
@@ -20,13 +18,13 @@ import {
   useRemoteAppGetUsersQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-
+import { generateAppServiceUrl } from '@/utils/helpers';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { SearchIcon } from '@heroicons/react/solid';
 import axios from 'axios';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
 import { toast } from 'react-hot-toast';
 
 export type RemoteAppUser = Exclude<

@@ -5,21 +5,20 @@ import Form from '@/components/common/Form';
 import { useGetRolesQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
-import Checkbox from '@/ui/v2/Checkbox';
 import Chip from '@/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
-import { format, formatRelative } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useMemo } from 'react';
@@ -64,7 +63,12 @@ export const EditUserFormValidationSchema = Yup.object({
   phoneNumberVerified: Yup.boolean().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
-  roles: Yup.array().of(Yup.bool()),
+  roles: Yup.array().of(
+    Yup.object({
+      role: Yup.string(),
+      value: Yup.bool(),
+    }),
+  ),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -106,7 +110,7 @@ export default function EditUserForm({
       defaultRole: user.defaultRole,
       roles: allAvailableProjectRoles?.map((role) => {
         const userRole = user.roles.find((sr) => sr.role === role.name);
-        return !!userRole;
+        return { role: role.name, value: !!userRole };
       }),
     },
   });
@@ -134,7 +138,7 @@ export default function EditUserForm({
       defaultRole: user.defaultRole,
       roles: allAvailableProjectRoles?.map((role) => {
         const userRole = user.roles.find((sr) => sr.role === role.name);
-        return !!userRole;
+        return { role: role.name, value: !!userRole };
       }),
     }));
   }, [user, form, allAvailableProjectRoles]);
@@ -242,7 +246,7 @@ export default function EditUserForm({
           </InputLabel>
           <Text className="col-span-3 font-medium">
             {user.lastSeen
-              ? formatRelative(new Date(), new Date(user.lastSeen))
+              ? `${formatDistance(new Date(user.lastSeen), new Date())} ago`
               : '-'}
           </Text>
         </section>
@@ -427,18 +431,10 @@ export default function EditUserForm({
               </InputLabel>
               <div className="grid grid-flow-row col-span-3 gap-6">
                 {allAvailableProjectRoles.map((role) => (
-                  <Checkbox
-                    {...register(
-                      `roles.${allAvailableProjectRoles?.indexOf(role)}`,
-                    )}
-                    disabled={role.isSystemRole}
+                  <ControlledCheckbox
                     label={role.name}
                     key={role.name}
-                    defaultChecked={
-                      form.getValues()?.roles[
-                        allAvailableProjectRoles.indexOf(role)
-                      ]
-                    }
+                    name="roles"
                   />
                 ))}
               </div>

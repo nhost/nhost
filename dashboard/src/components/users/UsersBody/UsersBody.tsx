@@ -1,17 +1,16 @@
-import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import IconButton from '@/components/ui/v2/IconButton';
-import DotsVerticalIcon from '@/components/ui/v2/icons/DotsVerticalIcon';
-import TrashIcon from '@/components/ui/v2/icons/TrashIcon';
-import UserIcon from '@/components/ui/v2/icons/UserIcon';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
+import { Dropdown } from '@/ui/v2/Dropdown';
+import IconButton from '@/ui/v2/IconButton';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-
+import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import TrashIcon from '@/ui/v2/icons/TrashIcon';
+import UserIcon from '@/ui/v2/icons/UserIcon';
 import { Avatar } from '@mui/material';
-import { format, formatRelative } from 'date-fns';
+import { format, formatDistance } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment } from 'react';
@@ -93,7 +92,10 @@ export default function UsersBody({
                   size="normal"
                 >
                   {user.lastSeen
-                    ? formatRelative(new Date(), new Date(user.lastSeen))
+                    ? `${formatDistance(
+                        new Date(user.lastSeen),
+                        new Date(),
+                      )} ago`
                     : '-'}
                 </Text>
 
