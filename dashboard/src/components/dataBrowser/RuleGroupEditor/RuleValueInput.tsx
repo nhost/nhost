@@ -72,7 +72,7 @@ export default function RuleValueInput({
         multiple
         freeSolo
         limitTags={5}
-        className="flex-auto !bg-white"
+        className="flex-auto"
         slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
         options={[]}
         fullWidth
@@ -117,8 +117,11 @@ export default function RuleValueInput({
     <ControlledAutocomplete
       freeSolo={!isHasuraInput}
       name={inputName}
-      className="flex-auto !bg-white"
-      slotProps={{ input: { className: 'lg:!rounded-none' } }}
+      className="flex-auto"
+      slotProps={{
+        input: { className: 'lg:!rounded-none !bg-white' },
+        formControl: { className: '!bg-transparent' },
+      }}
       fullWidth
       loading={loading}
       loadingText={<ActivityIndicator label="Loading..." />}

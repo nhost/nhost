@@ -1,6 +1,10 @@
 @tailwind base;
 @tailwind components;
 
+.sb-show-main {
+  overflow: auto;
+}
+
 html,
 body {
   width: 100%;

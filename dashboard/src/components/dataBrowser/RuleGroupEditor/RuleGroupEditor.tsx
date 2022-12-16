@@ -149,8 +149,8 @@ export default function RuleGroupEditor({
         )}
       </div>
 
-      <div className="grid grid-flow-col justify-between gap-2 pb-2">
-        <div className="grid grid-flow-col gap-2 justify-start">
+      <div className="grid grid-flow-row lg:grid-flow-col lg:justify-between gap-2 pb-2">
+        <div className="grid grid-flow-row lg:grid-flow-col gap-2 lg:justify-start">
           <Button
             startIcon={<PlusIcon />}
             variant="borderless"
