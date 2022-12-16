@@ -117,7 +117,7 @@ export interface Typegen0 {
     passwordlessEmail: 'done.invoke.passwordlessEmail'
     passwordlessSms: 'done.invoke.passwordlessSms'
     passwordlessSmsOtp: 'done.invoke.passwordlessSmsOtp'
-    refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
+    refreshToken: 'done.invoke.authenticateWithToken' | 'done.invoke.refreshToken'
     signInAnonymous: 'done.invoke.authenticateAnonymously'
     signInMfaTotp: 'done.invoke.signInMfaTotp'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
@@ -128,9 +128,9 @@ export interface Typegen0 {
   }
   missingImplementations: {
     actions: never
-    services: never
-    guards: never
     delays: never
+    guards: never
+    services: never
   }
   eventsCausingActions: {
     broadcastToken:
@@ -269,6 +269,29 @@ export interface Typegen0 {
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
   }
+  eventsCausingDelays: {
+    RETRY_IMPORT_TOKEN_DELAY: 'error.platform.importRefreshToken'
+  }
+  eventsCausingGuards: {
+    hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
+    hasRefreshToken: ''
+    hasSession:
+      | 'SESSION_UPDATE'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+    isAnonymous: 'SIGNED_IN'
+    isAutoRefreshDisabled: ''
+    isSignedIn: '' | 'error.platform.authenticateWithToken'
+    noToken: ''
+    refreshTimerShouldRefresh: ''
+    shouldRetryImportToken: 'error.platform.importRefreshToken'
+    unverified:
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.signUpEmailPassword'
+      | 'error.platform.signUpSecurityKey'
+  }
   eventsCausingServices: {
     importRefreshToken:
       | 'done.invoke.authenticateWithToken'
@@ -291,29 +314,6 @@ export interface Typegen0 {
     signUpEmailPassword: 'SIGNUP_EMAIL_PASSWORD'
     signUpSecurityKey: 'SIGNUP_SECURITY_KEY'
     signout: 'SIGNOUT'
-  }
-  eventsCausingGuards: {
-    hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    hasRefreshToken: ''
-    hasSession:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.signUpSecurityKey'
-    isAnonymous: 'SIGNED_IN'
-    isAutoRefreshDisabled: ''
-    isSignedIn: '' | 'error.platform.authenticateWithToken'
-    noToken: ''
-    refreshTimerShouldRefresh: ''
-    shouldRetryImportToken: 'error.platform.importRefreshToken'
-    unverified:
-      | 'error.platform.authenticateUserWithPassword'
-      | 'error.platform.authenticateUserWithSecurityKey'
-      | 'error.platform.signUpEmailPassword'
-      | 'error.platform.signUpSecurityKey'
-  }
-  eventsCausingDelays: {
-    RETRY_IMPORT_TOKEN_DELAY: 'error.platform.importRefreshToken'
   }
   matchesStates:
     | 'authentication'

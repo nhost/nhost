@@ -59,14 +59,15 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "peerDependencies": {
+    "@nhost/nhost-js": "workspace:*",
     "@apollo/client": "^3.6.2"
   },
   "dependencies": {
-    "@nhost/nhost-js": "workspace:*",
     "graphql": "15.7.2",
     "graphql-ws": "^5.10.1"
   },
   "devDependencies": {
+    "@nhost/nhost-js": "workspace:*",
     "@apollo/client": "^3.7.1"
   }
 }

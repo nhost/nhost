@@ -5,6 +5,7 @@ import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { computed, ref } from 'vue'
 
 const { nhost } = useNhostClient()
+
 const GET_USER_SUBSCRIPTION = gql`
   subscription GetUser($id: uuid!) {
     user(id: $id) {
@@ -61,11 +62,17 @@ const updateUserProfile = async (event: Event) => {
       <em text-sm op75>Quickstart</em>
     </p>
     <div v-if="user" py-4>
-      <p>Hello, {{ user.displayName }}. Your email is {{ user.email }}.</p>
+      <p my-4>
+        Hello, {{ user.displayName }}. Your email is {{ user.email }}.
+      </p>
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" class="input" /><br />
-        <input v-model="lastName" placeholder="Last name" class="input" /><br />
-        <button class="btn-submit" :disabled="loading">Save</button>
+        <input v-model="firstName" placeholder="First name" class="input" />
+        <br />
+        <input v-model="lastName" placeholder="Last name" class="input" />
+        <br />
+        <button class="btn-submit" :disabled="loading">
+          Save
+        </button>
         <div v-if="error">
           {{ error.message }}
         </div>
