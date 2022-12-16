@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   PasswordlessOptions,
   SignInSmsPasswordlessHandlerResult,
@@ -7,9 +5,9 @@ import {
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   SignInSmsPasswordlessState
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInSmsPasswordlessHandler {

@@ -1,7 +1,5 @@
+import { JWTClaims } from '@nhost/nhost-js'
 import jwt_decode from 'jwt-decode'
-
-import { JWTClaims } from '@nhost/hasura-auth-js'
-
 import { useAccessToken } from './useAccessToken'
 
 /**

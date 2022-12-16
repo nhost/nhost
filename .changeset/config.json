@@ -2,7 +2,20 @@
   "$schema": "https://unpkg.com/@changesets/config@1.6.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "linked": [],
+  "linked": [
+    [
+      "@nhost/nextjs",
+      "@nhost/react",
+      "@nhost/vue",
+      "@nhost/nhost-js",
+      "@nhost/hasura-auth-js",
+      "@nhost/hasura-storage-js"
+    ],
+    [
+      "@nhost/react-apollo",
+      "@nhost/apollo"
+    ]
+  ],
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",

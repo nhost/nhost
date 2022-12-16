@@ -1,22 +1,18 @@
 import {
   BackendUrl,
   NhostAuthConstructorParams,
-  NhostClient as VanillaNhostClient,
+  NhostClient as ReactNhostClient,
+  NhostProvider,
   Subdomain
-} from '@nhost/nhost-js'
-import { NhostProvider } from '@nhost/react'
+} from '@nhost/react'
 
-export type { NhostSession } from '@nhost/hasura-auth-js'
 export * from '@nhost/react'
-export { NhostProvider } from '@nhost/react'
 export * from './create-server-side-client'
 export * from './get-session'
-export { NhostNextProvider }
-
 /**
  * @deprecated use `NhostProvider` instead
  */
-const NhostNextProvider: typeof NhostProvider = NhostProvider
+export const NhostNextProvider: typeof NhostProvider = NhostProvider
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -34,11 +30,10 @@ export interface NhostNextClientConstructorParams
       | 'clientStorageSetter'
     > {}
 
-export class NhostClient extends VanillaNhostClient {
+export class NhostClient extends ReactNhostClient {
   constructor(params: NhostNextClientConstructorParams) {
     super({
       ...params,
-      start: false,
       autoSignIn: isBrowser && params.autoSignIn,
       autoRefreshToken: isBrowser && params.autoRefreshToken,
       clientStorageType: 'cookie'

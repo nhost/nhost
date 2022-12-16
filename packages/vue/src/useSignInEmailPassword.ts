@@ -1,14 +1,12 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   SignInEmailPasswordHandlerResult,
   signInEmailPasswordPromise,
   SignInEmailPasswordState,
   SignInMfaTotpHandlerResult,
   signInMfaTotpPromise
-} from '@nhost/hasura-auth-js'
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'
