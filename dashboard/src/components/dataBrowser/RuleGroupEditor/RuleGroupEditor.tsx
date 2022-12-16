@@ -1,7 +1,6 @@
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import TrashIcon from '@/ui/v2/icons/TrashIcon';
 import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -31,6 +30,12 @@ export interface RuleGroupEditorProps
    * @default 0
    */
   depth?: number;
+  /**
+   * Maximum depth of the group editor.
+   *
+   * @default 7
+   */
+  maxDepth?: number;
 }
 
 export default function RuleGroupEditor({
@@ -40,6 +45,7 @@ export default function RuleGroupEditor({
   disableRemove,
   disabledOperators = [],
   depth = 0,
+  maxDepth = 7,
   ...props
 }: RuleGroupEditorProps) {
   const form = useFormContext();
@@ -79,7 +85,10 @@ export default function RuleGroupEditor({
         depth === 0 && 'bg-greyscale-50',
         depth === 1 && 'bg-greyscale-100',
         depth === 2 && 'bg-greyscale-200',
-        depth > 2 && 'bg-greyscale-300',
+        depth === 3 && 'bg-greyscale-300',
+        depth === 4 && 'bg-greyscale-400',
+        depth === 5 && 'bg-greyscale-500',
+        depth >= 6 && 'bg-greyscale-600',
         className,
       )}
       {...props}
@@ -162,7 +171,7 @@ export default function RuleGroupEditor({
                 groups: [],
               })
             }
-            disabled={depth > 2}
+            disabled={depth >= maxDepth - 1}
           >
             New Group
           </Button>
@@ -170,13 +179,12 @@ export default function RuleGroupEditor({
 
         {onRemove && (
           <Button
-            startIcon={<TrashIcon />}
             variant="borderless"
             color="secondary"
             onClick={onRemove}
             disabled={disableRemove}
           >
-            Delete
+            Delete Group
           </Button>
         )}
       </div>
