@@ -12,9 +12,11 @@ fragment RemoteAppGetUsers on users {
   lastSeen
   locale
   roles {
+    id
     role
   }
   userProviders {
+    id
     providerId
   }
   disabled
@@ -25,7 +27,7 @@ query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
     where: $where
     limit: $limit
     offset: $offset
-    order_by: {createdAt: desc}
+    order_by: { createdAt: desc }
   ) {
     ...RemoteAppGetUsers
   }

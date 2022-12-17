@@ -18702,7 +18702,7 @@ export type GetRemoteAppByIdQueryVariables = Exact<{
 
 export type GetRemoteAppByIdQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, email?: any | null } | null };
 
-export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', providerId: string }> };
+export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
 export type RemoteAppGetUsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -18711,7 +18711,7 @@ export type RemoteAppGetUsersQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -18728,7 +18728,7 @@ export type RemoteAppGetUsersWholeQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -19265,9 +19265,11 @@ export const RemoteAppGetUsersFragmentDoc = gql`
   lastSeen
   locale
   roles {
+    id
     role
   }
   userProviders {
+    id
     providerId
   }
   disabled

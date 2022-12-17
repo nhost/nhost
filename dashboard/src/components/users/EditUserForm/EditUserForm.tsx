@@ -2,8 +2,6 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import { useGetRolesQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import IconButton from '@/ui/v2/IconButton';
@@ -15,13 +13,12 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
-import getUserRoles from '@/utils/settings/getUserRoles';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format, formatDistance } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -50,6 +47,10 @@ export interface EditUserFormProps {
    * Function to be called when deleting the user.
    */
   onDeleteUser: (user: RemoteAppUser) => Promise<void>;
+  /**
+   * User roles
+   */
+  roles: { [key: string]: boolean }[];
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -63,12 +64,7 @@ export const EditUserFormValidationSchema = Yup.object({
   phoneNumberVerified: Yup.boolean().optional(),
   locale: Yup.string(),
   defaultRole: Yup.string(),
-  roles: Yup.array().of(
-    Yup.object({
-      role: Yup.string(),
-      value: Yup.bool(),
-    }),
-  ),
+  roles: Yup.array().of(Yup.boolean()),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -81,18 +77,9 @@ export default function EditUserForm({
   onCancel,
   onBanUser,
   onDeleteUser,
+  roles,
 }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-
-  const { data } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
-  });
-
-  const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(data?.app?.authUserDefaultAllowedRoles),
-    [data],
-  );
 
   const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
 
@@ -108,10 +95,7 @@ export default function EditUserForm({
       phoneNumberVerified: user.phoneNumberVerified,
       locale: user.locale,
       defaultRole: user.defaultRole,
-      roles: allAvailableProjectRoles?.map((role) => {
-        const userRole = user.roles.find((sr) => sr.role === role.name);
-        return { role: role.name, value: !!userRole };
-      }),
+      roles: roles.map((role) => Object.values(role)[0]),
     },
   });
 
@@ -125,23 +109,6 @@ export default function EditUserForm({
   useEffect(() => {
     onDirtyStateChange(isDirty, 'dialog');
   }, [isDirty, onDirtyStateChange]);
-
-  useEffect(() => {
-    form.reset(() => ({
-      avatarURL: user.avatarUrl,
-      displayName: user.displayName,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      phoneNumber: user.phoneNumber,
-      phoneNumberVerified: user.phoneNumberVerified,
-      locale: user.locale,
-      defaultRole: user.defaultRole,
-      roles: allAvailableProjectRoles?.map((role) => {
-        const userRole = user.roles.find((sr) => sr.role === role.name);
-        return { role: role.name, value: !!userRole };
-      }),
-    }));
-  }, [user, form, allAvailableProjectRoles]);
 
   function handleChangeUserPassword() {
     openDialog('EDIT_USER_PASSWORD', {
@@ -421,7 +388,7 @@ export default function EditUserForm({
               error={!!errors.defaultRole}
               helperText={errors?.defaultRole?.message}
             >
-              {allAvailableProjectRoles.map((role) => (
+              {roles.map((role) => (
                 <Option value={role.name}>{role.name}</Option>
               ))}
             </ControlledSelect>
@@ -430,11 +397,12 @@ export default function EditUserForm({
                 Allowed Roles
               </InputLabel>
               <div className="grid grid-flow-row col-span-3 gap-6">
-                {allAvailableProjectRoles.map((role) => (
+                {roles.map((role, i) => (
                   <ControlledCheckbox
-                    label={role.name}
-                    key={role.name}
-                    name="roles"
+                    id={`roles.${i}`}
+                    label={Object.keys(role)[0]}
+                    defaultChecked={Object.values(role)[0]}
+                    name={`roles.${i}`}
                   />
                 ))}
               </div>

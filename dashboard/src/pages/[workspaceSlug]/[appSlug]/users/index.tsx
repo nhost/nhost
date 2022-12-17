@@ -13,12 +13,17 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
+  useDeleteRemoteAppUserRolesMutation,
+  useGetRemoteAppRolesQuery,
   useGetRolesQuery,
+  useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useRemoteAppGetUsersQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+
 import { generateAppServiceUrl } from '@/utils/helpers';
+import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { SearchIcon } from '@heroicons/react/solid';
 import axios from 'axios';
@@ -40,10 +45,23 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteUser] = useRemoteAppDeleteUserMutation({
     client: remoteProjectGQLClient,
+    refetchQueries: 'active',
   });
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
+    refetchQueries: 'active',
   });
+
+  const [insertUserRoles] = useInsertRemoteAppUserRolesMutation({
+    client: remoteProjectGQLClient,
+    refetchQueries: 'active',
+  });
+
+  const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
+    client: remoteProjectGQLClient,
+    refetchQueries: 'active',
+  });
+
   const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -55,11 +73,20 @@ export default function UsersPage() {
    * going to use once the user selects a user of their application; we use it
    * in the drawer form.
    */
-  useGetRolesQuery({
+  const { data: dataRoles } = useGetRolesQuery({
     variables: { id: currentApplication.id },
-    fetchPolicy: 'cache-first',
+  });
+
+  const { data: dataAppRoles } = useGetRemoteAppRolesQuery({
     client: remoteProjectGQLClient,
   });
+
+  console.log(dataAppRoles);
+
+  const allAvailableProjectRoles = useMemo(
+    () => getUserRoles(dataRoles?.app?.authUserDefaultAllowedRoles),
+    [dataRoles],
+  );
 
   const {
     data: dataRemoteAppUsers,
@@ -227,6 +254,40 @@ export default function UsersPage() {
       },
     });
 
+    const newRoles = allAvailableProjectRoles
+      .filter((role, i) => values.roles[i] === true)
+      .map((role) => role.name);
+
+    const userHasRoles = user.roles.map((role) => role.role);
+
+    const rolesToAdd = newRoles.filter(
+      (value) => !userHasRoles.includes(value),
+    );
+
+    const rolesToRemove = userHasRoles.filter(
+      (value) => !newRoles.includes(value),
+    );
+
+    if (rolesToAdd.length !== 0) {
+      await insertUserRoles({
+        variables: {
+          roles: rolesToAdd.map((role) => ({
+            userId: user.id,
+            role,
+          })),
+        },
+      });
+    }
+
+    if (rolesToRemove.length !== 0) {
+      await deleteUserRoles({
+        variables: {
+          userId: user.id,
+          roles: rolesToRemove,
+        },
+      });
+    }
+
     await toast.promise(
       updateUserMutationPromise,
       {
@@ -248,6 +309,11 @@ export default function UsersPage() {
         onEditUser: handleEditUser,
         onBanUser: handleBanUser,
         onDeleteUser: handleDeleteUser,
+        roles: allAvailableProjectRoles.map((role) => ({
+          [role.name]: !!user.roles.find(
+            (userRole) => userRole.role === role.name,
+          ),
+        })),
       },
     });
   }

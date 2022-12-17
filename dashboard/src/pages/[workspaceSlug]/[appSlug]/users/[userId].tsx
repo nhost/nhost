@@ -12,16 +12,13 @@ import Status, { StatusEnum } from '@/ui/Status';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import IconButton from '@/ui/v2/IconButton';
-import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
-import ChevronUpIcon from '@/ui/v2/icons/ChevronUpIcon';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
-import { copy } from '@/utils/copy';
-import { generateAppServiceUrl } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
+import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
+import ChevronUpIcon from '@/ui/v2/icons/ChevronUpIcon';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import type {
   GetRemoteAppUserAuthRolesFragment,
   GetRemoteAppUserFragment,
@@ -33,6 +30,9 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import { copy } from '@/utils/copy';
+import { generateAppServiceUrl } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import bcrypt from 'bcryptjs';
 import { format } from 'date-fns';
@@ -51,7 +51,7 @@ function UserSectionContainer({ title, children }: any) {
 
 function UserDetailsFromAppElement({ title, children }: any) {
   return (
-    <div className="grid grid-cols-8 items-center justify-between gap-4 px-2 py-3">
+    <div className="grid items-center justify-between grid-cols-8 gap-4 px-2 py-3">
       <Text className="col-span-3 font-medium">{title}</Text>
 
       <div className="col-span-5">{children}</div>
@@ -67,7 +67,7 @@ function UserDetailsFromApp({ user }: UserDetailsFromAppProps) {
   return (
     <div className="divide-y-1 divide-divide">
       <UserDetailsFromAppElement title="User ID">
-        <div className="grid grid-flow-col items-center justify-start gap-2">
+        <div className="grid items-center justify-start grid-flow-col gap-2">
           <Text className="font-medium">{user.id}</Text>
 
           <IconButton
@@ -77,12 +77,12 @@ function UserDetailsFromApp({ user }: UserDetailsFromAppProps) {
             aria-label="Copy user ID"
             className="p-1"
           >
-            <CopyIcon className="h-4 w-4" />
+            <CopyIcon className="w-4 h-4" />
           </IconButton>
         </div>
       </UserDetailsFromAppElement>
       <UserDetailsFromAppElement title="Status">
-        <div className="flex flex-row space-x-2 self-center">
+        <div className="flex flex-row self-center space-x-2">
           {user.disabled && (
             <Status status={StatusEnum.Closed}>Disabled</Status>
           )}
@@ -154,7 +154,7 @@ function UserDetailsPassword({
     return (
       <form
         onSubmit={handleOnSubmit}
-        className="flex w-full flex-row items-start gap-2 py-3 px-2"
+        className="flex flex-row items-start w-full gap-2 px-2 py-3"
       >
         <Input
           id="password"
@@ -180,7 +180,7 @@ function UserDetailsPassword({
         <Button
           type="submit"
           loading={loading}
-          className="justify-self-end py-2"
+          className="py-2 justify-self-end"
         >
           Save
         </Button>
@@ -189,9 +189,9 @@ function UserDetailsPassword({
   }
 
   return (
-    <div className="grid grid-cols-8 items-center gap-4 py-3 px-2">
+    <div className="grid items-center grid-cols-8 gap-4 px-2 py-3">
       <Text className="col-span-3 text-sm+ font-medium">Password</Text>
-      <div className="col-span-5 grid w-full grid-flow-col place-content-between items-center gap-2">
+      <div className="grid items-center w-full grid-flow-col col-span-5 gap-2 place-content-between">
         <Text variant="subtitle2">
           {userHasPasswordSet ? `••••••••••••` : 'No password set'}
         </Text>
@@ -228,6 +228,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
     name: role.role,
     disabled: false,
   }));
+  
 
   const [updateUser] = useUpdateRemoteAppUserMutation();
   const [insertUserRoles] = useInsertRemoteAppUserRolesMutation();
@@ -268,6 +269,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
     const deletedAllowedRoles = stateUserRoles.filter(
       (role) => !roles.includes(role),
     );
+
 
     try {
       await insertUserRoles({
@@ -344,11 +346,11 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
       </Modal>
       <div className="flex flex-row">
         <Avatar
-          className="h-14 w-14 rounded-lg"
+          className="rounded-lg h-14 w-14"
           avatarUrl={user.avatarUrl}
           name={user.displayName}
         />
-        <div className="ml-4 flex flex-col self-center">
+        <div className="flex flex-col self-center ml-4">
           <Text variant="h3" component="h1">
             {user.displayName || user.phoneNumber}
           </Text>
@@ -441,8 +443,8 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
         />
 
         <UserDetailsFromAppElement title="Authentication">
-          <div className="flex w-full flex-col space-y-3">
-            <div className="flex place-content-between items-center">
+          <div className="flex flex-col w-full space-y-3">
+            <div className="flex items-center place-content-between">
               <div className="flex">
                 <Text className="font-medium">Email + Password</Text>
               </div>
@@ -458,7 +460,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
                 </Status>
               </div>
             </div>
-            <div className="flex place-content-between items-center">
+            <div className="flex items-center place-content-between">
               <div className="flex">
                 <Text className="font-medium">Magic Link</Text>
               </div>
@@ -470,7 +472,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
                 </Status>
               </div>
             </div>
-            <div className="flex place-content-between items-center">
+            <div className="flex items-center place-content-between">
               <div className="flex">
                 <Text className="font-medium">SMS</Text>
               </div>
@@ -561,7 +563,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
           </UserDetailsFromAppElement>
         </UserSectionContainer>
       )}
-      <div className="mt-3 flex flex-row place-content-between px-1">
+      <div className="flex flex-row px-1 mt-3 place-content-between">
         <Button
           startIcon={toggleShowRoles ? <ChevronUpIcon /> : <ChevronDownIcon />}
           variant="borderless"
