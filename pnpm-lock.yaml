@@ -220,7 +220,7 @@ importers:
       '@mui/system': 5.10.14_v64nlmo6pkqfmpmxge6otzlg54
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
       '@nhost/nextjs': link:../packages/nextjs
-      '@nhost/react-apollo': link:../packages/react-apollo
+      '@nhost/react-apollo': link:../integrations/react-apollo
       '@segment/snippet': 4.15.3
       '@stripe/react-stripe-js': 1.14.2_mljfwq7caaxrtdqn7u72ntpebq
       '@stripe/stripe-js': 1.44.1
@@ -386,7 +386,7 @@ importers:
     dependencies:
       '@apollo/client': 3.6.9_qqqj7xqn73klpidhtp57t4zzwm
       '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       graphql: 15.7.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -490,7 +490,7 @@ importers:
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
       '@nhost/nextjs': link:../../packages/nextjs
       '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       graphql: 15.7.2
       next: 12.1.6_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
@@ -548,7 +548,7 @@ importers:
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
       '@mantine/prism': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
       '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       graphql: 15.7.2
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -709,7 +709,7 @@ importers:
     dependencies:
       '@apollo/client': 3.7.1_graphql@15.7.2
       '@mdi/font': 5.9.55
-      '@nhost/apollo': link:../../packages/apollo
+      '@nhost/apollo': link:../../integrations/apollo
       '@nhost/vue': link:../../packages/vue
       '@vue/apollo-composable': 4.0.0-alpha.18_bfqjzh474jiy2vndpovanot4va
       graphql: 15.7.2
@@ -760,7 +760,7 @@ importers:
       vue-tsc: ^0.38.9
     dependencies:
       '@apollo/client': 3.6.9_graphql@15.7.2
-      '@nhost/apollo': link:../../packages/apollo
+      '@nhost/apollo': link:../../integrations/apollo
       '@nhost/vue': link:../../packages/vue
       '@vue/apollo-composable': 4.0.0-alpha.18_u5o5osmz2el7lvswqxi2nfxzl4
       '@vueuse/core': 8.9.4_vue@3.2.40
@@ -787,6 +787,19 @@ importers:
       vitest: 0.12.6_jsdom@19.0.0
       vue-tsc: 0.38.9_typescript@4.8.3
 
+  integrations/apollo:
+    specifiers:
+      '@apollo/client': ^3.7.1
+      '@nhost/nhost-js': workspace:*
+      graphql: 15.7.2
+      graphql-ws: ^5.10.1
+    dependencies:
+      graphql: 15.7.2
+      graphql-ws: 5.11.2_graphql@15.7.2
+    devDependencies:
+      '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
+      '@nhost/nhost-js': link:../../packages/nhost-js
+
   integrations/google-translation:
     specifiers:
       '@google-cloud/translate': ^7.0.3
@@ -807,6 +820,25 @@ importers:
       '@types/node': 18.11.9
       dotenv: 16.0.3
       typescript: 4.8.4
+
+  integrations/react-apollo:
+    specifiers:
+      '@apollo/client': ^3.7.1
+      '@nhost/apollo': workspace:*
+      '@nhost/react': workspace:*
+      '@types/react': ^18.0.25
+      graphql: 15.7.2
+      react: ^18.2.0
+      react-dom: ^18.2.0
+    dependencies:
+      '@nhost/apollo': link:../apollo
+    devDependencies:
+      '@apollo/client': 3.7.1_wxl7pzr4swrbjxvfzfidvlwjsu
+      '@nhost/react': link:../../packages/react
+      '@types/react': 18.0.26
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
 
   integrations/react-urql:
     specifiers:
@@ -857,19 +889,6 @@ importers:
       dotenv: 16.0.3
       ts-node-dev: 2.0.0_cbe7ovvae6zqfnmtgctpgpys54
       typescript: 4.8.4
-
-  packages/apollo:
-    specifiers:
-      '@apollo/client': ^3.7.1
-      '@nhost/nhost-js': workspace:*
-      graphql: 15.7.2
-      graphql-ws: ^5.10.1
-    dependencies:
-      graphql: 15.7.2
-      graphql-ws: 5.11.2_graphql@15.7.2
-    devDependencies:
-      '@apollo/client': 3.7.1_2mwhwqlbwqou7fm27bqtq5vewe
-      '@nhost/nhost-js': link:../nhost-js
 
   packages/docgen:
     specifiers:
@@ -1021,25 +1040,6 @@ importers:
       '@nhost/docgen': link:../docgen
       '@types/react': 18.0.25
       react: 18.2.0
-
-  packages/react-apollo:
-    specifiers:
-      '@apollo/client': ^3.7.1
-      '@nhost/apollo': workspace:*
-      '@nhost/react': workspace:*
-      '@types/react': ^18.0.25
-      graphql: 15.7.2
-      react: ^18.2.0
-      react-dom: ^18.2.0
-    dependencies:
-      '@nhost/apollo': link:../apollo
-    devDependencies:
-      '@apollo/client': 3.7.1_wxl7pzr4swrbjxvfzfidvlwjsu
-      '@nhost/react': link:../react
-      '@types/react': 18.0.25
-      graphql: 15.7.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
 
   packages/sync-versions:
     specifiers:
@@ -9901,7 +9901,7 @@ packages:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.2.1_postcss@8.4.19
+      tailwindcss: 3.2.1_postcss@8.4.18
 
   /@tanstack/match-sorter-utils/8.1.1:
     resolution: {integrity: sha512-IdmEekEYxQsoLOR0XQyw3jD1GujBpRRYaGJYQUw1eOT1eUugWxdc7jomh1VQ1EKHcdwDLpLaCz/8y4KraU4T9A==}
@@ -24055,7 +24055,6 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
-    dev: true
 
   /postcss-import/14.1.0_postcss@8.4.19:
     resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
@@ -24067,6 +24066,7 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
+    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.18:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -24076,7 +24076,6 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.18
-    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.19:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -24086,6 +24085,7 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.19
+    dev: true
 
   /postcss-load-config/3.1.4_postcss@8.4.18:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -24102,7 +24102,6 @@ packages:
       lilconfig: 2.0.6
       postcss: 8.4.18
       yaml: 1.10.2
-    dev: true
 
   /postcss-load-config/3.1.4_postcss@8.4.19:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -24119,6 +24118,7 @@ packages:
       lilconfig: 2.0.6
       postcss: 8.4.19
       yaml: 1.10.2
+    dev: true
 
   /postcss-load-config/3.1.4_ts-node@10.9.1:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -24357,7 +24357,6 @@ packages:
     dependencies:
       postcss: 8.4.18
       postcss-selector-parser: 6.0.10
-    dev: true
 
   /postcss-nested/6.0.0_postcss@8.4.19:
     resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
@@ -24367,6 +24366,7 @@ packages:
     dependencies:
       postcss: 8.4.19
       postcss-selector-parser: 6.0.10
+    dev: true
 
   /postcss-normalize-charset/5.1.0_postcss@8.4.19:
     resolution: {integrity: sha512-mSgUJ+pd/ldRGVx26p2wz9dNZ7ji6Pn8VWBajMXFf8jk7vUoSrZ2lt/wZR7DtlZYKesmZI680qjr2CeFF2fbUg==}
@@ -27571,7 +27571,6 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
-    dev: true
 
   /tailwindcss/3.2.1_postcss@8.4.19:
     resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
@@ -27605,6 +27604,7 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
+    dev: true
 
   /tailwindcss/3.2.1_v776zzvn44o7tpgzieipaairwm:
     resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
