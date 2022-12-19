@@ -11,7 +11,7 @@ import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { updateOwnCache } from '@/utils/updateOwnCache';
-import { useUserData } from '@nhost/react';
+import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
 import { RemoveApplicationModal } from './RemoveApplicationModal';

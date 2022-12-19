@@ -15,7 +15,7 @@ import {
   useInsertFeatureFlagMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
-import { useUserEmail } from '@nhost/react';
+import { useUserEmail } from '@nhost/nextjs';
 import { useEffect, useState } from 'react';
 
 /**

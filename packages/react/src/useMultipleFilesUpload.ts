@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   createMultipleFilesUploadMachine,
   FileItemRef,
@@ -7,9 +5,9 @@ import {
   MultipleFilesUploadState,
   UploadMultipleFilesActionParams,
   uploadMultipleFilesPromise
-} from '@nhost/hasura-storage-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 export interface MultipleFilesHookResult extends MultipleFilesUploadState {

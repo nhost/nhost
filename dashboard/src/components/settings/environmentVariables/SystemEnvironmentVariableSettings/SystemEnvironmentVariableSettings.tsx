@@ -34,7 +34,7 @@ export default function SystemEnvironmentVariableSettings() {
   });
   const isPlatform = useIsPlatform();
 
-  const appClient = useAppClient({ start: false });
+  const appClient = useAppClient();
 
   if (loading) {
     return (

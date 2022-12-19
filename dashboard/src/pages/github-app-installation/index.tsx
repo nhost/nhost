@@ -1,7 +1,7 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import DelayedLoading from '@/ui/DelayedLoading';
 import { nhost } from '@/utils/nhost';
-import { useAuthenticationStatus } from '@nhost/react';
+import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
