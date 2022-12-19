@@ -14,7 +14,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import getPermissionVariables from '@/utils/settings/getPermissionVariablesArray';
+import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetAppCustomClaimsQuery,
@@ -125,7 +125,7 @@ export default function PermissionVariableSettings() {
     });
   }
 
-  const availablePermissionVariables = getPermissionVariables(
+  const availablePermissionVariables = getPermissionVariablesArray(
     data?.app?.authJwtCustomClaims,
   );
 

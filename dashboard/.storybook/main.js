@@ -6,6 +6,7 @@ module.exports = {
     '@storybook/addon-links',
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
+    'storybook-addon-next-router',
     {
       /**
        * Fix Storybook issue with PostCSS@8
@@ -38,4 +39,10 @@ module.exports = {
       },
     };
   },
+  env: (config) => ({
+    ...config,
+    NEXT_PUBLIC_ENV: 'dev',
+    NEXT_PUBLIC_NHOST_BACKEND_URL: 'http://localhost:1337',
+    NEXT_PUBLIC_NHOST_PLATFORM: 'false',
+  }),
 };
