@@ -380,7 +380,7 @@ function DataBrowserSidebarContent({
                                 ),
                                 props: {
                                   PaperProps: {
-                                    className: 'w-[65%] max-w-7xl',
+                                    className: 'lg:w-[65%] lg:max-w-7xl',
                                   },
                                 },
                                 payload: {

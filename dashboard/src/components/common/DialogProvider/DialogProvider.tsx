@@ -74,7 +74,7 @@ const EditTableForm = dynamic(
 );
 
 const EditPermissionsForm = dynamic(
-  () => import('@/components/data-browser/EditPermissionsForm'),
+  () => import('@/components/dataBrowser/EditPermissionsForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
