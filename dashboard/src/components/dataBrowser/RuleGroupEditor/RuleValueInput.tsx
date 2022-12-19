@@ -1,6 +1,7 @@
 import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
+import type { ColumnAutocompleteProps } from '@/components/dataBrowser/ColumnAutocomplete';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { HasuraOperator } from '@/types/dataBrowser';
@@ -9,7 +10,7 @@ import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
 import { useRouter } from 'next/router';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useController, useFormContext, useWatch } from 'react-hook-form';
 
 export interface RuleValueInputProps {
   /**
@@ -20,6 +21,47 @@ export interface RuleValueInputProps {
    * Path of the table selected through the column input.
    */
   selectedTablePath?: string;
+}
+
+function ColumnSelectorInput({
+  name,
+  selectedTablePath,
+  schema,
+  table,
+  ...props
+}: ColumnAutocompleteProps & { selectedTablePath: string }) {
+  const { setValue, control } = useFormContext();
+  const { field } = useController({
+    name,
+    control,
+  });
+
+  return (
+    <ColumnAutocomplete
+      {...props}
+      {...field}
+      value={
+        // this array can either be ['$', 'columnName'] or ['columnName']
+        Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value
+      }
+      schema={schema}
+      table={table}
+      disableRelationships
+      rootClassName="flex-auto"
+      slotProps={{
+        input: { className: 'lg:!rounded-none !bg-white !z-10' },
+      }}
+      onChange={(_event, { value }) => {
+        if (selectedTablePath === `${schema}.${table}`) {
+          setValue(name, [value], { shouldDirty: true });
+          return;
+        }
+
+        // For more information, see https://github.com/hasura/graphql-engine/issues/3459#issuecomment-1085666541
+        setValue(name, ['$', value], { shouldDirty: true });
+      }}
+    />
+  );
 }
 
 export default function RuleValueInput({
@@ -83,23 +125,11 @@ export default function RuleValueInput({
 
   if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
     return (
-      <ColumnAutocomplete
-        disableRelationships
+      <ColumnSelectorInput
+        selectedTablePath={selectedTablePath}
         schema={schemaSlug as string}
         table={tableSlug as string}
-        rootClassName="flex-auto"
-        slotProps={{
-          input: { className: 'lg:!rounded-none !bg-white !z-10' },
-        }}
-        onChange={(_event, { value }) => {
-          if (selectedTablePath === `${schemaSlug}.${tableSlug}`) {
-            setValue(inputName, [value], { shouldDirty: true });
-            return;
-          }
-
-          // For more information, see https://github.com/hasura/graphql-engine/issues/3459#issuecomment-1085666541
-          setValue(inputName, ['$', value], { shouldDirty: true });
-        }}
+        name={inputName}
       />
     );
   }

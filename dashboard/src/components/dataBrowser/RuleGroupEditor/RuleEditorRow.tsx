@@ -138,9 +138,7 @@ export default function RuleEditorRow({
         schema={schemaSlug as string}
         table={tableSlug as string}
         rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
-        slotProps={{
-          input: { className: 'bg-white lg:!rounded-r-none' },
-        }}
+        slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
         fullWidth
         onChange={(_event, { value, columnMetadata, disableReset }) => {
           setSelectedTablePath(

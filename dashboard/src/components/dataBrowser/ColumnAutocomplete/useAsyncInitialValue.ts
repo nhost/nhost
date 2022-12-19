@@ -52,8 +52,13 @@ export default function useAsyncInitialValue({
   metadata,
   onInitialized,
 }: UseAsyncInitialValueOptions) {
+  const currentTablePath = `${selectedSchema}.${selectedTable}`;
   const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);
+  // We might not going to have the most up-to-date table data because the
+  // relationship is loaded asynchronously, so we need to make sure we don't
+  // look for the column in a stale table when initializing
+  const [asyncTablePath, setAsyncTablePath] = useState(currentTablePath);
   const [remainingColumnPath, setRemainingColumnPath] = useState(
     initialValue?.split('.') || [],
   );
@@ -66,7 +71,6 @@ export default function useAsyncInitialValue({
       : '';
   const [selectedColumn, setSelectedColumn] =
     useState<AutocompleteOption>(null);
-
   const activeRelationship =
     selectedRelationships[selectedRelationships.length - 1];
 
@@ -101,7 +105,8 @@ export default function useAsyncInitialValue({
     if (
       remainingColumnPath?.length !== 1 ||
       isTableLoading ||
-      !tableData?.columns
+      !tableData?.columns ||
+      asyncTablePath !== currentTablePath
     ) {
       return;
     }
@@ -111,7 +116,7 @@ export default function useAsyncInitialValue({
     // If there is a single column in the path, it means that we can look for it
     // in the table columns
     if (
-      !tableData.columns.some((column) => column.column_name === activeColumn)
+      !tableData?.columns.some((column) => column.column_name === activeColumn)
     ) {
       setRemainingColumnPath([]);
 
@@ -128,7 +133,13 @@ export default function useAsyncInitialValue({
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
     setInputValue(activeColumn);
-  }, [remainingColumnPath, isTableLoading, tableData?.columns]);
+  }, [
+    remainingColumnPath,
+    isTableLoading,
+    tableData?.columns,
+    asyncTablePath,
+    currentTablePath,
+  ]);
 
   useEffect(() => {
     if (
@@ -170,6 +181,12 @@ export default function useAsyncInitialValue({
 
     // In some cases the metadata already contains the schema and table name
     if (typeof metadataConstraint !== 'string') {
+      setAsyncTablePath(
+        `${metadataConstraint.table.schema || 'public'}.${
+          metadataConstraint.table.name
+        }`,
+      );
+
       setSelectedRelationships((currentRelationships) => [
         ...currentRelationships,
         {
@@ -204,6 +221,12 @@ export default function useAsyncInitialValue({
       setRemainingColumnPath([]);
       return;
     }
+
+    setAsyncTablePath(
+      `${foreignKeyRelation.referencedSchema || 'public'}.${
+        foreignKeyRelation.referencedTable
+      }`,
+    );
 
     setSelectedRelationships((currentRelationships) => [
       ...currentRelationships,
