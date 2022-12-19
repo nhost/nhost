@@ -17,6 +17,23 @@ export default function convertToRuleGroup(
   const [currentKey] = keys;
 
   if (
+    (currentKey === '_in' || currentKey === '_nin') &&
+    typeof hasuraPermissions[currentKey] === 'string'
+  ) {
+    return {
+      operator: '_and',
+      rules: [
+        {
+          column: previousKey,
+          operator: currentKey === '_in' ? '_in_hasura' : '_nin_hasura',
+          value: hasuraPermissions[currentKey],
+        },
+      ],
+      groups: [],
+    };
+  }
+
+  if (
     [
       '_eq',
       '_neq',

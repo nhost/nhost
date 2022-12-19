@@ -63,7 +63,13 @@ test('should convert a complex permission to a rule group', () => {
       _or: [
         {
           author: {
-            _and: [{ name: { _eq: 'John Doe' } }, { age: { _gte: '32' } }],
+            _and: [
+              { name: { _eq: 'John Doe' } },
+              { age: { _gte: '32' } },
+              {
+                _or: [{ name: { _eq: 'Mary Jane' } }, { age: { _lte: '48' } }],
+              },
+            ],
           },
         },
         { title: { _eq: 'test' } },
@@ -79,7 +85,16 @@ test('should convert a complex permission to a rule group', () => {
           { column: 'author.name', operator: '_eq', value: 'John Doe' },
           { column: 'author.age', operator: '_gte', value: '32' },
         ],
-        groups: [],
+        groups: [
+          {
+            operator: '_or',
+            rules: [
+              { column: 'author.name', operator: '_eq', value: 'Mary Jane' },
+              { column: 'author.age', operator: '_lte', value: '48' },
+            ],
+            groups: [],
+          },
+        ],
       },
     ],
   });
@@ -112,5 +127,35 @@ test('should convert a complex permission to a rule group', () => {
         groups: [],
       },
     ],
+  });
+});
+
+test(`should convert an _in or _nin value that do not have an array as value to _in_hasura or _nin_hasura`, () => {
+  expect(
+    convertToRuleGroup({ title: { _in: ['X-Hasura-Allowed-Ids'] } }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      {
+        column: 'title',
+        operator: '_in',
+        value: ['X-Hasura-Allowed-Ids'],
+      },
+    ],
+    groups: [],
+  });
+
+  expect(
+    convertToRuleGroup({ title: { _in: 'X-Hasura-Allowed-Ids' } }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      {
+        column: 'title',
+        operator: '_in_hasura',
+        value: 'X-Hasura-Allowed-Ids',
+      },
+    ],
+    groups: [],
   });
 });
