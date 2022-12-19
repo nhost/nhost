@@ -81,8 +81,7 @@ export class NhostGraphqlClient {
     // add auth headers if any
     const headers = {
       ...this.generateAccessTokenHeaders(),
-      ...config?.headers,
-      'Accept-Encoding': '*'
+      ...config?.headers
     }
 
     try {
