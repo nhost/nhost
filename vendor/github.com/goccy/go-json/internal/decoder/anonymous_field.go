@@ -35,3 +35,7 @@ func (d *anonymousFieldDecoder) Decode(ctx *RuntimeContext, cursor, depth int64,
 	p = *(*unsafe.Pointer)(p)
 	return d.dec.Decode(ctx, cursor, depth, unsafe.Pointer(uintptr(p)+d.offset))
 }
+
+func (d *anonymousFieldDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	return d.dec.DecodePath(ctx, cursor, depth)
+}

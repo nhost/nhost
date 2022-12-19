@@ -109,6 +109,7 @@ func (s h2cHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if http2VerboseLogs {
 				log.Printf("h2c: error h2c upgrade: %v", err)
 			}
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		defer conn.Close()
@@ -167,7 +168,10 @@ func h2cUpgrade(w http.ResponseWriter, r *http.Request) (_ net.Conn, settings []
 		return nil, nil, errors.New("h2c: connection does not support Hijack")
 	}
 
-	body, _ := io.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, nil, err
+	}
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	conn, rw, err := hijacker.Hijack()

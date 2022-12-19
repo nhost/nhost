@@ -162,3 +162,22 @@ func ErrInvalidBeginningOfValue(c byte, cursor int64) *SyntaxError {
 		Offset: cursor,
 	}
 }
+
+type PathError struct {
+	msg string
+}
+
+func (e *PathError) Error() string {
+	return fmt.Sprintf("json: invalid path format: %s", e.msg)
+}
+
+func ErrInvalidPath(msg string, args ...interface{}) *PathError {
+	if len(args) != 0 {
+		return &PathError{msg: fmt.Sprintf(msg, args...)}
+	}
+	return &PathError{msg: msg}
+}
+
+func ErrEmptyPath() *PathError {
+	return &PathError{msg: "path is empty"}
+}

@@ -156,3 +156,15 @@ func (d *floatDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsafe
 	d.op(p, f64)
 	return cursor, nil
 }
+
+func (d *floatDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	buf := ctx.Buf
+	bytes, c, err := d.decodeByte(buf, cursor)
+	if err != nil {
+		return nil, 0, err
+	}
+	if bytes == nil {
+		return [][]byte{nullbytes}, c, nil
+	}
+	return [][]byte{bytes}, c, nil
+}

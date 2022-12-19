@@ -51,6 +51,17 @@ func (d *numberDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsaf
 	return cursor, nil
 }
 
+func (d *numberDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	bytes, c, err := d.decodeByte(ctx.Buf, cursor)
+	if err != nil {
+		return nil, 0, err
+	}
+	if bytes == nil {
+		return [][]byte{nullbytes}, c, nil
+	}
+	return [][]byte{bytes}, c, nil
+}
+
 func (d *numberDecoder) decodeStreamByte(s *Stream) ([]byte, error) {
 	start := s.cursor
 	for {

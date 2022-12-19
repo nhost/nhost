@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"fmt"
 	"unsafe"
 
 	"github.com/goccy/go-json/internal/errors"
@@ -166,4 +167,8 @@ func (d *arrayDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsafe
 			return 0, errors.ErrUnexpectedEndOfJSON("array", cursor)
 		}
 	}
+}
+
+func (d *arrayDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	return nil, 0, fmt.Errorf("json: array decoder does not support decode path")
 }

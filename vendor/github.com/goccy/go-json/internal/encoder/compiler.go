@@ -506,8 +506,6 @@ func (c *Compiler) listElemCode(typ *runtime.Type) (Code, error) {
 
 func (c *Compiler) mapKeyCode(typ *runtime.Type) (Code, error) {
 	switch {
-	case c.implementsMarshalJSON(typ):
-		return c.marshalJSONCode(typ)
 	case c.implementsMarshalText(typ):
 		return c.marshalTextCode(typ)
 	}

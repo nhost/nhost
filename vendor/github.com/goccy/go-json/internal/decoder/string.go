@@ -60,6 +60,17 @@ func (d *stringDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsaf
 	return cursor, nil
 }
 
+func (d *stringDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	bytes, c, err := d.decodeByte(ctx.Buf, cursor)
+	if err != nil {
+		return nil, 0, err
+	}
+	if bytes == nil {
+		return [][]byte{nullbytes}, c, nil
+	}
+	return [][]byte{bytes}, c, nil
+}
+
 var (
 	hexToInt = [256]int{
 		'0': 0,

@@ -13,7 +13,7 @@ services:
 
   graphql-engine:
     container_name: hasura-storage-graphql
-    image: hasura/graphql-engine:v2.10.1
+    image: hasura/graphql-engine:v2.16.1
     depends_on:
       - postgres
       - minio

@@ -83,6 +83,37 @@ func unmarshalContext(ctx context.Context, data []byte, v interface{}, optFuncs 
 	return validateEndBuf(src, cursor)
 }
 
+var (
+	pathDecoder = decoder.NewPathDecoder()
+)
+
+func extractFromPath(path *Path, data []byte, optFuncs ...DecodeOptionFunc) ([][]byte, error) {
+	if path.path.RootSelectorOnly {
+		return [][]byte{data}, nil
+	}
+	src := make([]byte, len(data)+1) // append nul byte to the end
+	copy(src, data)
+
+	ctx := decoder.TakeRuntimeContext()
+	ctx.Buf = src
+	ctx.Option.Flags = 0
+	ctx.Option.Flags |= decoder.PathOption
+	ctx.Option.Path = path.path
+	for _, optFunc := range optFuncs {
+		optFunc(ctx.Option)
+	}
+	paths, cursor, err := pathDecoder.DecodePath(ctx, 0, 0)
+	if err != nil {
+		decoder.ReleaseRuntimeContext(ctx)
+		return nil, err
+	}
+	decoder.ReleaseRuntimeContext(ctx)
+	if err := validateEndBuf(src, cursor); err != nil {
+		return nil, err
+	}
+	return paths, nil
+}
+
 func unmarshalNoEscape(data []byte, v interface{}, optFuncs ...DecodeOptionFunc) error {
 	src := make([]byte, len(data)+1) // append nul byte to the end
 	copy(src, data)

@@ -184,7 +184,7 @@ func Marshal(v interface{}) ([]byte, error) {
 `json.Marshal` and `json.Unmarshal` receive `interface{}` value and they perform type determination dynamically to process.
 In normal case, you need to use the `reflect` library to determine the type dynamically, but since `reflect.Type` is defined as `interface`, when you call the method of `reflect.Type`, The reflect's argument is escaped.
 
-Therefore, the arguments for `Marshal` and `Unmarshal` are always escape to the heap.
+Therefore, the arguments for `Marshal` and `Unmarshal` are always escaped to the heap.
 However, `go-json` can use the feature of `reflect.Type` while avoiding escaping.
 
 `reflect.Type` is defined as `interface`, but in reality `reflect.Type` is implemented only by the structure `rtype` defined in the `reflect` package.

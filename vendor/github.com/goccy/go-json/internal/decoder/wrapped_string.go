@@ -1,6 +1,7 @@
 package decoder
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 
@@ -65,4 +66,8 @@ func (d *wrappedStringDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, 
 	}
 	ctx.Buf = oldBuf
 	return c, nil
+}
+
+func (d *wrappedStringDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	return nil, 0, fmt.Errorf("json: wrapped string decoder does not support decode path")
 }

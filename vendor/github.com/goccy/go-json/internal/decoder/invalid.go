@@ -43,3 +43,13 @@ func (d *invalidDecoder) Decode(ctx *RuntimeContext, cursor, depth int64, p unsa
 		Field:  d.fieldName,
 	}
 }
+
+func (d *invalidDecoder) DecodePath(ctx *RuntimeContext, cursor, depth int64) ([][]byte, int64, error) {
+	return nil, 0, &errors.UnmarshalTypeError{
+		Value:  "object",
+		Type:   runtime.RType2Type(d.typ),
+		Offset: cursor,
+		Struct: d.structName,
+		Field:  d.fieldName,
+	}
+}
