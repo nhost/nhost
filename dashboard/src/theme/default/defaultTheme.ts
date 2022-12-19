@@ -53,7 +53,7 @@ export const theme = createTheme({
       hover: '#f3f4f6',
       active: '#f3f4f6',
       focus: '#f3f4f6',
-      disabled: '#C2CAD6',
+      disabled: '#c2cad6',
     },
     grey: {
       100: '#ffffff',

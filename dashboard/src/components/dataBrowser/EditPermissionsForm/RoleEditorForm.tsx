@@ -1,7 +1,10 @@
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
+import Input from '@/components/ui/v2/Input';
 import type { DatabaseAction } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
+import Radio from '@/ui/v2/Radio';
+import RadioGroup from '@/ui/v2/RadioGroup';
 import Text from '@/ui/v2/Text';
 import type { PropsWithChildren } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -78,6 +81,68 @@ export default function RoleEditorForm({
               <Button variant="borderless" onClick={onCancel}>
                 Change
               </Button>
+            </div>
+          </section>
+
+          <section className="bg-white border-y-1 border-gray-200">
+            <Text
+              component="h2"
+              className="px-6 py-3 font-bold border-b-1 border-gray-200"
+            >
+              Row select permissions
+            </Text>
+
+            <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
+              <Text>
+                Allow role <HighlightedText>{selectedRole}</HighlightedText> to{' '}
+                <HighlightedText>{selectedAction}</HighlightedText> rows:
+              </Text>
+
+              <RadioGroup
+                row
+                className="grid grid-flow-col justify-start gap-4"
+              >
+                <Radio value="no-checks" label="Without any checks" />
+                <Radio value="custom-check" label="With custom check" />
+              </RadioGroup>
+
+              <Input
+                type="number"
+                label="Limit number of rows"
+                slotProps={{
+                  input: { className: 'max-w-xs w-full' },
+                  inputRoot: { min: 0 },
+                }}
+                helperText="Set limit on number of rows fetched per request."
+              />
+            </div>
+          </section>
+
+          <section className="bg-white border-y-1 border-gray-200">
+            <Text
+              component="h2"
+              className="px-6 py-3 font-bold border-b-1 border-gray-200"
+            >
+              Column select permissions
+            </Text>
+
+            <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
+              <div className="grid grid-flow-col justify-between gap-2 items-center">
+                <Text>
+                  Allow role <HighlightedText>{selectedRole}</HighlightedText>{' '}
+                  to <HighlightedText>{selectedAction}</HighlightedText>{' '}
+                  columns:
+                </Text>
+
+                <Button variant="borderless" size="small">
+                  Select All
+                </Button>
+              </div>
+
+              <Text variant="subtitle1">
+                For <strong>relationships</strong>, set permissions for the
+                corresponding tables/views.
+              </Text>
             </div>
           </section>
         </div>
