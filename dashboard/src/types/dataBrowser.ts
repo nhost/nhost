@@ -486,6 +486,16 @@ export interface DataBrowserGridCellProps<
 }
 
 /**
+ * Represents an available database action.
+ */
+export type DatabaseAction = 'insert' | 'select' | 'update' | 'delete';
+
+/**
+ * Represents the database access level.
+ */
+export type DatabaseAccessLevel = 'full' | 'partial' | 'none';
+
+/**
  * Represents a Hasura operator.
  */
 export type HasuraOperator =

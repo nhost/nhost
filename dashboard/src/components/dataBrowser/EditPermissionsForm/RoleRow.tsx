@@ -1,3 +1,4 @@
+import type { DatabaseAccessLevel, DatabaseAction } from '@/types/dataBrowser';
 import IconButton from '@/ui/v2/IconButton';
 import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
 import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
@@ -7,8 +8,6 @@ import TableCell from '@/ui/v2/TableCell';
 import type { TableRowProps } from '@/ui/v2/TableRow';
 import TableRow from '@/ui/v2/TableRow';
 import { twMerge } from 'tailwind-merge';
-
-type AccessLevel = 'full' | 'partial' | 'none';
 
 export interface RoleRowProps extends TableRowProps {
   /**
@@ -22,27 +21,12 @@ export interface RoleRowProps extends TableRowProps {
   /**
    * Access types for specific operations.
    */
-  accessType?: Record<'insert' | 'select' | 'update' | 'delete', AccessLevel>;
+  accessLevels?: Record<DatabaseAction, DatabaseAccessLevel>;
   /**
-   * Function to be called when the user wants to open the settings for the
-   * insert operation.
+   * Function to be called when the user wants to open the settings for an
+   * operation.
    */
-  onInsertOperationClick?: VoidFunction;
-  /**
-   * Function to be called when the user wants to open the settings for the
-   * select operation.
-   */
-  onSelectOperationClick?: VoidFunction;
-  /**
-   * Function to be called when the user wants to open the settings for the
-   * update operation.
-   */
-  onUpdateOperationClick?: VoidFunction;
-  /**
-   * Function to be called when the user wants to open the settings for the
-   * delete operation.
-   */
-  onDeleteOperationClick?: VoidFunction;
+  onOperationClick?: (operation: DatabaseAction) => void;
   /**
    * Props passed to individual component slots.
    */
@@ -54,7 +38,7 @@ export interface RoleRowProps extends TableRowProps {
   };
 }
 
-function AccessLevelIcon({ level }: { level: AccessLevel }) {
+function AccessLevelIcon({ level }: { level: DatabaseAccessLevel }) {
   if (level === 'none') {
     return <NoPermissionIcon />;
   }
@@ -69,16 +53,13 @@ function AccessLevelIcon({ level }: { level: AccessLevel }) {
 export default function RoleRow({
   name,
   disabled,
-  accessType = {
+  accessLevels = {
     insert: 'none',
     select: 'none',
     update: 'none',
     delete: 'none',
   },
-  onInsertOperationClick,
-  onSelectOperationClick,
-  onUpdateOperationClick,
-  onDeleteOperationClick,
+  onOperationClick,
   slotProps,
   className,
   ...props
@@ -112,15 +93,15 @@ export default function RoleRow({
         )}
       >
         {disabled ? (
-          <AccessLevelIcon level={accessType.insert} />
+          <AccessLevelIcon level={accessLevels.insert} />
         ) : (
           <IconButton
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={onInsertOperationClick}
+            onClick={() => onOperationClick('insert')}
           >
-            <AccessLevelIcon level={accessType.insert} />
+            <AccessLevelIcon level={accessLevels.insert} />
           </IconButton>
         )}
       </TableCell>
@@ -134,15 +115,15 @@ export default function RoleRow({
         )}
       >
         {disabled ? (
-          <AccessLevelIcon level={accessType.select} />
+          <AccessLevelIcon level={accessLevels.select} />
         ) : (
           <IconButton
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={onSelectOperationClick}
+            onClick={() => onOperationClick('select')}
           >
-            <AccessLevelIcon level={accessType.select} />
+            <AccessLevelIcon level={accessLevels.select} />
           </IconButton>
         )}
       </TableCell>
@@ -156,15 +137,15 @@ export default function RoleRow({
         )}
       >
         {disabled ? (
-          <AccessLevelIcon level={accessType.update} />
+          <AccessLevelIcon level={accessLevels.update} />
         ) : (
           <IconButton
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={onUpdateOperationClick}
+            onClick={() => onOperationClick('update')}
           >
-            <AccessLevelIcon level={accessType.update} />
+            <AccessLevelIcon level={accessLevels.update} />
           </IconButton>
         )}
       </TableCell>
@@ -178,15 +159,15 @@ export default function RoleRow({
         )}
       >
         {disabled ? (
-          <AccessLevelIcon level={accessType.delete} />
+          <AccessLevelIcon level={accessLevels.delete} />
         ) : (
           <IconButton
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={onDeleteOperationClick}
+            onClick={() => onOperationClick('delete')}
           >
-            <AccessLevelIcon level={accessType.delete} />
+            <AccessLevelIcon level={accessLevels.delete} />
           </IconButton>
         )}
       </TableCell>

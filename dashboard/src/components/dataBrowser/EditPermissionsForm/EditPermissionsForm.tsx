@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { DatabaseAction } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -17,37 +17,23 @@ import TableRow from '@/ui/v2/TableRow';
 import Text from '@/ui/v2/Text';
 import { useGetRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+import RoleEditorForm from './RoleEditorForm';
 import RoleRow from './RoleRow';
 
-export interface EditPermissionsFormValues {}
-
 export interface EditPermissionsFormProps {
-  /**
-   * Function to be called when the form is submitted.
-   */
-  onSubmit: (values: EditPermissionsFormValues) => Promise<void>;
   /**
    * Function to be called when the operation is cancelled.
    */
   onCancel?: VoidFunction;
-  /**
-   * Submit button text.
-   *
-   * @default 'Save'
-   */
-  submitButtonText?: string;
 }
 
 export default function EditPermissionsForm({
-  onSubmit: handleExternalSubmit,
   onCancel,
-  submitButtonText = 'Save',
 }: EditPermissionsFormProps) {
-  const form = useForm<EditPermissionsFormValues>({});
-  const isDirty = false;
-  const isSubmitting = false;
+  const [selectedRole, setSelectedRole] = useState<string>();
+  const [selectedAction, setSelectedAction] = useState<DatabaseAction>();
 
   const { closeDrawerWithDirtyGuard } = useDialog();
   const { currentWorkspace, currentApplication } =
@@ -59,26 +45,46 @@ export default function EditPermissionsForm({
   const roles = data?.app?.authUserDefaultAllowedRoles?.split(',') || [];
 
   if (loading) {
-    return <ActivityIndicator label="Loading available roles..." />;
+    return (
+      <div className="p-6">
+        <ActivityIndicator label="Loading available roles..." />
+      </div>
+    );
   }
 
   if (error) {
     throw error;
   }
 
-  async function handleSubmit(values: EditPermissionsFormValues) {
-    await handleExternalSubmit(values);
+  function handleSubmit() {
+    setSelectedRole(undefined);
+    setSelectedAction(undefined);
+  }
+
+  function handleCancel() {
+    // TODO: Implement dirty guard
+
+    setSelectedRole(undefined);
+    setSelectedAction(undefined);
+  }
+
+  if (selectedRole && selectedAction) {
+    return (
+      <RoleEditorForm
+        selectedRole={selectedRole}
+        selectedAction={selectedAction}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+      />
+    );
   }
 
   return (
-    <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200"
-      >
-        <div className="grid grid-flow-row gap-6 content-start flex-auto overflow-y-auto p-6">
+    <div className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]">
+      <div className="flex-auto">
+        <section className="grid grid-flow-row gap-6 content-start overflow-y-auto p-6 bg-white border-b-1 border-gray-200">
           <div className="grid grid-flow-row gap-2">
-            <Text component="h2" className="!font-bold !text-sm+">
+            <Text component="h2" className="!font-bold">
               Roles & Actions overview
             </Text>
 
@@ -139,7 +145,7 @@ export default function EditPermissionsForm({
                 <RoleRow
                   name="admin"
                   disabled
-                  accessType={{
+                  accessLevels={{
                     insert: 'full',
                     select: 'full',
                     update: 'full',
@@ -154,6 +160,10 @@ export default function EditPermissionsForm({
                     className={twMerge(
                       index === roles.length - 1 && 'border-b-0',
                     )}
+                    onOperationClick={(operation) => {
+                      setSelectedRole(role);
+                      setSelectedAction(operation);
+                    }}
                   />
                 ))}
               </TableBody>
@@ -176,28 +186,14 @@ export default function EditPermissionsForm({
             </NavLink>{' '}
             to add and delete roles.
           </Alert>
-        </div>
+        </section>
+      </div>
 
-        <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
-          <Button
-            variant="borderless"
-            color="secondary"
-            onClick={onCancel}
-            tabIndex={isDirty ? -1 : 0}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            type="submit"
-            className="justify-self-end"
-          >
-            {submitButtonText}
-          </Button>
-        </div>
-      </Form>
-    </FormProvider>
+      <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
+        <Button variant="borderless" color="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
   );
 }
