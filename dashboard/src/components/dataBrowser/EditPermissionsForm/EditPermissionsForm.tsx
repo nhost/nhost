@@ -1,10 +1,24 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
+import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
+import PartialPermissionIcon from '@/ui/v2/icons/PartialPermissionIcon';
 import Link from '@/ui/v2/Link';
+import Table from '@/ui/v2/Table';
+import TableBody from '@/ui/v2/TableBody';
+import TableCell from '@/ui/v2/TableCell';
+import TableContainer from '@/ui/v2/TableContainer';
+import TableHead from '@/ui/v2/TableHead';
+import TableRow from '@/ui/v2/TableRow';
 import Text from '@/ui/v2/Text';
-import Image from 'next/image';
+import { useGetRolesQuery } from '@/utils/__generated__/graphql';
+import NavLink from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
+import RoleRow from './RoleRow';
 
 export interface EditPermissionsFormValues {}
 
@@ -34,6 +48,23 @@ export default function EditPermissionsForm({
   const isDirty = false;
   const isSubmitting = false;
 
+  const { closeDrawerWithDirtyGuard } = useDialog();
+  const { currentWorkspace, currentApplication } =
+    useCurrentWorkspaceAndApplication();
+  const { data, loading, error } = useGetRolesQuery({
+    variables: { id: currentApplication?.id },
+  });
+
+  const roles = data?.app?.authUserDefaultAllowedRoles?.split(',') || [];
+
+  if (loading) {
+    return <ActivityIndicator label="Loading available roles..." />;
+  }
+
+  if (error) {
+    throw error;
+  }
+
   async function handleSubmit(values: EditPermissionsFormValues) {
     await handleExternalSubmit(values);
   }
@@ -61,50 +92,72 @@ export default function EditPermissionsForm({
               variant="subtitle2"
               className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
             >
-              full access{' '}
-              <Image
-                src="/assets/full-permission.svg"
-                width={20}
-                height={20}
-                layout="fixed"
-                alt="Three filled horizontal lines"
-              />
+              full access <FullPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
               className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
             >
-              partial access{' '}
-              <Image
-                src="/assets/partial-permission.svg"
-                width={20}
-                height={20}
-                layout="fixed"
-                alt="Three horizontal lines, the middle is filled"
-              />
+              partial access <PartialPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
               className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
             >
-              no access{' '}
-              <Image
-                src="/assets/no-permission.svg"
-                width={20}
-                height={20}
-                layout="fixed"
-                alt="Three horizontal lines"
-              />
+              no access <NoPermissionIcon />
             </Text>
           </div>
 
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell className="border-b-0 p-2">Role</TableCell>
+
+                  <TableCell className="border-b-0 p-2 text-center">
+                    Insert
+                  </TableCell>
+
+                  <TableCell className="border-b-0 p-2 text-center">
+                    Select
+                  </TableCell>
+
+                  <TableCell className="border-b-0 p-2 text-center">
+                    Update
+                  </TableCell>
+
+                  <TableCell className="border-b-0 p-2 text-center">
+                    Delete
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody className="border-1 rounded-md">
+                <RoleRow name="admin" />
+
+                {roles.map((role) => (
+                  <RoleRow name={role} key={role} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
           <Alert>
             Please go to the{' '}
-            <Link href="/settings" underline="none">
-              Settings page
-            </Link>{' '}
+            <NavLink
+              href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/roles-and-permissions`}
+              passHref
+            >
+              <Link
+                href="settings/roles-and-permissions"
+                underline="hover"
+                onClick={closeDrawerWithDirtyGuard}
+              >
+                Settings page
+              </Link>
+            </NavLink>{' '}
             to add and delete roles.
           </Alert>
         </div>

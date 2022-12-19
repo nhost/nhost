@@ -64,6 +64,16 @@ export interface DialogContextProps {
    */
   closeDrawer: VoidFunction;
   /**
+   * Call this function to check if the form is dirty and close the active dialog
+   * if the form is pristine.
+   */
+  closeDialogWithDirtyGuard: VoidFunction;
+  /**
+   * Call this function to check if the form is dirty and close the active drawer
+   * if the form is pristine.
+   */
+  closeDrawerWithDirtyGuard: VoidFunction;
+  /**
    * Call this function to close the active alert dialog.
    */
   closeAlertDialog: VoidFunction;
@@ -82,6 +92,8 @@ export default createContext<DialogContextProps>({
   openAlertDialog: () => {},
   closeDialog: () => {},
   closeDrawer: () => {},
+  closeDialogWithDirtyGuard: () => {},
+  closeDrawerWithDirtyGuard: () => {},
   closeAlertDialog: () => {},
   onDirtyStateChange: () => {},
 });

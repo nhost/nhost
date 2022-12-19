@@ -166,42 +166,51 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     alertDialogDispatch({ type: 'CLEAR_ALERT_CONTENT' });
   }
 
-  function openDirtyConfirmation(config?: Partial<DialogConfig<string>>) {
-    const { props, ...restConfig } = config || {};
+  const openDirtyConfirmation = useCallback(
+    (config?: Partial<DialogConfig<string>>) => {
+      const { props, ...restConfig } = config || {};
 
-    openAlertDialog({
-      ...config,
-      title: 'Unsaved changes',
-      payload:
-        'You have unsaved local changes. Are you sure you want to discard them?',
-      props: {
-        ...props,
-        primaryButtonText: 'Discard',
-        primaryButtonColor: 'error',
-      },
-      ...restConfig,
-    });
-  }
+      openAlertDialog({
+        ...config,
+        title: 'Unsaved changes',
+        payload:
+          'You have unsaved local changes. Are you sure you want to discard them?',
+        props: {
+          ...props,
+          primaryButtonText: 'Discard',
+          primaryButtonColor: 'error',
+        },
+        ...restConfig,
+      });
+    },
+    [],
+  );
 
-  function closeDrawerWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDrawerDirty.current && event?.type !== 'submit') {
-      setShowDirtyConfirmation(true);
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
-      return;
-    }
+  const closeDrawerWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDrawerDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
+        return;
+      }
 
-    closeDrawer();
-  }
+      closeDrawer();
+    },
+    [closeDrawer, openDirtyConfirmation],
+  );
 
-  function closeDialogWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDialogDirty.current && event?.type !== 'submit') {
-      setShowDirtyConfirmation(true);
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
-      return;
-    }
+  const closeDialogWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDialogDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
+        return;
+      }
 
-    closeDialog();
-  }
+      closeDialog();
+    },
+    [closeDialog, openDirtyConfirmation],
+  );
 
   // We are coupling this logic with the location of the dialog content which is
   // not ideal. We shoule figure out a better logic for tracking the dirty
@@ -228,10 +237,20 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openAlertDialog,
       closeDialog,
       closeDrawer,
+      closeDialogWithDirtyGuard,
+      closeDrawerWithDirtyGuard,
       closeAlertDialog,
       onDirtyStateChange,
     }),
-    [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
+    [
+      closeDialog,
+      closeDialogWithDirtyGuard,
+      closeDrawer,
+      closeDrawerWithDirtyGuard,
+      onDirtyStateChange,
+      openDialog,
+      openDrawer,
+    ],
   );
 
   const sharedDialogProps = {
