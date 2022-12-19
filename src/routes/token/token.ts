@@ -1,5 +1,9 @@
 import { RequestHandler } from 'express';
-import { getNewOrUpdateCurrentSession, gqlSdk } from '@/utils';
+import {
+  getNewOrUpdateCurrentSession,
+  getUserByRefreshToken,
+  gqlSdk,
+} from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -14,11 +18,7 @@ export const tokenHandler: RequestHandler<
 > = async (req, res) => {
   const { refreshToken } = req.body;
 
-  const user = (
-    await gqlSdk.getUsersByRefreshTokenOld({
-      refreshToken,
-    })
-  ).authRefreshTokens[0]?.user;
+  const user = await getUserByRefreshToken(refreshToken);
 
   if (!user) {
     return sendError(res, 'invalid-refresh-token');

@@ -1,45 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { gqlSdk } from '@/utils';
-import { SignInResponse, Session } from '../types';
-import { UserFieldsFragment } from './__generated__/graphql-request';
+import { Session, SignInResponse } from '@/types';
+import { gqlSdk } from './gql-sdk';
 import { generateTicketExpiresAt } from './ticket';
 import { ENV } from './env';
-import { getUser } from './user';
 import { createHasuraAccessToken } from './jwt';
-
-function newRefreshExpiry() {
-  const date = new Date();
-
-  // cant return this becuase this will return a unix timestamp directly
-  date.setSeconds(date.getSeconds() + ENV.AUTH_REFRESH_TOKEN_EXPIRES_IN);
-
-  // instead we must return the js date object
-  return date;
-}
-
-const updateRefreshTokenExpiry = async (refreshToken: string) => {
-  await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
-    refreshToken,
-    expiresAt: new Date(newRefreshExpiry()),
-  });
-
-  return refreshToken;
-};
-
-export const getNewRefreshToken = async (
-  userId: string,
-  refreshToken = uuidv4()
-) => {
-  await gqlSdk.insertRefreshToken({
-    refreshToken: {
-      userId,
-      refreshToken,
-      expiresAt: new Date(newRefreshExpiry()),
-    },
-  });
-
-  return refreshToken;
-};
+import { getNewRefreshToken, updateRefreshTokenExpiry } from './refresh-token';
+import { getUser } from './user';
+import { UserFieldsFragment } from './__generated__/graphql-request';
 
 /**
  * Get new or update current user session
@@ -61,15 +28,12 @@ export const getNewOrUpdateCurrentSession = async ({
       lastSeen: new Date(),
     },
   });
-
   const sessionUser = await getUser({ userId: user.id });
-
   const accessToken = await createHasuraAccessToken(user);
   const refreshToken =
     (currentRefreshToken &&
       (await updateRefreshTokenExpiry(currentRefreshToken))) ||
     (await getNewRefreshToken(user.id));
-
   return {
     accessToken,
     accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
@@ -77,7 +41,6 @@ export const getNewOrUpdateCurrentSession = async ({
     user: sessionUser,
   };
 };
-
 export const getSignInResponse = async ({
   userId,
   checkMFA,
@@ -88,15 +51,12 @@ export const getSignInResponse = async ({
   const { user } = await gqlSdk.user({
     id: userId,
   });
-
   if (!user) {
     throw new Error('No user');
   }
-
   if (checkMFA && user?.activeMfaType === 'totp') {
     // generate new ticket
     const ticket = `mfaTotp:${uuidv4()}`;
-
     // set ticket
     await gqlSdk.updateUser({
       id: userId,
@@ -105,7 +65,6 @@ export const getSignInResponse = async ({
         ticketExpiresAt: generateTicketExpiresAt(5 * 60),
       },
     });
-
     return {
       session: null,
       mfa: {
@@ -113,9 +72,7 @@ export const getSignInResponse = async ({
       },
     };
   }
-
   const session = await getNewOrUpdateCurrentSession({ user });
-
   return {
     session,
     mfa: null,

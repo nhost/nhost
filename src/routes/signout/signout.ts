@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk } from '@/utils';
+import { deleteRefreshToken, deleteUserRefreshTokens } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -30,16 +30,11 @@ export const signOutHandler: RequestHandler<
     }
 
     const { userId } = req.auth;
-
-    await gqlSdk.deleteUserRefreshTokens({
-      userId,
-    });
+    await deleteUserRefreshTokens(userId);
   } else {
     // only sign out from the current session
     // delete current refresh token
-    await gqlSdk.deleteRefreshToken({
-      refreshToken,
-    });
+    await deleteRefreshToken(refreshToken);
   }
 
   return res.json(ReasonPhrases.OK);
