@@ -18,6 +18,7 @@ import Text from '@/ui/v2/Text';
 import { useGetRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
 import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import RoleRow from './RoleRow';
 
 export interface EditPermissionsFormValues {}
@@ -134,11 +135,36 @@ export default function EditPermissionsForm({
                 </TableRow>
               </TableHead>
 
-              <TableBody className="border-1 rounded-md">
-                <RoleRow name="admin" />
+              <TableBody
+                className="rounded-sm"
+                sx={{
+                  boxShadow: (theme) =>
+                    `inset 0 0 0 1px ${theme.palette.grey[400]}`,
+                }}
+              >
+                <RoleRow
+                  name="admin"
+                  disabled
+                  accessType={{
+                    insert: 'full',
+                    select: 'full',
+                    update: 'full',
+                    delete: 'full',
+                  }}
+                />
 
-                {roles.map((role) => (
-                  <RoleRow name={role} key={role} />
+                {roles.map((role, index) => (
+                  <RoleRow
+                    name={role}
+                    key={role}
+                    slotProps={{
+                      cell: {
+                        className: twMerge(
+                          index === roles.length - 1 && 'border-b-0',
+                        ),
+                      },
+                    }}
+                  />
                 ))}
               </TableBody>
             </Table>

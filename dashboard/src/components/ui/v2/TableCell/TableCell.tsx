@@ -5,6 +5,7 @@ import MaterialTableCell, { tableCellClasses } from '@mui/material/TableCell';
 export interface TableCellProps extends MaterialTableCellProps {}
 
 const StyledTableCell = styled(MaterialTableCell)(({ theme }) => ({
+  borderColor: theme.palette.grey[400],
   [`&.${tableCellClasses.head}`]: {
     fontSize: theme.typography.pxToRem(12),
     lineHeight: theme.typography.pxToRem(16),

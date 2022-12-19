@@ -59,7 +59,7 @@ export const theme = createTheme({
       100: '#ffffff',
       200: '#f4f7f9',
       300: '#eaedf0',
-      400: '#c2cad6',
+      400: '#e0e0e0',
       500: '#9ca7b7',
       600: '#556378',
       700: '#21324b',
