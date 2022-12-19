@@ -113,8 +113,8 @@ export default function EditPermissionsForm({
 
           <TableContainer>
             <Table>
-              <TableHead>
-                <TableRow>
+              <TableHead className="block">
+                <TableRow className="grid grid-cols-5 items-center">
                   <TableCell className="border-b-0 p-2">Role</TableCell>
 
                   <TableCell className="border-b-0 p-2 text-center">
@@ -135,13 +135,7 @@ export default function EditPermissionsForm({
                 </TableRow>
               </TableHead>
 
-              <TableBody
-                className="rounded-sm"
-                sx={{
-                  boxShadow: (theme) =>
-                    `inset 0 0 0 1px ${theme.palette.grey[400]}`,
-                }}
-              >
+              <TableBody className="rounded-sm+ block border-1">
                 <RoleRow
                   name="admin"
                   disabled
@@ -157,20 +151,16 @@ export default function EditPermissionsForm({
                   <RoleRow
                     name={role}
                     key={role}
-                    slotProps={{
-                      cell: {
-                        className: twMerge(
-                          index === roles.length - 1 && 'border-b-0',
-                        ),
-                      },
-                    }}
+                    className={twMerge(
+                      index === roles.length - 1 && 'border-b-0',
+                    )}
                   />
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
 
-          <Alert>
+          <Alert className="text-left">
             Please go to the{' '}
             <NavLink
               href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/roles-and-permissions`}

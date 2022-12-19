@@ -80,18 +80,36 @@ export default function RoleRow({
   onUpdateOperationClick,
   onDeleteOperationClick,
   slotProps,
+  className,
   ...props
 }: RoleRowProps) {
   const cellProps = slotProps?.cell || {};
 
   return (
-    <TableRow {...props}>
-      <TableCell {...cellProps} className={twMerge('p-2', cellProps.className)}>
-        {name}
-      </TableCell>
+    <TableRow
+      className={twMerge(
+        'grid grid-cols-5 items-center justify-items-stretch border-b-1',
+        className,
+      )}
+      {...props}
+    >
       <TableCell
         {...cellProps}
-        className={twMerge('p-2 text-center', cellProps.className)}
+        className={twMerge(
+          'block p-2 border-0 truncate border-r-1',
+          cellProps.className,
+        )}
+      >
+        {name}
+      </TableCell>
+
+      <TableCell
+        {...cellProps}
+        className={twMerge(
+          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          disabled && 'justify-center',
+          cellProps.className,
+        )}
       >
         {disabled ? (
           <AccessLevelIcon level={accessType.insert} />
@@ -99,7 +117,7 @@ export default function RoleRow({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full"
+            className="w-full h-full rounded-none"
             onClick={onInsertOperationClick}
           >
             <AccessLevelIcon level={accessType.insert} />
@@ -109,7 +127,11 @@ export default function RoleRow({
 
       <TableCell
         {...cellProps}
-        className={twMerge('p-2 text-center', cellProps.className)}
+        className={twMerge(
+          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          disabled && 'justify-center',
+          cellProps.className,
+        )}
       >
         {disabled ? (
           <AccessLevelIcon level={accessType.select} />
@@ -117,7 +139,7 @@ export default function RoleRow({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full"
+            className="w-full h-full rounded-none"
             onClick={onSelectOperationClick}
           >
             <AccessLevelIcon level={accessType.select} />
@@ -127,7 +149,11 @@ export default function RoleRow({
 
       <TableCell
         {...cellProps}
-        className={twMerge('p-2 text-center', cellProps.className)}
+        className={twMerge(
+          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          disabled && 'justify-center',
+          cellProps.className,
+        )}
       >
         {disabled ? (
           <AccessLevelIcon level={accessType.update} />
@@ -135,7 +161,7 @@ export default function RoleRow({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full"
+            className="w-full h-full rounded-none"
             onClick={onUpdateOperationClick}
           >
             <AccessLevelIcon level={accessType.update} />
@@ -145,7 +171,11 @@ export default function RoleRow({
 
       <TableCell
         {...cellProps}
-        className={twMerge('p-2 text-center', cellProps.className)}
+        className={twMerge(
+          'inline-grid items-center p-0 border-0 text-center w-full h-full',
+          disabled && 'justify-center',
+          cellProps.className,
+        )}
       >
         {disabled ? (
           <AccessLevelIcon level={accessType.delete} />
@@ -153,7 +183,7 @@ export default function RoleRow({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full"
+            className="w-full h-full rounded-none"
             onClick={onDeleteOperationClick}
           >
             <AccessLevelIcon level={accessType.delete} />
