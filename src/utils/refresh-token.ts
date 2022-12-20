@@ -3,8 +3,9 @@ import { gqlSdk } from '@/utils';
 import { ENV } from './env';
 import crypto from 'crypto';
 
+/** Hash using SHA256, and prefix with \x so it matches the Postgres hexadecimal syntax */
 const hash = (value: string) =>
-  crypto.createHash('sha256').update(value).digest('hex');
+  `\\x${crypto.createHash('sha256').update(value).digest('hex')}`;
 
 export const getUserByRefreshToken = async (refreshToken: string) => {
   const result = await gqlSdk.getUsersByRefreshToken({
