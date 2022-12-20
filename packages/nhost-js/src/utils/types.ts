@@ -110,9 +110,5 @@ export interface GraphqlResponse<T = object> {
   data?: T
 }
 
-type AxiosFlag = {
-  useAxios?: boolean
-}
-
-export type RestrictedFetchConfig = AxiosFlag & { headers?: Record<string, string> }
-export type AxiosConfig = AxiosFlag & AxiosRequestConfig
+export type RestrictedFetchConfig = { headers?: Record<string, string> }
+export type AxiosConfig = AxiosRequestConfig

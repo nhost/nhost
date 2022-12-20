@@ -87,7 +87,10 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    { useAxios = true, ...config }: AxiosConfig | RestrictedFetchConfig = {}
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedFunctionCallResponse<T> | FunctionCallResponse> {
     if (useAxios) {
       console.warn(

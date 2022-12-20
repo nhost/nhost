@@ -97,7 +97,10 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    { useAxios = true, ...config }: AxiosConfig | RestrictedFetchConfig = {}
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedGraphqlRequestResponse<T> | GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
