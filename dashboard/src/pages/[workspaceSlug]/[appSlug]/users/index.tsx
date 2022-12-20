@@ -14,6 +14,7 @@ import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { SearchIcon } from '@heroicons/react/solid';
 import debounce from 'lodash.debounce';
+import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -30,8 +31,17 @@ export default function UsersPage() {
 
   const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
+  const router = useRouter();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
+
+  useEffect(() => {
+    if (router.query.page && typeof router.query.page === 'string') {
+      const { page } = router.query;
+      const pageNumber = parseInt(page, 10);
+      setCurrentPage(pageNumber);
+    }
+  }, [router.query]);
 
   const {
     data: dataRemoteAppUsers,
@@ -243,11 +253,19 @@ export default function UsersPage() {
                           .count
                       : limit.current
                   }
-                  onPrevPageClick={() => {
+                  onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
-                  onNextPageClick={() => {
+                  onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage + 1 },
+                    });
                   }}
                   onPageChange={(page) => {
                     setCurrentPage(page);
