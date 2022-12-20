@@ -79,7 +79,7 @@
     "turbo": "1.6.3",
     "typedoc": "^0.22.18",
     "typescript": "4.9.4",
-    "vite": "^3.2.2",
+    "vite": "^4.0.0",
     "vite-plugin-dts": "^1.6.6",
     "vite-tsconfig-paths": "^3.5.2",
     "vitest": "^0.25.0"
