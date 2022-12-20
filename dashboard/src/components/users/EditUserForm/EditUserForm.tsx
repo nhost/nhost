@@ -210,7 +210,7 @@ export default function EditUserForm({
               Created
             </InputLabel>
             <Text className="col-span-3 font-medium">
-              {format(new Date(user.createdAt), 'yyyy-mm-dd hh:mm:ss')}
+              {format(new Date(user.createdAt), 'yyyy-MM-dd hh:mm:ss')}
             </Text>
 
             <InputLabel as="h3" className="col-span-1">

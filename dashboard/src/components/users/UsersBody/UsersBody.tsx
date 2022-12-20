@@ -314,7 +314,7 @@ export default function UsersBody({
                   className="px-2 font-normal"
                   size="normal"
                 >
-                  {format(new Date(user.createdAt), 'yyyy-mm-dd')}
+                  {format(new Date(user.createdAt), 'PP')}
                 </Text>
                 <Text
                   color="greyscaleDark"
