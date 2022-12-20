@@ -1,7 +1,7 @@
 import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeDefaultValue from '@/utils/dataBrowser/normalizeDefaultValue';
 import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';

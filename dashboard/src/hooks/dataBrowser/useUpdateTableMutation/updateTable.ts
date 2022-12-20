@@ -7,7 +7,7 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
