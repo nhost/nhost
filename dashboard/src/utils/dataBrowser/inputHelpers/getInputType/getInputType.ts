@@ -1,4 +1,4 @@
-import type { DataBrowserGridColumn } from '@/types/data-browser';
+import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import type { InputProps } from '@/ui/v2/Input';
 
 /**

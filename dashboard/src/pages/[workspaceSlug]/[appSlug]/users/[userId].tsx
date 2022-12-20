@@ -170,7 +170,7 @@ function UserDetailsPassword({
           error={!!error}
           variant="inline"
           inlineInputProportion="66%"
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
             inputWrapper: { className: 'max-w-[370px] justify-self-end' },
           }}
@@ -381,7 +381,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
 
             handleFormSubmit();
           }}
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
           }}
         />
@@ -410,7 +410,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
 
             handleFormSubmit();
           }}
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
           }}
         />

@@ -1,4 +1,4 @@
-import type { QueryError } from '@/types/data-browser';
+import type { QueryError } from '@/types/dataBrowser';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';
 import normalizeQueryError from './normalizeQueryError';
 

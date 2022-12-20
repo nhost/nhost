@@ -1,4 +1,4 @@
-import type { DatabaseColumn } from '@/types/data-browser';
+import type { DatabaseColumn } from '@/types/dataBrowser';
 import { expect, test } from 'vitest';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 

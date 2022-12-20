@@ -3,7 +3,7 @@ import type {
   HasuraMetadataSource,
   MutationOrQueryBaseOptions,
   QueryError,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import fetch from 'cross-fetch';
 
 export interface FetchMetadataOptions
