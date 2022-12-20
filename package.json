@@ -57,7 +57,7 @@
     "@changesets/cli": "^2.25.2",
     "@faker-js/faker": "^7.6.0",
     "@rollup/plugin-replace": "^5.0.1",
-    "@types/node": "^17.0.45",
+    "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
     "@vitejs/plugin-react": "^2.2.0",
