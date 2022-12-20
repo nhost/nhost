@@ -1,9 +1,7 @@
-import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -42,8 +40,6 @@ export default function CreateUserForm({
   onCancel,
   onSubmit,
 }: CreateUserFormProps) {
-  const { onDirtyStateChange } = useDialog();
-
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
@@ -52,18 +48,16 @@ export default function CreateUserForm({
 
   const {
     register,
-    formState: { errors, dirtyFields, isSubmitting },
+    formState: { errors, isSubmitting },
   } = form;
-
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-6 p-6 px-6">
+      <Form
+        onSubmit={onSubmit}
+        className="grid grid-flow-row gap-6 p-6 px-6"
+        autoComplete="off"
+      >
         <Input
           {...register('email')}
           id="email"
@@ -85,6 +79,7 @@ export default function CreateUserForm({
           helperText={errors?.password?.message}
           fullWidth
           autoComplete="off"
+          type="password"
         />
         <div className="grid grid-flow-row gap-2">
           <Button type="submit" loading={isSubmitting}>

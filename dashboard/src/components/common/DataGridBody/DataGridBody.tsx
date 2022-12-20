@@ -35,15 +35,15 @@ function InsertPlaceholderTableRow({
 }: InsertPlaceholderTableRowProps) {
   return (
     <div
-      className="h-12 border-r-1 border-b-1 border-gray-200 bg-white"
+      className="h-12 bg-white border-gray-200 border-r-1 border-b-1"
       {...props}
     >
       <Button
         onClick={onInsertRow}
         variant="borderless"
         color="secondary"
-        className="h-full w-full justify-start rounded-none px-2 py-3 text-xs font-normal hover:shadow-none focus:shadow-none focus:outline-none"
-        startIcon={<PlusIcon className="h-4 w-4 text-greyscaleGrey" />}
+        className="justify-start w-full h-full px-2 py-3 text-xs font-normal rounded-none hover:shadow-none focus:shadow-none focus:outline-none"
+        startIcon={<PlusIcon className="w-4 h-4 text-greyscaleGrey" />}
       >
         Insert New Row
       </Button>
@@ -181,7 +181,7 @@ export default function DataGridBody<T extends object>({
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
-        <div className="flex flex-nowrap pr-5">
+        <div className="flex pr-5 flex-nowrap">
           {onInsertRow ? (
             <InsertPlaceholderTableRow
               style={{
@@ -279,7 +279,7 @@ export default function DataGridBody<T extends object>({
               })}
 
               {allowInsertColumn && (
-                <div className="h-12 w-25 border-r-1 border-b-1 border-gray-200 bg-white" />
+                <div className="h-12 bg-white border-gray-200 w-25 border-r-1 border-b-1" />
               )}
             </div>
 

@@ -2,7 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Pagination from '@/components/common/Pagination';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import type { EditUserFormValues } from '@/components/users/EditUserForm';
+import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
 import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -12,25 +12,13 @@ import Text from '@/ui/v2/Text';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import {
-  useDeleteRemoteAppUserRolesMutation,
-  useGetRemoteAppRolesQuery,
-  useGetRolesQuery,
-  useInsertRemoteAppUserRolesMutation,
-  useRemoteAppDeleteUserMutation,
-  useRemoteAppGetUsersQuery,
-  useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
-
+import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { generateAppServiceUrl } from '@/utils/helpers';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { SearchIcon } from '@heroicons/react/solid';
 import axios from 'axios';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersQuery['users'][0],
@@ -38,55 +26,16 @@ export type RemoteAppUser = Exclude<
 >;
 
 export default function UsersPage() {
-  const { openDialog, openAlertDialog, openDrawer, closeDrawer, closeDialog } =
-    useDialog();
+  const { openDialog, closeDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [deleteUser] = useRemoteAppDeleteUserMutation({
-    client: remoteProjectGQLClient,
-    refetchQueries: 'active',
-  });
-  const [updateUser] = useUpdateRemoteAppUserMutation({
-    client: remoteProjectGQLClient,
-    refetchQueries: 'active',
-  });
-
-  const [insertUserRoles] = useInsertRemoteAppUserRolesMutation({
-    client: remoteProjectGQLClient,
-    refetchQueries: 'active',
-  });
-
-  const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
-    client: remoteProjectGQLClient,
-    refetchQueries: 'active',
-  });
 
   const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
-
-  /**
-   * We want to fetch the queries of the application on this page since we're
-   * going to use once the user selects a user of their application; we use it
-   * in the drawer form.
-   */
-  const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
-  });
-
-  const { data: dataAppRoles } = useGetRemoteAppRolesQuery({
-    client: remoteProjectGQLClient,
-  });
-
-  console.log(dataAppRoles);
-
-  const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(dataRoles?.app?.authUserDefaultAllowedRoles),
-    [dataRoles],
-  );
 
   const {
     data: dataRemoteAppUsers,
@@ -123,12 +72,12 @@ export default function UsersPage() {
       return;
     }
 
-    setNrOfPages(
-      Math.ceil(
-        dataRemoteAppUsers.usersAggregate.aggregate.count / limit.current,
-      ),
-    );
-  }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery]);
+    const userCount = searchString
+      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count
+      : dataRemoteAppUsers?.usersAggregate?.aggregate?.count;
+
+    setNrOfPages(Math.ceil(userCount / limit.current));
+  }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery, searchString]);
 
   const handleSearchStringChange = useMemo(
     () =>
@@ -149,7 +98,7 @@ export default function UsersPage() {
       currentApplication?.subdomain,
       currentApplication?.region.awsName,
       'auth',
-    )}/v1/signup/email-password`;
+    )}/signup/email-password`;
 
     openDialog('CREATE_USER', {
       title: 'Create User',
@@ -164,163 +113,27 @@ export default function UsersPage() {
         },
       },
       props: {
-        titleProps: { className: 'mx-auto' },
         PaperProps: { className: 'max-w-md' },
       },
     });
   }
 
-  /**
-   * This will change the `disabled` field in the user to its opposite.
-   */
-  async function handleBanUser(user: RemoteAppUser) {
-    const banUser = updateUser({
-      variables: {
-        id: user.id,
-        user: {
-          disabled: !user.disabled,
-        },
-      },
-    });
+  const users = useMemo(
+    () => dataRemoteAppUsers?.users.map((user) => user) ?? [],
+    [dataRemoteAppUsers],
+  );
 
-    await toast.promise(
-      banUser,
-      {
-        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
-        success: user.disabled
-          ? 'User unbanned succesfully.'
-          : 'User banned succesfully',
-        error: user.disabled
-          ? 'Error trying to unban user.'
-          : 'Error trying to ban user.',
-      },
-      { ...toastStyleProps },
-    );
-    await refetchProjectUsers();
-  }
+  const usersCount = useMemo(
+    () => dataRemoteAppUsers?.usersAggregate?.aggregate?.count ?? -1,
+    [dataRemoteAppUsers],
+  );
 
-  function handleDeleteUser(user: RemoteAppUser) {
-    openAlertDialog({
-      title: 'Delete User',
-      payload: (
-        <Text>
-          Are you sure you want to delete the &quot;
-          <strong>{user.displayName}</strong>&quot; user? This cannot be undone.
-        </Text>
-      ),
-      props: {
-        onPrimaryAction: async () => {
-          await toast.promise(
-            deleteUser({
-              variables: {
-                id: user.id,
-              },
-            }),
-            {
-              loading: 'Deleting user...',
-              success: 'User deleted successfully.',
-              error: 'An error occurred while trying to delete this user.',
-            },
-            toastStyleProps,
-          );
+  const thereAreUsers =
+    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count || usersCount;
 
-          await refetchProjectUsers();
-        },
-        primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
-        titleProps: { className: 'mx-auto' },
-        PaperProps: { className: 'max-w-lg mx-auto' },
-      },
-    });
-  }
-
-  async function handleEditUser(
-    values: EditUserFormValues,
-    user: RemoteAppUser,
-  ) {
-    const updateUserMutationPromise = updateUser({
-      variables: {
-        id: user.id,
-        user: {
-          displayName: values.displayName,
-          email: values.email,
-          avatarUrl: values.avatarURL,
-          emailVerified: values.emailVerified,
-          defaultRole: values.defaultRole,
-          phoneNumber: values.phoneNumber,
-          phoneNumberVerified: values.phoneNumberVerified,
-          locale: values.locale,
-        },
-      },
-    });
-
-    const newRoles = allAvailableProjectRoles
-      .filter((role, i) => values.roles[i] === true)
-      .map((role) => role.name);
-
-    const userHasRoles = user.roles.map((role) => role.role);
-
-    const rolesToAdd = newRoles.filter(
-      (value) => !userHasRoles.includes(value),
-    );
-
-    const rolesToRemove = userHasRoles.filter(
-      (value) => !newRoles.includes(value),
-    );
-
-    if (rolesToAdd.length !== 0) {
-      await insertUserRoles({
-        variables: {
-          roles: rolesToAdd.map((role) => ({
-            userId: user.id,
-            role,
-          })),
-        },
-      });
-    }
-
-    if (rolesToRemove.length !== 0) {
-      await deleteUserRoles({
-        variables: {
-          userId: user.id,
-          roles: rolesToRemove,
-        },
-      });
-    }
-
-    await toast.promise(
-      updateUserMutationPromise,
-      {
-        loading: `Updating user's settings...`,
-        success: 'User settings updated successfully',
-        error: 'Failed to update user settings.',
-      },
-      { ...toastStyleProps },
-    );
-    await refetchProjectUsers();
-    closeDrawer();
-  }
-
-  function handleViewUser(user: RemoteAppUser) {
-    openDrawer('EDIT_USER', {
-      title: 'User Details',
-      payload: {
-        user,
-        onEditUser: handleEditUser,
-        onBanUser: handleBanUser,
-        onDeleteUser: handleDeleteUser,
-        roles: allAvailableProjectRoles.map((role) => ({
-          [role.name]: !!user.roles.find(
-            (userRole) => userRole.role === role.name,
-          ),
-        })),
-      },
-    });
-  }
-
-  if (dataRemoteAppUsers?.usersAggregate?.aggregate?.count === 0) {
+  if (loadingRemoteAppUsersQuery) {
     return (
-      <Container className="mx-auto max-w-9xl">
+      <Container className="mx-auto overflow-x-hidden max-w-9xl">
         <div className="flex flex-row place-content-between">
           <Input
             className="rounded-sm"
@@ -329,7 +142,6 @@ export default function UsersPage() {
               <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
             }
             onChange={handleSearchStringChange}
-            disabled
           />
           <Button
             onClick={handleCreateUser}
@@ -340,26 +152,14 @@ export default function UsersPage() {
             Create User
           </Button>
         </div>
-        <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
-          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
-          <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
-              You dont have any users yet
-            </Text>
-            <Text variant="subtitle1" className="text-center">
-              All users for your project will be listed here
-            </Text>
-          </div>
-          <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-            <Button
-              variant="contained"
-              color="primary"
-              className="w-full"
-              aria-label="Create User"
-              onClick={handleCreateUser}
-            >
-              Create User
-            </Button>
+        <div className="w-screen h-screen overflow-hidden">
+          <div className="absolute top-0 left-0 z-50 block w-full h-full">
+            <span className="relative block mx-auto my-0 top50percent top-1/2">
+              <ActivityIndicator
+                label="Loading users..."
+                className="flex items-center justify-center my-auto"
+              />
+            </span>
           </div>
         </div>
       </Container>
@@ -367,7 +167,7 @@ export default function UsersPage() {
   }
 
   return (
-    <Container className="mx-auto max-w-9xl">
+    <Container className="mx-auto overflow-x-hidden max-w-9xl">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm"
@@ -386,59 +186,94 @@ export default function UsersPage() {
           Create User
         </Button>
       </div>
-      <div className="grid grid-flow-row gap-2 lg:w-9xl">
-        <div className="grid w-full h-full grid-flow-row overflow-hidden gap-x-4">
-          <div className="grid grid-cols-1 gap-2 px-3 py-3 border-gray-200 md:grid-cols-6 border-b-1 ">
-            <Text className="font-medium md:col-span-2">Name</Text>
-            <Text className="font-medium">Signed up at</Text>
-            <Text className="font-medium">Last Seen</Text>
-            <Text className="font-medium md:col-span-2">Sign In Methods</Text>
+      {usersCount === 0 ? (
+        <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
+          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
+          <div className="flex flex-col space-y-1">
+            <Text className="font-medium text-center" variant="h3">
+              You don&apos;t have any users yet
+            </Text>
+            <Text variant="subtitle1" className="text-center">
+              All users for your project will be listed here
+            </Text>
           </div>
-          {dataRemoteAppUsers?.users?.length === 0 ? (
-            <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
-              <UserIcon
-                strokeWidth={1}
-                className="w-10 h-10 text-greyscaleDark"
-              />
-              <div className="flex flex-col space-y-1">
-                <Text className="font-medium text-center" variant="h3">
-                  No results for &quot;{searchString}&quot;
-                </Text>
-                <Text variant="subtitle1" className="text-center">
-                  Try a different search
-                </Text>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-flow-row gap-y-4">
-              <UsersBody
-                users={dataRemoteAppUsers?.users}
-                onDeleteUser={handleDeleteUser}
-                onViewUser={handleViewUser}
-              />
-              <Pagination
-                className="px-2"
-                totalNrOfPages={nrOfPages}
-                currentPageNumber={currentPage}
-                elementsPerPage={
-                  dataRemoteAppUsers?.users?.length < limit.current
-                    ? dataRemoteAppUsers?.users?.length
-                    : limit.current
-                }
-                onPrevPageClick={() => {
-                  setCurrentPage((page) => page - 1);
-                }}
-                onNextPageClick={() => {
-                  setCurrentPage((page) => page + 1);
-                }}
-                onChangePage={(page) => {
-                  setCurrentPage(page);
-                }}
-              />
-            </div>
-          )}{' '}
+          <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
+            <Button
+              variant="contained"
+              color="primary"
+              className="w-full"
+              aria-label="Create User"
+              onClick={handleCreateUser}
+              startIcon={<PlusIcon className="w-4 h-4" />}
+            >
+              Create User
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-flow-row gap-2 lg:w-9xl">
+          <div className="grid w-full h-full grid-flow-row overflow-hidden">
+            <div className="grid w-full grid-cols-6 p-3 border-gray-200 border-b-1">
+              <Text className="font-medium md:col-span-2">Name</Text>
+              <Text className="font-medium ">Signed up at</Text>
+              <Text className="font-medium ">Last Seen</Text>
+              <Text className="col-span-2 font-medium">OAuth Providers</Text>
+            </div>
+            {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
+              0 &&
+              usersCount !== 0 && (
+                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
+                  <UserIcon
+                    strokeWidth={1}
+                    className="w-10 h-10 text-greyscaleDark"
+                  />
+                  <div className="flex flex-col space-y-1">
+                    <Text className="font-medium text-center" variant="h3">
+                      No results for &quot;{searchString}&quot;
+                    </Text>
+                    <Text variant="subtitle1" className="text-center">
+                      Try a different search
+                    </Text>
+                  </div>
+                </div>
+              )}
+            {thereAreUsers && (
+              <div className="grid grid-flow-row gap-y-4">
+                <UsersBody
+                  users={users}
+                  onSuccessfulAction={refetchProjectUsers}
+                />
+                <Pagination
+                  className="px-2"
+                  totalNrOfPages={nrOfPages}
+                  currentPageNumber={currentPage}
+                  totalNrOfElements={
+                    searchString
+                      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate
+                          .count
+                      : dataRemoteAppUsers?.usersAggregate?.aggregate?.count
+                  }
+                  elementsPerPage={
+                    searchString
+                      ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate
+                          .count
+                      : limit.current
+                  }
+                  onPrevPageClick={() => {
+                    setCurrentPage((page) => page - 1);
+                  }}
+                  onNextPageClick={() => {
+                    setCurrentPage((page) => page + 1);
+                  }}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Container>
   );
 }

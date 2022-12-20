@@ -1,9 +1,9 @@
-import Input from '@/components/ui/v2/Input';
+import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
+import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
-import Text from '@/ui/v2/Text';
-import type { ButtonProps } from '@mui/material';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,7 +15,14 @@ export type PaginationProps = DetailedHTMLProps<
    * Total number of pages.
    */
   totalNrOfPages: number;
+  /**
+   * Number of total elements per page.
+   */
   elementsPerPage?: number;
+  /**
+   * Total number of elements.
+   */
+  totalNrOfElements: number;
   /**
    * Current page number.
    */
@@ -31,7 +38,7 @@ export type PaginationProps = DetailedHTMLProps<
   /**
    * Props to be passed to the previous button component.
    */
-  onChangePage: (page: number) => void;
+  onPageChange: (page: number) => void;
   /**
    * Props for component slots.
    */
@@ -39,11 +46,11 @@ export type PaginationProps = DetailedHTMLProps<
     /**
      * Props to be passed to the next button component.
      */
-    nextButtonProps?: Partial<ButtonProps>;
+    nextButton?: Partial<ButtonProps>;
     /**
      * Props to be passed to the previous button component.
      */
-    prevButtonProps?: Partial<ButtonProps>;
+    prevButton?: Partial<ButtonProps>;
   };
 };
 
@@ -55,15 +62,16 @@ export default function Pagination({
   onNextPageClick,
   slotProps,
   elementsPerPage,
-  onChangePage,
+  onPageChange,
+  totalNrOfElements,
   ...props
 }: PaginationProps) {
   return (
     <div
-      className={twMerge('grid grid-flow-col items-center gap-x-2', className)}
+      className={twMerge('grid grid-flow-col items-center gap-2', className)}
       {...props}
     >
-      <div className="grid justify-start grid-flow-col gap-3">
+      <div className="grid justify-start grid-flow-col gap-2">
         <Button
           variant="outlined"
           color="secondary"
@@ -85,22 +93,17 @@ export default function Pagination({
             onChange={(e) => {
               const page = parseInt(e.target.value, 10);
               if (page > 0 && page <= totalNrOfPages) {
-                onChangePage(page);
+                onPageChange(page);
               }
             }}
             disabled={totalNrOfPages === 1}
             color="secondary"
-            sx={{
-              width: 28,
-              height: 28,
-              fontSize: '0.70rem',
-            }}
             componentsProps={{
               formControl: {
                 className: 'flex flex-row-reverse text-center',
               },
               inputRoot: {
-                className: 'px-10',
+                className: 'px-12',
               },
             }}
             slotProps={{
@@ -126,9 +129,10 @@ export default function Pagination({
           variant="outlined"
           color="secondary"
           className="text-xs"
-          disabled={currentPageNumber === totalNrOfPages}
           aria-label="Next page"
+          disabled={currentPageNumber === totalNrOfPages}
           onClick={onNextPageClick}
+          {...slotProps?.nextButton}
         >
           Next
           <ChevronRightIcon className="w-4 h-4" />
@@ -136,9 +140,15 @@ export default function Pagination({
       </div>
       <div className="flex flex-row items-center justify-end text-center gap-x-1">
         <Text className="text-xs text-greyscaleGreyDark">
-          {currentPageNumber * elementsPerPage - (elementsPerPage - 1)}-
-          {currentPageNumber * elementsPerPage} of{' '}
-          {totalNrOfPages * elementsPerPage} users
+          {currentPageNumber === 1 && currentPageNumber}
+          {currentPageNumber === 2 && elementsPerPage + currentPageNumber - 1}
+          {currentPageNumber > 2 &&
+            (currentPageNumber - 1) * elementsPerPage + 1}{' '}
+          -{' '}
+          {totalNrOfElements < currentPageNumber * elementsPerPage
+            ? totalNrOfElements
+            : currentPageNumber * elementsPerPage}{' '}
+          of {totalNrOfElements} users
         </Text>
       </div>
     </div>
