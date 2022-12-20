@@ -1,11 +1,13 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosInstance } from 'axios'
 import { DocumentNode, print } from 'graphql'
-
 import { urlFromSubdomain } from '../utils/helpers'
 import {
+  AxiosConfig,
+  DeprecatedGraphqlRequestResponse,
   GraphqlRequestResponse,
   GraphqlResponse,
-  NhostClientConstructorParams
+  NhostClientConstructorParams,
+  RestrictedFetchConfig
 } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
@@ -55,6 +57,25 @@ export class NhostGraphqlClient {
     })
   }
 
+  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V
+  ): Promise<DeprecatedGraphqlRequestResponse<T>>
+
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V,
+    config?: RestrictedFetchConfig & { useAxios: false }
+  ): Promise<GraphqlRequestResponse<T>>
+
+  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V,
+    config?: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: true }
+  ): Promise<DeprecatedGraphqlRequestResponse<T>>
+
   /**
    * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
    *
@@ -76,8 +97,8 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: AxiosRequestConfig
-  ): Promise<GraphqlRequestResponse<T>> {
+    { useAxios = true, ...config }: AxiosConfig | RestrictedFetchConfig = {}
+  ): Promise<DeprecatedGraphqlRequestResponse<T> | GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
       ...this.generateAccessTokenHeaders(),
@@ -108,21 +129,43 @@ export class NhostGraphqlClient {
       }
 
       if (typeof data !== 'object' || Array.isArray(data) || data === null) {
+        if (useAxios) {
+          return {
+            data: null,
+            error: new Error('incorrect response data from GraphQL server')
+          }
+        }
         return {
           data: null,
-          error: new Error('incorrect response data from GraphQL server')
+          error: {
+            error: 'invalid-response',
+            status: 0,
+            message: 'incorrect response data from GraphQL server'
+          }
         }
       }
 
       return { data, error: null }
     } catch (error) {
-      if (error instanceof Error) {
-        return { data: null, error }
-      }
       console.error(error)
+      if (useAxios) {
+        if (error instanceof Error) {
+          return { data: null, error }
+        }
+        return {
+          data: null,
+          error: new Error('Unable to get do GraphQL request')
+        }
+      }
+
+      const axiosError = error as AxiosError
       return {
         data: null,
-        error: new Error('Unable to get do GraphQL request')
+        error: {
+          error: axiosError.code || 'unknown',
+          status: axiosError.status || 0,
+          message: axiosError.message
+        }
       }
     }
   }

@@ -1,6 +1,13 @@
-import type { AxiosResponse } from 'axios'
-
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
+import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { GraphQLError } from 'graphql'
+
+// TODO shared with other packages
+export type ErrorPayload = {
+  error: string
+  status: number
+  message: string
+}
 
 export type { NhostAuthConstructorParams }
 
@@ -55,6 +62,17 @@ export interface NhostClientConstructorParams
 export type GraphqlRequestResponse<T = unknown> =
   | {
       data: null
+      error: GraphQLError[] | ErrorPayload
+    }
+  | {
+      data: T
+      error: null
+    }
+
+/**@deprecated */
+export type DeprecatedGraphqlRequestResponse<T = unknown> =
+  | {
+      data: null
       error: Error | object | object[]
     }
   | {
@@ -63,6 +81,21 @@ export type GraphqlRequestResponse<T = unknown> =
     }
 
 export type FunctionCallResponse<T = unknown> =
+  | {
+      res: {
+        data: T
+        status: number
+        statusText: string
+      }
+      error: null
+    }
+  | {
+      res: null
+      error: ErrorPayload
+    }
+
+/**@deprecated */
+export type DeprecatedFunctionCallResponse<T = unknown> =
   | {
       res: AxiosResponse<T>
       error: null
@@ -73,6 +106,13 @@ export type FunctionCallResponse<T = unknown> =
     }
 
 export interface GraphqlResponse<T = object> {
-  errors?: object[]
+  errors?: GraphQLError[]
   data?: T
 }
+
+type AxiosFlag = {
+  useAxios?: boolean
+}
+
+export type RestrictedFetchConfig = AxiosFlag & { headers?: Record<string, string> }
+export type AxiosConfig = AxiosFlag & AxiosRequestConfig
