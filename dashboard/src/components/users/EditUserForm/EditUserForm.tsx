@@ -268,18 +268,18 @@ export default function EditUserForm({
               autoComplete="off"
             />
 
-            <div className="grid grid-flow-col grid-cols-8 col-span-1 my-1">
-              <div className="col-span-2">
+            <div className="grid items-center grid-flow-col grid-cols-8 col-span-1 my-1">
+              <div className="col-span-2 ">
                 <InputLabel as="h3">Password</InputLabel>
               </div>
-              <IconButton
+              <Button
                 color="primary"
                 variant="borderless"
                 className="col-span-6 px-2 place-self-start"
                 onClick={handleChangeUserPassword}
               >
                 Change
-              </IconButton>
+              </Button>
             </div>
 
             <Input

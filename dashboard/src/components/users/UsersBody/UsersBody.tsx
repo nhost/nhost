@@ -25,7 +25,7 @@ import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ApolloQueryResult } from '@apollo/client';
 import { Avatar } from '@mui/material';
-import { format, formatDistance } from 'date-fns';
+import { formatDistance } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
@@ -314,7 +314,12 @@ export default function UsersBody({
                   className="px-2 font-normal"
                   size="normal"
                 >
-                  {format(new Date(user.createdAt), 'PP')}
+                  {user.lastSeen
+                    ? `${formatDistance(
+                        new Date(user.lastSeen),
+                        new Date(),
+                      )} ago`
+                    : '-'}
                 </Text>
                 <Text
                   color="greyscaleDark"
