@@ -175,10 +175,10 @@ export default function UsersPage() {
           <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
           <div className="flex flex-col space-y-1">
             <Text className="font-medium text-center" variant="h3">
-              You don&apos;t have any users yet
+              There are no users yet
             </Text>
             <Text variant="subtitle1" className="text-center">
-              All users for your project will be listed here
+              All users for your project will be listed here.
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
@@ -197,7 +197,7 @@ export default function UsersPage() {
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid w-full h-full grid-flow-row overflow-hidden">
-            <div className="grid w-full grid-cols-6 p-3 ">
+            <div className="grid w-full grid-cols-6 p-3 border-b">
               <Text className="font-medium md:col-span-2">Name</Text>
               <Text className="font-medium ">Signed up at</Text>
               <Text className="font-medium ">Last Seen</Text>

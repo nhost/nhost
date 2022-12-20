@@ -310,9 +310,21 @@ export default function UsersBody({
                 <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
                   <Avatar src={user.avatarUrl} className="border" />
                   <div className="grid items-center grid-flow-row">
-                    <Text className="font-medium leading-5 truncate">
-                      {user.displayName}
-                    </Text>
+                    <div className="grid items-center grid-flow-col gap-2">
+                      <Text className="font-medium leading-5 truncate">
+                        {user.displayName}
+                      </Text>
+                      {user.disabled && (
+                        <Chip
+                          component="span"
+                          color="error"
+                          size="small"
+                          label="Banned"
+                          className="self-center align-middle"
+                        />
+                      )}
+                    </div>
+
                     <Text className="font-normal truncate text-greyscaleGreyDark">
                       {user.email}
                     </Text>
