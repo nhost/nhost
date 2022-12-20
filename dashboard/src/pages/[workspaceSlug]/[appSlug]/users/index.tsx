@@ -3,7 +3,6 @@ import Pagination from '@/components/common/Pagination';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import UsersBody from '@/components/users/UsersBody';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -31,7 +30,6 @@ export default function UsersPage() {
 
   const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
@@ -114,7 +112,8 @@ export default function UsersPage() {
   );
 
   const thereAreUsers =
-    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count || usersCount;
+    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ||
+    usersCount <= 0;
 
   if (loadingRemoteAppUsersQuery) {
     return (
@@ -198,7 +197,7 @@ export default function UsersPage() {
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid w-full h-full grid-flow-row overflow-hidden">
-            <div className="grid w-full grid-cols-6 p-3 border-gray-200 border-b-1">
+            <div className="grid w-full grid-cols-6 p-3 ">
               <Text className="font-medium md:col-span-2">Name</Text>
               <Text className="font-medium ">Signed up at</Text>
               <Text className="font-medium ">Last Seen</Text>
@@ -207,7 +206,7 @@ export default function UsersPage() {
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&
               usersCount !== 0 && (
-                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
+                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-t border-b border-l border-r rounded-lg shadow-sm border-veryLightGray">
                   <UserIcon
                     strokeWidth={1}
                     className="w-10 h-10 text-greyscaleDark"
