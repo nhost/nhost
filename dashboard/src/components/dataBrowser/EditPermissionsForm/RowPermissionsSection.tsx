@@ -37,13 +37,21 @@ export default function RowPermissionsSection({
   const { register, setValue, getValues } =
     useFormContext<RolePermissionEditorFormValues>();
   const { filter } = getValues();
-  const defaultRowCheckType =
-    filter && Object.keys(filter).length === 0 ? 'none' : 'custom';
 
-  const [temporaryPermissions, setTemporaryPermissions] =
-    useState<RuleGroup>(null);
+  const defaultRowCheckType =
+    filter &&
+    'rules' in filter &&
+    'groups' in filter &&
+    (filter.rules.length > 0 || filter.groups.length > 0)
+      ? 'custom'
+      : 'none';
+
+  const [temporaryPermissions, setTemporaryPermissions] = useState<
+    RuleGroup | {}
+  >(null);
+
   const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
-    () => defaultRowCheckType,
+    filter ? defaultRowCheckType : null,
   );
 
   function handleCheckTypeChange(value: typeof rowCheckType) {

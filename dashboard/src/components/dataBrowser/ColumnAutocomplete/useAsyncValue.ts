@@ -65,10 +65,9 @@ export default function useAsyncValue({
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
   >([]);
-  const relationshipDotNotation =
-    initialized && selectedRelationships?.length > 0
-      ? selectedRelationships.map((relationship) => relationship.name).join('.')
-      : '';
+  const relationshipDotNotation = selectedRelationships
+    .map((relationship) => relationship.name)
+    .join('.');
   const [selectedColumn, setSelectedColumn] =
     useState<AutocompleteOption>(null);
   const activeRelationship =
@@ -240,6 +239,7 @@ export default function useAsyncValue({
 
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [
+    currentTablePath,
     asyncTablePath,
     selectedSchema,
     selectedTable,
@@ -260,6 +260,9 @@ export default function useAsyncValue({
     selectedColumn: initialized ? selectedColumn : null,
     setSelectedRelationships,
     setSelectedColumn,
-    relationshipDotNotation,
+    relationshipDotNotation:
+      initialized && selectedRelationships?.length > 0
+        ? relationshipDotNotation
+        : '',
   };
 }

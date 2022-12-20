@@ -28,6 +28,22 @@ test('should convert a simple Hasura permission object to a rule group', () => {
     rules: [{ column: 'title', operator: '_eq', value: 'test' }],
     groups: [],
   });
+
+  expect(
+    convertToRuleGroup({
+      books: { author: { id: { _eq: 'X-Hasura-User-Id' } } },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      {
+        column: 'books.author.id',
+        operator: '_eq',
+        value: 'X-Hasura-User-Id',
+      },
+    ],
+    groups: [],
+  });
 });
 
 test('should convert a permission containing a relationship to a rule group', () => {

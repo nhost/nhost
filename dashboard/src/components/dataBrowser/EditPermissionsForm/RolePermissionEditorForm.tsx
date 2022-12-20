@@ -15,7 +15,7 @@ import ColumnPermissionsSection from './ColumnPermissionsSection';
 import RowPermissionsSection from './RowPermissionsSection';
 
 export interface RolePermissionEditorFormValues {
-  filter: RuleGroup;
+  filter: RuleGroup | {};
   columns: string[];
   limit?: number;
 }
@@ -54,13 +54,9 @@ export interface RolePermissionEditorFormProps {
 function getDefaultRuleGroup(
   action: DatabaseAction,
   permission: HasuraMetadataPermission['permission'],
-): RuleGroup {
+): RuleGroup | {} {
   if (!permission) {
-    return {
-      operator: '_and',
-      rules: [{ column: '', operator: '_eq', value: '' }],
-      groups: [],
-    };
+    return null;
   }
 
   if (action === 'insert') {
