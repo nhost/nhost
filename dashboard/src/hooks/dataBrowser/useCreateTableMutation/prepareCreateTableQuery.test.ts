@@ -1,4 +1,4 @@
-import type { DatabaseTable } from '@/types/data-browser';
+import type { DatabaseTable } from '@/types/dataBrowser';
 import { expect, test } from 'vitest';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 

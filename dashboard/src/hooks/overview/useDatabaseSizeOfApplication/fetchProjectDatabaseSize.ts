@@ -1,4 +1,4 @@
-import type { QueryError, QueryResult } from '@/types/data-browser';
+import type { QueryError, QueryResult } from '@/types/dataBrowser';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
 

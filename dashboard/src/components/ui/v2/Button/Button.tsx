@@ -196,7 +196,7 @@ const OutlinedButton = forwardRef(
         color: 'text.primary',
         borderColor: 'grey.400',
         '&:hover': {
-          backgroundColor: (theme) => theme.palette.action.hover,
+          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
           borderColor: 'grey.500',
         },
         '&:active': {
@@ -218,8 +218,6 @@ const OutlinedButton = forwardRef(
         borderColor: 'error.main',
         '&:hover': {
           backgroundColor: (theme) => alpha(theme.palette.error.main, 0.1),
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.error.main, 0.2)}`,
           color: 'error.dark',
         },
         '&:active': {
@@ -282,9 +280,8 @@ const BorderlessButton = forwardRef(
       styles = {
         color: 'text.primary',
         '&:hover': {
-          backgroundColor: (theme) => theme.palette.action.hover,
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.text.primary, 0.1)}`,
+          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
+          color: 'text.primary',
         },
         '&:active': {
           backgroundColor: (theme) => theme.palette.action.active,
@@ -302,8 +299,6 @@ const BorderlessButton = forwardRef(
         color: 'error.main',
         '&:hover': {
           backgroundColor: (theme) => alpha(theme.palette.error.main, 0.1),
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.error.main, 0.2)}`,
           color: 'error.dark',
         },
         '&:active': {

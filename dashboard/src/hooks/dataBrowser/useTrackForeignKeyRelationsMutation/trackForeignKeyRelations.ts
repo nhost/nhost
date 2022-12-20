@@ -4,7 +4,7 @@ import type {
   MetadataError,
   MutationOrQueryBaseOptions,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 export interface TrackForeignKeyRelationsVariables {

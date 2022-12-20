@@ -1,7 +1,7 @@
 import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { identityTypes } from '@/utils/dataBrowser/postgresqlConstants';
 import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';

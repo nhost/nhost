@@ -4,7 +4,7 @@ import type {
   MetadataError,
   MutationOrQueryBaseOptions,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 
 export interface TrackTableVariables {
   /**

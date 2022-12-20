@@ -133,11 +133,13 @@ export default function SettingsGeneralPage() {
           <SettingsContainer
             title="Project Name"
             description="The name of the project."
-            primaryActionButtonProps={{
-              disabled: !formState.isValid || !formState.isDirty,
-              loading: formState.isSubmitting,
-            }}
             className="grid grid-flow-row px-4 lg:grid-cols-4"
+            slotProps={{
+              submitButton: {
+                disabled: !formState.isValid || !formState.isDirty,
+                loading: formState.isSubmitting,
+              },
+            }}
           >
             <Input
               {...register('name')}
@@ -147,10 +149,8 @@ export default function SettingsGeneralPage() {
               hideEmptyHelperText
               helperText={formState.errors.name?.message}
               error={Boolean(formState.errors.name)}
-              componentsProps={{
-                helperText: {
-                  className: 'col-start-1',
-                },
+              slotProps={{
+                helperText: { className: 'col-start-1' },
               }}
             />
           </SettingsContainer>

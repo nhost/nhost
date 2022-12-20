@@ -26,6 +26,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   padding?: 'none' | Array<'horizontal' | 'vertical'>;
 }
 
+/**
+ * @deprecated Use `@/ui/v2/Button` instead.
+ */
 export const Button: React.FC<ButtonProps> = forwardRef(
   (props: ButtonProps, buttonRef) => {
     const {

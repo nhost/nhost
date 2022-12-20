@@ -61,10 +61,8 @@ function LogsTimePicker({
           value={format(selectedDate, 'HH:mm:ss')}
           style={{ width: '135px' }}
           id="time-picker"
-          componentsProps={{
-            formControl: {
-              className: 'grid grid-flow-col gap-x-3',
-            },
+          slotProps={{
+            formControl: { className: 'grid grid-flow-col gap-x-3' },
             label: { sx: { fontSize: '14px' } },
           }}
           onChange={handleTimePicking}

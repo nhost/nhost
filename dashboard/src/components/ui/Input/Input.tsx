@@ -18,6 +18,9 @@ export interface InputProps
   multiline?: boolean;
 }
 
+/**
+ * @deprecated Use `@/ui/v2/Input` instead.
+ */
 export const Input: React.FC<InputProps> = forwardRef(
   (
     {
