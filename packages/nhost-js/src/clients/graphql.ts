@@ -7,7 +7,7 @@ import {
   GraphqlRequestResponse,
   GraphqlResponse,
   NhostClientConstructorParams,
-  RestrictedFetchConfig
+  NhostFetchConfig
 } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
@@ -60,21 +60,15 @@ export class NhostGraphqlClient {
   /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
   async request<T = any, V = any>(
     document: string | DocumentNode,
-    variables?: V
+    variables?: V,
+    config?: (AxiosConfig | NhostFetchConfig) & { useAxios?: true }
   ): Promise<DeprecatedGraphqlRequestResponse<T>>
 
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: RestrictedFetchConfig & { useAxios: false }
+    config?: NhostFetchConfig & { useAxios: false }
   ): Promise<GraphqlRequestResponse<T>>
-
-  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
-  async request<T = any, V = any>(
-    document: string | DocumentNode,
-    variables?: V,
-    config?: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: true }
-  ): Promise<DeprecatedGraphqlRequestResponse<T>>
 
   /**
    * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
@@ -97,10 +91,7 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    {
-      useAxios = true,
-      ...config
-    }: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: boolean } = {}
+    { useAxios = true, ...config }: (AxiosConfig | NhostFetchConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedGraphqlRequestResponse<T> | GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {

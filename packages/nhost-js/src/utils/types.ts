@@ -110,5 +110,5 @@ export interface GraphqlResponse<T = object> {
   data?: T
 }
 
-export type RestrictedFetchConfig = { headers?: Record<string, string> }
+export type NhostFetchConfig = { headers?: Record<string, string> }
 export type AxiosConfig = AxiosRequestConfig

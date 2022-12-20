@@ -5,7 +5,7 @@ import {
   DeprecatedFunctionCallResponse,
   FunctionCallResponse,
   NhostClientConstructorParams,
-  RestrictedFetchConfig
+  NhostFetchConfig
 } from '../utils/types'
 
 export interface NhostFunctionsConstructorParams {
@@ -58,21 +58,15 @@ export class NhostFunctionsClient {
   /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
   async call<T = unknown, D = any>(
     url: string,
-    data?: D
+    data?: D,
+    config?: (NhostFetchConfig | AxiosConfig) & { useAxios?: true }
   ): Promise<DeprecatedFunctionCallResponse<T>>
 
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    config: RestrictedFetchConfig & { useAxios: false }
+    config?: NhostFetchConfig & { useAxios: false }
   ): Promise<FunctionCallResponse<T>>
-
-  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
-  async call<T = unknown, D = any>(
-    url: string,
-    data: D,
-    config?: (RestrictedFetchConfig | AxiosConfig) & { useAxios?: true }
-  ): Promise<DeprecatedFunctionCallResponse<T>>
 
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
@@ -87,10 +81,7 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    {
-      useAxios = true,
-      ...config
-    }: (AxiosConfig | RestrictedFetchConfig) & { useAxios?: boolean } = {}
+    { useAxios = true, ...config }: (AxiosConfig | NhostFetchConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedFunctionCallResponse<T> | FunctionCallResponse> {
     if (useAxios) {
       console.warn(
@@ -185,3 +176,6 @@ export class NhostFunctionsClient {
     return {}
   }
 }
+
+const dd = new NhostFunctionsClient({ url: 'https://functions.nhost.io' })
+dd.call('dwe')
