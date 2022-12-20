@@ -1,6 +1,5 @@
 import { StateErrorTypes } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /** @internal */

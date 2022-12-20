@@ -4,7 +4,7 @@ import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import { useApolloClient } from '@apollo/client';
 import fetch from 'cross-fetch';
@@ -47,7 +47,7 @@ export function AddUserModal({ modalIsOpen, setModalIsOpen }: any) {
       currentApplication?.subdomain,
       currentApplication?.region.awsName,
       'auth',
-    )}/v1/signup/email-password`;
+    )}/signup/email-password`;
 
     try {
       const response = await fetch(signUpUrl, {

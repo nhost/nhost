@@ -1,5 +1,3 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   SignInEmailPasswordHandlerResult,
   signInEmailPasswordPromise,
@@ -8,7 +6,7 @@ import {
   signInMfaTotpPromise
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'

@@ -1,6 +1,6 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -49,7 +49,9 @@ export default function useCreateTableMutation({
         ...variables,
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? 'nhost-admin-secret'
+            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
       }),

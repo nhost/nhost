@@ -41,12 +41,12 @@ Event Triggers and [Serverless Functions](/serverless-functions) are a perfect c
 When using Serverless Functions as webhooks you should configure the webhook using a combination of environment variables and endpoints like this:
 
 ```
-{{NHOST_BACKEND_URL}}/v1/functions/orders-insert-send-email
+{{NHOST_FUNCTIONS_URL}}/orders-insert-send-email
 ```
 
 ![Webhook URL Format](/img/database/event-triggers/webhook-url-format.png)
 
-The `NHOST_BACKEND_URL` is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/cli).
+The `NHOST_FUNCTIONS_URL` is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/cli).
 
 ### Security
 

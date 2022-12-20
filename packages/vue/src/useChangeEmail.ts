@@ -1,5 +1,3 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   ChangeEmailHandlerResult,
   ChangeEmailOptions,
@@ -8,7 +6,7 @@ import {
   createChangeEmailMachine
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 

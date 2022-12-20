@@ -12,8 +12,8 @@ import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { generateAppServiceUrl } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -116,7 +116,7 @@ export default function GoogleProviderSettings() {
               currentApplication.subdomain,
               currentApplication.region.awsName,
               'auth',
-            )}/v1/signin/provider/google/callback`}
+            )}/signin/provider/google/callback`}
             disabled
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
@@ -131,7 +131,7 @@ export default function GoogleProviderSettings() {
                         currentApplication.subdomain,
                         currentApplication.region.awsName,
                         'auth',
-                      )}/v1/signin/provider/google/callback`,
+                      )}/signin/provider/google/callback`,
                       'Redirect URL',
                     );
                   }}

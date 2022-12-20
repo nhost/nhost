@@ -1,5 +1,3 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   SignUpEmailPasswordHandlerResult,
   signUpEmailPasswordPromise,
@@ -7,12 +5,13 @@ import {
   SignUpOptions
 } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAccessToken } from './useAccessToken'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 import { useUserData } from './useUserData'
+
 interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
   /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword(

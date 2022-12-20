@@ -5,10 +5,11 @@ import type {
   OrderBy,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import extractForeignKeyRelation from '@/utils/dataBrowser/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';
+import fetch from 'cross-fetch';
 import { formatWithArray } from 'node-pg-format';
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
@@ -310,6 +311,6 @@ export default async function fetchTable({
       JSON.parse(rawRow),
     ) as NormalizedQueryDataRow[],
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: parseInt(rawAggregate, 10),
+    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
   };
 }

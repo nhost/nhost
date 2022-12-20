@@ -1,7 +1,7 @@
 import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { format } from 'node-pg-format';
 

@@ -1,5 +1,3 @@
-import { reactive, ToRefs, toRefs, unref } from 'vue'
-
 import {
   createSendVerificationEmailMachine,
   SendVerificationEmailHandlerResult,
@@ -8,7 +6,7 @@ import {
   SendVerificationEmailState
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
-
+import { reactive, ToRefs, toRefs, unref } from 'vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 

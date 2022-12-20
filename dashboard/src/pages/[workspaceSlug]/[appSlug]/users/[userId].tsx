@@ -19,8 +19,8 @@ import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { generateAppServiceUrl } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import type {
   GetRemoteAppUserAuthRolesFragment,
@@ -170,7 +170,7 @@ function UserDetailsPassword({
           error={!!error}
           variant="inline"
           inlineInputProportion="66%"
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
             inputWrapper: { className: 'max-w-[370px] justify-self-end' },
           }}
@@ -381,7 +381,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
 
             handleFormSubmit();
           }}
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
           }}
         />
@@ -410,7 +410,7 @@ function UserDetails({ user: externalUser, authRoles }: UserDetailsProps) {
 
             handleFormSubmit();
           }}
-          componentsProps={{
+          slotProps={{
             label: { className: 'text-sm+ font-medium' },
           }}
         />
@@ -629,11 +629,11 @@ export default function UserDetailsByIdPage() {
 
   return (
     <NhostApolloProvider
-      graphqlUrl={`${generateAppServiceUrl(
+      graphqlUrl={generateAppServiceUrl(
         currentApplication.subdomain,
         currentApplication.region.awsName,
         'graphql',
-      )}/v1`}
+      )}
       fetchPolicy="cache-first"
       headers={{
         'x-hasura-admin-secret':

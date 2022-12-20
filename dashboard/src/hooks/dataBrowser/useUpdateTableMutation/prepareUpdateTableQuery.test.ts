@@ -2,7 +2,7 @@ import type {
   DatabaseColumn,
   DatabaseTable,
   NormalizedQueryDataRow,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 const originalTable: NormalizedQueryDataRow = {

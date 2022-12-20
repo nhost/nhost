@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import {
   createSendVerificationEmailMachine,
   SendVerificationEmailHandlerResult,
@@ -8,7 +6,7 @@ import {
   SendVerificationEmailState
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface SendVerificationEmailHandler {

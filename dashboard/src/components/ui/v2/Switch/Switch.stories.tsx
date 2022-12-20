@@ -3,7 +3,7 @@ import type { SwitchProps } from './Switch';
 import Switch from './Switch';
 
 export default {
-  title: 'Switch',
+  title: 'UI Library / Switch',
   component: Switch,
   argTypes: {},
 } as ComponentMeta<typeof Switch>;

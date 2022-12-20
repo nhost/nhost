@@ -9,7 +9,7 @@ import PlayIcon from '@/ui/v2/icons/PlayIcon';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Tooltip from '@/ui/v2/Tooltip';
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,
@@ -268,7 +268,7 @@ export default function GraphQLPage() {
 
   const subscriptionUrl = `${appUrl
     .replace('https', 'wss')
-    .replace('http', 'ws')}/v1`;
+    .replace('http', 'ws')}`;
 
   const headers = {
     'content-type': 'application/json',
@@ -277,7 +277,7 @@ export default function GraphQLPage() {
   };
 
   const fetcher = createGraphiQLFetcher({
-    url: `${appUrl}/v1`,
+    url: appUrl,
     headers,
     wsClient: createClient({
       url: subscriptionUrl,

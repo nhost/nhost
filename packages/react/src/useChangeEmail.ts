@@ -1,5 +1,3 @@
-import { useCallback, useMemo } from 'react'
-
 import {
   ChangeEmailHandlerResult,
   ChangeEmailOptions,
@@ -8,7 +6,7 @@ import {
   createChangeEmailMachine
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useCallback, useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface ChangeEmailHandler {

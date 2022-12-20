@@ -4,29 +4,17 @@
   "commit": false,
   "linked": [
     [
-      "@nhost/nhost-js",
-      "@nhost/hasura-auth-js"
-    ],
-    [
-      "@nhost/nhost-js",
-      "@nhost/hasura-storage-js"
-    ],
-    [
-      "@nhost/react",
-      "@nhost/nhost-js"
-    ],
-    [
-      "@nhost/vue",
-      "@nhost/nhost-js"
-    ],
-    [
       "@nhost/nextjs",
-      "@nhost/react"
+      "@nhost/react",
+      "@nhost/vue",
+      "@nhost/nhost-js",
+      "@nhost/hasura-auth-js",
+      "@nhost/hasura-storage-js"
     ],
     [
       "@nhost/react-apollo",
       "@nhost/apollo"
-    ],
+    ]
   ],
   "access": "restricted",
   "baseBranch": "main",
