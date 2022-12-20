@@ -4,7 +4,7 @@ import type { HasuraMetadataTable } from '@/types/dataBrowser';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { useEffect, useState } from 'react';
 
-export interface UseAsyncInitialValueOptions {
+export interface UseAsyncValueOptions {
   /**
    * Selected schema to be used to determine the initial value.
    */
@@ -42,7 +42,7 @@ export interface UseAsyncInitialValueOptions {
   }) => void;
 }
 
-export default function useAsyncInitialValue({
+export default function useAsyncValue({
   selectedSchema,
   selectedTable,
   initialValue,
@@ -51,7 +51,7 @@ export default function useAsyncInitialValue({
   tableData,
   metadata,
   onInitialized,
-}: UseAsyncInitialValueOptions) {
+}: UseAsyncValueOptions) {
   const currentTablePath = `${selectedSchema}.${selectedTable}`;
   const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);

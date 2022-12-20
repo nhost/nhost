@@ -25,8 +25,8 @@ import type {
 } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { UseAsyncInitialValueOptions } from './useAsyncInitialValue';
-import useAsyncInitialValue from './useAsyncInitialValue';
+import type { UseAsyncValueOptions } from './useAsyncValue';
+import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
 
@@ -54,7 +54,7 @@ export interface ColumnAutocompleteProps
   /**
    * Function to be called when the input is asynchronously initialized.
    */
-  onInitialized?: UseAsyncInitialValueOptions['onInitialized'];
+  onInitialized?: UseAsyncValueOptions['onInitialized'];
   /**
    * Class name to be applied to the root element.
    */
@@ -145,7 +145,7 @@ function ColumnAutocomplete(
     setSelectedRelationships,
     relationshipDotNotation,
     activeRelationship: asyncActiveRelationship,
-  } = useAsyncInitialValue({
+  } = useAsyncValue({
     selectedSchema,
     selectedTable,
     initialValue: externalValue as string,
@@ -206,8 +206,6 @@ function ColumnAutocomplete(
       value.metadata?.target,
     ]);
   }
-
-  console.log(selectedRelationships);
 
   const options = useColumnGroups({
     selectedSchema,

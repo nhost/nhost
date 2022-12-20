@@ -93,6 +93,9 @@ export default function useColumnGroups({
       group: 'relationships',
       metadata: {
         target: {
+          schema: relationship.schema,
+          table: relationship.table,
+          column: relationship.column,
           ...(columnTargetMap?.get(relationship.column) || {}),
           name: relationship.name,
         },
