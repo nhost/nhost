@@ -111,7 +111,7 @@
     "@types/validator": "^13.7.10",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
-    "@vitejs/plugin-react": "^2.2.0",
+    "@vitejs/plugin-react": "^3.0.0",
     "@vitest/coverage-c8": "^0.25.2",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^8.3.0",
