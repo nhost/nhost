@@ -120,8 +120,6 @@ export default function EditUserForm({
     });
   }
 
-  const signInMethodsAvailable = user.email || user.userProviders.length !== 0;
-
   const { data: dataRoles } = useGetRolesQuery({
     variables: { id: currentApplication.id },
   });
@@ -320,50 +318,41 @@ export default function EditUserForm({
               <Option value="fr">fr</Option>
             </ControlledSelect>
           </section>
-          {signInMethodsAvailable && (
-            <section className="grid grid-cols-4 p-6 place-content-start">
-              <div className="col-span-1">
-                <InputLabel as="h3">OAuth Providers</InputLabel>
-              </div>
-              <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
-                {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
-                {user.userProviders.length === 0 && (
-                  <div className="grid grid-flow-col gap-x-1 place-content-between">
-                    <Text className="font-normal text-greyscaleGreyDark">
-                      This user has not signed up using any OAuth providers.
+          <section className="grid grid-cols-4 p-6 place-content-start">
+            <div className="col-span-1">
+              <InputLabel as="h3">OAuth Providers</InputLabel>
+            </div>
+            <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
+              {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
+              {user.userProviders.length === 0 && (
+                <div className="grid grid-flow-col gap-x-1 place-content-between">
+                  <Text className="font-normal text-greyscaleGrey">
+                    This user has no OAuth providers connected.
+                  </Text>
+                </div>
+              )}
+
+              {user.userProviders.map((provider) => (
+                <div className="grid grid-flow-col gap-3 place-content-between">
+                  <div className="grid grid-flow-col gap-3 span-cols-1">
+                    <Image
+                      src={`/logos/${
+                        provider.providerId[0].toUpperCase() +
+                        provider.providerId.slice(1)
+                      }.svg`}
+                      width={25}
+                      height={25}
+                    />
+                    <Text className="font-medium capitalize">
+                      {provider.providerId === 'github'
+                        ? 'GitHub'
+                        : provider.providerId}
                     </Text>
                   </div>
-                )}
-
-                {user.userProviders.map((provider) => (
-                  <div className="grid grid-flow-col gap-3 place-content-between">
-                    <div className="grid grid-flow-col gap-3 span-cols-1">
-                      <Image
-                        src={`/logos/${
-                          provider.providerId[0].toUpperCase() +
-                          provider.providerId.slice(1)
-                        }.svg`}
-                        width={25}
-                        height={25}
-                      />
-                      <Text className="font-medium capitalize">
-                        {provider.providerId === 'github'
-                          ? 'GitHub'
-                          : provider.providerId}
-                      </Text>
-                    </div>
-
-                    <Chip
-                      component="span"
-                      color="success"
-                      size="small"
-                      label="Active"
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                </div>
+              ))}
+            </div>
+          </section>
           {!isAnonymous && (
             <section className="grid grid-flow-row p-6 gap-y-10">
               <ControlledSelect
