@@ -38,7 +38,7 @@ jobs:
           BUILD: 'all'
       - name: Check if the pnpm lockfile changed
         id: changed-lockfile
-        uses: tj-actions/changed-files@v34
+        uses: tj-actions/changed-files@v35
         with:
           files: pnpm-lock.yaml
       # * Determine a pnpm filter argument for packages that have been modified.
