@@ -391,7 +391,7 @@ function DataBrowserSidebarContent({
                                     await refetch();
                                   },
                                   schema: table.table_schema,
-                                  table,
+                                  table: table.table_name,
                                 },
                               })
                             }

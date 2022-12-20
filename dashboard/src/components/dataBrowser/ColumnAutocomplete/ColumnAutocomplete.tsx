@@ -107,7 +107,11 @@ function ColumnAutocomplete(
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const [open, setOpen] = useState(false);
-  const [activeRelationship, setActiveRelationship] = useState<any>();
+  const [activeRelationship, setActiveRelationship] = useState<{
+    schema: string;
+    table: string;
+    name: string;
+  }>();
   const selectedSchema = activeRelationship?.schema || defaultSchema;
   const selectedTable = activeRelationship?.table || defaultTable;
 
@@ -202,6 +206,8 @@ function ColumnAutocomplete(
       value.metadata?.target,
     ]);
   }
+
+  console.log(selectedRelationships);
 
   const options = useColumnGroups({
     selectedSchema,

@@ -9,8 +9,8 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
-import { useRouter } from 'next/router';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
+import useRuleGroupEditor from './useRuleGroupEditor';
 
 export interface RuleValueInputProps {
   /**
@@ -68,14 +68,12 @@ export default function RuleValueInput({
   name,
   selectedTablePath,
 }: RuleValueInputProps) {
+  const { schema, table } = useRuleGroupEditor();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
-  const {
-    query: { schemaSlug, tableSlug },
-  } = useRouter();
 
   const { data, loading, error } = useGetAppCustomClaimsQuery({
     variables: { id: currentApplication?.id },
@@ -127,8 +125,8 @@ export default function RuleValueInput({
     return (
       <ColumnSelectorInput
         selectedTablePath={selectedTablePath}
-        schema={schemaSlug as string}
-        table={tableSlug as string}
+        schema={schema}
+        table={table}
         name={inputName}
       />
     );
@@ -146,6 +144,8 @@ export default function RuleValueInput({
   return (
     <ControlledAutocomplete
       freeSolo={!isHasuraInput}
+      autoSelect={!isHasuraInput}
+      autoHighlight={isHasuraInput}
       name={inputName}
       className="flex-auto"
       slotProps={{

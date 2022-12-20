@@ -127,7 +127,7 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
 >;
 
 export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
-  zIndex: 1,
+  zIndex: theme.zIndex.modal + 1,
   boxShadow: 'none',
   minWidth: 320,
   maxWidth: 600,

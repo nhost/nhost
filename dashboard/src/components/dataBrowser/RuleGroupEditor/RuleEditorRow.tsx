@@ -3,13 +3,13 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import RuleRemoveButton from './RuleRemoveButton';
 import RuleValueInput from './RuleValueInput';
+import useRuleGroupEditor from './useRuleGroupEditor';
 
 export interface RuleEditorRowProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
@@ -98,9 +98,7 @@ export default function RuleEditorRow({
   disabledOperators = [],
   ...props
 }: RuleEditorRowProps) {
-  const {
-    query: { schemaSlug, tableSlug },
-  } = useRouter();
+  const { schema, table } = useRuleGroupEditor();
   const { control, setValue } = useFormContext();
   const rowName = `${name}.rules.${index}`;
 
@@ -135,8 +133,8 @@ export default function RuleEditorRow({
     >
       <ColumnAutocomplete
         {...autocompleteField}
-        schema={schemaSlug as string}
-        table={tableSlug as string}
+        schema={schema}
+        table={table}
         rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
         fullWidth

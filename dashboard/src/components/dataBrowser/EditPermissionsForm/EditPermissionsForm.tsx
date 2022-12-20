@@ -19,10 +19,18 @@ import { useGetRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import RoleEditorForm from './RoleEditorForm';
-import RoleRow from './RoleRow';
+import RolePermissionEditorForm from './RolePermissionEditorForm';
+import RolePermissionsRow from './RolePermissionsRow';
 
 export interface EditPermissionsFormProps {
+  /**
+   * The schema that is being edited.
+   */
+  schema: string;
+  /**
+   * The table that is being edited.
+   */
+  table: string;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -30,6 +38,8 @@ export interface EditPermissionsFormProps {
 }
 
 export default function EditPermissionsForm({
+  schema,
+  table,
   onCancel,
 }: EditPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
@@ -70,7 +80,9 @@ export default function EditPermissionsForm({
 
   if (selectedRole && selectedAction) {
     return (
-      <RoleEditorForm
+      <RolePermissionEditorForm
+        schema={schema}
+        table={table}
         selectedRole={selectedRole}
         selectedAction={selectedAction}
         onSubmit={handleSubmit}
@@ -142,7 +154,7 @@ export default function EditPermissionsForm({
               </TableHead>
 
               <TableBody className="rounded-sm+ block border-1">
-                <RoleRow
+                <RolePermissionsRow
                   name="admin"
                   disabled
                   accessLevels={{
@@ -154,7 +166,7 @@ export default function EditPermissionsForm({
                 />
 
                 {roles.map((role, index) => (
-                  <RoleRow
+                  <RolePermissionsRow
                     name={role}
                     key={role}
                     className={twMerge(

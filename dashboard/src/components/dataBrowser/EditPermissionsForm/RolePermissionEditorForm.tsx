@@ -1,17 +1,30 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
-import Input from '@/components/ui/v2/Input';
-import type { DatabaseAction } from '@/types/dataBrowser';
+import RuleGroupEditor from '@/components/dataBrowser/RuleGroupEditor';
+import type { DatabaseAction, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
+import Input from '@/ui/v2/Input';
 import Radio from '@/ui/v2/Radio';
 import RadioGroup from '@/ui/v2/RadioGroup';
 import Text from '@/ui/v2/Text';
 import type { PropsWithChildren } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-export interface RoleEditorFormValues {}
+export interface RoleEditorFormValues {
+  permissions: RuleGroup;
+}
 
 export interface RoleEditorFormProps {
+  /**
+   * The schema that is being edited.
+   */
+  schema: string;
+  /**
+   * The table that is being edited.
+   */
+  table: string;
   /**
    * The role that is being edited.
    */
@@ -39,17 +52,68 @@ function HighlightedText({ children }: PropsWithChildren<unknown>) {
 }
 
 export default function RoleEditorForm({
+  schema,
+  table,
   selectedRole,
   selectedAction,
   onSubmit,
   onCancel,
 }: RoleEditorFormProps) {
-  const form = useForm<RoleEditorFormValues>({});
-  const isDirty = false;
-  const isSubmitting = false;
+  const form = useForm<RoleEditorFormValues>({
+    defaultValues: {
+      permissions: {
+        operator: '_and',
+        rules: [{ column: '', operator: '_eq', value: '' }],
+        groups: [],
+      },
+    },
+  });
 
-  function handleSubmit() {
+  const {
+    setValue,
+    getValues,
+    formState: { dirtyFields, isSubmitting },
+  } = form;
+
+  const { onDirtyStateChange } = useDialog();
+  const isDirty = Object.keys(dirtyFields).length > 0;
+
+  useEffect(() => {
+    onDirtyStateChange(isDirty, 'drawer');
+  }, [isDirty, onDirtyStateChange]);
+
+  const [temporaryPermissions, setTemporaryPermissions] =
+    useState<RuleGroup>(null);
+  const [checkType, setCheckType] = useState<'none' | 'custom'>(null);
+
+  function handleSubmit(values: RoleEditorFormValues) {
+    console.log(values);
+    onDirtyStateChange(false, 'drawer');
     onSubmit?.();
+  }
+
+  function handleCheckTypeChange(value: typeof checkType) {
+    setCheckType(value);
+
+    if (value === 'none') {
+      setTemporaryPermissions(getValues().permissions);
+
+      // Note: https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
+      // @ts-ignore
+      setValue('permissions', {});
+
+      return;
+    }
+
+    setCheckType(value);
+    setValue(
+      'permissions',
+      temporaryPermissions || {
+        operator: '_and',
+        rules: [{ column: '', operator: '_eq', value: '' }],
+        groups: [],
+      },
+    );
   }
 
   return (
@@ -99,12 +163,22 @@ export default function RoleEditorForm({
               </Text>
 
               <RadioGroup
-                row
                 className="grid grid-flow-col justify-start gap-4"
+                onChange={(_event, value) =>
+                  handleCheckTypeChange(value as typeof checkType)
+                }
               >
-                <Radio value="no-checks" label="Without any checks" />
-                <Radio value="custom-check" label="With custom check" />
+                <Radio value="none" label="Without any checks" />
+                <Radio value="custom" label="With custom check" />
               </RadioGroup>
+
+              {checkType === 'custom' && (
+                <RuleGroupEditor
+                  name="permissions"
+                  schema={schema}
+                  table={table}
+                />
+              )}
 
               <Input
                 type="number"

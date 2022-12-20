@@ -407,7 +407,11 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           )}
 
           {activeDrawerType === 'EDIT_PERMISSIONS' && (
-            <EditPermissionsForm {...sharedDrawerProps} />
+            <EditPermissionsForm
+              {...sharedDrawerProps}
+              schema={drawerPayload?.schema}
+              table={drawerPayload?.table}
+            />
           )}
         </RetryableErrorBoundary>
       </Drawer>

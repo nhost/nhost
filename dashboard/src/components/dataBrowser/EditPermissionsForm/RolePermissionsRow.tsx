@@ -9,7 +9,7 @@ import type { TableRowProps } from '@/ui/v2/TableRow';
 import TableRow from '@/ui/v2/TableRow';
 import { twMerge } from 'tailwind-merge';
 
-export interface RoleRowProps extends TableRowProps {
+export interface RolePermissionsProps extends TableRowProps {
   /**
    * Role name.
    */
@@ -50,7 +50,7 @@ function AccessLevelIcon({ level }: { level: DatabaseAccessLevel }) {
   return <FullPermissionIcon />;
 }
 
-export default function RoleRow({
+export default function RolePermissions({
   name,
   disabled,
   accessLevels = {
@@ -63,7 +63,7 @@ export default function RoleRow({
   slotProps,
   className,
   ...props
-}: RoleRowProps) {
+}: RolePermissionsProps) {
   const cellProps = slotProps?.cell || {};
 
   return (
