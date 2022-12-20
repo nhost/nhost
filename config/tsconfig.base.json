@@ -40,7 +40,7 @@
     ],
     "paths": {
       "@nhost/apollo": [
-        "../packages/apollo/src/index.ts"
+        "../integrations/apollo/src/index.ts"
       ],
       "@nhost/docgen": [
         "../packages/docgen/src/index.ts"
@@ -61,10 +61,7 @@
         "../packages/react/src/index.ts"
       ],
       "@nhost/react-apollo": [
-        "../packages/react-apollo/src/index.ts"
-      ],
-      "@nhost/react-auth": [
-        "../packages/react-auth/src/index.ts"
+        "../integrations/react-apollo/src/index.ts"
       ],
       "@nhost/vue": [
         "../packages/vue/src/index.ts"
