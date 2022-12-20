@@ -20,6 +20,6 @@ When using `useAxios: false`:
 - the returned value matches values foreseen in the next major version:
   - `nhost.functions.call`:
     - `error` is using the same standard error type as in `hasura-auth-js` and `hasura-storage-js`
-    - `res` is using `{ status: number; statusText: string; res: T}`
+    - `res` is using `{ status: number; statusText: string; data: T }`
   - `nhost.graphql.request`:
     - `error` is either using the standard error type, or `GraphQlError[]`
