@@ -217,7 +217,7 @@ export default function UsersPage() {
               <Text className="font-medium md:col-span-2">Name</Text>
               <Text className="font-medium ">Signed up at</Text>
               <Text className="font-medium ">Last Seen</Text>
-              <Text className="col-span-2 font-medium">OAuth Providers</Text>
+              <Text className="col-span-2">OAuth Providers</Text>
             </div>
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&

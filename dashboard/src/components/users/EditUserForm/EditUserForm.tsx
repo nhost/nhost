@@ -3,6 +3,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -12,7 +13,10 @@ import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
-import { useGetRolesQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetRolesQuery,
+  useUpdateRemoteAppUserMutation,
+} from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,10 +24,13 @@ import { Avatar } from '@mui/material';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
+
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import toast from 'react-hot-toast';
 
 export interface EditUserFormProps {
   /**
@@ -77,7 +84,6 @@ export default function EditUserForm({
   user,
   onEditUser,
   onCancel,
-  onBanUser,
   onDeleteUser,
   roles,
 }: EditUserFormProps) {
@@ -85,6 +91,8 @@ export default function EditUserForm({
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+  const [isUserBanned, setIsUserBanned] = useState(user.disabled);
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -129,6 +137,39 @@ export default function EditUserForm({
     [dataRoles],
   );
 
+  const [updateUser] = useUpdateRemoteAppUserMutation({
+    client: remoteProjectGQLClient,
+  });
+
+  /**
+   * This will change the `disabled` field in the user to its opposite.
+   */
+  async function handleBanUser() {
+    const banUser = updateUser({
+      variables: {
+        id: user.id,
+        user: {
+          disabled: !user.disabled,
+        },
+      },
+    });
+
+    await toast.promise(
+      banUser,
+      {
+        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
+        success: user.disabled
+          ? 'User unbanned successfully.'
+          : 'User banned successfully',
+        error: user.disabled
+          ? 'An error occurred while trying to unban the user.'
+          : 'An error occurred while trying to ban the user.',
+      },
+      { ...toastStyleProps },
+    );
+    setIsUserBanned((s) => !s);
+  }
+
   return (
     <FormProvider {...form}>
       <Form
@@ -147,7 +188,7 @@ export default function EditUserForm({
                   {user.email}
                 </Text>
               </div>
-              {user.disabled && (
+              {isUserBanned && (
                 <Chip
                   component="span"
                   color="error"
@@ -167,11 +208,9 @@ export default function EditUserForm({
                 <Dropdown.Content menu disablePortal className="w-full h-full">
                   <Dropdown.Item
                     className="font-medium text-red"
-                    onClick={() => {
-                      onBanUser(user);
-                    }}
+                    onClick={handleBanUser}
                   >
-                    {user.disabled ? 'Unban User' : 'Ban User'}
+                    {isUserBanned ? 'Unban User' : 'Ban User'}
                   </Dropdown.Item>
                   <Dropdown.Item
                     className="font-medium text-red"

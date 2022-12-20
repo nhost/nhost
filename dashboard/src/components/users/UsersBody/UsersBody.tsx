@@ -16,11 +16,13 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
+  useGetRemoteAppUserLazyQuery,
   useGetRolesQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ApolloQueryResult } from '@apollo/client';
@@ -67,6 +69,10 @@ export default function UsersBody({
   });
 
   const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
+    client: remoteProjectGQLClient,
+  });
+
+  const [fetchByUserId] = useGetRemoteAppUserLazyQuery({
     client: remoteProjectGQLClient,
   });
 
@@ -148,6 +154,7 @@ export default function UsersBody({
       { ...toastStyleProps },
     );
     await onSuccessfulAction?.();
+
     closeDrawer();
   }
 
@@ -177,6 +184,7 @@ export default function UsersBody({
           );
 
           await onSuccessfulAction();
+          closeDrawer();
         },
         primaryButtonColor: 'error',
         primaryButtonText: 'Delete',
@@ -210,12 +218,14 @@ export default function UsersBody({
       },
       { ...toastStyleProps },
     );
+    await fetchByUserId({ variables: { id: user.id } });
     await onSuccessfulAction();
   }
 
   function handleViewUser(user: RemoteAppUser) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
+
       payload: {
         user,
         onEditUser: handleEditUser,
