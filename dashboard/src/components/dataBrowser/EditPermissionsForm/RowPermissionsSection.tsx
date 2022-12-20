@@ -36,10 +36,15 @@ export default function RowPermissionsSection({
 }: RowPermissionsSectionProps) {
   const { register, setValue, getValues } =
     useFormContext<RolePermissionEditorFormValues>();
+  const { filter } = getValues();
+  const defaultRowCheckType =
+    filter && Object.keys(filter).length === 0 ? 'none' : 'custom';
 
   const [temporaryPermissions, setTemporaryPermissions] =
     useState<RuleGroup>(null);
-  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(null);
+  const [rowCheckType, setRowCheckType] = useState<'none' | 'custom'>(
+    () => defaultRowCheckType,
+  );
 
   function handleCheckTypeChange(value: typeof rowCheckType) {
     setRowCheckType(value);
@@ -71,7 +76,7 @@ export default function RowPermissionsSection({
         component="h2"
         className="px-6 py-3 font-bold border-b-1 border-gray-200"
       >
-        Row select permissions
+        Row {action} permissions
       </Text>
 
       <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
@@ -92,20 +97,22 @@ export default function RowPermissionsSection({
         </RadioGroup>
 
         {rowCheckType === 'custom' && (
-          <RuleGroupEditor name="permissions" schema={schema} table={table} />
+          <RuleGroupEditor name="filter" schema={schema} table={table} />
         )}
 
-        <Input
-          {...register('rowLimit')}
-          id="row-limit"
-          type="number"
-          label="Limit number of rows"
-          slotProps={{
-            input: { className: 'max-w-xs w-full' },
-            inputRoot: { min: 0 },
-          }}
-          helperText="Set limit on number of rows fetched per request."
-        />
+        {action === 'select' && (
+          <Input
+            {...register('limit')}
+            id="limit"
+            type="number"
+            label="Limit number of rows"
+            slotProps={{
+              input: { className: 'max-w-xs w-full' },
+              inputRoot: { min: 0 },
+            }}
+            helperText="Set limit on number of rows fetched per request."
+          />
+        )}
       </div>
     </section>
   );

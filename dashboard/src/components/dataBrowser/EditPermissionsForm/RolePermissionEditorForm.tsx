@@ -1,9 +1,14 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import HighlightedText from '@/components/common/HighlightedText';
-import type { DatabaseAction, RuleGroup } from '@/types/dataBrowser';
+import type {
+  DatabaseAction,
+  HasuraMetadataPermission,
+  RuleGroup,
+} from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
+import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
@@ -12,7 +17,7 @@ import RowPermissionsSection from './RowPermissionsSection';
 export interface RolePermissionEditorFormValues {
   filter: RuleGroup;
   columns: string[];
-  rowLimit: number;
+  limit?: number;
 }
 
 export interface RolePermissionEditorFormProps {
@@ -40,6 +45,29 @@ export interface RolePermissionEditorFormProps {
    * Function to be called when the editing is cancelled.
    */
   onCancel: VoidFunction;
+  /**
+   * The existing permissions for the role and action.
+   */
+  permission?: HasuraMetadataPermission['permission'];
+}
+
+function getDefaultRuleGroup(
+  action: DatabaseAction,
+  permission: HasuraMetadataPermission['permission'],
+): RuleGroup {
+  if (!permission) {
+    return {
+      operator: '_and',
+      rules: [{ column: '', operator: '_eq', value: '' }],
+      groups: [],
+    };
+  }
+
+  if (action === 'insert') {
+    return convertToRuleGroup(permission.check);
+  }
+
+  return convertToRuleGroup(permission.filter);
 }
 
 export default function RolePermissionEditorForm({
@@ -49,16 +77,13 @@ export default function RolePermissionEditorForm({
   action,
   onSubmit,
   onCancel,
+  permission,
 }: RolePermissionEditorFormProps) {
   const form = useForm<RolePermissionEditorFormValues>({
     defaultValues: {
-      filter: {
-        operator: '_and',
-        rules: [{ column: '', operator: '_eq', value: '' }],
-        groups: [],
-      },
-      columns: [],
-      rowLimit: null,
+      filter: getDefaultRuleGroup(action, permission),
+      columns: permission?.columns || [],
+      limit: permission?.limit || null,
     },
   });
 

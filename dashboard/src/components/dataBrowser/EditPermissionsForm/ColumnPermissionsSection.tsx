@@ -53,7 +53,7 @@ export default function ColumnPermissionsSection({
         component="h2"
         className="px-6 py-3 font-bold border-b-1 border-gray-200"
       >
-        Column select permissions
+        Column {action} permissions
       </Text>
 
       <div className="grid grid-flow-row gap-4 items-center px-6 py-4">

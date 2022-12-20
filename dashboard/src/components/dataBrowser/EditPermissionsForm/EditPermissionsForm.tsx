@@ -180,6 +180,13 @@ export default function EditPermissionsForm({
   }
 
   if (role && action) {
+    const permissionsForAction = {
+      insert: metadataForTable?.insert_permissions,
+      select: metadataForTable?.select_permissions,
+      update: metadataForTable?.update_permissions,
+      delete: metadataForTable?.delete_permissions,
+    };
+
     return (
       <RolePermissionEditorForm
         schema={schema}
@@ -188,6 +195,11 @@ export default function EditPermissionsForm({
         action={action}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
+        permission={
+          permissionsForAction[action]?.find(
+            ({ role: currentRole }) => currentRole === role,
+          )?.permission
+        }
       />
     );
   }

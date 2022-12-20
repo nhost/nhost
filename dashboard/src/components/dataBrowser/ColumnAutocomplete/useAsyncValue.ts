@@ -146,7 +146,8 @@ export default function useAsyncValue({
       remainingColumnPath.length < 2 ||
       isTableLoading ||
       isMetadataLoading ||
-      !tableData?.columns
+      !tableData?.columns ||
+      asyncTablePath !== currentTablePath
     ) {
       return;
     }
@@ -239,6 +240,7 @@ export default function useAsyncValue({
 
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [
+    asyncTablePath,
     selectedSchema,
     selectedTable,
     metadata?.tables,

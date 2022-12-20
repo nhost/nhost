@@ -51,6 +51,7 @@ export interface HasuraMetadataPermission {
     columns: string[];
     filter: Record<string, any>;
     check: Record<string, any>;
+    limit?: number;
   };
 }
 
