@@ -41,6 +41,7 @@ export const getNewOrUpdateCurrentSession = async ({
     user: sessionUser,
   };
 };
+
 export const getSignInResponse = async ({
   userId,
   checkMFA,
