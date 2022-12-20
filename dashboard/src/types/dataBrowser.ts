@@ -45,6 +45,15 @@ export interface HasuraMetadataRelationship {
   };
 }
 
+export interface HasuraMetadataPermission {
+  role: string;
+  permission: {
+    columns: string[];
+    filter: Record<string, any>;
+    check: Record<string, any>;
+  };
+}
+
 /**
  * Represents a table from Hasura metadata.
  */
@@ -54,8 +63,12 @@ export interface HasuraMetadataTable {
     schema: string;
   };
   configuration: Record<string, Record<string, any>>;
-  array_relationships: HasuraMetadataRelationship[];
-  object_relationships: HasuraMetadataRelationship[];
+  array_relationships?: HasuraMetadataRelationship[];
+  object_relationships?: HasuraMetadataRelationship[];
+  insert_permissions?: HasuraMetadataPermission[];
+  select_permissions?: HasuraMetadataPermission[];
+  update_permissions?: HasuraMetadataPermission[];
+  delete_permissions?: HasuraMetadataPermission[];
 }
 
 /**

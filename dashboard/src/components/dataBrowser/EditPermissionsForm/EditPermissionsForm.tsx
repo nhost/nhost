@@ -1,6 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
+import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { DatabaseAction } from '@/types/dataBrowser';
+import type {
+  DatabaseAccessLevel,
+  DatabaseAction,
+  HasuraMetadataPermission,
+} from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -42,19 +48,58 @@ export default function EditPermissionsForm({
   table,
   onCancel,
 }: EditPermissionsFormProps) {
-  const [selectedRole, setSelectedRole] = useState<string>();
-  const [selectedAction, setSelectedAction] = useState<DatabaseAction>();
+  const [role, setRole] = useState<string>();
+  const [action, setAction] = useState<DatabaseAction>();
 
   const { closeDrawerWithDirtyGuard } = useDialog();
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
+
+  const {
+    data: rolesData,
+    loading: rolesLoading,
+    error: rolesError,
+  } = useGetRolesQuery({
     variables: { id: currentApplication?.id },
   });
 
-  const roles = data?.app?.authUserDefaultAllowedRoles?.split(',') || [];
+  const {
+    data: tableData,
+    status: tableStatus,
+    error: tableError,
+  } = useTableQuery([`default.${table}.${schema}`]);
 
-  if (loading) {
+  const {
+    data: metadata,
+    status: metadataStatus,
+    error: metadataError,
+  } = useMetadataQuery([`default.metadata`]);
+
+  if (tableStatus === 'loading') {
+    return (
+      <div className="p-6">
+        <ActivityIndicator label="Loading table..." />
+      </div>
+    );
+  }
+
+  if (tableError) {
+    throw tableError;
+  }
+
+  if (metadataStatus === 'loading') {
+    return (
+      <div className="p-6">
+        <ActivityIndicator label="Loading table metadata..." />
+      </div>
+    );
+  }
+
+  if (metadataError) {
+    throw metadataError;
+  }
+
+  if (rolesLoading) {
     return (
       <div className="p-6">
         <ActivityIndicator label="Loading available roles..." />
@@ -62,29 +107,85 @@ export default function EditPermissionsForm({
     );
   }
 
-  if (error) {
-    throw error;
+  if (rolesError) {
+    throw rolesError;
   }
 
+  const availableRoles =
+    rolesData?.app?.authUserDefaultAllowedRoles?.split(',') || [];
+
+  const metadataForTable = metadata?.tables?.find(
+    ({ table: currentTable }) =>
+      currentTable.name === table && currentTable.schema === schema,
+  );
+
+  const availableColumns =
+    tableData?.columns.map((column) => column.column_name) || [];
+
   function handleSubmit() {
-    setSelectedRole(undefined);
-    setSelectedAction(undefined);
+    setRole(undefined);
+    setAction(undefined);
   }
 
   function handleCancel() {
     // TODO: Implement dirty guard
 
-    setSelectedRole(undefined);
-    setSelectedAction(undefined);
+    setRole(undefined);
+    setAction(undefined);
   }
 
-  if (selectedRole && selectedAction) {
+  function getAccessLevel(
+    permission?: HasuraMetadataPermission['permission'],
+  ): DatabaseAccessLevel {
+    const isCheckAvailable = Object.keys(permission?.check || {}).length > 0;
+    const isFilterAvailable = Object.keys(permission?.filter || {}).length > 0;
+
+    if (
+      !permission ||
+      (!isFilterAvailable &&
+        !isCheckAvailable &&
+        permission.columns.length === 0)
+    ) {
+      return 'none';
+    }
+
+    const sortedTableColumns = [...availableColumns].sort();
+    const isAllColumnSelected =
+      sortedTableColumns.length === permission.columns.length &&
+      [...permission.columns]
+        .sort()
+        .every(
+          (permissionColumn, index) =>
+            permissionColumn === sortedTableColumns[index],
+        );
+
+    if (isAllColumnSelected && (isFilterAvailable || isCheckAvailable)) {
+      return 'partial';
+    }
+
+    if (!isAllColumnSelected && (isFilterAvailable || isCheckAvailable)) {
+      return 'partial';
+    }
+
+    if (
+      !isAllColumnSelected &&
+      permission.columns.length > 0 &&
+      !isCheckAvailable &&
+      !isFilterAvailable
+    ) {
+      return 'partial';
+    }
+
+    return 'full';
+  }
+
+  if (role && action) {
     return (
       <RolePermissionEditorForm
         schema={schema}
         table={table}
-        selectedRole={selectedRole}
-        selectedAction={selectedAction}
+        role={role}
+        action={action}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
       />
@@ -165,19 +266,51 @@ export default function EditPermissionsForm({
                   }}
                 />
 
-                {roles.map((role, index) => (
-                  <RolePermissionsRow
-                    name={role}
-                    key={role}
-                    className={twMerge(
-                      index === roles.length - 1 && 'border-b-0',
-                    )}
-                    onOperationClick={(operation) => {
-                      setSelectedRole(role);
-                      setSelectedAction(operation);
-                    }}
-                  />
-                ))}
+                {availableRoles.map((currentRole, index) => {
+                  const insertPermissions =
+                    metadataForTable?.insert_permissions?.find(
+                      ({ role: permissionRole }) =>
+                        permissionRole === currentRole,
+                    );
+
+                  const selectPermissions =
+                    metadataForTable?.select_permissions?.find(
+                      ({ role: permissionRole }) =>
+                        permissionRole === currentRole,
+                    );
+
+                  const updatePermissions =
+                    metadataForTable?.update_permissions?.find(
+                      ({ role: permissionRole }) =>
+                        permissionRole === currentRole,
+                    );
+
+                  const deletePermissions =
+                    metadataForTable?.delete_permissions?.find(
+                      ({ role: permissionRole }) =>
+                        permissionRole === currentRole,
+                    );
+
+                  return (
+                    <RolePermissionsRow
+                      name={currentRole}
+                      key={currentRole}
+                      className={twMerge(
+                        index === availableRoles.length - 1 && 'border-b-0',
+                      )}
+                      onActionSelect={(selectedAction) => {
+                        setRole(currentRole);
+                        setAction(selectedAction);
+                      }}
+                      accessLevels={{
+                        insert: getAccessLevel(insertPermissions?.permission),
+                        select: getAccessLevel(selectPermissions?.permission),
+                        update: getAccessLevel(updatePermissions?.permission),
+                        delete: getAccessLevel(deletePermissions?.permission),
+                      }}
+                    />
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>

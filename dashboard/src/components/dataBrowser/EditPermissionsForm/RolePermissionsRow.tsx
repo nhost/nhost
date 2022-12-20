@@ -26,7 +26,7 @@ export interface RolePermissionsProps extends TableRowProps {
    * Function to be called when the user wants to open the settings for an
    * operation.
    */
-  onOperationClick?: (operation: DatabaseAction) => void;
+  onActionSelect?: (action: DatabaseAction) => void;
   /**
    * Props passed to individual component slots.
    */
@@ -59,7 +59,7 @@ export default function RolePermissions({
     update: 'none',
     delete: 'none',
   },
-  onOperationClick,
+  onActionSelect,
   slotProps,
   className,
   ...props
@@ -99,7 +99,7 @@ export default function RolePermissions({
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={() => onOperationClick('insert')}
+            onClick={() => onActionSelect('insert')}
           >
             <AccessLevelIcon level={accessLevels.insert} />
           </IconButton>
@@ -121,7 +121,7 @@ export default function RolePermissions({
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={() => onOperationClick('select')}
+            onClick={() => onActionSelect('select')}
           >
             <AccessLevelIcon level={accessLevels.select} />
           </IconButton>
@@ -143,7 +143,7 @@ export default function RolePermissions({
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={() => onOperationClick('update')}
+            onClick={() => onActionSelect('update')}
           >
             <AccessLevelIcon level={accessLevels.update} />
           </IconButton>
@@ -165,7 +165,7 @@ export default function RolePermissions({
             variant="borderless"
             color="secondary"
             className="w-full h-full rounded-none"
-            onClick={() => onOperationClick('delete')}
+            onClick={() => onActionSelect('delete')}
           >
             <AccessLevelIcon level={accessLevels.delete} />
           </IconButton>

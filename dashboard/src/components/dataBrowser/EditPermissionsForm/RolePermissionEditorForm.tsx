@@ -1,22 +1,21 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import InlineCode from '@/components/common/InlineCode';
-import RuleGroupEditor from '@/components/dataBrowser/RuleGroupEditor';
+import HighlightedText from '@/components/common/HighlightedText';
 import type { DatabaseAction, RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Radio from '@/ui/v2/Radio';
-import RadioGroup from '@/ui/v2/RadioGroup';
 import Text from '@/ui/v2/Text';
-import type { PropsWithChildren } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import ColumnPermissionsSection from './ColumnPermissionsSection';
+import RowPermissionsSection from './RowPermissionsSection';
 
-export interface RoleEditorFormValues {
-  permissions: RuleGroup;
+export interface RolePermissionEditorFormValues {
+  filter: RuleGroup;
+  columns: string[];
+  rowLimit: number;
 }
 
-export interface RoleEditorFormProps {
+export interface RolePermissionEditorFormProps {
   /**
    * The schema that is being edited.
    */
@@ -28,11 +27,11 @@ export interface RoleEditorFormProps {
   /**
    * The role that is being edited.
    */
-  selectedRole: string;
+  role: string;
   /**
    * The action that is being edited.
    */
-  selectedAction: DatabaseAction;
+  action: DatabaseAction;
   /**
    * Function to be called when the form is submitted.
    */
@@ -43,35 +42,27 @@ export interface RoleEditorFormProps {
   onCancel: VoidFunction;
 }
 
-function HighlightedText({ children }: PropsWithChildren<unknown>) {
-  return (
-    <InlineCode className="text-greyscaleDark bg-primary-light font-display text-sm">
-      {children}
-    </InlineCode>
-  );
-}
-
-export default function RoleEditorForm({
+export default function RolePermissionEditorForm({
   schema,
   table,
-  selectedRole,
-  selectedAction,
+  role,
+  action,
   onSubmit,
   onCancel,
-}: RoleEditorFormProps) {
-  const form = useForm<RoleEditorFormValues>({
+}: RolePermissionEditorFormProps) {
+  const form = useForm<RolePermissionEditorFormValues>({
     defaultValues: {
-      permissions: {
+      filter: {
         operator: '_and',
         rules: [{ column: '', operator: '_eq', value: '' }],
         groups: [],
       },
+      columns: [],
+      rowLimit: null,
     },
   });
 
   const {
-    setValue,
-    getValues,
     formState: { dirtyFields, isSubmitting },
   } = form;
 
@@ -82,38 +73,10 @@ export default function RoleEditorForm({
     onDirtyStateChange(isDirty, 'drawer');
   }, [isDirty, onDirtyStateChange]);
 
-  const [temporaryPermissions, setTemporaryPermissions] =
-    useState<RuleGroup>(null);
-  const [checkType, setCheckType] = useState<'none' | 'custom'>(null);
-
-  function handleSubmit(values: RoleEditorFormValues) {
+  function handleSubmit(values: RolePermissionEditorFormValues) {
     console.log(values);
     onDirtyStateChange(false, 'drawer');
     onSubmit?.();
-  }
-
-  function handleCheckTypeChange(value: typeof checkType) {
-    setCheckType(value);
-
-    if (value === 'none') {
-      setTemporaryPermissions(getValues().permissions);
-
-      // Note: https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
-      // @ts-ignore
-      setValue('permissions', {});
-
-      return;
-    }
-
-    setCheckType(value);
-    setValue(
-      'permissions',
-      temporaryPermissions || {
-        operator: '_and',
-        rules: [{ column: '', operator: '_eq', value: '' }],
-        groups: [],
-      },
-    );
   }
 
   return (
@@ -134,11 +97,11 @@ export default function RoleEditorForm({
             <div className="grid grid-flow-col gap-2 items-center justify-between px-6 py-4">
               <div className="grid grid-flow-col gap-4">
                 <Text>
-                  Role: <HighlightedText>{selectedRole}</HighlightedText>
+                  Role: <HighlightedText>{role}</HighlightedText>
                 </Text>
 
                 <Text>
-                  Action: <HighlightedText>{selectedAction}</HighlightedText>
+                  Action: <HighlightedText>{action}</HighlightedText>
                 </Text>
               </div>
 
@@ -148,77 +111,19 @@ export default function RoleEditorForm({
             </div>
           </section>
 
-          <section className="bg-white border-y-1 border-gray-200">
-            <Text
-              component="h2"
-              className="px-6 py-3 font-bold border-b-1 border-gray-200"
-            >
-              Row select permissions
-            </Text>
+          <RowPermissionsSection
+            role={role}
+            action={action}
+            schema={schema}
+            table={table}
+          />
 
-            <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
-              <Text>
-                Allow role <HighlightedText>{selectedRole}</HighlightedText> to{' '}
-                <HighlightedText>{selectedAction}</HighlightedText> rows:
-              </Text>
-
-              <RadioGroup
-                className="grid grid-flow-col justify-start gap-4"
-                onChange={(_event, value) =>
-                  handleCheckTypeChange(value as typeof checkType)
-                }
-              >
-                <Radio value="none" label="Without any checks" />
-                <Radio value="custom" label="With custom check" />
-              </RadioGroup>
-
-              {checkType === 'custom' && (
-                <RuleGroupEditor
-                  name="permissions"
-                  schema={schema}
-                  table={table}
-                />
-              )}
-
-              <Input
-                type="number"
-                label="Limit number of rows"
-                slotProps={{
-                  input: { className: 'max-w-xs w-full' },
-                  inputRoot: { min: 0 },
-                }}
-                helperText="Set limit on number of rows fetched per request."
-              />
-            </div>
-          </section>
-
-          <section className="bg-white border-y-1 border-gray-200">
-            <Text
-              component="h2"
-              className="px-6 py-3 font-bold border-b-1 border-gray-200"
-            >
-              Column select permissions
-            </Text>
-
-            <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
-              <div className="grid grid-flow-col justify-between gap-2 items-center">
-                <Text>
-                  Allow role <HighlightedText>{selectedRole}</HighlightedText>{' '}
-                  to <HighlightedText>{selectedAction}</HighlightedText>{' '}
-                  columns:
-                </Text>
-
-                <Button variant="borderless" size="small">
-                  Select All
-                </Button>
-              </div>
-
-              <Text variant="subtitle1">
-                For <strong>relationships</strong>, set permissions for the
-                corresponding tables/views.
-              </Text>
-            </div>
-          </section>
+          <ColumnPermissionsSection
+            role={role}
+            action={action}
+            schema={schema}
+            table={table}
+          />
         </div>
 
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
