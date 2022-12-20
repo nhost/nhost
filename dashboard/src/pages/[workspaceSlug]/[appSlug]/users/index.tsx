@@ -2,10 +2,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Pagination from '@/components/common/Pagination';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
 import UsersBody from '@/components/users/UsersBody';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
@@ -13,9 +13,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import { generateAppServiceUrl } from '@/utils/helpers';
 import { SearchIcon } from '@heroicons/react/solid';
-import axios from 'axios';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -93,27 +91,14 @@ export default function UsersPage() {
     [handleSearchStringChange],
   );
 
-  function handleCreateUser() {
-    const signUpUrl = `${generateAppServiceUrl(
-      currentApplication?.subdomain,
-      currentApplication?.region.awsName,
-      'auth',
-    )}/signup/email-password`;
-
+  function handleViewUser() {
     openDialog('CREATE_USER', {
       title: 'Create User',
       payload: {
-        onSubmit: async ({ email, password }) => {
-          await axios.post(signUpUrl, {
-            email,
-            password,
-          });
+        onSubmit: async () => {
           await refetchProjectUsers();
           closeDialog();
         },
-      },
-      props: {
-        PaperProps: { className: 'max-w-md' },
       },
     });
   }
@@ -144,7 +129,7 @@ export default function UsersPage() {
             onChange={handleSearchStringChange}
           />
           <Button
-            onClick={handleCreateUser}
+            onClick={handleViewUser}
             startIcon={<PlusIcon className="w-4 h-4" />}
             className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
             size="small"
@@ -178,7 +163,7 @@ export default function UsersPage() {
           onChange={handleSearchStringChange}
         />
         <Button
-          onClick={handleCreateUser}
+          onClick={handleViewUser}
           startIcon={<PlusIcon className="w-4 h-4" />}
           className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
           size="small"
@@ -203,7 +188,7 @@ export default function UsersPage() {
               color="primary"
               className="w-full"
               aria-label="Create User"
-              onClick={handleCreateUser}
+              onClick={handleViewUser}
               startIcon={<PlusIcon className="w-4 h-4" />}
             >
               Create User
