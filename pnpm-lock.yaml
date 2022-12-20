@@ -1074,7 +1074,7 @@ importers:
     specifiers:
       '@nhost/docgen': workspace:*
       '@nhost/nhost-js': workspace:*
-      '@vitejs/plugin-vue': ^3.2.0
+      '@vitejs/plugin-vue': ^4.0.0
       '@vueuse/core': ^9.0.0
       '@xstate/inspect': ^0.7.0
       '@xstate/vue': ^2.0.0
@@ -1090,7 +1090,7 @@ importers:
       jwt-decode: 3.1.2
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@vitejs/plugin-vue': 3.2.0_vue@3.2.41
+      '@vitejs/plugin-vue': 4.0.0_vue@3.2.41
       '@xstate/inspect': 0.7.0_ws@8.10.0+xstate@4.33.6
       vue: 3.2.41
       vue-router: 4.1.6_vue@3.2.41
@@ -11532,11 +11532,11 @@ packages:
       vue: 3.2.41
     dev: true
 
-  /@vitejs/plugin-vue/3.2.0_vue@3.2.41:
-    resolution: {integrity: sha512-E0tnaL4fr+qkdCNxJ+Xd0yM31UwMkQje76fsDVBBUCoGOUPexu2VDUYHL8P4CwV+zMvWw6nlRw19OnRKmYAJpw==}
+  /@vitejs/plugin-vue/4.0.0_vue@3.2.41:
+    resolution: {integrity: sha512-e0X4jErIxAB5oLtDqbHvHpJe/uWNkdpYV83AOG2xo2tEVSzCzewgJMtREZM30wXnM5ls90hxiOtAuVU6H5JgbA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: ^3.0.0
+      vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
       vue: 3.2.41
