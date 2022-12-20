@@ -177,5 +177,3 @@ export class NhostFunctionsClient {
   }
 }
 
-const dd = new NhostFunctionsClient({ url: 'https://functions.nhost.io' })
-dd.call('dwe')
