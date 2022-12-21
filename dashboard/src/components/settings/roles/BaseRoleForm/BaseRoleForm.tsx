@@ -61,12 +61,14 @@ export default function BaseRoleForm({
         Enter the name for the role below.
       </Text>
 
-      <Alert severity="warning" className="text-left">
-        <span className="text-left">
-          <strong>Note:</strong> Changing the name of the role will lose the
-          associated permissions with that role.
-        </span>
-      </Alert>
+      {submitButtonText !== 'Create' && (
+        <Alert severity="warning" className="text-left">
+          <span className="text-left">
+            <strong>Note:</strong> Changing the name of the role will lose the
+            associated permissions with that role.
+          </span>
+        </Alert>
+      )}
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
