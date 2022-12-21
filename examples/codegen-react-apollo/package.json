@@ -44,6 +44,6 @@
     "eslint": "^8.23.0",
     "eslint-config-react-app": "^7.0.1",
     "typescript": "^4.8.2",
-    "vite": "^3.2.2"
+    "vite": "^4.0.2"
   }
 }

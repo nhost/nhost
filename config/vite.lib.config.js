@@ -19,7 +19,9 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
-      entryRoot: 'src'
+      entryRoot: 'src',
+      // Was defaulting to true until version 1.7
+      skipDiagnostics: true
     })
   ],
   test: {
