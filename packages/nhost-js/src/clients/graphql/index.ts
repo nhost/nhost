@@ -1,25 +1,13 @@
-import axios, { AxiosError, AxiosInstance } from 'axios'
-import { DocumentNode, print } from 'graphql'
-import { urlFromSubdomain } from '../utils/helpers'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import { DocumentNode, GraphQLError, print } from 'graphql'
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
 import {
-  AxiosConfig,
   DeprecatedGraphqlRequestResponse,
+  GraphqlRequestConfig,
   GraphqlRequestResponse,
-  GraphqlResponse,
-  NhostClientConstructorParams,
-  NhostFetchConfig
-} from '../utils/types'
-
-export interface NhostGraphqlConstructorParams {
-  /**
-   * GraphQL endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
+  NhostGraphqlConstructorParams
+} from './types'
 
 /**
  * Creates a client for GraphQL from either a subdomain or a URL
@@ -61,13 +49,13 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: (AxiosConfig | NhostFetchConfig) & { useAxios?: true }
+    config?: (AxiosRequestConfig | GraphqlRequestConfig) & { useAxios?: true }
   ): Promise<DeprecatedGraphqlRequestResponse<T>>
 
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: NhostFetchConfig & { useAxios: false }
+    config?: GraphqlRequestConfig & { useAxios: false }
   ): Promise<GraphqlRequestResponse<T>>
 
   /**
@@ -91,7 +79,10 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    { useAxios = true, ...config }: (AxiosConfig | NhostFetchConfig) & { useAxios?: boolean } = {}
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosRequestConfig | GraphqlRequestConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedGraphqlRequestResponse<T> | GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
@@ -102,7 +93,10 @@ export class NhostGraphqlClient {
 
     try {
       const operationName = ''
-      const res = await this.instance.post<GraphqlResponse<T>>(
+      const res = await this.instance.post<{
+        errors?: GraphQLError[]
+        data?: T
+      }>(
         '',
         {
           operationName: operationName || undefined,

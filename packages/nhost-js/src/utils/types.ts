@@ -1,15 +1,10 @@
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { GraphQLError } from 'graphql'
-
 // TODO shared with other packages
 export type ErrorPayload = {
   error: string
   status: number
   message: string
 }
-
-export type { NhostAuthConstructorParams }
 
 export type BackendUrl = {
   /**
@@ -58,57 +53,3 @@ export interface NhostClientConstructorParams
    */
   adminSecret?: string
 }
-
-export type GraphqlRequestResponse<T = unknown> =
-  | {
-      data: null
-      error: GraphQLError[] | ErrorPayload
-    }
-  | {
-      data: T
-      error: null
-    }
-
-/**@deprecated */
-export type DeprecatedGraphqlRequestResponse<T = unknown> =
-  | {
-      data: null
-      error: Error | object | object[]
-    }
-  | {
-      data: T
-      error: null
-    }
-
-export type FunctionCallResponse<T = unknown> =
-  | {
-      res: {
-        data: T
-        status: number
-        statusText: string
-      }
-      error: null
-    }
-  | {
-      res: null
-      error: ErrorPayload
-    }
-
-/**@deprecated */
-export type DeprecatedFunctionCallResponse<T = unknown> =
-  | {
-      res: AxiosResponse<T>
-      error: null
-    }
-  | {
-      res: null
-      error: Error
-    }
-
-export interface GraphqlResponse<T = object> {
-  errors?: GraphQLError[]
-  data?: T
-}
-
-export type NhostFetchConfig = { headers?: Record<string, string> }
-export type AxiosConfig = AxiosRequestConfig

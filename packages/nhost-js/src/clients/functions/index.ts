@@ -1,24 +1,20 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse, RawAxiosRequestHeaders } from 'axios'
-import { urlFromSubdomain } from '../utils/helpers'
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  RawAxiosRequestHeaders
+} from 'axios'
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
 import {
-  AxiosConfig,
   DeprecatedFunctionCallResponse,
+  FunctionCallConfig,
   FunctionCallResponse,
-  NhostClientConstructorParams,
-  NhostFetchConfig
-} from '../utils/types'
+  NhostFunctionsConstructorParams
+} from './types'
 
-export interface NhostFunctionsConstructorParams {
-  /**
-   * Serverless Functions endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
-
+export * from './types'
 /**
  * Creates a client for Functions from either a subdomain or a URL
  */
@@ -59,13 +55,13 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data?: D,
-    config?: (NhostFetchConfig | AxiosConfig) & { useAxios?: true }
+    config?: (FunctionCallConfig | AxiosRequestConfig) & { useAxios?: true }
   ): Promise<DeprecatedFunctionCallResponse<T>>
 
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    config?: NhostFetchConfig & { useAxios: false }
+    config?: FunctionCallConfig & { useAxios: false }
   ): Promise<FunctionCallResponse<T>>
 
   /**
@@ -81,7 +77,10 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    { useAxios = true, ...config }: (AxiosConfig | NhostFetchConfig) & { useAxios?: boolean } = {}
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosRequestConfig | FunctionCallConfig) & { useAxios?: boolean } = {}
   ): Promise<DeprecatedFunctionCallResponse<T> | FunctionCallResponse> {
     if (useAxios) {
       console.warn(
@@ -176,4 +175,3 @@ export class NhostFunctionsClient {
     return {}
   }
 }
-
