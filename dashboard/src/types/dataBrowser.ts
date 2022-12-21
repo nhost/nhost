@@ -55,6 +55,7 @@ export interface HasuraMetadataPermission {
     allow_aggregations: boolean;
     query_root_fields: string[];
     subscription_root_fields: string[];
+    set: Record<string, any>;
   }>;
 }
 
@@ -402,10 +403,25 @@ export interface DatabaseColumn {
  * Represents a database table.
  */
 export interface DatabaseTable {
+  /**
+   * Name of the table.
+   */
   name: string;
+  /**
+   * Columns of the table.
+   */
   columns: DatabaseColumn[];
+  /**
+   * Primary key of the table.
+   */
   primaryKey: string;
+  /**
+   * Identity column of the table.
+   */
   identityColumn?: string;
+  /**
+   * Foreign key relations of the table.
+   */
   foreignKeyRelations?: ForeignKeyRelation[];
 }
 

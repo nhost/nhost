@@ -13,17 +13,44 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import AggregationQuerySection from './AggregationQuerySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
+import type { ColumnPreset } from './ColumnPresetsSection';
+import ColumnPresetsSection from './ColumnPresetsSection';
 import RootFieldPermissionsSection from './RootFieldPermissionsSection';
 import RowPermissionsSection from './RowPermissionsSection';
 
 export interface RolePermissionEditorFormValues {
+  /**
+   * The permission filter to be applied for the role.
+   */
   filter: Record<string, any> | {};
+  /**
+   * The allowed columns to CRUD for the role.
+   */
   columns?: string[];
+  /**
+   * The number of rows to be returned for the role.
+   */
   limit?: number;
+  /**
+   * Whether the role is allowed to perform aggregations.
+   */
   allowAggregations?: boolean;
+  /**
+   * Whether the role is allowed to have access to special fields.
+   */
   enableRootFieldCustomization?: boolean;
+  /**
+   * The allowed root fields in queries and mutations for the role.
+   */
   queryRootFields?: string[];
+  /**
+   * The allowed root fields in subscriptions for the role.
+   */
   subscriptionRootFields?: string[];
+  /**
+   * Column presets for the role.
+   */
+  columnPresets?: ColumnPreset[];
 }
 
 export interface RolePermissionEditorFormProps {
@@ -72,6 +99,13 @@ function getDefaultRuleGroup(
   return convertToRuleGroup(permission.filter);
 }
 
+function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
+  return Object.keys(data).map((key) => ({
+    column: key,
+    value: data[key],
+  }));
+}
+
 export default function RolePermissionEditorForm({
   schema,
   table,
@@ -92,6 +126,7 @@ export default function RolePermissionEditorForm({
         permission?.subscription_root_fields?.length > 0,
       queryRootFields: permission?.query_root_fields || [],
       subscriptionRootFields: permission?.subscription_root_fields || [],
+      columnPresets: getColumnPresets(permission?.set || {}),
     },
   });
 
@@ -165,6 +200,10 @@ export default function RolePermissionEditorForm({
               <AggregationQuerySection role={role} />
               <RootFieldPermissionsSection />
             </>
+          )}
+
+          {(action === 'insert' || action === 'update') && (
+            <ColumnPresetsSection schema={schema} table={table} />
           )}
         </div>
 
