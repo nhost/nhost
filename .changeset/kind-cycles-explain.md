@@ -12,7 +12,7 @@ To prepare for the transition, we are deprecating the old signature for the foll
 - `nhost.functions.call()`
 - `nhost.graphql.request()`
 
-Both methods are now marked as deprecated unless there is a specific `{ useAxios: false }` last parameter.
+Both methods now accept an optional `useAxios` parameter that can be used to opt-in (`{ useAxios: false }`) to the new method signature. By default, `useAxios` is set to `true` so you can update it on your own time.
 
 When using `useAxios: false`:
 
