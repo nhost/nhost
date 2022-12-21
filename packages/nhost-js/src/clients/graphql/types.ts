@@ -12,7 +12,7 @@ export interface NhostGraphqlConstructorParams {
   adminSecret?: string
 }
 
-export type GraphqlRequestResponse<T = unknown> =
+export type NhostGraphqlRequestResponse<T = unknown> =
   | {
       data: null
       error: GraphQLError[] | ErrorPayload
@@ -23,7 +23,7 @@ export type GraphqlRequestResponse<T = unknown> =
     }
 
 /**@deprecated */
-export type DeprecatedGraphqlRequestResponse<T = unknown> =
+export type DeprecatedNhostGraphqlRequestResponse<T = unknown> =
   | {
       data: null
       error: Error | object | object[]
@@ -34,6 +34,6 @@ export type DeprecatedGraphqlRequestResponse<T = unknown> =
     }
 
 /** Subset of RequestInit parameters that are supported by the graphql client */
-export interface GraphqlRequestConfig {
+export interface NhostGraphqlRequestConfig {
   headers?: Record<string, string>
 }

@@ -12,7 +12,7 @@ export interface NhostFunctionsConstructorParams {
   adminSecret?: string
 }
 
-export type FunctionCallResponse<T = unknown> =
+export type NhostFunctionCallResponse<T = unknown> =
   | {
       res: {
         data: T
@@ -27,7 +27,7 @@ export type FunctionCallResponse<T = unknown> =
     }
 
 /**@deprecated */
-export type DeprecatedFunctionCallResponse<T = unknown> =
+export type DeprecatedNhostFunctionCallResponse<T = unknown> =
   | {
       res: AxiosResponse<T>
       error: null
@@ -38,6 +38,6 @@ export type DeprecatedFunctionCallResponse<T = unknown> =
     }
 
 /** Subset of RequestInit parameters that are supported by the functions client */
-export interface FunctionCallConfig {
+export interface NhostFunctionCallConfig {
   headers?: Record<string, string>
 }

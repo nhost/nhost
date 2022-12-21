@@ -8,9 +8,9 @@ import axios, {
 import { urlFromSubdomain } from '../../utils/helpers'
 import { NhostClientConstructorParams } from '../../utils/types'
 import {
-  DeprecatedFunctionCallResponse,
-  FunctionCallConfig,
-  FunctionCallResponse,
+  DeprecatedNhostFunctionCallResponse,
+  NhostFunctionCallConfig,
+  NhostFunctionCallResponse,
   NhostFunctionsConstructorParams
 } from './types'
 
@@ -55,14 +55,14 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data?: D,
-    config?: (FunctionCallConfig | AxiosRequestConfig) & { useAxios?: true }
-  ): Promise<DeprecatedFunctionCallResponse<T>>
+    config?: (NhostFunctionCallConfig | AxiosRequestConfig) & { useAxios?: true }
+  ): Promise<DeprecatedNhostFunctionCallResponse<T>>
 
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    config?: FunctionCallConfig & { useAxios: false }
-  ): Promise<FunctionCallResponse<T>>
+    config?: NhostFunctionCallConfig & { useAxios: false }
+  ): Promise<NhostFunctionCallResponse<T>>
 
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
@@ -80,8 +80,8 @@ export class NhostFunctionsClient {
     {
       useAxios = true,
       ...config
-    }: (AxiosRequestConfig | FunctionCallConfig) & { useAxios?: boolean } = {}
-  ): Promise<DeprecatedFunctionCallResponse<T> | FunctionCallResponse> {
+    }: (AxiosRequestConfig | NhostFunctionCallConfig) & { useAxios?: boolean } = {}
+  ): Promise<DeprecatedNhostFunctionCallResponse<T> | NhostFunctionCallResponse> {
     if (useAxios) {
       console.warn(
         'nhost.functions.call() will no longer use Axios in the near future. Please add `useAxios: false` in the config argument to use the new implementation.'
