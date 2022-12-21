@@ -1,13 +1,15 @@
 import Form from '@/components/common/Form';
-import Alert from '@/components/ui/Alert';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { generateAppServiceUrl } from '@/utils/helpers';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface CreateUserFormValues {
@@ -27,9 +29,9 @@ export interface CreateUserFormProps {
    */
   onCancel?: VoidFunction;
   /**
-   * Function to be called when the form is submitted.
+   * Function to be called when the submit is successful.
    */
-  onSubmit?: () => Promise<void>;
+  onSuccess?: VoidFunction;
 }
 
 export const CreateUserFormValidationSchema = Yup.object({
@@ -44,13 +46,14 @@ export const CreateUserFormValidationSchema = Yup.object({
 });
 
 export default function CreateUserForm({
+  onSuccess,
   onCancel,
-  onSubmit,
 }: CreateUserFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [createUserFormError, setCreateUserFormError] = useState<Error | null>(
     null,
   );
+  // const { closeDialog } = useDialog();
 
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
@@ -74,10 +77,19 @@ export default function CreateUserForm({
     setCreateUserFormError(null);
 
     try {
-      await axios.post(signUpUrl, {
-        email,
-        password,
-      });
+      await toast.promise(
+        axios.post(signUpUrl, {
+          email,
+          password,
+        }),
+        {
+          loading: 'Creating user...',
+          success: 'User created successfully.',
+          error: 'An error occurred while trying to create the user.',
+        },
+        toastStyleProps,
+      );
+      onSuccess?.();
     } catch (error) {
       if (error.response?.status === 409) {
         setError('email', {

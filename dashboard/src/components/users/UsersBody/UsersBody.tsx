@@ -16,7 +16,6 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
-  useGetRemoteAppUserLazyQuery,
   useGetRolesQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
@@ -69,10 +68,6 @@ export default function UsersBody({
   });
 
   const [deleteUserRoles] = useDeleteRemoteAppUserRolesMutation({
-    client: remoteProjectGQLClient,
-  });
-
-  const [fetchByUserId] = useGetRemoteAppUserLazyQuery({
     client: remoteProjectGQLClient,
   });
 
@@ -192,36 +187,6 @@ export default function UsersBody({
     });
   }
 
-  /**
-   * This will change the `disabled` field in the user to its opposite.
-   */
-  async function handleBanUser(user: RemoteAppUser) {
-    const banUser = updateUser({
-      variables: {
-        id: user.id,
-        user: {
-          disabled: !user.disabled,
-        },
-      },
-    });
-
-    await toast.promise(
-      banUser,
-      {
-        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
-        success: user.disabled
-          ? 'User unbanned successfully.'
-          : 'User banned successfully',
-        error: user.disabled
-          ? 'An error occurred while trying to unban the user.'
-          : 'An error occurred while trying to ban the user.',
-      },
-      { ...toastStyleProps },
-    );
-    await fetchByUserId({ variables: { id: user.id } });
-    await onSuccessfulAction();
-  }
-
   function handleViewUser(user: RemoteAppUser) {
     openDrawer('EDIT_USER', {
       title: 'User Details',
@@ -229,8 +194,8 @@ export default function UsersBody({
       payload: {
         user,
         onEditUser: handleEditUser,
-        onBanUser: handleBanUser,
         onDeleteUser: handleDeleteUser,
+        onSuccessfulAction,
         roles: allAvailableProjectRoles.map((role) => ({
           [role.name]: !!user.roles.find(
             (userRole) => userRole.role === role.name,
@@ -336,9 +301,9 @@ export default function UsersBody({
                   className="px-2 font-normal"
                   size="normal"
                 >
-                  {user.lastSeen
+                  {user.createdAt
                     ? `${formatDistance(
-                        new Date(user.lastSeen),
+                        new Date(user.createdAt),
                         new Date(),
                       )} ago`
                     : '-'}
@@ -356,12 +321,12 @@ export default function UsersBody({
                     : '-'}
                 </Text>
 
-                <div className="grid grid-flow-col col-span-2 gap-3 place-content-start">
+                <div className="grid grid-flow-col col-span-2 gap-3 px-4 place-content-start">
                   {user.userProviders.length === 0 && (
                     <Text className="col-span-3 font-medium">-</Text>
                   )}
 
-                  {user.userProviders.map((provider) => (
+                  {user.userProviders.slice(0, 2).map((provider) => (
                     <Chip
                       component="span"
                       color="default"
@@ -385,6 +350,12 @@ export default function UsersBody({
                       }
                     />
                   ))}
+
+                  {user.userProviders.length > 2 && (
+                    <Text className="col-span-3 font-medium">
+                      +{user.userProviders.length}
+                    </Text>
+                  )}
                 </div>
               </ListItem.Button>
             </ListItem.Root>

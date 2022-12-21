@@ -3,6 +3,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -13,20 +14,22 @@ import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import {
-  useGetRolesQuery
+  useGetRolesQuery,
+  useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
-
 
 export interface EditUserFormProps {
   /**
@@ -56,6 +59,10 @@ export interface EditUserFormProps {
    * User roles
    */
   roles: { [key: string]: boolean }[];
+  /**
+   * Function to be called after a successful action.
+   */
+  onSuccessfulAction?: () => Promise<void> | void;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -81,14 +88,19 @@ export default function EditUserForm({
   onEditUser,
   onCancel,
   onDeleteUser,
-  onBanUser,
   roles,
+  onSuccessfulAction,
 }: EditUserFormProps) {
   const { onDirtyStateChange, openDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
   const [isUserBanned, setIsUserBanned] = useState(user.disabled);
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+
+  const [updateUser] = useUpdateRemoteAppUserMutation({
+    client: remoteProjectGQLClient,
+  });
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
@@ -128,10 +140,41 @@ export default function EditUserForm({
     variables: { id: currentApplication.id },
   });
 
-  const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(dataRoles?.app?.authUserDefaultAllowedRoles),
-    [dataRoles],
+  const allAvailableProjectRoles = getUserRoles(
+    dataRoles?.app?.authUserDefaultAllowedRoles,
   );
+
+  /**
+   * This will change the `disabled` field in the user to its opposite.
+   * If the user is disabled, it will be enabled and vice versa.
+   * We are tracking the `disabled` field as a react state variable in order to avoid
+   * both having to refetch this single user from the database again or causing a re-render of the drawer.
+   */
+  async function handleUserDisabledStatus() {
+    const banUser = updateUser({
+      variables: {
+        id: user.id,
+        user: {
+          disabled: !isUserBanned,
+        },
+      },
+    });
+
+    await toast.promise(
+      banUser,
+      {
+        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
+        success: user.disabled
+          ? 'User unbanned successfully.'
+          : 'User banned successfully',
+        error: user.disabled
+          ? 'An error occurred while trying to unban the user.'
+          : 'An error occurred while trying to ban the user.',
+      },
+      { ...toastStyleProps },
+    );
+    await onSuccessfulAction();
+  }
 
   return (
     <FormProvider {...form}>
@@ -172,7 +215,7 @@ export default function EditUserForm({
                   <Dropdown.Item
                     className="font-medium text-red"
                     onClick={() => {
-                      onBanUser(user);
+                      handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
                     }}
                   >
@@ -210,7 +253,7 @@ export default function EditUserForm({
             </Text>
 
             <InputLabel as="h3" className="col-span-1">
-              Created
+              Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {format(new Date(user.createdAt), 'yyyy-MM-dd hh:mm:ss')}
@@ -338,7 +381,10 @@ export default function EditUserForm({
               )}
 
               {user.userProviders.map((provider) => (
-                <div className="grid grid-flow-col gap-3 place-content-between">
+                <div
+                  className="grid grid-flow-col gap-3 place-content-between"
+                  key={provider.id}
+                >
                   <div className="grid grid-flow-col gap-3 span-cols-1">
                     <Image
                       src={`/logos/${

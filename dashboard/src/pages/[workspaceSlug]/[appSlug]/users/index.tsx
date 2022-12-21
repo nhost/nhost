@@ -35,39 +35,79 @@ export default function UsersPage() {
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  useEffect(() => {
-    if (router.query.page && typeof router.query.page === 'string') {
-      const { page } = router.query;
-      const pageNumber = parseInt(page, 10);
-      setCurrentPage(pageNumber);
-    }
-  }, [router.query]);
+  const remoteAppGetUserVariables = useMemo(
+    () => ({
+      where:
+        router.query.user !== undefined
+          ? {
+              id: {
+                _eq: searchString,
+              },
+            }
+          : {
+              _or: [
+                {
+                  displayName: {
+                    _ilike: `%${searchString}%`,
+                  },
+                },
+                {
+                  email: {
+                    _ilike: `%${searchString}%`,
+                  },
+                },
+              ],
+            },
+      limit: limit.current,
+      offset: offset * limit.current,
+    }),
+    [router.query.user, searchString, offset],
+  );
 
   const {
     data: dataRemoteAppUsers,
     refetch: refetchProjectUsers,
     loading: loadingRemoteAppUsersQuery,
   } = useRemoteAppGetUsersQuery({
-    variables: {
-      where: {
-        _or: [
-          {
-            displayName: {
-              _ilike: `%${searchString}%`,
-            },
-          },
-          {
-            email: {
-              _ilike: `%${searchString}%`,
-            },
-          },
-        ],
-      },
-      limit: limit.current,
-      offset: offset * limit.current,
-    },
+    variables: remoteAppGetUserVariables,
     client: remoteProjectGQLClient,
   });
+
+  /**
+   * If a user of the app enters the users tab with a page query param of the following structure:
+   * `users?page=2` this useEffect will update the current page to 2.
+   * which in turn will update the offset and trigger fetching the data with the new variables.
+   * If the user enters a page number that is greater than the number of pages we will redirect
+   * the user to the first page and update the URL.
+   *
+   * @remarks If the user navigates the page back and forth we handle the URL change through
+   * props passed to the Pagination component.
+   * @see {@link Pagination}
+   *
+   */
+  useEffect(() => {
+    if (router.query.page && typeof router.query.page === 'string') {
+      const pageNumber = parseInt(router.query.page, 10);
+      if (nrOfPages >= pageNumber) {
+        setCurrentPage(pageNumber);
+      } else {
+        setCurrentPage(1);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.page]);
+
+  /**
+   * If the users enters the page with a page query param with the following structure:
+   * `users?user=<id>` this useEffect will update the search string to the id.
+   * which in turn will trigger fetching the data with the new variables.
+   *
+   */
+  useEffect(() => {
+    if (router.query.user && typeof router.query.user === 'string') {
+      setSearchString(router.query.user);
+    }
+  }, [router.query.user]);
 
   /**
    * We want to update the number of pages when the data changes
@@ -103,7 +143,7 @@ export default function UsersPage() {
     openDialog('CREATE_USER', {
       title: 'Create User',
       payload: {
-        onSubmit: async () => {
+        onSuccess: async () => {
           await refetchProjectUsers();
           closeDialog();
         },
@@ -133,7 +173,7 @@ export default function UsersPage() {
             className="rounded-sm"
             placeholder="Search users"
             startAdornment={
-              <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
+              <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleGrey shrink-0" />
             }
             onChange={handleSearchStringChange}
           />
@@ -167,7 +207,7 @@ export default function UsersPage() {
           className="rounded-sm"
           placeholder="Search users"
           startAdornment={
-            <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleDark shrink-0" />
+            <SearchIcon className="w-4 h-4 ml-2 -mr-1 text-greyscaleGrey shrink-0" />
           }
           onChange={handleSearchStringChange}
         />
@@ -182,7 +222,7 @@ export default function UsersPage() {
       </div>
       {usersCount === 0 ? (
         <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm border-veryLightGray">
-          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleDark" />
+          <UserIcon strokeWidth={1} className="w-10 h-10 text-greyscaleGrey" />
           <div className="flex flex-col space-y-1">
             <Text className="font-medium text-center" variant="h3">
               There are no users yet
@@ -207,19 +247,19 @@ export default function UsersPage() {
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid w-full h-full grid-flow-row overflow-hidden">
-            <div className="grid w-full grid-cols-6 p-3 border-b">
+            <div className="grid w-full grid-cols-6 p-2 border-b">
               <Text className="font-medium md:col-span-2">Name</Text>
-              <Text className="font-medium ">Signed up at</Text>
-              <Text className="font-medium ">Last Seen</Text>
-              <Text className="col-span-2">OAuth Providers</Text>
+              <Text className="font-medium">Signed up at</Text>
+              <Text className="font-medium">Last Seen</Text>
+              <Text className="col-span-2 font-medium">OAuth Providers</Text>
             </div>
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&
               usersCount !== 0 && (
-                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-t border-b border-l border-r rounded-lg shadow-sm border-veryLightGray">
+                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-b border-l border-r border-veryLightGray">
                   <UserIcon
                     strokeWidth={1}
-                    className="w-10 h-10 text-greyscaleDark"
+                    className="w-10 h-10 text-greyscaleGrey"
                   />
                   <div className="flex flex-col space-y-1">
                     <Text className="font-medium text-center" variant="h3">
@@ -267,8 +307,12 @@ export default function UsersPage() {
                       query: { ...router.query, page: currentPage + 1 },
                     });
                   }}
-                  onPageChange={(page) => {
+                  onPageChange={async (page) => {
                     setCurrentPage(page);
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page },
+                    });
                   }}
                 />
               </div>
