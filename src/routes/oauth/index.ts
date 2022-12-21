@@ -79,7 +79,7 @@ export const oauthProviders = Router()
   /**
    * Determine the redirect url, and store it in the locals so it is available in next middlewares
    */
-  .use(`${OAUTH_ROUTE}/:provider`, ({ query }, { locals }, next) => {
+  .all(`${OAUTH_ROUTE}/:provider`, ({ query }, { locals }, next) => {
     const customRedirectUrl = redirectToRule.validate(query.redirectTo);
     if (!customRedirectUrl.error) {
       locals.redirectTo = customRedirectUrl.value;
@@ -94,7 +94,7 @@ export const oauthProviders = Router()
    *
    * The redirect url has been set in the previous middleware and is available in the locals
    */
-  .use(`${OAUTH_ROUTE}/:provider`, ({ params: { provider } }, res, next) => {
+  .all(`${OAUTH_ROUTE}/:provider`, ({ params: { provider } }, res, next) => {
     const redirectTo: string = res.locals.redirectTo;
     const providerConfig = grantConfig[provider];
     // * Check if provider is enabled
@@ -121,7 +121,7 @@ export const oauthProviders = Router()
    * Validate registration options from the query parameters
    * Don't override them with default values as we'll possible user-defined values in the callback
    */
-  .use(`${OAUTH_ROUTE}/:provider`, queryValidator(registrationOptions, false))
+  .all(`${OAUTH_ROUTE}/:provider`, queryValidator(registrationOptions, false))
 
   /**
    * Optional provider-specific middleware
@@ -129,21 +129,17 @@ export const oauthProviders = Router()
    * This is what we do with WorkOS.
    * @see {@link file://./config/index.ts}
    */
-  .use(`${OAUTH_ROUTE}/:provider`, preRequestProviderMiddleware)
+  .all(`${OAUTH_ROUTE}/:provider`, preRequestProviderMiddleware)
 
   /**
    *  Save the initial query and the redirection url into the session to be able to retrieve them in the callback
    */
-  .use(
+  .all(
     `${OAUTH_ROUTE}/:provider`,
     ({ session, query }, { locals: { redirectTo } }, next) => {
-      // * Don't override the session if it already exists (it means we are in the callback)
-      if (!session.grant) {
-        session.options = query;
-        session.redirectTo = redirectTo;
-        return session.save(next);
-      }
-      next();
+      session.options = query;
+      session.redirectTo = redirectTo;
+      return session.save(next);
     }
   )
 

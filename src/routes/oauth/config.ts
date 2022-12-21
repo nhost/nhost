@@ -347,6 +347,7 @@ export const PROVIDERS_CONFIG: Record<
       profile_url: `${workosBaseUrl}/profile`,
       client_id: process.env.AUTH_PROVIDER_WORKOS_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_WORKOS_CLIENT_SECRET,
+      dynamic: ['custom_params'],
     },
     profile: ({ profile: { raw_attributes, id, email } }) => ({
       id,
