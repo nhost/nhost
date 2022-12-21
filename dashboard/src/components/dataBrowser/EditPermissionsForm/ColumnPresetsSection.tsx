@@ -1,7 +1,8 @@
-import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Autocomplete from '@/ui/v2/Autocomplete';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -9,7 +10,10 @@ import XIcon from '@/ui/v2/icons/XIcon';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import { useFieldArray, useWatch } from 'react-hook-form';
+import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
+import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface ColumnPreset {
   column: string;
@@ -37,8 +41,23 @@ export default function ColumnPresetsSection({
     error: tableError,
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { data: customClaimsData, loading: customClaimsLoading } =
+    useGetAppCustomClaimsQuery({
+      variables: { id: currentApplication.id },
+    });
+  const { setValue } = useFormContext<RolePermissionEditorFormValues>();
   const { fields, append, remove } = useFieldArray({ name: 'columnPresets' });
   const columnPresets = useWatch({ name: 'columnPresets' }) as ColumnPreset[];
+
+  const permissionVariableOptions = !customClaimsLoading
+    ? getPermissionVariablesArray(
+        customClaimsData?.app?.authJwtCustomClaims,
+      ).map(({ key }) => ({
+        label: `X-Hasura-${key}`,
+        value: `X-Hasura-${key}`,
+      }))
+    : [];
 
   const allColumnNames: string[] =
     tableData?.columns.map((column) => column.column_name) || [];
@@ -90,11 +109,44 @@ export default function ColumnPresetsSection({
                   ))}
                 </ControlledSelect>
 
-                <ControlledAutocomplete
+                <Autocomplete
                   freeSolo
-                  options={[]}
+                  options={permissionVariableOptions}
                   name={`columnPresets.${index}.value`}
+                  inputValue={field.value}
+                  value={field.value}
                   fullWidth
+                  autoSelect
+                  isOptionEqualToValue={(option, value) => {
+                    if (typeof value === 'string') {
+                      return (
+                        option.value.toLowerCase() ===
+                        (value as string).toLowerCase()
+                      );
+                    }
+
+                    return (
+                      option.value.toLowerCase() === value.value.toLowerCase()
+                    );
+                  }}
+                  autoHighlight={false}
+                  onChange={(_event, _value, reason, details) => {
+                    if (reason === 'clear') {
+                      setValue(`columnPresets.${index}.value`, null, {
+                        shouldDirty: true,
+                      });
+
+                      return;
+                    }
+
+                    setValue(
+                      `columnPresets.${index}.value`,
+                      typeof details.option === 'string'
+                        ? details.option
+                        : details.option.value,
+                      { shouldDirty: true },
+                    );
+                  }}
                 />
 
                 <IconButton

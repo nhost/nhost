@@ -100,6 +100,10 @@ function getDefaultRuleGroup(
 }
 
 function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
+  if (!data || Object.keys(data).length === 0) {
+    return [{ column: '', value: '' }];
+  }
+
   return Object.keys(data).map((key) => ({
     column: key,
     value: data[key],
