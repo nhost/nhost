@@ -29,11 +29,13 @@ export default function UsersPage() {
   const [searchString, setSearchString] = useState<string>('');
 
   const limit = useRef(25);
-  const [nrOfPages, setNrOfPages] = useState(1);
   const router = useRouter();
+  const [nrOfPages, setNrOfPages] = useState(
+    parseInt(router.query.page as string, 10) || 1,
+  );
 
   const [currentPage, setCurrentPage] = useState(
-    parseInt(router.query.page as string, 10),
+    parseInt(router.query.page as string, 10) || 1,
   );
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
