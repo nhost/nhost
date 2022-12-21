@@ -5,8 +5,9 @@ import { NhostClientConstructorParams } from '../../utils/types'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {
-  GraphqlRequestResponse,
   NhostGraphqlConstructorParams,
+  NhostGraphqlRequestConfig,
+  NhostGraphqlRequestResponse,
   RemoveIndex,
   RequestDocument,
   RequestOptions,
@@ -65,22 +66,22 @@ export class NhostGraphqlClient {
   request<T = any, V = Variables>(
     document: RequestDocument | TypedDocumentNode<T, V>,
     ...variablesAndRequestHeaders: V extends Record<any, never>
-      ? [variables?: V, config?: RequestInit]
+      ? [variables?: V, config?: NhostGraphqlRequestConfig]
       : keyof RemoveIndex<V> extends never
-      ? [variables?: V, config?: RequestInit]
-      : [variables: V, config?: RequestInit]
-  ): Promise<GraphqlRequestResponse<T>>
+      ? [variables?: V, config?: NhostGraphqlRequestConfig]
+      : [variables: V, config?: NhostGraphqlRequestConfig]
+  ): Promise<NhostGraphqlRequestResponse<T>>
   async request<T = any, V extends Variables = Variables>(
     options: RequestOptions<V, T>
-  ): Promise<GraphqlRequestResponse<T>>
+  ): Promise<NhostGraphqlRequestResponse<T>>
   async request<T = any, V extends Variables = Variables>(
     documentOrOptions: RequestDocument | TypedDocumentNode<T, V> | RequestOptions<V>,
     ...variablesAndRequestHeaders: V extends Record<any, never>
-      ? [variables?: V, config?: RequestInit]
+      ? [variables?: V, config?: NhostGraphqlRequestConfig]
       : keyof RemoveIndex<V> extends never
-      ? [variables?: V, config?: RequestInit]
-      : [variables: V, config?: RequestInit]
-  ): Promise<GraphqlRequestResponse<T>> {
+      ? [variables?: V, config?: NhostGraphqlRequestConfig]
+      : [variables: V, config?: NhostGraphqlRequestConfig]
+  ): Promise<NhostGraphqlRequestResponse<T>> {
     const [variables, config] = variablesAndRequestHeaders
     const requestOptions = parseRequestArgs(documentOrOptions, variables, config)
 
@@ -104,7 +105,11 @@ export class NhostGraphqlClient {
       if (!response.ok) {
         return {
           data: null,
-          error: new Error(response.statusText)
+          error: {
+            error: response.statusText,
+            message: response.statusText,
+            status: response.status
+          }
         }
       }
       const { data, errors } = await response.json()
@@ -118,13 +123,25 @@ export class NhostGraphqlClient {
       if (typeof data !== 'object' || Array.isArray(data) || data === null) {
         return {
           data: null,
-          error: new Error('incorrect response data from GraphQL server')
+          error: {
+            error: 'invalid-response',
+            message: 'incorrect response data from GraphQL server',
+            status: 0
+          }
         }
       }
 
       return { data, error: null }
     } catch (e) {
-      return { data: null, error: e as Error }
+      const error = e as Error
+      return {
+        data: null,
+        error: {
+          message: error.message,
+          status: error.name === 'AbortError' ? 0 : 500,
+          error: error.name === 'AbortError' ? 'abort-error' : 'unknown'
+        }
+      }
     }
   }
 
@@ -189,7 +206,7 @@ export class NhostGraphqlClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): HeadersInit {
+  private generateAccessTokenHeaders(): NhostGraphqlRequestConfig['headers'] {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

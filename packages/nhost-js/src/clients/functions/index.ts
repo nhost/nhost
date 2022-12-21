@@ -1,17 +1,11 @@
 import fetch from 'cross-fetch'
-import { urlFromSubdomain } from '../utils/helpers'
-import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
-export interface NhostFunctionsConstructorParams {
-  /**
-   * Serverless Functions endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
-
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
+import {
+  NhostFunctionCallConfig,
+  NhostFunctionCallResponse,
+  NhostFunctionsConstructorParams
+} from './types'
 /**
  * Creates a client for Functions from either a subdomain or a URL
  */
@@ -44,6 +38,12 @@ export class NhostFunctionsClient {
     this.adminSecret = adminSecret
   }
 
+  async call<T = unknown, D = any>(
+    url: string,
+    data: D,
+    config?: NhostFunctionCallConfig
+  ): Promise<NhostFunctionCallResponse<T>>
+
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
    *
@@ -57,8 +57,8 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     body: D,
-    config?: RequestInit
-  ): Promise<FunctionCallResponse<T>> {
+    config?: NhostFunctionCallConfig
+  ): Promise<NhostFunctionCallResponse<T>> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
@@ -86,7 +86,14 @@ export class NhostFunctionsClient {
       }
     } catch (e) {
       const error = e as Error
-      return { res: null, error }
+      return {
+        res: null,
+        error: {
+          message: error.message,
+          status: error.name === 'AbortError' ? 0 : 500,
+          error: error.name === 'AbortError' ? 'abort-error' : 'unknown'
+        }
+      }
     }
   }
 
@@ -109,7 +116,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): HeadersInit {
+  private generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

@@ -1,14 +1,14 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import { DocumentNode } from 'graphql'
+import { DocumentNode, GraphQLError } from 'graphql'
+import { ErrorPayload } from '../../utils/types'
 
-export type RequestOptions<V extends Variables = Variables, T = any> = {
+export type RequestOptions<V extends Variables = Variables, T = any> = NhostGraphqlRequestConfig & {
   document: RequestDocument | TypedDocumentNode<T, V>
-  headers?: HeadersInit
 } & (V extends Record<any, never>
-  ? { variables?: V }
-  : keyof RemoveIndex<V> extends never
-  ? { variables?: V }
-  : { variables: V })
+    ? { variables?: V }
+    : keyof RemoveIndex<V> extends never
+    ? { variables?: V }
+    : { variables: V })
 export type Variables = { [key: string]: any }
 
 export type RequestDocument = string | DocumentNode
@@ -28,12 +28,17 @@ export interface NhostGraphqlConstructorParams {
   adminSecret?: string
 }
 
-export type GraphqlRequestResponse<T = unknown> =
+export type NhostGraphqlRequestResponse<T = unknown> =
   | {
       data: null
-      error: Error | object | object[]
+      error: GraphQLError[] | ErrorPayload
     }
   | {
       data: T
       error: null
     }
+
+/** Subset of RequestInit parameters that are supported by the graphql client */
+export interface NhostGraphqlRequestConfig {
+  headers?: Record<string, string>
+}
