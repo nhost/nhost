@@ -10,11 +10,11 @@ import { inspect } from '@xstate/inspect'
 // eslint-disable-next-line import/no-unresolved
 import 'vuetify/styles'
 
+import App from './App.vue'
 import EmailPasswordless from './components/EmailPasswordlessForm.vue'
 import ErrorSnackBar from './components/ErrorSnackBar.vue'
 import OauthLinks from './components/OAuthLinks.vue'
 import VerificationEmailDialog from './components/VerificationEmailDialog.vue'
-import App from './App.vue'
 import { routes } from './routes'
 
 import '@mdi/font/css/materialdesignicons.css'
