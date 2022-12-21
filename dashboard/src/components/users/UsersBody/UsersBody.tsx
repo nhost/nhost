@@ -326,7 +326,7 @@ export default function UsersBody({
                     <Text className="col-span-3 font-medium">-</Text>
                   )}
 
-                  {user.userProviders.slice(0, 2).map((provider) => (
+                  {user.userProviders.slice(0, 3).map((provider) => (
                     <Chip
                       component="span"
                       color="default"
