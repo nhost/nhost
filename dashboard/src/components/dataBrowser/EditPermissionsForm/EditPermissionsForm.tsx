@@ -67,7 +67,7 @@ export default function EditPermissionsForm({
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${table}.${schema}`]);
+  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   const {
     data: metadata,

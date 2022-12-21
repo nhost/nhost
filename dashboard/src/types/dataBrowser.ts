@@ -47,12 +47,15 @@ export interface HasuraMetadataRelationship {
 
 export interface HasuraMetadataPermission {
   role: string;
-  permission: {
+  permission: Partial<{
     columns: string[];
     filter: Record<string, any>;
     check: Record<string, any>;
-    limit?: number;
-  };
+    limit: number;
+    allow_aggregations: boolean;
+    query_root_fields: string[];
+    subscription_root_fields: string[];
+  }>;
 }
 
 /**

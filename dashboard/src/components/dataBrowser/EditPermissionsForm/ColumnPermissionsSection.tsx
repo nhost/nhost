@@ -6,6 +6,7 @@ import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
 import { useFormContext, useWatch } from 'react-hook-form';
+import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface ColumnPermissionsSectionProps {
   /**
@@ -32,14 +33,15 @@ export default function ColumnPermissionsSection({
   schema,
   table,
 }: ColumnPermissionsSectionProps) {
-  const { register, setValue } = useFormContext();
+  const { register, setValue } =
+    useFormContext<RolePermissionEditorFormValues>();
   const selectedColumns = useWatch({ name: 'columns' }) as string[];
 
   const {
     data: tableData,
     status: tableStatus,
     error: tableError,
-  } = useTableQuery([`default.${schema}.${table}`]);
+  } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   if (tableError) {
     throw tableError;
@@ -95,7 +97,7 @@ export default function ColumnPermissionsSection({
                 value={column.column_name}
                 label={column.column_name}
                 key={column.column_name}
-                checked={selectedColumns.indexOf(column.column_name) !== -1}
+                checked={selectedColumns.includes(column.column_name)}
                 {...register('columns')}
               />
             ))}

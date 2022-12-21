@@ -11,13 +11,19 @@ import Text from '@/ui/v2/Text';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import AggregationQuerySection from './AggregationQuerySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
+import RootFieldPermissionsSection from './RootFieldPermissionsSection';
 import RowPermissionsSection from './RowPermissionsSection';
 
 export interface RolePermissionEditorFormValues {
-  filter: RuleGroup | {};
-  columns: string[];
+  filter: Record<string, any> | {};
+  columns?: string[];
   limit?: number;
+  allowAggregations?: boolean;
+  enableRootFieldCustomization?: boolean;
+  queryRootFields?: string[];
+  subscriptionRootFields?: string[];
 }
 
 export interface RolePermissionEditorFormProps {
@@ -80,6 +86,12 @@ export default function RolePermissionEditorForm({
       filter: getDefaultRuleGroup(action, permission),
       columns: permission?.columns || [],
       limit: permission?.limit || null,
+      allowAggregations: permission?.allow_aggregations || false,
+      enableRootFieldCustomization:
+        permission?.query_root_fields?.length > 0 ||
+        permission?.subscription_root_fields?.length > 0,
+      queryRootFields: permission?.query_root_fields || [],
+      subscriptionRootFields: permission?.subscription_root_fields || [],
     },
   });
 
@@ -106,7 +118,7 @@ export default function RolePermissionEditorForm({
         onSubmit={handleSubmit}
         className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]"
       >
-        <div className="grid grid-flow-row gap-6 content-start flex-auto py-4">
+        <div className="grid grid-flow-row gap-6 content-start flex-auto py-4 overflow-auto">
           <section className="bg-white border-y-1 border-gray-200">
             <Text
               component="h2"
@@ -139,12 +151,21 @@ export default function RolePermissionEditorForm({
             table={table}
           />
 
-          <ColumnPermissionsSection
-            role={role}
-            action={action}
-            schema={schema}
-            table={table}
-          />
+          {action !== 'delete' && (
+            <ColumnPermissionsSection
+              role={role}
+              action={action}
+              schema={schema}
+              table={table}
+            />
+          )}
+
+          {action === 'select' && (
+            <>
+              <AggregationQuerySection role={role} />
+              <RootFieldPermissionsSection />
+            </>
+          )}
         </div>
 
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
