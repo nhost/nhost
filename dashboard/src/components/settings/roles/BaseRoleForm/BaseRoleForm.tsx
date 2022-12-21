@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
@@ -55,10 +56,17 @@ export default function BaseRoleForm({
   }, [isDirty, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+    <div className="grid grid-flow-row gap-3 px-6 pb-6">
       <Text variant="subtitle1" component="span">
         Enter the name for the role below.
       </Text>
+
+      <Alert severity="warning" className="text-left">
+        <span className="text-left">
+          <strong>Note:</strong> Changing the name of the role will lose the
+          associated permissions with that role.
+        </span>
+      </Alert>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
