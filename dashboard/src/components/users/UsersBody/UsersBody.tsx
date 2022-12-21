@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import DotsHorizontalIcon from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -11,6 +10,7 @@ import IconButton from '@/ui/v2/IconButton';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import DotsHorizontalIcon from '@/ui/v2/icons/DotsHorizontalIcon';
 import TrashIcon from '@/ui/v2/icons/TrashIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
@@ -221,7 +221,7 @@ export default function UsersBody({
       )}
 
       <List>
-        {users?.map((user) => (
+        {users.map((user) => (
           <Fragment key={user.id}>
             <ListItem.Root
               className="w-full h-[64px]"
@@ -331,6 +331,7 @@ export default function UsersBody({
                       component="span"
                       color="default"
                       size="small"
+                      key={provider.id}
                       label={
                         provider.providerId[0].toUpperCase() +
                         provider.providerId.slice(1)

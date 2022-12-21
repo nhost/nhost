@@ -27,11 +27,14 @@ export default function UsersPage() {
   const { openDialog, closeDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState(1);
 
   const limit = useRef(25);
   const [nrOfPages, setNrOfPages] = useState(1);
   const router = useRouter();
+
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(router.query.page as string, 10),
+  );
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
@@ -122,7 +125,12 @@ export default function UsersPage() {
       : dataRemoteAppUsers?.usersAggregate?.aggregate?.count;
 
     setNrOfPages(Math.ceil(userCount / limit.current));
-  }, [dataRemoteAppUsers, loadingRemoteAppUsersQuery, searchString]);
+  }, [
+    dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count,
+    dataRemoteAppUsers?.usersAggregate.aggregate.count,
+    loadingRemoteAppUsersQuery,
+    searchString,
+  ]);
 
   const handleSearchStringChange = useMemo(
     () =>
