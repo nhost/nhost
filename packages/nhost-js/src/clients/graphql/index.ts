@@ -1,23 +1,13 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
-import { DocumentNode, print } from 'graphql'
-
-import { urlFromSubdomain } from '../utils/helpers'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import { DocumentNode, GraphQLError, print } from 'graphql'
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
 import {
-  GraphqlRequestResponse,
-  GraphqlResponse,
-  NhostClientConstructorParams
-} from '../utils/types'
-
-export interface NhostGraphqlConstructorParams {
-  /**
-   * GraphQL endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
+  DeprecatedNhostGraphqlRequestResponse,
+  NhostGraphqlConstructorParams,
+  NhostGraphqlRequestConfig,
+  NhostGraphqlRequestResponse
+} from './types'
 
 /**
  * Creates a client for GraphQL from either a subdomain or a URL
@@ -55,6 +45,19 @@ export class NhostGraphqlClient {
     })
   }
 
+  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V,
+    config?: (AxiosRequestConfig | NhostGraphqlRequestConfig) & { useAxios?: true }
+  ): Promise<DeprecatedNhostGraphqlRequestResponse<T>>
+
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V,
+    config?: NhostGraphqlRequestConfig & { useAxios: false }
+  ): Promise<NhostGraphqlRequestResponse<T>>
+
   /**
    * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
    *
@@ -76,8 +79,11 @@ export class NhostGraphqlClient {
   async request<T = any, V = any>(
     document: string | DocumentNode,
     variables?: V,
-    config?: AxiosRequestConfig
-  ): Promise<GraphqlRequestResponse<T>> {
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosRequestConfig | NhostGraphqlRequestConfig) & { useAxios?: boolean } = {}
+  ): Promise<DeprecatedNhostGraphqlRequestResponse<T> | NhostGraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
       ...this.generateAccessTokenHeaders(),
@@ -87,7 +93,10 @@ export class NhostGraphqlClient {
 
     try {
       const operationName = ''
-      const res = await this.instance.post<GraphqlResponse<T>>(
+      const res = await this.instance.post<{
+        errors?: GraphQLError[]
+        data?: T
+      }>(
         '',
         {
           operationName: operationName || undefined,
@@ -108,21 +117,43 @@ export class NhostGraphqlClient {
       }
 
       if (typeof data !== 'object' || Array.isArray(data) || data === null) {
+        if (useAxios) {
+          return {
+            data: null,
+            error: new Error('incorrect response data from GraphQL server')
+          }
+        }
         return {
           data: null,
-          error: new Error('incorrect response data from GraphQL server')
+          error: {
+            error: 'invalid-response',
+            status: 0,
+            message: 'incorrect response data from GraphQL server'
+          }
         }
       }
 
       return { data, error: null }
     } catch (error) {
-      if (error instanceof Error) {
-        return { data: null, error }
-      }
       console.error(error)
+      if (useAxios) {
+        if (error instanceof Error) {
+          return { data: null, error }
+        }
+        return {
+          data: null,
+          error: new Error('Unable to get do GraphQL request')
+        }
+      }
+
+      const axiosError = error as AxiosError
       return {
         data: null,
-        error: new Error('Unable to get do GraphQL request')
+        error: {
+          error: axiosError.code || 'unknown',
+          status: axiosError.status || 0,
+          message: axiosError.message
+        }
       }
     }
   }
