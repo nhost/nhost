@@ -108,7 +108,7 @@ func FileTooSmallError(filename string, size, minSize int) *APIError {
 	return &APIError{
 		statusCode:    http.StatusBadRequest,
 		publicMessage: "file too small",
-		err:           fmt.Errorf("file %s too big: %d < %d", filename, size, minSize), //nolint
+		err:           fmt.Errorf("file %s too small: %d < %d", filename, size, minSize), //nolint
 		data: map[string]interface{}{
 			"filename": filename,
 			"size":     size,
