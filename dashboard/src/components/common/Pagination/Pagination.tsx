@@ -36,7 +36,7 @@ export type PaginationProps = DetailedHTMLProps<
    */
   onNextPageClick: VoidFunction;
   /**
-   * Props to be passed to the previous button component.
+   * Function to be called when a new page number is submitted.
    */
   onPageChange: (page: number) => void;
   /**
