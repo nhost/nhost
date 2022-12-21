@@ -91,6 +91,10 @@ export default function UsersPage() {
    *
    */
   useEffect(() => {
+    if (router.query.page === undefined) {
+      setCurrentPage(1);
+      return;
+    }
     if (router.query.page && typeof router.query.page === 'string') {
       const pageNumber = parseInt(router.query.page, 10);
       if (nrOfPages >= pageNumber) {
