@@ -53,7 +53,6 @@ export default function CreateUserForm({
   const [createUserFormError, setCreateUserFormError] = useState<Error | null>(
     null,
   );
-  // const { closeDialog } = useDialog();
 
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
