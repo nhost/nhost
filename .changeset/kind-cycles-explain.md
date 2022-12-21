@@ -7,7 +7,7 @@ Deprecate Axios
 
 Axios will be replaced by cross-fetch in the near future.
 
-To prepare the transition, we recommend to adapt the following methods:
+To prepare for the transition, we are deprecating the old signature for the following methods:
 
 - `nhost.functions.call()`
 - `nhost.graphql.request()`
