@@ -94,8 +94,7 @@ export default function UsersPage() {
         setCurrentPage(1);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.page]);
+  }, [nrOfPages, router.query.page]);
 
   /**
    * If the users enters the page with a page query param with the following structure:
