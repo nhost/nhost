@@ -1,23 +1,20 @@
 import axios, {
+  AxiosError,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
   RawAxiosRequestHeaders
 } from 'axios'
+import { urlFromSubdomain } from '../../utils/helpers'
+import { NhostClientConstructorParams } from '../../utils/types'
+import {
+  DeprecatedNhostFunctionCallResponse,
+  NhostFunctionCallConfig,
+  NhostFunctionCallResponse,
+  NhostFunctionsConstructorParams
+} from './types'
 
-import { urlFromSubdomain } from '../utils/helpers'
-import { FunctionCallResponse, NhostClientConstructorParams } from '../utils/types'
-export interface NhostFunctionsConstructorParams {
-  /**
-   * Serverless Functions endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
-
+export * from './types'
 /**
  * Creates a client for Functions from either a subdomain or a URL
  */
@@ -54,6 +51,19 @@ export class NhostFunctionsClient {
     })
   }
 
+  /** @deprecated Axios will be replaced by cross-fetch in the near future. Only the headers configuration will be kept. */
+  async call<T = unknown, D = any>(
+    url: string,
+    data?: D,
+    config?: (NhostFunctionCallConfig | AxiosRequestConfig) & { useAxios?: true }
+  ): Promise<DeprecatedNhostFunctionCallResponse<T>>
+
+  async call<T = unknown, D = any>(
+    url: string,
+    data: D,
+    config?: NhostFunctionCallConfig & { useAxios: false }
+  ): Promise<NhostFunctionCallResponse<T>>
+
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
    *
@@ -67,8 +77,16 @@ export class NhostFunctionsClient {
   async call<T = unknown, D = any>(
     url: string,
     data: D,
-    config?: AxiosRequestConfig
-  ): Promise<FunctionCallResponse<T>> {
+    {
+      useAxios = true,
+      ...config
+    }: (AxiosRequestConfig | NhostFunctionCallConfig) & { useAxios?: boolean } = {}
+  ): Promise<DeprecatedNhostFunctionCallResponse<T> | NhostFunctionCallResponse> {
+    if (useAxios) {
+      console.warn(
+        'nhost.functions.call() will no longer use Axios in the near future. Please add `useAxios: false` in the config argument to use the new implementation.'
+      )
+    }
     const headers = {
       ...this.generateAccessTokenHeaders(),
       ...config?.headers
@@ -79,18 +97,49 @@ export class NhostFunctionsClient {
       res = await this.instance.post<T, AxiosResponse<T>, D>(url, data, { ...config, headers })
     } catch (error) {
       if (error instanceof Error) {
-        return { res: null, error }
+        if (useAxios) {
+          return { res: null, error }
+        }
+        const axiosError = error as AxiosError
+        return {
+          res: null,
+          error: {
+            error: axiosError.code || 'unknown',
+            status: axiosError.status || 0,
+            message: axiosError.message
+          }
+        }
       }
     }
 
     if (!res) {
+      if (useAxios) {
+        return {
+          res: null,
+          error: new Error('Unable to make post request to function')
+        }
+      }
       return {
         res: null,
-        error: new Error('Unable to make post request to funtion')
+        error: {
+          error: 'invalid-response',
+          status: 0,
+          message: 'Unable to make post request to function'
+        }
       }
     }
 
-    return { res, error: null }
+    if (useAxios) {
+      return { res, error: null }
+    }
+    return {
+      res: {
+        status: res.status,
+        statusText: res.statusText,
+        data: res.data
+      },
+      error: null
+    }
   }
 
   /**
