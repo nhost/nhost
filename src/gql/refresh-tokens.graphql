@@ -4,9 +4,9 @@ mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
   }
 }
 
-mutation deleteRefreshToken($hashedRefreshToken: String) {
+mutation deleteRefreshToken($refreshTokenHash: String) {
   deleteAuthRefreshTokens(
-    where: { hashedRefreshToken: { _eq: $hashedRefreshToken } }
+    where: { refreshTokenHash: { _eq: $refreshTokenHash } }
   ) {
     affected_rows
   }

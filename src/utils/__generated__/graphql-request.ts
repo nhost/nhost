@@ -414,8 +414,9 @@ export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
   expiresAt: Scalars['timestamptz'];
-  hashedRefreshToken?: Maybe<Scalars['String']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
+  refreshTokenHash?: Maybe<Scalars['String']>;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -475,8 +476,8 @@ export type AuthRefreshTokens_Bool_Exp = {
   _or?: InputMaybe<Array<AuthRefreshTokens_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  hashedRefreshToken?: InputMaybe<String_Comparison_Exp>;
   refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -491,6 +492,7 @@ export enum AuthRefreshTokens_Constraint {
 export type AuthRefreshTokens_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -501,8 +503,9 @@ export type AuthRefreshTokens_Max_Fields = {
   __typename?: 'authRefreshTokens_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
-  hashedRefreshToken?: Maybe<Scalars['String']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -510,8 +513,9 @@ export type AuthRefreshTokens_Max_Fields = {
 export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
-  hashedRefreshToken?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -520,8 +524,9 @@ export type AuthRefreshTokens_Min_Fields = {
   __typename?: 'authRefreshTokens_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
-  hashedRefreshToken?: Maybe<Scalars['String']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -529,8 +534,9 @@ export type AuthRefreshTokens_Min_Fields = {
 export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
-  hashedRefreshToken?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -554,14 +560,15 @@ export type AuthRefreshTokens_On_Conflict = {
 export type AuthRefreshTokens_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
-  hashedRefreshToken?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: auth.refresh_tokens */
 export type AuthRefreshTokens_Pk_Columns_Input = {
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
 };
 
@@ -572,9 +579,9 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   ExpiresAt = 'expiresAt',
   /** column name */
-  HashedRefreshToken = 'hashedRefreshToken',
-  /** column name */
   RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenHash = 'refreshTokenHash',
   /** column name */
   UserId = 'userId'
 }
@@ -583,6 +590,7 @@ export enum AuthRefreshTokens_Select_Column {
 export type AuthRefreshTokens_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -599,8 +607,9 @@ export type AuthRefreshTokens_Stream_Cursor_Input = {
 export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
-  hashedRefreshToken?: InputMaybe<Scalars['String']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3536,7 +3545,7 @@ export type InsertRefreshTokenMutationVariables = Exact<{
 export type InsertRefreshTokenMutation = { __typename?: 'mutation_root', insertAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any } | null };
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
-  hashedRefreshToken?: InputMaybe<Scalars['String']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -3653,7 +3662,7 @@ export type UsersQueryVariables = Exact<{
 export type UsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
 export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariables = Exact<{
-  hashedRefreshToken: Scalars['String'];
+  refreshTokenHash: Scalars['String'];
   expiresAt: Scalars['timestamptz'];
 }>;
 
@@ -3661,7 +3670,7 @@ export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariable
 export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
 
 export type GetUsersByRefreshTokenQueryVariables = Exact<{
-  hashedRefreshToken: Scalars['String'];
+  refreshTokenHash: Scalars['String'];
 }>;
 
 
@@ -3808,8 +3817,8 @@ export const InsertRefreshTokenDocument = gql`
 }
     `;
 export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($hashedRefreshToken: String) {
-  deleteAuthRefreshTokens(where: {hashedRefreshToken: {_eq: $hashedRefreshToken}}) {
+    mutation deleteRefreshToken($refreshTokenHash: String) {
+  deleteAuthRefreshTokens(where: {refreshTokenHash: {_eq: $refreshTokenHash}}) {
     affected_rows
   }
 }
@@ -3944,19 +3953,19 @@ export const UsersDocument = gql`
 }
     ${UserFieldsFragmentDoc}`;
 export const GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtDocument = gql`
-    mutation getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt($hashedRefreshToken: String!, $expiresAt: timestamptz!) {
+    mutation getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt($refreshTokenHash: String!, $expiresAt: timestamptz!) {
   updateAuthRefreshTokens(
     _set: {expiresAt: $expiresAt}
-    where: {_and: [{hashedRefreshToken: {_eq: $hashedRefreshToken}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}
+    where: {_and: [{refreshTokenHash: {_eq: $refreshTokenHash}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}
   ) {
     affected_rows
   }
 }
     `;
 export const GetUsersByRefreshTokenDocument = gql`
-    query getUsersByRefreshToken($hashedRefreshToken: String!) {
+    query getUsersByRefreshToken($refreshTokenHash: String!) {
   authRefreshTokens(
-    where: {_and: [{hashedRefreshToken: {_eq: $hashedRefreshToken}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}
+    where: {_and: [{refreshTokenHash: {_eq: $refreshTokenHash}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}
   ) {
     refreshToken
     user {

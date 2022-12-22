@@ -274,27 +274,6 @@
             },
             "type" : "object"
          },
-         "InvalidRedirectionError" : {
-            "additionalProperties" : false,
-            "properties" : {
-               "error" : {
-                  "enum" : [
-                     "invalid-redirection"
-                  ]
-               },
-               "message" : {
-                  "enum" : [
-                     "Invalid or missing redirectTo"
-                  ]
-               },
-               "status" : {
-                  "enum" : [
-                     400
-                  ]
-               }
-            },
-            "type" : "object"
-         },
          "InvalidRefreshTokenError" : {
             "additionalProperties" : false,
             "properties" : {
@@ -353,27 +332,6 @@
                "status" : {
                   "enum" : [
                      400
-                  ]
-               }
-            },
-            "type" : "object"
-         },
-         "InvalidSmsProviderTypeError" : {
-            "additionalProperties" : false,
-            "properties" : {
-               "error" : {
-                  "enum" : [
-                     "invalid-sms-provider-type"
-                  ]
-               },
-               "message" : {
-                  "enum" : [
-                     "Absent or invalid SMS provider type"
-                  ]
-               },
-               "status" : {
-                  "enum" : [
-                     500
                   ]
                }
             },
@@ -1521,7 +1479,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.16.2",
+            "example" : "0.17.0",
             "type" : "string"
          }
       },
@@ -1540,7 +1498,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.16.2"
+      "version" : "0.17.0"
    },
    "openapi" : "3.0.0",
    "paths" : {

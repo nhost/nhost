@@ -47,7 +47,7 @@ export const hasuraAuthMetadataPatch: MetadataPatch = {
           },
           custom_column_names: {
             refresh_token: 'refreshToken',
-            hashed_refresh_token: 'hashedRefreshToken',
+            refresh_token_hash: 'refreshTokenHash',
             created_at: 'createdAt',
             expires_at: 'expiresAt',
             user_id: 'userId',

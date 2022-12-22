@@ -9,7 +9,7 @@ const hash = (value: string) =>
 
 export const getUserByRefreshToken = async (refreshToken: string) => {
   const result = await gqlSdk.getUsersByRefreshToken({
-    hashedRefreshToken: hash(refreshToken),
+    refreshTokenHash: hash(refreshToken),
   });
   return result.authRefreshTokens[0]?.user;
 };
@@ -21,7 +21,7 @@ export const deleteUserRefreshTokens = async (userId: string) => {
 export const deleteRefreshToken = async (refreshToken: string) => {
   // * delete both refresh token and its hash value
   await gqlSdk.deleteRefreshToken({
-    hashedRefreshToken: hash(refreshToken),
+    refreshTokenHash: hash(refreshToken),
   });
 };
 
@@ -37,7 +37,7 @@ const newRefreshExpiry = () => {
 
 export const updateRefreshTokenExpiry = async (refreshToken: string) => {
   await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
-    hashedRefreshToken: hash(refreshToken),
+    refreshTokenHash: hash(refreshToken),
     expiresAt: new Date(newRefreshExpiry()),
   });
 

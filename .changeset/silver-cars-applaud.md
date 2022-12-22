@@ -2,7 +2,7 @@
 'hasura-auth': minor
 ---
 
-Introduce a new `refresh_tokens.hashed_refresh_token` column
+Introduce a new `refresh_tokens.refresh_token_hash` column
 
 Preparatory work to store refresh tokens as a SHA256 hash.
 
@@ -17,5 +17,5 @@ When introducing the breaking change, we will:
 
 - rename `refresh_tokens.refresh_token` to `refresh_tokens.id`
 - use the `id` column as an identifier
-- remove the `generated` expression in the `hashed_refresh_token` column
+- remove the `generated` expression in the `refresh_token_hash` column
 - any new refresh token will then be saved uniquely as SHA256
