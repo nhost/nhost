@@ -6,21 +6,6 @@ import { setupServer } from 'msw/node';
 import { test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
-vi.mock('next/router', () => ({
-  useRouter: () => ({
-    pathname:
-      '/[workspaceSlug]/[appSlug]/database/browser/[dataSourceSlug]/[schemaSlug]/[tableSlug]',
-    asPath: '/workspace/app/database/browser/default/public/users',
-    query: {
-      workspaceSlug: 'workspace',
-      appSlug: 'app',
-      dataSourceSlug: 'default',
-      schemaSlug: 'public',
-      tableSlug: 'books',
-    },
-  }),
-}));
-
 const server = setupServer(tableQuery, hasuraMetadataQuery, customClaimsQuery);
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));

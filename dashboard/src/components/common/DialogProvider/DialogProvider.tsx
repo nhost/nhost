@@ -279,10 +279,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       closeDialog();
     }
 
-    router.events.on('routeChangeStart', handleCloseDrawerAndDialog);
+    router?.events?.on?.('routeChangeStart', handleCloseDrawerAndDialog);
 
     return () => {
-      router.events.off('routeChangeStart', handleCloseDrawerAndDialog);
+      router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
     };
   }, [closeDialog, closeDrawer, openDirtyConfirmation, router.events]);
 
