@@ -2,7 +2,6 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import CopyIcon from '@/components/ui/v2/icons/CopyIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
@@ -13,6 +12,7 @@ import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import {
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
@@ -234,10 +234,7 @@ export default function EditUserForm({
             </div>
           </section>
           <section className="grid grid-flow-row grid-cols-4 gap-8 p-6">
-            <InputLabel
-              as="h3"
-              className="self-center col-span-1"
-            >
+            <InputLabel as="h3" className="self-center col-span-1">
               User ID
             </InputLabel>
             <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-3">
@@ -255,20 +252,14 @@ export default function EditUserForm({
               </IconButton>
             </div>
 
-            <InputLabel
-              as="h3"
-              className="self-center col-span-1 "
-            >
+            <InputLabel as="h3" className="self-center col-span-1 ">
               Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {format(new Date(user.createdAt), 'yyyy-MM-dd hh:mm:ss')}
             </Text>
 
-            <InputLabel
-              as="h3"
-              className="self-center col-span-1 "
-            >
+            <InputLabel as="h3" className="self-center col-span-1 ">
               Last Seen
             </InputLabel>
             <Text className="col-span-3 font-medium">
@@ -380,7 +371,6 @@ export default function EditUserForm({
               <InputLabel as="h3">OAuth Providers</InputLabel>
             </div>
             <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
-              {/* Email based sign-ups are not included in users.providers, we need to render it based on the existence of the user's email */}
               {user.userProviders.length === 0 && (
                 <div className="grid grid-flow-col gap-x-1 place-content-between">
                   <Text className="font-normal text-greyscaleGrey">

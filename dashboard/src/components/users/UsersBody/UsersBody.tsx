@@ -326,25 +326,24 @@ export default function UsersBody({
                     <Text className="col-span-3 font-medium">-</Text>
                   )}
 
-                  {user.userProviders.slice(0, 3).map((provider) => (
+                  {user.userProviders.slice(0, 4).map((provider) => (
                     <Chip
                       component="span"
                       color="default"
                       size="small"
                       key={provider.id}
                       label={
-                        provider.providerId[0].toUpperCase() +
-                        provider.providerId.slice(1)
+                        provider.providerId === 'github'
+                          ? 'GitHub'
+                          : provider.providerId
                       }
+                      className="capitalize"
                       sx={{
                         paddingLeft: '0.55rem',
                       }}
                       icon={
                         <Image
-                          src={`/logos/${
-                            provider.providerId[0].toUpperCase() +
-                            provider.providerId.slice(1)
-                          }.svg`}
+                          src={`/logos/${provider.providerId}.svg`}
                           width={16}
                           height={16}
                         />
@@ -352,10 +351,14 @@ export default function UsersBody({
                     />
                   ))}
 
-                  {user.userProviders.length > 2 && (
-                    <Text className="col-span-3 font-medium">
-                      +{user.userProviders.length}
-                    </Text>
+                  {user.userProviders.length > 3 && (
+                    <Chip
+                      component="span"
+                      color="default"
+                      size="small"
+                      label={`+${user.userProviders.length - 3}`}
+                      className="font-medium"
+                    />
                   )}
                 </div>
               </ListItem.Button>
