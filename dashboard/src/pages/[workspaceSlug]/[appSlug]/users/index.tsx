@@ -305,12 +305,12 @@ export default function UsersPage() {
         </div>
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
-          <div className="grid w-full h-full grid-flow-row overflow-hidden">
+          <div className="grid w-full h-full grid-flow-row py-4 overflow-hidden">
             <div className="grid w-full p-2 border-b md:grid-cols-6">
               <Text className="font-medium md:col-span-2">Name</Text>
-              <Text className="hidden font-medium md:grid">Signed up at</Text>
-              <Text className="hidden font-medium md:grid">Last Seen</Text>
-              <Text className="hidden col-span-2 font-medium md:grid">
+              <Text className="hidden font-medium md:block">Signed up at</Text>
+              <Text className="hidden font-medium md:block">Last Seen</Text>
+              <Text className="hidden col-span-2 font-medium md:block">
                 OAuth Providers
               </Text>
             </div>
@@ -333,7 +333,7 @@ export default function UsersPage() {
                 </div>
               )}
             {thereAreUsers && (
-              <div className="grid grid-flow-row gap-y-4">
+              <div className="grid grid-flow-row gap-4">
                 <UsersBody
                   users={users}
                   onSuccessfulAction={refetchProjectUsers}
