@@ -21,10 +21,11 @@ export function useCheckProvisioning() {
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
+
   const { data, startPolling, stopPolling, client } =
     useGetApplicationStateQuery({
-      variables: { appId: currentApplication.id },
-      skip: !isPlatform,
+      variables: { appId: currentApplication?.id },
+      skip: !isPlatform || !currentApplication?.id,
     });
 
   async function updateOwnCache() {

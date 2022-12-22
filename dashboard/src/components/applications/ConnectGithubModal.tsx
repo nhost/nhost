@@ -32,9 +32,12 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
     useState<ConnectGithubModalState>('CONNECTING');
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
 
-  const { data, loading, error } = useGetGithubRepositoriesQuery({
-    pollInterval: 2000,
-  });
+  const { data, loading, error, startPolling } =
+    useGetGithubRepositoriesQuery();
+
+  useEffect(() => {
+    startPolling(2000);
+  }, [startPolling]);
 
   const handleSelectAnotherRepository = () => {
     setSelectedRepoId(null);
