@@ -66,8 +66,7 @@
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
     "axios": "^1.2.0",
-    "jwt-decode": "^3.1.2",
-    "query-string": "^7.0.1"
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",

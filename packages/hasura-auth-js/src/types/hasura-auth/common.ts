@@ -1,4 +1,4 @@
-// TODO share with hasura-auth
+// TODO shared with other packages
 export type ErrorPayload = {
   error: string
   status: number
