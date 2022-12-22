@@ -20,7 +20,7 @@ AUTH_USER_DEFAULT_ROLE=user
 AUTH_USER_DEFAULT_ALLOWED_ROLES=other
 ```
 
-Both syntaxes will allow the roles `['user', 'me', 'other']`
+Both syntaxes will allow the roles `user`, `me`, and `other`.
 
 Similarly, it is not required to add the ``to the`AUTH_LOCALE_ALLOWED_LOCALES`.
 
