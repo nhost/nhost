@@ -2,6 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import CopyIcon from '@/components/ui/v2/icons/CopyIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import Button from '@/ui/v2/Button';
@@ -12,7 +13,6 @@ import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import {
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
@@ -234,15 +234,18 @@ export default function EditUserForm({
             </div>
           </section>
           <section className="grid grid-flow-row grid-cols-4 gap-8 p-6">
-            <InputLabel as="h3" className="col-span-1">
+            <InputLabel
+              as="h3"
+              className="self-center col-span-1"
+            >
               User ID
             </InputLabel>
-            <Text className="col-span-3 font-medium">
-              {user.id}
+            <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-3">
+              <Text className="font-medium truncate">{user.id}</Text>
               <IconButton
-                color="secondary"
                 variant="borderless"
-                className="ml-1"
+                color="secondary"
+                aria-label="Copy User ID"
                 onClick={(e) => {
                   e.stopPropagation();
                   copy(user.id, 'User ID');
@@ -250,16 +253,22 @@ export default function EditUserForm({
               >
                 <CopyIcon className="w-4 h-4" />
               </IconButton>
-            </Text>
+            </div>
 
-            <InputLabel as="h3" className="col-span-1">
+            <InputLabel
+              as="h3"
+              className="self-center col-span-1 "
+            >
               Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {format(new Date(user.createdAt), 'yyyy-MM-dd hh:mm:ss')}
             </Text>
 
-            <InputLabel as="h3" className="col-span-1">
+            <InputLabel
+              as="h3"
+              className="self-center col-span-1 "
+            >
               Last Seen
             </InputLabel>
             <Text className="col-span-3 font-medium">
@@ -367,7 +376,7 @@ export default function EditUserForm({
             </ControlledSelect>
           </section>
           <section className="grid grid-cols-4 p-6 place-content-start">
-            <div className="col-span-1">
+            <div className="items-center self-center col-span-1 align-middle">
               <InputLabel as="h3">OAuth Providers</InputLabel>
             </div>
             <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
