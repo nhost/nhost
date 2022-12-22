@@ -3545,7 +3545,7 @@ export type InsertRefreshTokenMutationVariables = Exact<{
 export type InsertRefreshTokenMutation = { __typename?: 'mutation_root', insertAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any } | null };
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
-  refreshTokenHash?: InputMaybe<Scalars['String']>;
+  refreshTokenHash: Scalars['String'];
 }>;
 
 
@@ -3817,7 +3817,7 @@ export const InsertRefreshTokenDocument = gql`
 }
     `;
 export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($refreshTokenHash: String) {
+    mutation deleteRefreshToken($refreshTokenHash: String!) {
   deleteAuthRefreshTokens(where: {refreshTokenHash: {_eq: $refreshTokenHash}}) {
     affected_rows
   }
@@ -4087,7 +4087,7 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     insertRefreshToken(variables: InsertRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertRefreshTokenMutation>(InsertRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertRefreshToken', 'mutation');
     },
-    deleteRefreshToken(variables?: DeleteRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteRefreshTokenMutation> {
+    deleteRefreshToken(variables: DeleteRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteRefreshTokenMutation>(DeleteRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteRefreshToken', 'mutation');
     },
     deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
