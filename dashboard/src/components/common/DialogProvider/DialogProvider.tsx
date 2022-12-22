@@ -12,13 +12,21 @@ import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
   PropsWithChildren,
 } from 'react';
-import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
 import DialogContext from './DialogContext';
@@ -79,6 +87,8 @@ const EditPermissionsForm = dynamic(
 );
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
+  const router = useRouter();
+
   const [
     {
       open: dialogOpen,
@@ -170,6 +180,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     (config?: Partial<DialogConfig<string>>) => {
       const { props, ...restConfig } = config || {};
 
+      setShowDirtyConfirmation(true);
       openAlertDialog({
         ...config,
         title: 'Unsaved changes',
@@ -273,6 +284,32 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     },
     onCancel: closeDrawerWithDirtyGuard,
   };
+
+  useEffect(() => {
+    function handleCloseDrawerAndDialog() {
+      if (isDrawerDirty.current || isDialogDirty.current) {
+        openDirtyConfirmation({
+          props: {
+            onPrimaryAction: () => {
+              closeDialog();
+              closeDrawer();
+            },
+          },
+        });
+
+        throw new Error('Unsaved changes');
+      }
+
+      closeDrawer();
+      closeDialog();
+    }
+
+    router?.events?.on?.('routeChangeStart', handleCloseDrawerAndDialog);
+
+    return () => {
+      router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
+    };
+  }, [closeDialog, closeDrawer, openDirtyConfirmation, router.events]);
 
   return (
     <DialogContext.Provider value={contextValue}>

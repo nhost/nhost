@@ -204,6 +204,7 @@ export default function RolePermissionEditorForm({
       role,
       action,
       mode: permission ? 'update' : 'insert',
+      originalPermission: permission,
       permission: {
         set: convertToColumnPresetObject(values.columnPresets),
         columns: values.columns,

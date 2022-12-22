@@ -86,14 +86,25 @@ export default async function managePermissionMigration({
 
   if (mode === 'delete') {
     args = {
-      down: [{ ...insertArgs, permission: originalPermission }],
+      down: [
+        {
+          ...insertArgs,
+          args: { ...insertArgs.args, permission: originalPermission },
+        },
+      ],
       up: [deleteArgs],
     };
   } else if (mode === 'insert') {
     args = { down: [deleteArgs], up: [insertArgs] };
   } else {
     args = {
-      down: [{ ...insertArgs, permission: originalPermission }, deleteArgs],
+      down: [
+        {
+          ...insertArgs,
+          args: { ...insertArgs.args, permission: originalPermission },
+        },
+        deleteArgs,
+      ],
       up: [deleteArgs, insertArgs],
     };
   }
