@@ -142,19 +142,24 @@ export const ENV = {
     return castStringEnv('AUTH_USER_DEFAULT_ROLE', 'user');
   },
   get AUTH_USER_DEFAULT_ALLOWED_ROLES() {
-    return castStringArrayEnv('AUTH_USER_DEFAULT_ALLOWED_ROLES', [
+    const allowedRoles = [
       'me',
       this.AUTH_USER_DEFAULT_ROLE,
-    ]);
+      ...castStringArrayEnv('AUTH_USER_DEFAULT_ALLOWED_ROLES'),
+    ];
+    // remove duplicates
+    return [...new Set(allowedRoles)];
   },
   get AUTH_LOCALE_DEFAULT() {
     return castStringEnv('AUTH_LOCALE_DEFAULT', 'en');
   },
   get AUTH_LOCALE_ALLOWED_LOCALES() {
-    const locales = castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES');
-    if (!locales.includes(ENV.AUTH_LOCALE_DEFAULT))
-      locales.push(ENV.AUTH_LOCALE_DEFAULT);
-    return locales;
+    const locales = [
+      ENV.AUTH_LOCALE_DEFAULT,
+      ...castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES'),
+    ];
+    // remove duplicates
+    return [...new Set(locales)];
   },
 
   // SIGN IN
