@@ -150,7 +150,7 @@ export interface MetadataError {
       schema: string;
       name: string;
     };
-    using: {
+    using?: {
       foreign_key_constraint_on: string;
     };
   }[];

@@ -1,0 +1,61 @@
+import type {
+  AffectedRowsResult,
+  DatabaseTable,
+  MutationOrQueryBaseOptions,
+  QueryError,
+  QueryResult,
+} from '@/types/dataBrowser';
+import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { LOCAL_MIGRATIONS_URL } from '@/utils/env';
+
+export interface ManagePermissionMigrationVariables {
+  /**
+   * Table to track.
+   */
+  table: DatabaseTable;
+}
+
+export interface ManagePermissionMigrationOptions
+  extends Omit<MutationOrQueryBaseOptions, 'table'> {}
+
+export default async function managePermissionMigration({
+  dataSource,
+  schema,
+  adminSecret,
+  table,
+}: ManagePermissionMigrationOptions & ManagePermissionMigrationVariables) {
+  const response = await fetch(`${LOCAL_MIGRATIONS_URL}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
+    },
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `add_existing_table_or_view_${schema}_${table.name}`,
+      down: [
+        {
+          type: 'pg_untrack_table',
+          args: { source: dataSource, table: { schema, name: table.name } },
+        },
+      ],
+      up: [
+        {
+          args: { source: dataSource, table: { schema, name: table.name } },
+          type: 'pg_track_table',
+        },
+      ],
+    }),
+  });
+
+  const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
+    await response.json();
+
+  if (response.ok) {
+    return;
+  }
+
+  const normalizedError = normalizeQueryError(responseData);
+
+  throw new Error(normalizedError);
+}

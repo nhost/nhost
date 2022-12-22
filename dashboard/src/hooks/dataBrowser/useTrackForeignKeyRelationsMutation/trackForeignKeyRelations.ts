@@ -5,6 +5,7 @@ import type {
   MutationOrQueryBaseOptions,
   QueryResult,
 } from '@/types/dataBrowser';
+import normalizeMetadataError from '@/utils/dataBrowser/normalizeMetadataError/normalizeMetadataError';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 export interface TrackForeignKeyRelationsVariables {
@@ -60,15 +61,11 @@ export default async function trackForeignKeyRelations({
     | [AffectedRowsResult, QueryResult<string[]>]
     | MetadataError = await response.json();
 
-  if (!response.ok || 'error' in responseData) {
-    if ('internal' in responseData) {
-      const metadataError = responseData as MetadataError;
-      throw new Error(metadataError.internal[0]?.reason);
-    }
-
-    if ('error' in responseData) {
-      const metadataError = responseData as MetadataError;
-      throw new Error(metadataError.error);
-    }
+  if (response.ok) {
+    return;
   }
+
+  const normalizedError = normalizeMetadataError(responseData);
+
+  throw new Error(normalizedError);
 }

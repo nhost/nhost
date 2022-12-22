@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import HighlightedText from '@/components/common/HighlightedText';
+import useManagePermissionMutation from '@/hooks/dataBrowser/useManagePermissionMutation';
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
@@ -8,9 +9,13 @@ import type {
 } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
+import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import AggregationQuerySection from './AggregationQuerySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
 import type { ColumnPreset } from './ColumnPresetsSection';
@@ -110,6 +115,18 @@ function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
   }));
 }
 
+function convertToColumnPresetObject(
+  columnPresets: ColumnPreset[],
+): Record<string, any> {
+  return columnPresets.reduce((data, { column, value }) => {
+    if (column) {
+      return { ...data, [column]: value };
+    }
+
+    return data;
+  }, {});
+}
+
 export default function RolePermissionEditorForm({
   schema,
   table,
@@ -119,6 +136,18 @@ export default function RolePermissionEditorForm({
   onCancel,
   permission,
 }: RolePermissionEditorFormProps) {
+  const queryClient = useQueryClient();
+  const { mutateAsync: managePermission, isLoading } =
+    useManagePermissionMutation({
+      schema,
+      table,
+      mutationOptions: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
+        },
+      },
+    });
+
   const form = useForm<RolePermissionEditorFormValues>({
     defaultValues: {
       filter: getDefaultRuleGroup(action, permission),
@@ -138,15 +167,81 @@ export default function RolePermissionEditorForm({
     formState: { dirtyFields, isSubmitting },
   } = form;
 
-  const { onDirtyStateChange } = useDialog();
+  const { onDirtyStateChange, openDirtyConfirmation } = useDialog();
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
     onDirtyStateChange(isDirty, 'drawer');
   }, [isDirty, onDirtyStateChange]);
 
-  function handleSubmit(values: RolePermissionEditorFormValues) {
-    console.log(values);
+  async function handleSubmit(values: RolePermissionEditorFormValues) {
+    console.log({
+      set: convertToColumnPresetObject(values.columnPresets),
+      columns: values.columns,
+      limit: values.limit,
+      allow_aggregations: values.allowAggregations,
+      query_root_fields: values.queryRootFields,
+      subscription_root_fields: values.subscriptionRootFields,
+      filter: convertToHasuraPermissions(values.filter as RuleGroup),
+    });
+
+    return;
+
+    const managePermissionPromise = managePermission({
+      role,
+      action,
+      permission: {
+        set: convertToColumnPresetObject(values.columnPresets),
+        columns: values.columns,
+        limit: values.limit,
+        allow_aggregations: values.allowAggregations,
+        query_root_fields: values.queryRootFields,
+        subscription_root_fields: values.subscriptionRootFields,
+        filter: convertToHasuraPermissions(values.filter as RuleGroup),
+      },
+    });
+
+    await toast.promise(
+      managePermissionPromise,
+      {
+        loading: 'Saving permission...',
+        success: 'Permission has been saved successfully.',
+        error: 'An error occurred while saving the permission.',
+      },
+      toastStyleProps,
+    );
+
+    onDirtyStateChange(false, 'drawer');
+    onSubmit?.();
+  }
+
+  function handleCancel() {
+    if (isDirty) {
+      openDirtyConfirmation({ props: { onPrimaryAction: onCancel } });
+
+      return;
+    }
+
+    onCancel?.();
+  }
+
+  async function handleDelete() {
+    const deletePermissionPromise = managePermission({
+      role,
+      action,
+      mode: 'delete',
+    });
+
+    await toast.promise(
+      deletePermissionPromise,
+      {
+        loading: 'Deleting permission...',
+        success: 'Permission has been deleted successfully.',
+        error: 'An error occurred while deleting the permission.',
+      },
+      toastStyleProps,
+    );
+
     onDirtyStateChange(false, 'drawer');
     onSubmit?.();
   }
@@ -211,24 +306,35 @@ export default function RolePermissionEditorForm({
           )}
         </div>
 
-        <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
+        <div className="grid flex-shrink-0 sm:grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
           <Button
             variant="borderless"
             color="secondary"
-            onClick={onCancel}
+            onClick={handleCancel}
             tabIndex={isDirty ? -1 : 0}
           >
             Cancel
           </Button>
 
-          <Button
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            type="submit"
-            className="justify-self-end"
-          >
-            Save
-          </Button>
+          <div className="grid grid-flow-col gap-2">
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
+              Delete Permissions
+            </Button>
+
+            <Button
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              type="submit"
+              className="justify-self-end"
+            >
+              Save
+            </Button>
+          </div>
         </div>
       </Form>
     </FormProvider>

@@ -1,35 +1,37 @@
-import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import type { TrackTableOptions, TrackTableVariables } from './trackTable';
-import trackTable from './trackTable';
-import trackTableMigration from './trackTableMigration';
+import type {
+  ManagePermissionOptions,
+  ManagePermissionVariables,
+} from './managePermission';
+import managePermission from './managePermission';
 
-export interface UseTrackTableMutationOptions
-  extends Partial<TrackTableOptions> {
+export interface UseManagePermissionMutationOptions
+  extends Partial<ManagePermissionOptions> {
   /**
    * Props passed to the underlying mutation hook.
    */
-  mutationOptions?: MutationOptions<void, unknown, TrackTableVariables>;
+  mutationOptions?: MutationOptions<void, unknown, ManagePermissionVariables>;
 }
 
 /**
- * This hook is a wrapper around a fetch call that tracks a table.
+ * This hook is a wrapper around a fetch call that manages a permission for a
+ * specific role on a specific table.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.
  */
-export default function useTrackTableMutation({
+export default function useManagePermissionMutation({
   dataSource: customDataSource,
   schema: customSchema,
+  table: customTable,
   appUrl: customAppUrl,
   adminSecret: customAdminSecret,
   mutationOptions,
-}: UseTrackTableMutationOptions = {}) {
-  const isPlatform = useIsPlatform();
+}: UseManagePermissionMutationOptions = {}) {
   const {
     query: { dataSourceSlug, schemaSlug },
   } = useRouter();
@@ -39,7 +41,10 @@ export default function useTrackTableMutation({
     currentApplication?.region.awsName,
     'hasura',
   );
-  const mutationFn = isPlatform ? trackTable : trackTableMigration;
+
+  const mutationFn = managePermission;
+  // TODO: Implement this
+  // const mutationFn = isPlatform ? managePermission : managePermissionMigration;
 
   const mutation = useMutation(
     (variables) =>
@@ -52,6 +57,7 @@ export default function useTrackTableMutation({
             : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
+        table: customTable || (dataSourceSlug as string),
       }),
     mutationOptions,
   );

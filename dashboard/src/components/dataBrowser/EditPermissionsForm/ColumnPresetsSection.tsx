@@ -110,13 +110,14 @@ export default function ColumnPresetsSection({
                 </ControlledSelect>
 
                 <Autocomplete
-                  freeSolo
                   options={permissionVariableOptions}
                   name={`columnPresets.${index}.value`}
                   inputValue={field.value}
                   value={field.value}
+                  freeSolo
                   fullWidth
                   autoSelect
+                  autoHighlight={false}
                   isOptionEqualToValue={(option, value) => {
                     if (typeof value === 'string') {
                       return (
@@ -129,7 +130,6 @@ export default function ColumnPresetsSection({
                       option.value.toLowerCase() === value.value.toLowerCase()
                     );
                   }}
-                  autoHighlight={false}
                   onChange={(_event, _value, reason, details) => {
                     if (reason === 'clear') {
                       setValue(`columnPresets.${index}.value`, null, {

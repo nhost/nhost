@@ -241,6 +241,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       closeDrawerWithDirtyGuard,
       closeAlertDialog,
       onDirtyStateChange,
+      openDirtyConfirmation,
     }),
     [
       closeDialog,
@@ -249,6 +250,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       closeDrawerWithDirtyGuard,
       onDirtyStateChange,
       openDialog,
+      openDirtyConfirmation,
       openDrawer,
     ],
   );

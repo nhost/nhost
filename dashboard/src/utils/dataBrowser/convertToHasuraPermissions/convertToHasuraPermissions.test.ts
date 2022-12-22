@@ -1,5 +1,11 @@
 import convertToHasuraPermissions from './convertToHasuraPermissions';
 
+test('should return null if there are no rules or groups', () => {
+  expect(convertToHasuraPermissions()).toBeNull();
+  expect(convertToHasuraPermissions(null)).toBeNull();
+  expect(convertToHasuraPermissions(undefined)).toBeNull();
+});
+
 test('should not return any operators if there is only one rule in a group', () => {
   expect(
     convertToHasuraPermissions({

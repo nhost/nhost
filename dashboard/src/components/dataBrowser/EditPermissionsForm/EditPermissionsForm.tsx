@@ -111,8 +111,10 @@ export default function EditPermissionsForm({
     throw rolesError;
   }
 
-  const availableRoles =
-    rolesData?.app?.authUserDefaultAllowedRoles?.split(',') || [];
+  const availableRoles = [
+    'public',
+    ...(rolesData?.app?.authUserDefaultAllowedRoles?.split(',') || []),
+  ];
 
   const metadataForTable = metadata?.tables?.find(
     ({ table: currentTable }) =>
@@ -128,8 +130,6 @@ export default function EditPermissionsForm({
   }
 
   function handleCancel() {
-    // TODO: Implement dirty guard
-
     setRole(undefined);
     setAction(undefined);
   }

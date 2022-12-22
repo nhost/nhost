@@ -84,6 +84,10 @@ export interface DialogContextProps {
     isDirty: boolean,
     location?: 'drawer' | 'dialog',
   ) => void;
+  /**
+   * Call this function to open a dirty confirmation dialog.
+   */
+  openDirtyConfirmation: (config?: Partial<DialogConfig<string>>) => void;
 }
 
 export default createContext<DialogContextProps>({
@@ -96,4 +100,5 @@ export default createContext<DialogContextProps>({
   closeDrawerWithDirtyGuard: () => {},
   closeAlertDialog: () => {},
   onDirtyStateChange: () => {},
+  openDirtyConfirmation: () => {},
 });
