@@ -1,6 +1,7 @@
 import type {
   AffectedRowsResult,
-  DatabaseTable,
+  DatabaseAction,
+  HasuraMetadataPermission,
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
@@ -10,20 +11,93 @@ import { LOCAL_MIGRATIONS_URL } from '@/utils/env';
 
 export interface ManagePermissionMigrationVariables {
   /**
-   * Table to track.
+   * The role to manage the permission for.
    */
-  table: DatabaseTable;
+  role: string;
+  /**
+   * The action to manage the permission for.
+   */
+  action: DatabaseAction;
+  /**
+   * Permission to insert or update.
+   */
+  permission?: HasuraMetadataPermission['permission'];
+  /**
+   * The original permission to use for the down migration when updating and the
+   * up migration when deleting.
+   */
+  originalPermission?: HasuraMetadataPermission['permission'];
+  /**
+   * The mode to use when managing the permission.
+   *
+   * Available modes:
+   * - `create`: Creates the permission using the provided object.
+   * - `update`: Drops the permission and creates it again using the provided object.
+   * - `delete`: Drops the permission.
+   *
+   * @default 'update'
+   */
+  mode?: 'insert' | 'update' | 'delete';
 }
 
 export interface ManagePermissionMigrationOptions
-  extends Omit<MutationOrQueryBaseOptions, 'table'> {}
+  extends MutationOrQueryBaseOptions {}
 
 export default async function managePermissionMigration({
   dataSource,
   schema,
   adminSecret,
   table,
+  permission,
+  originalPermission,
+  role,
+  action,
+  mode = 'update',
 }: ManagePermissionMigrationOptions & ManagePermissionMigrationVariables) {
+  if (mode !== 'delete' && !permission) {
+    throw new Error('A permission object must be provided.');
+  }
+
+  if (mode === 'delete' && !originalPermission) {
+    throw new Error(
+      'An original permission object must be provided when mode is "delete".',
+    );
+  }
+
+  const deleteArgs = {
+    type: `pg_drop_${action}_permission`,
+    args: { table: { schema, name: table }, source: dataSource, role },
+  };
+
+  const insertArgs = {
+    type: `pg_create_${action}_permission`,
+    args: {
+      source: dataSource,
+      table: { schema, name: table },
+      role,
+      permission,
+    },
+  };
+
+  let args: { up: any[]; down: any[] } = {
+    up: [],
+    down: [],
+  };
+
+  if (mode === 'delete') {
+    args = {
+      down: [{ ...insertArgs, permission: originalPermission }],
+      up: [deleteArgs],
+    };
+  } else if (mode === 'insert') {
+    args = { down: [deleteArgs], up: [insertArgs] };
+  } else {
+    args = {
+      down: [{ ...insertArgs, permission: originalPermission }, deleteArgs],
+      up: [deleteArgs, insertArgs],
+    };
+  }
+
   const response = await fetch(`${LOCAL_MIGRATIONS_URL}/apis/migrate`, {
     method: 'POST',
     headers: {
@@ -32,19 +106,9 @@ export default async function managePermissionMigration({
     body: JSON.stringify({
       dataSource,
       skip_execution: false,
-      name: `add_existing_table_or_view_${schema}_${table.name}`,
-      down: [
-        {
-          type: 'pg_untrack_table',
-          args: { source: dataSource, table: { schema, name: table.name } },
-        },
-      ],
-      up: [
-        {
-          args: { source: dataSource, table: { schema, name: table.name } },
-          type: 'pg_track_table',
-        },
-      ],
+      name: `change_${action}_permission_${role}_${schema}_${table}`,
+      down: args.down,
+      up: args.up,
     }),
   });
 

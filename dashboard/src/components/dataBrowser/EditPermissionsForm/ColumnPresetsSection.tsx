@@ -42,22 +42,20 @@ export default function ColumnPresetsSection({
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data: customClaimsData, loading: customClaimsLoading } =
-    useGetAppCustomClaimsQuery({
-      variables: { id: currentApplication.id },
-    });
+  const { data: customClaimsData } = useGetAppCustomClaimsQuery({
+    variables: { id: currentApplication?.id },
+    skip: !currentApplication?.id,
+  });
   const { setValue } = useFormContext<RolePermissionEditorFormValues>();
   const { fields, append, remove } = useFieldArray({ name: 'columnPresets' });
   const columnPresets = useWatch({ name: 'columnPresets' }) as ColumnPreset[];
 
-  const permissionVariableOptions = !customClaimsLoading
-    ? getPermissionVariablesArray(
-        customClaimsData?.app?.authJwtCustomClaims,
-      ).map(({ key }) => ({
-        label: `X-Hasura-${key}`,
-        value: `X-Hasura-${key}`,
-      }))
-    : [];
+  const permissionVariableOptions = getPermissionVariablesArray(
+    customClaimsData?.app?.authJwtCustomClaims,
+  ).map(({ key }) => ({
+    label: `X-Hasura-${key}`,
+    value: `X-Hasura-${key}`,
+  }));
 
   const allColumnNames: string[] =
     tableData?.columns.map((column) => column.column_name) || [];
@@ -153,7 +151,16 @@ export default function ColumnPresetsSection({
                   variant="outlined"
                   color="secondary"
                   className="shrink-0 grow-0 flex-[40px]"
-                  onClick={() => remove(index)}
+                  onClick={() => {
+                    if (fields.length === 1) {
+                      remove(index);
+                      append({ column: '', value: '' });
+
+                      return;
+                    }
+
+                    remove(index);
+                  }}
                 >
                   <XIcon className="w-4 h-4" />
                 </IconButton>

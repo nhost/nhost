@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
@@ -21,7 +22,7 @@ import TableContainer from '@/ui/v2/TableContainer';
 import TableHead from '@/ui/v2/TableHead';
 import TableRow from '@/ui/v2/TableRow';
 import Text from '@/ui/v2/Text';
-import { useGetRolesQuery } from '@/utils/__generated__/graphql';
+import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -55,13 +56,12 @@ export default function EditPermissionsForm({
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
+  const client = useRemoteApplicationGQLClient();
   const {
     data: rolesData,
     loading: rolesLoading,
     error: rolesError,
-  } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
-  });
+  } = useGetRemoteAppRolesQuery({ client });
 
   const {
     data: tableData,
@@ -113,7 +113,7 @@ export default function EditPermissionsForm({
 
   const availableRoles = [
     'public',
-    ...(rolesData?.app?.authUserDefaultAllowedRoles?.split(',') || []),
+    ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
   ];
 
   const metadataForTable = metadata?.tables?.find(
@@ -144,15 +144,15 @@ export default function EditPermissionsForm({
       !permission ||
       (!isFilterAvailable &&
         !isCheckAvailable &&
-        permission.columns.length === 0)
+        permission?.columns?.length === 0)
     ) {
       return 'none';
     }
 
     const sortedTableColumns = [...availableColumns].sort();
     const isAllColumnSelected =
-      sortedTableColumns.length === permission.columns.length &&
-      [...permission.columns]
+      sortedTableColumns.length === permission?.columns?.length &&
+      [...(permission?.columns || [])]
         .sort()
         .every(
           (permissionColumn, index) =>
@@ -169,7 +169,7 @@ export default function EditPermissionsForm({
 
     if (
       !isAllColumnSelected &&
-      permission.columns.length > 0 &&
+      permission?.columns?.length > 0 &&
       !isCheckAvailable &&
       !isFilterAvailable
     ) {

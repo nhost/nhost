@@ -53,33 +53,29 @@ export default async function managePermission({
     );
   }
 
-  const deleteArgs = [
-    {
-      type: `pg_drop_${action}_permission`,
-      args: { table: { schema, name: table }, source: dataSource, role },
-    },
-  ];
+  const deleteArgs = {
+    type: `pg_drop_${action}_permission`,
+    args: { table: { schema, name: table }, source: dataSource, role },
+  };
 
-  const insertArgs = [
-    {
-      type: `pg_create_${action}_permission`,
-      args: {
-        source: dataSource,
-        table: { schema, name: table },
-        role,
-        permission,
-      },
+  const insertArgs = {
+    type: `pg_create_${action}_permission`,
+    args: {
+      source: dataSource,
+      table: { schema, name: table },
+      role,
+      permission,
     },
-  ];
+  };
 
   let args = [];
 
   if (mode === 'delete') {
-    args = deleteArgs;
+    args = [deleteArgs];
   } else if (mode === 'insert') {
-    args = insertArgs;
+    args = [insertArgs];
   } else {
-    args = [...deleteArgs, ...insertArgs];
+    args = [deleteArgs, insertArgs];
   }
 
   const response = await fetch(`${appUrl}/v1/metadata`, {

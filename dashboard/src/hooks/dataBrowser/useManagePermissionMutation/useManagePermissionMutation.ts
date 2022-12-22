@@ -1,20 +1,24 @@
+import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import type {
-  ManagePermissionOptions,
-  ManagePermissionVariables,
-} from './managePermission';
+import type { ManagePermissionOptions } from './managePermission';
 import managePermission from './managePermission';
+import type { ManagePermissionMigrationVariables } from './managePermissionMigration';
+import managePermissionMigration from './managePermissionMigration';
 
 export interface UseManagePermissionMutationOptions
   extends Partial<ManagePermissionOptions> {
   /**
    * Props passed to the underlying mutation hook.
    */
-  mutationOptions?: MutationOptions<void, unknown, ManagePermissionVariables>;
+  mutationOptions?: MutationOptions<
+    void,
+    unknown,
+    ManagePermissionMigrationVariables
+  >;
 }
 
 /**
@@ -32,6 +36,7 @@ export default function useManagePermissionMutation({
   adminSecret: customAdminSecret,
   mutationOptions,
 }: UseManagePermissionMutationOptions = {}) {
+  const isPlatform = useIsPlatform();
   const {
     query: { dataSourceSlug, schemaSlug },
   } = useRouter();
@@ -42,9 +47,7 @@ export default function useManagePermissionMutation({
     'hasura',
   );
 
-  const mutationFn = managePermission;
-  // TODO: Implement this
-  // const mutationFn = isPlatform ? managePermission : managePermissionMigration;
+  const mutationFn = isPlatform ? managePermission : managePermissionMigration;
 
   const mutation = useMutation(
     (variables) =>

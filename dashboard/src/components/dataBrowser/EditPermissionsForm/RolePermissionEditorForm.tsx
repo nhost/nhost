@@ -244,6 +244,7 @@ export default function RolePermissionEditorForm({
     const deletePermissionPromise = managePermission({
       role,
       action,
+      originalPermission: permission,
       mode: 'delete',
     });
 
