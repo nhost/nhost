@@ -43,7 +43,7 @@ export default function UsersPage() {
   const remoteAppGetUserVariables = useMemo(
     () => ({
       where:
-        router.query.user !== undefined
+        router.query.userId !== undefined
           ? {
               id: {
                 _eq: searchString,
@@ -153,15 +153,15 @@ export default function UsersPage() {
 
   /**
    * If the users enters the page with a page query param with the following structure:
-   * `users?user=<id>` this useEffect will update the search string to the id.
+   * `users?userId=<id>` this useEffect will update the search string to the id.
    * which in turn will trigger fetching the data with the new variables.
    *
    */
   useEffect(() => {
-    if (router.query.user && typeof router.query.user === 'string') {
-      setSearchString(router.query.user);
+    if (router.query.userId && typeof router.query.userId === 'string') {
+      setSearchString(router.query.userId);
     }
-  }, [router.query.user]);
+  }, [router.query.userId]);
 
   /**
    * We want to update the number of pages when the data changes
@@ -305,7 +305,7 @@ export default function UsersPage() {
         </div>
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
-          <div className="grid w-full h-full grid-flow-row py-4 overflow-hidden">
+          <div className="grid w-full h-full grid-flow-row pb-4 overflow-hidden">
             <div className="grid w-full p-2 border-b md:grid-cols-6">
               <Text className="font-medium md:col-span-2">Name</Text>
               <Text className="hidden font-medium md:block">Signed up at</Text>
