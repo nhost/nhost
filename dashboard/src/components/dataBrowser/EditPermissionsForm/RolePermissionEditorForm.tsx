@@ -240,11 +240,17 @@ export default function RolePermissionEditorForm({
 
   function handleCancelClick() {
     if (isDirty) {
-      openDirtyConfirmation({ props: { onPrimaryAction: onCancel } });
+      openDirtyConfirmation({
+        props: {
+          onPrimaryAction: () => {
+            onDirtyStateChange(false, 'drawer');
+            onCancel?.();
+          },
+        },
+      });
 
       return;
     }
-
     onCancel?.();
   }
 
