@@ -39,4 +39,4 @@ AUTH_LOCALE_DEFAULT=en
 AUTH_LOCALE_ALLOWED_LOCALES=en,fr
 ```
 
-Both syntwaxes will allow the locales `['en', 'fr']`
+Both syntaxes will allow the locales `en` and `fr`.
