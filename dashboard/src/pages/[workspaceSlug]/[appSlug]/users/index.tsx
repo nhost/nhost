@@ -14,9 +14,9 @@ import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { SearchIcon } from '@heroicons/react/solid';
 import debounce from 'lodash.debounce';
-import { useRouter } from 'next/router';
+import Router, { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersQuery['users'][0],
@@ -79,6 +79,42 @@ export default function UsersPage() {
   });
 
   /**
+   * This function will remove query params from the URL.
+   *
+   * @remarks This function is used when we want to update the URL query
+   * params without refreshing the page. For example if we want to remove
+   * the page query param from the URL when we are on the first page.
+   *
+   * @param removeList - List of query params we want to remove from the URL
+   */
+  const removeQueryParamsFromRouter = useCallback(
+    (removeList: string[] = []) => {
+      if (removeList.length > 0) {
+        removeList.forEach(
+          (param: string | number) => delete Router.query[param],
+        );
+      } else {
+        // Remove all
+        Object.keys(Router.query).forEach(
+          (param) => delete Router.query[param],
+        );
+      }
+      Router.replace(
+        {
+          pathname: Router.pathname,
+          query: Router.query,
+        },
+        undefined,
+        /**
+         * Do not refresh the page
+         */
+        { shallow: true },
+      );
+    },
+    [],
+  );
+
+  /**
    * If a user of the app enters the users tab with a page query param of the following structure:
    * `users?page=2` this useEffect will update the current page to 2.
    * which in turn will update the offset and trigger fetching the data with the new variables.
@@ -104,6 +140,16 @@ export default function UsersPage() {
       }
     }
   }, [nrOfPages, router.query.page]);
+
+  /**
+   * If the user is on the first page, we want to remove the page query param from the URL.
+   * e.g. `users?page=1` -> `users`
+   */
+  useEffect(() => {
+    if (currentPage === 1) {
+      removeQueryParamsFromRouter(['page']);
+    }
+  }, [currentPage, removeQueryParamsFromRouter]);
 
   /**
    * If the users enters the page with a page query param with the following structure:
@@ -143,7 +189,7 @@ export default function UsersPage() {
       debounce((event: ChangeEvent<HTMLInputElement>) => {
         setCurrentPage(1);
         setSearchString(event.target.value);
-      }, 500),
+      }, 1000),
     [],
   );
 
@@ -308,10 +354,12 @@ export default function UsersPage() {
                   }
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page: currentPage - 1 },
-                    });
+                    if (currentPage - 1 !== 1) {
+                      await router.push({
+                        pathname: router.pathname,
+                        query: { ...router.query, page: currentPage - 1 },
+                      });
+                    }
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);
