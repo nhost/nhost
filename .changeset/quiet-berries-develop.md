@@ -2,7 +2,8 @@
 'hasura-auth': patch
 ---
 
-Always add required allowed roles and locales
+- The default role is now automatically added to the allowed roles.
+- The default locale is now automatically added to the allowed locales.
 
 Until now, it was required to pass on explicilty the `"me"` and `AUTH_USER_DEFAULT_ROLE` to `AUTH_USER_DEFAULT_ALLOWED_ROLES`. They are now automatically added if they are not in the environment variable.
 
