@@ -2,6 +2,7 @@ import ControlledSwitch from '@/components/common/ControlledSwitch';
 import HighlightedText from '@/components/common/HighlightedText';
 import Text from '@/ui/v2/Text';
 import { useFormContext } from 'react-hook-form';
+import PermissionSettingsSection from './PermissionSettingsSection';
 import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface AggregationQuerySectionProps {
@@ -18,42 +19,33 @@ export default function AggregationQuerySection({
     useFormContext<RolePermissionEditorFormValues>();
 
   return (
-    <section className="bg-white border-y-1 border-gray-200">
-      <Text
-        component="h2"
-        className="px-6 py-3 font-bold border-b-1 border-gray-200"
-      >
-        Aggregation queries permissions
+    <PermissionSettingsSection title="Aggregation queries permissions">
+      <Text variant="subtitle1">
+        Allow queries with aggregate functions like sum, count, avg, max, min,
+        etc.
       </Text>
 
-      <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
-        <Text variant="subtitle1">
-          Allow queries with aggregate functions like sum, count, avg, max, min,
-          etc.
-        </Text>
-
-        <ControlledSwitch
-          name="allowAggregations"
-          label={
-            <Text variant="subtitle1" component="span">
-              Allow <HighlightedText>{role}</HighlightedText> to make
-              aggregation queries
-            </Text>
+      <ControlledSwitch
+        name="allowAggregations"
+        label={
+          <Text variant="subtitle1" component="span">
+            Allow <HighlightedText>{role}</HighlightedText> to make aggregation
+            queries
+          </Text>
+        }
+        onChange={(event) => {
+          if (event.target.checked) {
+            return;
           }
-          onChange={(event) => {
-            if (event.target.checked) {
-              return;
-            }
 
-            setValue(
-              'queryRootFields',
-              getValues('queryRootFields')?.filter(
-                (field) => field !== 'select_aggregate',
-              ) || [],
-            );
-          }}
-        />
-      </div>
-    </section>
+          setValue(
+            'queryRootFields',
+            getValues('queryRootFields')?.filter(
+              (field) => field !== 'select_aggregate',
+            ) || [],
+          );
+        }}
+      />
+    </PermissionSettingsSection>
   );
 }

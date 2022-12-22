@@ -7,6 +7,7 @@ import RadioGroup from '@/ui/v2/RadioGroup';
 import Text from '@/ui/v2/Text';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import PermissionSettingsSection from './PermissionSettingsSection';
 import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface RowPermissionsSectionProps {
@@ -83,55 +84,50 @@ export default function RowPermissionsSection({
   }
 
   return (
-    <section className="bg-white border-y-1 border-gray-200">
-      <Text
-        component="h2"
-        className="px-6 py-3 font-bold border-b-1 border-gray-200"
-      >
-        Row {action} permissions
+    <PermissionSettingsSection title={`Row ${action} permissions`}>
+      <Text>
+        Allow role <HighlightedText>{role}</HighlightedText> to{' '}
+        <HighlightedText>{action}</HighlightedText> rows:
       </Text>
 
-      <div className="grid grid-flow-row gap-4 items-center px-6 py-4">
-        <Text>
-          Allow role <HighlightedText>{role}</HighlightedText> to{' '}
-          <HighlightedText>{action}</HighlightedText> rows:
+      <RadioGroup
+        value={rowCheckType}
+        className="grid grid-flow-col justify-start gap-4"
+        onChange={(_event, value) =>
+          handleCheckTypeChange(value as typeof rowCheckType)
+        }
+      >
+        <Radio value="none" label="Without any checks" />
+        <Radio value="custom" label="With custom check" />
+      </RadioGroup>
+
+      {errors?.filter && (
+        <Text variant="subtitle2" className="font-normal !text-red">
+          {errors.filter.message}
         </Text>
+      )}
 
-        <RadioGroup
-          value={rowCheckType}
-          className="grid grid-flow-col justify-start gap-4"
-          onChange={(_event, value) =>
-            handleCheckTypeChange(value as typeof rowCheckType)
+      {rowCheckType === 'custom' && (
+        <RuleGroupEditor name="filter" schema={schema} table={table} />
+      )}
+
+      {action === 'select' && (
+        <Input
+          {...register('limit')}
+          id="limit"
+          type="number"
+          label="Limit number of rows"
+          slotProps={{
+            input: { className: 'max-w-xs w-full' },
+            inputRoot: { min: 0 },
+          }}
+          helperText={
+            errors?.limit?.message ||
+            'Set limit on number of rows fetched per request.'
           }
-        >
-          <Radio value="none" label="Without any checks" />
-          <Radio value="custom" label="With custom check" />
-        </RadioGroup>
-
-        {errors?.filter && (
-          <Text variant="subtitle2" className="font-normal !text-red">
-            {errors.filter.message}
-          </Text>
-        )}
-
-        {rowCheckType === 'custom' && (
-          <RuleGroupEditor name="filter" schema={schema} table={table} />
-        )}
-
-        {action === 'select' && (
-          <Input
-            {...register('limit')}
-            id="limit"
-            type="number"
-            label="Limit number of rows"
-            slotProps={{
-              input: { className: 'max-w-xs w-full' },
-              inputRoot: { min: 0 },
-            }}
-            helperText="Set limit on number of rows fetched per request."
-          />
-        )}
-      </div>
-    </section>
+          error={Boolean(errors?.limit)}
+        />
+      )}
+    </PermissionSettingsSection>
   );
 }

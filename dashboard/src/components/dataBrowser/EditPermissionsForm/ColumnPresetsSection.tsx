@@ -13,6 +13,7 @@ import Text from '@/ui/v2/Text';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import PermissionSettingsSection from './PermissionSettingsSection';
 import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface ColumnPreset {
@@ -46,7 +47,10 @@ export default function ColumnPresetsSection({
     variables: { id: currentApplication?.id },
     skip: !currentApplication?.id,
   });
-  const { setValue } = useFormContext<RolePermissionEditorFormValues>();
+  const {
+    setValue,
+    formState: { errors },
+  } = useFormContext<RolePermissionEditorFormValues>();
   const { fields, append, remove } = useFieldArray({ name: 'columnPresets' });
   const columnPresets = useWatch({ name: 'columnPresets' }) as ColumnPreset[];
 
@@ -71,125 +75,116 @@ export default function ColumnPresetsSection({
   }));
 
   return (
-    <section className="bg-white border-y-1 border-gray-200">
-      <Text
-        component="h2"
-        className="px-6 py-3 font-bold border-b-1 border-gray-200"
-      >
-        Column presets
+    <PermissionSettingsSection title="Column presets" className="gap-6">
+      <Text variant="subtitle1">
+        Set static values or session variables as pre-determined values for
+        columns while inserting.
       </Text>
 
-      <div className="grid grid-flow-row gap-6 items-center px-6 py-4">
-        <Text variant="subtitle1">
-          Set static values or session variables as pre-determined values for
-          columns while inserting.
-        </Text>
-
-        <div className="grid grid-flow-row gap-2">
-          <div className="grid grid-cols-[1fr_1fr_40px] gap-2">
-            <InputLabel as="span">Column Name</InputLabel>
-            <InputLabel as="span">Column Value</InputLabel>
-          </div>
-
-          {tableStatus === 'loading' && (
-            <ActivityIndicator label="Loading columns..." />
-          )}
-
-          <div className="grid grid-flow-row gap-4">
-            {tableStatus === 'success' &&
-              selectedColumns.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="grid grid-cols-[1fr_1fr_40px] gap-2"
-                >
-                  <ControlledSelect name={`columnPresets.${index}.column`}>
-                    {allColumnNames.map((column) => (
-                      <Option
-                        value={column}
-                        disabled={selectedColumnsMap.has(column)}
-                        key={column}
-                      >
-                        {column}
-                      </Option>
-                    ))}
-                  </ControlledSelect>
-
-                  <Autocomplete
-                    options={permissionVariableOptions}
-                    groupBy={(option) => option.group}
-                    name={`columnPresets.${index}.value`}
-                    inputValue={field.value}
-                    value={field.value}
-                    freeSolo
-                    fullWidth
-                    disableClearable={false}
-                    clearIcon={<XIcon />}
-                    autoSelect
-                    autoHighlight={false}
-                    isOptionEqualToValue={(option, value) => {
-                      if (typeof value === 'string') {
-                        return (
-                          option.value.toLowerCase() ===
-                          (value as string).toLowerCase()
-                        );
-                      }
-
-                      return (
-                        option.value.toLowerCase() === value.value.toLowerCase()
-                      );
-                    }}
-                    onChange={(_event, _value, reason, details) => {
-                      if (reason === 'clear') {
-                        setValue(`columnPresets.${index}.value`, null, {
-                          shouldDirty: true,
-                        });
-
-                        return;
-                      }
-
-                      setValue(
-                        `columnPresets.${index}.value`,
-                        typeof details.option === 'string'
-                          ? details.option
-                          : details.option.value,
-                        { shouldDirty: true },
-                      );
-                    }}
-                  />
-
-                  <IconButton
-                    variant="outlined"
-                    color="secondary"
-                    className="shrink-0 grow-0 flex-[40px]"
-                    onClick={() => {
-                      if (fields.length === 1) {
-                        remove(index);
-                        append({ column: '', value: '' });
-
-                        return;
-                      }
-
-                      remove(index);
-                    }}
-                  >
-                    <XIcon className="w-4 h-4" />
-                  </IconButton>
-                </div>
-              ))}
-          </div>
-
-          <Button
-            variant="borderless"
-            startIcon={<PlusIcon />}
-            size="small"
-            onClick={() => append({ column: '', type: 'static', value: '' })}
-            disabled={selectedColumns.length === allColumnNames.length}
-            className="justify-self-start"
-          >
-            Add Column
-          </Button>
+      <div className="grid grid-flow-row gap-2">
+        <div className="grid grid-cols-[1fr_1fr_40px] gap-2">
+          <InputLabel as="span">Column Name</InputLabel>
+          <InputLabel as="span">Column Value</InputLabel>
         </div>
+
+        {tableStatus === 'loading' && (
+          <ActivityIndicator label="Loading columns..." />
+        )}
+
+        <div className="grid grid-flow-row gap-4">
+          {tableStatus === 'success' &&
+            selectedColumns.map((field, index) => (
+              <div
+                key={field.id}
+                className="grid grid-cols-[1fr_1fr_40px] gap-2"
+              >
+                <ControlledSelect name={`columnPresets.${index}.column`}>
+                  {allColumnNames.map((column) => (
+                    <Option
+                      value={column}
+                      disabled={selectedColumnsMap.has(column)}
+                      key={column}
+                    >
+                      {column}
+                    </Option>
+                  ))}
+                </ControlledSelect>
+
+                <Autocomplete
+                  options={permissionVariableOptions}
+                  groupBy={(option) => option.group}
+                  name={`columnPresets.${index}.value`}
+                  inputValue={field.value}
+                  value={field.value}
+                  freeSolo
+                  fullWidth
+                  disableClearable={false}
+                  clearIcon={<XIcon />}
+                  autoSelect
+                  autoHighlight={false}
+                  isOptionEqualToValue={(option, value) => {
+                    if (typeof value === 'string') {
+                      return (
+                        option.value.toLowerCase() ===
+                        (value as string).toLowerCase()
+                      );
+                    }
+
+                    return (
+                      option.value.toLowerCase() === value.value.toLowerCase()
+                    );
+                  }}
+                  onChange={(_event, _value, reason, details) => {
+                    if (reason === 'clear') {
+                      setValue(`columnPresets.${index}.value`, null, {
+                        shouldDirty: true,
+                      });
+
+                      return;
+                    }
+
+                    setValue(
+                      `columnPresets.${index}.value`,
+                      typeof details.option === 'string'
+                        ? details.option
+                        : details.option.value,
+                      { shouldDirty: true },
+                    );
+                  }}
+                />
+
+                <IconButton
+                  variant="outlined"
+                  color="secondary"
+                  className="shrink-0 grow-0 flex-[40px]"
+                  onClick={() => {
+                    if (fields.length === 1) {
+                      remove(index);
+                      append({ column: '', value: '' });
+
+                      return;
+                    }
+
+                    remove(index);
+                  }}
+                >
+                  <XIcon className="w-4 h-4" />
+                </IconButton>
+              </div>
+            ))}
+        </div>
+
+        <Button
+          variant="borderless"
+          startIcon={<PlusIcon />}
+          size="small"
+          onClick={() => append({ column: '', type: 'static', value: '' })}
+          disabled={selectedColumns.length === allColumnNames.length}
+          className="justify-self-start"
+        >
+          Add Column
+        </Button>
       </div>
-    </section>
+    </PermissionSettingsSection>
   );
 }

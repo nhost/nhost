@@ -137,14 +137,9 @@ export default function EditPermissionsForm({
   function getAccessLevel(
     permission?: HasuraMetadataPermission['permission'],
   ): DatabaseAccessLevel {
-    const isCheckAvailable = Object.keys(permission?.check || {}).length > 0;
-    const isFilterAvailable = Object.keys(permission?.filter || {}).length > 0;
-
     if (
       !permission ||
-      (!isFilterAvailable &&
-        !isCheckAvailable &&
-        permission?.columns?.length === 0)
+      (!permission?.check && !permission && permission?.columns?.length === 0)
     ) {
       return 'none';
     }
@@ -159,24 +154,15 @@ export default function EditPermissionsForm({
             permissionColumn === sortedTableColumns[index],
         );
 
-    if (isAllColumnSelected && (isFilterAvailable || isCheckAvailable)) {
-      return 'partial';
-    }
-
-    if (!isAllColumnSelected && (isFilterAvailable || isCheckAvailable)) {
-      return 'partial';
-    }
-
     if (
-      !isAllColumnSelected &&
-      permission?.columns?.length > 0 &&
-      !isCheckAvailable &&
-      !isFilterAvailable
+      Object.keys(permission?.check || {}).length === 0 &&
+      Object.keys(permission?.filter || {}).length === 0 &&
+      isAllColumnSelected
     ) {
-      return 'partial';
+      return 'full';
     }
 
-    return 'full';
+    return 'partial';
   }
 
   if (role && action) {

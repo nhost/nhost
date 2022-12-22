@@ -23,6 +23,7 @@ import BackendOnlySection from './BackendOnlySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
 import type { ColumnPreset } from './ColumnPresetsSection';
 import ColumnPresetsSection from './ColumnPresetsSection';
+import PermissionSettingsSection from './PermissionSettingsSection';
 import RootFieldPermissionsSection from './RootFieldPermissionsSection';
 import RowPermissionsSection from './RowPermissionsSection';
 
@@ -144,10 +145,39 @@ function convertToColumnPresetObject(
   return returnValue;
 }
 
-const validationSchema = Yup.object().shape({
-  filter: Yup.object().nullable().required('This field is required.'),
-  // TODO: Extend validation
+const baseValidationSchema = Yup.object().shape({
+  filter: Yup.object().nullable().required('Please select a filter type.'),
+  columns: Yup.array().of(Yup.string()).nullable(true),
 });
+
+const selectValidationSchema = baseValidationSchema.shape({
+  limit: Yup.number().min(0, 'Limit must not be negative.').nullable(true),
+  allowAggregations: Yup.boolean().nullable(true),
+  queryRootFields: Yup.array().of(Yup.string()).nullable(true),
+  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(true),
+});
+
+const insertValidationSchema = baseValidationSchema.shape({
+  backendOnly: Yup.boolean().nullable(true),
+  columnPresets: Yup.array().test({
+    name: 'includes-correct-elements',
+    message: 'Column presets must have a column and value.',
+    test: (columnPresets) => {
+      if (!columnPresets) {
+        return true;
+      }
+
+      return columnPresets.every(({ column, value }) => column && value);
+    },
+  }),
+});
+
+const validationSchemas: Record<DatabaseAction, Yup.ObjectSchema<any>> = {
+  select: selectValidationSchema,
+  insert: insertValidationSchema,
+  update: baseValidationSchema,
+  delete: baseValidationSchema,
+};
 
 export default function RolePermissionEditorForm({
   schema,
@@ -184,7 +214,7 @@ export default function RolePermissionEditorForm({
       columnPresets: getColumnPresets(permission?.set || {}),
       backendOnly: permission?.backend_only || false,
     },
-    resolver: yupResolver(validationSchema),
+    resolver: yupResolver(validationSchemas[action]),
   });
 
   const {
@@ -200,6 +230,8 @@ export default function RolePermissionEditorForm({
   }, [isDirty, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
+    console.log(`valid`);
+    return;
     const managePermissionPromise = managePermission({
       role,
       action,
@@ -301,30 +333,24 @@ export default function RolePermissionEditorForm({
         className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]"
       >
         <div className="grid grid-flow-row gap-6 content-start flex-auto py-4 overflow-auto">
-          <section className="bg-white border-y-1 border-gray-200">
-            <Text
-              component="h2"
-              className="px-6 py-3 font-bold border-b-1 border-gray-200"
-            >
-              Selected role & action
-            </Text>
+          <PermissionSettingsSection
+            title="Selected role & action"
+            className="justify-between grid-flow-col"
+          >
+            <div className="grid grid-flow-col gap-4">
+              <Text>
+                Role: <HighlightedText>{role}</HighlightedText>
+              </Text>
 
-            <div className="grid grid-flow-col gap-2 items-center justify-between px-6 py-4">
-              <div className="grid grid-flow-col gap-4">
-                <Text>
-                  Role: <HighlightedText>{role}</HighlightedText>
-                </Text>
-
-                <Text>
-                  Action: <HighlightedText>{action}</HighlightedText>
-                </Text>
-              </div>
-
-              <Button variant="borderless" onClick={handleCancelClick}>
-                Change
-              </Button>
+              <Text>
+                Action: <HighlightedText>{action}</HighlightedText>
+              </Text>
             </div>
-          </section>
+
+            <Button variant="borderless" onClick={handleCancelClick}>
+              Change
+            </Button>
+          </PermissionSettingsSection>
 
           <RowPermissionsSection
             role={role}
