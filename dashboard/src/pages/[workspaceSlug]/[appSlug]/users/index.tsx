@@ -306,11 +306,13 @@ export default function UsersPage() {
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid w-full h-full grid-flow-row overflow-hidden">
-            <div className="grid w-full grid-cols-6 p-2 border-b">
+            <div className="grid w-full p-2 border-b md:grid-cols-6">
               <Text className="font-medium md:col-span-2">Name</Text>
-              <Text className="font-medium">Signed up at</Text>
-              <Text className="font-medium">Last Seen</Text>
-              <Text className="col-span-2 font-medium">OAuth Providers</Text>
+              <Text className="hidden font-medium md:grid">Signed up at</Text>
+              <Text className="hidden font-medium md:grid">Last Seen</Text>
+              <Text className="hidden col-span-2 font-medium md:grid">
+                OAuth Providers
+              </Text>
             </div>
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&

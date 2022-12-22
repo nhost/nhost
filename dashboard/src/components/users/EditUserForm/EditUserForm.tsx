@@ -28,7 +28,6 @@ import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps {
@@ -179,13 +178,13 @@ export default function EditUserForm({
   return (
     <FormProvider {...form}>
       <Form
-        className="flex flex-col content-between flex-auto overflow-hidden border-gray-200 border-t-1"
+        className="flex flex-col border-gray-200 lg:content-between lg:flex-auto border-t-1"
         onSubmit={(values) => {
           onEditUser(values, user);
         }}
       >
-        <div className="flex-auto overflow-y-auto divide-y">
-          <section className="grid grid-flow-col grid-cols-7 p-6">
+        <div className="flex-auto divide-y">
+          <section className="grid grid-flow-col p-6 lg:grid-cols-7">
             <div className="grid items-center grid-flow-col col-span-6 gap-4 place-content-start">
               <Avatar className="w-12 h-12 border" src={user.avatarUrl} />
               <div className="grid items-center grid-flow-row">
@@ -237,7 +236,7 @@ export default function EditUserForm({
             <InputLabel as="h3" className="self-center col-span-1">
               User ID
             </InputLabel>
-            <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-3">
+            <div className="grid items-center justify-start grid-flow-col col-span-3 gap-2">
               <Text className="font-medium truncate">{user.id}</Text>
               <IconButton
                 variant="borderless"
@@ -366,7 +365,7 @@ export default function EditUserForm({
               <Option value="fr">fr</Option>
             </ControlledSelect>
           </section>
-          <section className="grid grid-cols-4 p-6 place-content-start">
+          <section className="grid gap-4 p-6 lg:grid-cols-4 place-content-start">
             <div className="items-center self-center col-span-1 align-middle">
               <InputLabel as="h3">OAuth Providers</InputLabel>
             </div>
@@ -421,7 +420,7 @@ export default function EditUserForm({
                   <Option value={role.name}>{role.name}</Option>
                 ))}
               </ControlledSelect>
-              <div className="grid grid-flow-col grid-cols-8 gap-6 place-content-start">
+              <div className="grid grid-flow-row gap-6 lg:grid-cols-8 lg:grid-flow-col place-content-start">
                 <InputLabel as="h3" className="col-span-2">
                   Allowed Roles
                 </InputLabel>
@@ -440,12 +439,7 @@ export default function EditUserForm({
           )}
         </div>
 
-        <div
-          className={twMerge(
-            'grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end',
-            isAnonymous && 'absolute bottom-0',
-          )}
-        >
+        <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
           <Button
             variant="outlined"
             color="secondary"

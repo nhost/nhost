@@ -269,7 +269,7 @@ export default function UsersBody({
               }
             >
               <ListItem.Button
-                className="grid grid-cols-6 cursor-pointer py-2.5 h-full w-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
+                className="grid lg:grid-cols-6 grid-cols-1 cursor-pointer py-2.5 h-full w-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
                 onClick={() => handleViewUser(user)}
               >
                 <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
@@ -298,7 +298,7 @@ export default function UsersBody({
 
                 <Text
                   color="greyscaleDark"
-                  className="px-2 font-normal"
+                  className="hidden px-2 font-normal md:block"
                   size="normal"
                 >
                   {user.createdAt
@@ -310,7 +310,7 @@ export default function UsersBody({
                 </Text>
                 <Text
                   color="greyscaleDark"
-                  className="px-3 font-normal"
+                  className="hidden px-4 font-normal md:block"
                   size="normal"
                 >
                   {user.lastSeen
@@ -321,7 +321,7 @@ export default function UsersBody({
                     : '-'}
                 </Text>
 
-                <div className="grid grid-flow-col col-span-2 gap-3 px-4 place-content-start">
+                <div className="hidden grid-flow-col col-span-2 gap-3 px-4 lg:grid place-content-start">
                   {user.userProviders.length === 0 && (
                     <Text className="col-span-3 font-medium">-</Text>
                   )}
