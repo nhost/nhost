@@ -6,6 +6,10 @@ test('should return null if there are no rules or groups', () => {
   expect(convertToHasuraPermissions(undefined)).toBeNull();
 });
 
+test('should return an empty object if the input is an empty object', () => {
+  expect(convertToHasuraPermissions({})).toMatchObject({});
+});
+
 test('should not return any operators if there is only one rule in a group', () => {
   expect(
     convertToHasuraPermissions({

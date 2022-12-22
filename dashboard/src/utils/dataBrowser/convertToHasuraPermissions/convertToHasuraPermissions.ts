@@ -33,18 +33,22 @@ function createNestedObjectFromRule({
  * @returns - A Hasura permission object
  */
 export default function convertToHasuraPermissions(
-  ruleGroup?: RuleGroup,
+  ruleGroup?: Partial<RuleGroup>,
 ): Record<string, any> {
   if (!ruleGroup) {
     return null;
   }
 
-  if (ruleGroup.rules.length === 1 && ruleGroup.groups.length === 0) {
+  if (!('rules' in ruleGroup) && !('groups' in ruleGroup)) {
+    return {};
+  }
+
+  if (ruleGroup.rules?.length === 1 && ruleGroup.groups?.length === 0) {
     return createNestedObjectFromRule(ruleGroup.rules[0]);
   }
 
-  const convertedRules = ruleGroup.rules.map(createNestedObjectFromRule);
-  const subGroupRules = ruleGroup.groups.map(convertToHasuraPermissions);
+  const convertedRules = ruleGroup.rules?.map(createNestedObjectFromRule) || [];
+  const subGroupRules = ruleGroup.groups?.map(convertToHasuraPermissions) || [];
 
   return {
     [ruleGroup.operator]: [...convertedRules, ...subGroupRules],

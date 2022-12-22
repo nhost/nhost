@@ -34,8 +34,12 @@ export default function RowPermissionsSection({
   schema,
   table,
 }: RowPermissionsSectionProps) {
-  const { register, setValue, getValues } =
-    useFormContext<RolePermissionEditorFormValues>();
+  const {
+    register,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useFormContext<RolePermissionEditorFormValues>();
   const { filter } = getValues();
 
   const defaultRowCheckType =
@@ -103,6 +107,12 @@ export default function RowPermissionsSection({
           <Radio value="none" label="Without any checks" />
           <Radio value="custom" label="With custom check" />
         </RadioGroup>
+
+        {errors?.filter && (
+          <Text variant="subtitle2" className="font-normal !text-red">
+            {errors.filter.message}
+          </Text>
+        )}
 
         {rowCheckType === 'custom' && (
           <RuleGroupEditor name="filter" schema={schema} table={table} />

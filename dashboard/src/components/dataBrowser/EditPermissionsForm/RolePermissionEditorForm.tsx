@@ -12,10 +12,12 @@ import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 import AggregationQuerySection from './AggregationQuerySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
 import type { ColumnPreset } from './ColumnPresetsSection';
@@ -118,14 +120,29 @@ function getColumnPresets(data: Record<string, any>): ColumnPreset[] {
 function convertToColumnPresetObject(
   columnPresets: ColumnPreset[],
 ): Record<string, any> {
-  return columnPresets.reduce((data, { column, value }) => {
+  if (columnPresets?.length === 0) {
+    return null;
+  }
+
+  const returnValue = columnPresets.reduce((data, { column, value }) => {
     if (column) {
       return { ...data, [column]: value };
     }
 
     return data;
   }, {});
+
+  if (Object.keys(returnValue).length === 0) {
+    return null;
+  }
+
+  return returnValue;
 }
+
+const validationSchema = Yup.object().shape({
+  filter: Yup.object().nullable().required('This field is required.'),
+  // TODO: Extend validation
+});
 
 export default function RolePermissionEditorForm({
   schema,
@@ -161,13 +178,15 @@ export default function RolePermissionEditorForm({
       subscriptionRootFields: permission?.subscription_root_fields || [],
       columnPresets: getColumnPresets(permission?.set || {}),
     },
+    resolver: yupResolver(validationSchema),
   });
 
   const {
     formState: { dirtyFields, isSubmitting },
   } = form;
 
-  const { onDirtyStateChange, openDirtyConfirmation } = useDialog();
+  const { onDirtyStateChange, openDirtyConfirmation, openAlertDialog } =
+    useDialog();
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
@@ -175,21 +194,10 @@ export default function RolePermissionEditorForm({
   }, [isDirty, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
-    console.log({
-      set: convertToColumnPresetObject(values.columnPresets),
-      columns: values.columns,
-      limit: values.limit,
-      allow_aggregations: values.allowAggregations,
-      query_root_fields: values.queryRootFields,
-      subscription_root_fields: values.subscriptionRootFields,
-      filter: convertToHasuraPermissions(values.filter as RuleGroup),
-    });
-
-    return;
-
     const managePermissionPromise = managePermission({
       role,
       action,
+      mode: permission ? 'update' : 'insert',
       permission: {
         set: convertToColumnPresetObject(values.columnPresets),
         columns: values.columns,
@@ -197,7 +205,14 @@ export default function RolePermissionEditorForm({
         allow_aggregations: values.allowAggregations,
         query_root_fields: values.queryRootFields,
         subscription_root_fields: values.subscriptionRootFields,
-        filter: convertToHasuraPermissions(values.filter as RuleGroup),
+        filter:
+          action !== 'insert'
+            ? convertToHasuraPermissions(values.filter as RuleGroup)
+            : permission?.filter,
+        check:
+          action === 'insert'
+            ? convertToHasuraPermissions(values.filter as RuleGroup)
+            : permission?.check,
       },
     });
 
@@ -215,7 +230,7 @@ export default function RolePermissionEditorForm({
     onSubmit?.();
   }
 
-  function handleCancel() {
+  function handleCancelClick() {
     if (isDirty) {
       openDirtyConfirmation({ props: { onPrimaryAction: onCancel } });
 
@@ -244,6 +259,24 @@ export default function RolePermissionEditorForm({
 
     onDirtyStateChange(false, 'drawer');
     onSubmit?.();
+  }
+
+  function handleDeleteClick() {
+    openAlertDialog({
+      title: 'Delete permissions',
+      payload: (
+        <span>
+          Are you sure you want to delete the{' '}
+          <HighlightedText>{action}</HighlightedText> permissions of{' '}
+          <HighlightedText>{role}</HighlightedText>?
+        </span>
+      ),
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: handleDelete,
+      },
+    });
   }
 
   return (
@@ -306,25 +339,27 @@ export default function RolePermissionEditorForm({
           )}
         </div>
 
-        <div className="grid flex-shrink-0 sm:grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
+        <div className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 border-gray-200 p-2 bg-white">
           <Button
             variant="borderless"
             color="secondary"
-            onClick={handleCancel}
+            onClick={handleCancelClick}
             tabIndex={isDirty ? -1 : 0}
           >
             Cancel
           </Button>
 
-          <div className="grid grid-flow-col gap-2">
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleDelete}
-              disabled={isLoading}
-            >
-              Delete Permissions
-            </Button>
+          <div className="grid grid-flow-row sm:grid-flow-col gap-2">
+            {Boolean(permission) && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteClick}
+                disabled={isLoading}
+              >
+                Delete Permissions
+              </Button>
+            )}
 
             <Button
               loading={isSubmitting}
