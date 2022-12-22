@@ -1,5 +1,53 @@
 ## Changelog
 
+## 0.17.1
+
+### Patch Changes
+
+- f85e92d: - The default role is now automatically added to the allowed roles.
+
+  - The default locale is now automatically added to the allowed locales.
+
+  Previously, it was explicitly required to add the `me` and `AUTH_USER_DEFAULT_ROLE` roles to `AUTH_USER_DEFAULT_ALLOWED_ROLES`. They are now automatically added to `AUTH_USER_DEFAULT_ALLOWED_ROLES`.
+
+  Before:
+
+  ```
+  AUTH_USER_DEFAULT_ROLE=user
+  AUTH_USER_DEFAULT_ALLOWED_ROLES=user,me,other
+  ```
+
+  Now, the following configuration will also work:
+
+  ```
+  AUTH_USER_DEFAULT_ROLE=user
+  AUTH_USER_DEFAULT_ALLOWED_ROLES=other
+  ```
+
+  Both syntaxes will allow the roles `user`, `me`, and `other`.
+
+  Similarly, it is no longer a requirement to add the value of `AUTH_LOCALE_DEFAULT` to the `AUTH_LOCALE_ALLOWED_LOCALES`.
+
+  Before:
+
+  ```
+  AUTH_LOCALE_DEFAULT=en
+  AUTH_LOCALE_ALLOWED_LOCALES=en,fr
+  ```
+
+  Now, the following configuration will also work:
+
+  ```
+  AUTH_LOCALE_DEFAULT=en
+  AUTH_LOCALE_ALLOWED_LOCALES=en,fr
+  ```
+
+  Both syntaxes will allow the locales `en` and `fr`.
+
+- 02da92a: Allow WorkOS organization/domain/connection from the query parameters
+
+  The Grant `dynamic` parameter was not correctly set. Moreover, the Oauth routes were using `express.use` instead of `express.all`. As a result. the routes defined for `${OAUTH_ROUTE}/:provider` where also matching an url like `${OAUTH_ROUTE}/:provider/callback`, although they shouldn't have.
+
 ## 0.17.0
 
 ### Minor Changes
