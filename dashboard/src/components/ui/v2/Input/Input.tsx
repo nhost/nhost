@@ -165,4 +165,6 @@ function Input(
 
 Input.displayName = 'NhostInput';
 
+export { inputBaseClasses as inputClasses } from '@mui/material/InputBase';
+
 export default forwardRef(Input);

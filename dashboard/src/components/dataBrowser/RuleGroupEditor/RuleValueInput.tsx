@@ -77,7 +77,7 @@ export default function RuleValueInput({
 
   const { data, loading, error } = useGetAppCustomClaimsQuery({
     variables: { id: currentApplication?.id },
-    skip: !isHasuraInput,
+    skip: !isHasuraInput || !currentApplication?.id,
   });
 
   if (operator === '_is_null') {
@@ -111,7 +111,7 @@ export default function RuleValueInput({
         name={inputName}
         multiple
         freeSolo
-        limitTags={5}
+        limitTags={3}
         className="flex-auto"
         slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
         options={[]}
@@ -132,14 +132,13 @@ export default function RuleValueInput({
     );
   }
 
-  const availableHasuraPermissionVariables = !loading
-    ? getPermissionVariablesArray(data?.app?.authJwtCustomClaims).map(
-        ({ key }) => ({
-          value: `X-Hasura-${key}`,
-          label: `X-Hasura-${key}`,
-        }),
-      )
-    : [];
+  const availableHasuraPermissionVariables = getPermissionVariablesArray(
+    data?.app?.authJwtCustomClaims,
+  ).map(({ key }) => ({
+    value: `X-Hasura-${key}`,
+    label: `X-Hasura-${key}`,
+    group: 'Frequently used',
+  }));
 
   return (
     <ControlledAutocomplete
@@ -148,6 +147,7 @@ export default function RuleValueInput({
       autoHighlight={isHasuraInput}
       name={inputName}
       className="flex-auto"
+      groupBy={(option) => option.group}
       slotProps={{
         input: { className: 'lg:!rounded-none !bg-white' },
         formControl: { className: '!bg-transparent' },
@@ -160,7 +160,13 @@ export default function RuleValueInput({
       options={
         isHasuraInput
           ? availableHasuraPermissionVariables
-          : [{ value: 'X-Hasura-User-Id', label: 'X-Hasura-User-Id' }]
+          : [
+              {
+                value: 'X-Hasura-User-Id',
+                label: 'X-Hasura-User-Id',
+                group: 'Frequently used',
+              },
+            ]
       }
       onChange={(_event, _value, reason, details) => {
         if (

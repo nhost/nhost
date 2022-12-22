@@ -320,7 +320,7 @@ export default function RolePermissionEditorForm({
                 </Text>
               </div>
 
-              <Button variant="borderless" onClick={onCancel}>
+              <Button variant="borderless" onClick={handleCancelClick}>
                 Change
               </Button>
             </div>

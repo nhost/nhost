@@ -50,14 +50,6 @@ export default function ColumnPresetsSection({
   const { fields, append, remove } = useFieldArray({ name: 'columnPresets' });
   const columnPresets = useWatch({ name: 'columnPresets' }) as ColumnPreset[];
 
-  const permissionVariableOptions = getPermissionVariablesArray(
-    customClaimsData?.app?.authJwtCustomClaims,
-  ).map(({ key }) => ({
-    label: `X-Hasura-${key}`,
-    value: `X-Hasura-${key}`,
-    group: 'Session variables',
-  }));
-
   const allColumnNames: string[] =
     tableData?.columns.map((column) => column.column_name) || [];
   const selectedColumns = fields as (ColumnPreset & { id: string })[];
@@ -69,6 +61,14 @@ export default function ColumnPresetsSection({
   if (tableError) {
     throw tableError;
   }
+
+  const permissionVariableOptions = getPermissionVariablesArray(
+    customClaimsData?.app?.authJwtCustomClaims,
+  ).map(({ key }) => ({
+    label: `X-Hasura-${key}`,
+    value: `X-Hasura-${key}`,
+    group: 'Permission variables',
+  }));
 
   return (
     <section className="bg-white border-y-1 border-gray-200">
