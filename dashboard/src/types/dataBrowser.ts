@@ -56,6 +56,7 @@ export interface HasuraMetadataPermission {
     query_root_fields: string[];
     subscription_root_fields: string[];
     set: Record<string, any>;
+    backend_only: boolean;
   }>;
 }
 

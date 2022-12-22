@@ -39,12 +39,19 @@ export default function convertToHasuraPermissions(
     return null;
   }
 
-  if (!('rules' in ruleGroup) && !('groups' in ruleGroup)) {
+  if (
+    (!('rules' in ruleGroup) && !('groups' in ruleGroup)) ||
+    (ruleGroup.rules.length === 0 && ruleGroup.groups.length === 0)
+  ) {
     return {};
   }
 
   if (ruleGroup.rules?.length === 1 && ruleGroup.groups?.length === 0) {
     return createNestedObjectFromRule(ruleGroup.rules[0]);
+  }
+
+  if (ruleGroup.rules?.length === 0 && ruleGroup.groups?.length === 1) {
+    return convertToHasuraPermissions(ruleGroup.groups[0]);
   }
 
   const convertedRules = ruleGroup.rules?.map(createNestedObjectFromRule) || [];

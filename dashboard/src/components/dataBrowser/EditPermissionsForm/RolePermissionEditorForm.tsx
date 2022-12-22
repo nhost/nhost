@@ -19,6 +19,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import AggregationQuerySection from './AggregationQuerySection';
+import BackendOnlySection from './BackendOnlySection';
 import ColumnPermissionsSection from './ColumnPermissionsSection';
 import type { ColumnPreset } from './ColumnPresetsSection';
 import ColumnPresetsSection from './ColumnPresetsSection';
@@ -58,6 +59,10 @@ export interface RolePermissionEditorFormValues {
    * Column presets for the role.
    */
   columnPresets?: ColumnPreset[];
+  /**
+   * Whether the mutation should be restricted to trusted backends.
+   */
+  backendOnly?: boolean;
 }
 
 export interface RolePermissionEditorFormProps {
@@ -177,6 +182,7 @@ export default function RolePermissionEditorForm({
       queryRootFields: permission?.query_root_fields || [],
       subscriptionRootFields: permission?.subscription_root_fields || [],
       columnPresets: getColumnPresets(permission?.set || {}),
+      backendOnly: permission?.backend_only || false,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -213,6 +219,7 @@ export default function RolePermissionEditorForm({
           action === 'insert'
             ? convertToHasuraPermissions(values.filter as RuleGroup)
             : permission?.check,
+        backend_only: values.backendOnly,
       },
     });
 
@@ -338,6 +345,8 @@ export default function RolePermissionEditorForm({
           {(action === 'insert' || action === 'update') && (
             <ColumnPresetsSection schema={schema} table={table} />
           )}
+
+          {action !== 'select' && <BackendOnlySection />}
         </div>
 
         <div className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 border-gray-200 p-2 bg-white">
