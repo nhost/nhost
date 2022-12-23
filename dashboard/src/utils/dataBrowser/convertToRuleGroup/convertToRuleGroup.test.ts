@@ -29,6 +29,12 @@ test('should convert a simple Hasura permission object to a rule group', () => {
     groups: [],
   });
 
+  expect(convertToRuleGroup({ title: { _is_null: 'false' } })).toMatchObject({
+    operator: '_and',
+    rules: [{ column: 'title', operator: '_is_null', value: 'false' }],
+    groups: [],
+  });
+
   expect(
     convertToRuleGroup({
       books: { author: { id: { _eq: 'X-Hasura-User-Id' } } },
@@ -254,5 +260,29 @@ test('should transform operators and relations if the _not operator is being use
         groups: [],
       },
     ],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _not: {
+        title: { _is_null: true },
+      },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [{ column: 'title', operator: '_is_null', value: false }],
+    groups: [],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _not: {
+        title: { _is_null: 'false' },
+      },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [{ column: 'title', operator: '_is_null', value: 'true' }],
+    groups: [],
   });
 });

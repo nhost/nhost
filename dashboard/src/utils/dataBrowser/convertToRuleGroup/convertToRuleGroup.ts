@@ -51,6 +51,7 @@ export default function convertToRuleGroup(
   }
 
   const [currentKey] = keys;
+  const value = hasuraPermissions[currentKey];
 
   if (currentKey === '_not') {
     return convertToRuleGroup(hasuraPermissions[currentKey], previousKey, true);
@@ -58,7 +59,7 @@ export default function convertToRuleGroup(
 
   if (
     (currentKey === '_in' || currentKey === '_nin') &&
-    typeof hasuraPermissions[currentKey] === 'string'
+    typeof value === 'string'
   ) {
     const operator = currentKey === '_in' ? '_in_hasura' : '_nin_hasura';
 
@@ -70,7 +71,39 @@ export default function convertToRuleGroup(
           operator: shouldNegate
             ? negatedValueOperatorPairs[operator]
             : operator,
-          value: hasuraPermissions[currentKey],
+          value,
+        },
+      ],
+      groups: [],
+    };
+  }
+
+  if (currentKey === '_is_null' && typeof value === 'boolean') {
+    const negatedValue = !value;
+
+    return {
+      operator: '_and',
+      rules: [
+        {
+          column: previousKey,
+          operator: '_is_null',
+          value: shouldNegate ? negatedValue : value,
+        },
+      ],
+      groups: [],
+    };
+  }
+
+  if (currentKey === '_is_null' && typeof value !== 'boolean') {
+    const negatedValue = value === 'true' ? 'false' : 'true';
+
+    return {
+      operator: '_and',
+      rules: [
+        {
+          column: previousKey,
+          operator: '_is_null',
+          value: shouldNegate ? negatedValue : value,
         },
       ],
       groups: [],
@@ -103,7 +136,6 @@ export default function convertToRuleGroup(
       '_clt',
       '_cgte',
       '_clte',
-      '_is_null',
     ].includes(currentKey)
   ) {
     return {
