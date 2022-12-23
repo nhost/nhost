@@ -57,6 +57,10 @@ export default function convertToRuleGroup(
     return convertToRuleGroup(hasuraPermissions[currentKey], previousKey, true);
   }
 
+  if (currentKey === '_exists') {
+    return { _exists: hasuraPermissions[currentKey] } as any;
+  }
+
   if (
     (currentKey === '_in' || currentKey === '_nin') &&
     typeof value === 'string'
@@ -160,6 +164,13 @@ export default function convertToRuleGroup(
       )
       .reduce(
         (accumulator: RuleGroup, rule: RuleGroup) => {
+          if (!('rules' in rule) && !('groups' in rule)) {
+            return {
+              ...accumulator,
+              unsupported: [rule],
+            };
+          }
+
           if (rule.rules.length > 1) {
             return {
               ...accumulator,

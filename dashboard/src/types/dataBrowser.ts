@@ -578,4 +578,5 @@ export interface RuleGroup {
   operator: '_and' | '_or';
   rules: Rule[];
   groups: RuleGroup[];
+  unsupported?: Record<string, any>[];
 }

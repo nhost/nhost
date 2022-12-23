@@ -286,3 +286,74 @@ test('should transform operators and relations if the _not operator is being use
     groups: [],
   });
 });
+
+test('should retain unsupported _exists objects', () => {
+  expect(
+    convertToRuleGroup({
+      _or: [
+        { title: { _eq: 'test' } },
+        {
+          _exists: {
+            _table: {
+              name: 'users',
+              schema: 'public',
+            },
+            _where: {
+              id: {
+                _eq: 'X-Hasura-User-Id',
+              },
+            },
+          },
+        },
+        {
+          _and: [
+            { name: { _eq: 'John Doe' } },
+            { age: { _gte: '32' } },
+            {
+              _exists: {
+                _table: {
+                  name: 'users',
+                  schema: 'public',
+                },
+                _where: {
+                  id: {
+                    _eq: 'X-Hasura-User-Id',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    }),
+  ).toMatchObject({
+    operator: '_or',
+    rules: [{ column: 'title', operator: '_eq', value: 'test' }],
+    groups: [
+      {
+        operator: '_and',
+        rules: [
+          { column: 'name', operator: '_eq', value: 'John Doe' },
+          { column: 'age', operator: '_gte', value: '32' },
+        ],
+        groups: [],
+        unsupported: [
+          {
+            _exists: {
+              _table: { name: 'users', schema: 'public' },
+              _where: { id: { _eq: 'X-Hasura-User-Id' } },
+            },
+          },
+        ],
+      },
+    ],
+    unsupported: [
+      {
+        _exists: {
+          _table: { name: 'users', schema: 'public' },
+          _where: { id: { _eq: 'X-Hasura-User-Id' } },
+        },
+      },
+    ],
+  });
+});
