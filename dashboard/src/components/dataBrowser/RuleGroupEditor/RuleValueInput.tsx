@@ -166,6 +166,7 @@ export default function RuleValueInput({
       freeSolo={!isHasuraInput}
       autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
+      filterSelectedOptions
       name={inputName}
       className="flex-auto"
       groupBy={(option) => option.group}

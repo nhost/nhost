@@ -99,16 +99,12 @@ export default function RuleEditorRow({
   ...props
 }: RuleEditorRowProps) {
   const { schema, table } = useRuleGroupEditor();
-  const {
-    control,
-    setValue,
-    formState: { errors },
-  } = useFormContext<{
-    [key: string]: {
-      rules: { column: string; operator: string; value: any }[];
-    };
-  }>();
+  const { control, setValue, getFieldState } = useFormContext();
   const rowName = `${name}.rules.${index}`;
+
+  const columnState = getFieldState(`${rowName}.column`);
+  const operatorState = getFieldState(`${rowName}.operator`);
+  const valueState = getFieldState(`${rowName}.value`);
 
   const [selectedTablePath, setSelectedTablePath] = useState<string>('');
   const [selectedColumnType, setSelectedColumnType] = useState<string>('');
@@ -146,13 +142,13 @@ export default function RuleEditorRow({
         rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
         slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
         fullWidth
-        error={Boolean(errors?.[name]?.rules?.[index]?.column)}
+        error={Boolean(columnState?.error?.message)}
         onChange={(_event, { value, columnMetadata, disableReset }) => {
           setSelectedTablePath(
             `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${name}.rules.${index}.column`, value, {
+          setValue(`${rowName}.column`, value, {
             shouldDirty: true,
           });
 
@@ -160,17 +156,17 @@ export default function RuleEditorRow({
             return;
           }
 
-          setValue(`${name}.rules.${index}.operator`, '_eq', {
+          setValue(`${rowName}.operator`, '_eq', {
             shouldDirty: true,
           });
-          setValue(`${name}.rules.${index}.value`, '', { shouldDirty: true });
+          setValue(`${rowName}.value`, '', { shouldDirty: true });
         }}
         onInitialized={({ value, columnMetadata }) => {
           setSelectedTablePath(
             `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${name}.rules.${index}.column`, value, {
+          setValue(`${rowName}.column`, value, {
             shouldDirty: true,
           });
         }}
@@ -181,21 +177,21 @@ export default function RuleEditorRow({
         className="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[140px] h-10"
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
-        error={Boolean(errors?.[name]?.rules?.[index]?.operator)}
+        error={Boolean(operatorState?.error?.message)}
         onChange={(_event, value: HasuraOperator) => {
           if (!['_in', '_nin', '_in_hasura', '_nin_hasura'].includes(value)) {
             return;
           }
 
           if (value === '_in_hasura' || value === '_nin_hasura') {
-            setValue(`${name}.rules.${index}.value`, null, {
+            setValue(`${rowName}.value`, null, {
               shouldDirty: true,
             });
 
             return;
           }
 
-          setValue(`${name}.rules.${index}.value`, [], { shouldDirty: true });
+          setValue(`${rowName}.value`, [], { shouldDirty: true });
         }}
         renderValue={(option) => {
           if (!option?.value) {
@@ -219,7 +215,7 @@ export default function RuleEditorRow({
       <RuleValueInput
         selectedTablePath={selectedTablePath}
         name={rowName}
-        error={Boolean(errors?.[name]?.rules?.[index]?.value)}
+        error={Boolean(valueState?.error?.message)}
       />
 
       <RuleRemoveButton onRemove={onRemove} name={name} />

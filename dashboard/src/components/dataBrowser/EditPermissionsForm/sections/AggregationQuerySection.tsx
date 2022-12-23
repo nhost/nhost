@@ -44,6 +44,13 @@ export default function AggregationQuerySection({
               (field) => field !== 'select_aggregate',
             ) || [],
           );
+
+          setValue(
+            'subscriptionRootFields',
+            getValues('subscriptionRootFields')?.filter(
+              (field) => field !== 'select_aggregate',
+            ) || [],
+          );
         }}
       />
     </PermissionSettingsSection>

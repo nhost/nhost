@@ -63,9 +63,6 @@ export default function RuleGroupEditor({
   const form = useFormContext();
 
   const { control } = form;
-
-  // Note: Reason for the type cast to `never`
-  // https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
   const {
     fields: rules,
     append: appendRule,
@@ -73,10 +70,7 @@ export default function RuleGroupEditor({
   } = useFieldArray({
     control,
     name: `${name}.rules`,
-  } as never);
-
-  // Note: Reason for the type cast to `never`
-  // https://github.com/react-hook-form/react-hook-form/issues/4055#issuecomment-950145092
+  });
   const {
     fields: groups,
     append: appendGroup,
@@ -84,7 +78,7 @@ export default function RuleGroupEditor({
   } = useFieldArray({
     control,
     name: `${name}.groups`,
-  } as never);
+  });
 
   if (!form) {
     throw new Error('RuleGroupEditor must be used in a FormContext.');
