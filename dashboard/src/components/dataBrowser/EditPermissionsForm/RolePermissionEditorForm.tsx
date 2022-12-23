@@ -197,8 +197,6 @@ export default function RolePermissionEditorForm({
   }, [isDirty, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
-    console.log(`valid`);
-    return;
     const managePermissionPromise = managePermission({
       role,
       action,
