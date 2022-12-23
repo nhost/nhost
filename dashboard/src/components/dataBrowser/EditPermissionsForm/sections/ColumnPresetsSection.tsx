@@ -1,4 +1,5 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
+import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -14,7 +15,6 @@ import getPermissionVariablesArray from '@/utils/settings/getPermissionVariables
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
-import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface ColumnPreset {
   column: string;
@@ -98,7 +98,12 @@ export default function ColumnPresetsSection({
                 key={field.id}
                 className="grid grid-cols-[1fr_1fr_40px] gap-2"
               >
-                <ControlledSelect name={`columnPresets.${index}.column`}>
+                <ControlledSelect
+                  name={`columnPresets.${index}.column`}
+                  error={Boolean(
+                    errors?.columnPresets?.at(index).column?.message,
+                  )}
+                >
                   {allColumnNames.map((column) => (
                     <Option
                       value={column}
@@ -122,6 +127,9 @@ export default function ColumnPresetsSection({
                   clearIcon={<XIcon />}
                   autoSelect
                   autoHighlight={false}
+                  error={Boolean(
+                    errors?.columnPresets?.at(index).value?.message,
+                  )}
                   isOptionEqualToValue={(option, value) => {
                     if (typeof value === 'string') {
                       return (
@@ -178,7 +186,7 @@ export default function ColumnPresetsSection({
           variant="borderless"
           startIcon={<PlusIcon />}
           size="small"
-          onClick={() => append({ column: '', type: 'static', value: '' })}
+          onClick={() => append({ column: '', value: '' })}
           disabled={selectedColumns.length === allColumnNames.length}
           className="justify-self-start"
         >

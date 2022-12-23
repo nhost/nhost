@@ -1,4 +1,5 @@
 import HighlightedText from '@/components/common/HighlightedText';
+import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import RuleGroupEditor from '@/components/dataBrowser/RuleGroupEditor';
 import type { DatabaseAction, RuleGroup } from '@/types/dataBrowser';
 import Input from '@/ui/v2/Input';
@@ -8,7 +9,6 @@ import Text from '@/ui/v2/Text';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
-import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface RowPermissionsSectionProps {
   /**
@@ -101,7 +101,7 @@ export default function RowPermissionsSection({
         <Radio value="custom" label="With custom check" />
       </RadioGroup>
 
-      {errors?.filter && (
+      {errors?.filter?.message && (
         <Text variant="subtitle2" className="font-normal !text-red">
           {errors.filter.message}
         </Text>

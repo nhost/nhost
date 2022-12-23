@@ -17,15 +17,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
-import AggregationQuerySection from './AggregationQuerySection';
-import BackendOnlySection from './BackendOnlySection';
-import ColumnPermissionsSection from './ColumnPermissionsSection';
-import type { ColumnPreset } from './ColumnPresetsSection';
-import ColumnPresetsSection from './ColumnPresetsSection';
-import PermissionSettingsSection from './PermissionSettingsSection';
-import RootFieldPermissionsSection from './RootFieldPermissionsSection';
-import RowPermissionsSection from './RowPermissionsSection';
+import AggregationQuerySection from './sections/AggregationQuerySection';
+import BackendOnlySection from './sections/BackendOnlySection';
+import ColumnPermissionsSection from './sections/ColumnPermissionsSection';
+import type { ColumnPreset } from './sections/ColumnPresetsSection';
+import ColumnPresetsSection from './sections/ColumnPresetsSection';
+import PermissionSettingsSection from './sections/PermissionSettingsSection';
+import RootFieldPermissionsSection from './sections/RootFieldPermissionsSection';
+import RowPermissionsSection from './sections/RowPermissionsSection';
+import validationSchemas from './validationSchemas';
 
 export interface RolePermissionEditorFormValues {
   /**
@@ -145,40 +145,6 @@ function convertToColumnPresetObject(
   return returnValue;
 }
 
-const baseValidationSchema = Yup.object().shape({
-  filter: Yup.object().nullable().required('Please select a filter type.'),
-  columns: Yup.array().of(Yup.string()).nullable(true),
-});
-
-const selectValidationSchema = baseValidationSchema.shape({
-  limit: Yup.number().min(0, 'Limit must not be negative.').nullable(true),
-  allowAggregations: Yup.boolean().nullable(true),
-  queryRootFields: Yup.array().of(Yup.string()).nullable(true),
-  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(true),
-});
-
-const insertValidationSchema = baseValidationSchema.shape({
-  backendOnly: Yup.boolean().nullable(true),
-  columnPresets: Yup.array().test({
-    name: 'includes-correct-elements',
-    message: 'Column presets must have a column and value.',
-    test: (columnPresets) => {
-      if (!columnPresets) {
-        return true;
-      }
-
-      return columnPresets.every(({ column, value }) => column && value);
-    },
-  }),
-});
-
-const validationSchemas: Record<DatabaseAction, Yup.ObjectSchema<any>> = {
-  select: selectValidationSchema,
-  insert: insertValidationSchema,
-  update: baseValidationSchema,
-  delete: baseValidationSchema,
-};
-
 export default function RolePermissionEditorForm({
   schema,
   table,
@@ -201,6 +167,7 @@ export default function RolePermissionEditorForm({
     });
 
   const form = useForm<RolePermissionEditorFormValues>({
+    reValidateMode: 'onSubmit',
     defaultValues: {
       filter: getDefaultRuleGroup(action, permission),
       columns: permission?.columns || [],

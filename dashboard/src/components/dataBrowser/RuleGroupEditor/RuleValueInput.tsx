@@ -6,22 +6,12 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import type { InputProps } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
-
-export interface RuleValueInputProps {
-  /**
-   * Name of the parent group editor.
-   */
-  name: string;
-  /**
-   * Path of the table selected through the column input.
-   */
-  selectedTablePath?: string;
-}
 
 function ColumnSelectorInput({
   name,
@@ -64,9 +54,30 @@ function ColumnSelectorInput({
   );
 }
 
+export interface RuleValueInputProps {
+  /**
+   * Name of the parent group editor.
+   */
+  name: string;
+  /**
+   * Path of the table selected through the column input.
+   */
+  selectedTablePath?: string;
+  /**
+   * Whether the input should be marked as invalid.
+   */
+  error?: InputProps['error'];
+  /**
+   * Helper text to display below the input.
+   */
+  helperText?: InputProps['helperText'];
+}
+
 export default function RuleValueInput({
   name,
   selectedTablePath,
+  error,
+  helperText,
 }: RuleValueInputProps) {
   const { schema, table } = useRuleGroupEditor();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -75,7 +86,11 @@ export default function RuleValueInput({
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
 
-  const { data, loading, error } = useGetAppCustomClaimsQuery({
+  const {
+    data,
+    loading,
+    error: customClaimsError,
+  } = useGetAppCustomClaimsQuery({
     variables: { id: currentApplication?.id },
     skip: !isHasuraInput || !currentApplication?.id,
   });
@@ -87,6 +102,8 @@ export default function RuleValueInput({
         className="flex-auto"
         fullWidth
         slotProps={{ root: { className: 'bg-white lg:!rounded-none h-10' } }}
+        error={error}
+        helperText={helperText}
       >
         <Option value="true">
           <ReadOnlyToggle
@@ -117,6 +134,8 @@ export default function RuleValueInput({
         options={[]}
         fullWidth
         filterSelectedOptions
+        error={error}
+        helperText={helperText}
       />
     );
   }
@@ -128,6 +147,8 @@ export default function RuleValueInput({
         schema={schema}
         table={table}
         name={inputName}
+        error={error}
+        helperText={helperText}
       />
     );
   }
@@ -155,8 +176,8 @@ export default function RuleValueInput({
       fullWidth
       loading={loading}
       loadingText={<ActivityIndicator label="Loading..." />}
-      error={!!error}
-      helperText={error?.message}
+      error={Boolean(customClaimsError) || error}
+      helperText={customClaimsError?.message || helperText}
       options={
         isHasuraInput
           ? availableHasuraPermissionVariables

@@ -1,9 +1,9 @@
 import ControlledSwitch from '@/components/common/ControlledSwitch';
 import HighlightedText from '@/components/common/HighlightedText';
+import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import Text from '@/ui/v2/Text';
 import { useFormContext } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
-import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface AggregationQuerySectionProps {
   /**

@@ -262,8 +262,10 @@ function ColumnAutocomplete(
           }}
           onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
-          error={Boolean(tableError || metadataError)}
-          helperText={String(tableError || metadataError || '')}
+          error={Boolean(tableError || metadataError) || props.error}
+          helperText={
+            String(tableError || metadataError || '') || props.helperText
+          }
           onChange={(event) => setInputValue(event.target.value)}
           value={inputValue}
           startAdornment={

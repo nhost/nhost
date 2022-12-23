@@ -1,10 +1,10 @@
 import ControlledSwitch from '@/components/common/ControlledSwitch';
+import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
 import { useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
-import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export default function RootFieldPermissionsSection() {
   const { register, setValue } =

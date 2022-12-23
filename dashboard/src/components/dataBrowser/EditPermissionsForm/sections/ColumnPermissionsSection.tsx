@@ -1,4 +1,5 @@
 import HighlightedText from '@/components/common/HighlightedText';
+import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import type { DatabaseAction } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -7,7 +8,6 @@ import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
 import { useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
-import type { RolePermissionEditorFormValues } from './RolePermissionEditorForm';
 
 export interface ColumnPermissionsSectionProps {
   /**
