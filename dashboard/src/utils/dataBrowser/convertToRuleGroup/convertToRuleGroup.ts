@@ -1,8 +1,44 @@
 import type { HasuraOperator, RuleGroup } from '@/types/dataBrowser';
 
+const negatedArrayOperatorPairs: Record<'_and' | '_or', '_and' | '_or'> = {
+  _and: '_or',
+  _or: '_and',
+};
+
+const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
+  _eq: '_neq',
+  _neq: '_eq',
+  _in: '_nin',
+  _nin: '_in',
+  _gt: '_lte',
+  _lt: '_gte',
+  _gte: '_lt',
+  _lte: '_gt',
+  _like: '_nlike',
+  _nlike: '_like',
+  _ilike: '_nilike',
+  _nilike: '_ilike',
+  _similar: '_nsimilar',
+  _nsimilar: '_similar',
+  _regex: '_nregex',
+  _nregex: '_regex',
+  _iregex: '_niregex',
+  _niregex: '_iregex',
+  _ceq: '_cne',
+  _cne: '_ceq',
+  _cgt: '_clte',
+  _clt: '_cgte',
+  _cgte: '_clt',
+  _clte: '_cgt',
+  _is_null: '_is_null',
+  _in_hasura: '_nin_hasura',
+  _nin_hasura: '_in_hasura',
+};
+
 export default function convertToRuleGroup(
   hasuraPermissions: Record<string, any>,
   previousKey?: string,
+  shouldNegate?: boolean,
 ): RuleGroup {
   const keys = Object.keys(hasuraPermissions);
 
@@ -16,16 +52,24 @@ export default function convertToRuleGroup(
 
   const [currentKey] = keys;
 
+  if (currentKey === '_not') {
+    return convertToRuleGroup(hasuraPermissions[currentKey], previousKey, true);
+  }
+
   if (
     (currentKey === '_in' || currentKey === '_nin') &&
     typeof hasuraPermissions[currentKey] === 'string'
   ) {
+    const operator = currentKey === '_in' ? '_in_hasura' : '_nin_hasura';
+
     return {
       operator: '_and',
       rules: [
         {
           column: previousKey,
-          operator: currentKey === '_in' ? '_in_hasura' : '_nin_hasura',
+          operator: shouldNegate
+            ? negatedValueOperatorPairs[operator]
+            : operator,
           value: hasuraPermissions[currentKey],
         },
       ],
@@ -67,7 +111,9 @@ export default function convertToRuleGroup(
       rules: [
         {
           column: previousKey,
-          operator: currentKey as HasuraOperator,
+          operator: shouldNegate
+            ? negatedValueOperatorPairs[currentKey]
+            : currentKey,
           value: hasuraPermissions[currentKey],
         },
       ],
@@ -78,7 +124,7 @@ export default function convertToRuleGroup(
   if (currentKey === '_or' || currentKey === '_and') {
     return hasuraPermissions[currentKey]
       .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
-        convertToRuleGroup(permissionObject, previousKey),
+        convertToRuleGroup(permissionObject, previousKey, shouldNegate),
       )
       .reduce(
         (accumulator: RuleGroup, rule: RuleGroup) => {
@@ -95,7 +141,9 @@ export default function convertToRuleGroup(
           };
         },
         {
-          operator: currentKey,
+          operator: shouldNegate
+            ? negatedArrayOperatorPairs[currentKey]
+            : currentKey,
           rules: [...(hasuraPermissions[currentKey]?.rules || [])],
           groups: [...(hasuraPermissions[currentKey]?.groups || [])],
         },
@@ -113,5 +161,6 @@ export default function convertToRuleGroup(
   return convertToRuleGroup(
     hasuraPermissions[currentKey],
     previousKey ? `${previousKey}.${currentKey}` : currentKey,
+    shouldNegate,
   );
 }

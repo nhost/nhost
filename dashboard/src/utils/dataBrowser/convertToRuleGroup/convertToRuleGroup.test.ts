@@ -56,6 +56,34 @@ test('should convert a permission containing a relationship to a rule group', ()
   });
 });
 
+test('should convert a permission containing _and or _or on the top level to a rule group', () => {
+  expect(
+    convertToRuleGroup({
+      _or: [{ title: { _eq: 'test' } }, { title: { _eq: 'test2' } }],
+    }),
+  ).toMatchObject({
+    operator: '_or',
+    rules: [
+      { column: 'title', operator: '_eq', value: 'test' },
+      { column: 'title', operator: '_eq', value: 'test2' },
+    ],
+    groups: [],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _and: [{ title: { _eq: 'test' } }, { title: { _eq: 'test2' } }],
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      { column: 'title', operator: '_eq', value: 'test' },
+      { column: 'title', operator: '_eq', value: 'test2' },
+    ],
+    groups: [],
+  });
+});
+
 test('should join a relationship when there is a nested group inside', () => {
   expect(
     convertToRuleGroup({
@@ -173,5 +201,58 @@ test(`should convert an _in or _nin value that do not have an array as value to 
       },
     ],
     groups: [],
+  });
+});
+
+test('should transform operators and relations if the _not operator is being used', () => {
+  expect(
+    convertToRuleGroup({ _not: { title: { _eq: 'test' } } }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [{ column: 'title', operator: '_neq', value: 'test' }],
+    groups: [],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _not: {
+        _or: [{ title: { _eq: 'test' } }, { age: { _gt: 32 } }],
+      },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      { column: 'title', operator: '_neq', value: 'test' },
+      { column: 'age', operator: '_lte', value: 32 },
+    ],
+    groups: [],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _not: {
+        _or: [
+          { title: { _eq: 'test' } },
+          { age: { _gt: 32 } },
+          { _or: [{ title: { _eq: 'sample' } }, { age: { _lt: 24 } }] },
+        ],
+      },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      { column: 'title', operator: '_neq', value: 'test' },
+      { column: 'age', operator: '_lte', value: 32 },
+    ],
+    groups: [
+      {
+        operator: '_and',
+        rules: [
+          { column: 'title', operator: '_neq', value: 'sample' },
+          { column: 'age', operator: '_gte', value: 24 },
+        ],
+        groups: [],
+      },
+    ],
   });
 });
