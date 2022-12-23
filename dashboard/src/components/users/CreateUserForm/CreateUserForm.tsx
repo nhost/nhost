@@ -3,7 +3,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { generateAppServiceUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
@@ -66,11 +66,11 @@ export default function CreateUserForm({
     setError,
   } = form;
 
-  const signUpUrl = `${generateAppServiceUrl(
+  const signUpUrl = generateAppServiceUrl(
     currentApplication?.subdomain,
     currentApplication?.region.awsName,
     'auth',
-  )}/v1/signup/email-password`;
+  );
 
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);

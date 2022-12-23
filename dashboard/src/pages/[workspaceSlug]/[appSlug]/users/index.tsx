@@ -66,7 +66,7 @@ export default function UsersPage() {
       limit: limit.current,
       offset: offset * limit.current,
     }),
-    [router.query.user, searchString, offset],
+    [router.query.userId, searchString, offset],
   );
 
   const {

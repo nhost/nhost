@@ -84,10 +84,8 @@ export default function Pagination({
           Back
         </Button>
 
-        <div className="grid grid-cols-3 gap-1 text-center grid-col">
-          <Text className="self-center text-xs align-middle text-greyscaleGreyDark w-">
-            Page
-          </Text>
+        <div className="grid items-center grid-cols-3 gap-1 text-center grid-col !text-greyscaleGreyDark">
+          <Text className="text-xs align-middle ">Page</Text>
           <Input
             value={currentPageNumber}
             onChange={(e) => {
@@ -98,25 +96,9 @@ export default function Pagination({
             }}
             disabled={totalNrOfPages === 1}
             color="secondary"
-            componentsProps={{
-              formControl: {
-                className: 'flex flex-row-reverse text-center',
-              },
-              inputRoot: {
-                className: 'px-12',
-              },
-            }}
             slotProps={{
-              root: {
-                className: twMerge(
-                  'w-9 h-8 text-center px-0.5',
-                  currentPageNumber > 9 ? 'px-0' : 'px-0.5',
-                ),
-              },
-              input: {
-                style: {
-                  fontSize: '0.70rem',
-                },
+              inputRoot: {
+                className: 'w-4 h-2.5 text-center !text-[11.5px]',
               },
             }}
           />
