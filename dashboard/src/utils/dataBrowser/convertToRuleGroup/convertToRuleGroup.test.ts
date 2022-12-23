@@ -306,6 +306,23 @@ test('should retain unsupported _exists objects', () => {
           },
         },
         {
+          books: {
+            author: {
+              _exists: {
+                _table: {
+                  name: 'users',
+                  schema: 'public',
+                },
+                _where: {
+                  id: {
+                    _eq: 'X-Hasura-User-Id',
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
           _and: [
             { name: { _eq: 'John Doe' } },
             { age: { _gte: '32' } },
@@ -352,6 +369,86 @@ test('should retain unsupported _exists objects', () => {
         _exists: {
           _table: { name: 'users', schema: 'public' },
           _where: { id: { _eq: 'X-Hasura-User-Id' } },
+        },
+      },
+      {
+        books: {
+          author: {
+            _exists: {
+              _table: { name: 'users', schema: 'public' },
+              _where: { id: { _eq: 'X-Hasura-User-Id' } },
+            },
+          },
+        },
+      },
+    ],
+  });
+
+  expect(
+    convertToRuleGroup({
+      _and: [
+        { name: { _eq: 'X-Hasura-User-Id' } },
+        {
+          _or: [
+            { birth_date: { _eq: 'X-Hasura-User-Id' } },
+            {
+              _exists: {
+                _table: { name: 'books', schema: 'public' },
+                _where: { _and: [{ title: { _eq: 'X-Hasura-User-Id' } }] },
+              },
+            },
+          ],
+        },
+      ],
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [
+      { column: 'name', operator: '_eq', value: 'X-Hasura-User-Id' },
+      { column: 'birth_date', operator: '_eq', value: 'X-Hasura-User-Id' },
+    ],
+    groups: [],
+    unsupported: [
+      {
+        _exists: {
+          _table: { name: 'books', schema: 'public' },
+          _where: { _and: [{ title: { _eq: 'X-Hasura-User-Id' } }] },
+        },
+      },
+    ],
+  });
+
+  expect(
+    convertToRuleGroup({
+      books: {
+        author: {
+          _exists: {
+            _table: {
+              name: 'users',
+              schema: 'public',
+            },
+            _where: {
+              id: {
+                _eq: 'X-Hasura-User-Id',
+              },
+            },
+          },
+        },
+      },
+    }),
+  ).toMatchObject({
+    operator: '_and',
+    rules: [],
+    groups: [],
+    unsupported: [
+      {
+        books: {
+          author: {
+            _exists: {
+              _table: { name: 'users', schema: 'public' },
+              _where: { id: { _eq: 'X-Hasura-User-Id' } },
+            },
+          },
         },
       },
     ],

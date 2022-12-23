@@ -1,7 +1,11 @@
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
+import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -60,9 +64,10 @@ export default function RuleGroupEditor({
   table,
   ...props
 }: RuleGroupEditorProps) {
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const form = useFormContext();
 
-  const { control } = form;
+  const { control, getValues } = form;
   const {
     fields: rules,
     append: appendRule,
@@ -71,6 +76,10 @@ export default function RuleGroupEditor({
     control,
     name: `${name}.rules`,
   });
+
+  const unsupportedValues: Record<string, any>[] =
+    getValues(`${name}.unsupported`) || [];
+
   const {
     fields: groups,
     append: appendGroup,
@@ -164,6 +173,33 @@ export default function RuleGroupEditor({
               </div>
             ),
           )}
+
+          {unsupportedValues?.length > 0 && (
+            <Alert severity="warning" className="text-left">
+              <Text>
+                This rule group contains one or more unsupported objects (e.g:
+                _exists) that are not supported by our dashboard yet.{' '}
+                {currentApplication && (
+                  <span>
+                    Please{' '}
+                    <Link
+                      href={`${generateAppServiceUrl(
+                        currentApplication.subdomain,
+                        currentApplication.region?.awsName,
+                        'hasura',
+                      )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
+                      underline="hover"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      visit Hasura
+                    </Link>{' '}
+                    if you would like to edit these objects.
+                  </span>
+                )}
+              </Text>
+            </Alert>
+          )}
         </div>
 
         <div className="grid grid-flow-row lg:grid-flow-col lg:justify-between gap-2 pb-2">
@@ -186,6 +222,7 @@ export default function RuleGroupEditor({
                   operator: '_and',
                   rules: [{ column: '', operator: '_eq', value: '' }],
                   groups: [],
+                  unsupported: [],
                 })
               }
               disabled={depth >= maxDepth - 1}

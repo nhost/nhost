@@ -47,7 +47,9 @@ export default function RowPermissionsSection({
     filter &&
     'rules' in filter &&
     'groups' in filter &&
-    (filter.rules.length > 0 || filter.groups.length > 0)
+    (filter.rules.length > 0 ||
+      filter.groups.length > 0 ||
+      filter.unsupported?.length > 0)
       ? 'custom'
       : 'none';
 

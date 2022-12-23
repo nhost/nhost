@@ -1,5 +1,23 @@
 import type { HasuraOperator, RuleGroup } from '@/types/dataBrowser';
 
+function createNestedObject(pathParts: string[], value: any) {
+  const [currentPath, ...restPath] = pathParts;
+
+  if (pathParts.length === 0) {
+    return value;
+  }
+
+  if (pathParts.length === 1) {
+    return {
+      [currentPath]: value,
+    };
+  }
+
+  return {
+    [currentPath]: createNestedObject(restPath, value),
+  };
+}
+
 const negatedArrayOperatorPairs: Record<'_and' | '_or', '_and' | '_or'> = {
   _and: '_or',
   _or: '_and',
@@ -37,9 +55,14 @@ const negatedValueOperatorPairs: Record<HasuraOperator, HasuraOperator> = {
 
 export default function convertToRuleGroup(
   hasuraPermissions: Record<string, any>,
-  previousKey?: string,
-  shouldNegate?: boolean,
+  options?: {
+    previousKey?: string;
+    shouldNegate?: boolean;
+    isNested?: boolean;
+  },
 ): RuleGroup {
+  const { previousKey, shouldNegate = false, isNested = false } = options || {};
+
   const keys = Object.keys(hasuraPermissions);
 
   if (keys.length !== 1) {
@@ -53,14 +76,74 @@ export default function convertToRuleGroup(
   const [currentKey] = keys;
   const value = hasuraPermissions[currentKey];
 
-  if (currentKey === '_not') {
-    return convertToRuleGroup(hasuraPermissions[currentKey], previousKey, true);
-  }
-
+  // Note: Exists is currently not supported by the UI, so we are returning it
+  // as is and treating it as an unsupported object type.
   if (currentKey === '_exists') {
-    return { _exists: hasuraPermissions[currentKey] } as any;
+    const pathParts = previousKey?.split('.') || [];
+
+    if (!isNested) {
+      return {
+        operator: '_and',
+        rules: [],
+        groups: [],
+        unsupported: [
+          createNestedObject(pathParts, {
+            _exists: value,
+          }),
+        ],
+      };
+    }
+
+    return createNestedObject(pathParts, {
+      _exists: value,
+    });
   }
 
+  // Note: _not is a special case, we just need to negate the nested operators
+  // or values in certain cases (e.g: _is_null).
+  if (currentKey === '_not') {
+    return convertToRuleGroup(value, {
+      ...options,
+      shouldNegate: true,
+    });
+  }
+
+  // Note: _is_null is special, because we need to negate its value instead of
+  // the operator.
+  if (currentKey === '_is_null') {
+    if (typeof value === 'boolean') {
+      const negatedValue = !value;
+
+      return {
+        operator: '_and',
+        rules: [
+          {
+            column: options.previousKey,
+            operator: '_is_null',
+            value: shouldNegate ? negatedValue : value,
+          },
+        ],
+        groups: [],
+      };
+    }
+
+    const negatedValue = value === 'true' ? 'false' : 'true';
+
+    return {
+      operator: '_and',
+      rules: [
+        {
+          column: previousKey,
+          operator: '_is_null',
+          value: shouldNegate ? negatedValue : value,
+        },
+      ],
+      groups: [],
+    };
+  }
+
+  // Note: _in and _nin are special if they contain a string, because we need
+  // to treat them differently in the UI.
   if (
     (currentKey === '_in' || currentKey === '_nin') &&
     typeof value === 'string'
@@ -76,38 +159,6 @@ export default function convertToRuleGroup(
             ? negatedValueOperatorPairs[operator]
             : operator,
           value,
-        },
-      ],
-      groups: [],
-    };
-  }
-
-  if (currentKey === '_is_null' && typeof value === 'boolean') {
-    const negatedValue = !value;
-
-    return {
-      operator: '_and',
-      rules: [
-        {
-          column: previousKey,
-          operator: '_is_null',
-          value: shouldNegate ? negatedValue : value,
-        },
-      ],
-      groups: [],
-    };
-  }
-
-  if (currentKey === '_is_null' && typeof value !== 'boolean') {
-    const negatedValue = value === 'true' ? 'false' : 'true';
-
-    return {
-      operator: '_and',
-      rules: [
-        {
-          column: previousKey,
-          operator: '_is_null',
-          value: shouldNegate ? negatedValue : value,
         },
       ],
       groups: [],
@@ -150,7 +201,7 @@ export default function convertToRuleGroup(
           operator: shouldNegate
             ? negatedValueOperatorPairs[currentKey]
             : currentKey,
-          value: hasuraPermissions[currentKey],
+          value,
         },
       ],
       groups: [],
@@ -158,16 +209,19 @@ export default function convertToRuleGroup(
   }
 
   if (currentKey === '_or' || currentKey === '_and') {
-    return hasuraPermissions[currentKey]
+    return value
       .map((permissionObject: ArrayLike<string> | Record<string, any>) =>
-        convertToRuleGroup(permissionObject, previousKey, shouldNegate),
+        convertToRuleGroup(permissionObject, {
+          ...options,
+          isNested: true,
+        }),
       )
       .reduce(
         (accumulator: RuleGroup, rule: RuleGroup) => {
           if (!('rules' in rule) && !('groups' in rule)) {
             return {
               ...accumulator,
-              unsupported: [rule],
+              unsupported: [...(accumulator.unsupported || []), rule],
             };
           }
 
@@ -181,19 +235,23 @@ export default function convertToRuleGroup(
           return {
             ...accumulator,
             rules: [...(accumulator.rules || []), ...rule.rules],
+            unsupported: [
+              ...(accumulator.unsupported || []),
+              ...(rule.unsupported || []),
+            ],
           };
         },
         {
           operator: shouldNegate
             ? negatedArrayOperatorPairs[currentKey]
             : currentKey,
-          rules: [...(hasuraPermissions[currentKey]?.rules || [])],
-          groups: [...(hasuraPermissions[currentKey]?.groups || [])],
+          rules: [...(value?.rules || [])],
+          groups: [...(value?.groups || [])],
         },
       );
   }
 
-  if (typeof hasuraPermissions[currentKey] !== 'object') {
+  if (typeof value !== 'object') {
     return {
       operator: '_and',
       rules: [],
@@ -201,9 +259,8 @@ export default function convertToRuleGroup(
     };
   }
 
-  return convertToRuleGroup(
-    hasuraPermissions[currentKey],
-    previousKey ? `${previousKey}.${currentKey}` : currentKey,
-    shouldNegate,
-  );
+  return convertToRuleGroup(value, {
+    ...options,
+    previousKey: previousKey ? `${previousKey}.${currentKey}` : currentKey,
+  });
 }
