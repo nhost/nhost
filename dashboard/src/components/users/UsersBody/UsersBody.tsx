@@ -197,7 +197,7 @@ export default function UsersBody({
         onDeleteUser: handleDeleteUser,
         onSuccessfulAction,
         roles: allAvailableProjectRoles.map((role) => ({
-          [role.name]: !!user.roles.find(
+          [role.name]: user.roles.some(
             (userRole) => userRole.role === role.name,
           ),
         })),
