@@ -1,5 +1,7 @@
+import Chip from '@/ui/v2/Chip';
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
+import XIcon from '@/ui/v2/icons/XIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
@@ -8,14 +10,14 @@ import type { StyledComponent } from '@emotion/styled';
 import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
 import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
-import { darken, styled } from '@mui/material';
+import { darken, inputBaseClasses, styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
 } from '@mui/material/Autocomplete';
 import clsx from 'clsx';
 import type { ForwardedRef } from 'react';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 export interface AutocompleteOption<TValue = string> {
   /**
@@ -38,13 +40,17 @@ export interface AutocompleteOption<TValue = string> {
    * Value that can be used to group options.
    */
   group?: string;
+  /**
+   * Any additional data to be passed to the option.
+   */
+  metadata?: any;
 }
 
 export interface AutocompleteProps<
   TOption extends AutocompleteOption = AutocompleteOption,
 > extends Omit<
       MaterialAutocompleteProps<TOption, boolean, boolean, boolean>,
-      'renderInput' | 'autoSelect'
+      'renderInput' | 'autoSelect' | 'componentsProps'
     >,
     Pick<
       InputProps,
@@ -60,14 +66,23 @@ export interface AutocompleteProps<
   /**
    * Props for component slots.
    */
-  componentsProps?: MaterialAutocompleteProps<
+  slotProps?: MaterialAutocompleteProps<
     TOption,
     boolean,
     boolean,
     boolean
   >['componentsProps'] & {
+    /**
+     * Props passed to the root element.
+     */
     root?: Partial<UseAutocompleteProps<any, boolean, boolean, boolean>>;
+    /**
+     * Props passed to the input component.
+     */
     input?: Partial<Omit<InputProps, 'ref'>>;
+    /**
+     * Props passed to the input's `FormControl` component.
+     */
     formControl?: Partial<FormControlProps>;
   };
   /**
@@ -89,6 +104,13 @@ export interface AutocompleteProps<
   customOptionLabel?: string | ((customOptionLabel: string) => string);
 }
 
+const StyledTag = styled(Chip)(({ theme }) => ({
+  fontSize: theme.typography.pxToRem(15),
+  lineHeight: theme.typography.pxToRem(22),
+  color: theme.palette.text.primary,
+  fontWeight: 400,
+}));
+
 const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
   [`.${materialAutocompleteClasses.endAdornment}`]: {
     right: theme.spacing(1.5),
@@ -104,17 +126,18 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
   MaterialAutocompleteProps<AutocompleteOption, boolean, boolean, boolean>
 >;
 
-const StyledPopper = styled(PopperUnstyled)(({ theme }) => ({
+export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   zIndex: 1,
   boxShadow: 'none',
   minWidth: 320,
   maxWidth: 600,
   [`& .${materialAutocompleteClasses.paper}`]: {
-    margin: theme.spacing(1.25, 0),
+    borderRadius: theme.shape.borderRadius,
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
     boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
   },
   [`& .${materialAutocompleteClasses.listbox}`]: {
-    borderRadius: theme.shape.borderRadius,
     overflow: 'auto',
     minWidth: 320,
     maxWidth: 600,
@@ -153,7 +176,7 @@ const filterOptions = createFilterOptions<AutocompleteOption>({
 
 function Autocomplete(
   {
-    componentsProps = {},
+    slotProps = {},
     fullWidth,
     placeholder,
     label,
@@ -174,14 +197,20 @@ function Autocomplete(
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const { formControl: formControlSlotProps, ...defaultComponentsProps } =
-    componentsProps || {};
+    slotProps || {};
 
   const [inputValue, setInputValue] = useState<string>(
     () => externalInputValue || '',
   );
 
+  // TODO: Revisit this implementation. We should probably have a better way to
+  // make this component controlled.
+  useEffect(() => {
+    setInputValue(externalInputValue);
+  }, [externalInputValue]);
+
   const filteredOptions = filterOptions(props.options as AutocompleteOption[], {
-    inputValue,
+    inputValue: inputValue || '',
     getOptionLabel: props.getOptionLabel
       ? props.getOptionLabel
       : (option) => {
@@ -212,6 +241,7 @@ function Autocomplete(
       componentsProps={{
         ...defaultComponentsProps,
         popper: {
+          modifiers: [{ name: 'offset', options: { offset: [0, 10] } }],
           ...defaultComponentsProps.popper,
           placement: 'bottom-start',
         },
@@ -224,7 +254,7 @@ function Autocomplete(
           ),
         },
       }}
-      inputValue={inputValue}
+      inputValue={inputValue || ''}
       onInputChange={(event, value, reason) => {
         setInputValue(value);
 
@@ -232,7 +262,7 @@ function Autocomplete(
           onInputChange(event, value, reason);
         }
       }}
-      PopperComponent={StyledPopper}
+      PopperComponent={AutocompletePopper}
       popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
       getOptionLabel={(option) => {
         if (typeof option === 'string') {
@@ -252,13 +282,27 @@ function Autocomplete(
 
         return option.value === value.value && option.custom === value.custom;
       }}
-      renderGroup={({ group, key, children }) => (
-        <div key={key}>
-          <OptionGroupBase>{group}</OptionGroupBase>
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) => (
+          <StyledTag
+            deleteIcon={<XIcon />}
+            size="small"
+            label={typeof option === 'string' ? option : option.value}
+            {...getTagProps({ index })}
+          />
+        ))
+      }
+      renderGroup={({ group, key, children }) =>
+        group ? (
+          <div key={key}>
+            <OptionGroupBase>{group}</OptionGroupBase>
 
-          {children}
-        </div>
-      )}
+            {children}
+          </div>
+        ) : (
+          <div key={key}>{children}</div>
+        )
+      }
       renderOption={(optionProps, option) => {
         if (typeof option === 'string') {
           return <OptionBase {...optionProps}>{option}</OptionBase>;
@@ -300,17 +344,29 @@ function Autocomplete(
         ...params
       }) => (
         <Input
-          componentsProps={{
+          slotProps={{
+            input: {
+              className: slotProps?.input?.className,
+              sx: props.multiple
+                ? {
+                    flexWrap: 'wrap',
+                    [`& .${inputBaseClasses.input}`]: {
+                      minWidth: 30,
+                      width: 0,
+                    },
+                  }
+                : null,
+            },
             inputRoot: { 'aria-label': ariaLabel },
             label: InputLabelProps,
             formControl: formControlSlotProps,
           }}
           {...InternalInputProps}
           {...params}
-          {...componentsProps?.input}
-          // prevent className changes from the Autocomplete component
+          {...slotProps?.input}
           value={params?.inputProps?.value || ''}
-          className=""
+          // prevent className changes from the Autocomplete component
+          className={slotProps?.input?.className || ''}
           autoComplete="off"
           fullWidth={fullWidth}
           placeholder={placeholder}

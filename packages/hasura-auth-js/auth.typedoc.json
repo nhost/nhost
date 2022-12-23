@@ -1,8 +1,12 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/index.ts"],
+  "entryPoints": [
+    "src/index.ts"
+  ],
   "exclude": "*.(spec|test).tsx?",
-  "sort": ["source-order"],
+  "sort": [
+    "source-order"
+  ],
   "json": "./.docgen/auth.json",
   "name": "Auth",
   "readme": "none",
@@ -13,15 +17,27 @@
   "compilerOptions": {
     "rootDir": "../..",
     "paths": {
-      "@nhost/apollo": ["../apollo/src/index.ts"],
-      "@nhost/core": ["../core/src/index.ts"],
-      "@nhost/hasura-auth-js": ["../hasura-auth-js/src/index.ts"],
-      "@nhost/hasura-storage-js": ["../hasura-storage-js/src/index.ts"],
-      "@nhost/nextjs": ["../nextjs/src/index.ts"],
-      "@nhost/nhost-js": ["../nhost-js/src/index.ts"],
-      "@nhost/react": ["../react/src/index.ts"],
-      "@nhost/react-apollo": ["../react-apollo/src/index.ts"],
-      "@nhost/react-auth": ["../react-auth/src/index.ts"]
+      "@nhost/apollo": [
+        "../../integrations/apollo/src/index.ts"
+      ],
+      "@nhost/hasura-auth-js": [
+        "../hasura-auth-js/src/index.ts"
+      ],
+      "@nhost/hasura-storage-js": [
+        "../hasura-storage-js/src/index.ts"
+      ],
+      "@nhost/nextjs": [
+        "../nextjs/src/index.ts"
+      ],
+      "@nhost/nhost-js": [
+        "../nhost-js/src/index.ts"
+      ],
+      "@nhost/react": [
+        "../react/src/index.ts"
+      ],
+      "@nhost/react-apollo": [
+        "../../integrations/react-apollo/src/index.ts"
+      ]
     }
   }
 }

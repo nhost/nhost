@@ -1,14 +1,12 @@
-import { useMemo } from 'react'
-
 import {
   ActionErrorState,
   ActionSuccessState,
   ChangePasswordHandlerResult,
   changePasswordPromise,
   createChangePasswordMachine
-} from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface ChangePasswordHandler {

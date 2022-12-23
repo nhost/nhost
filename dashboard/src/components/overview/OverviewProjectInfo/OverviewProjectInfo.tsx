@@ -5,6 +5,9 @@ import Image from 'next/image';
 
 export default function OverviewProjectInfo() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { region, subdomain } = currentApplication || {};
+  const isRegionAvailable =
+    region?.awsName && region?.countryCode && region?.city;
 
   return (
     <div className="grid grid-flow-row content-start gap-6">
@@ -16,28 +19,28 @@ export default function OverviewProjectInfo() {
         <div className="grid grid-flow-row gap-3">
           <InfoCard
             title="Region"
-            value={currentApplication.region?.awsName}
+            value={region?.awsName}
             customValue={
-              currentApplication.region && (
+              region.countryCode &&
+              region.city && (
                 <div className="grid grid-flow-col items-center gap-1 self-center">
                   <Image
-                    src={`/assets/${currentApplication.region.countryCode}.svg`}
-                    alt={`Logo of ${currentApplication.region.countryCode}`}
+                    src={`/assets/${region.countryCode}.svg`}
+                    alt={`Logo of ${region.countryCode}`}
                     width={16}
                     height={16}
                   />
 
                   <Text className="text-sm font-medium text-greyscaleDark">
-                    {currentApplication.region.city} (
-                    {currentApplication.region.awsName})
+                    {region.city} ({region.awsName})
                   </Text>
                 </div>
               )
             }
-            disableCopy={!currentApplication.region}
+            disableCopy={!isRegionAvailable}
           />
 
-          <InfoCard title="Subdomain" value={currentApplication.subdomain} />
+          <InfoCard title="Subdomain" value={subdomain} />
         </div>
       )}
     </div>

@@ -1,14 +1,13 @@
-import { useState } from 'react'
-
 import {
   PasswordlessOptions,
   SignInSmsPasswordlessHandlerResult,
   SignInSmsPasswordlessOtpHandlerResult,
+  signInSmsPasswordlessOtpPromise,
+  signInSmsPasswordlessPromise,
   SignInSmsPasswordlessState
-} from '@nhost/core'
-import { signInSmsPasswordlessOtpPromise, signInSmsPasswordlessPromise } from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 export interface SignInSmsPasswordlessHandler {

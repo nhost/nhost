@@ -37,6 +37,14 @@ NEXT_PUBLIC_ENV=dev
 NEXT_PUBLIC_NHOST_PLATFORM=false
 ```
 
+### Storybook
+
+Components are documented using [Storybook](https://storybook.js.org/). To run Storybook, run the following command:
+
+```bash
+pnpm storybook
+```
+
 ### Full list of environment variables
 
 | Name                                      | Description                                                                                                                                          |

@@ -13,6 +13,9 @@ export type ChipProps = DetailedHTMLProps<
   variant?: 'default' | 'info' | 'filled';
 };
 
+/**
+ * @deprecated Use `@/ui/v2/Chip` instead.
+ */
 export default function Chip({
   variant = 'default',
   className,

@@ -5,7 +5,7 @@ import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
-import { useSignInEmailPassword } from '@nhost/react';
+import { useSignInEmailPassword } from '@nhost/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';

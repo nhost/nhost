@@ -1,6 +1,6 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import CreateForeignKeyForm from '@/components/data-browser/CreateForeignKeyForm';
-import EditForeignKeyForm from '@/components/data-browser/EditForeignKeyForm';
+import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
@@ -15,13 +15,21 @@ import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 import type {
   BaseSyntheticEvent,
   DetailedHTMLProps,
   HTMLProps,
   PropsWithChildren,
 } from 'react';
-import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { DialogConfig, DialogType } from './DialogContext';
 import DialogContext from './DialogContext';
@@ -52,31 +60,33 @@ function LoadingComponent({
 }
 
 const CreateRecordForm = dynamic(
-  () => import('@/components/data-browser/CreateRecordForm'),
+  () => import('@/components/dataBrowser/CreateRecordForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateColumnForm = dynamic(
-  () => import('@/components/data-browser/CreateColumnForm'),
+  () => import('@/components/dataBrowser/CreateColumnForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditColumnForm = dynamic(
-  () => import('@/components/data-browser/EditColumnForm'),
+  () => import('@/components/dataBrowser/EditColumnForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const CreateTableForm = dynamic(
-  () => import('@/components/data-browser/CreateTableForm'),
+  () => import('@/components/dataBrowser/CreateTableForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 const EditTableForm = dynamic(
-  () => import('@/components/data-browser/EditTableForm'),
+  () => import('@/components/dataBrowser/EditTableForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
+  const router = useRouter();
+
   const [
     {
       open: dialogOpen,
@@ -164,26 +174,29 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     alertDialogDispatch({ type: 'CLEAR_ALERT_CONTENT' });
   }
 
-  function openDirtyConfirmation(config?: Partial<DialogConfig<string>>) {
-    const { props, ...restConfig } = config || {};
+  const openDirtyConfirmation = useCallback(
+    (config?: Partial<DialogConfig<string>>) => {
+      const { props, ...restConfig } = config || {};
 
-    openAlertDialog({
-      ...config,
-      title: 'Unsaved changes',
-      payload:
-        'You have unsaved local changes. Are you sure you want to discard them?',
-      props: {
-        ...props,
-        primaryButtonText: 'Discard',
-        primaryButtonColor: 'error',
-      },
-      ...restConfig,
-    });
-  }
+      setShowDirtyConfirmation(true);
+      openAlertDialog({
+        ...config,
+        title: 'Unsaved changes',
+        payload:
+          'You have unsaved local changes. Are you sure you want to discard them?',
+        props: {
+          ...props,
+          primaryButtonText: 'Discard',
+          primaryButtonColor: 'error',
+        },
+        ...restConfig,
+      });
+    },
+    [],
+  );
 
   function closeDrawerWithDirtyGuard(event?: BaseSyntheticEvent) {
     if (isDrawerDirty.current && event?.type !== 'submit') {
-      setShowDirtyConfirmation(true);
       openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
       return;
     }
@@ -193,7 +206,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
   function closeDialogWithDirtyGuard(event?: BaseSyntheticEvent) {
     if (isDialogDirty.current && event?.type !== 'submit') {
-      setShowDirtyConfirmation(true);
       openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
       return;
     }
@@ -250,6 +262,32 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     },
     onCancel: closeDrawerWithDirtyGuard,
   };
+
+  useEffect(() => {
+    function handleCloseDrawerAndDialog() {
+      if (isDrawerDirty.current || isDialogDirty.current) {
+        openDirtyConfirmation({
+          props: {
+            onPrimaryAction: () => {
+              closeDialog();
+              closeDrawer();
+            },
+          },
+        });
+
+        throw new Error('Unsaved changes');
+      }
+
+      closeDrawer();
+      closeDialog();
+    }
+
+    router?.events?.on?.('routeChangeStart', handleCloseDrawerAndDialog);
+
+    return () => {
+      router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
+    };
+  }, [closeDialog, closeDrawer, openDirtyConfirmation, router.events]);
 
   return (
     <DialogContext.Provider value={contextValue}>

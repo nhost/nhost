@@ -1,6 +1,5 @@
+import { NhostSession } from '@nhost/react'
 import fetch from 'cross-fetch'
-
-import { NhostSession } from '@nhost/core'
 
 export const refresh = async (nhostUrl: string, refreshToken: string): Promise<NhostSession> => {
   const result = await fetch(`${nhostUrl}/v1/auth/token`, {

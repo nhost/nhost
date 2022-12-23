@@ -1,6 +1,5 @@
-import { signInAnonymousPromise } from '@nhost/core'
+import { signInAnonymousPromise } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**

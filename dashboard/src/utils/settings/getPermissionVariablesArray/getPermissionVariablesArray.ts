@@ -7,7 +7,7 @@ import type { CustomClaim } from '@/types/application';
  * @param customClaims An object containing permission variables
  * @returns An array of permission variables
  */
-export default function getPermissionVariables(
+export default function getPermissionVariablesArray(
   customClaims?: Record<string, any>,
 ): CustomClaim[] {
   const systemClaims: CustomClaim[] = [

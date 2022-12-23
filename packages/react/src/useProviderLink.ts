@@ -1,7 +1,10 @@
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/nhost-js'
 import { useContext, useEffect, useState } from 'react'
-
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
-
 import { NhostReactContext } from './provider'
 
 /**

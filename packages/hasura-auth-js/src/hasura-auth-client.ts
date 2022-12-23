@@ -1,63 +1,69 @@
 import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
-
 import {
-  addSecurityKeyPromise,
-  AuthClient,
+  EMAIL_NEEDS_VERIFICATION,
+  INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
+  NO_REFRESH_TOKEN,
+  TOKEN_REFRESHER_RUNNING_ERROR
+} from './errors'
+import { AuthClient } from './internal-client'
+import {
   AuthInterpreter,
-  changeEmailPromise,
-  ChangeEmailResponse,
-  changePasswordPromise,
-  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  DeanonymizeResponse,
-  EMAIL_NEEDS_VERIFICATION,
-  encodeQueryParameters,
-  ErrorPayload,
-  INVALID_REFRESH_TOKEN,
-  INVALID_SIGN_IN_METHOD,
-  JWTClaims,
-  JWTHasuraClaims,
-  NhostSessionResponse,
-  NO_REFRESH_TOKEN,
+  createSendVerificationEmailMachine
+} from './machines'
+import {
+  addSecurityKeyPromise,
+  changeEmailPromise,
+  changePasswordPromise,
   resetPasswordPromise,
-  ResetPasswordResponse,
-  rewriteRedirectTo,
-  SecurityKey,
   sendVerificationEmailPromise,
-  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
-  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
-  SignOutResponse,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  SignUpResponse,
-  TOKEN_REFRESHER_RUNNING_ERROR
-} from '@nhost/core'
-
-import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
+  signUpEmailSecurityKeyPromise
+} from './promises'
 import {
   AuthChangedFunction,
   ChangeEmailParams,
+  ChangeEmailResponse,
   ChangePasswordParams,
+  ChangePasswordResponse,
   DeanonymizeParams,
+  DeanonymizeResponse,
+  ErrorPayload,
+  JWTClaims,
+  JWTHasuraClaims,
   NhostAuthConstructorParams,
+  NhostSessionResponse,
   OnTokenChangedFunction,
   ResetPasswordParams,
+  ResetPasswordResponse,
+  SecurityKey,
   SendVerificationEmailParams,
+  SendVerificationEmailResponse,
   SignInParams,
-  SignUpParams
-} from './utils/types'
+  SignInResponse,
+  SignOutResponse,
+  SignUpParams,
+  SignUpResponse
+} from './types'
+import {
+  encodeQueryParameters,
+  getAuthenticationResult,
+  getSession,
+  isBrowser,
+  rewriteRedirectTo
+} from './utils'
 
 /**
  * @alias Auth
@@ -427,26 +433,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
         }
       })
-
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**
@@ -462,25 +456,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-auth-state-changed
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT') {
           fn(event.type, getSession(context))
         }
       })
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onAuthStateChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**

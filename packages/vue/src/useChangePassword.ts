@@ -1,13 +1,11 @@
-import { ToRefs, unref } from 'vue'
-
 import {
   ChangePasswordHandlerResult,
   changePasswordPromise,
   ChangePasswordState,
   createChangePasswordMachine
-} from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
-
+import { ToRefs, unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 

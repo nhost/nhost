@@ -1,3 +1,4 @@
+import replace from '@rollup/plugin-replace'
 import fs from 'fs'
 import path from 'path'
 
@@ -18,7 +19,9 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
-      entryRoot: 'src'
+      entryRoot: 'src',
+      // Was defaulting to true until version 1.7
+      skipDiagnostics: true
     })
   ],
   test: {
@@ -41,6 +44,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: (id) => deps.some((dep) => id.startsWith(dep)),
+      plugins: [
+        replace({
+          preventAssignment: true,
+          'exports.hasOwnProperty(': 'Object.prototype.hasOwnProperty.call(exports,'
+        })
+      ],
       output: {
         globals: {
           graphql: 'graphql',

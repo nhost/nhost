@@ -1,6 +1,5 @@
-import { signInAnonymousPromise } from '@nhost/core'
+import { signInAnonymousPromise } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
 import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'

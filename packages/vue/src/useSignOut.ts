@@ -1,8 +1,6 @@
-import { unref } from 'vue'
-
-import { signOutPromise } from '@nhost/core'
+import { signOutPromise } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'

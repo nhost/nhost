@@ -337,7 +337,7 @@ export function NewProjectPageContent({
                   </IconButton>
                 </InputAdornment>
               }
-              componentsProps={{
+              slotProps={{
                 // Note: this is supposed to fix a `validateDOMNesting` error
                 helperText: { component: 'div' },
               }}

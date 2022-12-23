@@ -1,7 +1,10 @@
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/nhost-js'
 import { reactive } from 'vue'
-
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
-
 import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
 

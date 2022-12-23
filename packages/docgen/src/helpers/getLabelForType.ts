@@ -1,6 +1,5 @@
 import kebabCase from 'just-kebab-case'
 import { snapshot } from 'valtio'
-
 import {
   FunctionSignatureTypeFragment,
   GenericTypeFragment,
@@ -16,6 +15,7 @@ import {
   ReflectionType,
   UnionOrIntersectionType
 } from '../types'
+import codifyValue from './codifyValue'
 
 export type GetLabelForTypeOptions = {
   /**
@@ -25,23 +25,12 @@ export type GetLabelForTypeOptions = {
    */
   reference?: boolean
   /**
-   * Whether or not to wrap the fragment in an inline code block.
+   * Whether or not to wrap the fragment in a code tag.
    *
    * @default true
    */
   wrap?: boolean
 }
-
-/**
- * Returns the wrapped version for a given `value` if `wrap` is `true`.
- *
- * @param value - Value to wrap
- * @param wrap - Whether or not to wrap the fragment in an inline code block
- * @param wrapper - Wrapper character
- * @returns Wrapped value
- */
-const wrappedText = (value: any, wrap?: boolean, wrapper: string = '`') =>
-  wrap ? `${wrapper}${value}${wrapper}` : value
 
 /**
  * Returns the label for a given type.
@@ -61,8 +50,8 @@ export function getLabelForType(
     | ArrayType,
   { reference = true, wrap = true }: GetLabelForTypeOptions = {}
 ): string {
-  // TODO: Dependency on the appState should be revised
-  const { contentReferences, formattedDocsRoot } = snapshot(appState)
+  // TODO: Dependency on the appState should be reviewed
+  const { contentReferences, baseSlug, formattedDocsRoot } = snapshot(appState)
 
   if (!type) {
     return ''
@@ -72,20 +61,28 @@ export function getLabelForType(
     const originalType = contentReferences.get(type.id)
 
     if (!originalType) {
-      return wrappedText(type.name, wrap)
+      return codifyValue(type.name, wrap)
     }
 
-    return `[\`${type.name}\`](/${formattedDocsRoot ? `${formattedDocsRoot}/` : ''}${
-      originalType !== 'Class' ? 'types/' : ''
-    }${kebabCase(type.name)})`
+    if (originalType === 'Class') {
+      const finalSlug = baseSlug || formattedDocsRoot
+
+      return `[\`${type.name}\`](/${
+        finalSlug ? `${finalSlug.replace(/^\//i, '')}/` : ''
+      }${kebabCase(type.name)})`
+    }
+
+    return `[\`${type.name}\`](/${
+      formattedDocsRoot ? `${formattedDocsRoot}/` : ''
+    }types/${kebabCase(type.name)})`
   }
 
   if (type.type === 'reference' && type.typeArguments) {
-    return wrappedText(GenericTypeFragment(type), wrap)
+    return codifyValue(GenericTypeFragment(type), wrap)
   }
 
   if (type.type === 'reference' || type.type === 'intrinsic') {
-    return wrappedText(type.name, wrap)
+    return codifyValue(type.name, wrap)
   }
 
   if (
@@ -93,7 +90,7 @@ export function getLabelForType(
     type.declaration.children &&
     type.declaration.children.length > 0
   ) {
-    return wrappedText(
+    return codifyValue(
       `{ ${type.declaration.children
         .map(
           (value) =>
@@ -113,10 +110,10 @@ export function getLabelForType(
     type.declaration.signatures.length > 0 &&
     type.declaration.signatures[0].kindString === 'Call signature'
   ) {
-    return wrappedText(
+    return codifyValue(
       FunctionSignatureTypeFragment(
         type.declaration.signatures[0],
-        { wrap: false },
+        { wrap: 'none' },
         {
           reference: false
         }
@@ -126,19 +123,19 @@ export function getLabelForType(
   }
 
   if (type.type === 'reflection') {
-    return wrappedText(type.declaration.name, wrap)
+    return codifyValue(type.declaration.name, wrap)
   }
 
   if (type.type === 'literal' && type.value === null) {
-    return wrappedText('null', wrap)
+    return codifyValue('null', wrap)
   }
 
   if (type.type === 'literal' && type.value === undefined) {
-    return wrappedText('undefined', wrap)
+    return codifyValue('undefined', wrap)
   }
 
   if (type.type === 'literal') {
-    return wrappedText(typeof type.value === 'number' ? type.value : `"${type.value}"`, wrap)
+    return codifyValue(typeof type.value === 'number' ? type.value : `"${type.value}"`, wrap)
   }
 
   if (type.type === 'query' && type.queryType.id && reference) {
@@ -146,20 +143,21 @@ export function getLabelForType(
   }
 
   if (type.type === 'query') {
-    return wrappedText(type.queryType.name, wrap)
+    return codifyValue(type.queryType.name, wrap)
   }
 
   if (type.type === 'array') {
-    return wrappedText(
-      `Array<${getLabelForType(type.elementType, {
-        reference,
-        wrap: false
-      })}>`,
+    return codifyValue(
+      `Array<${getLabelForType(type.elementType, { reference, wrap: false })}>`,
       wrap
     )
   }
 
-  return wrappedText(UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, wrap }))
+  return codifyValue(
+    // Do not wrap union or intersection types internally
+    UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, wrap: false }),
+    wrap
+  )
 }
 
 export default getLabelForType

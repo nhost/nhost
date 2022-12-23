@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/react-apollo",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.6.9",
@@ -56,14 +56,14 @@
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "@types/totp-generator": "^0.0.4",
-    "@vitejs/plugin-react": "^1.3.2",
+    "@vitejs/plugin-react": "^3.0.0",
     "@xstate/inspect": "^0.6.2",
     "cypress": "^10.7.0",
     "cypress-mailhog": "^1.6.0",
     "start-server-and-test": "^1.14.0",
     "totp-generator": "^0.0.13",
     "typescript": "^4.8.2",
-    "vite": "^3.2.2",
+    "vite": "^4.0.2",
     "ws": "^8.8.1",
     "xstate": "^4.33.5"
   }

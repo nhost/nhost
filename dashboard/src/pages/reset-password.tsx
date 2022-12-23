@@ -1,6 +1,6 @@
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import { Button, Input, Text } from '@/ui';
-import { useResetPassword } from '@nhost/react';
+import { useResetPassword } from '@nhost/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';

@@ -1,6 +1,9 @@
-import { signUpEmailPasswordPromise, SignUpEmailPasswordState, SignUpOptions } from '@nhost/core'
+import {
+  signUpEmailPasswordPromise,
+  SignUpEmailPasswordState,
+  SignUpOptions
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>

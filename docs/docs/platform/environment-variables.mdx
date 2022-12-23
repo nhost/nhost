@@ -23,17 +23,40 @@ System Environment Variables are automatically available in production and durin
 
 - `NHOST_ADMIN_SECRET`
 - `NHOST_WEBHOOK_SECRET`
+- `NHOST_BACKEND_URL` ([deprecated](https://github.com/nhost/nhost/discussions/1319))
+- `NHOST_SUBDOMAIN`
+- `NHOST_REGION`
+- `NHOST_HASURA_URL`
+- `NHOST_AUTH_URL`
+- `NHOST_GRAPHQL_URL`
+- `NHOST_STORAGE_URL`
+- `NHOST_FUNCTIONS_URL`
 - `NHOST_JWT_SECRET`
-- `NHOST_BACKEND_URL`
 
 Example values:
 
-```bash
+```text
 NHOST_ADMIN_SECRET=e7w36ag287qn5qry795f6ymm57qgvqup
+
 NHOST_WEBHOOK_SECRET=ns3sfjgdw4y6zeqthwnnw347dzh8wyj4
-NHOST_JWT_SECRET={"type": "HS256", "key": "vumpbe2w2mgaqj5yqfp7dvxu6kywtvsgb68ejpdaqxerea8
-jwrsszdp2dhkjxsh4df69pzm3ja6ukedx8ja43zdt6q9kgbgg2w9vh2sedeppukud9a2qzy29v3afdn7m"}
-NHOST_BACKEND_URL=https://xxxxxxx.nhost.run
+
+NHOST_BACKEND_URL=https://abc123abc.nhost.run
+
+NHOST_SUBDOMAIN=abv123abc
+
+NHOST_REGION=eu-central-1
+
+NHOST_HASURA_URL=https://abc123abc.hasura.eu-central-1.nhost.run/console
+
+NHOST_AUTH_URL=https://abc123abc.auth.eu-central-1.nhost.run/v1
+
+NHOST_GRAPHQL_URL=https://abc123abc.graphql.eu-central-1.nhost.run/v1
+
+NHOST_STORAGE_URL=https://abc123abc.storage.eu-central-1.nhost.run/v1
+
+NHOST_FUNCTIONS_URL=https://abc123abc.functions.eu-central-1.nhost.run/v1
+
+NHOST_JWT_SECRET={"type": "HS256", "key": "vumpbe2w2mgaqj5yqfp7dvxu6kywtvsgb68ejpdaqxerea8jwrsszdp2dhkjxsh4df69pzm3ja6ukedx8ja43zdt6q9kgbgg2w9vh2sedeppukud9a2qzy29v3afdn7m"}
 ```
 
 ## Development Environment Variables

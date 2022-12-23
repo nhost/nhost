@@ -1,8 +1,10 @@
-import type { AxiosResponse } from 'axios'
-
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
-
-export type { NhostAuthConstructorParams }
+// TODO shared with other packages
+export type ErrorPayload = {
+  error: string
+  status: number
+  message: string
+}
 
 export type BackendUrl = {
   /**
@@ -50,29 +52,4 @@ export interface NhostClientConstructorParams
    * for all requests to GraphQL, Storage, and Serverless Functions.
    */
   adminSecret?: string
-}
-
-export type GraphqlRequestResponse<T = unknown> =
-  | {
-      data: null
-      error: Error | object | object[]
-    }
-  | {
-      data: T
-      error: null
-    }
-
-export type FunctionCallResponse<T = unknown> =
-  | {
-      res: AxiosResponse<T>
-      error: null
-    }
-  | {
-      res: null
-      error: Error
-    }
-
-export interface GraphqlResponse<T = object> {
-  errors?: object[]
-  data?: T
 }
