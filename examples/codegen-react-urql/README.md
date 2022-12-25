@@ -1,7 +1,5 @@
 # Nhost with React, TypeScript, Codegen, and URQL.
 
-![Demo](assets/demo.png)
-
 ## Get Started
 
 1. Clone the repository
