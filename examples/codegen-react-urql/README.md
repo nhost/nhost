@@ -1,4 +1,4 @@
-# Nhost with React and URQL Example
+# Nhost with React, TypeScript, Codegen, and URQL.
 
 ![Demo](assets/demo.png)
 
@@ -21,13 +21,13 @@ pnpm run build
 3. Go to the example folder
 
 ```sh
-cd examples/react-urql
+cd examples/codegen-react-urql
 ```
 
 4. Terminal 1: Start Nhost
 
 ```sh
-nhost dev
+nhost up -d
 ```
 
 5. Terminal 2: Start the React application
