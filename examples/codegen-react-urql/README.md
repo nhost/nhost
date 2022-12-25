@@ -1,4 +1,12 @@
-# Nhost with React, TypeScript, Codegen, and URQL.
+# GraphQL Code Generator Example with React and URQL
+
+Todo app to show how to use:
+
+- [Nhost](https://nhost.io/)
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [GraphQL Code Generator](https://the-guild.dev/graphql/codegen)
+- [URQL](https://formidable.com/open-source/urql/)
 
 ## Get Started
 
@@ -33,3 +41,13 @@ nhost up -d
 ```sh
 pnpm run dev
 ```
+
+## GraphQL Code Generators
+
+To re-run the GraphQL Code Generators, run the following:
+
+```
+pnpm codegen -w
+```
+
+> `-w` runs [codegen in watch mode](https://www.the-guild.dev/graphql/codegen/docs/getting-started/development-workflow#watch-mode).
