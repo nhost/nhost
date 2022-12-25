@@ -11,14 +11,22 @@ configuration:
       custom_name: createdAt
     default_role:
       custom_name: defaultRole
+    disabled:
+      custom_name: disabled
     display_name:
       custom_name: displayName
+    email:
+      custom_name: email
     email_verified:
       custom_name: emailVerified
+    id:
+      custom_name: id
     is_anonymous:
       custom_name: isAnonymous
     last_seen:
       custom_name: lastSeen
+    locale:
+      custom_name: locale
     new_email:
       custom_name: newEmail
     otp_hash:
@@ -33,6 +41,8 @@ configuration:
       custom_name: phoneNumber
     phone_number_verified:
       custom_name: phoneNumberVerified
+    ticket:
+      custom_name: ticket
     ticket_expires_at:
       custom_name: ticketExpiresAt
     totp_secret:
@@ -46,10 +56,14 @@ configuration:
     avatar_url: avatarUrl
     created_at: createdAt
     default_role: defaultRole
+    disabled: disabled
     display_name: displayName
+    email: email
     email_verified: emailVerified
+    id: id
     is_anonymous: isAnonymous
     last_seen: lastSeen
+    locale: locale
     new_email: newEmail
     otp_hash: otpHash
     otp_hash_expires_at: otpHashExpiresAt
@@ -57,6 +71,7 @@ configuration:
     password_hash: passwordHash
     phone_number: phoneNumber
     phone_number_verified: phoneNumberVerified
+    ticket: ticket
     ticket_expires_at: ticketExpiresAt
     totp_secret: totpSecret
     updated_at: updatedAt
@@ -77,13 +92,6 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
-  - name: authenticators
-    using:
-      foreign_key_constraint_on:
-        column: user_id
-        table:
-          name: user_authenticators
-          schema: auth
   - name: refreshTokens
     using:
       foreign_key_constraint_on:
@@ -97,6 +105,13 @@ array_relationships:
         column: user_id
         table:
           name: user_roles
+          schema: auth
+  - name: securityKeys
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_security_keys
           schema: auth
   - name: userProviders
     using:

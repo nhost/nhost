@@ -29,7 +29,7 @@ auth:
     url:
       allowed_redirect_urls: ''
   anonymous_users_enabled: false
-  client_url: http://127.0.0.1:5173
+  client_url: http://localhost:5173
   disable_new_users: false
   email:
     enabled: false

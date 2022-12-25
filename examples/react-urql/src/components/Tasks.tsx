@@ -85,7 +85,35 @@ export function Tasks() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-3xl">Todos</h1>
+      <div>
+        <div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Todo
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  placeholder="Todo"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="bg-gray-800 border-gray-600 text-gray-100 block w-full rounded-sm shadow-sm focus:shadow-md sm:text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <button
+                type="submit"
+                className="rounded-sm border border-transparent px-3 py-2 text-sm font-medium leading-4 bg-slate-100 hover:bg-slate-200 text-gray-800 shadow-sm hover:focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full "
+                disabled={insertPostIsLoading}
+              >
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
       <div>
         {tasks.map((task) => {
           const style = clsx('p-2', {
@@ -95,7 +123,7 @@ export function Tasks() {
           return (
             <div
               key={task.id}
-              className="flex justify-between hover:bg-gray-900 transition-all duration-300 ease-in-out"
+              className="flex justify-between transition-all duration-300 ease-in-out"
             >
               <div className={style}>{task.name}</div>
               <div className="flex space-x-4">
@@ -108,7 +136,7 @@ export function Tasks() {
                       }
                     })
                   }}
-                  className="cursor-pointer p-2 hover:bg-gray-700 rounded-sm"
+                  className="cursor-pointer p-2 hover:bg-gray-900 rounded-sm transition-all duration-100 ease-in-out"
                 >
                   {task.done ? 'Not Done' : 'Done'}
                 </button>
@@ -116,7 +144,7 @@ export function Tasks() {
                   onClick={() => {
                     deleteTask({ id: task.id })
                   }}
-                  className="cursor-pointer p-2 hover:bg-gray-700 rounded-sm"
+                  className="cursor-pointer p-2 hover:bg-gray-900 rounded-sm transition-all duration-100 ease-in-out"
                 >
                   Delete
                 </button>
@@ -124,36 +152,6 @@ export function Tasks() {
             </div>
           )
         })}
-      </div>
-      <div>
-        <h2 className="text-lg">New Task</h2>
-        <div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <div className="mt-1">
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="bg-gray-800 border-gray-600 text-gray-100 block w-full rounded-sm shadow-sm focus:shadow-md sm:text-sm"
-                />
-              </div>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="rounded-sm border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full "
-                disabled={insertPostIsLoading}
-              >
-                Add
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   )
