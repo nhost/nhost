@@ -121,12 +121,17 @@ array_relationships:
           name: user_providers
           schema: auth
 select_permissions:
+  - role: public
+    permission:
+      columns:
+        - display_name
+        - id
+      filter: {}
+      limit: 0
   - role: user
     permission:
       columns:
-        - avatar_url
         - display_name
         - id
-      filter:
-        id:
-          _eq: X-Hasura-User-Id
+      filter: {}
+      limit: 0
