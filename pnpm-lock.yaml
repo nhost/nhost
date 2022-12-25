@@ -461,6 +461,51 @@ importers:
       typescript: 4.8.3
       vite: 4.0.2_@types+node@16.11.65
 
+  examples/codegen-react-urql:
+    specifiers:
+      '@graphql-codegen/cli': ^2.14.1
+      '@graphql-codegen/client-preset': ^1.1.5
+      '@graphql-typed-document-node/core': ^3.1.1
+      '@nhost/react': '*'
+      '@nhost/react-urql': '*'
+      '@tailwindcss/forms': ^0.5.3
+      '@types/node': ^18.11.9
+      '@types/react': ^18.0.25
+      '@types/react-dom': ^18.0.9
+      '@vitejs/plugin-react': ^3.0.0
+      autoprefixer: ^10.4.13
+      clsx: ^1.2.1
+      graphql: 15.7.2
+      postcss: ^8.4.19
+      react: 18.2.0
+      react-dom: 18.2.0
+      tailwindcss: ^3.2.1
+      typescript: ^4.6.4
+      urql: ^3.0.3
+      vite: ^4.0.2
+    dependencies:
+      '@nhost/react': link:../../packages/react
+      '@nhost/react-urql': link:../../integrations/react-urql
+      clsx: 1.2.1
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      urql: 3.0.3_qqqj7xqn73klpidhtp57t4zzwm
+    devDependencies:
+      '@graphql-codegen/cli': 2.14.1_j6zuqsv2z43ufwjlsil24k6kjy
+      '@graphql-codegen/client-preset': 1.1.5_graphql@15.7.2
+      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
+      '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.4
+      '@types/node': 18.11.17
+      '@types/react': 18.0.26
+      '@types/react-dom': 18.0.9
+      '@vitejs/plugin-react': 3.0.0_vite@4.0.2
+      autoprefixer: 10.4.13_postcss@8.4.20
+      postcss: 8.4.20
+      tailwindcss: 3.2.4_postcss@8.4.20
+      typescript: 4.9.4
+      vite: 4.0.2_@types+node@18.11.17
+
   examples/docker-compose:
     specifiers:
       cross-fetch: ^3.1.5
@@ -635,51 +680,6 @@ importers:
       tailwindcss: 3.2.1_postcss@8.4.18
       typescript: 4.8.3
       vite: 4.0.2
-
-  examples/react-urql:
-    specifiers:
-      '@graphql-codegen/cli': ^2.14.1
-      '@graphql-codegen/client-preset': ^1.1.5
-      '@graphql-typed-document-node/core': ^3.1.1
-      '@nhost/react': '*'
-      '@nhost/react-urql': '*'
-      '@tailwindcss/forms': ^0.5.3
-      '@types/node': ^18.11.9
-      '@types/react': ^18.0.25
-      '@types/react-dom': ^18.0.9
-      '@vitejs/plugin-react': ^3.0.0
-      autoprefixer: ^10.4.13
-      clsx: ^1.2.1
-      graphql: 15.7.2
-      postcss: ^8.4.19
-      react: 18.2.0
-      react-dom: 18.2.0
-      tailwindcss: ^3.2.1
-      typescript: ^4.6.4
-      urql: ^3.0.3
-      vite: ^4.0.2
-    dependencies:
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-urql': link:../../integrations/react-urql
-      clsx: 1.2.1
-      graphql: 15.7.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      urql: 3.0.3_qqqj7xqn73klpidhtp57t4zzwm
-    devDependencies:
-      '@graphql-codegen/cli': 2.14.1_i2odd7xq7rkghopnpaidp56ddq
-      '@graphql-codegen/client-preset': 1.1.5_graphql@15.7.2
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.1
-      '@types/node': 18.11.9
-      '@types/react': 18.0.25
-      '@types/react-dom': 18.0.9
-      '@vitejs/plugin-react': 3.0.0_vite@4.0.2
-      autoprefixer: 10.4.13_postcss@8.4.19
-      postcss: 8.4.19
-      tailwindcss: 3.2.1_postcss@8.4.19
-      typescript: 4.9.3
-      vite: 4.0.2_@types+node@18.11.9
 
   examples/seed-data-storage:
     specifiers: {}
@@ -4737,7 +4737,7 @@ packages:
       infima: 0.2.0-alpha.42
       lodash: 4.17.21
       nprogress: 0.2.0
-      postcss: 8.4.19
+      postcss: 8.4.20
       prism-react-renderer: 1.3.5_react@17.0.2
       prismjs: 1.28.0
       react: 17.0.2
@@ -5856,7 +5856,7 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@graphql-codegen/cli/2.14.1_i2odd7xq7rkghopnpaidp56ddq:
+  /@graphql-codegen/cli/2.14.1_j6zuqsv2z43ufwjlsil24k6kjy:
     resolution: {integrity: sha512-Z9EiX8yJ5xtNdw/1ApV8uKx6UjCNl/D28zTHU8Fa7BcCdi3ilGOKSiWCNZaH1mpwKr5EfX18kme2bIqKmohv/w==}
     hasBin: true
     peerDependencies:
@@ -5874,19 +5874,19 @@ packages:
       '@graphql-tools/graphql-file-loader': 7.5.0_graphql@15.7.2
       '@graphql-tools/json-file-loader': 7.4.1_graphql@15.7.2
       '@graphql-tools/load': 7.8.0_graphql@15.7.2
-      '@graphql-tools/prisma-loader': 7.2.8_vtapoohws2opfe7nv3fy5dju64
-      '@graphql-tools/url-loader': 7.13.3_vtapoohws2opfe7nv3fy5dju64
+      '@graphql-tools/prisma-loader': 7.2.8_rjok3qtk356xdlnrv5def2wis4
+      '@graphql-tools/url-loader': 7.13.3_rjok3qtk356xdlnrv5def2wis4
       '@graphql-tools/utils': 8.12.0_graphql@15.7.2
       '@whatwg-node/fetch': 0.3.2
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       chokidar: 3.5.3
       cosmiconfig: 7.0.1
-      cosmiconfig-typescript-loader: 4.1.1_c3wx773ada3g3glsmhqelvkz6u
+      cosmiconfig-typescript-loader: 4.1.1_dl66ylqf4ihycccubemm4sb33a
       debounce: 1.2.1
       detect-indent: 6.1.0
       graphql: 15.7.2
-      graphql-config: 4.3.6_i2odd7xq7rkghopnpaidp56ddq
+      graphql-config: 4.3.6_j6zuqsv2z43ufwjlsil24k6kjy
       inquirer: 8.2.5
       is-glob: 4.0.3
       json-to-pretty-yaml: 1.2.2
@@ -10869,7 +10869,7 @@ packages:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
 
   /@types/bonjour/3.5.10:
     resolution: {integrity: sha512-p7ienRMiS41Nu2/igbJxxLDWrSZ0WxM8UQgCeO9KhoVF7cOVFkrKsiDr1EsJIla8vV3oEEjGcz11jc5yimhzZw==}
@@ -10938,7 +10938,7 @@ packages:
   /@types/express-serve-static-core/4.17.28:
     resolution: {integrity: sha512-P1BJAEAW3E2DJUlkgq4tOL3RyMunoWXqbSCygWo5ZIWTjUgN1YnaXWW4VWl/oc8vs/XoYibEGBKP0uZyF4AHig==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
 
@@ -10971,7 +10971,7 @@ packages:
     resolution: {integrity: sha512-l6NQsDDyQUVeoTynNpC9uRvCUint/gSUXQA2euwmTuWGvPY5LSDUu6tkCtJB2SvGQlJQzLaKqcGZP4//7EDveA==}
     dependencies:
       '@types/minimatch': 3.0.5
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
     dev: true
 
   /@types/graceful-fs/4.1.5:
@@ -11284,7 +11284,7 @@ packages:
     resolution: {integrity: sha512-nCkHGI4w7ZgAdNkrEu0bv+4xNV/XDqW+DydknebMOQwkpDGx8G+HTlj7R7ABI8i8nKxVw0wtKPi1D+lPOkh4YQ==}
     dependencies:
       '@types/mime': 1.3.2
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
 
   /@types/set-cookie-parser/2.4.2:
     resolution: {integrity: sha512-fBZgytwhYAUkj/jC/FAV4RQ5EerRup1YQsXQCh8rZfiHkc4UahC192oH0smGwsXol3cL3A5oETuAHeQHmhXM4w==}
@@ -12243,7 +12243,7 @@ packages:
       '@vue/shared': 3.2.41
       estree-walker: 2.0.2
       magic-string: 0.25.9
-      postcss: 8.4.19
+      postcss: 8.4.20
       source-map: 0.6.1
 
   /@vue/compiler-ssr/3.2.40:
@@ -15065,7 +15065,7 @@ packages:
       typescript: 4.8.3
     dev: true
 
-  /cosmiconfig-typescript-loader/4.1.1_c3wx773ada3g3glsmhqelvkz6u:
+  /cosmiconfig-typescript-loader/4.1.1_dl66ylqf4ihycccubemm4sb33a:
     resolution: {integrity: sha512-9DHpa379Gp0o0Zefii35fcmuuin6q92FnLDffzdZ0l9tVd3nEobG3O+MZ06+kuBvFTSVScvNb/oHA13Nd4iipg==}
     engines: {node: '>=12', npm: '>=6'}
     peerDependencies:
@@ -15074,9 +15074,9 @@ packages:
       ts-node: '>=10'
       typescript: '>=3'
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       cosmiconfig: 7.0.1
-      typescript: 4.9.3
+      typescript: 4.9.4
     dev: true
 
   /cosmiconfig-typescript-loader/4.1.1_gcri34524ranxsdtemmssi7zpi:
@@ -15135,6 +15135,21 @@ packages:
       '@types/node': 16.11.65
       cosmiconfig: 7.0.1
       typescript: 4.8.3
+    dev: true
+
+  /cosmiconfig-typescript-loader/4.1.1_pv3xx747qckazkht7qpsismlja:
+    resolution: {integrity: sha512-9DHpa379Gp0o0Zefii35fcmuuin6q92FnLDffzdZ0l9tVd3nEobG3O+MZ06+kuBvFTSVScvNb/oHA13Nd4iipg==}
+    engines: {node: '>=12', npm: '>=6'}
+    peerDependencies:
+      '@types/node': '*'
+      cosmiconfig: '>=7'
+      ts-node: '>=10'
+      typescript: '>=3'
+    dependencies:
+      '@types/node': 18.11.17
+      cosmiconfig: 7.0.1
+      ts-node: 10.9.1_moeqx3xmzxqxagf2sz6mqkbb7m
+      typescript: 4.9.4
     dev: true
 
   /cosmiconfig-typescript-loader/4.1.1_qytw2pae2ezm5dz2sndo3hb3eq:
@@ -20181,6 +20196,36 @@ packages:
       - utf-8-validate
     dev: true
 
+  /graphql-config/4.3.6_j6zuqsv2z43ufwjlsil24k6kjy:
+    resolution: {integrity: sha512-i7mAPwc0LAZPnYu2bI8B6yXU5820Wy/ArvmOseDLZIu0OU1UTULEuexHo6ZcHXeT9NvGGaUPQZm8NV3z79YydA==}
+    engines: {node: '>= 10.0.0'}
+    peerDependencies:
+      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      '@graphql-tools/graphql-file-loader': 7.5.0_graphql@15.7.2
+      '@graphql-tools/json-file-loader': 7.4.1_graphql@15.7.2
+      '@graphql-tools/load': 7.8.0_graphql@15.7.2
+      '@graphql-tools/merge': 8.3.6_graphql@15.7.2
+      '@graphql-tools/url-loader': 7.13.3_rjok3qtk356xdlnrv5def2wis4
+      '@graphql-tools/utils': 8.12.0_graphql@15.7.2
+      cosmiconfig: 7.0.1
+      cosmiconfig-toml-loader: 1.0.0
+      cosmiconfig-typescript-loader: 4.1.1_pv3xx747qckazkht7qpsismlja
+      graphql: 15.7.2
+      minimatch: 4.2.1
+      string-env-interpolation: 1.0.1
+      ts-node: 10.9.1_moeqx3xmzxqxagf2sz6mqkbb7m
+      tslib: 2.4.1
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+    dev: true
+
   /graphql-config/4.3.6_rzbo7uimexo5h3nbhjimp32qda:
     resolution: {integrity: sha512-i7mAPwc0LAZPnYu2bI8B6yXU5820Wy/ArvmOseDLZIu0OU1UTULEuexHo6ZcHXeT9NvGGaUPQZm8NV3z79YydA==}
     engines: {node: '>= 10.0.0'}
@@ -24853,23 +24898,6 @@ packages:
       yaml: 1.10.2
     dev: true
 
-  /postcss-load-config/3.1.4_postcss@8.4.19:
-    resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
-    engines: {node: '>= 10'}
-    peerDependencies:
-      postcss: '>=8.0.9'
-      ts-node: '>=9.0.0'
-    peerDependenciesMeta:
-      postcss:
-        optional: true
-      ts-node:
-        optional: true
-    dependencies:
-      lilconfig: 2.0.6
-      postcss: 8.4.19
-      yaml: 1.10.2
-    dev: true
-
   /postcss-load-config/3.1.4_postcss@8.4.20:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
     engines: {node: '>= 10'}
@@ -27172,7 +27200,7 @@ packages:
     dependencies:
       find-up: 5.0.0
       picocolors: 1.0.0
-      postcss: 8.4.19
+      postcss: 8.4.20
       strip-json-comments: 3.1.1
     dev: false
 
@@ -28269,7 +28297,7 @@ packages:
     resolution: {integrity: sha512-CINNkuDEmF1rsHoTKS39iZ641NFONKZKllUioeQkRpz7qYPJayp7Xl/V30vbM2n5CTJo3X0FmZ2CychThfPTDA==}
     engines: {node: ^8.1 || >=10.*}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       qs: 6.11.0
     dev: false
 
@@ -28277,7 +28305,7 @@ packages:
     resolution: {integrity: sha512-JHV2KoL+nMQRXu3m9ervCZZvi4DDCJfzHUE6CmtJxR9TmizyYfrVuhGvnsZLLnheby9Qrnf4Hq6iOEcejGwnGQ==}
     engines: {node: ^8.1 || >=10.*}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       qs: 6.11.0
     dev: false
 
@@ -28285,7 +28313,7 @@ packages:
     resolution: {integrity: sha512-erOslPQZSYKOotQjmKRy4eBon/tdhzLIYzBdPSNVWDdatSQozkkPlh8mVeXNwubYYZYx61/yS23eWiGDF93z2w==}
     engines: {node: '>=12.*'}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       qs: 6.11.0
     dev: false
 
@@ -28552,40 +28580,6 @@ packages:
       postcss-js: 4.0.0_postcss@8.4.18
       postcss-load-config: 3.1.4_postcss@8.4.18
       postcss-nested: 6.0.0_postcss@8.4.18
-      postcss-selector-parser: 6.0.10
-      postcss-value-parser: 4.2.0
-      quick-lru: 5.1.1
-      resolve: 1.22.1
-    transitivePeerDependencies:
-      - ts-node
-    dev: true
-
-  /tailwindcss/3.2.1_postcss@8.4.19:
-    resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
-    engines: {node: '>=12.13.0'}
-    hasBin: true
-    peerDependencies:
-      postcss: ^8.0.9
-    dependencies:
-      arg: 5.0.2
-      chokidar: 3.5.3
-      color-name: 1.1.4
-      detective: 5.2.1
-      didyoumean: 1.2.2
-      dlv: 1.1.3
-      fast-glob: 3.2.12
-      glob-parent: 6.0.2
-      is-glob: 4.0.3
-      lilconfig: 2.0.6
-      micromatch: 4.0.5
-      normalize-path: 3.0.0
-      object-hash: 3.0.0
-      picocolors: 1.0.0
-      postcss: 8.4.19
-      postcss-import: 14.1.0_postcss@8.4.19
-      postcss-js: 4.0.0_postcss@8.4.19
-      postcss-load-config: 3.1.4_postcss@8.4.19
-      postcss-nested: 6.0.0_postcss@8.4.19
       postcss-selector-parser: 6.0.10
       postcss-value-parser: 4.2.0
       quick-lru: 5.1.1
@@ -29233,6 +29227,37 @@ packages:
       diff: 4.0.2
       make-error: 1.3.6
       typescript: 4.8.4
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    dev: true
+
+  /ts-node/10.9.1_moeqx3xmzxqxagf2sz6mqkbb7m:
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.8
+      '@tsconfig/node12': 1.0.9
+      '@tsconfig/node14': 1.0.1
+      '@tsconfig/node16': 1.0.2
+      '@types/node': 18.11.17
+      acorn: 8.7.1
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 4.9.4
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     dev: true
@@ -30590,14 +30615,14 @@ packages:
         optional: true
     dependencies:
       esbuild: 0.14.54
-      postcss: 8.4.19
+      postcss: 8.4.20
       resolve: 1.22.1
       rollup: 2.77.3
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
 
-  /vite/3.2.5_@types+node@18.11.9:
+  /vite/3.2.5_@types+node@18.11.17:
     resolution: {integrity: sha512-4mVEpXpSOgrssFZAOmGIr85wPHKvaDAcXqxVxVRZhljkJOMZi1ibLibzjLHzJvcok8BMguLc7g1W6W/GqZbLdQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -30622,9 +30647,9 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       esbuild: 0.15.12
-      postcss: 8.4.19
+      postcss: 8.4.20
       resolve: 1.22.1
       rollup: 2.79.1
     optionalDependencies:
@@ -30890,7 +30915,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.3
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       acorn: 8.8.1
       acorn-walk: 8.2.0
       chai: 4.3.6
@@ -30901,7 +30926,7 @@ packages:
       tinybench: 2.3.1
       tinypool: 0.3.0
       tinyspy: 1.0.2
-      vite: 3.2.5_@types+node@18.11.9
+      vite: 3.2.5_@types+node@18.11.17
     transitivePeerDependencies:
       - less
       - sass
@@ -30935,7 +30960,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.3
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.11.9
+      '@types/node': 18.11.17
       acorn: 8.8.1
       acorn-walk: 8.2.0
       chai: 4.3.6
@@ -30947,7 +30972,7 @@ packages:
       tinybench: 2.3.1
       tinypool: 0.3.0
       tinyspy: 1.0.2
-      vite: 3.2.5_@types+node@18.11.9
+      vite: 3.2.5_@types+node@18.11.17
     transitivePeerDependencies:
       - less
       - sass
