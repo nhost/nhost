@@ -1,0 +1,65 @@
+table:
+  name: tasks
+  schema: public
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    created_at: createdAt
+    updated_at: updatedAt
+  custom_root_fields:
+    delete: deleteTasks
+    delete_by_pk: deleteTask
+    insert: insertTasks
+    insert_one: insertTask
+    select: tasks
+    select_aggregate: tasksAggregate
+    select_by_pk: task
+    select_stream: tasksStream
+    update: updateTasks
+    update_by_pk: updateTask
+    update_many: updateManyTasks
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - name
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - done
+        - name
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - done
+        - name
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
