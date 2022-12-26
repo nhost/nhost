@@ -66,13 +66,12 @@
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
     "axios": "^1.2.0",
-    "jwt-decode": "^3.1.2",
-    "query-string": "^7.0.1"
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
     "@nhost/docgen": "workspace:*",
-    "graphql": "15.7.2",
+    "graphql": "16.6.0",
     "start-server-and-test": "^1.14.0"
   },
   "peerDependencies": {

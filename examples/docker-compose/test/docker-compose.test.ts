@@ -27,7 +27,7 @@ describe(
           fetch('http://localhost:1337/healthz').then((res) => res.status)
         ).resolves.toEqual(200)
       },
-      { retry: 10, timeout: 1000 }
+      { retry: 60, timeout: 1000 }
     )
 
     it(
@@ -37,7 +37,7 @@ describe(
           fetch('http://localhost:1337/v1/auth/healthz').then((res) => res.status)
         ).resolves.toEqual(200)
       },
-      { retry: 10, timeout: 1000 }
+      { retry: 60, timeout: 1000 }
     )
 
     it(
@@ -47,7 +47,7 @@ describe(
           fetch('http://localhost:1337/v1/storage/version').then((res) => res.status)
         ).resolves.toEqual(200)
       },
-      { retry: 10, timeout: 1000 }
+      { retry: 60, timeout: 1000 }
     )
 
     it(
@@ -57,7 +57,7 @@ describe(
           fetch('http://localhost:1337/v1/functions/hello').then((res) => res.status)
         ).resolves.toEqual(200)
       },
-      { retry: 10, timeout: 1000 }
+      { retry: 60, timeout: 1000 }
     )
 
     it(
@@ -65,7 +65,7 @@ describe(
       async () => {
         await expect(fetch('http://localhost:3030').then((res) => res.status)).resolves.toEqual(200)
       },
-      { retry: 10, timeout: 1000 }
+      { retry: 60, timeout: 1000 }
     )
   },
   { timeout: 5 * 60 * 1000 }
