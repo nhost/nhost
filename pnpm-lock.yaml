@@ -182,7 +182,7 @@ importers:
       react-hot-toast: ^2.4.0
       react-is: 17.0.2
       react-loading-skeleton: ^2.2.0
-      react-merge-refs: ^1.1.0
+      react-merge-refs: ^2.0.0
       react-syntax-highlighter: ^15.4.5
       react-table: ^7.8.0
       require-from-string: ^2.0.2
@@ -255,7 +255,7 @@ importers:
       react-hot-toast: 2.4.0_vt6aeitzauirmcdhimiad2yjxy
       react-is: 17.0.2
       react-loading-skeleton: 2.2.0_react@18.2.0
-      react-merge-refs: 1.1.0
+      react-merge-refs: 2.0.1
       react-syntax-highlighter: 15.5.0_react@18.2.0
       react-table: 7.8.0_react@18.2.0
       sharp: 0.31.2
@@ -25657,6 +25657,11 @@ packages:
 
   /react-merge-refs/1.1.0:
     resolution: {integrity: sha512-alTKsjEL0dKH/ru1Iyn7vliS2QRcBp9zZPGoWxUOvRGWPUYgjo+V01is7p04It6KhgrzhJGnIj9GgX8W4bZoCQ==}
+    dev: true
+
+  /react-merge-refs/2.0.1:
+    resolution: {integrity: sha512-pywF6oouJWuqL26xV3OruRSIqai31R9SdJX/I3gP2q8jLxUnA1IwXcLW8werUHLZOrp4N7YOeQNZrh/BKrHI4A==}
+    dev: false
 
   /react-popper/2.3.0_ili5ylfne7i3hkfpsanzgkfu6m:
     resolution: {integrity: sha512-e1hj8lL3uM+sgSR4Lxzn5h1GxBlpa4CQz0XLF8kx4MDrDRWY0Ena4c97PUeSX9i5W3UAfDP0z0FXCTQkoXUl3Q==}

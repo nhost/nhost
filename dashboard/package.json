@@ -68,7 +68,7 @@
     "react-hot-toast": "^2.4.0",
     "react-is": "17.0.2",
     "react-loading-skeleton": "^2.2.0",
-    "react-merge-refs": "^1.1.0",
+    "react-merge-refs": "^2.0.0",
     "react-syntax-highlighter": "^15.4.5",
     "react-table": "^7.8.0",
     "sharp": "^0.31.2",
