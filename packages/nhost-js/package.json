@@ -71,7 +71,7 @@
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
     "@nhost/docgen": "workspace:*",
-    "graphql": "15.7.2",
+    "graphql": "16.6.0",
     "start-server-and-test": "^1.14.0"
   },
   "peerDependencies": {

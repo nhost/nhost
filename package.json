@@ -85,7 +85,7 @@
     "vitest": "^0.26.2"
   },
   "resolutions": {
-    "graphql": "15.7.2"
+    "graphql": "16.6.0"
   },
   "packageManager": "pnpm@7.17.0",
   "engines": {
