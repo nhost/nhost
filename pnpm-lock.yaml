@@ -349,7 +349,7 @@ importers:
       react: ^17.0.2
       react-dom: ^17.0.2
       typescript: ^4.8.4
-      unist-util-visit: ^2.0.0
+      unist-util-visit: ^4.0.0
     dependencies:
       '@algolia/client-search': 4.14.2
       '@docusaurus/core': 2.2.0_56jbash75ng5psbctf36wqywr4
@@ -358,12 +358,12 @@ importers:
       '@mdx-js/react': 1.6.22_react@17.0.2
       clsx: 1.2.1
       docusaurus-plugin-image-zoom: 0.1.1
-      mdx-mermaid: 1.3.2_cnyo6j6zrw624weu3auye7g3xe
+      mdx-mermaid: 1.3.2_htwwnaxh7iwutpx344j4uww24y
       mermaid: 9.3.0
       prism-react-renderer: 1.3.5_react@17.0.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      unist-util-visit: 2.0.3
+      unist-util-visit: 4.1.1
     devDependencies:
       '@docusaurus/module-type-aliases': 2.2.0_sfoxds7t5ydpegc3knd667wn6m
       '@tsconfig/docusaurus': 1.0.6
@@ -22042,7 +22042,7 @@ packages:
   /mdurl/1.0.1:
     resolution: {integrity: sha512-/sKlQJCBYVY9Ers9hqzKou4H6V5UWc/M59TH2dvkt+84itfnq7uFOMLpOiOS4ujvHP4etln18fmIxA5R5fll0g==}
 
-  /mdx-mermaid/1.3.2_cnyo6j6zrw624weu3auye7g3xe:
+  /mdx-mermaid/1.3.2_htwwnaxh7iwutpx344j4uww24y:
     resolution: {integrity: sha512-8kw0tg3isKKBFzFwoe2DhIaEgKYtVeJXQtxZCCrdTPO0CTpXHnTHT0atDqsp7YkXi5iUCp/zAZPZu1cmr68T3w==}
     peerDependencies:
       mermaid: '>=8.11.0'
@@ -22051,7 +22051,7 @@ packages:
     dependencies:
       mermaid: 9.3.0
       react: 17.0.2
-      unist-util-visit: 2.0.3
+      unist-util-visit: 4.1.1
     dev: false
 
   /media-typer/0.3.0:
@@ -28897,6 +28897,10 @@ packages:
   /unist-util-is/4.1.0:
     resolution: {integrity: sha512-ZOQSsnce92GrxSqlnEEseX0gi7GH9zTJZ0p9dtu87WRb/37mMPO2Ilx1s/t9vBHrFhbgweUwb+t7cIn5dxPhZg==}
 
+  /unist-util-is/5.1.1:
+    resolution: {integrity: sha512-F5CZ68eYzuSvJjGhCLPL3cYx45IxkqXSetCcRgUXtbcm50X2L9oOWQlfUfDdAf+6Pd27YDblBfdtmsThXmwpbQ==}
+    dev: false
+
   /unist-util-position/3.1.0:
     resolution: {integrity: sha512-w+PkwCbYSFw8vpgWD0v7zRCl1FpY3fjDSQ3/N/wNd9Ffa4gPi8+4keqt99N3XW6F99t/mUzp2xAhNmfKWp95QA==}
 
@@ -28921,12 +28925,27 @@ packages:
       '@types/unist': 2.0.6
       unist-util-is: 4.1.0
 
+  /unist-util-visit-parents/5.1.1:
+    resolution: {integrity: sha512-gks4baapT/kNRaWxuGkl5BIhoanZo7sC/cUT/JToSRNL1dYoXRFl75d++NkjYk4TAu2uv2Px+l8guMajogeuiw==}
+    dependencies:
+      '@types/unist': 2.0.6
+      unist-util-is: 5.1.1
+    dev: false
+
   /unist-util-visit/2.0.3:
     resolution: {integrity: sha512-iJ4/RczbJMkD0712mGktuGpm/U4By4FfDonL7N/9tATGIF4imikjOuagyMY53tnZq3NP6BcmlrHhEKAfGWjh7Q==}
     dependencies:
       '@types/unist': 2.0.6
       unist-util-is: 4.1.0
       unist-util-visit-parents: 3.1.1
+
+  /unist-util-visit/4.1.1:
+    resolution: {integrity: sha512-n9KN3WV9k4h1DxYR1LoajgN93wpEi/7ZplVe02IoB4gH5ctI1AaF2670BLHQYbwj+pY83gFtyeySFiyMHJklrg==}
+    dependencies:
+      '@types/unist': 2.0.6
+      unist-util-is: 5.1.1
+      unist-util-visit-parents: 5.1.1
+    dev: false
 
   /universalify/0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
