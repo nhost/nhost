@@ -66,3 +66,5 @@ jobs:
         with:
           commit_message: ${{ github.event.pull_request.title }}
           branch: main
+          push_options: --force
+          token: ${{ secrets.GH_PAT }}
