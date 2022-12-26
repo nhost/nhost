@@ -12,11 +12,14 @@ examples:
 sdk:
   - packages/**/*
 
+integrations:
+  - integrations/**/*
+
 react:
-  - '{packages,examples}/*react*/**/*'
+  - '{packages,examples,integrations}/*react*/**/*'
 
 nextjs:
   - '{packages,examples}/*next*/**/*'
 
 vue:
-  - '{packages,examples}/*vue*/**/*'
+  - '{packages,examples,integrations}/*vue*/**/*'
