@@ -82,7 +82,7 @@
     "vite": "^4.0.2",
     "vite-plugin-dts": "^1.7.1",
     "vite-tsconfig-paths": "^4.0.3",
-    "vitest": "^0.26.0"
+    "vitest": "^0.26.2"
   },
   "resolutions": {
     "graphql": "15.7.2"
