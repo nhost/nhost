@@ -7,7 +7,7 @@ import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import NavBar from '../components/NavBar'
 import { BACKEND_URL } from '../helpers'
-import '../styles/globals.css'
+import '../styles/globals.css?inline'
 
 const devTools = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_DEBUG
 if (devTools) {

@@ -4,17 +4,17 @@ import { BrandGithub } from 'tabler-icons-react'
 import { AppShell, Button, Group, Header, Image, MantineProvider, Title } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
 
-import { AuthGate, PublicGate } from './components/auth-gates'
-import NavBar from './components/NavBar'
 import { AboutPage } from './About'
 import { ApolloPage } from './apollo'
+import { AuthGate, PublicGate } from './components/auth-gates'
+import NavBar from './components/NavBar'
 import Home from './Home'
 import { ProfilePage } from './profile'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
 import { StoragePage } from './Storage'
 
-import './App.css'
+import './App.css?inline'
 const title = 'Nhost with React and Apollo'
 
 function App() {

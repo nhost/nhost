@@ -18,7 +18,7 @@
     "rootDir": "../..",
     "paths": {
       "@nhost/apollo": [
-        "../apollo/src/index.ts"
+        "../../integrations/apollo/src/index.ts"
       ],
       "@nhost/hasura-auth-js": [
         "../hasura-auth-js/src/index.ts"
@@ -36,10 +36,7 @@
         "../react/src/index.ts"
       ],
       "@nhost/react-apollo": [
-        "../react-apollo/src/index.ts"
-      ],
-      "@nhost/react-auth": [
-        "../react-auth/src/index.ts"
+        "../../integrations/react-apollo/src/index.ts"
       ]
     }
   }

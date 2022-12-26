@@ -8,7 +8,7 @@ import { forwardRef } from 'react';
 import mergeRefs from 'react-merge-refs';
 
 export interface InputProps
-  extends Omit<MaterialInputBaseProps, 'componentsProps'>,
+  extends Omit<MaterialInputBaseProps, 'componentsProps' | 'slotProps'>,
     Pick<
       FormControlProps,
       | 'label'
@@ -19,22 +19,34 @@ export interface InputProps
       | 'inlineInputProportion'
     > {
   /**
-   * Props passed to the form control component.
-   *
-   * @deprecated Use `componentsProps` instead.
-   */
-  formControlProps?: FormControlProps;
-  /**
    * Props for component slots.
    */
-  componentsProps?: {
+  slotProps?: {
+    /**
+     * Props passed to MUI's `<Input />` component.
+     */
     input?: Partial<MaterialInputBaseProps>;
+    /**
+     * Props passed to the `<Box />` component wrapping the input.
+     */
     inputWrapper?: Partial<FormControlProps['inputWrapperProps']>;
+    /**
+     * Props passed to the native `<input />` element.
+     */
     inputRoot?: Partial<
       DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>
     >;
+    /**
+     * Props passed to the label in the `<FormControl />` component.
+     */
     label?: Partial<FormControlProps['labelProps']>;
+    /**
+     * Props passed to the `<FormControl />` component.
+     */
     formControl?: Partial<FormControlProps>;
+    /**
+     * Props passed to the helper text in the `<FormControl />` component.
+     */
     helperText?: Partial<FormControlProps['helperTextProps']>;
   };
 }
@@ -42,10 +54,11 @@ export interface InputProps
 const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
+  overflow: 'hidden',
   transition: theme.transitions.create(['border-color', 'box-shadow']),
   [`& .${inputBaseClasses.input}`]: {
-    fontSize: '0.9375rem',
-    lineHeight: '1.375rem',
+    fontSize: theme.typography.pxToRem(15),
+    lineHeight: theme.typography.pxToRem(22),
     padding: theme.spacing(1, 1.25),
     color: theme.palette.text.primary,
     outline: 'none',
@@ -89,11 +102,7 @@ function Input(
     hideEmptyHelperText,
     inlineInputProportion,
     variant = 'normal',
-    formControlProps: {
-      sx: deprecatedFormControlSx,
-      ...deprecatedFormControlProps
-    } = {},
-    componentsProps,
+    slotProps,
     className,
     'aria-label': ariaLabel,
     ...props
@@ -108,21 +117,18 @@ function Input(
     label: labelSlotProps,
     helperText: helperTextSlotProps,
   } = {
-    inputWrapper: componentsProps?.inputWrapper || {},
-    input: componentsProps?.input || {},
-    inputRoot: componentsProps?.inputRoot || {},
-    formControl: componentsProps?.formControl || {},
-    label: componentsProps?.label || {},
-    helperText: componentsProps?.helperText || {},
+    inputWrapper: slotProps?.inputWrapper || {},
+    input: slotProps?.input || {},
+    inputRoot: slotProps?.inputRoot || {},
+    formControl: slotProps?.formControl || {},
+    label: slotProps?.label || {},
+    helperText: slotProps?.helperText || {},
   };
 
   return (
     <FormControl
       sx={[
         { alignItems: props.multiline ? 'start' : 'center' },
-        ...(Array.isArray(deprecatedFormControlSx)
-          ? deprecatedFormControlSx
-          : [deprecatedFormControlSx]),
         ...(Array.isArray(formControlSx) ? formControlSx : [formControlSx]),
       ]}
       className={className}
@@ -140,7 +146,6 @@ function Input(
       fullWidth={props.fullWidth}
       error={props.error}
       inlineInputProportion={inlineInputProportion}
-      {...deprecatedFormControlProps}
       {...formControlSlotProps}
     >
       <StyledInputBase

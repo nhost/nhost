@@ -145,6 +145,9 @@ export function EachOptionSelector({
   );
 }
 
+/**
+ * @deprecated Use `@/ui/v2/Select` instead.
+ */
 export default function Selector({
   value,
   onChange,
