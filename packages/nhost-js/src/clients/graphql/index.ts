@@ -86,6 +86,7 @@ export class NhostGraphqlClient {
   ): Promise<DeprecatedNhostGraphqlRequestResponse<T> | NhostGraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
+      'Accept-Encoding': '*',
       ...this.generateAccessTokenHeaders(),
       ...config?.headers
     }
