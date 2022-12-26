@@ -62,9 +62,28 @@ jobs:
 
           ${{ github.event.pull_request.title }}
           EOF
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        if: steps.bumps.outputs.result != ''
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v4
         with:
-          commit_message: ${{ github.event.pull_request.title }}
-          branch: main
-          push_options: --force
+          token: ${{ secrets.GH_PAT }}
+          commit-message: ${{ github.event.pull_request.title }}
+          branch: renovate-changesets
+          delete-branch: true
+          title: 'chore: create changesest from Renovate bumps'
+          labels: |
+            dependencies
+          body: |
+            This PR creates the changesets from the Renovate dependencies that have been merged to main.
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.GH_PAT }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+      - name: Auto approve
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          number: ${{ steps.cpr.outputs.pull-request-number }}
