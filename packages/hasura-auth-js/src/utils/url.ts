@@ -62,13 +62,11 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
   }
 }
 
-export function getParameterByName(name: string, url?: string) {
-  if (!url) {
-    if (typeof window === 'undefined') {
-      return
-    }
-    url = window.location?.href || ''
+export function getParameterByName(name: string) {
+  if (typeof window === 'undefined') {
+    return
   }
+  const url = window.location?.href || ''
   // eslint-disable-next-line no-useless-escape
   name = name.replace(/[\[\]]/g, '\\$&')
   const regex = new RegExp('[?&#]' + name + '(=([^&#]*)|&|#|$)'),
@@ -88,12 +86,23 @@ export function removeParameterFromWindow(name: string) {
   }
   if (location) {
     const search = new URLSearchParams(location.search)
-    const hash = new URLSearchParams(location.hash?.slice(1))
     search.delete(name)
-    hash.delete(name)
     let url = window.location.pathname
-    if (Array.from(search).length) url += `?${search.toString()}`
-    if (Array.from(hash).length) url += `#${hash.toString()}`
+    if (Array.from(search).length) {
+      url += `?${search.toString()}`
+    }
+
+    const hash = new URLSearchParams(location.hash?.slice(1))
+    /** @deprecated refresh tokens and types are not send in the hash anymore */
+    if (hash.get(name)) {
+      hash.delete(name)
+      url += `#${hash.toString()}`
+    } else {
+      if (location.hash) {
+        url += location.hash
+      }
+    }
+
     window.history.pushState({}, '', url)
   }
 }
