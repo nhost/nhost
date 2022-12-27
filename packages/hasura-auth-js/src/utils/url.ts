@@ -1,6 +1,10 @@
 import { RedirectOption } from '../types'
 
-export const encodeQueryParameters = (baseUrl: string, parameters?: Record<string, unknown>) => {
+export const encodeQueryParameters = (
+  baseUrl: string,
+  parameters?: Record<string, unknown>,
+  hash?: string
+) => {
   const encodedParameters =
     parameters &&
     Object.entries(parameters)
@@ -13,8 +17,8 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
         return `${key}=${encodeURIComponent(stringValue)}`
       })
       .join('&')
-  if (encodedParameters) return `${baseUrl}?${encodedParameters}`
-  else return baseUrl
+  const url = encodedParameters ? `${baseUrl}?${encodedParameters}` : baseUrl
+  return hash ? url + hash : url
 }
 
 /**
@@ -45,7 +49,14 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
   }
   const baseClientUrl = new URL(clientUrl)
   const clientParams = Object.fromEntries(new URLSearchParams(baseClientUrl.search))
-  const url = new URL(redirectTo.startsWith('/') ? baseClientUrl.origin + redirectTo : redirectTo)
+
+  const url = new URL(
+    redirectTo.startsWith('/')
+      ? baseClientUrl.origin + redirectTo
+      : redirectTo.startsWith('#')
+      ? baseClientUrl.origin
+      : redirectTo
+  )
   const additionalParams = new URLSearchParams(url.search)
   let combinedParams = Object.fromEntries(additionalParams)
 
@@ -58,7 +69,11 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
   }
   return {
     ...otherOptions,
-    redirectTo: encodeQueryParameters(url.origin + pathName, combinedParams)
+    redirectTo: encodeQueryParameters(
+      url.origin + pathName,
+      combinedParams,
+      redirectTo.startsWith('#') ? redirectTo : undefined
+    )
   }
 }
 
