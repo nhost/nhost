@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios, { AxiosInstance } from 'axios'
+import { toIso88591 } from './utils'
 
 import {
   ApiDeleteParams,
@@ -110,7 +111,7 @@ export class HasuraStorageApi {
       uploadheaders['x-nhost-file-id'] = id
     }
     if (name) {
-      uploadheaders['x-nhost-file-name'] = name
+      uploadheaders['x-nhost-file-name'] = toIso88591(name)
     }
 
     return uploadheaders
