@@ -8,5 +8,6 @@ describe('test file names', () => {
     expect(toIso88591('你 好')).toMatchInlineSnapshot('"%E4%BD%A0%20%E5%A5%BD"')
     expect(toIso88591('abc')).toMatchInlineSnapshot('"abc"')
     expect(toIso88591('╗')).toMatchInlineSnapshot('"%E2%95%97"')
+    expect(toIso88591("Capture d'écran 2022-06-23 à 16.45.06.png")).toMatchInlineSnapshot('"Capture d\'écran 2022-06-23 à 16.45.06.png"')
   })
 })
