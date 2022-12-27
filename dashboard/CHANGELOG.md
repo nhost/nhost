@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 0.7.12
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 9e0486a3: fix(dashboard): close modals when navigating
+- Updated dependencies [b21222b3]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+  - @nhost/nextjs@1.12.0
+  - @nhost/react-apollo@5.0.0
+
 ## 0.7.11
 
 ### Patch Changes

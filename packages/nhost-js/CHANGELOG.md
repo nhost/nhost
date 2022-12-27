@@ -1,5 +1,52 @@
 # @nhost/nhost-js
 
+## 1.12.0
+
+### Minor Changes
+
+- 19cca7f4: Deprecate Axios
+
+  Axios will be replaced by cross-fetch in the near future.
+
+  To prepare for the transition, we are deprecating the old signature for the following methods:
+
+  - `nhost.functions.call()`
+  - `nhost.graphql.request()`
+
+  Both methods now accept an optional `useAxios` parameter that can be used to opt-in (`{ useAxios: false }`) to the new method signature. By default, `useAxios` is set to `true` so you can update it on your own time.
+
+  When using `useAxios: false`:
+
+  - the only allowed option is `headers: Record<string,string>`
+  - the returned value matches values foreseen in the next major version:
+    - `nhost.functions.call`:
+      - `error` is using the same standard error type as in `hasura-auth-js` and `hasura-storage-js`
+      - `res` is using `{ status: number; statusText: string; data: T }`
+    - `nhost.graphql.request`:
+      - `error` is either using the standard error type, or `GraphQlError[]`
+
+- 65687bee: Remove `@nhost/hasura-auth-js` and `@nhost/hasura-storage-js` from `peerDepencencies`
+
+  The contents of both clients are now available from `@nhost/nhost-js`.
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+- 1a9e1fde: Remove unused query-string dependency
+- 5be9abb0: Allow custom values for the `Accept-Encoding` header in `nhost.graphql.request`
+- 54df0df4: Use initial session sent from the server
+
+  When running a SSR page, the session was correctly created from the refresh token on the server side and was sent to the client side, but was not used correctly on the client side.
+  As a result, the client was refreshing the access token when loading the page, rather than using the access token sent by the server.
+  The client now uses the session sent from the server.
+
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [54df0df4]
+  - @nhost/hasura-auth-js@1.12.0
+  - @nhost/hasura-storage-js@1.12.0
+
 ## 1.7.0
 
 ### Minor Changes

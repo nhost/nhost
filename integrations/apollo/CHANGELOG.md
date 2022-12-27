@@ -1,5 +1,19 @@
 # @nhost/apollo
 
+## 5.0.0
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+- Updated dependencies [1a9e1fde]
+- Updated dependencies [5be9abb0]
+- Updated dependencies [54df0df4]
+  - @nhost/nhost-js@1.12.0
+
 ## 0.5.36
 
 ### Patch Changes
