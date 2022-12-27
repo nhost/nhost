@@ -4,8 +4,7 @@
 
 Stop sending the refresh token in the hash part of the redirection
 
-[Since 9 months](https://github.com/nhost/hasura-auth/pull/146),
-Originally, hasura-auth was adding the refresh token to the hash part of the redirection urls, but we decided to add it to the query parameters, as the hash was not accessible in SSR pages.
+Originally, hasura-auth was adding the refresh token to the hash part of the redirection urls, but [we decided to add it to the query parameters](https://github.com/nhost/hasura-auth/pull/146), as the hash was not accessible in SSR pages.
 We decided to add the refresh token in both places during a transition period in order to prevent a breaking change with legacy versions of the SDK, that were looking for the refresh token in the hash.
 However, since `@nhost/nhostjs@1.1.4` (April), the SDK also finds (and removes) the refresh token in both places.
 
