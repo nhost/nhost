@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { gqlSdk } from '@/utils';
+import { gqlSdk, pgClient } from '@/utils';
 import { SignInResponse, Session } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { generateTicketExpiresAt } from './ticket';
@@ -30,13 +30,11 @@ export const getNewRefreshToken = async (
   userId: string,
   refreshToken = uuidv4()
 ) => {
-  await gqlSdk.insertRefreshToken({
-    refreshToken: {
-      userId,
-      refreshToken,
-      expiresAt: new Date(newRefreshExpiry()),
-    },
-  });
+  await pgClient.insertRefreshToken(
+    userId,
+    refreshToken,
+    new Date(newRefreshExpiry())
+  );
 
   return refreshToken;
 };

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { createEmailRedirectionLink, getUserByEmail } from '@/utils';
+import { createEmailRedirectionLink, getUserByEmail, pgClient } from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 
@@ -79,9 +79,7 @@ export const handleDeanonymizeUserEmailPassword = async (
   // delete old refresh tokens and send email if user must verify their email
   // before they can sign in.
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    await gqlSdk.deleteUserRefreshTokens({
-      userId,
-    });
+    await pgClient.deleteUserRefreshTokens(userId);
 
     const template = 'email-verify';
     const link = createEmailRedirectionLink(

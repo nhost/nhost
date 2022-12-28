@@ -1,4 +1,4 @@
-import { gqlSdk } from '@/utils';
+import { pgClient } from '@/utils';
 import { ENV } from '@/utils/env';
 import { logger, LOG_LEVEL } from './logger';
 
@@ -27,20 +27,12 @@ export const start = async () => {
   // }
 
   // * Insert missing default allowed roles into the database
-  const { insertAuthRoles } = await gqlSdk.upsertRoles({
-    roles: [
-      ...new Set([
-        ...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES,
-        ENV.AUTH_USER_DEFAULT_ROLE,
-      ]),
-    ].map((role) => ({ role })),
-  });
-  if (insertAuthRoles?.affected_rows) {
-    logger.info(
-      `Inserted ${
-        insertAuthRoles.affected_rows
-      } roles: ${insertAuthRoles.returning.map(({ role }) => role).join(', ')}`
-    );
+  const newRoles = await pgClient.upsertRoles([
+    ...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES,
+    ENV.AUTH_USER_DEFAULT_ROLE,
+  ]);
+  if (newRoles.length) {
+    logger.info(`Inserted ${newRoles.length} roles: ${newRoles.join(', ')}`);
   }
 
   // if (ENV.AUTH_SKIP_SERVE) {

@@ -3,9 +3,9 @@ import {
   ENV,
   getSignInResponse,
   getUserByEmail,
-  gqlSdk,
   getWebAuthnRelyingParty,
   getCurrentChallenge,
+  pgClient,
 } from '@/utils';
 import { RequestHandler } from 'express';
 
@@ -54,24 +54,19 @@ export const signInWebauthnHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
-    id: user.id,
-  });
+  const authUserSecurityKeys = await pgClient.getUserSecurityKeys(user.id);
 
   const options = generateAuthenticationOptions({
     rpID: getWebAuthnRelyingParty(),
     userVerification: 'preferred',
     timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,
     allowCredentials: authUserSecurityKeys.map((securityKey) => ({
-      id: Buffer.from(securityKey.credentialId, 'base64url'),
+      id: Buffer.from(securityKey.credential_id, 'base64url'),
       type: 'public-key',
     })),
   });
 
-  await gqlSdk.updateUserChallenge({
-    userId: user.id,
-    challenge: options.challenge,
-  });
+  await pgClient.updateUserChallenge(user.id, options.challenge);
 
   return res.send(options);
 };
@@ -116,11 +111,9 @@ export const signInVerifyWebauthnHandler: RequestHandler<
 
   const expectedChallenge = await getCurrentChallenge(user.id);
 
-  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
-    id: user.id,
-  });
+  const authUserSecurityKeys = await pgClient.getUserSecurityKeys(user.id);
   const securityKey = authUserSecurityKeys?.find(
-    ({ credentialId }) => credentialId === credential.id
+    ({ credential_id }) => credential_id === credential.id
   );
 
   if (!securityKey) {
@@ -129,9 +122,9 @@ export const signInVerifyWebauthnHandler: RequestHandler<
 
   const securityKeyDevice = {
     counter: securityKey.counter,
-    credentialID: Buffer.from(securityKey.credentialId, 'base64url'),
+    credentialID: Buffer.from(securityKey.credential_id, 'base64url'),
     credentialPublicKey: Buffer.from(
-      securityKey.credentialPublicKey.substr(2),
+      securityKey.credential_public_key.substr(2),
       'hex'
     ),
   };
@@ -163,10 +156,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
   const { newCounter } = authenticationInfo;
 
   if (securityKey.counter != newCounter) {
-    await gqlSdk.updateUserSecurityKey({
-      id: securityKey.id,
-      counter: newCounter,
-    });
+    await pgClient.updateUserSecurityKey(securityKey.id, newCounter);
   }
 
   const signInResponse = await getSignInResponse({

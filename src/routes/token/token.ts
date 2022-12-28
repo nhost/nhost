@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getNewOrUpdateCurrentSession, gqlSdk } from '@/utils';
+import { getNewOrUpdateCurrentSession, gqlSdk, pgClient } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -32,7 +32,7 @@ export const tokenHandler: RequestHandler<
   // TODO: CRONJOB in the future.
   if (Math.random() < 0.1) {
     // no await
-    gqlSdk.deleteExpiredRefreshTokens();
+    pgClient.deleteExpiredRefreshTokens();
   }
 
   const session = await getNewOrUpdateCurrentSession({

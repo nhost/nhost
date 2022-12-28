@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk } from '@/utils';
+import { pgClient } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -31,15 +31,11 @@ export const signOutHandler: RequestHandler<
 
     const { userId } = req.auth;
 
-    await gqlSdk.deleteUserRefreshTokens({
-      userId,
-    });
+    await pgClient.deleteUserRefreshTokens(userId);
   } else {
     // only sign out from the current session
     // delete current refresh token
-    await gqlSdk.deleteRefreshToken({
-      refreshToken,
-    });
+    await pgClient.deleteRefreshToken(refreshToken);
   }
 
   return res.json(ReasonPhrases.OK);

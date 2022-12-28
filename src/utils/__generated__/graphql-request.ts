@@ -35,6 +35,19 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
 };
 
+/** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
+export type Int_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['Int']>;
+  _gt?: InputMaybe<Scalars['Int']>;
+  _gte?: InputMaybe<Scalars['Int']>;
+  _in?: InputMaybe<Array<Scalars['Int']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['Int']>;
+  _lte?: InputMaybe<Scalars['Int']>;
+  _neq?: InputMaybe<Scalars['Int']>;
+  _nin?: InputMaybe<Array<Scalars['Int']>>;
+};
+
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type String_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['String']>;
@@ -178,7 +191,7 @@ export type AuthProviderRequests_Order_By = {
   options?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: authProviderRequests */
+/** primary key columns input for table: auth.provider_requests */
 export type AuthProviderRequests_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
@@ -198,6 +211,20 @@ export enum AuthProviderRequests_Select_Column {
 
 /** input type for updating data in table "auth.provider_requests" */
 export type AuthProviderRequests_Set_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  options?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** Streaming cursor of the table "authProviderRequests" */
+export type AuthProviderRequests_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthProviderRequests_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthProviderRequests_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   options?: InputMaybe<Scalars['jsonb']>;
 };
@@ -285,6 +312,7 @@ export type AuthProviders_Bool_Exp = {
   _or?: InputMaybe<Array<AuthProviders_Bool_Exp>>;
   id?: InputMaybe<String_Comparison_Exp>;
   userProviders?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.providers" */
@@ -340,7 +368,7 @@ export type AuthProviders_Order_By = {
   userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Order_By>;
 };
 
-/** primary key columns input for table: authProviders */
+/** primary key columns input for table: auth.providers */
 export type AuthProviders_Pk_Columns_Input = {
   id: Scalars['String'];
 };
@@ -353,6 +381,19 @@ export enum AuthProviders_Select_Column {
 
 /** input type for updating data in table "auth.providers" */
 export type AuthProviders_Set_Input = {
+  id?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "authProviders" */
+export type AuthProviders_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthProviders_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthProviders_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['String']>;
 };
 
@@ -373,7 +414,9 @@ export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
   expiresAt: Scalars['timestamptz'];
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
+  refreshTokenHash?: Maybe<Scalars['String']>;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -384,6 +427,17 @@ export type AuthRefreshTokens_Aggregate = {
   __typename?: 'authRefreshTokens_aggregate';
   aggregate?: Maybe<AuthRefreshTokens_Aggregate_Fields>;
   nodes: Array<AuthRefreshTokens>;
+};
+
+export type AuthRefreshTokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthRefreshTokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.refresh_tokens" */
@@ -423,6 +477,7 @@ export type AuthRefreshTokens_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -437,6 +492,7 @@ export enum AuthRefreshTokens_Constraint {
 export type AuthRefreshTokens_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -447,7 +503,9 @@ export type AuthRefreshTokens_Max_Fields = {
   __typename?: 'authRefreshTokens_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -455,7 +513,9 @@ export type AuthRefreshTokens_Max_Fields = {
 export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -464,7 +524,9 @@ export type AuthRefreshTokens_Min_Fields = {
   __typename?: 'authRefreshTokens_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -472,7 +534,9 @@ export type AuthRefreshTokens_Min_Fields = {
 export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -497,12 +561,14 @@ export type AuthRefreshTokens_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: authRefreshTokens */
+/** primary key columns input for table: auth.refresh_tokens */
 export type AuthRefreshTokens_Pk_Columns_Input = {
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
 };
 
@@ -515,6 +581,8 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshToken = 'refreshToken',
   /** column name */
+  RefreshTokenHash = 'refreshTokenHash',
+  /** column name */
   UserId = 'userId'
 }
 
@@ -522,7 +590,26 @@ export enum AuthRefreshTokens_Select_Column {
 export type AuthRefreshTokens_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authRefreshTokens" */
+export type AuthRefreshTokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthRefreshTokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
+  refreshToken?: InputMaybe<Scalars['uuid']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -627,7 +714,9 @@ export type AuthRoles_Bool_Exp = {
   _or?: InputMaybe<Array<AuthRoles_Bool_Exp>>;
   role?: InputMaybe<String_Comparison_Exp>;
   userRoles?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  userRoles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
   usersByDefaultRole?: InputMaybe<Users_Bool_Exp>;
+  usersByDefaultRole_aggregate?: InputMaybe<Users_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.roles" */
@@ -685,7 +774,7 @@ export type AuthRoles_Order_By = {
   usersByDefaultRole_aggregate?: InputMaybe<Users_Aggregate_Order_By>;
 };
 
-/** primary key columns input for table: authRoles */
+/** primary key columns input for table: auth.roles */
 export type AuthRoles_Pk_Columns_Input = {
   role: Scalars['String'];
 };
@@ -698,6 +787,19 @@ export enum AuthRoles_Select_Column {
 
 /** input type for updating data in table "auth.roles" */
 export type AuthRoles_Set_Input = {
+  role?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "authRoles" */
+export type AuthRoles_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthRoles_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthRoles_Stream_Cursor_Value_Input = {
   role?: InputMaybe<Scalars['String']>;
 };
 
@@ -735,6 +837,17 @@ export type AuthUserProviders_Aggregate = {
   __typename?: 'authUserProviders_aggregate';
   aggregate?: Maybe<AuthUserProviders_Aggregate_Fields>;
   nodes: Array<AuthUserProviders>;
+};
+
+export type AuthUserProviders_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserProviders_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.user_providers" */
@@ -887,7 +1000,7 @@ export type AuthUserProviders_Order_By = {
   userId?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: authUserProviders */
+/** primary key columns input for table: auth.user_providers */
 export type AuthUserProviders_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
@@ -914,6 +1027,26 @@ export enum AuthUserProviders_Select_Column {
 
 /** input type for updating data in table "auth.user_providers" */
 export type AuthUserProviders_Set_Input = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  providerId?: InputMaybe<Scalars['String']>;
+  providerUserId?: InputMaybe<Scalars['String']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authUserProviders" */
+export type AuthUserProviders_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthUserProviders_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthUserProviders_Stream_Cursor_Value_Input = {
   accessToken?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -968,6 +1101,17 @@ export type AuthUserRoles_Aggregate = {
   __typename?: 'authUserRoles_aggregate';
   aggregate?: Maybe<AuthUserRoles_Aggregate_Fields>;
   nodes: Array<AuthUserRoles>;
+};
+
+export type AuthUserRoles_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserRoles_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.user_roles" */
@@ -1090,7 +1234,7 @@ export type AuthUserRoles_Order_By = {
   userId?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: authUserRoles */
+/** primary key columns input for table: auth.user_roles */
 export type AuthUserRoles_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
@@ -1109,6 +1253,22 @@ export enum AuthUserRoles_Select_Column {
 
 /** input type for updating data in table "auth.user_roles" */
 export type AuthUserRoles_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authUserRoles" */
+export type AuthUserRoles_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthUserRoles_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthUserRoles_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   role?: InputMaybe<Scalars['String']>;
@@ -1152,6 +1312,17 @@ export type AuthUserSecurityKeys_Aggregate = {
   __typename?: 'authUserSecurityKeys_aggregate';
   aggregate?: Maybe<AuthUserSecurityKeys_Aggregate_Fields>;
   nodes: Array<AuthUserSecurityKeys>;
+};
+
+export type AuthUserSecurityKeys_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthUserSecurityKeys_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "auth.user_security_keys" */
@@ -1320,7 +1491,7 @@ export type AuthUserSecurityKeys_Order_By = {
   userId?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: authUserSecurityKeys */
+/** primary key columns input for table: auth.user_security_keys */
 export type AuthUserSecurityKeys_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
@@ -1385,6 +1556,25 @@ export type AuthUserSecurityKeys_Stddev_Samp_Fields = {
 /** order by stddev_samp() on columns of table "auth.user_security_keys" */
 export type AuthUserSecurityKeys_Stddev_Samp_Order_By = {
   counter?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "authUserSecurityKeys" */
+export type AuthUserSecurityKeys_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthUserSecurityKeys_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthUserSecurityKeys_Stream_Cursor_Value_Input = {
+  counter?: InputMaybe<Scalars['bigint']>;
+  credentialId?: InputMaybe<Scalars['String']>;
+  credentialPublicKey?: InputMaybe<Scalars['bytea']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nickname?: InputMaybe<Scalars['String']>;
+  transports?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
 };
 
 /** aggregate sum on columns */
@@ -1515,6 +1705,14 @@ export type Citext_Comparison_Exp = {
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['citext']>;
 };
+
+/** ordering argument of a cursor */
+export enum Cursor_Ordering {
+  /** ascending ordering of the cursor */
+  Asc = 'ASC',
+  /** descending ordering of the cursor */
+  Desc = 'DESC'
+}
 
 export type Jsonb_Cast_Exp = {
   String?: InputMaybe<String_Comparison_Exp>;
@@ -2313,46 +2511,62 @@ export type Subscription_Root = {
   authProviderRequests: Array<AuthProviderRequests>;
   /** fetch aggregated fields from the table: "auth.provider_requests" */
   authProviderRequestsAggregate: AuthProviderRequests_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.provider_requests" */
+  authProviderRequests_stream: Array<AuthProviderRequests>;
   /** fetch data from the table: "auth.providers" */
   authProviders: Array<AuthProviders>;
   /** fetch aggregated fields from the table: "auth.providers" */
   authProvidersAggregate: AuthProviders_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.providers" */
+  authProviders_stream: Array<AuthProviders>;
   /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
   authRefreshToken?: Maybe<AuthRefreshTokens>;
   /** fetch data from the table: "auth.refresh_tokens" */
   authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch aggregated fields from the table: "auth.refresh_tokens" */
   authRefreshTokensAggregate: AuthRefreshTokens_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.refresh_tokens" */
+  authRefreshTokens_stream: Array<AuthRefreshTokens>;
   /** fetch data from the table: "auth.roles" using primary key columns */
   authRole?: Maybe<AuthRoles>;
   /** fetch data from the table: "auth.roles" */
   authRoles: Array<AuthRoles>;
   /** fetch aggregated fields from the table: "auth.roles" */
   authRolesAggregate: AuthRoles_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.roles" */
+  authRoles_stream: Array<AuthRoles>;
   /** fetch data from the table: "auth.user_providers" using primary key columns */
   authUserProvider?: Maybe<AuthUserProviders>;
   /** fetch data from the table: "auth.user_providers" */
   authUserProviders: Array<AuthUserProviders>;
   /** fetch aggregated fields from the table: "auth.user_providers" */
   authUserProvidersAggregate: AuthUserProviders_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.user_providers" */
+  authUserProviders_stream: Array<AuthUserProviders>;
   /** fetch data from the table: "auth.user_roles" using primary key columns */
   authUserRole?: Maybe<AuthUserRoles>;
   /** fetch data from the table: "auth.user_roles" */
   authUserRoles: Array<AuthUserRoles>;
   /** fetch aggregated fields from the table: "auth.user_roles" */
   authUserRolesAggregate: AuthUserRoles_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.user_roles" */
+  authUserRoles_stream: Array<AuthUserRoles>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.user_security_keys" */
   authUserSecurityKeys: Array<AuthUserSecurityKeys>;
   /** fetch aggregated fields from the table: "auth.user_security_keys" */
   authUserSecurityKeysAggregate: AuthUserSecurityKeys_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.user_security_keys" */
+  authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.users" */
+  users_stream: Array<Users>;
 };
 
 
@@ -2384,6 +2598,13 @@ export type Subscription_RootAuthProviderRequestsAggregateArgs = {
 };
 
 
+export type Subscription_RootAuthProviderRequests_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthProviderRequests_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
+};
+
+
 export type Subscription_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2398,6 +2619,13 @@ export type Subscription_RootAuthProvidersAggregateArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthProviders_Order_By>>;
+  where?: InputMaybe<AuthProviders_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthProviders_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
@@ -2425,6 +2653,13 @@ export type Subscription_RootAuthRefreshTokensAggregateArgs = {
 };
 
 
+export type Subscription_RootAuthRefreshTokens_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthRefreshTokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+};
+
+
 export type Subscription_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
@@ -2444,6 +2679,13 @@ export type Subscription_RootAuthRolesAggregateArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthRoles_Order_By>>;
+  where?: InputMaybe<AuthRoles_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthRoles_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
@@ -2471,6 +2713,13 @@ export type Subscription_RootAuthUserProvidersAggregateArgs = {
 };
 
 
+export type Subscription_RootAuthUserProviders_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthUserProviders_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthUserProviders_Bool_Exp>;
+};
+
+
 export type Subscription_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
@@ -2490,6 +2739,13 @@ export type Subscription_RootAuthUserRolesAggregateArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
+  where?: InputMaybe<AuthUserRoles_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthUserRoles_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthUserRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
@@ -2517,6 +2773,13 @@ export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
 };
 
 
+export type Subscription_RootAuthUserSecurityKeys_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthUserSecurityKeys_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2536,6 +2799,13 @@ export type Subscription_RootUsersAggregateArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Users_Order_By>>;
+  where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Subscription_RootUsers_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
@@ -2693,6 +2963,33 @@ export type Users_Aggregate = {
   nodes: Array<Users>;
 };
 
+export type Users_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Users_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Users_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Users_Aggregate_Bool_Exp_Count>;
+};
+
+export type Users_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Users_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Users_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Users_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Users_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "auth.users" */
 export type Users_Aggregate_Fields = {
   __typename?: 'users_aggregate_fields';
@@ -2755,13 +3052,17 @@ export type Users_Bool_Exp = {
   phoneNumber?: InputMaybe<String_Comparison_Exp>;
   phoneNumberVerified?: InputMaybe<Boolean_Comparison_Exp>;
   refreshTokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+  refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
+  roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
+  securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp>;
   ticket?: InputMaybe<String_Comparison_Exp>;
   ticketExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   totpSecret?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   userProviders?: InputMaybe<AuthUserProviders_Bool_Exp>;
+  userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Bool_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.users" */
@@ -2978,7 +3279,7 @@ export type Users_Order_By = {
   userProviders_aggregate?: InputMaybe<AuthUserProviders_Aggregate_Order_By>;
 };
 
-/** primary key columns input for table: users */
+/** primary key columns input for table: auth.users */
 export type Users_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
@@ -3042,8 +3343,69 @@ export enum Users_Select_Column {
   UpdatedAt = 'updatedAt'
 }
 
+/** select "users_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.users" */
+export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Disabled = 'disabled',
+  /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
+  IsAnonymous = 'isAnonymous',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified'
+}
+
+/** select "users_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.users" */
+export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Disabled = 'disabled',
+  /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
+  IsAnonymous = 'isAnonymous',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified'
+}
+
 /** input type for updating data in table "auth.users" */
 export type Users_Set_Input = {
+  activeMfaType?: InputMaybe<Scalars['String']>;
+  avatarUrl?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  currentChallenge?: InputMaybe<Scalars['String']>;
+  defaultRole?: InputMaybe<Scalars['String']>;
+  disabled?: InputMaybe<Scalars['Boolean']>;
+  displayName?: InputMaybe<Scalars['String']>;
+  email?: InputMaybe<Scalars['citext']>;
+  emailVerified?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  isAnonymous?: InputMaybe<Scalars['Boolean']>;
+  lastSeen?: InputMaybe<Scalars['timestamptz']>;
+  locale?: InputMaybe<Scalars['String']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  newEmail?: InputMaybe<Scalars['citext']>;
+  otpHash?: InputMaybe<Scalars['String']>;
+  otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  otpMethodLastUsed?: InputMaybe<Scalars['String']>;
+  passwordHash?: InputMaybe<Scalars['String']>;
+  phoneNumber?: InputMaybe<Scalars['String']>;
+  phoneNumberVerified?: InputMaybe<Scalars['Boolean']>;
+  ticket?: InputMaybe<Scalars['String']>;
+  ticketExpiresAt?: InputMaybe<Scalars['timestamptz']>;
+  totpSecret?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "users" */
+export type Users_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Users_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Users_Stream_Cursor_Value_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3153,97 +3515,6 @@ export type Uuid_Comparison_Exp = {
   _neq?: InputMaybe<Scalars['uuid']>;
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
-
-export type InsertProviderRequestMutationVariables = Exact<{
-  providerRequest: AuthProviderRequests_Insert_Input;
-}>;
-
-
-export type InsertProviderRequestMutation = { __typename?: 'mutation_root', insertAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, options?: any | null } | null };
-
-export type DeleteProviderRequestMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteProviderRequestMutation = { __typename?: 'mutation_root', deleteAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, options?: any | null } | null };
-
-export type ProviderRequestQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type ProviderRequestQuery = { __typename?: 'query_root', authProviderRequest?: { __typename?: 'authProviderRequests', id: any, options?: any | null } | null };
-
-export type InsertRefreshTokenMutationVariables = Exact<{
-  refreshToken: AuthRefreshTokens_Insert_Input;
-}>;
-
-
-export type InsertRefreshTokenMutation = { __typename?: 'mutation_root', insertAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any } | null };
-
-export type DeleteRefreshTokenMutationVariables = Exact<{
-  refreshToken: Scalars['uuid'];
-}>;
-
-
-export type DeleteRefreshTokenMutation = { __typename?: 'mutation_root', deleteAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any, expiresAt: any } | null };
-
-export type DeleteUserRefreshTokensMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type DeleteUserRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
-
-export type DeleteExpiredRefreshTokensMutationVariables = Exact<{ [key: string]: never; }>;
-
-
-export type DeleteExpiredRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
-
-export type UpsertRolesMutationVariables = Exact<{
-  roles: Array<AuthRoles_Insert_Input> | AuthRoles_Insert_Input;
-}>;
-
-
-export type UpsertRolesMutation = { __typename?: 'mutation_root', insertAuthRoles?: { __typename?: 'authRoles_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'authRoles', role: string }> } | null };
-
-export type GetUserSecurityKeysQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetUserSecurityKeysQuery = { __typename?: 'query_root', authUserSecurityKeys: Array<{ __typename?: 'authUserSecurityKeys', counter: any, credentialId: string, credentialPublicKey?: any | null, transports: string, id: any, user: { __typename?: 'users', id: any } }> };
-
-export type GetUserChallengeQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetUserChallengeQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, currentChallenge?: string | null } | null };
-
-export type UpdateUserChallengeMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  challenge: Scalars['String'];
-}>;
-
-
-export type UpdateUserChallengeMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any } | null };
-
-export type AddUserSecurityKeyMutationVariables = Exact<{
-  userSecurityKey: AuthUserSecurityKeys_Insert_Input;
-}>;
-
-
-export type AddUserSecurityKeyMutation = { __typename?: 'mutation_root', insertAuthUserSecurityKey?: { __typename?: 'authUserSecurityKeys', id: any } | null };
-
-export type UpdateUserSecurityKeyMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  counter: Scalars['bigint'];
-}>;
-
-
-export type UpdateUserSecurityKeyMutation = { __typename?: 'mutation_root', updateAuthUserSecurityKey?: { __typename?: 'authUserSecurityKeys', id: any } | null };
 
 export type AuthUserProvidersQueryVariables = Exact<{
   provider: Scalars['String'];
@@ -3417,118 +3688,6 @@ export const UserFieldsFragmentDoc = gql`
   metadata
   roles {
     role
-  }
-}
-    `;
-export const InsertProviderRequestDocument = gql`
-    mutation insertProviderRequest($providerRequest: authProviderRequests_insert_input!) {
-  insertAuthProviderRequest(
-    object: $providerRequest
-    on_conflict: {constraint: provider_requests_pkey, update_columns: [options]}
-  ) {
-    id
-    options
-  }
-}
-    `;
-export const DeleteProviderRequestDocument = gql`
-    mutation deleteProviderRequest($id: uuid!) {
-  deleteAuthProviderRequest(id: $id) {
-    id
-    options
-  }
-}
-    `;
-export const ProviderRequestDocument = gql`
-    query providerRequest($id: uuid!) {
-  authProviderRequest(id: $id) {
-    id
-    options
-  }
-}
-    `;
-export const InsertRefreshTokenDocument = gql`
-    mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
-  insertAuthRefreshToken(object: $refreshToken) {
-    refreshToken
-  }
-}
-    `;
-export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($refreshToken: uuid!) {
-  deleteAuthRefreshToken(refreshToken: $refreshToken) {
-    refreshToken
-    expiresAt
-  }
-}
-    `;
-export const DeleteUserRefreshTokensDocument = gql`
-    mutation deleteUserRefreshTokens($userId: uuid!) {
-  deleteAuthRefreshTokens(where: {user: {id: {_eq: $userId}}}) {
-    affected_rows
-  }
-}
-    `;
-export const DeleteExpiredRefreshTokensDocument = gql`
-    mutation deleteExpiredRefreshTokens {
-  deleteAuthRefreshTokens(where: {expiresAt: {_lt: now}}) {
-    affected_rows
-  }
-}
-    `;
-export const UpsertRolesDocument = gql`
-    mutation upsertRoles($roles: [authRoles_insert_input!]!) {
-  insertAuthRoles(
-    objects: $roles
-    on_conflict: {constraint: roles_pkey, update_columns: []}
-  ) {
-    affected_rows
-    returning {
-      role
-    }
-  }
-}
-    `;
-export const GetUserSecurityKeysDocument = gql`
-    query getUserSecurityKeys($id: uuid!) {
-  authUserSecurityKeys(where: {userId: {_eq: $id}}) {
-    counter
-    credentialId
-    credentialPublicKey
-    transports
-    id
-    user {
-      id
-    }
-  }
-}
-    `;
-export const GetUserChallengeDocument = gql`
-    query getUserChallenge($id: uuid!) {
-  user(id: $id) {
-    id
-    currentChallenge
-  }
-}
-    `;
-export const UpdateUserChallengeDocument = gql`
-    mutation updateUserChallenge($userId: uuid!, $challenge: String!) {
-  updateUser(pk_columns: {id: $userId}, _set: {currentChallenge: $challenge}) {
-    id
-  }
-}
-    `;
-export const AddUserSecurityKeyDocument = gql`
-    mutation addUserSecurityKey($userSecurityKey: authUserSecurityKeys_insert_input!) {
-  insertAuthUserSecurityKey(object: $userSecurityKey) {
-    id
-  }
-}
-    `;
-export const UpdateUserSecurityKeyDocument = gql`
-    mutation updateUserSecurityKey($id: uuid!, $counter: bigint!) {
-  updateAuthUserSecurityKey(pk_columns: {id: $id}, _set: {counter: $counter}) {
-    id
   }
 }
     `;
@@ -3719,45 +3878,6 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationTy
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    insertProviderRequest(variables: InsertProviderRequestMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertProviderRequestMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertProviderRequestMutation>(InsertProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertProviderRequest', 'mutation');
-    },
-    deleteProviderRequest(variables: DeleteProviderRequestMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteProviderRequestMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteProviderRequestMutation>(DeleteProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteProviderRequest', 'mutation');
-    },
-    providerRequest(variables: ProviderRequestQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProviderRequestQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<ProviderRequestQuery>(ProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'providerRequest', 'query');
-    },
-    insertRefreshToken(variables: InsertRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertRefreshTokenMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertRefreshTokenMutation>(InsertRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertRefreshToken', 'mutation');
-    },
-    deleteRefreshToken(variables: DeleteRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteRefreshTokenMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteRefreshTokenMutation>(DeleteRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteRefreshToken', 'mutation');
-    },
-    deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRefreshTokensMutation>(DeleteUserRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRefreshTokens', 'mutation');
-    },
-    deleteExpiredRefreshTokens(variables?: DeleteExpiredRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteExpiredRefreshTokensMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteExpiredRefreshTokensMutation>(DeleteExpiredRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteExpiredRefreshTokens', 'mutation');
-    },
-    upsertRoles(variables: UpsertRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpsertRolesMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpsertRolesMutation>(UpsertRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'upsertRoles', 'mutation');
-    },
-    getUserSecurityKeys(variables: GetUserSecurityKeysQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserSecurityKeysQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserSecurityKeysQuery>(GetUserSecurityKeysDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserSecurityKeys', 'query');
-    },
-    getUserChallenge(variables: GetUserChallengeQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserChallengeQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUserChallengeQuery>(GetUserChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserChallenge', 'query');
-    },
-    updateUserChallenge(variables: UpdateUserChallengeMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserChallengeMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserChallengeMutation>(UpdateUserChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserChallenge', 'mutation');
-    },
-    addUserSecurityKey(variables: AddUserSecurityKeyMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddUserSecurityKeyMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<AddUserSecurityKeyMutation>(AddUserSecurityKeyDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addUserSecurityKey', 'mutation');
-    },
-    updateUserSecurityKey(variables: UpdateUserSecurityKeyMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserSecurityKeyMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserSecurityKeyMutation>(UpdateUserSecurityKeyDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserSecurityKey', 'mutation');
-    },
     authUserProviders(variables: AuthUserProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthUserProvidersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AuthUserProvidersQuery>(AuthUserProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'authUserProviders', 'query');
     },

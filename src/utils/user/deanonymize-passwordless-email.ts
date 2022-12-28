@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 import { gqlSdk } from '../gql-sdk';
-import { createEmailRedirectionLink, getUserByEmail } from '@/utils';
+import { createEmailRedirectionLink, getUserByEmail, pgClient } from '@/utils';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
@@ -72,9 +72,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   // Delete old refresh token and send email if email must be verified
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     // delete old refresh tokens for user
-    await gqlSdk.deleteUserRefreshTokens({
-      userId,
-    });
+    await pgClient.deleteUserRefreshTokens(userId);
     // create ticket
     const ticket = `passwordlessEmail:${uuidv4()}`;
     const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
