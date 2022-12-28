@@ -87,19 +87,6 @@ mutation updateUserWhere($where: users_bool_exp!, $user: users_set_input!) {
   }
 }
 
-mutation rotateUsersTicket(
-  $oldTicket: String!
-  $newTicket: String!
-  $newTicketExpiresAt: timestamptz!
-) {
-  updateUsers(
-    _set: { ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
-    where: { ticket: { _eq: $oldTicket } }
-  ) {
-    affected_rows
-  }
-}
-
 mutation changeEmailsByTicket(
   $ticket: String!
   $email: citext!
@@ -136,30 +123,6 @@ mutation deleteUser($userId: uuid!) {
 
   deleteUser(id: $userId) {
     ...userFields
-  }
-}
-
-mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
-  updateAuthUserRoles(
-    where: { user: { id: { _eq: $userId } } }
-    _set: { role: $role }
-  ) {
-    affected_rows
-  }
-
-  updateUser(
-    pk_columns: { id: $userId }
-    _set: { avatarUrl: $avatarUrl, defaultRole: $role }
-  ) {
-    id
-  }
-}
-
-mutation insertUserProviderToUser(
-  $userProvider: authUserProviders_insert_input!
-) {
-  insertAuthUserProvider(object: $userProvider) {
-    id
   }
 }
 

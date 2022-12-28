@@ -3540,20 +3540,6 @@ export type UpdateAuthUserproviderMutationVariables = Exact<{
 
 export type UpdateAuthUserproviderMutation = { __typename?: 'mutation_root', updateAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null };
 
-export type InsertUserRolesMutationVariables = Exact<{
-  userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
-}>;
-
-
-export type InsertUserRolesMutation = { __typename?: 'mutation_root', insertAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
-
-export type DeleteUserRolesByUserIdMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type DeleteUserRolesByUserIdMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
-
 export type UserFieldsFragment = { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
 
 export type UserQueryVariables = Exact<{
@@ -3601,15 +3587,6 @@ export type UpdateUserWhereMutationVariables = Exact<{
 
 export type UpdateUserWhereMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null };
 
-export type RotateUsersTicketMutationVariables = Exact<{
-  oldTicket: Scalars['String'];
-  newTicket: Scalars['String'];
-  newTicketExpiresAt: Scalars['timestamptz'];
-}>;
-
-
-export type RotateUsersTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null };
-
 export type ChangeEmailsByTicketMutationVariables = Exact<{
   ticket: Scalars['String'];
   email: Scalars['citext'];
@@ -3633,22 +3610,6 @@ export type DeleteUserMutationVariables = Exact<{
 
 
 export type DeleteUserMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null, deleteUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null };
-
-export type DeanonymizeUserMutationVariables = Exact<{
-  userId: Scalars['uuid'];
-  avatarUrl?: InputMaybe<Scalars['String']>;
-  role: Scalars['String'];
-}>;
-
-
-export type DeanonymizeUserMutation = { __typename?: 'mutation_root', updateAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null, updateUser?: { __typename?: 'users', id: any } | null };
-
-export type InsertUserProviderToUserMutationVariables = Exact<{
-  userProvider: AuthUserProviders_Insert_Input;
-}>;
-
-
-export type InsertUserProviderToUserMutation = { __typename?: 'mutation_root', insertAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null };
 
 export type GetUserByTicketQueryVariables = Exact<{
   ticket: Scalars['String'];
@@ -3722,20 +3683,6 @@ export const UpdateAuthUserproviderDocument = gql`
   }
 }
     `;
-export const InsertUserRolesDocument = gql`
-    mutation insertUserRoles($userRoles: [authUserRoles_insert_input!]!) {
-  insertAuthUserRoles(objects: $userRoles) {
-    affected_rows
-  }
-}
-    `;
-export const DeleteUserRolesByUserIdDocument = gql`
-    mutation deleteUserRolesByUserId($userId: uuid!) {
-  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
-    affected_rows
-  }
-}
-    `;
 export const UserDocument = gql`
     query user($id: uuid!) {
   user(id: $id) {
@@ -3791,16 +3738,6 @@ export const UpdateUserWhereDocument = gql`
   }
 }
     `;
-export const RotateUsersTicketDocument = gql`
-    mutation rotateUsersTicket($oldTicket: String!, $newTicket: String!, $newTicketExpiresAt: timestamptz!) {
-  updateUsers(
-    _set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}
-    where: {ticket: {_eq: $oldTicket}}
-  ) {
-    affected_rows
-  }
-}
-    `;
 export const ChangeEmailsByTicketDocument = gql`
     mutation changeEmailsByTicket($ticket: String!, $email: citext!, $newTicket: String!, $now: timestamptz!) {
   updateUsers(
@@ -3830,26 +3767,6 @@ export const DeleteUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
-export const DeanonymizeUserDocument = gql`
-    mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
-  updateAuthUserRoles(where: {user: {id: {_eq: $userId}}}, _set: {role: $role}) {
-    affected_rows
-  }
-  updateUser(
-    pk_columns: {id: $userId}
-    _set: {avatarUrl: $avatarUrl, defaultRole: $role}
-  ) {
-    id
-  }
-}
-    `;
-export const InsertUserProviderToUserDocument = gql`
-    mutation insertUserProviderToUser($userProvider: authUserProviders_insert_input!) {
-  insertAuthUserProvider(object: $userProvider) {
-    id
-  }
-}
-    `;
 export const GetUserByTicketDocument = gql`
     query getUserByTicket($ticket: String!) {
   users(where: {ticket: {_eq: $ticket}}) {
@@ -3887,12 +3804,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     updateAuthUserprovider(variables: UpdateAuthUserproviderMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateAuthUserproviderMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateAuthUserproviderMutation>(UpdateAuthUserproviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateAuthUserprovider', 'mutation');
     },
-    insertUserRoles(variables: InsertUserRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserRolesMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserRolesMutation>(InsertUserRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserRoles', 'mutation');
-    },
-    deleteUserRolesByUserId(variables: DeleteUserRolesByUserIdMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRolesByUserIdMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRolesByUserIdMutation>(DeleteUserRolesByUserIdDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRolesByUserId', 'mutation');
-    },
     user(variables: UserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UserQuery>(UserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'user', 'query');
     },
@@ -3911,9 +3822,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     updateUserWhere(variables: UpdateUserWhereMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserWhereMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserWhereMutation>(UpdateUserWhereDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserWhere', 'mutation');
     },
-    rotateUsersTicket(variables: RotateUsersTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUsersTicketMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<RotateUsersTicketMutation>(RotateUsersTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUsersTicket', 'mutation');
-    },
     changeEmailsByTicket(variables: ChangeEmailsByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChangeEmailsByTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<ChangeEmailsByTicketMutation>(ChangeEmailsByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'changeEmailsByTicket', 'mutation');
     },
@@ -3922,12 +3830,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     deleteUser(variables: DeleteUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserMutation>(DeleteUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUser', 'mutation');
-    },
-    deanonymizeUser(variables: DeanonymizeUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeanonymizeUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeanonymizeUserMutation>(DeanonymizeUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deanonymizeUser', 'mutation');
-    },
-    insertUserProviderToUser(variables: InsertUserProviderToUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserProviderToUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserProviderToUserMutation>(InsertUserProviderToUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserProviderToUser', 'mutation');
     },
     getUserByTicket(variables: GetUserByTicketQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserByTicketQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserByTicketQuery>(GetUserByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserByTicket', 'query');

@@ -50,14 +50,10 @@ export const handleDeanonymizeUserEmailPassword = async (
   const passwordHash = await hashPassword(password);
 
   // delete existing (anonymous) user roles
-  await gqlSdk.deleteUserRolesByUserId({
-    userId,
-  });
+  await pgClient.deleteUserRolesByUserId(userId);
 
   // insert new user roles (userRoles)
-  await gqlSdk.insertUserRoles({
-    userRoles: allowedRoles.map((role: string) => ({ role, userId })),
-  });
+  await pgClient.insertUserRoles(userId, allowedRoles);
 
   // TODO use createVerifyEmailTicket()
   const ticket = `verifyEmail:${uuidv4()}`;

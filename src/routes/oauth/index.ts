@@ -11,6 +11,7 @@ import {
   getUserByEmail,
   gqlSdk,
   insertUser,
+  pgClient,
 } from '@/utils';
 import {
   queryValidator,
@@ -251,18 +252,15 @@ export const oauthProviders = Router()
       }
       if (user) {
         // * add this provider to existing user with the same email
-        const { insertAuthUserProvider } =
-          await gqlSdk.insertUserProviderToUser({
-            userProvider: {
-              userId: user.id,
-              providerId: provider,
-              providerUserId,
-              accessToken,
-              refreshToken,
-            },
-          });
+        const result = await pgClient.insertUserProviderToUser({
+          userId: user.id,
+          providerId: provider,
+          providerUserId,
+          accessToken,
+          refreshToken,
+        });
 
-        if (!insertAuthUserProvider) {
+        if (!result) {
           logger.warn('Could not add a provider to user');
           return sendError(res, 'internal-error', { redirectTo }, true);
         }

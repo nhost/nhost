@@ -154,4 +154,50 @@ export const pgClient = {
     );
     client.release();
   },
+
+  insertUserRoles: async (userId: string, roles: string[]) => {
+    const client = await pool.connect();
+    await client.query(
+      `INSERT INTO "auth"."user_roles" (user_id, role) VALUES ${roles
+        .map((role) => `('${userId}', '${role}')`)
+        .join(', ')};`
+    );
+    client.release();
+  },
+
+  deleteUserRolesByUserId: async (userId: string) => {
+    const client = await pool.connect();
+    await client.query(`DELETE FROM "auth"."user_roles" WHERE user_id = $1;`, [
+      userId,
+    ]);
+    client.release();
+  },
+
+  deleteUser: async (userId: string) => {
+    const client = await pool.connect();
+    await client.query(`DELETE FROM "auth"."users" WHERE id = $1;`, [userId]);
+    client.release();
+  },
+
+  insertUserProviderToUser: async ({
+    userId,
+    providerId,
+    providerUserId,
+    refreshToken,
+    accessToken,
+  }: {
+    userId: string;
+    providerId: string;
+    providerUserId: string;
+    refreshToken?: string;
+    accessToken?: string;
+  }) => {
+    const client = await pool.connect();
+    const { rows } = await client.query(
+      `INSERT INTO "auth"."user_providers" (user_id, provider_id, provider_user_id, refresh_token, access_token) VALUES($1, $2, $3, $4, $5, $6);`,
+      [userId, providerId, providerUserId, refreshToken, accessToken]
+    );
+    client.release();
+    return rows[0];
+  },
 };

@@ -9,6 +9,7 @@ import {
   getUserByPhoneNumber,
   insertUser,
   ENV,
+  pgClient,
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber, registrationOptions } from '@/validation';
@@ -130,9 +131,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
 
     // delete user that was inserted because we were not able to send the SMS
     if (!userExists) {
-      await gqlSdk.deleteUser({
-        userId: user.id,
-      });
+      await pgClient.deleteUser(user.id);
     }
     return sendError(res, 'cannot-send-sms');
   }
