@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import {
-  gqlSdk,
   generateTicketExpiresAt,
   getUserByEmail,
   ENV,
   createEmailRedirectionLink,
+  pgClient,
 } from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
@@ -52,7 +52,7 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
 
   // set newEmail for user
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: user.id,
     user: {
       ticket,
@@ -93,7 +93,8 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
       link,
       displayName: user.displayName,
       email: user.email,
-      newEmail: user.newEmail,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      newEmail: user.newEmail!,
       ticket,
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

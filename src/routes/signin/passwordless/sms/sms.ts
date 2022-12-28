@@ -4,7 +4,6 @@ import { ReasonPhrases } from 'http-status-codes';
 
 import { UserRegistrationOptions } from '@/types';
 import {
-  gqlSdk,
   getNewOneTimePasswordData,
   getUserByPhoneNumber,
   insertUser,
@@ -47,7 +46,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
   const userExists = !!user;
 
   // if no user exists, create the user
-  if (!userExists) {
+  if (!user) {
     user = await insertUser({
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       displayName,
@@ -55,10 +54,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
       phoneNumber,
       locale,
       defaultRole,
-      roles: {
-        // restructure user roles to be inserted in GraphQL mutation
-        data: allowedRoles.map((role: string) => ({ role })),
-      },
+      roles: allowedRoles,
       metadata,
     });
   }
@@ -70,7 +66,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
   // set otp for user that will be sent in the email
   const { otp, otpHash, otpHashExpiresAt } = await getNewOneTimePasswordData();
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: user.id,
     user: {
       otpMethodLastUsed: 'sms',

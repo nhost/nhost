@@ -6,9 +6,8 @@ import {
   locale as localeValidator,
   email as emailValidator,
 } from '@/validation';
-import { InsertUserMutationVariables } from '@/utils/__generated__/graphql-request';
 import { ENV, getGravatarUrl } from '@/utils';
-import { UserRegistrationOptions } from '@/types';
+import { User, UserRegistrationOptions } from '@/types';
 
 import { OAUTH_ROUTE, PROVIDERS_CONFIG } from './config';
 
@@ -33,7 +32,7 @@ export type NormalisedProfile = Partial<{
 export const transformOauthProfile = async (
   normalised: NormalisedProfile,
   options?: Partial<UserRegistrationOptions>
-): Promise<InsertUserMutationVariables['user']> => {
+): Promise<Partial<User>> => {
   // * Check if the email is valid. If not, throw an error
   const email = await emailValidator.validateAsync(normalised.email);
 
@@ -65,13 +64,7 @@ export const transformOauthProfile = async (
     email,
     emailVerified,
     defaultRole: options?.defaultRole || ENV.AUTH_USER_DEFAULT_ROLE,
-    roles: {
-      data: (options?.allowedRoles || ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES).map(
-        (role) => ({
-          role,
-        })
-      ),
-    },
+    roles: options?.allowedRoles || ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES,
     locale,
     displayName,
     avatarUrl,

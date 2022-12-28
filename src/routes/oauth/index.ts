@@ -9,7 +9,6 @@ import {
   generateRedirectUrl,
   getNewRefreshToken,
   getUserByEmail,
-  gqlSdk,
   insertUser,
   pgClient,
 } from '@/utils';
@@ -20,7 +19,6 @@ import {
 } from '@/validation';
 import { SessionStore } from './session-store';
 import { logger } from '@/logger';
-import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
   createGrantConfig,
   normaliseProfile,
@@ -28,6 +26,7 @@ import {
   transformOauthProfile,
 } from './utils';
 import { OAUTH_ROUTE } from './config';
+import { User } from '@/types';
 
 const SESSION_NAME = 'connect.sid';
 
@@ -226,25 +225,17 @@ export const oauthProviders = Router()
 
     const { access_token: accessToken, refresh_token: refreshToken } = response;
 
-    let user: NonNullable<InsertUserMutation['insertUser']> | null = null;
+    let user: User | null = null;
 
     // * Look for the user-provider
-    const {
-      authUserProviders: [authUserProvider],
-    } = await gqlSdk.authUserProviders({
-      provider,
-      providerUserId,
-    });
+    const result = await pgClient.getUserByProvider(provider, providerUserId);
 
-    if (authUserProvider) {
+    if (result.user) {
       // * The userProvider already exists. Update it with the new tokens
-      user = authUserProvider.user;
-      await gqlSdk.updateAuthUserprovider({
-        id: authUserProvider.id,
-        authUserProvider: {
-          accessToken,
-          refreshToken,
-        },
+      user = result.user;
+      await pgClient.updateAuthUserprovider(result.id, {
+        accessToken,
+        refreshToken,
       });
     } else {
       if (profile.email) {
@@ -268,18 +259,13 @@ export const oauthProviders = Router()
         // * No user found with this email. Create a new user
         // TODO feature: check if registration is enabled
         const userInput = await transformOauthProfile(profile, options);
-        user = await insertUser({
-          ...userInput,
-          userProviders: {
-            data: [
-              {
-                providerId: provider,
-                providerUserId,
-                accessToken,
-                refreshToken,
-              },
-            ],
-          },
+        const { id } = await insertUser(userInput);
+        await pgClient.insertUserProviderToUser({
+          userId: id,
+          providerId: provider,
+          providerUserId,
+          accessToken,
+          refreshToken,
         });
       }
     }

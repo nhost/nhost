@@ -1,9 +1,10 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, hashPassword, getUserByTicket } from '@/utils';
+import { hashPassword, getUserByTicket, pgClient } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, password } from '@/validation';
+import { User } from '@/types';
 
 export const userPasswordSchema = Joi.object({
   newPassword: password.required(),
@@ -17,7 +18,7 @@ export const userPasswordHandler: RequestHandler<
 > = async (req, res) => {
   const { ticket } = req.body;
 
-  let user;
+  let user: User | null = null;
   if (ticket) {
     user = await getUserByTicket(ticket);
     if (!user) {
@@ -27,7 +28,7 @@ export const userPasswordHandler: RequestHandler<
     if (!req.auth?.userId) {
       return sendError(res, 'unauthenticated-user');
     }
-    user = (await gqlSdk.user({ id: req.auth?.userId })).user;
+    user = await pgClient.getUserById(req.auth?.userId);
   }
 
   if (!user) {
@@ -40,7 +41,7 @@ export const userPasswordHandler: RequestHandler<
   const { newPassword } = req.body;
   const passwordHash = await hashPassword(newPassword);
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: user.id,
     user: {
       passwordHash,

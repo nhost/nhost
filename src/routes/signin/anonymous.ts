@@ -25,16 +25,11 @@ export const signInAnonymousHandler: RequestHandler<{}, {}, BodyType> = async (
   }
   const { locale, displayName = 'Anonymous User' } = req.body;
 
-  // restructure user roles to be inserted in GraphQL mutation
-  const userRoles = [{ role: 'anonymous' }];
-
   // insert user
   const user = await insertUser({
     displayName,
     locale,
-    roles: {
-      data: userRoles,
-    },
+    roles: ['anonymous'],
     defaultRole: 'anonymous',
     isAnonymous: true,
     metadata: {},

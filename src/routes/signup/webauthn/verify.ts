@@ -3,10 +3,10 @@ import {
   ENV,
   getSignInResponse,
   verifyWebAuthnRegistration,
-  gqlSdk,
   createVerifyEmailTicket,
   createEmailRedirectionLink,
   getUserByEmail,
+  pgClient,
 } from '@/utils';
 import { RequestHandler } from 'express';
 
@@ -65,27 +65,31 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     });
   }
 
-  const {
-    users: [user],
-  } = await gqlSdk.users({ where: { currentChallenge: { _eq: challenge } } });
-
+  const user = await pgClient.getUserByChallence(challenge);
   if (!user) {
     return sendError(res, 'user-not-found');
   }
+  const newEmail = user.newEmail;
+
+  if (!newEmail) {
+    return sendError(res, 'invalid-request', {
+      customMessage: 'No new email found',
+    });
+  }
 
   // Edge case: if another user registered with the same email while the webauthn requester is between the first and second step
-  if (await getUserByEmail(user.newEmail)) {
+  if (await getUserByEmail(newEmail)) {
     return sendError(res, 'email-already-in-use');
   }
 
   try {
     await verifyWebAuthnRegistration(user, credential, nickname);
 
-    await gqlSdk.updateUser({
+    await pgClient.updateUser({
       id: user.id,
       user: {
         isAnonymous: false,
-        email: user.newEmail,
+        email: newEmail,
         newEmail: null,
       },
     });
@@ -99,7 +103,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       // create ticket
       const { ticket, ticketExpiresAt } = createVerifyEmailTicket();
 
-      await gqlSdk.updateUser({
+      await pgClient.updateUser({
         id: user.id,
         user: {
           ticket,
@@ -115,7 +119,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       await emailClient.send({
         template,
         message: {
-          to: user.newEmail,
+          to: newEmail,
           headers: {
             'x-ticket': {
               prepared: true,
@@ -138,8 +142,8 @@ export const signInVerifyWebauthnHandler: RequestHandler<
         locals: {
           link,
           displayName: user.displayName,
-          email: user.newEmail,
-          newEmail: user.newEmail,
+          email: newEmail,
+          newEmail,
           ticket: ticket,
           redirectTo: encodeURIComponent(redirectTo),
           locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

@@ -3,12 +3,15 @@ import { generateTicketExpiresAt } from '../ticket';
 import { v4 as uuidv4 } from 'uuid';
 import { insertUser } from './insert';
 import { getGravatarUrl } from '../avatar';
-import { EMAIL_TYPES, UserRegistrationOptionsWithRedirect } from '@/types';
+import {
+  EMAIL_TYPES,
+  User,
+  UserRegistrationOptionsWithRedirect,
+} from '@/types';
 import { hashPassword } from '../password';
 import { emailClient } from '@/email';
 import { createEmailRedirectionLink } from '../redirect';
 import { getUserByEmail } from './getters';
-import { UserQuery } from '../__generated__/graphql-request';
 
 const sendEmailIfNotVerified = async ({
   email,
@@ -20,7 +23,7 @@ const sendEmailIfNotVerified = async ({
 }: {
   email: string;
   newEmail: string;
-  user: NonNullable<UserQuery['user']>;
+  user: NonNullable<User>;
   displayName: string;
   ticket?: string | null;
   redirectTo: string;
@@ -129,16 +132,14 @@ export const createUserAndSendVerificationEmail = async (
     emailVerified: false,
     locale,
     defaultRole,
-    roles: {
-      // restructure user roles to be inserted in GraphQL mutation
-      data: allowedRoles.map((role: string) => ({ role })),
-    },
+    roles: allowedRoles,
     metadata,
   });
 
   await sendEmailIfNotVerified({
     email,
-    newEmail: user.newEmail,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    newEmail: user.newEmail!,
     user,
     displayName,
     ticket,

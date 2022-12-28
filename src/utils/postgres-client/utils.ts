@@ -1,0 +1,144 @@
+import { User } from '@/types';
+import { PoolClient } from 'pg';
+import { SqlUser } from './types';
+
+export const cameliseUser = (user: SqlUser | null): User | null => {
+  if (!user) {
+    return null;
+  }
+  const {
+    avatar_url,
+    created_at,
+    default_role,
+    display_name,
+    email_verified,
+    id,
+    is_anonymous,
+    locale,
+    phone_number_verified,
+    roles,
+    active_mfa_type,
+    email,
+    metadata,
+    phone_number,
+    new_email,
+    totp_secret,
+    disabled,
+    ticket,
+    password_hash,
+    otp_hash,
+    current_challenge,
+    ticket_expires_at,
+    otp_method_last_used,
+    otp_hash_expires_at,
+    last_seen,
+  } = user;
+  return {
+    avatarUrl: avatar_url,
+    createdAt: created_at,
+    disabled,
+    defaultRole: default_role,
+    displayName: display_name,
+    email,
+    emailVerified: email_verified,
+    id,
+    isAnonymous: is_anonymous,
+    locale,
+    metadata,
+    phoneNumber: phone_number,
+    phoneNumberVerified: phone_number_verified,
+    roles,
+    activeMfaType: active_mfa_type,
+    newEmail: new_email,
+    totpSecret: totp_secret,
+    ticket,
+    passwordHash: password_hash,
+    otpHash: otp_hash,
+    otpMethodLastUsed: otp_method_last_used,
+    currentChallenge: current_challenge,
+    ticketExpiresAt: ticket_expires_at,
+    otpHashExpiresAt: otp_hash_expires_at,
+    lastSeen: last_seen,
+  };
+};
+
+export const snakeiseUser = (
+  user: Partial<User> | null
+): Partial<SqlUser> | null => {
+  if (!user) {
+    return null;
+  }
+  const {
+    avatarUrl,
+    createdAt,
+    defaultRole,
+    displayName,
+    emailVerified,
+    id,
+    isAnonymous,
+    locale,
+    phoneNumberVerified,
+    roles,
+    activeMfaType,
+    email,
+    metadata,
+    phoneNumber,
+    newEmail,
+    totpSecret,
+    disabled,
+    ticket,
+    passwordHash,
+    otpHash,
+    currentChallenge,
+    ticketExpiresAt,
+    otpMethodLastUsed,
+    otpHashExpiresAt,
+    lastSeen,
+  } = user;
+  return {
+    avatar_url: avatarUrl,
+    created_at: createdAt,
+    disabled,
+    default_role: defaultRole,
+    display_name: displayName,
+    email,
+    email_verified: emailVerified,
+    id,
+    is_anonymous: isAnonymous,
+    locale,
+    metadata,
+    phone_number: phoneNumber,
+    phone_number_verified: phoneNumberVerified,
+    roles,
+    active_mfa_type: activeMfaType,
+    new_email: newEmail,
+    totp_secret: totpSecret,
+    ticket,
+    password_hash: passwordHash,
+    otp_hash: otpHash,
+    otp_method_last_used: otpMethodLastUsed,
+    current_challenge: currentChallenge,
+    ticket_expires_at: ticketExpiresAt,
+    otp_hash_expires_at: otpHashExpiresAt,
+    last_seen: lastSeen,
+  };
+};
+
+export const createUserQueryWhere = (where: string) =>
+  `SELECT u.*, r.roles FROM "auth"."users" u 
+    left join lateral (
+            select user_id, coalesce(json_agg(role), '[]') AS roles
+            from "auth"."user_roles" r
+            where r.user_id = u.id
+            group by user_id, role
+        ) r on r.user_id = id AND ${where};`;
+
+export const createUserQueryByColumn = (column: string) =>
+  createUserQueryWhere(`u.${column} = $1`);
+
+export const getUserById = async (client: PoolClient, userId: string) => {
+  const { rows } = await client.query<SqlUser>(createUserQueryByColumn('id'), [
+    userId,
+  ]);
+  return rows[0];
+};

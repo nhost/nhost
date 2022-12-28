@@ -3,7 +3,7 @@ import { authenticator } from 'otplib';
 import { ReasonPhrases } from 'http-status-codes';
 
 import { sendError } from '@/errors';
-import { gqlSdk } from '@/utils';
+import { pgClient } from '@/utils';
 import { activeMfaType, Joi } from '@/validation';
 
 export const userMfaSchema = Joi.object({
@@ -23,9 +23,7 @@ export const userMFAHandler: RequestHandler<
 
   const { userId } = req.auth as RequestAuth;
 
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
+  const user = await pgClient.getUserById(userId);
 
   if (!user) {
     return sendError(res, 'user-not-found');
@@ -54,7 +52,7 @@ export const userMFAHandler: RequestHandler<
     // if (user.activeMfaType === 'sms') {
     // }
 
-    await gqlSdk.updateUser({
+    await pgClient.updateUser({
       id: userId,
       user: {
         activeMfaType: null,
@@ -81,7 +79,7 @@ export const userMFAHandler: RequestHandler<
   // else if (activeMfaType === 'sms') {
   // }
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: userId,
     user: {
       activeMfaType,

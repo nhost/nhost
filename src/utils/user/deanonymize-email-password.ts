@@ -6,7 +6,6 @@ import { createEmailRedirectionLink, getUserByEmail, pgClient } from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 
-import { gqlSdk } from '../gql-sdk';
 import { ENV } from '../env';
 import { generateTicketExpiresAt } from '../ticket';
 import { hashPassword } from '../password';
@@ -29,9 +28,7 @@ export const handleDeanonymizeUserEmailPassword = async (
   userId: string,
   res: Response
 ): Promise<unknown> => {
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
+  const user = await pgClient.getUserById(userId);
   if (user?.isAnonymous !== true) {
     return sendError(res, 'user-not-anonymous');
   }
@@ -59,7 +56,7 @@ export const handleDeanonymizeUserEmailPassword = async (
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: userId,
     user: {
       emailVerified: false,
@@ -110,7 +107,8 @@ export const handleDeanonymizeUserEmailPassword = async (
         link,
         displayName: user.displayName,
         email,
-        newEmail: user.newEmail,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        newEmail: user.newEmail!,
         ticket,
         redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

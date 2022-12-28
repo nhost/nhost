@@ -6,7 +6,6 @@ import {
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
 
 import { ENV } from './env';
-import { gqlSdk } from './gql-sdk';
 import { pgClient } from './postgres-client';
 
 export const getWebAuthnRelyingParty = () =>
@@ -71,7 +70,7 @@ export const verifyWebAuthnRegistration = async (
     );
   }
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id,
     user: {
       currentChallenge: null,

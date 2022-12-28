@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
 
-import { createQR, gqlSdk, ENV } from '@/utils';
+import { createQR, ENV, pgClient } from '@/utils';
 import { sendError } from '@/errors';
 
 export const mfatotpGenerateHandler: RequestHandler<
@@ -14,9 +14,7 @@ export const mfatotpGenerateHandler: RequestHandler<
   }
   const { userId } = req.auth as RequestAuth;
 
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
+  const user = await pgClient.getUserById(userId);
 
   if (!user) {
     return sendError(res, 'user-not-found');
@@ -33,7 +31,7 @@ export const mfatotpGenerateHandler: RequestHandler<
     totpSecret
   );
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: userId,
     user: {
       totpSecret,

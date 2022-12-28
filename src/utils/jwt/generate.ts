@@ -1,6 +1,5 @@
 import { JWTPayload, SignJWT } from 'jose';
-import { ClaimValueType } from '@/types';
-import { UserFieldsFragment } from '../__generated__/graphql-request';
+import { ClaimValueType, User } from '@/types';
 import { ENV } from '../env';
 import { generateCustomClaims } from './custom-claims';
 import { createSecretKey } from 'crypto';
@@ -13,7 +12,7 @@ export const sign = async ({
   user,
 }: {
   payload: JWTPayload;
-  user: UserFieldsFragment;
+  user: User;
 }) => {
   const { key, type, issuer } = ENV.HASURA_GRAPHQL_JWT_SECRET;
   const secret = createSecretKey(key, 'utf-8');
@@ -33,11 +32,11 @@ export const sign = async ({
  * @param jwt if true, add a 'x-hasura-' prefix to the property names, and stringifies the values (required by Hasura)
  */
 const generateHasuraClaims = async (
-  user: UserFieldsFragment
+  user: User
 ): Promise<{
   [key: string]: ClaimValueType;
 }> => {
-  const allowedRoles = user.roles.map((role) => role.role);
+  const allowedRoles = user.roles;
 
   // add user's default role to allowed roles
   if (!allowedRoles.includes(user.defaultRole)) {
@@ -56,9 +55,7 @@ const generateHasuraClaims = async (
 /**
  * Create JWT ENV.
  */
-export const createHasuraAccessToken = async (
-  user: UserFieldsFragment
-): Promise<string> => {
+export const createHasuraAccessToken = async (user: User): Promise<string> => {
   const namespace =
     ENV.HASURA_GRAPHQL_JWT_SECRET.claims_namespace ||
     'https://hasura.io/jwt/claims';

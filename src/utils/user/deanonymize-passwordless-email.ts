@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { gqlSdk } from '../gql-sdk';
 import { createEmailRedirectionLink, getUserByEmail, pgClient } from '@/utils';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
@@ -25,9 +24,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   userId: string,
   res: Response
 ): Promise<unknown> => {
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
+  const user = await pgClient.getUserById(userId);
 
   if (user?.isAnonymous !== true) {
     return sendError(res, 'user-not-anonymous');
@@ -53,7 +50,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await gqlSdk.updateUser({
+  await pgClient.updateUser({
     id: userId,
     user: {
       emailVerified: false,
@@ -73,7 +70,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
     const ticket = `passwordlessEmail:${uuidv4()}`;
     const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-    await gqlSdk.updateUser({
+    await pgClient.updateUser({
       id: userId,
       user: {
         ticket,
@@ -114,7 +111,8 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
         link,
         displayName: user.displayName,
         email,
-        newEmail: user.newEmail,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        newEmail: user.newEmail!,
         ticket,
         redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

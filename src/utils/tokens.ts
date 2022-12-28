@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { gqlSdk, pgClient } from '@/utils';
-import { SignInResponse, Session } from '../types';
-import { UserFieldsFragment } from './__generated__/graphql-request';
+import { pgClient } from '@/utils';
+import { SignInResponse, Session, User } from '../types';
 import { generateTicketExpiresAt } from './ticket';
 import { ENV } from './env';
 import { getUser } from './user';
@@ -18,10 +17,10 @@ function newRefreshExpiry() {
 }
 
 const updateRefreshTokenExpiry = async (refreshToken: string) => {
-  await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
+  await pgClient.updateRefreshTokenExpiresAt(
     refreshToken,
-    expiresAt: new Date(newRefreshExpiry()),
-  });
+    new Date(newRefreshExpiry())
+  );
 
   return refreshToken;
 };
@@ -49,11 +48,11 @@ export const getNewOrUpdateCurrentSession = async ({
   user,
   currentRefreshToken,
 }: {
-  user: UserFieldsFragment;
+  user: User;
   currentRefreshToken?: string;
 }): Promise<Session> => {
   // update user's last seen
-  gqlSdk.updateUser({
+  pgClient.updateUser({
     id: user.id,
     user: {
       lastSeen: new Date(),
@@ -83,9 +82,7 @@ export const getSignInResponse = async ({
   userId: string;
   checkMFA: boolean;
 }): Promise<SignInResponse> => {
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
+  const user = await pgClient.getUserById(userId);
 
   if (!user) {
     throw new Error('No user');
@@ -96,7 +93,7 @@ export const getSignInResponse = async ({
     const ticket = `mfaTotp:${uuidv4()}`;
 
     // set ticket
-    await gqlSdk.updateUser({
+    await pgClient.updateUser({
       id: userId,
       user: {
         ticket,
