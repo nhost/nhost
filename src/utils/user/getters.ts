@@ -26,6 +26,8 @@ export const getSessionUser = async (params: {
   const user = await getUser(params);
   const {
     id,
+    createdAt,
+    roles,
     displayName,
     avatarUrl,
     locale,
@@ -41,6 +43,8 @@ export const getSessionUser = async (params: {
 
   return {
     id,
+    createdAt,
+    roles,
     displayName,
     avatarUrl,
     locale,
