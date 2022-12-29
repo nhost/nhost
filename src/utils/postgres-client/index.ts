@@ -10,6 +10,7 @@ import {
   createUserQueryByColumn,
   createUserQueryWhere,
   getUserById,
+  insertUserRoles,
   snakeiseUser,
 } from './utils';
 
@@ -165,11 +166,7 @@ export const pgClient = {
 
   insertUserRoles: async (userId: string, roles: string[]) => {
     const client = await pool.connect();
-    await client.query(
-      `INSERT INTO "auth"."user_roles" (user_id, role) VALUES ${roles
-        .map((role) => `('${userId}', '${role}')`)
-        .join(', ')};`
-    );
+    await insertUserRoles(client, userId, roles);
     client.release();
   },
 
@@ -339,12 +336,15 @@ export const pgClient = {
     client.release();
   },
 
-  insertUser: async (user: Partial<SqlUser>) => {
+  insertUser: async (user: Partial<User>) => {
     const client = await pool.connect();
-    const { roles, ...rest } = user;
+    const transformedUser = snakeiseUser(user) as Partial<SqlUser>;
+    const { roles, ...rest } = transformedUser;
     const columns = Object.keys(rest);
     const values = Object.values(rest);
-    const { rows } = await client.query<SqlUser>(
+    const {
+      rows: [insertedUser],
+    } = await client.query<SqlUser>(
       `INSERT INTO "auth"."users" (${columns.join(',')}) VALUES(${[
         ...columns.keys(),
       ]
@@ -352,11 +352,11 @@ export const pgClient = {
         .join(',')}) RETURNING *;`,
       values
     );
-    // TODO roles
-    console.log('TODO roles', roles);
-
+    if (roles) {
+      await insertUserRoles(client, insertedUser.id, roles);
+    }
     client.release();
-    return cameliseUser(rows[0]);
+    return cameliseUser(insertedUser);
   },
 
   updateUser: async ({ id, user }: { id: string; user: Partial<User> }) => {
@@ -371,8 +371,9 @@ export const pgClient = {
         .join(',')} WHERE id = $${columns.length + 1} RETURNING *;`,
       [...values, id]
     );
-    // TODO roles
-    console.log('TODO roles', roles);
+    if (roles) {
+      await insertUserRoles(client, id, roles);
+    }
     client.release();
     return cameliseUser(rows[0]);
   },

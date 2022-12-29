@@ -2,7 +2,7 @@ import { User } from '@/types';
 import { PoolClient } from 'pg';
 import { SqlUser } from './types';
 
-export const cameliseUser = (user: SqlUser | null): User | null => {
+export const cameliseUser = (user?: SqlUser | null): User | null => {
   if (!user) {
     return null;
   }
@@ -95,7 +95,7 @@ export const snakeiseUser = (
     otpHashExpiresAt,
     lastSeen,
   } = user;
-  return {
+  const result: Partial<SqlUser> = {
     avatar_url: avatarUrl,
     created_at: createdAt,
     disabled,
@@ -122,6 +122,13 @@ export const snakeiseUser = (
     otp_hash_expires_at: otpHashExpiresAt,
     last_seen: lastSeen,
   };
+  Object.keys(result).forEach((k) => {
+    const key = k as keyof typeof result;
+    if (result[key] === undefined) {
+      delete result[key];
+    }
+  });
+  return result;
 };
 
 export const createUserQueryWhere = (where: string) =>
@@ -131,7 +138,7 @@ export const createUserQueryWhere = (where: string) =>
             from "auth"."user_roles" r
             where r.user_id = u.id
             group by user_id, role
-        ) r on r.user_id = id AND ${where};`;
+        ) r on r.user_id = id WHERE ${where};`;
 
 export const createUserQueryByColumn = (column: string) =>
   createUserQueryWhere(`u.${column} = $1`);
@@ -141,4 +148,16 @@ export const getUserById = async (client: PoolClient, userId: string) => {
     userId,
   ]);
   return rows[0];
+};
+
+export const insertUserRoles = async (
+  client: PoolClient,
+  userId: string,
+  roles: string[]
+) => {
+  await client.query(
+    `INSERT INTO "auth"."user_roles" (user_id, role) VALUES ${roles
+      .map((role) => `('${userId}', '${role}')`)
+      .join(', ')} ON CONFLICT DO NOTHING;`
+  );
 };
