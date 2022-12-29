@@ -42,7 +42,6 @@ specifiers:
   commitizen: ^4.2.4
   compare-urls: ^2.0.0
   cors: 2.8.5
-  cz-conventional-changelog: 3.1.0
   dot-prop: ^6.0.1
   dotenv: 8.2.0
   dotenv-cli: ^4.1.1
@@ -186,7 +185,6 @@ devDependencies:
   '@vuepress/plugin-back-to-top': 1.4.1
   codecov: 3.8.3
   commitizen: 4.2.4
-  cz-conventional-changelog: 3.1.0
   dotenv-cli: 4.1.1
   eslint: 6.8.0
   eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -3423,24 +3421,6 @@ packages:
       csv-parse: 4.16.3
       csv-stringify: 5.6.5
       stream-transform: 2.1.3
-    dev: true
-
-  /cz-conventional-changelog/3.1.0:
-    resolution: {integrity: sha512-SCwPPOF+7qMh1DZkJhrwaxCvZzPaz2E9BwQzcZwBuHlpcJj9zzz7K5vADQRhHuxStaHZFSLbDlZEdcls4bKu7Q==}
-    engines: {node: '>= 10'}
-    dependencies:
-      chalk: 2.4.2
-      commitizen: 4.2.4
-      conventional-commit-types: 3.0.0
-      lodash.map: 4.6.0
-      longest: 2.0.1
-      right-pad: 1.0.1
-      word-wrap: 1.2.3
-    optionalDependencies:
-      '@commitlint/load': 17.1.2
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
     dev: true
 
   /cz-conventional-changelog/3.2.0:
@@ -8634,11 +8614,6 @@ packages:
     dependencies:
       align-text: 0.1.4
     dev: false
-
-  /right-pad/1.0.1:
-    resolution: {integrity: sha1-jKCMLLtbVedNr6lr9/0aJ9VoyNA=}
-    engines: {node: '>= 0.10'}
-    dev: true
 
   /rimraf/2.6.3:
     resolution: {integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==, registry: https://registry.npmjs.com/, tarball: https://registry.npmjs.com/rimraf/-/rimraf-2.6.3.tgz}
