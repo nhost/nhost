@@ -68,7 +68,7 @@ export const signUpWebauthnHandler: RequestHandler<
     defaultRole,
     roles: allowedRoles,
     metadata,
-    currentChallenge: registrationOptions.challenge,
+    webauthnCurrentChallenge: registrationOptions.challenge,
   });
   return res.send(registrationOptions);
 };

@@ -14,10 +14,10 @@ export const getWebAuthnRelyingParty = () =>
 export const getCurrentChallenge = async (id: string) => {
   const user = await pgClient.getUserChallenge(id);
 
-  if (!user.current_challenge) {
+  if (!user.webauthn_current_challenge) {
     throw Error('invalid-request');
   }
-  return user.current_challenge;
+  return user.webauthn_current_challenge;
 };
 
 export const verifyWebAuthnRegistration = async (
@@ -73,7 +73,7 @@ export const verifyWebAuthnRegistration = async (
   await pgClient.updateUser({
     id,
     user: {
-      currentChallenge: null,
+      webauthnCurrentChallenge: null,
     },
   });
 

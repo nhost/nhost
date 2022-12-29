@@ -30,7 +30,7 @@ export type SqlUser = {
   roles: string[];
   ticket: string | null;
   password_hash: string | null;
-  current_challenge: string | null;
+  webauthn_current_challenge: string | null;
   ticket_expires_at?: Date;
   otp_method_last_used?: string;
   otp_hash_expires_at?: Date;

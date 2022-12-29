@@ -192,7 +192,6 @@ export const patchMetadata = async (patch: MetadataPatch) => {
   const metadata = await exportMetadata();
 
   patchMetadataObject(metadata, patch);
-  // console.log(JSON.stringify(metadata, null, 2));
   logger.debug('Applying metadata patch...');
   await replaceMetadata(metadata);
 };

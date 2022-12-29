@@ -119,7 +119,7 @@ export type User = {
   passwordHash: string | null;
   otpHash: string | null;
   otpHashExpiresAt?: Date;
-  currentChallenge: string | null;
+  webauthnCurrentChallenge: string | null;
   ticketExpiresAt?: Date;
   otpMethodLastUsed?: string;
   lastSeen: Date;

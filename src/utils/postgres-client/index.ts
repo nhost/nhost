@@ -104,7 +104,7 @@ export const pgClient = {
   getUserSecurityKeys: async (userId: string) => {
     const client = await pool.connect();
     const { rows } = await client.query<UserSecurityKey>(
-      `SELECT id, counter, credential_id, credential_public_key, transports FROM "auth"."security_keys" WHERE user_id = $1;`,
+      `SELECT id, counter, credential_id, credential_public_key, transports FROM "auth"."user_security_keys" WHERE user_id = $1;`,
       [userId]
     );
     client.release();
@@ -113,8 +113,8 @@ export const pgClient = {
 
   getUserChallenge: async (userId: string) => {
     const client = await pool.connect();
-    const { rows } = await client.query<{ current_challenge: string }>(
-      `SELECT current_challenge FROM "auth"."users" WHERE id = $1;`,
+    const { rows } = await client.query<{ webauthn_current_challenge: string }>(
+      `SELECT webauthn_current_challenge FROM "auth"."users" WHERE id = $1;`,
       [userId]
     );
     client.release();
@@ -124,7 +124,7 @@ export const pgClient = {
   updateUserChallenge: async (userId: string, challenge: string) => {
     const client = await pool.connect();
     await client.query(
-      `UPDATE "auth"."users" SET current_challenge = $1 WHERE id = $2;`,
+      `UPDATE "auth"."users" SET webauthn_current_challenge = $1 WHERE id = $2;`,
       [challenge, userId]
     );
     client.release();
@@ -148,7 +148,7 @@ export const pgClient = {
     const {
       rows: [{ id }],
     } = await client.query<{ id: string }>(
-      `INSERT INTO "auth"."security_keys" (user_id, counter, credential_id, credential_public_key, nickname) VALUES($1, $2, $3, $4, $5) RETURNING id;`,
+      `INSERT INTO "auth"."user_security_keys" (user_id, counter, credential_id, credential_public_key, nickname) VALUES($1, $2, $3, $4, $5) RETURNING id;`,
       [user_id, counter, credential_id, credential_public_key, nickname]
     );
     client.release();
@@ -158,7 +158,7 @@ export const pgClient = {
   updateUserSecurityKey: async (securityKeyId: string, counter: number) => {
     const client = await pool.connect();
     await client.query(
-      `UPDATE "auth"."security_keys" SET counter = $1 WHERE id = $2;`,
+      `UPDATE "auth"."user_security_keys" SET counter = $1 WHERE id = $2;`,
       [counter, securityKeyId]
     );
     client.release();
@@ -299,7 +299,7 @@ export const pgClient = {
     const {
       rows: [user],
     } = await client.query<SqlUser>(
-      createUserQueryByColumn('current_challenge'),
+      createUserQueryByColumn('webauthn_current_challenge'),
       [challenge]
     );
     client.release();
