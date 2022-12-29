@@ -3,7 +3,7 @@ import { pgClient } from '@/utils';
 import { SignInResponse, Session, User } from '../types';
 import { generateTicketExpiresAt } from './ticket';
 import { ENV } from './env';
-import { getUser } from './user';
+import { getSessionUser } from './user';
 import { createHasuraAccessToken } from './jwt';
 
 function newRefreshExpiry() {
@@ -59,7 +59,7 @@ export const getNewOrUpdateCurrentSession = async ({
     },
   });
 
-  const sessionUser = await getUser({ userId: user.id });
+  const sessionUser = await getSessionUser({ userId: user.id });
 
   const accessToken = await createHasuraAccessToken(user);
   const refreshToken =
