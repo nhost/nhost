@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -243,39 +244,37 @@ func (m *dockerComposeManager) Endpoints() *Endpoints {
 func (m *dockerComposeManager) Stop(ctx context.Context) error {
 	m.l.Debug("Stopping docker compose")
 
-	// kill all services but postgres
-	cmd, err := m.dcWrapper.Command(
-		ctx,
-		[]string{"kill",
-			compose.SvcFunctions,
-			compose.SvcGraphql,
-			compose.SvcTraefik,
-			compose.SvcAuth,
-			compose.SvcMailhog,
-			compose.SvcMinio,
-			compose.SvcStorage,
-			compose.SvcHasura,
-		}, &compose.DataStreams{})
+	// check if we have any containers running
+	cmd, err := m.dcWrapper.Command(ctx, []string{"ps", "--format", "json"}, nil)
 	if err != nil {
-		m.l.WithError(err).Debug("Failed to stop functions service")
+		m.l.WithError(err).Error("Failed to get containers")
 		return err
 	}
 
-	m.setProcessToStartInItsOwnProcessGroup(cmd)
-	err = nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
+	var containers []any
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		m.l.WithError(err).Debug("Failed to stop functions service")
+		m.l.WithError(err).Error("Failed to get containers")
 		return err
 	}
 
-	cmd, err = m.dcWrapper.Command(ctx, []string{"down", "--remove-orphans"}, nil)
-	if err != nil {
-		m.l.WithError(err).Debug("Failed to stop docker compose")
+	if err := json.Unmarshal(out, &containers); err != nil {
+		m.l.WithError(err).Error("Failed to get containers")
 		return err
 	}
 
-	m.setProcessToStartInItsOwnProcessGroup(cmd)
-	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
+	if len(containers) > 0 {
+		cmd, err := m.dcWrapper.Command(ctx, []string{"down", "--remove-orphans"}, nil)
+		if err != nil {
+			m.l.WithError(err).Debug("Failed to stop docker compose")
+			return err
+		}
+
+		m.setProcessToStartInItsOwnProcessGroup(cmd)
+		return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
+	}
+
+	return nil
 }
 
 func (m *dockerComposeManager) waitForServicesToBeRunningHealthy(ctx context.Context, ds *compose.DataStreams) error {
