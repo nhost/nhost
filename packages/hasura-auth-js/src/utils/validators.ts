@@ -1,16 +1,25 @@
 import { MIN_PASSWORD_LENGTH } from '../constants'
 
-export const isValidEmail = (email?: string | null) =>
-  !!email &&
-  typeof email === 'string' &&
-  !!String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    )
+const EMAIL_REGEX =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
-export const isValidPassword = (password?: string | null) =>
-  !!password && typeof password === 'string' && password.length >= MIN_PASSWORD_LENGTH
+export const isValidEmail = (email?: string | null) => {
+  if (!email || typeof email !== 'string') {
+    return false
+  }
+
+  const lowerCaseEmail = email.toLowerCase()
+  return EMAIL_REGEX.test(lowerCaseEmail)
+}
+
+export const isValidPassword = (password?: string | null) => {
+  if (!password || typeof password !== 'string') {
+    return false
+  }
+
+  const passwordLength = password.length
+  return passwordLength >= MIN_PASSWORD_LENGTH
+}
 
 // TODO improve validation
 export const isValidPhoneNumber = (phoneNumber?: string | null) =>

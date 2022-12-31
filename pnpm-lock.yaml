@@ -926,6 +926,7 @@ importers:
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
       js-cookie: ^3.0.1
+      jsdom: ^20.0.3
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
       msw: ^0.47.4
@@ -942,6 +943,7 @@ importers:
       '@simplewebauthn/typescript-types': 6.0.0
       '@types/js-cookie': 3.0.2
       cheerio: 1.0.0-rc.12
+      jsdom: 20.0.3
       mailhog: 4.16.0
       msw: 0.47.4
       start-server-and-test: 1.14.0
