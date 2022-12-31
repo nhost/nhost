@@ -374,7 +374,6 @@ importers:
       '@apollo/client': ^3.7.3
       '@graphql-codegen/cli': ^2.14.1
       '@graphql-codegen/client-preset': ^1.1.5
-      '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/react': '*'
       '@nhost/react-apollo': '*'
       '@tailwindcss/forms': ^0.5.3
@@ -402,7 +401,6 @@ importers:
     devDependencies:
       '@graphql-codegen/cli': 2.14.1_ymc72olbpz3osk7kw74kgabloq
       '@graphql-codegen/client-preset': 1.1.5_graphql@16.6.0
-      '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.1
       '@types/node': 18.11.17
       '@types/react': 18.0.25
@@ -418,7 +416,6 @@ importers:
     specifiers:
       '@graphql-codegen/cli': ^2.14.1
       '@graphql-codegen/client-preset': ^1.1.5
-      '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/react': '*'
       '@tailwindcss/forms': ^0.5.3
       '@tanstack/react-query': ^4.2.3
@@ -449,7 +446,6 @@ importers:
     devDependencies:
       '@graphql-codegen/cli': 2.14.1_tiujzwfvitlsrgyuh2mq4vmakm
       '@graphql-codegen/client-preset': 1.1.5_graphql@16.6.0
-      '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.4
       '@types/node': 16.11.65
       '@types/react': 18.0.25
@@ -465,7 +461,6 @@ importers:
     specifiers:
       '@graphql-codegen/cli': ^2.14.1
       '@graphql-codegen/client-preset': ^1.1.5
-      '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/react': '*'
       '@nhost/react-urql': '*'
       '@tailwindcss/forms': ^0.5.3
@@ -494,7 +489,6 @@ importers:
     devDependencies:
       '@graphql-codegen/cli': 2.14.1_gjti3abvw7kfl6udwdltaerdd4
       '@graphql-codegen/client-preset': 1.1.5_graphql@16.6.0
-      '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.4
       '@types/node': 16.11.65
       '@types/react': 18.0.26
@@ -11957,7 +11951,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@18.11.17
+      vite: 4.0.2_@types+node@16.11.65
     transitivePeerDependencies:
       - supports-color
     dev: true
