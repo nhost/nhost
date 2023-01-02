@@ -7,6 +7,7 @@ import type {
   HasuraMetadataPermission,
   RuleGroup,
 } from '@/types/dataBrowser';
+import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
@@ -155,16 +156,20 @@ export default function RolePermissionEditorForm({
   permission,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
-  const { mutateAsync: managePermission, isLoading } =
-    useManagePermissionMutation({
-      schema,
-      table,
-      mutationOptions: {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
-        },
+  const {
+    mutateAsync: managePermission,
+    error,
+    reset: resetError,
+    isLoading,
+  } = useManagePermissionMutation({
+    schema,
+    table,
+    mutationOptions: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
       },
-    });
+    },
+  });
 
   const form = useForm<RolePermissionEditorFormValues>({
     reValidateMode: 'onSubmit',
@@ -293,6 +298,28 @@ export default function RolePermissionEditorForm({
 
   return (
     <FormProvider {...form}>
+      {error && error instanceof Error && (
+        <div className="-mt-3 mb-4 px-6">
+          <Alert
+            severity="error"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
+          >
+            <span className="text-left">
+              <strong>Error:</strong> {error.message}
+            </span>
+
+            <Button
+              variant="borderless"
+              color="secondary"
+              className="p-1"
+              onClick={resetError}
+            >
+              Clear
+            </Button>
+          </Alert>
+        </div>
+      )}
+
       <Form
         onSubmit={handleSubmit}
         className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]"

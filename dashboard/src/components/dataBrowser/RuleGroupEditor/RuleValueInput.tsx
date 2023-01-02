@@ -37,7 +37,6 @@ function ColumnSelectorInput({
       schema={schema}
       table={table}
       disableRelationships
-      rootClassName="flex-auto"
       slotProps={{
         input: { className: 'lg:!rounded-none !bg-white !z-10' },
       }}
@@ -99,9 +98,11 @@ export default function RuleValueInput({
     return (
       <ControlledSelect
         name={inputName}
-        className="flex-auto"
         fullWidth
-        slotProps={{ root: { className: 'bg-white lg:!rounded-none h-10' } }}
+        slotProps={{
+          root: { className: 'bg-white lg:!rounded-none h-10' },
+          popper: { disablePortal: false, className: 'z-[10000]' },
+        }}
         error={error}
         helperText={helperText}
       >
@@ -129,7 +130,6 @@ export default function RuleValueInput({
         multiple
         freeSolo
         limitTags={3}
-        className="flex-auto"
         slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
         options={[]}
         fullWidth
@@ -168,7 +168,6 @@ export default function RuleValueInput({
       autoHighlight={isHasuraInput}
       filterSelectedOptions
       name={inputName}
-      className="flex-auto"
       groupBy={(option) => option.group}
       slotProps={{
         input: { className: 'lg:!rounded-none !bg-white' },

@@ -7,6 +7,14 @@ function createNestedObjectFromRule({
 }: Rule): Record<string, any> {
   const columnNameParts = column.split('.');
 
+  if (columnNameParts.length === 1 && operator === '_is_null') {
+    return {
+      [column]: {
+        [operator]: value === 'true',
+      },
+    };
+  }
+
   if (columnNameParts.length === 1) {
     return {
       [column]: {

@@ -111,29 +111,30 @@ export default function convertToRuleGroup(
   // Note: _is_null is special, because we need to negate its value instead of
   // the operator.
   if (currentKey === '_is_null') {
-    if (typeof value === 'boolean') {
-      const negatedValue = !value;
+    if (typeof value !== 'boolean') {
+      const convertedValue = value === 'true';
+      const negatedValue = !convertedValue;
 
       return {
         operator: '_and',
         rules: [
           {
-            column: options.previousKey,
+            column: previousKey,
             operator: '_is_null',
-            value: shouldNegate ? negatedValue : value,
+            value: shouldNegate ? negatedValue : convertedValue,
           },
         ],
         groups: [],
       };
     }
 
-    const negatedValue = value === 'true' ? 'false' : 'true';
+    const negatedValue = !value;
 
     return {
       operator: '_and',
       rules: [
         {
-          column: previousKey,
+          column: options.previousKey,
           operator: '_is_null',
           value: shouldNegate ? negatedValue : value,
         },

@@ -275,3 +275,23 @@ test('should merge unsupported rules into the object', () => {
     ],
   });
 });
+
+test('should convert value to boolean if the operator is _is_null', () => {
+  expect(
+    convertToHasuraPermissions({
+      operator: '_and',
+      rules: [
+        {
+          column: 'title',
+          operator: '_is_null',
+          value: 'true',
+        },
+      ],
+      groups: [],
+    }),
+  ).toMatchObject({
+    title: {
+      _is_null: true,
+    },
+  });
+});
