@@ -119,7 +119,8 @@ export default function EditUserForm({
 
   const {
     register,
-    formState: { errors, dirtyFields },
+    handleSubmit,
+    formState: { errors, dirtyFields, isSubmitting, isValidating },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -179,9 +180,9 @@ export default function EditUserForm({
     <FormProvider {...form}>
       <Form
         className="flex flex-col border-gray-200 lg:content-between lg:flex-auto border-t-1"
-        onSubmit={(values) => {
-          onEditUser(values, user);
-        }}
+        onSubmit={handleSubmit(async (values) => {
+          await onEditUser(values, user);
+        })}
       >
         <div className="flex-auto divide-y">
           <section className="grid grid-flow-col p-6 lg:grid-cols-7">
@@ -361,8 +362,12 @@ export default function EditUserForm({
               error={!!errors.locale}
               helperText={errors?.locale?.message}
             >
-              <Option value="en">en</Option>
-              <Option value="fr">fr</Option>
+              <Option key="en" value="en">
+                en
+              </Option>
+              <Option key="fr" value="fr">
+                fr
+              </Option>
             </ControlledSelect>
           </section>
           <section className="grid gap-4 p-6 lg:grid-cols-4 place-content-start">
@@ -417,7 +422,9 @@ export default function EditUserForm({
                 helperText={errors?.defaultRole?.message}
               >
                 {allAvailableProjectRoles.map((role) => (
-                  <Option value={role.name}>{role.name}</Option>
+                  <Option key={role.name} value={role.name}>
+                    {role.name}
+                  </Option>
                 ))}
               </ControlledSelect>
               <div className="grid grid-flow-row gap-6 lg:grid-cols-8 lg:grid-flow-col place-content-start">
@@ -452,8 +459,8 @@ export default function EditUserForm({
           <Button
             type="submit"
             className="justify-self-end"
-            disabled={!form.formState.isDirty}
-            loading={form.formState.isSubmitting}
+            disabled={!isDirty}
+            loading={isSubmitting || isValidating}
           >
             Save
           </Button>
