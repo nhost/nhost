@@ -9,7 +9,7 @@
 - Updated dependencies [54df0df4]
 - Updated dependencies [54df0df4]
 - Updated dependencies [65687bee]
-  - @nhost/apollo@5.0.0
+  - @nhost/apollo@0.6.0
   - @nhost/react@1.12.0
 
 ## 4.11.0

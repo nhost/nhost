@@ -10,7 +10,7 @@
 - Updated dependencies [65687bee]
 - Updated dependencies [54df0df4]
   - @nhost/nextjs@1.12.0
-  - @nhost/react-apollo@5.0.0
+  - @nhost/react-apollo@4.12.0
 
 ## 0.7.11
 
