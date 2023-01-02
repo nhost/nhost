@@ -52,7 +52,7 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
 
   const url = new URL(
     redirectTo.startsWith('/')
-      ? baseClientUrl.origin + redirectTo
+      ? `${baseClientUrl.origin}${redirectTo}`
       : redirectTo.startsWith('#')
       ? baseClientUrl.origin
       : redirectTo
