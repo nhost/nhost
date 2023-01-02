@@ -1,6 +1,6 @@
 # @nhost/apollo
 
-## 5.0.0
+## 0.6.0
 
 ### Patch Changes
 
