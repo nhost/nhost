@@ -114,7 +114,7 @@ export function removeParameterFromWindow(name: string) {
       url += `#${hash.toString()}`
     } else {
       if (location.hash) {
-        url += location.hash
+        url = `${url}${location.hash}`
       }
     }
 
