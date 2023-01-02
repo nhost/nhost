@@ -13,13 +13,16 @@ export function FunctionsLogsTerminalPage({ functionName }: any) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [normalizedFunctionData, setNormalizedFunctionData] = useState(null);
 
-  const { data } = useGetFunctionLogQuery({
+  const { data, startPolling } = useGetFunctionLogQuery({
     variables: {
       subdomain: currentApplication.subdomain,
       functionPaths: [functionName?.split('/').slice(1, 3).join('/')],
     },
-    pollInterval: 3000,
   });
+
+  useEffect(() => {
+    startPolling(3000);
+  }, [startPolling]);
 
   useEffect(() => {
     if (!data || data.getFunctionLogs.length === 0) {

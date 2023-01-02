@@ -1,22 +1,30 @@
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useGetUserAllWorkspacesQuery } from '@/generated/graphql';
 import { useWithin } from '@/hooks/useWithin';
+import { useEffect } from 'react';
 
 export const useUserFirstWorkspace = () => {
   const { workspaceContext } = useWorkspaceContext();
   const { within } = useWithin();
   const fetch = !!workspaceContext.slug || !within;
 
-  const { loading, error, data, stopPolling, client } =
+  const { loading, error, data, startPolling, stopPolling, client } =
     useGetUserAllWorkspacesQuery({
-      pollInterval: 1000,
       skip: fetch,
       fetchPolicy: 'cache-first',
     });
 
-  if (!!workspaceContext.slug || !within) {
+  useEffect(() => {
+    startPolling(1000);
+  }, [startPolling]);
+
+  useEffect(() => {
+    if (!workspaceContext.slug && within) {
+      return;
+    }
+
     stopPolling();
-  }
+  }, [workspaceContext.slug, within, stopPolling]);
 
   return {
     loading,

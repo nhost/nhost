@@ -77,7 +77,7 @@ importers:
 
   dashboard:
     specifiers:
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.7.3
       '@babel/core': ^7.20.2
       '@codemirror/language': ^6.3.0
       '@emotion/cache': ^11.10.5
