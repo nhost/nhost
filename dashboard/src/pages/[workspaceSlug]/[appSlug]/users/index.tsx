@@ -260,7 +260,7 @@ export default function UsersPage() {
   }
 
   return (
-    <Container className="mx-auto overflow-x-hidden max-w-9xl">
+    <Container className="mx-auto space-y-5 overflow-x-hidden max-w-9xl">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm"

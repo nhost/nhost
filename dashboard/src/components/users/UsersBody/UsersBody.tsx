@@ -273,7 +273,11 @@ export default function UsersBody({
                 onClick={() => handleViewUser(user)}
               >
                 <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
-                  <Avatar src={user.avatarUrl} className="border" />
+                  <Avatar
+                    src={user.avatarUrl}
+                    className="border"
+                    alt="User's Avatar"
+                  />
                   <div className="grid items-center grid-flow-row">
                     <div className="grid items-center grid-flow-col gap-2">
                       <Text className="font-medium leading-5 truncate">
