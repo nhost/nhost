@@ -111,7 +111,7 @@ export function removeParameterFromWindow(name: string) {
     /** @deprecated refresh tokens and types are not send in the hash anymore */
     if (hash.get(name)) {
       hash.delete(name)
-      url += `#${hash.toString()}`
+      url = `${url}#${hash.toString()}`
     } else {
       if (location.hash) {
         url = `${url}${location.hash}`
