@@ -206,7 +206,11 @@ export default function EditUserForm({
             </div>
             <div>
               <Dropdown.Root>
-                <Dropdown.Trigger autoFocus={false} asChild>
+                <Dropdown.Trigger
+                  autoFocus={false}
+                  asChild
+                  className="gap-2"
+                >
                   <Button variant="outlined" color="secondary">
                     Actions
                   </Button>
