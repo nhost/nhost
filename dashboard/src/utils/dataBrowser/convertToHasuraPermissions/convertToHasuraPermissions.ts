@@ -40,24 +40,41 @@ export default function convertToHasuraPermissions(
   }
 
   if (
-    (!('rules' in ruleGroup) && !('groups' in ruleGroup)) ||
-    (ruleGroup.rules.length === 0 && ruleGroup.groups.length === 0)
+    (!('rules' in ruleGroup) &&
+      !('groups' in ruleGroup) &&
+      !('unsupported' in ruleGroup)) ||
+    (!ruleGroup.rules.length &&
+      !ruleGroup.groups?.length &&
+      !ruleGroup.unsupported?.length)
   ) {
     return {};
   }
 
-  if (ruleGroup.rules?.length === 1 && ruleGroup.groups?.length === 0) {
+  if (
+    ruleGroup.rules?.length === 1 &&
+    !ruleGroup.groups?.length &&
+    !ruleGroup?.unsupported?.length
+  ) {
     return createNestedObjectFromRule(ruleGroup.rules[0]);
   }
 
-  if (ruleGroup.rules?.length === 0 && ruleGroup.groups?.length === 1) {
+  if (
+    !ruleGroup.rules?.length &&
+    ruleGroup.groups?.length === 1 &&
+    !ruleGroup.unsupported?.length
+  ) {
     return convertToHasuraPermissions(ruleGroup.groups[0]);
   }
 
   const convertedRules = ruleGroup.rules?.map(createNestedObjectFromRule) || [];
   const subGroupRules = ruleGroup.groups?.map(convertToHasuraPermissions) || [];
+  const convertedUnsupportedRules = ruleGroup.unsupported || [];
 
   return {
-    [ruleGroup.operator]: [...convertedRules, ...subGroupRules],
+    [ruleGroup.operator]: [
+      ...convertedRules,
+      ...subGroupRules,
+      ...convertedUnsupportedRules,
+    ],
   };
 }

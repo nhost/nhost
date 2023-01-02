@@ -211,3 +211,67 @@ test('should return nested groups', () => {
     ],
   });
 });
+
+test('should merge unsupported rules into the object', () => {
+  expect(
+    convertToHasuraPermissions({
+      operator: '_or',
+      rules: [
+        {
+          column: 'title',
+          operator: '_eq',
+          value: 'test',
+        },
+        {
+          column: 'title',
+          operator: '_eq',
+          value: 'test2',
+        },
+      ],
+      groups: [
+        {
+          operator: '_and',
+          rules: [],
+          groups: [],
+          unsupported: [
+            {
+              _exists: {
+                _table: { schema: 'public', name: 'authors' },
+                _where: { name: { _eq: 'test3' } },
+              },
+            },
+          ],
+        },
+      ],
+      unsupported: [
+        {
+          _exists: {
+            _table: { schema: 'public', name: 'authors' },
+            _where: { name: { _eq: 'test3' } },
+          },
+        },
+      ],
+    }),
+  ).toMatchObject({
+    _or: [
+      { title: { _eq: 'test' } },
+      { title: { _eq: 'test2' } },
+      {
+        _and: [
+          {
+            _exists: {
+              _table: { schema: 'public', name: 'authors' },
+              _where: { name: { _eq: 'test3' } },
+            },
+          },
+        ],
+      },
+      {
+        _exists: {
+          _table: { schema: 'public', name: 'authors' },
+          _where: { name: { _eq: 'test3' } },
+        },
+      },
+    ],
+  });
+});
