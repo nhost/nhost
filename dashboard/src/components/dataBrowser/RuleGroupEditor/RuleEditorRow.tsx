@@ -130,7 +130,7 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'flex lg:flex-row flex-col items-stretch lg:max-h-10 flex-1 space-y-1 lg:space-y-0',
+        'grid lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] grid-flow-row lg:max-h-10 space-y-1 lg:space-y-0',
         className,
       )}
       {...props}
@@ -139,7 +139,7 @@ export default function RuleEditorRow({
         {...autocompleteField}
         schema={schema}
         table={table}
-        rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
+        rootClassName="h-10"
         slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
         fullWidth
         error={Boolean(columnState?.error?.message)}
@@ -174,7 +174,7 @@ export default function RuleEditorRow({
 
       <ControlledSelect
         name={`${rowName}.operator`}
-        className="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[140px] h-10"
+        className="h-10"
         slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
         fullWidth
         error={Boolean(operatorState?.error?.message)}

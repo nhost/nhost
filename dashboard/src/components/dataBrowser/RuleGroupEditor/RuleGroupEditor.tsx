@@ -105,7 +105,7 @@ export default function RuleGroupEditor({
     <RuleGroupEditorContext.Provider value={contextValue}>
       <div
         className={twMerge(
-          'rounded-lg px-2',
+          'rounded-lg border border-r-8 border-transparent pl-2',
           depth === 0 && 'bg-greyscale-50',
           depth === 1 && 'bg-greyscale-100',
           depth === 2 && 'bg-greyscale-200',
@@ -117,10 +117,10 @@ export default function RuleGroupEditor({
         )}
         {...props}
       >
-        <div className="flex flex-col flex-auto space-y-4 lg:space-y-2 py-4">
+        <div className="grid grid-flow-row gap-4 lg:gap-2 py-4">
           {(rules as (Rule & { id: string })[]).map((rule, ruleIndex) => (
-            <div className="flex flex-row flex-auto" key={rule.id}>
-              <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
+            <div className="grid grid-cols-[70px_1fr] gap-2" key={rule.id}>
+              <div>
                 {ruleIndex === 0 && (
                   <Text className="p-2 !font-medium">Where</Text>
                 )}
@@ -134,7 +134,6 @@ export default function RuleGroupEditor({
                 name={name}
                 index={ruleIndex}
                 onRemove={() => removeRule(ruleIndex)}
-                className="flex-auto"
                 disabledOperators={disabledOperators}
               />
             </div>
@@ -143,10 +142,10 @@ export default function RuleGroupEditor({
           {(groups as (RuleGroup & { id: string })[]).map(
             (ruleGroup, ruleGroupIndex) => (
               <div
-                className="flex flex-row flex-auto items-start mt-2"
+                className="grid grid-cols-[70px_1fr] gap-2"
                 key={ruleGroup.id}
               >
-                <div className="flex-[70px] flex-grow-0 flex-shrink-0 mr-2">
+                <div>
                   {rules.length === 0 && ruleGroupIndex === 0 && (
                     <Text className="p-2 !font-medium">Where</Text>
                   )}
@@ -167,7 +166,6 @@ export default function RuleGroupEditor({
                   disableRemove={rules.length === 0 && groups.length === 1}
                   disabledOperators={disabledOperators}
                   name={`${name}.groups.${ruleGroupIndex}`}
-                  className="flex-auto"
                   depth={depth + 1}
                 />
               </div>

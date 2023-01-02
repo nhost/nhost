@@ -110,7 +110,12 @@ export default function RowPermissionsSection({
       )}
 
       {rowCheckType === 'custom' && (
-        <RuleGroupEditor name="filter" schema={schema} table={table} />
+        <RuleGroupEditor
+          name="filter"
+          schema={schema}
+          table={table}
+          className="w-full overflow-x-auto"
+        />
       )}
 
       {action === 'select' && (
