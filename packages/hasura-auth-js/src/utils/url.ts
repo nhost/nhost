@@ -18,7 +18,7 @@ export const encodeQueryParameters = (
       })
       .join('&')
   const url = encodedParameters ? `${baseUrl}?${encodedParameters}` : baseUrl
-  return hash ? url + hash : url
+  return hash ? `${url}${hash}` : url
 }
 
 /**
