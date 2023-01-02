@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 0.1.4
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- Updated dependencies [b21222b3]
+- Updated dependencies [54df0df4]
+- Updated dependencies [54df0df4]
+- Updated dependencies [65687bee]
+  - @nhost/react@1.12.0
+  - @nhost/react-apollo@4.12.0
+
 ## 0.1.3
 
 ### Patch Changes
@@ -56,4 +68,4 @@
 - Updated dependencies [739a3c45]
 - Updated dependencies [74758f2c]
   - @nhost/react@0.13.0
-  - @nhost/react-apollo@5.0.0
+  - @nhost/react-apollo@4.12.0

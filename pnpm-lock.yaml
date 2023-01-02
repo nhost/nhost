@@ -667,7 +667,7 @@ importers:
   examples/serverless-functions:
     specifiers:
       '@graphql-yoga/node': ^2.13.13
-      '@nhost/stripe-graphql-js': ^0.0.6
+      '@nhost/stripe-graphql-js': ^0.0.7
       '@pothos/core': ^3.21.0
       '@types/express': ^4.17.13
       cross-fetch: ^3.1.5
