@@ -47,7 +47,17 @@ export interface EditJwtSecretFormValues {
 }
 
 const validationSchema = Yup.object().shape({
-  jwtSecret: Yup.string().nullable().required('This field is required.'),
+  jwtSecret: Yup.string()
+    .nullable()
+    .required('This field is required.')
+    .test('isJson', 'This is not a valid JSON.', (value) => {
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }),
 });
 
 export default function EditJwtSecretForm({
@@ -120,14 +130,10 @@ export default function EditJwtSecretForm({
             disabled={disabled}
             aria-label="JWT Secret"
             multiline
-            minRows={5}
+            minRows={4}
             fullWidth
             hideEmptyHelperText
-            slotProps={{
-              inputRoot: {
-                className: 'font-mono',
-              },
-            }}
+            slotProps={{ inputRoot: { className: 'font-mono !text-sm' } }}
           />
         </div>
 
