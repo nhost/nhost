@@ -175,7 +175,11 @@ export default function RuleEditorRow({
       <ControlledSelect
         name={`${rowName}.operator`}
         className="h-10"
-        slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
+        slotProps={{
+          root: { className: 'bg-white lg:!rounded-none' },
+          listbox: { className: 'max-h-[300px]' },
+          popper: { disablePortal: false, className: 'z-[10000]' },
+        }}
         fullWidth
         error={Boolean(operatorState?.error?.message)}
         onChange={(_event, value: HasuraOperator) => {
