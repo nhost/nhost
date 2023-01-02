@@ -106,7 +106,7 @@ export default function CreateUserForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleCreateUser}
-        className="grid grid-flow-row gap-6 p-6 px-6"
+        className="grid grid-flow-row gap-6 px-6 pb-6"
         autoComplete="off"
       >
         <Input
@@ -154,7 +154,7 @@ export default function CreateUserForm({
           </Alert>
         )}
         <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting}>
+          <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
             Create
           </Button>
 
