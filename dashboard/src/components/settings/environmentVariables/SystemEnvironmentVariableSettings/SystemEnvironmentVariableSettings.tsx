@@ -215,7 +215,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 justify-start">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col gap-1.5 justify-start items-center">
+          <div className="grid grid-flow-row md:grid-flow-col gap-1.5 justify-center text-center lg:text-left lg:justify-start items-center lg:col-span-2">
             <Button
               variant="borderless"
               onClick={showViewJwtSecretModal}
