@@ -70,7 +70,7 @@ export const rewriteRedirectTo = <T extends RedirectOption>(
   return {
     ...otherOptions,
     redirectTo: encodeQueryParameters(
-      url.origin + pathName,
+      `${url.origin}${pathName}`,
       combinedParams,
       redirectTo.startsWith('#') ? redirectTo : undefined
     )
