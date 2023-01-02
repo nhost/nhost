@@ -177,8 +177,8 @@ export default function RuleGroupEditor({
           {unsupportedValues?.length > 0 && (
             <Alert severity="warning" className="text-left">
               <Text>
-                This rule group contains one or more unsupported objects (e.g:
-                _exists) that are not supported by our dashboard yet.{' '}
+                This rule group contains one or more objects (e.g: _exists) that
+                are not supported by our dashboard yet.{' '}
                 {currentApplication && (
                   <span>
                     Please{' '}
@@ -194,7 +194,7 @@ export default function RuleGroupEditor({
                     >
                       visit Hasura
                     </Link>{' '}
-                    if you would like to edit these objects.
+                    to edit them.
                   </span>
                 )}
               </Text>

@@ -24,6 +24,9 @@ function RuleRemoveButton({
 }: RuleRemoveButtonProps) {
   const rules: Rule[] = useWatch({ name: `${name}.rules` });
   const groups: RuleGroup[] = useWatch({ name: `${name}.groups` });
+  const unsupported: Record<string, any>[] = useWatch({
+    name: `${name}.unsupported`,
+  });
 
   return (
     <Button
@@ -33,7 +36,7 @@ function RuleRemoveButton({
         '!bg-white lg:!rounded-l-none lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[40px] !min-w-0 h-10',
         className,
       )}
-      disabled={rules.length === 1 && groups.length === 0}
+      disabled={rules.length === 1 && !groups?.length && !unsupported?.length}
       aria-label="Remove Rule"
       {...props}
       onClick={onRemove}
