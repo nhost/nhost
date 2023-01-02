@@ -68,7 +68,7 @@ export interface StorageDeleteResponse {
   error: Error | null
 }
 
-interface FileResponse {
+export interface FileResponse {
   id: string
   name: string
   size: number
@@ -76,6 +76,9 @@ interface FileResponse {
   etag: string
   createdAt: string
   bucketId: string
+  isUploaded: true
+  updatedAt: string
+  uploadedByUserId: string
 }
 
 export interface ApiUploadParams {

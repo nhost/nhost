@@ -57,18 +57,7 @@ export const fetchUpload = async (
         }
         return { error, fileMetadata: null }
       }
-      const fileMetadata: {
-        bucketId: string
-        createdAt: string
-        etag: string
-        id: string
-        isUploaded: true
-        mimeType: string
-        name: string
-        size: number
-        updatedAt: string
-        uploadedByUserId: string
-      } = await response.json()
+      const fileMetadata = await response.json()
       return { fileMetadata, error: null }
     } catch (e) {
       const error: ErrorPayload = {
@@ -78,41 +67,40 @@ export const fetchUpload = async (
       }
       return { error, fileMetadata: null }
     }
-  } else {
-    // * Browser environment: XMLHttpRequest is available
-    return new Promise((resolve) => {
-      let xhr = new XMLHttpRequest()
-      xhr.responseType = 'json'
+  }
+  // * Browser environment: XMLHttpRequest is available
+  return new Promise((resolve) => {
+    let xhr = new XMLHttpRequest()
+    xhr.responseType = 'json'
 
-      xhr.onload = () => {
-        if (xhr.status < 200 && xhr.status >= 300) {
-          return resolve({
-            fileMetadata: null,
-            error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
-          })
-        }
-        return resolve({ fileMetadata: xhr.response, error: null })
-      }
-
-      xhr.onerror = () => {
-        // only triggers if the request couldn't be made at all e.g. network error
+    xhr.onload = () => {
+      if (xhr.status < 200 && xhr.status >= 300) {
         return resolve({
           fileMetadata: null,
           error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
         })
       }
+      return resolve({ fileMetadata: xhr.response, error: null })
+    }
 
-      if (onUploadProgress) {
-        xhr.upload.addEventListener('progress', onUploadProgress, false)
-      }
-
-      xhr.open('POST', url, true)
-
-      Object.entries(headers).forEach(([key, value]) => {
-        xhr.setRequestHeader(key, value)
+    xhr.onerror = () => {
+      // only triggers if the request couldn't be made at all e.g. network error
+      return resolve({
+        fileMetadata: null,
+        error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
       })
+    }
 
-      xhr.send(data as any) // * https://github.com/form-data/form-data/issues/513
+    if (onUploadProgress) {
+      xhr.upload.addEventListener('progress', onUploadProgress, false)
+    }
+
+    xhr.open('POST', url, true)
+
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value)
     })
-  }
+
+    xhr.send(data as any) // * https://github.com/form-data/form-data/issues/513
+  })
 }

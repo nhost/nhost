@@ -122,7 +122,6 @@ export const createFileUploadMachine = () =>
           }).then(({ fileMetadata, error }) => {
             if (error) {
               callback({ type: 'UPLOAD_ERROR', error })
-            } else {
             }
             if (fileMetadata) {
               const { id, bucketId } = fileMetadata

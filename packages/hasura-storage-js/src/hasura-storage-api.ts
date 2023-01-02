@@ -5,8 +5,7 @@ import {
   ApiGetPresignedUrlParams,
   ApiGetPresignedUrlResponse,
   ApiUploadParams,
-  StorageUploadResponse,
-  UploadHeaders
+  StorageUploadResponse
 } from './utils/types'
 import { fetchUpload } from './utils/upload'
 
@@ -90,23 +89,6 @@ export class HasuraStorageApi {
     this.adminSecret = adminSecret
 
     return this
-  }
-
-  private generateUploadHeaders(params: ApiUploadParams): UploadHeaders {
-    const { bucketId, name, id } = params
-    const uploadheaders: UploadHeaders = {}
-
-    if (bucketId) {
-      uploadheaders['x-nhost-bucket-id'] = bucketId
-    }
-    if (id) {
-      uploadheaders['x-nhost-file-id'] = id
-    }
-    if (name) {
-      uploadheaders['x-nhost-file-name'] = name
-    }
-
-    return uploadheaders
   }
 
   private generateAuthHeaders(): HeadersInit | undefined {
