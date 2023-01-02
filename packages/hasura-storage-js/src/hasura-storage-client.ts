@@ -84,7 +84,7 @@ export class HasuraStorageClient {
       formData = params.formData
     }
 
-    return await this.api.upload({
+    return this.api.upload({
       ...params,
       formData
     })
