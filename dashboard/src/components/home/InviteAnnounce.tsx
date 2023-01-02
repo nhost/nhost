@@ -9,6 +9,7 @@ import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
 export function InviteAnnounce() {
   const user = useUserData();
@@ -21,14 +22,17 @@ export function InviteAnnounce() {
     useSubmitState();
 
   // @FIX: We probably don't want to poll every ten seconds for possible invites. (We can change later depending on how it works in production.) Maybe just on the workspace page?
-  const { data, loading, error, refetch } =
+  const { data, loading, error, refetch, startPolling } =
     useGetWorkspaceMemberInvitesToManageQuery({
       variables: {
         userId: user?.id,
       },
-      pollInterval: 15000,
       skip: !isPlatform,
     });
+
+  useEffect(() => {
+    startPolling(15000);
+  }, [startPolling]);
 
   if (loading) {
     return null;

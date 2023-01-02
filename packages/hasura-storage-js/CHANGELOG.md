@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 1.12.0
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+
 ## 0.8.0
 
 ### Minor Changes

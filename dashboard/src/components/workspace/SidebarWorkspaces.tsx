@@ -8,9 +8,11 @@ import { useEffect } from 'react';
 
 export default function SidebarWorkspaces() {
   const user = nhost.auth.getUser();
-  const { data, loading, stopPolling } = useGetWorkspacesQuery({
-    pollInterval: 1000,
-  });
+  const { data, loading, startPolling, stopPolling } = useGetWorkspacesQuery();
+
+  useEffect(() => {
+    startPolling(1000);
+  }, [startPolling]);
 
   // keep polling for workspaces until there is a workspace available.
   // We do this because when a user signs up a workspace is created automatically

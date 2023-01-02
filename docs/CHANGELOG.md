@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.9
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+
 ## 0.0.8
 
 ### Patch Changes
