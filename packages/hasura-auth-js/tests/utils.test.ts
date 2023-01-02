@@ -25,6 +25,20 @@ test(`should append redirectTo with the clientUrl prefix`, async () => {
   expect(result?.redirectTo).toEqual('https://frontend.com/index')
 })
 
+test(`should append redirectTo with a hash`, async () => {
+  const options: RedirectOption = { redirectTo: '#/index' }
+
+  const result = rewriteRedirectTo('https://frontend.com', options)
+  expect(result?.redirectTo).toMatchInlineSnapshot('"https://frontend.com/#/index"')
+})
+
+test(`should replace the hash in the url when using a hash in redirectTo`, async () => {
+  const options: RedirectOption = { redirectTo: '#/index' }
+
+  const result = rewriteRedirectTo('https://frontend.com#/current', options)
+  expect(result?.redirectTo).toMatchInlineSnapshot('"https://frontend.com/#/index"')
+})
+
 test(`should add the query parameters of the clientUrl`, async () => {
   const options: RedirectOption = { redirectTo: '/index' }
 
