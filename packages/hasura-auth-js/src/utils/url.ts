@@ -104,7 +104,7 @@ export function removeParameterFromWindow(name: string) {
     search.delete(name)
     let url = window.location.pathname
     if (Array.from(search).length) {
-      url += `?${search.toString()}`
+      url = `${url}?${search.toString()}`
     }
 
     const hash = new URLSearchParams(location.hash?.slice(1))
