@@ -18,7 +18,7 @@ For instance:
 ```ts
 const url = nhost.storage.getPublicUrl({
   fileId: 'cd8eaca3-30a9-460e-b4d7-b4b7afc759c1',
-  width: 800
+  width: 800,
   blur: 20
 })
 ```
