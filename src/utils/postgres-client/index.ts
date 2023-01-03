@@ -1,9 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
 import { User } from '@/types';
 import { SessionData } from 'express-session';
 import { Pool } from 'pg';
 export * from './types';
 
 import { ENV } from '../env';
+import { hashRefreshToken, newRefreshExpiry } from '../refresh-token';
 import { SqlUser, UserSecurityKey } from './types';
 import {
   cameliseUser,
@@ -52,22 +54,22 @@ export const pgClient = {
 
   insertRefreshToken: async (
     userId: string,
-    refreshToken: string,
-    expiresAt: Date
+    refreshToken: string = uuidv4()
   ) => {
     const client = await pool.connect();
     await client.query(
       `INSERT INTO "auth"."refresh_tokens" (user_id, refresh_token, expires_at) VALUES($1, $2, $3);`,
-      [userId, refreshToken, expiresAt]
+      [userId, refreshToken, new Date(newRefreshExpiry())]
     );
     client.release();
+    return refreshToken;
   },
 
   deleteRefreshToken: async (refreshToken: string) => {
     const client = await pool.connect();
     await client.query(
-      `DELETE FROM "auth"."refresh_tokens" WHERE refresh_token = $1;`,
-      [refreshToken]
+      `DELETE FROM "auth"."refresh_tokens" WHERE refresh_token_hash = $1;`,
+      [hashRefreshToken(refreshToken)]
     );
     client.release();
   },
@@ -209,18 +211,15 @@ export const pgClient = {
     return rows[0];
   },
 
-  updateRefreshTokenExpiresAt: async (
-    refreshToken: string,
-    expires_at: Date
-  ) => {
+  updateRefreshTokenExpiresAt: async (refreshToken: string) => {
     const client = await pool.connect();
     await client.query(
       `UPDATE "auth"."refresh_tokens" rt SET expires_at = $1 FROM "auth"."users" u 
         WHERE rt.user_id = u.id
-          AND rt.refresh_token = $2 
+          AND rt.refresh_token_hash = $2 
           AND rt.expires_at < NOW() 
           AND u.disabled = false ;`,
-      [expires_at, refreshToken]
+      [new Date(newRefreshExpiry()), hashRefreshToken(refreshToken)]
     );
     client.release();
   },
@@ -230,10 +229,10 @@ export const pgClient = {
     const { rows } = await client.query<{ id: string }>(
       `SELECT u.id FROM "auth"."refresh_tokens" rt, "auth"."users" u
         WHERE rt.user_id = u.id
-          AND rt.refresh_token = $1
+          AND rt.refresh_token_hash = $1
           AND u.disabled = false
           AND rt.expires_at > NOW();`,
-      [refreshToken]
+      [hashRefreshToken(refreshToken)]
     );
 
     const user = await getUserById(client, rows[0]?.id);

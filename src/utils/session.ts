@@ -1,42 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { pgClient } from '@/utils';
-import { SignInResponse, Session, User } from '../types';
+import { Session, SignInResponse, User } from '@/types';
 import { generateTicketExpiresAt } from './ticket';
 import { ENV } from './env';
-import { getSessionUser } from './user';
 import { createHasuraAccessToken } from './jwt';
-
-function newRefreshExpiry() {
-  const date = new Date();
-
-  // cant return this becuase this will return a unix timestamp directly
-  date.setSeconds(date.getSeconds() + ENV.AUTH_REFRESH_TOKEN_EXPIRES_IN);
-
-  // instead we must return the js date object
-  return date;
-}
-
-const updateRefreshTokenExpiry = async (refreshToken: string) => {
-  await pgClient.updateRefreshTokenExpiresAt(
-    refreshToken,
-    new Date(newRefreshExpiry())
-  );
-
-  return refreshToken;
-};
-
-export const getNewRefreshToken = async (
-  userId: string,
-  refreshToken = uuidv4()
-) => {
-  await pgClient.insertRefreshToken(
-    userId,
-    refreshToken,
-    new Date(newRefreshExpiry())
-  );
-
-  return refreshToken;
-};
+import { getUser } from './user';
+import { pgClient } from './postgres-client';
 
 /**
  * Get new or update current user session
@@ -58,15 +26,12 @@ export const getNewOrUpdateCurrentSession = async ({
       lastSeen: new Date(),
     },
   });
-
-  const sessionUser = await getSessionUser({ userId: user.id });
-
+  const sessionUser = await getUser({ userId: user.id });
   const accessToken = await createHasuraAccessToken(user);
   const refreshToken =
     (currentRefreshToken &&
-      (await updateRefreshTokenExpiry(currentRefreshToken))) ||
-    (await getNewRefreshToken(user.id));
-
+      (await pgClient.updateRefreshTokenExpiresAt(currentRefreshToken))) ||
+    (await pgClient.insertRefreshToken(user.id));
   return {
     accessToken,
     accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
@@ -83,15 +48,12 @@ export const getSignInResponse = async ({
   checkMFA: boolean;
 }): Promise<SignInResponse> => {
   const user = await pgClient.getUserById(userId);
-
   if (!user) {
     throw new Error('No user');
   }
-
   if (checkMFA && user?.activeMfaType === 'totp') {
     // generate new ticket
     const ticket = `mfaTotp:${uuidv4()}`;
-
     // set ticket
     await pgClient.updateUser({
       id: userId,
@@ -100,7 +62,6 @@ export const getSignInResponse = async ({
         ticketExpiresAt: generateTicketExpiresAt(5 * 60),
       },
     });
-
     return {
       session: null,
       mfa: {
@@ -108,9 +69,7 @@ export const getSignInResponse = async ({
       },
     };
   }
-
   const session = await getNewOrUpdateCurrentSession({ user });
-
   return {
     session,
     mfa: null,

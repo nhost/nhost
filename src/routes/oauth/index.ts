@@ -7,7 +7,6 @@ import { ERRORS, sendError } from '@/errors';
 import {
   ENV,
   generateRedirectUrl,
-  getNewRefreshToken,
   getUserByEmail,
   insertUser,
   pgClient,
@@ -271,7 +270,7 @@ export const oauthProviders = Router()
     }
 
     if (user) {
-      const refreshToken: string = await getNewRefreshToken(user.id);
+      const refreshToken = await pgClient.insertRefreshToken(user.id);
       // * redirect back user to app url
       return res.redirect(`${redirectTo}?refreshToken=${refreshToken}`);
     }

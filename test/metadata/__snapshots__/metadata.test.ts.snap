@@ -52,6 +52,7 @@ Object {
               "created_at": "createdAt",
               "expires_at": "expiresAt",
               "refresh_token": "refreshToken",
+              "refresh_token_hash": "refreshTokenHash",
               "user_id": "userId",
             },
             "custom_name": "authRefreshTokens",
