@@ -8,8 +8,9 @@ import {
   ApiGetPresignedUrlResponse,
   ApiUploadParams,
   ApiUploadResponse,
+  appendImageTransformationParameters,
   UploadHeaders
-} from './utils/types'
+} from './utils'
 
 /**
  * @internal
@@ -49,8 +50,12 @@ export class HasuraStorageApi {
 
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
-      const { fileId } = params
-      const res = await this.httpClient.get(`/files/${fileId}/presignedurl`, {
+      const { fileId, ...imageTransformationParams } = params
+      const url = appendImageTransformationParameters(
+        `/files/${fileId}/presignedurl`,
+        imageTransformationParams
+      )
+      const res = await this.httpClient.get(url, {
         headers: {
           ...this.generateAuthHeaders()
         }

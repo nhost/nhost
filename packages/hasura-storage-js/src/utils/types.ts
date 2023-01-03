@@ -48,11 +48,18 @@ export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
   | { fileMetadata: null; error: Error }
 
-export interface StorageGetUrlParams {
+export interface StorageImageTransformationParams {
+  width?: number
+  height?: number
+  quality?: number
+  blur?: number
+  radius?: number
+}
+export interface StorageGetUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
-export interface StorageGetPresignedUrlParams {
+export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
@@ -89,7 +96,7 @@ export type ApiUploadResponse =
   | { fileMetadata: FileResponse; error: null }
   | { fileMetadata: null; error: Error }
 
-export interface ApiGetPresignedUrlParams {
+export interface ApiGetPresignedUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
