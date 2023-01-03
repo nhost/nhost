@@ -66,6 +66,11 @@ module.exports = withBundleAnalyzer({
         destination: '/:workspaceSlug/:appSlug/settings/environment-variables',
         permanent: true,
       },
+      {
+        source: '/:workspaceSlug/:appSlug/users/:userId',
+        destination: '/:workspaceSlug/:appSlug/users?userId=:userId',
+        permanent: true,
+      },
     ];
   },
 });

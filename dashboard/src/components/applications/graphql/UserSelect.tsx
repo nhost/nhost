@@ -2,7 +2,7 @@ import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLCl
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { DEFAULT_ROLES } from './utils';
 
@@ -57,7 +57,7 @@ export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
           return;
         }
 
-        const user: RemoteAppGetUsersQuery['users'][number] = users.find(
+        const user: RemoteAppGetUsersCustomQuery['users'][0] = users.find(
           ({ id }) => id === userId,
         );
 
