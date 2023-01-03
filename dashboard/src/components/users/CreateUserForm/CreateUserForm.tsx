@@ -119,6 +119,7 @@ export default function CreateUserForm({
           helperText={errors?.email?.message}
           fullWidth
           autoComplete="off"
+          autoFocus
         />
         <Input
           {...register('password')}
