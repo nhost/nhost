@@ -53,9 +53,8 @@ export interface StorageImageTransformationParams {
   width?: number
   /** Image height, in pixels */
   height?: number
-  // TODO not implemented yet in hasura-storage
   /** Image quality, between 1 and 100, 100 being the best quality */
-  // quality?: number
+  quality?: number
   /** Image blur, between 0 and 100 */
   blur?: number
   // TODO not implemented yet in hasura-storage

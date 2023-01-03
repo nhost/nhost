@@ -10,6 +10,7 @@ Available parameters:
 - height
 - width
 - blur
+- quality
 
 For instance:
 
