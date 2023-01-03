@@ -1,4 +1,5 @@
 import Container from '@/components/layout/Container';
+import SettingsLayout from '@/components/settings/SettingsLayout';
 import AllowedEmailDomainsSettings from '@/components/settings/authentication/AllowedEmailSettings';
 import AllowedRedirectURLsSettings from '@/components/settings/authentication/AllowedRedirectURLsSettings';
 import BlockedEmailSettings from '@/components/settings/authentication/BlockedEmailSettings';
@@ -6,7 +7,6 @@ import ClientURLSettings from '@/components/settings/authentication/ClientURLSet
 import DisableNewUsersSettings from '@/components/settings/authentication/DisableNewUsersSettings';
 import GravatarSettings from '@/components/settings/authentication/GravatarSettings';
 import MFASettings from '@/components/settings/authentication/MFASettings';
-import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetAppQuery } from '@/utils/__generated__/graphql';
@@ -37,7 +37,7 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
       <ClientURLSettings />
