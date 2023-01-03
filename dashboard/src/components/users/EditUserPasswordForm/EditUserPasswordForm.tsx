@@ -121,6 +121,7 @@ export default function EditUserPasswordForm({
           helperText={errors?.password?.message}
           fullWidth
           autoComplete="off"
+          autoFocus
         />
         <Input
           {...register('cpassword')}
