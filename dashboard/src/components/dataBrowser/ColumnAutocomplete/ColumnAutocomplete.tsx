@@ -230,7 +230,7 @@ function ColumnAutocomplete(
     inputValue,
     options,
     id: props?.name,
-    openOnFocus: true,
+    openOnFocus: !props.disabled,
     disableCloseOnSelect: true,
     value: selectedColumn,
     onClose: () => setOpen(false),
@@ -260,8 +260,20 @@ function ColumnAutocomplete(
               ),
             },
           }}
-          onFocus={() => setOpen(true)}
-          onClick={() => setOpen(true)}
+          onFocus={() => {
+            if (props.disabled) {
+              return;
+            }
+
+            setOpen(true);
+          }}
+          onClick={() => {
+            if (props.disabled) {
+              return;
+            }
+
+            setOpen(true);
+          }}
           error={Boolean(tableError || metadataError) || props.error}
           helperText={
             String(tableError || metadataError || '') || props.helperText
@@ -270,7 +282,12 @@ function ColumnAutocomplete(
           value={inputValue}
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
-              <Text className="!ml-2 lg:max-w-[200px] flex-shrink-0 truncate">
+              <Text
+                className={twMerge(
+                  '!ml-2 lg:max-w-[200px] flex-shrink-0 truncate',
+                  props.disabled && 'text-greyscaleGrey',
+                )}
+              >
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {relationshipDotNotation && (
                   <>

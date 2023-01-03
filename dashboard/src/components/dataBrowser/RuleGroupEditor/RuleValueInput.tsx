@@ -78,7 +78,7 @@ export default function RuleValueInput({
   error,
   helperText,
 }: RuleValueInputProps) {
-  const { schema, table } = useRuleGroupEditor();
+  const { schema, table, disabled } = useRuleGroupEditor();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
@@ -97,6 +97,7 @@ export default function RuleValueInput({
   if (operator === '_is_null') {
     return (
       <ControlledSelect
+        disabled={disabled}
         name={inputName}
         fullWidth
         slotProps={{
@@ -126,6 +127,7 @@ export default function RuleValueInput({
   if (operator === '_in' || operator === '_nin') {
     return (
       <ControlledAutocomplete
+        disabled={disabled}
         name={inputName}
         multiple
         freeSolo
@@ -143,6 +145,7 @@ export default function RuleValueInput({
   if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
     return (
       <ColumnSelectorInput
+        disabled={disabled}
         selectedTablePath={selectedTablePath}
         schema={schema}
         table={table}
@@ -163,6 +166,7 @@ export default function RuleValueInput({
 
   return (
     <ControlledAutocomplete
+      disabled={disabled}
       freeSolo={!isHasuraInput}
       autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}

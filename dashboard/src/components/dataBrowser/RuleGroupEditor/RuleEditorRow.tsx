@@ -98,7 +98,7 @@ export default function RuleEditorRow({
   disabledOperators = [],
   ...props
 }: RuleEditorRowProps) {
-  const { schema, table } = useRuleGroupEditor();
+  const { schema, table, disabled } = useRuleGroupEditor();
   const { control, setValue, getFieldState } = useFormContext();
   const rowName = `${name}.rules.${index}`;
 
@@ -137,6 +137,7 @@ export default function RuleEditorRow({
     >
       <ColumnAutocomplete
         {...autocompleteField}
+        disabled={disabled}
         schema={schema}
         table={table}
         rootClassName="h-10"
@@ -173,6 +174,7 @@ export default function RuleEditorRow({
       />
 
       <ControlledSelect
+        disabled={disabled}
         name={`${rowName}.operator`}
         className="h-10"
         slotProps={{
@@ -222,7 +224,7 @@ export default function RuleEditorRow({
         error={Boolean(valueState?.error?.message)}
       />
 
-      <RuleRemoveButton onRemove={onRemove} name={name} />
+      <RuleRemoveButton onRemove={onRemove} name={name} disabled={disabled} />
     </div>
   );
 }

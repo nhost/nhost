@@ -19,6 +19,10 @@ export interface RuleGroupEditorProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
     Pick<RuleEditorRowProps, 'disabledOperators'> {
   /**
+   * Determines whether or not the rule group editor is disabled.
+   */
+  disabled?: boolean;
+  /**
    * Schema for the column autocomplete.
    */
   schema: string;
@@ -62,6 +66,7 @@ export default function RuleGroupEditor({
   maxDepth = 7,
   schema,
   table,
+  disabled,
   ...props
 }: RuleGroupEditorProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -95,10 +100,11 @@ export default function RuleGroupEditor({
 
   const contextValue = useMemo(
     () => ({
+      disabled,
       schema,
       table,
     }),
-    [schema, table],
+    [disabled, schema, table],
   );
 
   return (
@@ -167,6 +173,7 @@ export default function RuleGroupEditor({
                   disabledOperators={disabledOperators}
                   name={`${name}.groups.${ruleGroupIndex}`}
                   depth={depth + 1}
+                  disabled={disabled}
                 />
               </div>
             ),
@@ -200,46 +207,48 @@ export default function RuleGroupEditor({
           )}
         </div>
 
-        <div className="grid grid-flow-row lg:grid-flow-col lg:justify-between gap-2 pb-2">
-          <div className="grid grid-flow-row lg:grid-flow-col gap-2 lg:justify-start">
-            <Button
-              startIcon={<PlusIcon />}
-              variant="borderless"
-              onClick={() =>
-                appendRule({ column: '', operator: '_eq', value: '' })
-              }
-            >
-              New Rule
-            </Button>
+        {!disabled && (
+          <div className="grid grid-flow-row lg:grid-flow-col lg:justify-between gap-2 pb-2">
+            <div className="grid grid-flow-row lg:grid-flow-col gap-2 lg:justify-start">
+              <Button
+                startIcon={<PlusIcon />}
+                variant="borderless"
+                onClick={() =>
+                  appendRule({ column: '', operator: '_eq', value: '' })
+                }
+              >
+                New Rule
+              </Button>
 
-            <Button
-              startIcon={<PlusIcon />}
-              variant="borderless"
-              onClick={() =>
-                appendGroup({
-                  operator: '_and',
-                  rules: [{ column: '', operator: '_eq', value: '' }],
-                  groups: [],
-                  unsupported: [],
-                })
-              }
-              disabled={depth >= maxDepth - 1}
-            >
-              New Group
-            </Button>
+              <Button
+                startIcon={<PlusIcon />}
+                variant="borderless"
+                onClick={() =>
+                  appendGroup({
+                    operator: '_and',
+                    rules: [{ column: '', operator: '_eq', value: '' }],
+                    groups: [],
+                    unsupported: [],
+                  })
+                }
+                disabled={depth >= maxDepth - 1}
+              >
+                New Group
+              </Button>
+            </div>
+
+            {onRemove && (
+              <Button
+                variant="borderless"
+                color="secondary"
+                onClick={onRemove}
+                disabled={disableRemove}
+              >
+                Delete Group
+              </Button>
+            )}
           </div>
-
-          {onRemove && (
-            <Button
-              variant="borderless"
-              color="secondary"
-              onClick={onRemove}
-              disabled={disableRemove}
-            >
-              Delete Group
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     </RuleGroupEditorContext.Provider>
   );
