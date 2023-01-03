@@ -3,6 +3,7 @@ import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm'
 import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
+import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
@@ -381,6 +382,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {...sharedDialogProps}
               user={sharedDialogProps?.user}
             />
+          )}
+
+          {activeDialogType === 'EDIT_JWT_SECRET' && (
+            <EditJwtSecretForm {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>

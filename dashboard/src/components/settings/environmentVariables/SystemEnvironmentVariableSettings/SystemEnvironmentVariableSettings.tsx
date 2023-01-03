@@ -10,7 +10,6 @@ import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
 import EyeIcon from '@/ui/v2/icons/EyeIcon';
 import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
-import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
@@ -27,7 +26,7 @@ export default function SystemEnvironmentVariableSettings() {
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
-  const { openAlertDialog } = useDialog();
+  const { openDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetAppInjectedVariablesQuery({
     variables: { id: currentApplication?.id },
@@ -49,30 +48,39 @@ export default function SystemEnvironmentVariableSettings() {
     throw error;
   }
 
-  function showJwtSecret() {
-    openAlertDialog({
-      title: 'Auth JWT Secret',
-      payload: (
-        <div className="grid grid-flow-row gap-2">
-          <Text variant="subtitle2">
+  function showViewJwtSecretModal() {
+    openDialog('EDIT_JWT_SECRET', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Auth JWT Secret</span>
+
+          <Text variant="subtitle1" component="span">
             This is the key used for generating JWTs. It&apos;s HMAC-SHA-based
             and the same as configured in Hasura.
           </Text>
-
-          <Input
-            defaultValue={data?.app?.hasuraGraphqlJwtSecret}
-            disabled
-            fullWidth
-            multiline
-            minRows={5}
-            hideEmptyHelperText
-            inputProps={{ className: 'font-mono' }}
-          />
-        </div>
+        </span>
       ),
-      props: {
-        hidePrimaryAction: true,
-        secondaryButtonText: 'Close',
+      payload: {
+        disabled: true,
+        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
+      },
+    });
+  }
+
+  function showEditJwtSecretModal() {
+    openDialog('EDIT_JWT_SECRET', {
+      title: (
+        <span className="grid grid-flow-row">
+          <span>Edit JWT Secret</span>
+
+          <Text variant="subtitle1" component="span">
+            You can add your custom JWT secret here. Hasura will use it to
+            validate the identity of your users.
+          </Text>
+        </span>
+      ),
+      payload: {
+        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
       },
     });
   }
@@ -207,14 +215,25 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 justify-start">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
-          <Button
-            variant="borderless"
-            onClick={showJwtSecret}
-            size="small"
-            className="justify-self-start"
-          >
-            Show JWT Secret
-          </Button>
+          <div className="grid grid-flow-row md:grid-flow-col gap-1.5 justify-center text-center lg:text-left lg:justify-start items-center lg:col-span-2">
+            <Button
+              variant="borderless"
+              onClick={showViewJwtSecretModal}
+              size="small"
+            >
+              Show JWT Secret
+            </Button>
+
+            <Text component="span">or</Text>
+
+            <Button
+              variant="borderless"
+              onClick={showEditJwtSecretModal}
+              size="small"
+            >
+              Edit JWT Secret
+            </Button>
+          </div>
         </ListItem.Root>
       </List>
     </SettingsContainer>

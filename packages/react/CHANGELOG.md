@@ -1,5 +1,27 @@
 # @nhost/react
 
+## 1.12.0
+
+### Minor Changes
+
+- 65687bee: Remove `@nhost/nhost-js` from `peerDepencencies`
+
+  The contents of the `@nhost/nhost-js` package are now exported by `@nhost/react`.
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Remove unused immer dependency
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+- Updated dependencies [1a9e1fde]
+- Updated dependencies [5be9abb0]
+- Updated dependencies [54df0df4]
+  - @nhost/nhost-js@1.12.0
+
 ## 0.17.0
 
 ### Minor Changes

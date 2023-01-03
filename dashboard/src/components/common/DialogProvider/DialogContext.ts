@@ -21,7 +21,8 @@ export type DialogType =
   | 'CREATE_ENVIRONMENT_VARIABLE'
   | 'EDIT_ENVIRONMENT_VARIABLE'
   | 'EDIT_USER'
-  | 'EDIT_USER_PASSWORD';
+  | 'EDIT_USER_PASSWORD'
+  | 'EDIT_JWT_SECRET';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
