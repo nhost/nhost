@@ -49,10 +49,15 @@ export type StorageUploadResponse =
   | { fileMetadata: null; error: Error }
 
 export interface StorageImageTransformationParams {
+  /** Image width, in pixels */
   width?: number
+  /** Image height, in pixels */
   height?: number
+  /** Image quality, between 1 and 100, 100 being the best quality */
   quality?: number
+  /** Image blur, between 0 and 100 */
   blur?: number
+  /** Image radius */
   radius?: number
 }
 export interface StorageGetUrlParams extends StorageImageTransformationParams {
