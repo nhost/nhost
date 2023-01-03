@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.7.13
+
+### Patch Changes
+
+- dd0738d5: fix(dashboard): provisioning status polling
+
 ## 0.7.12
 
 ### Patch Changes
