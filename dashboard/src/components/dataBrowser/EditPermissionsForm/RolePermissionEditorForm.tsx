@@ -69,6 +69,10 @@ export interface RolePermissionEditorFormValues {
 
 export interface RolePermissionEditorFormProps {
   /**
+   * Determines whether or not the form is disabled.
+   */
+  disabled?: boolean;
+  /**
    * The schema that is being edited.
    */
   schema: string;
@@ -154,6 +158,7 @@ export default function RolePermissionEditorForm({
   onSubmit,
   onCancel,
   permission,
+  disabled,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
   const {
@@ -345,6 +350,7 @@ export default function RolePermissionEditorForm({
           </PermissionSettingsSection>
 
           <RowPermissionsSection
+            disabled={disabled}
             role={role}
             action={action}
             schema={schema}
@@ -353,6 +359,7 @@ export default function RolePermissionEditorForm({
 
           {action !== 'delete' && (
             <ColumnPermissionsSection
+              disabled={disabled}
               role={role}
               action={action}
               schema={schema}
@@ -362,16 +369,20 @@ export default function RolePermissionEditorForm({
 
           {action === 'select' && (
             <>
-              <AggregationQuerySection role={role} />
-              <RootFieldPermissionsSection />
+              <AggregationQuerySection role={role} disabled={disabled} />
+              <RootFieldPermissionsSection disabled={disabled} />
             </>
           )}
 
           {(action === 'insert' || action === 'update') && (
-            <ColumnPresetsSection schema={schema} table={table} />
+            <ColumnPresetsSection
+              schema={schema}
+              table={table}
+              disabled={disabled}
+            />
           )}
 
-          {action !== 'select' && <BackendOnlySection />}
+          {action !== 'select' && <BackendOnlySection disabled={disabled} />}
         </div>
 
         <div className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 border-gray-200 p-2 bg-white">
@@ -384,27 +395,29 @@ export default function RolePermissionEditorForm({
             Cancel
           </Button>
 
-          <div className="grid grid-flow-row sm:grid-flow-col gap-2">
-            {Boolean(permission) && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDeleteClick}
-                disabled={isLoading}
-              >
-                Delete Permissions
-              </Button>
-            )}
+          {!disabled && (
+            <div className="grid grid-flow-row sm:grid-flow-col gap-2">
+              {Boolean(permission) && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDeleteClick}
+                  disabled={isLoading}
+                >
+                  Delete Permissions
+                </Button>
+              )}
 
-            <Button
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              type="submit"
-              className="justify-self-end"
-            >
-              Save
-            </Button>
-          </div>
+              <Button
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                type="submit"
+                className="justify-self-end"
+              >
+                Save
+              </Button>
+            </div>
+          )}
         </div>
       </Form>
     </FormProvider>

@@ -10,10 +10,15 @@ export interface AggregationQuerySectionProps {
    * The role that is being edited.
    */
   role: string;
+  /**
+   * Determines whether or not the section is disabled.
+   */
+  disabled?: boolean;
 }
 
 export default function AggregationQuerySection({
   role,
+  disabled,
 }: AggregationQuerySectionProps) {
   const { setValue, getValues } =
     useFormContext<RolePermissionEditorFormValues>();
@@ -26,6 +31,7 @@ export default function AggregationQuerySection({
       </Text>
 
       <ControlledSwitch
+        disabled={disabled}
         name="allowAggregations"
         label={
           <Text variant="subtitle1" component="span">

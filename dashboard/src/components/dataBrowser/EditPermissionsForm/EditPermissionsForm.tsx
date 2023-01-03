@@ -31,6 +31,10 @@ import RolePermissionsRow from './RolePermissionsRow';
 
 export interface EditPermissionsFormProps {
   /**
+   * Determines whether the form is disabled or not.
+   */
+  disabled?: boolean;
+  /**
    * The schema that is being edited.
    */
   schema: string;
@@ -45,6 +49,7 @@ export interface EditPermissionsFormProps {
 }
 
 export default function EditPermissionsForm({
+  disabled,
   schema,
   table,
   onCancel,
@@ -175,6 +180,7 @@ export default function EditPermissionsForm({
 
     return (
       <RolePermissionEditorForm
+        disabled={disabled}
         schema={schema}
         table={table}
         role={role}

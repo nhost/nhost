@@ -467,6 +467,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           {activeDrawerType === 'EDIT_PERMISSIONS' && (
             <EditPermissionsForm
               {...sharedDrawerProps}
+              disabled={drawerPayload?.disabled}
               schema={drawerPayload?.schema}
               table={drawerPayload?.table}
             />

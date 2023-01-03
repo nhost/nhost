@@ -2,7 +2,16 @@ import ControlledSwitch from '@/components/common/ControlledSwitch';
 import Text from '@/ui/v2/Text';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
-export default function BackendOnlySection() {
+export interface BackendOnlySectionProps {
+  /**
+   * Determines whether or not the section is disabled.
+   */
+  disabled?: boolean;
+}
+
+export default function BackendOnlySection({
+  disabled,
+}: BackendOnlySectionProps) {
   return (
     <PermissionSettingsSection title="Backend only">
       <Text variant="subtitle1">
@@ -11,6 +20,7 @@ export default function BackendOnlySection() {
       </Text>
 
       <ControlledSwitch
+        disabled={disabled}
         name="backendOnly"
         label={
           <Text variant="subtitle1" component="span">
