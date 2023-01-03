@@ -53,18 +53,22 @@ export interface StorageImageTransformationParams {
   width?: number
   /** Image height, in pixels */
   height?: number
+  // TODO not implemented yet in hasura-storage
   /** Image quality, between 1 and 100, 100 being the best quality */
-  quality?: number
+  // quality?: number
   /** Image blur, between 0 and 100 */
   blur?: number
+  // TODO not implemented yet in hasura-storage
   /** Image radius */
-  radius?: number
+  // radius?: number
 }
 export interface StorageGetUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
-export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
+// TODO not implemented yet in hasura-storage
+// export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
+export interface StorageGetPresignedUrlParams {
   fileId: string
 }
 
@@ -101,7 +105,9 @@ export type ApiUploadResponse =
   | { fileMetadata: FileResponse; error: null }
   | { fileMetadata: null; error: Error }
 
-export interface ApiGetPresignedUrlParams extends StorageImageTransformationParams {
+// TODO not implemented yet in hasura-storage
+// export interface ApiGetPresignedUrlParams extends StorageImageTransformationParams {
+export interface ApiGetPresignedUrlParams {
   fileId: string
 }
 
