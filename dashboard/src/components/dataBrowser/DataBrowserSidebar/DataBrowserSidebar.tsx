@@ -9,6 +9,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
@@ -203,11 +204,12 @@ function DataBrowserSidebarContent({
   ) {
     openDrawer('EDIT_PERMISSIONS', {
       title: (
-        <span>
-          Permissions{' '}
+        <span className="inline-grid grid-flow-col gap-2 items-center">
+          Permissions
           <InlineCode className="!text-sm+ font-normal text-greyscaleMedium">
             {table}
           </InlineCode>
+          <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
       props: {
@@ -362,7 +364,6 @@ function DataBrowserSidebarContent({
                               !isSelected &&
                                 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                             )}
-                            disabled={isGitHubConnected}
                           >
                             <DotsHorizontalIcon />
                           </IconButton>
@@ -388,8 +389,9 @@ function DataBrowserSidebarContent({
                               <span>View Permissions</span>
                             </Dropdown.Item>
                           ) : (
-                            <>
+                            [
                               <Dropdown.Item
+                                key="edit-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                                 onClick={() =>
                                   openDrawer('EDIT_TABLE', {
@@ -410,11 +412,13 @@ function DataBrowserSidebarContent({
                                 <PencilIcon className="h-4 w-4 text-gray-700" />
 
                                 <span>Edit Table</span>
-                              </Dropdown.Item>
-
-                              <Divider component="li" />
-
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-table-separator"
+                                component="li"
+                              />,
                               <Dropdown.Item
+                                key="edit-permissions"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                                 onClick={() =>
                                   handleEditPermissionClick(
@@ -426,11 +430,13 @@ function DataBrowserSidebarContent({
                                 <UsersIcon className="h-4  w-4 text-gray-700" />
 
                                 <span>Edit Permissions</span>
-                              </Dropdown.Item>
-
-                              <Divider component="li" />
-
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-permissions-separator"
+                                component="li"
+                              />,
                               <Dropdown.Item
+                                key="delete-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
                                 onClick={() =>
                                   handleDeleteTableClick(
@@ -442,8 +448,8 @@ function DataBrowserSidebarContent({
                                 <TrashIcon className="h-4 w-4 text-red" />
 
                                 <span>Delete Table</span>
-                              </Dropdown.Item>
-                            </>
+                              </Dropdown.Item>,
+                            ]
                           )}
                         </Dropdown.Content>
                       </Dropdown.Root>
