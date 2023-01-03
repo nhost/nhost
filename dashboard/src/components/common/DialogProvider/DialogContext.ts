@@ -18,7 +18,8 @@ export type DialogType =
   | 'CREATE_PERMISSION_VARIABLE'
   | 'EDIT_PERMISSION_VARIABLE'
   | 'CREATE_ENVIRONMENT_VARIABLE'
-  | 'EDIT_ENVIRONMENT_VARIABLE';
+  | 'EDIT_ENVIRONMENT_VARIABLE'
+  | 'EDIT_JWT_SECRET';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
