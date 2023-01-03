@@ -25,7 +25,7 @@ export class HasuraStorageApi {
   async upload(params: ApiUploadParams): Promise<StorageUploadResponse> {
     const { formData } = params
 
-    return await fetchUpload(this.url, formData, {
+    return fetchUpload(this.url, formData, {
       accessToken: this.accessToken,
       adminSecret: this.accessToken,
       bucketId: params.bucketId,
