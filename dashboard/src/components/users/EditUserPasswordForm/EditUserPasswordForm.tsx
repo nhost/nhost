@@ -108,7 +108,7 @@ export default function EditUserPasswordForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="grid grid-flow-row gap-6 p-6 px-6"
+        className="grid grid-flow-row gap-6 px-6 pb-6"
       >
         <Input
           {...register('password')}
