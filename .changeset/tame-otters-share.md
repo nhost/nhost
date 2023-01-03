@@ -4,14 +4,12 @@
 
 Image transformation parameters
 
-It is now possible to pass on image transformation parameters in `nhost.storage.getPresignedUrl()` and `nhost.storage.getPublicUrl()`.
+It is now possible to pass on image transformation parameters in `nhost.storage.getPublicUrl()`.
 Available parameters:
 
 - height
 - width
 - blur
-- radius
-- quality
 
 For instance:
 
