@@ -5,24 +5,28 @@ import MobileNav from '@/components/common/MobileNav';
 import NavLink from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
+import Box from '@/ui/v2/Box';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface HeaderProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {}
+  extends PropsWithoutRef<
+    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
+  > {}
 
 export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
 
   return (
-    <header
+    <Box
       className={twMerge(
-        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 border-gray-200 bg-white px-4 py-3 text-greyscaleDark',
+        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 border-gray-200 px-4 py-3 text-greyscaleDark',
         className,
       )}
+      sx={{ backgroundColor: (theme) => theme.palette.background.paper }}
       {...props}
     >
       <div className="grid grid-flow-col items-center gap-3">
@@ -67,6 +71,6 @@ export default function Header({ className, ...props }: HeaderProps) {
       </div>
 
       <MobileNav className="sm:hidden" />
-    </header>
+    </Box>
   );
 }

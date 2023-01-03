@@ -34,6 +34,7 @@ export const theme = createTheme({
     },
   },
   palette: {
+    mode: 'dark',
     primary: {
       light: '#ebf3ff',
       // light: 'rgba(56, 136, 255, 0.2)',
