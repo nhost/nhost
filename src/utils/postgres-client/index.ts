@@ -293,7 +293,7 @@ export const pgClient = {
     return cameliseUser(user);
   },
 
-  getUserByChallence: async (challenge: string) => {
+  getUserByChallenge: async (challenge: string) => {
     const client = await pool.connect();
     const {
       rows: [user],
