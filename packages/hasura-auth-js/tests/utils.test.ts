@@ -5,7 +5,6 @@ import {
   isValidEmail,
   isValidPassword,
   RedirectOption,
-  removeParameterFromWindow,
   rewriteRedirectTo
 } from '../src'
 
