@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.8.1
+
+### Patch Changes
+
+- 7cadd944: fix(dashboard): display Twitter provider settings
+
 ## 0.8.0
 
 ### Minor Changes
