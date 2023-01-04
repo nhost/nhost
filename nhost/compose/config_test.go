@@ -21,7 +21,7 @@ func TestConfig_dashboardService(t *testing.T) {
 
 	svc := c.dashboardService()
 	assert.Equal("dashboard", svc.Name)
-	assert.Equal("nhost/dashboard:0.7.13", svc.Image)
+	assert.Equal("nhost/dashboard:0.8.0", svc.Image)
 	assert.Equal([]types.ServicePortConfig{
 		{
 			Mode:      "ingress",
