@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"strings"
 	"testing"
 
@@ -33,8 +35,9 @@ func (f fakeFileMetadata) encode() string {
 }
 
 type fakeFile struct {
-	contents string
-	md       fakeFileMetadata
+	contents    string
+	contentType string
+	md          fakeFileMetadata
 }
 
 func createMultiForm(t *testing.T, files ...fakeFile) (io.Reader, string) {
@@ -53,7 +56,12 @@ func createMultiForm(t *testing.T, files ...fakeFile) (io.Reader, string) {
 	}
 
 	for _, file := range files {
-		formWriter, err = writer.CreateFormFile("file[]", file.md.Name)
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition",
+			fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+				"file[]", file.md.Name))
+		h.Set("Content-Type", file.contentType)
+		formWriter, err := writer.CreatePart(h)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -105,8 +113,8 @@ func TestUploadFile(t *testing.T) {
 			logger.SetLevel(logrus.ErrorLevel)
 
 			files := []fakeFile{
-				{"some content", fakeFileMetadata{"a_file.txt", uuid.New().String()}},
-				{"more content", fakeFileMetadata{"another_file.md", uuid.New().String()}},
+				{"some content", "", fakeFileMetadata{"a_file.txt", uuid.New().String()}},
+				{"more content", "text/markdown", fakeFileMetadata{"another_file.md", uuid.New().String()}},
 			}
 
 			c := gomock.NewController(t)
@@ -127,8 +135,9 @@ func TestUploadFile(t *testing.T) {
 				UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
 			}, nil)
 
-			for _, file := range files {
+			{ //nolint: dupl
 				// file 1
+				file := files[0]
 				metadataStorage.EXPECT().InitializeFile(
 					gomock.Any(),
 					file.md.ID,
@@ -168,6 +177,53 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:        "", // ignored
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
+						UploadedByUserID: "some-valid-uuid",
+					},
+					nil)
+			}
+
+			{ //nolint: dupl
+				// file 2
+				file := files[1]
+				metadataStorage.EXPECT().InitializeFile(
+					gomock.Any(),
+					file.md.ID,
+					file.md.Name,
+					int64(len(file.contents)),
+					"blah",
+					"text/markdown",
+					gomock.Any(),
+				).Return(nil)
+
+				contentStorage.EXPECT().PutFile(
+					ReaderMatcher(
+						file.contents,
+					),
+					file.md.ID,
+					"text/markdown",
+				).Return("some-etag", nil)
+
+				metadataStorage.EXPECT().PopulateMetadata(
+					gomock.Any(),
+					file.md.ID,
+					file.md.Name,
+					int64(len(file.contents)),
+					"blah",
+					"some-etag",
+					true,
+					"text/markdown",
+					gomock.Any(),
+				).Return(
+					controller.FileMetadata{
+						ID:               file.md.ID,
+						Name:             file.md.Name,
+						Size:             int64(len(file.contents)),
+						BucketID:         "blah",
+						ETag:             "some-etag",
+						CreatedAt:        "", // ignored
+						UpdatedAt:        "", // ignored
+						IsUploaded:       true,
+						MimeType:         "text/markdown",
 						UploadedByUserID: "some-valid-uuid",
 					},
 					nil)
@@ -216,7 +272,7 @@ func TestUploadFile(t *testing.T) {
 						CreatedAt:        "",
 						UpdatedAt:        "",
 						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
+						MimeType:         "text/markdown",
 						UploadedByUserID: "some-valid-uuid",
 					},
 				},

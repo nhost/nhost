@@ -47,13 +47,18 @@ func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string,
 		return nil, "", InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
 	}
 
-	contentType, err := mimetype.DetectReader(fileContent)
+	contentType := file.header.Header.Get("Content-Type")
+	if contentType != "" && contentType != "application/octet-stream" {
+		return fileContent, contentType, nil
+	}
+
+	mt, err := mimetype.DetectReader(fileContent)
 	if err != nil {
 		return nil, "",
 			InternalServerError(fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err))
 	}
 
-	return fileContent, contentType.String(), nil
+	return fileContent, mt.String(), nil
 }
 
 func (ctrl *Controller) upload(

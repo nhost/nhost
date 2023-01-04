@@ -68,7 +68,7 @@ func TestUpdateFile(t *testing.T) {
 			logger.SetLevel(logrus.ErrorLevel)
 
 			file := fakeFile{
-				"some content", fakeFileMetadata{"a_file.txt", uuid.New().String()},
+				"some content", "", fakeFileMetadata{"a_file.txt", uuid.New().String()},
 			}
 
 			c := gomock.NewController(t)
