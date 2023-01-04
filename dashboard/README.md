@@ -54,6 +54,7 @@ pnpm storybook
 | `NEXT_PUBLIC_NHOST_LOCAL_MIGRATIONS_PORT` | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `9693`                                                   |
 | `NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT`     | Custom port that was passed to the CLI. Used only if local development is enabled and `NEXT_PUBLIC_ENV` is `dev`. Default: `9695`                    |
 | `NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT`    | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `1337`                                                   |
+| `NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN`       | Custom subdomain for local development. Used only if local development is enabled. Default: `localhost`                                              |
 | `NEXT_PUBLIC_NHOST_BACKEND_URL`           | Backend URL. Not necessary for local development.                                                                                                    |
 | `NEXT_PUBLIC_STRIPE_PK`                   | Stripe public key. Not necessary for local development.                                                                                              |
 | `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`      | URL of the GitHub application. Not necessary for local development.                                                                                  |

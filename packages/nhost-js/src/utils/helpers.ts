@@ -1,7 +1,8 @@
 import { NhostClientConstructorParams } from './types'
 
 // a port can be a number or a placeholder string with leading and trailing double underscores, f.e. "8080" or "__PLACEHOLDER_NAME__"
-const LOCALHOST_REGEX = /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>(\d+|__\w+__)))?$/
+const LOCALHOST_REGEX =
+  /^((?<protocol>http[s]?):\/\/)?(?<host>(localhost|localdev))(:(?<port>(\d+|__\w+__)))?$/
 
 /**
  * `backendUrl` should now be used only when self-hosting
@@ -25,7 +26,7 @@ export function urlFromSubdomain(
     throw new Error('Either `backendUrl` or `subdomain` must be set.')
   }
 
-  // check if subdomain is [http[s]://]localhost[:port]
+  // check if subdomain is [http[s]://]localhost[:port] or [http[s]://]localdev[:port]
   const subdomainLocalhostFound = subdomain.match(LOCALHOST_REGEX)
   if (subdomainLocalhostFound?.groups) {
     const { protocol = 'http', host, port = 1337 } = subdomainLocalhostFound.groups
@@ -34,7 +35,17 @@ export function urlFromSubdomain(
     if (urlFromEnv) {
       return urlFromEnv
     }
-    return `${protocol}://${host}:${port}/v1/${service}`
+
+    if (host === 'localhost') {
+      return `${protocol}://localhost:${port}/v1/${service}`
+    }
+
+    // we omit the port if it's the default port
+    if (port !== 1337) {
+      return `${protocol}://${host}.nhost.run:${port}/v1/${service}`
+    }
+
+    return `${protocol}://${host}.nhost.run/v1/${service}`
   }
 
   if (!region) {
