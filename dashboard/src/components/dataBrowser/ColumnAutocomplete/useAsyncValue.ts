@@ -167,8 +167,8 @@ export default function useAsyncValue({
 
     const tableMetadata = metadataMap.get(`${selectedSchema}.${selectedTable}`);
     const currentRelationship = [
-      ...(tableMetadata.object_relationships || []),
-      ...(tableMetadata.array_relationships || []),
+      ...(tableMetadata?.object_relationships || []),
+      ...(tableMetadata?.array_relationships || []),
     ].find(({ name }) => name === nextPath);
 
     if (!currentRelationship) {
@@ -176,11 +176,32 @@ export default function useAsyncValue({
       return;
     }
 
-    const { foreign_key_constraint_on: metadataConstraint } =
-      currentRelationship.using || {};
+    const {
+      foreign_key_constraint_on: metadataConstraint,
+      manual_configuration: metadataManualConfiguration,
+    } = currentRelationship.using || {};
+
+    if (metadataManualConfiguration) {
+      setAsyncTablePath(
+        `${metadataManualConfiguration.remote_table.schema}.${metadataManualConfiguration.remote_table.name}`,
+      );
+
+      setSelectedRelationships((currentRelationships) => [
+        ...currentRelationships,
+        {
+          schema: metadataManualConfiguration.remote_table.schema || 'public',
+          table: metadataManualConfiguration.remote_table.name,
+          name: nextPath,
+        },
+      ]);
+
+      setRemainingColumnPath((columnPath) => columnPath.slice(1));
+
+      return;
+    }
 
     // In some cases the metadata already contains the schema and table name
-    if (typeof metadataConstraint !== 'string') {
+    if (metadataConstraint && typeof metadataConstraint !== 'string') {
       setAsyncTablePath(
         `${metadataConstraint.table.schema || 'public'}.${
           metadataConstraint.table.name
@@ -203,17 +224,25 @@ export default function useAsyncValue({
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
       ({ columnName }) => {
-        const { foreign_key_constraint_on } = currentRelationship.using || {};
+        const normalizedColumnName = columnName.replace(/"/g, '');
+        const { foreign_key_constraint_on, manual_configuration } =
+          currentRelationship.using || {};
 
-        if (!foreign_key_constraint_on) {
+        if (!foreign_key_constraint_on && !manual_configuration) {
           return false;
         }
 
-        if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === columnName;
+        if (manual_configuration) {
+          return Object.keys(manual_configuration.column_mapping).includes(
+            normalizedColumnName,
+          );
         }
 
-        return foreign_key_constraint_on.column === columnName;
+        if (typeof foreign_key_constraint_on === 'string') {
+          return foreign_key_constraint_on === normalizedColumnName;
+        }
+
+        return foreign_key_constraint_on.column === normalizedColumnName;
       },
     );
 
@@ -222,17 +251,22 @@ export default function useAsyncValue({
       return;
     }
 
-    setAsyncTablePath(
-      `${foreignKeyRelation.referencedSchema || 'public'}.${
-        foreignKeyRelation.referencedTable
-      }`,
+    const normalizedSchema = foreignKeyRelation.referencedSchema?.replace(
+      /(\\"|")/g,
+      '',
     );
+    const normalizedTable = foreignKeyRelation.referencedTable?.replace(
+      /(\\"|")/g,
+      '',
+    );
+
+    setAsyncTablePath(`${normalizedSchema || 'public'}.${normalizedTable}`);
 
     setSelectedRelationships((currentRelationships) => [
       ...currentRelationships,
       {
-        schema: foreignKeyRelation.referencedSchema || 'public',
-        table: foreignKeyRelation.referencedTable,
+        schema: normalizedSchema || 'public',
+        table: normalizedTable,
         name: nextPath,
       },
     ]);

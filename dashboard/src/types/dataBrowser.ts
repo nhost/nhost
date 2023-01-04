@@ -33,6 +33,13 @@ export interface MutationOrQueryBaseOptions {
 export interface HasuraMetadataRelationship {
   name: string;
   using: {
+    manual_configuration?: {
+      column_mapping: Record<string, string>;
+      remote_table: {
+        name: string;
+        schema: string;
+      };
+    };
     foreign_key_constraint_on?:
       | string
       | {

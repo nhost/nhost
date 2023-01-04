@@ -123,6 +123,7 @@ function ColumnAutocomplete(
   } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
     schema: selectedSchema,
     table: selectedTable,
+    preventRowFetching: true,
     queryOptions: { refetchOnWindowFocus: false },
   });
 
@@ -296,7 +297,7 @@ function ColumnAutocomplete(
                     </span>
 
                     <span className="inline lg:hidden">
-                      {relationshipDotNotation}.
+                      {getTruncatedText(relationshipDotNotation, 35, 'end')}.
                     </span>
                   </>
                 )}
