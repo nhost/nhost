@@ -22,7 +22,7 @@ test('should return an empty rule group when there are no permissions or the obj
   });
 });
 
-test('should convert value to boolean if operator is _is_null', () => {
+test('should convert value to stringified boolean if operator is _is_null', () => {
   expect(
     convertToRuleGroup({
       _or: [
@@ -36,9 +36,9 @@ test('should convert value to boolean if operator is _is_null', () => {
     operator: '_or',
     rules: [
       { column: 'title', operator: '_eq', value: 'test' },
-      { column: 'title', operator: '_is_null', value: true },
-      { column: 'title', operator: '_is_null', value: true },
-      { column: 'title', operator: '_is_null', value: false },
+      { column: 'title', operator: '_is_null', value: 'true' },
+      { column: 'title', operator: '_is_null', value: 'true' },
+      { column: 'title', operator: '_is_null', value: 'false' },
     ],
     groups: [],
   });
@@ -53,7 +53,7 @@ test('should convert a simple Hasura permission object to a rule group', () => {
 
   expect(convertToRuleGroup({ title: { _is_null: 'false' } })).toMatchObject({
     operator: '_and',
-    rules: [{ column: 'title', operator: '_is_null', value: false }],
+    rules: [{ column: 'title', operator: '_is_null', value: 'false' }],
     groups: [],
   });
 
@@ -292,7 +292,7 @@ test('should transform operators and relations if the _not operator is being use
     }),
   ).toMatchObject({
     operator: '_and',
-    rules: [{ column: 'title', operator: '_is_null', value: false }],
+    rules: [{ column: 'title', operator: '_is_null', value: 'false' }],
     groups: [],
   });
 
@@ -304,7 +304,7 @@ test('should transform operators and relations if the _not operator is being use
     }),
   ).toMatchObject({
     operator: '_and',
-    rules: [{ column: 'title', operator: '_is_null', value: true }],
+    rules: [{ column: 'title', operator: '_is_null', value: 'true' }],
     groups: [],
   });
 });

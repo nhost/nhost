@@ -113,7 +113,6 @@ export default function convertToRuleGroup(
   if (currentKey === '_is_null') {
     if (typeof value !== 'boolean') {
       const convertedValue = value === 'true';
-      const negatedValue = !convertedValue;
 
       return {
         operator: '_and',
@@ -121,14 +120,14 @@ export default function convertToRuleGroup(
           {
             column: previousKey,
             operator: '_is_null',
-            value: shouldNegate ? negatedValue : convertedValue,
+            value: Boolean(
+              shouldNegate ? !convertedValue : convertedValue,
+            ).toString(),
           },
         ],
         groups: [],
       };
     }
-
-    const negatedValue = !value;
 
     return {
       operator: '_and',
@@ -136,7 +135,7 @@ export default function convertToRuleGroup(
         {
           column: options.previousKey,
           operator: '_is_null',
-          value: shouldNegate ? negatedValue : value,
+          value: Boolean(shouldNegate ? !value : value).toString(),
         },
       ],
       groups: [],
