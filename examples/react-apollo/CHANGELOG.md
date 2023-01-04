@@ -1,5 +1,18 @@
 # @nhost-examples/react-apollo
 
+## 0.1.5
+
+### Patch Changes
+
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+- Updated dependencies [1be6d324]
+- Updated dependencies [2e8f73df]
+- Updated dependencies [85683547]
+  - @nhost/react@1.12.1
+  - @nhost/react-apollo@4.12.1
+
 ## 0.1.4
 
 ### Patch Changes
