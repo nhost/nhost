@@ -3,18 +3,13 @@ import { ENV } from './env';
 
 export const generateRedirectUrl = (
   redirectTo: string,
-  queryParameters: { [key: string]: string },
-  hashTag?: string
+  queryParameters: { [key: string]: string }
 ): string => {
   const url = new URL(redirectTo);
   for (const [key, value] of Object.entries(queryParameters)) {
     url.searchParams.set(key, value);
   }
 
-  // add hash tag
-  if (hashTag) {
-    url.hash = `#${hashTag}`;
-  }
   return url.href;
 };
 
