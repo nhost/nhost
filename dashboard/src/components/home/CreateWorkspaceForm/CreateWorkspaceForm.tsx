@@ -3,7 +3,7 @@ import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { useInsertWorkspaceMutation } from '@/utils/__generated__/graphql';
 import { slugifyString } from '@/utils/helpers';
-import nhost from '@/utils/nhost';
+import { nhost } from '@/utils/nhost';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
