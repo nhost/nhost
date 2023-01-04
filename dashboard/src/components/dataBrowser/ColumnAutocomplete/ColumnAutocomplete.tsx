@@ -293,7 +293,7 @@ function ColumnAutocomplete(
                 {relationshipDotNotation && (
                   <>
                     <span className="hidden lg:inline">
-                      {getTruncatedText(relationshipDotNotation, 15, 'start')}.
+                      {getTruncatedText(relationshipDotNotation, 15, 'end')}.
                     </span>
 
                     <span className="inline lg:hidden">
