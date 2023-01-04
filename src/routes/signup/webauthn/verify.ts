@@ -65,7 +65,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     });
   }
 
-  const user = await pgClient.getUserByChallence(challenge);
+  const user = await pgClient.getUserByChallenge(challenge);
   if (!user) {
     return sendError(res, 'user-not-found');
   }
