@@ -171,6 +171,13 @@ export default function RuleValueInput({
       autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
       filterSelectedOptions
+      isOptionEqualToValue={(option, value) => {
+        if (typeof value === 'string') {
+          return option.value.toLowerCase() === (value as string).toLowerCase();
+        }
+
+        return option.value.toLowerCase() === value.value.toLowerCase();
+      }}
       name={inputName}
       groupBy={(option) => option.group}
       slotProps={{
