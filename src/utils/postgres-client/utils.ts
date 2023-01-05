@@ -133,12 +133,12 @@ export const snakeiseUser = (
 
 export const createUserQueryWhere = (where: string) =>
   `SELECT u.*, r.roles FROM "auth"."users" u 
-    left join lateral (
-            select user_id, coalesce(json_agg(role), '[]') AS roles
-            from "auth"."user_roles" r
-            where r.user_id = u.id
-            group by user_id, role
-        ) r on r.user_id = id WHERE ${where};`;
+    LEFT JOIN lateral (
+            SELECT user_id, coalesce(json_agg(role), '[]') AS roles
+            FROM "auth"."user_roles" r
+            WHERE r.user_id = u.id
+            GROUP BY user_id, role
+        ) r ON r.user_id = id WHERE ${where};`;
 
 export const createUserQueryByColumn = (column: string) =>
   createUserQueryWhere(`u.${column} = $1`);
@@ -157,7 +157,8 @@ export const insertUserRoles = async (
 ) => {
   await client.query(
     `INSERT INTO "auth"."user_roles" (user_id, role) VALUES ${roles
-      .map((role) => `('${userId}', '${role}')`)
-      .join(', ')} ON CONFLICT DO NOTHING;`
+      .map((_, i) => `($1, $${i + 2}`)
+      .join(', ')} ON CONFLICT DO NOTHING;`,
+    [userId, ...roles]
   );
 };

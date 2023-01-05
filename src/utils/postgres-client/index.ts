@@ -95,9 +95,10 @@ export const pgClient = {
     const client = await pool.connect();
     const { rows } = await client.query<{ role: string }>(
       `INSERT INTO "auth"."roles" (role) VALUES ${roles
-        .map((role) => `('${role}')`)
+        .map((_, i) => `($${i + 1})`)
         .join(', ')} ON CONFLICT DO NOTHING
-        RETURNING role;`
+        RETURNING role;`,
+      roles
     );
     client.release();
     return rows.map((row) => row.role);
@@ -227,9 +228,10 @@ export const pgClient = {
   getUserByRefreshToken: async (refreshToken: string) => {
     const client = await pool.connect();
     const { rows } = await client.query<{ id: string }>(
-      `SELECT u.id FROM "auth"."refresh_tokens" rt, "auth"."users" u
-        WHERE rt.user_id = u.id
-          AND rt.refresh_token_hash = $1
+      `SELECT u.id 
+        FROM auth.refresh_tokens AS rt
+        JOIN auth.users AS u ON rt.user_id = u.id
+        WHERE rt.refresh_token_hash = $1
           AND u.disabled = false
           AND rt.expires_at > NOW();`,
       [hashRefreshToken(refreshToken)]
@@ -286,7 +288,7 @@ export const pgClient = {
     const {
       rows: [user],
     } = await client.query<SqlUser>(
-      createUserQueryWhere(`u.ticket = $1 and u.ticket_expires_at > NOW()`),
+      createUserQueryWhere(`u.ticket = $1 AND u.ticket_expires_at > NOW()`),
       [ticket]
     );
     client.release();
