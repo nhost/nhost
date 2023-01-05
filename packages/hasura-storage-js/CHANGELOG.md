@@ -1,5 +1,36 @@
 # @nhost/hasura-storage-js
 
+## 1.13.0
+
+### Minor Changes
+
+- 83e0a4d3: Image transformation parameters
+
+  It is now possible to pass on image transformation parameters in `nhost.storage.getPublicUrl()`.
+  Available parameters:
+
+  - height
+  - width
+  - blur
+  - quality
+
+  For instance:
+
+  ```ts
+  const url = nhost.storage.getPublicUrl({
+    fileId: 'cd8eaca3-30a9-460e-b4d7-b4b7afc759c1',
+    width: 800,
+    blur: 20
+  })
+  ```
+
+### Patch Changes
+
+- 13876ed5: Convert non ISO-8859-1 file names
+
+  It is now possible to upload files with names that are not ISO-8859-1 compliant.
+  In that case, file names will be converted using `encodeURIComponent`.
+
 ## 1.12.1
 
 ### Patch Changes
