@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 0.9.0
+
+### Minor Changes
+
+- d92891b2: feat(dashboard): add Permission Editor to the Database section
+
+### Patch Changes
+
+- 3d379128: fix(dashboard): create new user
+  - @nhost/react-apollo@5.0.0
+  - @nhost/nextjs@1.13.0
+
 ## 0.8.1
 
 ### Patch Changes
