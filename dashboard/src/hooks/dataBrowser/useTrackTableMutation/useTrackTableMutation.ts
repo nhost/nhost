@@ -17,8 +17,7 @@ export interface UseTrackTableMutationOptions
 }
 
 /**
- * This hook is a wrapper around a fetch call that inserts a record into the
- * table.
+ * This hook is a wrapper around a fetch call that tracks a table.
  *
  * @param options - Options to use for the mutation.
  * @returns The result of the mutation.

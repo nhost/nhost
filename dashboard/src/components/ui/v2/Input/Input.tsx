@@ -71,9 +71,12 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     outline: 'none',
   },
   [`&.${inputBaseClasses.disabled}`]: {
-    color: theme.palette.grey[600],
-    borderColor: darken(theme.palette.grey[300], 0.1),
-    backgroundColor: lighten(theme.palette.action.disabled, 0.75),
+    color: `${theme.palette.grey[600]} !important`,
+    borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
+    backgroundColor: `${lighten(
+      theme.palette.action.disabled,
+      0.75,
+    )} !important`,
   },
   [`&:not(.${inputBaseClasses.disabled}):hover`]: {
     borderColor: theme.palette.grey[600],
@@ -164,5 +167,7 @@ function Input(
 }
 
 Input.displayName = 'NhostInput';
+
+export { inputBaseClasses as inputClasses } from '@mui/material/InputBase';
 
 export default forwardRef(Input);
