@@ -9,7 +9,7 @@
 ### Patch Changes
 
 - 3d379128: fix(dashboard): create new user
-  - @nhost/react-apollo@5.0.0
+  - @nhost/react-apollo@4.13.0
   - @nhost/nextjs@1.13.0
 
 ## 0.8.1
