@@ -66,11 +66,13 @@ export default function CreateUserForm({
     setError,
   } = form;
 
-  const signUpUrl = generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region.awsName,
+  const baseAuthUrl = generateAppServiceUrl(
+    currentApplication.subdomain,
+    currentApplication.region.awsName,
     'auth',
   );
+
+  const signUpUrl = `${baseAuthUrl}/signup/email-password`;
 
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);
