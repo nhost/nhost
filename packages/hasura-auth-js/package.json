@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@simplewebauthn/typescript-types": "^6.0.0",
+    "@simplewebauthn/typescript-types": "^7.0.0",
     "@types/js-cookie": "^3.0.2",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",

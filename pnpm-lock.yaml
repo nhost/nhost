@@ -921,7 +921,7 @@ importers:
     specifiers:
       '@nhost/docgen': workspace:*
       '@simplewebauthn/browser': ^6.0.0
-      '@simplewebauthn/typescript-types': ^6.0.0
+      '@simplewebauthn/typescript-types': ^7.0.0
       '@types/js-cookie': ^3.0.2
       axios: ^1.2.0
       cheerio: 1.0.0-rc.12
@@ -939,7 +939,7 @@ importers:
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
-      '@simplewebauthn/typescript-types': 6.0.0
+      '@simplewebauthn/typescript-types': 7.0.0
       '@types/js-cookie': 3.0.2
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
@@ -8126,8 +8126,8 @@ packages:
     resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
     dev: false
 
-  /@simplewebauthn/typescript-types/6.0.0:
-    resolution: {integrity: sha512-zBs5duUHwQ2CCnHckalMJycv8p2mfWGv+m9sI3WxnK3QR7Lw0/014zKkhC+Uygz5XSHuvPAxeMft6FbrP/OmtQ==}
+  /@simplewebauthn/typescript-types/7.0.0:
+    resolution: {integrity: sha512-bV+xACCFTsrLR/23ozHO06ZllHZaxC8LlI5YCo79GvU2BrN+rePDU2yXwZIYndNWcMQwRdndRdAhpafOh9AC/g==}
     dev: true
 
   /@sinclair/typebox/0.24.47:
