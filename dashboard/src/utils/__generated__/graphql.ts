@@ -17080,15 +17080,6 @@ export type GetAppInjectedVariablesQueryVariables = Exact<{
 
 export type GetAppInjectedVariablesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, webhookSecret: string, hasuraGraphqlJwtSecret: string } | null };
 
-export type GetAppLoginDataFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authAccessControlAllowedRedirectUrls: string, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string, authDiscordEnabled: boolean, authDiscordClientId: string, authDiscordClientSecret: string, authTwitchEnabled: boolean, authTwitchClientId: string, authTwitchClientSecret: string };
-
-export type GetAppLoginDataQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppLoginDataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authAccessControlAllowedRedirectUrls: string, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string, authDiscordEnabled: boolean, authDiscordClientId: string, authDiscordClientSecret: string, authTwitchEnabled: boolean, authTwitchClientId: string, authTwitchClientSecret: string } | null };
-
 export type GetAppRolesFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, authUserDefaultAllowedRoles: string, authUserDefaultRole: string };
 
 export type GetAppRolesAndPermissionsQueryVariables = Exact<{
@@ -17433,7 +17424,7 @@ export type GetRemoteAppByIdQueryVariables = Exact<{
 
 export type GetRemoteAppByIdQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, email?: any | null } | null };
 
-export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, phoneNumber?: string | null, disabled: boolean, defaultRole: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
+export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
 export type RemoteAppGetUsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -17442,7 +17433,7 @@ export type RemoteAppGetUsersQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, phoneNumber?: string | null, disabled: boolean, defaultRole: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -17459,7 +17450,7 @@ export type RemoteAppGetUsersWholeQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, phoneNumber?: string | null, disabled: boolean, defaultRole: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17802,65 +17793,6 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
   workspaceId
 }
     `;
-export const GetAppLoginDataFragmentDoc = gql`
-    fragment GetAppLoginData on apps {
-  id
-  slug
-  subdomain
-  name
-  createdAt
-  authEmailSigninEmailVerifiedRequired
-  authPasswordHibpEnabled
-  authEmailPasswordlessEnabled
-  authSmsPasswordlessEnabled
-  authWebAuthnEnabled
-  authClientUrl
-  authAccessControlAllowedRedirectUrls
-  authAccessControlAllowedEmails
-  authAccessControlAllowedEmailDomains
-  authAccessControlBlockedEmails
-  authAccessControlBlockedEmailDomains
-  authGithubEnabled
-  authGithubClientId
-  authGithubClientSecret
-  authGoogleEnabled
-  authGoogleClientId
-  authGoogleClientSecret
-  authFacebookEnabled
-  authFacebookClientId
-  authFacebookClientSecret
-  authLinkedinEnabled
-  authLinkedinClientId
-  authLinkedinClientSecret
-  authTwitterEnabled
-  authTwitterConsumerKey
-  authTwitterConsumerSecret
-  authAppleEnabled
-  authAppleTeamId
-  authAppleKeyId
-  authAppleClientId
-  authApplePrivateKey
-  authAppleScope
-  authWindowsLiveEnabled
-  authWindowsLiveClientId
-  authWindowsLiveClientSecret
-  authSpotifyEnabled
-  authSpotifyClientId
-  authSpotifyClientSecret
-  authWorkOsEnabled
-  authWorkOsClientId
-  authWorkOsClientSecret
-  authWorkOsDefaultDomain
-  authWorkOsDefaultOrganization
-  authWorkOsDefaultConnection
-  authDiscordEnabled
-  authDiscordClientId
-  authDiscordClientSecret
-  authTwitchEnabled
-  authTwitchClientId
-  authTwitchClientSecret
-}
-    `;
 export const GetAppRolesFragmentDoc = gql`
     fragment GetAppRoles on apps {
   id
@@ -17988,12 +17920,22 @@ export const RemoteAppGetUsersFragmentDoc = gql`
   displayName
   avatarUrl
   email
+  emailVerified
   phoneNumber
+  phoneNumberVerified
   disabled
   defaultRole
+  lastSeen
+  locale
   roles {
+    id
     role
   }
+  userProviders {
+    id
+    providerId
+  }
+  disabled
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
@@ -18473,44 +18415,6 @@ export type GetAppInjectedVariablesLazyQueryHookResult = ReturnType<typeof useGe
 export type GetAppInjectedVariablesQueryResult = Apollo.QueryResult<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>;
 export function refetchGetAppInjectedVariablesQuery(variables: GetAppInjectedVariablesQueryVariables) {
       return { query: GetAppInjectedVariablesDocument, variables: variables }
-    }
-export const GetAppLoginDataDocument = gql`
-    query getAppLoginData($id: uuid!) {
-  app(id: $id) {
-    ...GetAppLoginData
-  }
-}
-    ${GetAppLoginDataFragmentDoc}`;
-
-/**
- * __useGetAppLoginDataQuery__
- *
- * To run a query within a React component, call `useGetAppLoginDataQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppLoginDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppLoginDataQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppLoginDataQuery(baseOptions: Apollo.QueryHookOptions<GetAppLoginDataQuery, GetAppLoginDataQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppLoginDataQuery, GetAppLoginDataQueryVariables>(GetAppLoginDataDocument, options);
-      }
-export function useGetAppLoginDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppLoginDataQuery, GetAppLoginDataQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppLoginDataQuery, GetAppLoginDataQueryVariables>(GetAppLoginDataDocument, options);
-        }
-export type GetAppLoginDataQueryHookResult = ReturnType<typeof useGetAppLoginDataQuery>;
-export type GetAppLoginDataLazyQueryHookResult = ReturnType<typeof useGetAppLoginDataLazyQuery>;
-export type GetAppLoginDataQueryResult = Apollo.QueryResult<GetAppLoginDataQuery, GetAppLoginDataQueryVariables>;
-export function refetchGetAppLoginDataQuery(variables: GetAppLoginDataQueryVariables) {
-      return { query: GetAppLoginDataDocument, variables: variables }
     }
 export const GetAppRolesAndPermissionsDocument = gql`
     query getAppRolesAndPermissions($id: uuid!) {
@@ -20381,10 +20285,20 @@ export function refetchGetRemoteAppByIdQuery(variables: GetRemoteAppByIdQueryVar
     }
 export const RemoteAppGetUsersDocument = gql`
     query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(where: $where, limit: $limit, offset: $offset) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: {createdAt: desc}
+  ) {
     ...RemoteAppGetUsers
   }
-  usersAggregate(where: $where) {
+  filteredUsersAggreggate: usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+  usersAggregate {
     aggregate {
       count
     }

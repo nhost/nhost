@@ -25,6 +25,10 @@ export const availableServices: {
     label: 'Hasura',
     value: AvailableLogsServices.HASURA,
   },
+  {
+    label: 'Functions',
+    value: AvailableLogsServices.FUNCTIONS,
+  },
 ];
 
 export const logsCustomIntervals: LogsCustomInterval[] = [
