@@ -296,7 +296,7 @@ export default function UsersPage() {
               color="primary"
               className="w-full"
               aria-label="Create User"
-              onClick={handleViewUser}
+              onClick={openCreateUserDialog}
               startIcon={<PlusIcon className="w-4 h-4" />}
             >
               Create User
