@@ -7,17 +7,19 @@ import { ENV } from './utils';
 
 type TemplateEngineProps = {
   content: string;
-  variables: {
-    [key: string]: string;
-  };
+  variables: EmailLocals | SmsLocals;
 };
 
 const templateEngine = ({ content, variables }: TemplateEngineProps) => {
   let templatedContent = content;
 
-  for (const key in variables) {
+  for (const k in variables) {
+    const key = k as keyof (EmailLocals | SmsLocals);
     const regex = new RegExp(`\\\${${key}}`, 'g');
-    templatedContent = templatedContent.replace(regex, variables[key]);
+    const value = variables[key];
+    if (value !== null) {
+      templatedContent = templatedContent.replace(regex, value);
+    }
   }
 
   return templatedContent;
@@ -42,7 +44,7 @@ const convertFieldToFileName = (field: EmailField | SmsField) => {
   return null;
 };
 
-const getFileName = (view: string, locals: Record<string, string>) => {
+const getFileName = (view: string, locals: EmailLocals | SmsLocals) => {
   // generate path to template
   const viewSplit = view.split('/');
   const id = viewSplit[0];
@@ -52,7 +54,7 @@ const getFileName = (view: string, locals: Record<string, string>) => {
   return `${locale}/${id}/${fileName}`;
 };
 
-const readFile = (view: string, locals: Record<string, string>): string => {
+const readFile = (view: string, locals: EmailLocals | SmsLocals): string => {
   const { locale } = locals;
   const fullPath = path.join(
     ENV.PWD,
@@ -77,7 +79,7 @@ const readFile = (view: string, locals: Record<string, string>): string => {
 /** @deprecated */
 const readRemoteTemplate = async (
   view: string,
-  locals: Record<string, string>
+  locals: EmailLocals | SmsLocals
 ): Promise<string> => {
   const { locale } = locals;
   const fileName = getFileName(view, locals);
@@ -111,7 +113,7 @@ export type SmsLocals = CommonLocals & {
 export type EmailLocals = CommonLocals & {
   link: string;
   email: string;
-  newEmail: string;
+  newEmail: string | null;
   ticket: string;
   redirectTo: string;
   serverUrl: string;

@@ -157,7 +157,7 @@ export const insertUserRoles = async (
 ) => {
   await client.query(
     `INSERT INTO "auth"."user_roles" (user_id, role) VALUES ${roles
-      .map((_, i) => `($1, $${i + 2}`)
+      .map((_, i) => `($1, $${i + 2})`)
       .join(', ')} ON CONFLICT DO NOTHING;`,
     [userId, ...roles]
   );

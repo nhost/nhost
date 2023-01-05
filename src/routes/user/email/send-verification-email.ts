@@ -93,8 +93,7 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
       link,
       displayName: user.displayName,
       email: user.email,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      newEmail: user.newEmail!,
+      newEmail: user.newEmail,
       ticket,
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

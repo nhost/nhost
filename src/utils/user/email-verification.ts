@@ -22,7 +22,7 @@ const sendEmailIfNotVerified = async ({
   redirectTo,
 }: {
   email: string;
-  newEmail: string;
+  newEmail: string | null;
   user: NonNullable<User>;
   displayName: string;
   ticket?: string | null;
@@ -138,8 +138,7 @@ export const createUserAndSendVerificationEmail = async (
 
   await sendEmailIfNotVerified({
     email,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    newEmail: user.newEmail!,
+    newEmail: user.newEmail,
     user,
     displayName,
     ticket,
