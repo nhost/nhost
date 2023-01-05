@@ -1,6 +1,6 @@
 import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
 
-import { FileUploadConfig } from '../utils/types'
+import { FileUploadConfig } from '../utils'
 
 import { createFileUploadMachine, FileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 

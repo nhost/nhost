@@ -204,7 +204,7 @@ importers:
       yup: ^0.32.11
       yup-password: ^0.2.2
     dependencies:
-      '@apollo/client': 3.7.1_xe4twbeoqswbn2uas4ov5melbq
+      '@apollo/client': 3.7.3_xe4twbeoqswbn2uas4ov5melbq
       '@codemirror/language': 6.3.1
       '@emotion/cache': 11.10.5
       '@emotion/react': 11.10.5_cuziicjcvwawlf5iuhzacuhqcy
@@ -955,6 +955,8 @@ importers:
       axios: ^1.2.0
       cross-fetch: ^3.1.5
       form-data: ^4.0.0
+      jpeg-js: ^0.4.4
+      pixelmatch: ^5.3.0
       start-server-and-test: ^1.14.0
       uuid: ^9.0.0
       xstate: ^4.33.5
@@ -965,6 +967,8 @@ importers:
     devDependencies:
       '@nhost/docgen': link:../docgen
       cross-fetch: 3.1.5
+      jpeg-js: 0.4.4
+      pixelmatch: 5.3.0
       start-server-and-test: 1.14.0
       uuid: 9.0.0
 
@@ -1495,8 +1499,8 @@ packages:
       zen-observable-ts: 1.2.5
     dev: false
 
-  /@apollo/client/3.7.1_xe4twbeoqswbn2uas4ov5melbq:
-    resolution: {integrity: sha512-xu5M/l7p9gT9Fx7nF3AQivp0XukjB7TM7tOd5wifIpI8RskYveL4I+rpTijzWrnqCPZabkbzJKH7WEAKdctt9w==}
+  /@apollo/client/3.7.3_xe4twbeoqswbn2uas4ov5melbq:
+    resolution: {integrity: sha512-nzZ6d6a4flLpm3pZOGpuAUxLlp9heob7QcCkyIqZlCLvciUibgufRfYTwfkWCc4NaGHGSZyodzvfr79H6oUwGQ==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
       graphql-ws: ^5.5.5
@@ -1528,7 +1532,7 @@ packages:
       response-iterator: 0.2.6
       symbol-observable: 4.0.0
       ts-invariant: 0.10.3
-      tslib: 2.4.0
+      tslib: 2.4.1
       zen-observable-ts: 1.2.5
     dev: false
 
@@ -20932,6 +20936,10 @@ packages:
     resolution: {integrity: sha512-bF7vcQxbODoGK1imE2P9GS9aw4zD0Sd+Hni68IMZLj7zRnquH7dXUmMw9hDI5S/Jzt7q+IyTXN0rSg2GI0IKhQ==}
     dev: false
 
+  /jpeg-js/0.4.4:
+    resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
+    dev: true
+
   /js-cookie/3.0.1:
     resolution: {integrity: sha512-+0rgsUXZu4ncpPxRL+lNEptWMOWl9etvPHc/koSRp6MPwpRYAhmk0dUG00J4bxVV3r9uUzfo24wW0knS07SKSw==}
     engines: {node: '>=12'}
@@ -23616,6 +23624,13 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
+  /pixelmatch/5.3.0:
+    resolution: {integrity: sha512-o8mkY4E/+LNUf6LzX96ht6k6CEDi65k9G2rjMtBe9Oo+VPKSvl+0GKHuH/AlG+GA5LPG/i5hrekkxUc3s2HU+Q==}
+    hasBin: true
+    dependencies:
+      pngjs: 6.0.0
+    dev: true
+
   /pkg-dir/3.0.0:
     resolution: {integrity: sha512-/E57AYkoeQ25qkxMj5PBOVgF8Kiu/h7cYS30Z5+R7WaiCCBfLq58ZI/dSeaEKb9WVJV5n/03QwrN3IeWIFllvw==}
     engines: {node: '>=6'}
@@ -23654,6 +23669,11 @@ packages:
   /pluralize/8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
+
+  /pngjs/6.0.0:
+    resolution: {integrity: sha512-TRzzuFRRmEoSW/p1KVAmiOgPco2Irlah+bGFCeNfJXxxYGwSw7YwAOAcd7X28K/m5bjBWKsC29KyoMfHbypayg==}
+    engines: {node: '>=12.13.0'}
+    dev: true
 
   /pnp-webpack-plugin/1.6.4_typescript@4.9.3:
     resolution: {integrity: sha512-7Wjy+9E3WwLOEL30D+m8TSTF7qJJUJLONBnwQp0518siuMxUQUbgZwssaFX+QKlZkjHZcw/IpZCt/H0srrntSg==}

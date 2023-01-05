@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'a
 import { assign, createMachine } from 'xstate'
 import { toIso88591 } from '../utils'
 
-import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { ErrorPayload, FileUploadConfig } from '../utils'
 
 export type FileUploadContext = {
   progress: number | null
