@@ -108,7 +108,11 @@ export const generateCustomClaims = async (userId: string) => {
         // * Parse the path into a JSONata AST
         const expression = jsonata(path);
         // * Evaluate the JSONata expression from the fetched user data
-        const value = expression.evaluate(user, expression);
+        let value = expression.evaluate(user, expression);
+        // * If the claim is expected to be an array and its value is undefined, set its value to an empty array
+        if (value == undefined && path.includes('[]')) {
+          value = [];
+        }
         // * Don't add the claim if the value is null or undefined
         if (value != undefined) {
           // * Convert value into a PostgreSQL format that can be used by the Hasura permissions system

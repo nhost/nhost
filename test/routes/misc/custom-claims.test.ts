@@ -259,7 +259,7 @@ describe('custom JWT claims', () => {
     const jwt = await insertUserProfile();
 
     expect(jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']).toEqual(
-      undefined
+      escapeValueToPg([])
     );
   });
 
