@@ -1001,12 +1001,13 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^1.2.0
+      cross-fetch: ^3.1.5
       graphql: 16.6.0
+      graphql-tag: ^2.12.6
       jwt-decode: ^3.1.2
       start-server-and-test: ^1.14.0
     dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
+      '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       cross-fetch: 3.1.5
@@ -1015,6 +1016,7 @@ importers:
       '@faker-js/faker': 7.6.0
       '@nhost/docgen': link:../docgen
       graphql: 16.6.0
+      graphql-tag: 2.12.6_graphql@16.6.0
       start-server-and-test: 1.14.0
 
   packages/nhost-js/functions:
@@ -13015,7 +13017,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.2
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -18503,19 +18505,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: false
-
-  /follow-redirects/1.15.2_debug@4.3.2:
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.2
-    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
