@@ -44,18 +44,14 @@ const validationSchema = Yup.object().shape({
     .required('Workspace name is required.')
     .min(4, 'The new Workspace name must be at least 4 characters.')
     .max(32, "The new Workspace name can't be longer than 32 characters.")
-    .test('canBeSlugified', 'This is not a valid JSON.', (value) => {
-      try {
-        const slug = slugifyString(value);
-        if (slug.length < 4 || slug.length > 32) {
-          throw new Error(
-            "This field should be at least 4 characters and can't be longer than 32 characters.",
-          );
-        }
-        return true;
-      } catch (error) {
+    .test('canBeSlugified', `This field should be at least 4 characters and can't be longer than 32 characters.`, (value) => {
+      const slug = slugifyString(value);
+
+      if (slug.length < 4 || slug.length > 32) {
         return false;
       }
+
+      return true;
     }),
 });
 
