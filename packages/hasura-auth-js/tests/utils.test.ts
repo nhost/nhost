@@ -1,7 +1,6 @@
 import { assert, expect, suite, test } from 'vitest'
 import {
   encodeQueryParameters,
-  getParameterByName,
   isValidEmail,
   isValidPassword,
   RedirectOption,
@@ -184,30 +183,5 @@ suite('isValidPassword', () => {
     expect(isValidPassword(123123)).toBe(false)
     expect(isValidPassword([])).toBe(false)
     expect(isValidPassword({})).toBe(false)
-  })
-})
-
-suite('getParameterByName', () => {
-  test('should return the value of the specified parameter', () => {
-    expect(getParameterByName('param', 'http://example.com?param=value')).toBe('value')
-    expect(getParameterByName('param', 'http://example.com?other=other&param=value')).toBe('value')
-    expect(getParameterByName('param', 'http://example.com?param=value&other=other')).toBe('value')
-    expect(getParameterByName('param', 'http://example.com?param=value#hash')).toBe('value')
-  })
-
-  test('should return an empty string for a parameter with no value', () => {
-    expect(getParameterByName('param', 'http://example.com?param')).toBe('')
-    expect(getParameterByName('param', 'http://example.com?param=')).toBe('')
-  })
-
-  test('should return null for a missing parameter', () => {
-    expect(getParameterByName('param', 'http://example.com')).toBe(null)
-    expect(getParameterByName('param', 'http://example.com?other=value')).toBe(null)
-  })
-
-  test('should return the value of the specified parameter after the hash', () => {
-    expect(getParameterByName('param', 'http://example.com#param=value')).toBe('value')
-    expect(getParameterByName('param', 'http://example.com#other=other&param=value')).toBe('value')
-    expect(getParameterByName('param', 'http://example.com#param=value&other=other')).toBe('value')
   })
 })
