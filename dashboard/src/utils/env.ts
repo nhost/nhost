@@ -16,20 +16,16 @@ export const LOCAL_BACKEND_PORT =
  * Subdomain of the Nhost project.
  */
 export const SUBDOMAIN =
-  process.env.NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN || 'localhost';
-
-/**
- * Subdomain of the Nhost project with protocol.
- */
-export const SUBDOMAIN_WITH_PROTOCOL =
-  SUBDOMAIN === 'localhost' ? SUBDOMAIN : `https://${SUBDOMAIN}`;
+  (process.env.NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN || 'localhost') === 'localhost'
+    ? 'localhost'
+    : `https://${process.env.NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN}`;
 
 /**
  * Local subdomain. This is only used when local development is enabled.
  */
 export const LOCAL_SUBDOMAIN = LOCAL_BACKEND_PORT
-  ? `${SUBDOMAIN_WITH_PROTOCOL}:${LOCAL_BACKEND_PORT}`
-  : SUBDOMAIN_WITH_PROTOCOL;
+  ? `${SUBDOMAIN}:${LOCAL_BACKEND_PORT}`
+  : SUBDOMAIN;
 
 /**
  * URL of Hasura Console. This is only used when running the Nhost Dashboard

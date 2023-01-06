@@ -14,6 +14,7 @@ beforeEach(() => {
   process.env = {
     NEXT_PUBLIC_NHOST_PLATFORM: 'false',
     NEXT_PUBLIC_ENV: 'dev',
+    NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN: 'localhost',
     ...env,
   };
 });
@@ -119,6 +120,46 @@ test('should be able to override the default remote backend slugs', () => {
       { ...defaultRemoteBackendSlugs, hasura: '/lorem-ipsum' },
     ),
   ).toBe('https://test.hasura.eu-west-1.nhost.run/lorem-ipsum');
+});
+
+test('should use the custom local subdomain for all services, except Hasura', () => {
+  process.env.NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN = 'localdev';
+
+  expect(generateAppServiceUrl('localdev', '', 'auth')).toBe(
+    'https://localdev.nhost.run/v1/auth',
+  );
+
+  expect(generateAppServiceUrl('localdev', '', 'functions')).toBe(
+    'https://localdev.nhost.run/v1/functions',
+  );
+
+  expect(generateAppServiceUrl('localdev', '', 'graphql')).toBe(
+    'https://localdev.nhost.run/v1/graphql',
+  );
+
+  expect(generateAppServiceUrl('localdev', '', 'storage')).toBe(
+    'https://localdev.nhost.run/v1/files',
+  );
+
+  expect(generateAppServiceUrl('custom-local-domain', '', 'storage')).toBe(
+    'https://custom-local-domain.nhost.run/v1/files',
+  );
+
+  expect(generateAppServiceUrl('http://localdev', '', 'storage')).toBe(
+    'http://localdev.nhost.run/v1/files',
+  );
+
+  expect(generateAppServiceUrl('localdev', '', 'hasura')).toBe(
+    'http://localhost:1337',
+  );
+
+  expect(generateAppServiceUrl('sample', '', 'hasura')).toBe(
+    'http://localhost:1337',
+  );
+
+  expect(generateAppServiceUrl('localhost', '', 'hasura')).toBe(
+    'http://localhost:1337',
+  );
 });
 
 test('should generate a basic subdomain without region in local mode', () => {

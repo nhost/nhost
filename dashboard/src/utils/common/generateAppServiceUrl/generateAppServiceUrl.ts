@@ -31,7 +31,8 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
 };
 
 /**
- * Generates a service specific URL for a project.
+ * Generates a service specific URL for a project. Provided `subdomain` is
+ * omitted if the dashboard is running in local mode.
  *
  * @param subdomain - The project's subdomain
  * @param region - The project's region
@@ -47,6 +48,36 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
+  // We are treating it as if NEXT_PUBLIC_NHOST_PLATFORM is true, but we need
+  // to make sure to use Hasura on `localhost`
+  if (subdomain !== 'localhost' && !region) {
+    const localPort = process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT;
+
+    if (service === 'hasura') {
+      return `http://localhost:${localPort || 1337}${
+        localBackendSlugs[service]
+      }`;
+    }
+
+    const nhostBackend =
+      process.env.NEXT_PUBLIC_ENV === 'staging'
+        ? 'staging.nhost.run'
+        : 'nhost.run';
+
+    const customSubdomain =
+      subdomain.startsWith('https://') || subdomain.startsWith('http://')
+        ? subdomain
+        : `https://${subdomain}`;
+
+    if (localPort && localPort !== '443') {
+      return `${customSubdomain}.${nhostBackend}:${localPort}${
+        process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_SLUG || ''
+      }${localBackendSlugs[service]}`;
+    }
+
+    return `${customSubdomain}.${nhostBackend}${localBackendSlugs[service]}`;
+  }
+
   if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
     return `http://localhost:${
       process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT || 1337
