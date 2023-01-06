@@ -53,7 +53,7 @@ export const correctAnonymousHandler = rest.post(
 export const deamonymisationSuccessfulHandler = rest.post(
   `${BASE_URL}/user/deanonymize`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )
 

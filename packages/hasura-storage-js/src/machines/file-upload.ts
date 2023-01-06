@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
+import FormData from 'form-data'
 import { assign, createMachine } from 'xstate'
-
 import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { fetchUpload } from '../utils/upload'
 
 export type FileUploadContext = {
   progress: number | null
@@ -96,76 +96,40 @@ export const createFileUploadMachine = () =>
       },
       services: {
         uploadFile: (context, event) => (callback) => {
-          const headers: RawAxiosRequestHeaders = {
-            'Content-Type': 'multipart/form-data'
-          }
-          const fileId = event.id || context.id
-          if (fileId) {
-            headers['x-nhost-file-id'] = fileId
-          }
-          const bucketId = event.bucketId || context.bucketId
-          if (bucketId) {
-            headers['x-nhost-bucket-id'] = bucketId
-          }
           const file = (event.file || context.file)!
-          headers['x-nhost-file-name'] = event.name || file.name
           const data = new FormData()
           data.append('file', file)
-          if (event.adminSecret) {
-            headers['x-hasura-admin-secret'] = event.adminSecret
-          }
-          if (event.accessToken) {
-            headers['Authorization'] = `Bearer ${event.accessToken}`
-          }
-          let currentLoaded = 0
-          const controller = new AbortController()
-          axios
-            .post<{
-              bucketId: string
-              createdAt: string
-              etag: string
-              id: string
-              isUploaded: true
-              mimeType: string
-              name: string
-              size: number
-              updatedAt: string
-              uploadedByUserId: string
-            }>(event.url + '/files', data, {
-              headers,
-              signal: controller.signal,
-              onUploadProgress: (event: AxiosProgressEvent) => {
-                const loaded = event.total
-                  ? Math.round((event.loaded * file.size!) / event.total)
-                  : 0
-                const additions = loaded - currentLoaded
-                currentLoaded = loaded
-                callback({
-                  type: 'UPLOAD_PROGRESS',
-                  progress: event.total ? Math.round((loaded * 100) / event.total) : 0,
-                  loaded,
-                  additions
-                })
-              }
-            })
-            .then(({ data: { id, bucketId } }) => {
-              callback({ type: 'UPLOAD_DONE', id, bucketId })
-            })
-            .catch(({ response, message }: AxiosError<{ error?: { message: string } }>) => {
-              callback({
-                type: 'UPLOAD_ERROR',
-                error: {
-                  status: response?.status ?? 0,
-                  message: response?.data?.error?.message || message,
-                  // TODO errors from hasura-storage are not codified
-                  error: response?.data?.error?.message || message
-                }
-              })
-            })
 
-          return () => {
-            controller.abort()
-          }
+          let currentLoaded = 0
+
+          fetchUpload(event.url, data, {
+            fileId: event.id || context.id,
+            bucketId: event.bucketId || context.bucketId,
+            accessToken: event.accessToken,
+            adminSecret: event.adminSecret,
+            name: event.name || file.name,
+            onUploadProgress: (event) => {
+              const loaded = event.total ? Math.round((event.loaded * file.size!) / event.total) : 0
+              const additions = loaded - currentLoaded
+              currentLoaded = loaded
+              callback({
+                type: 'UPLOAD_PROGRESS',
+                progress: event.total ? Math.round((loaded * 100) / event.total) : 0,
+                loaded,
+                additions
+              })
+            }
+          }).then(({ fileMetadata, error }) => {
+            if (error) {
+              callback({ type: 'UPLOAD_ERROR', error })
+            }
+            if (fileMetadata) {
+              const { id, bucketId } = fileMetadata
+              callback({ type: 'UPLOAD_DONE', id, bucketId })
+            }
+          })
+
+          return () => {}
         }
       }
     }

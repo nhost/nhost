@@ -61,7 +61,7 @@ export function InviteAnnounce() {
       triggerToast('An error occurred when trying to accept the invitation.');
 
       return setSubmitState({
-        error: res.error,
+        error: new Error(res.error.message),
         loading: false,
       });
     }
@@ -94,7 +94,7 @@ export function InviteAnnounce() {
 
       setIgnoreState({
         loading: false,
-        error: res.error,
+        error: new Error(res.error.message),
       });
 
       return;

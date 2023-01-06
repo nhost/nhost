@@ -60,7 +60,6 @@ export default defineConfig({
           '@apollo/client/utilities': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
           xstate: 'xstate',
-          axios: 'axios',
           'js-cookie': 'Cookies',
           react: 'React',
           'react-dom': 'ReactDOM',

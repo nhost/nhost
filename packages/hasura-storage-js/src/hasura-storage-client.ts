@@ -1,5 +1,5 @@
 import FormData from 'form-data'
-
+import { HasuraStorageApi } from './hasura-storage-api'
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -11,7 +11,6 @@ import {
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
-import { HasuraStorageApi } from './hasura-storage-api'
 
 export interface NhostStorageConstructorParams {
   /**
@@ -85,19 +84,10 @@ export class HasuraStorageClient {
       formData = params.formData
     }
 
-    const { fileMetadata, error } = await this.api.upload({
+    return this.api.upload({
       ...params,
-      formData: formData
+      formData
     })
-    if (error) {
-      return { fileMetadata: null, error }
-    }
-
-    if (!fileMetadata) {
-      return { fileMetadata: null, error: new Error('Invalid file returned') }
-    }
-
-    return { fileMetadata, error: null }
   }
 
   /**

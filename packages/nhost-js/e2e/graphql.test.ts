@@ -1,4 +1,6 @@
 import { faker } from '@faker-js/faker'
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import gql from 'graphql-tag'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { NhostClient } from '../src'
 
@@ -9,25 +11,47 @@ const nhost = new NhostClient({
 type User = { id: string; displayName: string }
 
 describe('main tests', () => {
-  it('getUrl()', async () => {
+  it('getUrl()', () => {
     const graphqlUrl = nhost.graphql.getUrl()
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
+  it('httpUrl', async () => {
+    const graphqlUrl = nhost.graphql.httpUrl
+
+    expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
+  })
+
+  it('getWsUrl()', () => {
+    const graphqlUrl = nhost.graphql.wsUrl
+
+    expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
+  })
+
   it('GraphQL request as logged out user', async () => {
     const document = `
-  query {
-    users {
-      id
-      displayName
-    }
-  }
+      query {
+        users {
+          id
+          displayName
+        }
+      }
     `
     const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
 
-    expect(error).toBeTruthy()
     expect(data).toBeNull()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$.selectionSet.users",
+          },
+          "message": "field 'users' not found in type: 'query_root'",
+        },
+      ]
+    `)
   })
 })
 
@@ -58,6 +82,22 @@ describe('authenticated user', () => {
     expect(data).toBeTruthy()
   })
 
+  it('should work with TypedDocumentNode', async () => {
+    const document = gql`
+      query ($id: uuid!) {
+        test(where: { id: { _eq: $id } }) {
+          id
+        }
+      }
+    ` as TypedDocumentNode<{ user: User }, { id: string }>
+    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+      id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
+    })
+
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
+  })
+
   it('GraphQL with incorrect variables', async () => {
     const document = `
       query ($id: uuid!) {
@@ -71,7 +111,17 @@ describe('authenticated user', () => {
       id: 'not-a-uuid'
     })
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$.selectionSet.user",
+          },
+          "message": "field 'user' not found in type: 'query_root'",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 
@@ -86,7 +136,17 @@ describe('authenticated user', () => {
     `
     const { data, error } = await nhost.graphql.request<{ user: User }>(document, {})
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$",
+          },
+          "message": "expecting a value for non-nullable variable: \\"id\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 })
@@ -161,7 +221,17 @@ describe('as an admin', () => {
       }
     )
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "data-exception",
+            "path": "$",
+          },
+          "message": "invalid input syntax for type uuid: \\"not-a-uuid\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 
@@ -184,7 +254,17 @@ describe('as an admin', () => {
       }
     )
 
-    expect(error).toBeTruthy()
+    expect(error).toMatchInlineSnapshot(`
+      [
+        {
+          "extensions": {
+            "code": "validation-failed",
+            "path": "$",
+          },
+          "message": "expecting a value for non-nullable variable: \\"id\\"",
+        },
+      ]
+    `)
     expect(data).toBeNull()
   })
 })

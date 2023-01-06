@@ -7,7 +7,7 @@ import Text from '@/ui/v2/Text';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import { useApolloClient } from '@apollo/client';
-import axios from 'axios';
+import fetch from 'cross-fetch';
 import { useState } from 'react';
 import validator from 'validator';
 
@@ -50,10 +50,17 @@ export function AddUserModal({ modalIsOpen, setModalIsOpen }: any) {
     )}/signup/email-password`;
 
     try {
-      await axios.post(signUpUrl, {
-        email,
-        password,
+      const response = await fetch(signUpUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
     } catch (error) {
       setFormState({
         loading: false,

@@ -98,7 +98,7 @@ export default function SystemEnvironmentVariableSettings() {
             ),
     },
     { key: 'NHOST_AUTH_URL', value: appClient.auth.url },
-    { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.url },
+    { key: 'NHOST_GRAPHQL_URL', value: appClient.graphql.httpUrl },
     { key: 'NHOST_STORAGE_URL', value: appClient.storage.url },
     { key: 'NHOST_FUNCTIONS_URL', value: appClient.functions.url },
   ];

@@ -68,7 +68,7 @@ describe(`Generation`, () => {
 
     expect(state.context.error).toMatchInlineSnapshot(`
       {
-        "error": "OK",
+        "error": "network",
         "message": "Network Error",
         "status": 0,
       }

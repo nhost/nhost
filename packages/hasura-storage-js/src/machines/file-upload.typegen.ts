@@ -10,9 +10,9 @@ export interface Typegen0 {
   }
   missingImplementations: {
     actions: never
-    services: never
-    guards: never
     delays: never
+    guards: never
+    services: never
   }
   eventsCausingActions: {
     addFile: 'ADD'
@@ -25,13 +25,13 @@ export interface Typegen0 {
     setError: 'UPLOAD_ERROR'
     setFileMetadata: 'UPLOAD_DONE'
   }
-  eventsCausingServices: {
-    uploadFile: 'UPLOAD'
-  }
+  eventsCausingDelays: {}
   eventsCausingGuards: {
     hasFile: 'UPLOAD'
   }
-  eventsCausingDelays: {}
+  eventsCausingServices: {
+    uploadFile: 'UPLOAD'
+  }
   matchesStates: 'error' | 'idle' | 'stopped' | 'uploaded' | 'uploading'
   tags: never
 }
