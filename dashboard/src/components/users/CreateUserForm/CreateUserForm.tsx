@@ -6,7 +6,7 @@ import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
+import fetch from 'cross-fetch';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -79,10 +79,10 @@ export default function CreateUserForm({
 
     try {
       await toast.promise(
-        axios.post(signUpUrl, {
-          email,
-          password,
-        }),
+        fetch(signUpUrl, {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        }).then((res) => res.json()),
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
