@@ -3,9 +3,9 @@ import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { useInsertWorkspaceMutation } from '@/utils/__generated__/graphql';
 import { slugifyString } from '@/utils/helpers';
-import { nhost } from '@/utils/nhost';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -81,7 +81,7 @@ export default function CreateWorkspaceForm({
   } = form;
   const isDirty = Object.keys(dirtyFields).length > 0;
 
-  const currentUser = nhost.auth.getUser();
+  const currentUser = useUserData();
 
   async function handleSubmit({ newWorkspaceName }: CreateWorkspaceFormValues) {
     const slug = slugifyString(newWorkspaceName);
