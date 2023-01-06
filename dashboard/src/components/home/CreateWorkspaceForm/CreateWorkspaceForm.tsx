@@ -105,7 +105,7 @@ export default function CreateWorkspaceForm({
       updateAppPromise,
       {
         loading: 'Creating new workspace...',
-        success: 'New workspace created successfully.',
+        success: 'The new workspace has been created successfully.',
         error: 'An error occurred while creating the new workspace.',
       },
       toastStyleProps,
