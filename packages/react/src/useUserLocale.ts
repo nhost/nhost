@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-locale
  */
-export const useUserLocale = () => {
+export const useUserLocale = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,

@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-roles
  */
-export const useUserRoles = () => {
+export const useUserRoles = (): string[] => {
   const service = useAuthInterpreter()
   return useSelector(service, (state) => {
     if (!state.matches('authentication.signedIn')) {
