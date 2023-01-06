@@ -19,7 +19,7 @@ export interface CreateWorkspaceFormProps {
   /**
    * Submit button text.
    *
-   * @default 'Save'
+   * @default 'Create'
    */
   submitButtonText?: string;
   /**
