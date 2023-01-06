@@ -44,19 +44,19 @@ const validationSchema = Yup.object().shape({
     .required('Workspace name is required.')
     .min(4, 'The new Workspace name must be at least 4 characters.')
     .max(32, "The new Workspace name can't be longer than 32 characters.")
-    .test('canBeSlugified', 'This is not a valid JSON.', (value) => {
-      try {
+    .test(
+      'canBeSlugified',
+      `This field should be at least 4 characters and can't be longer than 32 characters.`,
+      (value) => {
         const slug = slugifyString(value);
+
         if (slug.length < 4 || slug.length > 32) {
-          throw new Error(
-            "This field should be at least 4 characters and can't be longer than 32 characters.",
-          );
+          return false;
         }
+
         return true;
-      } catch (error) {
-        return false;
-      }
-    }),
+      },
+    ),
 });
 
 export default function CreateWorkspaceForm({
@@ -109,8 +109,8 @@ export default function CreateWorkspaceForm({
         updateAppPromise,
         {
           loading: 'Creating new workspace...',
-          success: 'New workspace created successfully.',
-          error: 'An error occurred while creating new workspace.',
+          success: 'The new workspace has been created successfully.',
+          error: 'An error occurred while creating the new workspace.',
         },
         toastStyleProps,
       );
