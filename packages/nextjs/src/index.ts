@@ -5,6 +5,7 @@ import {
   NhostProvider,
   Subdomain
 } from '@nhost/react'
+import { setNhostSessionInCookie } from './utils'
 
 export * from '@nhost/react'
 export * from './create-server-side-client'
@@ -38,5 +39,10 @@ export class NhostClient extends ReactNhostClient {
       autoRefreshToken: isBrowser && params.autoRefreshToken,
       clientStorageType: 'cookie'
     })
+
+    this.auth.onAuthStateChanged(() => {
+      setNhostSessionInCookie(this)
+    })
+    this.auth.onTokenChanged(setNhostSessionInCookie)
   }
 }
