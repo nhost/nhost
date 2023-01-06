@@ -63,7 +63,7 @@ export default function CreateWorkspaceForm({
   disabled,
   onSubmit,
   onCancel,
-  submitButtonText = 'Save',
+  submitButtonText = 'Create',
 }: CreateWorkspaceFormProps) {
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
   const router = useRouter();
@@ -164,7 +164,9 @@ export default function CreateWorkspaceForm({
           {!disabled && (
             <Button
               loading={isSubmitting}
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting || Boolean(errors.newWorkspaceName?.message)
+              }
               type="submit"
             >
               {submitButtonText}
