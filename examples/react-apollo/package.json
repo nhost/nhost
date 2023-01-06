@@ -60,7 +60,7 @@
     "@xstate/inspect": "^0.6.2",
     "cypress": "^10.7.0",
     "cypress-mailhog": "^1.6.0",
-    "start-server-and-test": "^1.14.0",
+    "start-server-and-test": "^1.15.2",
     "totp-generator": "^0.0.13",
     "typescript": "^4.8.2",
     "vite": "^4.0.2",
