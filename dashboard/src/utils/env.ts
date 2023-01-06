@@ -31,7 +31,7 @@ export const LOCAL_SUBDOMAIN = LOCAL_BACKEND_PORT
  * URL of Hasura Console. This is only used when running the Nhost Dashboard
  * locally.
  */
-export const LOCAL_HASURA_URL = `http://localhost:${
+export const LOCAL_HASURA_CONSOLE_URL = `http://localhost:${
   process.env.NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT || 9695
 }`;
 

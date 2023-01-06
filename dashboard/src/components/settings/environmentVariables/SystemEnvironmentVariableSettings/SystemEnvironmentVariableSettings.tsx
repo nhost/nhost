@@ -17,7 +17,7 @@ import generateAppServiceUrl, {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
-import { LOCAL_HASURA_URL } from '@/utils/env';
+import { LOCAL_HASURA_CONSOLE_URL } from '@/utils/env';
 import { generateRemoteAppUrl } from '@/utils/helpers';
 import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
@@ -96,7 +96,7 @@ export default function SystemEnvironmentVariableSettings() {
       key: 'NHOST_HASURA_URL',
       value:
         process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
-          ? `${LOCAL_HASURA_URL}/console`
+          ? `${LOCAL_HASURA_CONSOLE_URL}/console`
           : generateAppServiceUrl(
               currentApplication?.subdomain,
               currentApplication?.region.awsName,
