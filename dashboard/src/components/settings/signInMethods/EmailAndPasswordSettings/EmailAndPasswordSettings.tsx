@@ -2,7 +2,6 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  GetAppLoginDataDocument,
   useSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
@@ -25,9 +24,7 @@ export interface EmailAndPasswordFormValues {
 
 export default function EmailAndPasswordSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: [GetAppLoginDataDocument],
-  });
+  const [updateApp] = useUpdateAppMutation();
 
   const { data, error, loading } = useSignInMethodsQuery({
     variables: {

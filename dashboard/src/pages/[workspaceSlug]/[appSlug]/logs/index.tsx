@@ -109,7 +109,7 @@ export default function LogsPage() {
   }, [subscribeToMoreLogs, toDate, client]);
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex flex-col w-full h-full">
       <RetryableErrorBoundary>
         <LogsHeader
           fromDate={fromDate}

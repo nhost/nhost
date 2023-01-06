@@ -1,5 +1,12 @@
 # @nhost/docgen
 
+## 0.1.4
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- a0242c4d: chore(deps): update dependency tsup to v6
+
 ## 0.1.3
 
 ### Patch Changes

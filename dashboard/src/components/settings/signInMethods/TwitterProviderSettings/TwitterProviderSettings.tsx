@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useGetAppLoginDataQuery,
+  useSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -27,10 +27,11 @@ export default function TwitterProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useGetAppLoginDataQuery({
+  const { data, loading, error } = useSignInMethodsQuery({
     variables: {
       id: currentApplication?.id,
     },
+    fetchPolicy: 'cache-only',
   });
 
   const form = useForm<TwitterProviderFormValues>({

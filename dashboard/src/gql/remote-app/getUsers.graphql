@@ -4,20 +4,39 @@ fragment RemoteAppGetUsers on users {
   displayName
   avatarUrl
   email
+  emailVerified
   phoneNumber
+  phoneNumberVerified
   disabled
   defaultRole
+  lastSeen
+  locale
   roles {
+    id
     role
   }
+  userProviders {
+    id
+    providerId
+  }
+  disabled
 }
 
 query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
-  users(where: $where, limit: $limit, offset: $offset) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: { createdAt: desc }
+  ) {
     ...RemoteAppGetUsers
   }
-  usersAggregate(where: $where) {
-    # make same where query here
+  filteredUsersAggreggate: usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+  usersAggregate {
     aggregate {
       count
     }

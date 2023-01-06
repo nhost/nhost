@@ -1,6 +1,6 @@
 import FormData from 'form-data'
 import { assign, createMachine } from 'xstate'
-import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { ErrorPayload, FileUploadConfig } from '../utils'
 import { fetchUpload } from '../utils/upload'
 
 export type FileUploadContext = {
@@ -28,7 +28,14 @@ export type FileUploadEvents =
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
-export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0, error: null }
+export const INITIAL_FILE_CONTEXT: FileUploadContext = {
+  progress: null,
+  loaded: 0,
+  error: null,
+  bucketId: undefined,
+  file: undefined,
+  id: undefined
+}
 
 export type FileUploadMachine = ReturnType<typeof createFileUploadMachine>
 export const createFileUploadMachine = () =>
@@ -62,8 +69,20 @@ export const createFileUploadMachine = () =>
           },
           invoke: { src: 'uploadFile' }
         },
-        uploaded: { entry: ['setFileMetadata', 'sendDone'] },
-        error: { entry: ['setError', 'sendError'] },
+        uploaded: {
+          entry: ['setFileMetadata', 'sendDone'],
+          on: {
+            ADD: { actions: 'addFile', target: 'idle' },
+            UPLOAD: { actions: 'resetContext', target: 'uploading' }
+          }
+        },
+        error: {
+          entry: ['setError', 'sendError'],
+          on: {
+            ADD: { actions: 'addFile', target: 'idle' },
+            UPLOAD: { actions: 'resetContext', target: 'uploading' }
+          }
+        },
         stopped: { type: 'final' }
       }
     },
@@ -88,6 +107,7 @@ export const createFileUploadMachine = () =>
         sendDestroy: () => {},
         sendDone: () => {},
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
+        resetContext: assign((_) => INITIAL_FILE_CONTEXT),
         addFile: assign({
           file: (_, { file }) => file,
           bucketId: (_, { bucketId }) => bucketId,

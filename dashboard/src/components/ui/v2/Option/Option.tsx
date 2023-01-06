@@ -11,16 +11,21 @@ export interface OptionProps<TValue extends {}>
   extends OptionUnstyledProps<TValue> {}
 
 const StyledOption = styled(OptionUnstyled)(({ theme }) => ({
+  [`&.${optionUnstyledClasses.disabled}:not(.${optionUnstyledClasses.highlighted}):hover`]:
+    {
+      backgroundColor: 'transparent',
+    },
   [`&.${optionUnstyledClasses.highlighted}`]: {
     backgroundColor: darken(theme.palette.action.active, 0.025),
   },
-  [`&.${optionUnstyledClasses.highlighted}:hover`]: {
-    backgroundColor: darken(theme.palette.action.hover, 0.1),
-  },
+  [`&.${optionUnstyledClasses.highlighted}:not(.${optionUnstyledClasses.disabled}):hover`]:
+    {
+      backgroundColor: darken(theme.palette.action.hover, 0.1),
+    },
   [`&.${optionUnstyledClasses.disabled}`]: {
     color: theme.palette.text.disabled,
   },
-  [`&:hover:not(.${optionUnstyledClasses.disabled}):not(.${optionUnstyledClasses.highlighted})`]:
+  [`&:not(.${optionUnstyledClasses.disabled}):not(.${optionUnstyledClasses.highlighted}):hover`]:
     {
       backgroundColor: theme.palette.action.hover,
     },

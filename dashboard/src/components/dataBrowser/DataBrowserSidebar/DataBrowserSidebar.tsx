@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import InlineCode from '@/components/common/InlineCode';
 import NavLink from '@/components/common/NavLink';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -8,6 +9,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
@@ -17,6 +19,7 @@ import LockIcon from '@/ui/v2/icons/LockIcon';
 import PencilIcon from '@/ui/v2/icons/PencilIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import TrashIcon from '@/ui/v2/icons/TrashIcon';
+import UsersIcon from '@/ui/v2/icons/UsersIcon';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
@@ -194,6 +197,40 @@ function DataBrowserSidebarContent({
     });
   }
 
+  function handleEditPermissionClick(
+    schema: string,
+    table: string,
+    disabled?: boolean,
+  ) {
+    openDrawer('EDIT_PERMISSIONS', {
+      title: (
+        <span className="inline-grid grid-flow-col gap-2 items-center">
+          Permissions
+          <InlineCode className="!text-sm+ font-normal text-greyscaleMedium">
+            {table}
+          </InlineCode>
+          <Chip label="Preview" size="small" color="info" component="span" />
+        </span>
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+      payload: {
+        onSubmit: async () => {
+          await queryClient.refetchQueries([
+            `${dataSourceSlug}.${schema}.${table}`,
+          ]);
+          await refetch();
+        },
+        disabled,
+        schema,
+        table,
+      },
+    });
+  }
+
   return (
     <div className="grid gap-1">
       {schemas && schemas.length > 0 && (
@@ -318,9 +355,7 @@ function DataBrowserSidebarContent({
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          disabled={
-                            tablePath === removableTable || isGitHubConnected
-                          }
+                          disabled={tablePath === removableTable}
                         >
                           <IconButton
                             variant="borderless"
@@ -329,7 +364,6 @@ function DataBrowserSidebarContent({
                               !isSelected &&
                                 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                             )}
-                            disabled={isGitHubConnected}
                           >
                             <DotsHorizontalIcon />
                           </IconButton>
@@ -339,44 +373,84 @@ function DataBrowserSidebarContent({
                           menu
                           PaperProps={{ className: 'w-52' }}
                         >
-                          <Dropdown.Item
-                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                            onClick={() =>
-                              openDrawer('EDIT_TABLE', {
-                                title: 'Edit Table',
-                                payload: {
-                                  onSubmit: async () => {
-                                    await queryClient.refetchQueries([
-                                      `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
-                                    ]);
-                                    await refetch();
-                                  },
-                                  schema: table.table_schema,
-                                  table,
-                                },
-                              })
-                            }
-                          >
-                            <PencilIcon className="h-4 w-4 text-gray-700" />
+                          {isGitHubConnected ? (
+                            <Dropdown.Item
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditPermissionClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                  true,
+                                )
+                              }
+                            >
+                              <UsersIcon className="h-4 w-4 text-gray-700" />
 
-                            <span>Edit Table</span>
-                          </Dropdown.Item>
+                              <span>View Permissions</span>
+                            </Dropdown.Item>
+                          ) : (
+                            [
+                              <Dropdown.Item
+                                key="edit-table"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  openDrawer('EDIT_TABLE', {
+                                    title: 'Edit Table',
+                                    payload: {
+                                      onSubmit: async () => {
+                                        await queryClient.refetchQueries([
+                                          `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                        ]);
+                                        await refetch();
+                                      },
+                                      schema: table.table_schema,
+                                      table,
+                                    },
+                                  })
+                                }
+                              >
+                                <PencilIcon className="h-4 w-4 text-gray-700" />
 
-                          <Divider component="li" />
+                                <span>Edit Table</span>
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-table-separator"
+                                component="li"
+                              />,
+                              <Dropdown.Item
+                                key="edit-permissions"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                onClick={() =>
+                                  handleEditPermissionClick(
+                                    table.table_schema,
+                                    table.table_name,
+                                  )
+                                }
+                              >
+                                <UsersIcon className="h-4  w-4 text-gray-700" />
 
-                          <Dropdown.Item
-                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
-                            onClick={() =>
-                              handleDeleteTableClick(
-                                table.table_schema,
-                                table.table_name,
-                              )
-                            }
-                          >
-                            <TrashIcon className="h-4 w-4 text-red" />
+                                <span>Edit Permissions</span>
+                              </Dropdown.Item>,
+                              <Divider
+                                key="edit-permissions-separator"
+                                component="li"
+                              />,
+                              <Dropdown.Item
+                                key="delete-table"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                                onClick={() =>
+                                  handleDeleteTableClick(
+                                    table.table_schema,
+                                    table.table_name,
+                                  )
+                                }
+                              >
+                                <TrashIcon className="h-4 w-4 text-red" />
 
-                            <span>Delete Table</span>
-                          </Dropdown.Item>
+                                <span>Delete Table</span>
+                              </Dropdown.Item>,
+                            ]
+                          )}
                         </Dropdown.Content>
                       </Dropdown.Root>
                     )

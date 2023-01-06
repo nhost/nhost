@@ -6,22 +6,12 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import type { InputProps } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
-import { useRouter } from 'next/router';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
-
-export interface RuleValueInputProps {
-  /**
-   * Name of the parent group editor.
-   */
-  name: string;
-  /**
-   * Path of the table selected through the column input.
-   */
-  selectedTablePath?: string;
-}
+import useRuleGroupEditor from './useRuleGroupEditor';
 
 function ColumnSelectorInput({
   name,
@@ -47,7 +37,6 @@ function ColumnSelectorInput({
       schema={schema}
       table={table}
       disableRelationships
-      rootClassName="flex-auto"
       slotProps={{
         input: { className: 'lg:!rounded-none !bg-white !z-10' },
       }}
@@ -64,31 +53,59 @@ function ColumnSelectorInput({
   );
 }
 
+export interface RuleValueInputProps {
+  /**
+   * Name of the parent group editor.
+   */
+  name: string;
+  /**
+   * Path of the table selected through the column input.
+   */
+  selectedTablePath?: string;
+  /**
+   * Whether the input should be marked as invalid.
+   */
+  error?: InputProps['error'];
+  /**
+   * Helper text to display below the input.
+   */
+  helperText?: InputProps['helperText'];
+}
+
 export default function RuleValueInput({
   name,
   selectedTablePath,
+  error,
+  helperText,
 }: RuleValueInputProps) {
+  const { schema, table, disabled } = useRuleGroupEditor();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
-  const {
-    query: { schemaSlug, tableSlug },
-  } = useRouter();
 
-  const { data, loading, error } = useGetAppCustomClaimsQuery({
+  const {
+    data,
+    loading,
+    error: customClaimsError,
+  } = useGetAppCustomClaimsQuery({
     variables: { id: currentApplication?.id },
-    skip: !isHasuraInput,
+    skip: !isHasuraInput || !currentApplication?.id,
   });
 
   if (operator === '_is_null') {
     return (
       <ControlledSelect
+        disabled={disabled}
         name={inputName}
-        className="flex-auto"
         fullWidth
-        slotProps={{ root: { className: 'bg-white lg:!rounded-none h-10' } }}
+        slotProps={{
+          root: { className: 'bg-white lg:!rounded-none h-10' },
+          popper: { disablePortal: false, className: 'z-[10000]' },
+        }}
+        error={error}
+        helperText={helperText}
       >
         <Option value="true">
           <ReadOnlyToggle
@@ -110,15 +127,17 @@ export default function RuleValueInput({
   if (operator === '_in' || operator === '_nin') {
     return (
       <ControlledAutocomplete
+        disabled={disabled}
         name={inputName}
         multiple
         freeSolo
-        limitTags={5}
-        className="flex-auto"
+        limitTags={3}
         slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
         options={[]}
         fullWidth
         filterSelectedOptions
+        error={error}
+        helperText={helperText}
       />
     );
   }
@@ -126,28 +145,41 @@ export default function RuleValueInput({
   if (['_ceq', '_cne', '_cgt', '_clt', '_cgte', '_clte'].includes(operator)) {
     return (
       <ColumnSelectorInput
+        disabled={disabled}
         selectedTablePath={selectedTablePath}
-        schema={schemaSlug as string}
-        table={tableSlug as string}
+        schema={schema}
+        table={table}
         name={inputName}
+        error={error}
+        helperText={helperText}
       />
     );
   }
 
-  const availableHasuraPermissionVariables = !loading
-    ? getPermissionVariablesArray(data?.app?.authJwtCustomClaims).map(
-        ({ key }) => ({
-          value: `X-Hasura-${key}`,
-          label: `X-Hasura-${key}`,
-        }),
-      )
-    : [];
+  const availableHasuraPermissionVariables = getPermissionVariablesArray(
+    data?.app?.authJwtCustomClaims,
+  ).map(({ key }) => ({
+    value: `X-Hasura-${key}`,
+    label: `X-Hasura-${key}`,
+    group: 'Frequently used',
+  }));
 
   return (
     <ControlledAutocomplete
+      disabled={disabled}
       freeSolo={!isHasuraInput}
+      autoSelect={!isHasuraInput}
+      autoHighlight={isHasuraInput}
+      filterSelectedOptions
+      isOptionEqualToValue={(option, value) => {
+        if (typeof value === 'string') {
+          return option.value.toLowerCase() === (value as string).toLowerCase();
+        }
+
+        return option.value.toLowerCase() === value.value.toLowerCase();
+      }}
       name={inputName}
-      className="flex-auto"
+      groupBy={(option) => option.group}
       slotProps={{
         input: { className: 'lg:!rounded-none !bg-white' },
         formControl: { className: '!bg-transparent' },
@@ -155,12 +187,18 @@ export default function RuleValueInput({
       fullWidth
       loading={loading}
       loadingText={<ActivityIndicator label="Loading..." />}
-      error={!!error}
-      helperText={error?.message}
+      error={Boolean(customClaimsError) || error}
+      helperText={customClaimsError?.message || helperText}
       options={
         isHasuraInput
           ? availableHasuraPermissionVariables
-          : [{ value: 'X-Hasura-User-Id', label: 'X-Hasura-User-Id' }]
+          : [
+              {
+                value: 'X-Hasura-User-Id',
+                label: 'X-Hasura-User-Id',
+                group: 'Frequently used',
+              },
+            ]
       }
       onChange={(_event, _value, reason, details) => {
         if (

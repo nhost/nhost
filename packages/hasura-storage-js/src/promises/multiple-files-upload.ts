@@ -1,7 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
 import { AnyFileList, FileItemRef, MultipleFilesUploadMachine } from '../machines'
-import { FileUploadConfig } from '../utils/types'
+import { FileUploadConfig } from '../utils'
 
 export interface MultipleUploadProgressState {
   /**

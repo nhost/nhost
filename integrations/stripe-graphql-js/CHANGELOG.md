@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 0.0.7
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+
 ## 0.0.6
 
 ### Patch Changes

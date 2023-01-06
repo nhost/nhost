@@ -16,6 +16,9 @@
       "outputs": ["dist/**"],
       "env": ["VITE_NHOST_SUBDOMAIN", "VITE_NHOST_REGION"]
     },
+    "@nhost/docs#build": {
+      "cache": false
+    },
     "@nhost/dashboard#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"],

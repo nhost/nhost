@@ -17,6 +17,7 @@ export interface Typegen0 {
   eventsCausingActions: {
     addFile: 'ADD'
     incrementProgress: 'UPLOAD_PROGRESS'
+    resetContext: 'UPLOAD'
     resetProgress: 'UPLOAD'
     sendDestroy: 'DESTROY'
     sendDone: 'UPLOAD_DONE'

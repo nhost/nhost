@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.7.0",
+  "version": "1.12.0",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [

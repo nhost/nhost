@@ -1,5 +1,44 @@
 # @nhost/react
 
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- 1be6d324: Only export what is required by the user or `@nhost/nextjs`
+- 2e8f73df: Improve the error message when the application is not wrapped in `<NhostProvider></NhostProvider>`
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+  - @nhost/nhost-js@1.12.1
+
+## 1.12.0
+
+### Minor Changes
+
+- 65687bee: Remove `@nhost/nhost-js` from `peerDepencencies`
+
+  The contents of the `@nhost/nhost-js` package are now exported by `@nhost/react`.
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Remove unused immer dependency
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+- Updated dependencies [1a9e1fde]
+- Updated dependencies [5be9abb0]
+- Updated dependencies [54df0df4]
+  - @nhost/nhost-js@1.12.0
+
 ## 0.17.0
 
 ### Minor Changes

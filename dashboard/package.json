@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.7.11",
+  "version": "0.9.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -17,7 +17,7 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.7.3",
     "@codemirror/language": "^6.3.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",
@@ -101,7 +101,7 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
     "@types/lodash.debounce": "^4.0.7",
-    "@types/node": "^18.11.9",
+    "@types/node": "^16.11.7",
     "@types/pluralize": "^0.0.29",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.9",
@@ -142,7 +142,7 @@
     "typescript": "^4.8.4",
     "vite": "^4.0.2",
     "vite-tsconfig-paths": "^4.0.3",
-    "vitest": "^0.25.2",
+    "vitest": "^0.26.2",
     "webpack": "^5.75.0"
   },
   "browserslist": {
