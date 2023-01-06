@@ -75,10 +75,7 @@ export const useFileUploadItem = (
         url: nhost.storage.url,
         accessToken: nhost.auth.getAccessToken(),
         adminSecret: nhost.adminSecret,
-        file: params.file,
-        bucketId: params.bucketId || bucketId,
-        id,
-        name
+        ...params
       },
       ref
     )

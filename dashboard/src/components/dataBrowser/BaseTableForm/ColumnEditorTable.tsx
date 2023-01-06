@@ -82,7 +82,7 @@ export default function ColumnEditorTable() {
           startIcon={<PlusIcon />}
           size="small"
         >
-          Add column
+          Add Column
         </Button>
       </div>
     </>

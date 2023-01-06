@@ -7,6 +7,14 @@ function createNestedObjectFromRule({
 }: Rule): Record<string, any> {
   const columnNameParts = column.split('.');
 
+  if (columnNameParts.length === 1 && operator === '_is_null') {
+    return {
+      [column]: {
+        [operator]: value === 'true',
+      },
+    };
+  }
+
   if (columnNameParts.length === 1) {
     return {
       [column]: {
@@ -33,16 +41,48 @@ function createNestedObjectFromRule({
  * @returns - A Hasura permission object
  */
 export default function convertToHasuraPermissions(
-  ruleGroup: RuleGroup,
+  ruleGroup?: Partial<RuleGroup>,
 ): Record<string, any> {
-  if (ruleGroup.rules.length === 1 && ruleGroup.groups.length === 0) {
+  if (!ruleGroup) {
+    return null;
+  }
+
+  if (
+    (!('rules' in ruleGroup) &&
+      !('groups' in ruleGroup) &&
+      !('unsupported' in ruleGroup)) ||
+    (!ruleGroup.rules.length &&
+      !ruleGroup.groups?.length &&
+      !ruleGroup.unsupported?.length)
+  ) {
+    return {};
+  }
+
+  if (
+    ruleGroup.rules?.length === 1 &&
+    !ruleGroup.groups?.length &&
+    !ruleGroup?.unsupported?.length
+  ) {
     return createNestedObjectFromRule(ruleGroup.rules[0]);
   }
 
-  const convertedRules = ruleGroup.rules.map(createNestedObjectFromRule);
-  const subGroupRules = ruleGroup.groups.map(convertToHasuraPermissions);
+  if (
+    !ruleGroup.rules?.length &&
+    ruleGroup.groups?.length === 1 &&
+    !ruleGroup.unsupported?.length
+  ) {
+    return convertToHasuraPermissions(ruleGroup.groups[0]);
+  }
+
+  const convertedRules = ruleGroup.rules?.map(createNestedObjectFromRule) || [];
+  const subGroupRules = ruleGroup.groups?.map(convertToHasuraPermissions) || [];
+  const convertedUnsupportedRules = ruleGroup.unsupported || [];
 
   return {
-    [ruleGroup.operator]: [...convertedRules, ...subGroupRules],
+    [ruleGroup.operator]: [
+      ...convertedRules,
+      ...subGroupRules,
+      ...convertedUnsupportedRules,
+    ],
   };
 }

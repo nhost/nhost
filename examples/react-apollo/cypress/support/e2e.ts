@@ -86,6 +86,7 @@ Cypress.Commands.add('confirmEmail', (email) => {
   cy.mhGetMailsByRecipient(email)
     .should('have.length', 1)
     .then(([message]) => {
+      cy.mhDeleteAll()
       cy.visit(message.Content.Headers['X-Link'][0])
       cy.saveRefreshToken()
     })

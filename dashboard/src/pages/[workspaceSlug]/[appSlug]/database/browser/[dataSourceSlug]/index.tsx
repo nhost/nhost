@@ -16,7 +16,7 @@ export default function DataBrowserDatabaseDetailsPage() {
         description={
           <span>
             Database{' '}
-            <InlineCode className="max-h-[32px] bg-gray-200 bg-opacity-80 px-1.5 text-sm">
+            <InlineCode className="bg-gray-200 bg-opacity-80 px-1.5 text-sm">
               {dataSourceSlug}
             </InlineCode>{' '}
             does not exist.

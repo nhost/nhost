@@ -5,6 +5,7 @@ import type {
   MutationOrQueryBaseOptions,
   QueryResult,
 } from '@/types/dataBrowser';
+import normalizeMetadataError from '@/utils/dataBrowser/normalizeMetadataError/normalizeMetadataError';
 
 export interface TrackTableVariables {
   /**
@@ -45,18 +46,11 @@ export default async function trackTable({
     | [AffectedRowsResult, QueryResult<string[]>]
     | MetadataError = await response.json();
 
-  if (!response.ok || 'error' in responseData) {
-    if ('internal' in responseData) {
-      const metadataError = responseData as MetadataError;
-      throw new Error(
-        metadataError.internal[0]?.reason ||
-          'Unknown error occurred. Please try again later.',
-      );
-    }
-
-    if ('error' in responseData) {
-      const metadataError = responseData as MetadataError;
-      throw new Error(metadataError.error);
-    }
+  if (response.ok) {
+    return;
   }
+
+  const normalizedError = normalizeMetadataError(responseData);
+
+  throw new Error(normalizedError);
 }

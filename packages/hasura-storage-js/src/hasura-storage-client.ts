@@ -1,6 +1,8 @@
 import FormData from 'form-data'
 
+import { HasuraStorageApi } from './hasura-storage-api'
 import {
+  appendImageTransformationParameters,
   StorageDeleteParams,
   StorageDeleteResponse,
   StorageGetPresignedUrlParams,
@@ -10,8 +12,7 @@ import {
   StorageUploadFormDataParams,
   StorageUploadParams,
   StorageUploadResponse
-} from './utils/types'
-import { HasuraStorageApi } from './hasura-storage-api'
+} from './utils'
 
 export interface NhostStorageConstructorParams {
   /**
@@ -118,8 +119,11 @@ export class HasuraStorageClient {
    * @docs https://docs.nhost.io/reference/javascript/storage/get-public-url
    */
   getPublicUrl(params: StorageGetUrlParams): string {
-    const { fileId } = params
-    return `${this.url}/files/${fileId}`
+    const { fileId, ...imageTransformationParams } = params
+    return appendImageTransformationParameters(
+      `${this.url}/files/${fileId}`,
+      imageTransformationParams
+    )
   }
 
   /**

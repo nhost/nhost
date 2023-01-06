@@ -3,21 +3,21 @@ import type { FormControlProps } from '@/ui/v2/FormControl';
 import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
 import type { InputProps } from '@/ui/v2/Input';
-import Input from '@/ui/v2/Input';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
 import type { StyledComponent } from '@emotion/styled';
 import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
 import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
-import { darken, inputBaseClasses, styled } from '@mui/material';
+import { darken, styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
 } from '@mui/material/Autocomplete';
 import clsx from 'clsx';
 import type { ForwardedRef } from 'react';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 
 export interface AutocompleteOption<TValue = string> {
   /**
@@ -112,6 +112,12 @@ const StyledTag = styled(Chip)(({ theme }) => ({
 }));
 
 const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
+  [`&:not(.${materialAutocompleteClasses.focused})`]: {
+    [`& .${inputClasses.root}`]: {
+      maxHeight: 40,
+      overflow: 'auto',
+    },
+  },
   [`.${materialAutocompleteClasses.endAdornment}`]: {
     right: theme.spacing(1.5),
   },
@@ -127,7 +133,7 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
 >;
 
 export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
-  zIndex: 1,
+  zIndex: theme.zIndex.modal + 1,
   boxShadow: 'none',
   minWidth: 320,
   maxWidth: 600,
@@ -196,6 +202,7 @@ function Autocomplete(
   }: AutocompleteProps<AutocompleteOption>,
   ref: ForwardedRef<HTMLInputElement>,
 ) {
+  const inputRef = useRef<HTMLInputElement>();
   const { formControl: formControlSlotProps, ...defaultComponentsProps } =
     slotProps || {};
 
@@ -260,6 +267,17 @@ function Autocomplete(
 
         if (onInputChange) {
           onInputChange(event, value, reason);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') {
+          return;
+        }
+
+        event.stopPropagation();
+
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
         }
       }}
       PopperComponent={AutocompletePopper}
@@ -344,13 +362,14 @@ function Autocomplete(
         ...params
       }) => (
         <Input
+          ref={inputRef}
           slotProps={{
             input: {
               className: slotProps?.input?.className,
               sx: props.multiple
                 ? {
                     flexWrap: 'wrap',
-                    [`& .${inputBaseClasses.input}`]: {
+                    [`& .${inputClasses.input}`]: {
                       minWidth: 30,
                       width: 0,
                     },

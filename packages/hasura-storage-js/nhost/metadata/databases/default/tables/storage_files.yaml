@@ -82,5 +82,4 @@ select_permissions:
 delete_permissions:
   - role: public
     permission:
-      backend_only: false
       filter: {}

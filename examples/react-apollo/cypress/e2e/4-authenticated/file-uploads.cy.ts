@@ -17,6 +17,33 @@ context('File uploads', () => {
       .contains('Successfully uploaded')
   })
 
+  it('should upload two files using the same single file uploader', () => {
+    cy.signUpAndConfirmEmail()
+    cy.findByRole('button', { name: /Storage/i }).click()
+    cy.findByRole('button', { name: /Drag a file here or click to select/i })
+      .children('input[type=file]')
+      .selectFile(
+        {
+          contents: Cypress.Buffer.from('file contents'),
+          fileName: 'file.txt',
+          mimeType: 'text/plain',
+          lastModified: Date.now()
+        },
+        { force: true }
+      )
+      .selectFile(
+        {
+          contents: Cypress.Buffer.from('file contents'),
+          fileName: 'file.txt',
+          mimeType: 'text/plain',
+          lastModified: Date.now()
+        },
+        { force: true }
+      )
+      .parent()
+      .contains('Successfully uploaded')
+  })
+
   it('should upload multiple files', () => {
     const files: Required<Cypress.FileReferenceObject>[] = [
       {
