@@ -104,16 +104,33 @@ export default function CreateWorkspaceForm({
         },
       },
     });
+    try {
+      await toast.promise(
+        updateAppPromise,
+        {
+          loading: 'Creating new workspace...',
+          success: 'New workspace created successfully.',
+          error: 'An error occurred while creating new workspace.',
+        },
+        toastStyleProps,
+      );
+    } catch (error) {
+      if (error.message?.includes('duplicate key value')) {
+        form.setError(
+          'newWorkspaceName',
+          {
+            type: 'manual',
+            message: 'This workspace name is already taken.',
+          },
+          {
+            shouldFocus: false,
+          },
+        );
+      }
 
-    await toast.promise(
-      updateAppPromise,
-      {
-        loading: 'Creating new workspace...',
-        success: 'New workspace created successfully.',
-        error: 'An error occurred while creating new workspace.',
-      },
-      toastStyleProps,
-    );
+      return;
+    }
+
     await client.refetchQueries({
       include: ['getOneUser'],
     });
