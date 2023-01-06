@@ -106,7 +106,7 @@ export default function CreateWorkspaceForm({
       {
         loading: 'Creating new workspace...',
         success: 'New workspace created successfully.',
-        error: 'An error occurred while creating new workspace.',
+        error: 'An error occurred while creating the new workspace.',
       },
       toastStyleProps,
     );
