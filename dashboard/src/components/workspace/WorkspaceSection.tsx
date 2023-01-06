@@ -27,10 +27,6 @@ export function WorkspaceSection() {
                 </Text>
               </span>
             ),
-            // payload: {
-            //   disabled: true,
-            //   jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
-            // },
           });
         }}
         startIcon={<PlusCircleIcon />}
