@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-access-token
  */
-export const useAuthenticated = () => {
+export const useAuthenticated = (): boolean => {
   const service = useAuthInterpreter()
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!service.status && service.getSnapshot().matches({ authentication: 'signedIn' })

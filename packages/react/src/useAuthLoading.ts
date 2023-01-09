@@ -11,7 +11,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * Use {@link useAuthenticationStatus} instead.
  */
-export const useAuthLoading = () => {
+export const useAuthLoading = (): boolean => {
   const service = useAuthInterpreter()
   return useSelector(service, (state) => state.hasTag('loading'))
 }

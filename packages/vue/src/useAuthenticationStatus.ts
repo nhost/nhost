@@ -1,5 +1,7 @@
+import { ErrorPayload } from '@nhost/nhost-js'
 import { toRefs } from '@vueuse/core'
 import { useSelector } from '@xstate/vue'
+import { ToRefs } from 'vue'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
@@ -11,7 +13,13 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  * const { isAuthenticated, isLoading } = useAuthenticationStatus();
  * ```
  */
-export const useAuthenticationStatus = () => {
+export const useAuthenticationStatus = (): ToRefs<{
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: ErrorPayload | null
+  isError: boolean
+  connectionAttempts: number
+}> => {
   const service = useAuthInterpreter()
   return toRefs(
     useSelector(
