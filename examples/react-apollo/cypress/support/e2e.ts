@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { User } from '@nhost/hasura-auth-js'
+import { User } from '@nhost/react'
 
 import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
