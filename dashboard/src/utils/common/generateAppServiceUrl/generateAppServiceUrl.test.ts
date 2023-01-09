@@ -75,13 +75,13 @@ test('should generate staging subdomains in staging environment', () => {
 
 test('should generate a /v1/files as a slug for storage in local mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:1337/v1/files',
+    'http://localhost:8080/v1/files',
   );
 });
 
 test('should generate no slug for Hasura neither in local mode nor in remote mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
-    'http://localhost:1337',
+    'http://localhost:8080',
   );
 
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -104,7 +104,7 @@ test('should be able to override the default local backend slugs', () => {
       ...defaultLocalBackendSlugs,
       storage: '/v1/storage',
     }),
-  ).toBe('http://localhost:1337/v1/storage');
+  ).toBe('http://localhost:8080/v1/storage');
 });
 
 test('should be able to override the default remote backend slugs', () => {
@@ -145,10 +145,6 @@ test('should use the custom local subdomain for all services, except Hasura', ()
     'https://custom-local-domain.nhost.run/v1/files',
   );
 
-  expect(generateAppServiceUrl('http://localdev', '', 'storage')).toBe(
-    'http://localdev.nhost.run/v1/files',
-  );
-
   expect(generateAppServiceUrl('localdev', '', 'hasura')).toBe(
     'http://localhost:8080',
   );
@@ -158,25 +154,25 @@ test('should use the custom local subdomain for all services, except Hasura', ()
   );
 
   expect(generateAppServiceUrl('localhost', '', 'hasura')).toBe(
-    'http://localhost:1337',
+    'http://localhost:8080',
   );
 });
 
 test('should generate a basic subdomain without region in local mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'auth')).toBe(
-    `http://localhost:1337/v1/auth`,
+    `http://localhost:8080/v1/auth`,
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:1337/v1/files',
+    'http://localhost:8080/v1/files',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'graphql')).toBe(
-    'http://localhost:1337/v1/graphql',
+    'http://localhost:8080/v1/graphql',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'functions')).toBe(
-    'http://localhost:1337/v1/functions',
+    'http://localhost:8080/v1/functions',
   );
 });
 

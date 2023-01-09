@@ -9,7 +9,7 @@ import {
   getPreparedHasuraQuery,
 } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { getLocalMigrationsUrl } from '@/utils/env';
+import { getLocalHasuraMigrationServiceUrl } from '@/utils/env';
 
 export interface DeleteTableMigrationVariables {
   /**
@@ -40,29 +40,32 @@ export default async function deleteTable({
     ),
   ];
 
-  const response = await fetch(`${getLocalMigrationsUrl()}/apis/migrate`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      dataSource,
-      skip_execution: false,
-      name: `drop_table_${schema}_${table}`,
-      down: [
-        {
-          type: 'run_sql',
-          args: {
-            cascade: false,
-            read_only: false,
-            source: '',
-            sql: getEmptyDownMigrationMessage(deleteTableArgs),
+  const response = await fetch(
+    `${getLocalHasuraMigrationServiceUrl()}/apis/migrate`,
+    {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': adminSecret,
+      },
+      body: JSON.stringify({
+        dataSource,
+        skip_execution: false,
+        name: `drop_table_${schema}_${table}`,
+        down: [
+          {
+            type: 'run_sql',
+            args: {
+              cascade: false,
+              read_only: false,
+              source: '',
+              sql: getEmptyDownMigrationMessage(deleteTableArgs),
+            },
           },
-        },
-      ],
-      up: deleteTableArgs,
-    }),
-  });
+        ],
+        up: deleteTableArgs,
+      }),
+    },
+  );
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

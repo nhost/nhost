@@ -7,7 +7,7 @@ import type {
   QueryResult,
 } from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { getLocalMigrationsUrl } from '@/utils/env';
+import { getLocalHasuraMigrationServiceUrl } from '@/utils/env';
 
 export interface ManagePermissionMigrationVariables {
   /**
@@ -109,19 +109,22 @@ export default async function managePermissionMigration({
     };
   }
 
-  const response = await fetch(`${getLocalMigrationsUrl()}/apis/migrate`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
+  const response = await fetch(
+    `${getLocalHasuraMigrationServiceUrl()}/apis/migrate`,
+    {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': adminSecret,
+      },
+      body: JSON.stringify({
+        dataSource,
+        skip_execution: false,
+        name: `change_${action}_permission_${role}_${schema}_${table}`,
+        down: args.down,
+        up: args.up,
+      }),
     },
-    body: JSON.stringify({
-      dataSource,
-      skip_execution: false,
-      name: `change_${action}_permission_${role}_${schema}_${table}`,
-      down: args.down,
-      up: args.up,
-    }),
-  });
+  );
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

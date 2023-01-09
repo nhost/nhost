@@ -1,4 +1,4 @@
-import { getLocalBackendPort } from '@/utils/env';
+import { getLocalHasuraServiceUrl, getLocalServicesPort } from '@/utils/env';
 
 export type NhostService =
   | 'auth'
@@ -50,16 +50,15 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
-  const LOCAL_BACKEND_PORT = getLocalBackendPort();
+  const LOCAL_SERVICES_PORT = getLocalServicesPort();
+  const LOCAL_HASURA_URL = getLocalHasuraServiceUrl();
 
   // We are treating this case as if NEXT_PUBLIC_NHOST_PLATFORM is true,
   // but we need to make sure to use Hasura URLs are pointing to `localhost`
   // as this is currently a limitation of Hasura.
   if (subdomain && subdomain !== 'localhost' && !region) {
     if (service === 'hasura') {
-      return `http://localhost:${LOCAL_BACKEND_PORT || 8080}${
-        localBackendSlugs[service]
-      }`;
+      return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
     }
 
     const nhostBackend =
@@ -67,29 +66,23 @@ export default function generateAppServiceUrl(
         ? 'staging.nhost.run'
         : 'nhost.run';
 
-    const customSubdomain =
-      subdomain.startsWith('https://') || subdomain.startsWith('http://')
-        ? subdomain
-        : `https://${subdomain}`;
+    const customSubdomainWithProtocol = `https://${subdomain}`;
 
-    if (LOCAL_BACKEND_PORT && LOCAL_BACKEND_PORT !== '443') {
-      return `${customSubdomain}.${nhostBackend}:${LOCAL_BACKEND_PORT}${localBackendSlugs[service]}`;
+    if (LOCAL_SERVICES_PORT && LOCAL_SERVICES_PORT !== '443') {
+      return `${customSubdomainWithProtocol}.${nhostBackend}:${LOCAL_SERVICES_PORT}${localBackendSlugs[service]}`;
     }
 
-    return `${customSubdomain}.${nhostBackend}${localBackendSlugs[service]}`;
+    return `${customSubdomainWithProtocol}.${nhostBackend}${localBackendSlugs[service]}`;
   }
 
   if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return `http://localhost:${LOCAL_BACKEND_PORT || 1337}${
-      localBackendSlugs[service]
-    }`;
+    return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return `${
-      process.env.NEXT_PUBLIC_NHOST_BACKEND_URL ||
-      `http://localhost:${LOCAL_BACKEND_PORT || 1337}`
-    }${localBackendSlugs[service]}`;
+    return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || LOCAL_HASURA_URL}${
+      localBackendSlugs[service]
+    }`;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {

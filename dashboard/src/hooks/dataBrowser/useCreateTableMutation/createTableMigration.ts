@@ -7,7 +7,7 @@ import type {
 } from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { getLocalMigrationsUrl } from '@/utils/env';
+import { getLocalHasuraMigrationServiceUrl } from '@/utils/env';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 
 export interface CreateTableMigrationVariables {
@@ -28,26 +28,29 @@ export default async function createTableMigration({
 }: CreateTableMigrationOptions & CreateTableMigrationVariables) {
   const args = prepareCreateTableQuery({ dataSource, schema, table });
 
-  const response = await fetch(`${getLocalMigrationsUrl()}/apis/migrate`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
+  const response = await fetch(
+    `${getLocalHasuraMigrationServiceUrl()}/apis/migrate`,
+    {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': adminSecret,
+      },
+      body: JSON.stringify({
+        dataSource,
+        skip_execution: false,
+        name: `create_table_${schema}_${table.name}`,
+        down: [
+          getPreparedHasuraQuery(
+            dataSource,
+            'DROP TABLE IF EXISTS %I.%I',
+            schema,
+            table.name,
+          ),
+        ],
+        up: args,
+      }),
     },
-    body: JSON.stringify({
-      dataSource,
-      skip_execution: false,
-      name: `create_table_${schema}_${table.name}`,
-      down: [
-        getPreparedHasuraQuery(
-          dataSource,
-          'DROP TABLE IF EXISTS %I.%I',
-          schema,
-          table.name,
-        ),
-      ],
-      up: args,
-    }),
-  });
+  );
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();
