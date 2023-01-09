@@ -5,16 +5,16 @@ context('Forgot password', () => {
     const email = faker.internet.email()
 
     cy.signUpAndConfirmEmail(email)
-    cy.signOut()
+    cy.signOut().then((e) => {
+      cy.visit('/sign-in')
+      cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
+      cy.findByRole('button', { name: /Forgot Password?/i }).click()
 
-    cy.visit('/sign-in')
-    cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
-    cy.findByRole('button', { name: /Forgot Password?/i }).click()
+      cy.findByPlaceholderText('Email Address').type(email)
+      cy.findByRole('button', { name: /Reset your password/i }).click()
 
-    cy.findByPlaceholderText('Email Address').type(email)
-    cy.findByRole('button', { name: /Reset your password/i }).click()
-
-    cy.confirmEmail(email)
-    cy.contains('Profile page')
+      cy.confirmEmail(email)
+      cy.contains('Profile page')
+    })
   })
 })
