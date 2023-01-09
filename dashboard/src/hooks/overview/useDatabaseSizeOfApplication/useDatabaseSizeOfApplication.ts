@@ -21,10 +21,7 @@ export default function useDatabaseSizeOfApplication(
     queryKey,
     () =>
       fetchProjectDatabaseSize({
-        subdomain:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'localhost'
-            : currentApplication?.subdomain,
+        subdomain: currentApplication?.subdomain,
         region: currentApplication?.region?.awsName,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'

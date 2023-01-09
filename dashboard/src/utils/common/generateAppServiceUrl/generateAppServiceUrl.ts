@@ -1,3 +1,5 @@
+import { getLocalBackendPort } from '@/utils/env';
+
 export type NhostService =
   | 'auth'
   | 'graphql'
@@ -48,13 +50,13 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
+  const LOCAL_BACKEND_PORT = getLocalBackendPort();
+
   // We are treating it as if NEXT_PUBLIC_NHOST_PLATFORM is true, but we need
   // to make sure to use Hasura on `localhost`
-  if (subdomain !== 'localhost' && !region) {
-    const localPort = process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT;
-
+  if (subdomain && subdomain !== 'localhost' && !region) {
     if (service === 'hasura') {
-      return `http://localhost:${localPort || 1337}${
+      return `http://localhost:${LOCAL_BACKEND_PORT || 8080}${
         localBackendSlugs[service]
       }`;
     }
@@ -69,27 +71,23 @@ export default function generateAppServiceUrl(
         ? subdomain
         : `https://${subdomain}`;
 
-    if (localPort && localPort !== '443') {
-      return `${customSubdomain}.${nhostBackend}:${localPort}${
-        process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_SLUG || ''
-      }${localBackendSlugs[service]}`;
+    if (LOCAL_BACKEND_PORT && LOCAL_BACKEND_PORT !== '443') {
+      return `${customSubdomain}.${nhostBackend}:${LOCAL_BACKEND_PORT}${localBackendSlugs[service]}`;
     }
 
     return `${customSubdomain}.${nhostBackend}${localBackendSlugs[service]}`;
   }
 
   if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return `http://localhost:${
-      process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT || 1337
-    }${localBackendSlugs[service]}`;
+    return `http://localhost:${LOCAL_BACKEND_PORT || 1337}${
+      localBackendSlugs[service]
+    }`;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return `${
       process.env.NEXT_PUBLIC_NHOST_BACKEND_URL ||
-      `http://localhost:${
-        process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT || 1337
-      }`
+      `http://localhost:${LOCAL_BACKEND_PORT || 1337}`
     }${localBackendSlugs[service]}`;
   }
 

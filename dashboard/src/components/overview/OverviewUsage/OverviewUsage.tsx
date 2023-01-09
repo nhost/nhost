@@ -83,6 +83,7 @@ export function OverviewUsageMetrics() {
   const isPlatform = useIsPlatform();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const remoteAppClient = useRemoteApplicationGQLClient();
+
   const [metrics, setMetrics] = useState({
     functions: 0,
     storage: 0,
@@ -102,6 +103,7 @@ export function OverviewUsageMetrics() {
 
   const { data: remoteAppMetricsData } = useGetRemoteAppMetricsQuery({
     client: remoteAppClient,
+    skip: !currentApplication,
   });
 
   useEffect(() => {

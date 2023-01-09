@@ -43,7 +43,7 @@ export default async function fetchProjectDatabaseSize({
         type: 'run_sql',
         args: {
           sql: `SELECT pg_database_size('${
-            subdomain === 'localhost' ? 'postgres' : subdomain
+            subdomain && !region ? 'postgres' : subdomain
           }');`,
         },
       }),

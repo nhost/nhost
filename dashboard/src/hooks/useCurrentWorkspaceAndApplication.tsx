@@ -2,7 +2,7 @@ import { useUserDataContext } from '@/context/workspace1-context';
 import type { Application } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import { SUBDOMAIN } from '@/utils/env';
+import { getSubdomain } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useIsPlatform from './common/useIsPlatform';
@@ -42,7 +42,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
           },
         ],
         deployments: [],
-        subdomain: SUBDOMAIN,
+        subdomain: getSubdomain(),
         region: {
           id: null,
           countryCode: null,

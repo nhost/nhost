@@ -7,7 +7,7 @@ import type {
 } from '@/types/dataBrowser';
 import { getEmptyDownMigrationMessage } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { LOCAL_MIGRATIONS_URL } from '@/utils/env';
+import { getLocalMigrationsUrl } from '@/utils/env';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 
 export interface UpdateColumnMigrationVariables {
@@ -66,7 +66,7 @@ export default async function updateColumnMigration({
     ];
   }
 
-  const response = await fetch(`${LOCAL_MIGRATIONS_URL}/apis/migrate`, {
+  const response = await fetch(`${getLocalMigrationsUrl()}/apis/migrate`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

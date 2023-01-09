@@ -1,4 +1,4 @@
-import { LOCAL_SUBDOMAIN } from '@/utils/env';
+import { getLocalSubdomain } from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
@@ -21,7 +21,7 @@ export function useAppClient(
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
     return new NhostClient({
-      subdomain: LOCAL_SUBDOMAIN,
+      subdomain: getLocalSubdomain(),
       ...options,
     });
   }
