@@ -3,13 +3,13 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import RuleRemoveButton from './RuleRemoveButton';
 import RuleValueInput from './RuleValueInput';
+import useRuleGroupEditor from './useRuleGroupEditor';
 
 export interface RuleEditorRowProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
@@ -98,11 +98,13 @@ export default function RuleEditorRow({
   disabledOperators = [],
   ...props
 }: RuleEditorRowProps) {
-  const {
-    query: { schemaSlug, tableSlug },
-  } = useRouter();
-  const { control, setValue } = useFormContext();
+  const { schema, table, disabled } = useRuleGroupEditor();
+  const { control, setValue, getFieldState } = useFormContext();
   const rowName = `${name}.rules.${index}`;
+
+  const columnState = getFieldState(`${rowName}.column`);
+  const operatorState = getFieldState(`${rowName}.operator`);
+  const valueState = getFieldState(`${rowName}.value`);
 
   const [selectedTablePath, setSelectedTablePath] = useState<string>('');
   const [selectedColumnType, setSelectedColumnType] = useState<string>('');
@@ -128,30 +130,36 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'flex lg:flex-row flex-col items-stretch lg:max-h-10 flex-1 space-y-1 lg:space-y-0',
+        'grid lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] grid-flow-row lg:max-h-10 space-y-1 lg:space-y-0',
         className,
       )}
       {...props}
     >
       <ColumnAutocomplete
         {...autocompleteField}
-        schema={schemaSlug as string}
-        table={tableSlug as string}
-        rootClassName="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[320px] h-10"
+        disabled={disabled}
+        schema={schema}
+        table={table}
+        rootClassName="h-10"
         slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
         fullWidth
+        error={Boolean(columnState?.error?.message)}
         onChange={(_event, { value, columnMetadata, disableReset }) => {
           setSelectedTablePath(
             `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${rowName}.column`, value, { shouldDirty: true });
+          setValue(`${rowName}.column`, value, {
+            shouldDirty: true,
+          });
 
           if (disableReset) {
             return;
           }
 
-          setValue(`${rowName}.operator`, '_eq', { shouldDirty: true });
+          setValue(`${rowName}.operator`, '_eq', {
+            shouldDirty: true,
+          });
           setValue(`${rowName}.value`, '', { shouldDirty: true });
         }}
         onInitialized={({ value, columnMetadata }) => {
@@ -159,22 +167,32 @@ export default function RuleEditorRow({
             `${columnMetadata.table_schema}.${columnMetadata.table_name}`,
           );
           setSelectedColumnType(columnMetadata?.udt_name);
-          setValue(`${rowName}.column`, value, { shouldDirty: true });
+          setValue(`${rowName}.column`, value, {
+            shouldDirty: true,
+          });
         }}
       />
 
       <ControlledSelect
+        disabled={disabled}
         name={`${rowName}.operator`}
-        className="lg:flex-grow-0 lg:flex-shrink-0 lg:flex-[140px] h-10"
-        slotProps={{ root: { className: 'bg-white lg:!rounded-none' } }}
+        className="h-10"
+        slotProps={{
+          root: { className: 'bg-white lg:!rounded-none' },
+          listbox: { className: 'max-h-[300px]' },
+          popper: { disablePortal: false, className: 'z-[10000]' },
+        }}
         fullWidth
+        error={Boolean(operatorState?.error?.message)}
         onChange={(_event, value: HasuraOperator) => {
           if (!['_in', '_nin', '_in_hasura', '_nin_hasura'].includes(value)) {
             return;
           }
 
           if (value === '_in_hasura' || value === '_nin_hasura') {
-            setValue(`${rowName}.value`, null, { shouldDirty: true });
+            setValue(`${rowName}.value`, null, {
+              shouldDirty: true,
+            });
 
             return;
           }
@@ -200,9 +218,13 @@ export default function RuleEditorRow({
         {availableOperators.map(renderOption)}
       </ControlledSelect>
 
-      <RuleValueInput selectedTablePath={selectedTablePath} name={rowName} />
+      <RuleValueInput
+        selectedTablePath={selectedTablePath}
+        name={rowName}
+        error={Boolean(valueState?.error?.message)}
+      />
 
-      <RuleRemoveButton onRemove={onRemove} name={name} />
+      <RuleRemoveButton onRemove={onRemove} name={name} disabled={disabled} />
     </div>
   );
 }

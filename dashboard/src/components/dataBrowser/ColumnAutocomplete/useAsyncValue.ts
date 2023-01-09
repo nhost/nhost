@@ -4,7 +4,7 @@ import type { HasuraMetadataTable } from '@/types/dataBrowser';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { useEffect, useState } from 'react';
 
-export interface UseAsyncInitialValueOptions {
+export interface UseAsyncValueOptions {
   /**
    * Selected schema to be used to determine the initial value.
    */
@@ -42,7 +42,7 @@ export interface UseAsyncInitialValueOptions {
   }) => void;
 }
 
-export default function useAsyncInitialValue({
+export default function useAsyncValue({
   selectedSchema,
   selectedTable,
   initialValue,
@@ -51,7 +51,7 @@ export default function useAsyncInitialValue({
   tableData,
   metadata,
   onInitialized,
-}: UseAsyncInitialValueOptions) {
+}: UseAsyncValueOptions) {
   const currentTablePath = `${selectedSchema}.${selectedTable}`;
   const [inputValue, setInputValue] = useState('');
   const [initialized, setInitialized] = useState(false);
@@ -65,10 +65,9 @@ export default function useAsyncInitialValue({
   const [selectedRelationships, setSelectedRelationships] = useState<
     { schema: string; table: string; name: string }[]
   >([]);
-  const relationshipDotNotation =
-    initialized && selectedRelationships?.length > 0
-      ? selectedRelationships.map((relationship) => relationship.name).join('.')
-      : '';
+  const relationshipDotNotation = selectedRelationships
+    .map((relationship) => relationship.name)
+    .join('.');
   const [selectedColumn, setSelectedColumn] =
     useState<AutocompleteOption>(null);
   const activeRelationship =
@@ -146,7 +145,8 @@ export default function useAsyncInitialValue({
       remainingColumnPath.length < 2 ||
       isTableLoading ||
       isMetadataLoading ||
-      !tableData?.columns
+      !tableData?.columns ||
+      asyncTablePath !== currentTablePath
     ) {
       return;
     }
@@ -167,8 +167,8 @@ export default function useAsyncInitialValue({
 
     const tableMetadata = metadataMap.get(`${selectedSchema}.${selectedTable}`);
     const currentRelationship = [
-      ...(tableMetadata.object_relationships || []),
-      ...(tableMetadata.array_relationships || []),
+      ...(tableMetadata?.object_relationships || []),
+      ...(tableMetadata?.array_relationships || []),
     ].find(({ name }) => name === nextPath);
 
     if (!currentRelationship) {
@@ -176,11 +176,32 @@ export default function useAsyncInitialValue({
       return;
     }
 
-    const { foreign_key_constraint_on: metadataConstraint } =
-      currentRelationship.using || {};
+    const {
+      foreign_key_constraint_on: metadataConstraint,
+      manual_configuration: metadataManualConfiguration,
+    } = currentRelationship.using || {};
+
+    if (metadataManualConfiguration) {
+      setAsyncTablePath(
+        `${metadataManualConfiguration.remote_table.schema}.${metadataManualConfiguration.remote_table.name}`,
+      );
+
+      setSelectedRelationships((currentRelationships) => [
+        ...currentRelationships,
+        {
+          schema: metadataManualConfiguration.remote_table.schema || 'public',
+          table: metadataManualConfiguration.remote_table.name,
+          name: nextPath,
+        },
+      ]);
+
+      setRemainingColumnPath((columnPath) => columnPath.slice(1));
+
+      return;
+    }
 
     // In some cases the metadata already contains the schema and table name
-    if (typeof metadataConstraint !== 'string') {
+    if (metadataConstraint && typeof metadataConstraint !== 'string') {
       setAsyncTablePath(
         `${metadataConstraint.table.schema || 'public'}.${
           metadataConstraint.table.name
@@ -203,17 +224,25 @@ export default function useAsyncInitialValue({
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
       ({ columnName }) => {
-        const { foreign_key_constraint_on } = currentRelationship.using || {};
+        const normalizedColumnName = columnName.replace(/"/g, '');
+        const { foreign_key_constraint_on, manual_configuration } =
+          currentRelationship.using || {};
 
-        if (!foreign_key_constraint_on) {
+        if (!foreign_key_constraint_on && !manual_configuration) {
           return false;
         }
 
-        if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === columnName;
+        if (manual_configuration) {
+          return Object.keys(manual_configuration.column_mapping).includes(
+            normalizedColumnName,
+          );
         }
 
-        return foreign_key_constraint_on.column === columnName;
+        if (typeof foreign_key_constraint_on === 'string') {
+          return foreign_key_constraint_on === normalizedColumnName;
+        }
+
+        return foreign_key_constraint_on.column === normalizedColumnName;
       },
     );
 
@@ -222,23 +251,30 @@ export default function useAsyncInitialValue({
       return;
     }
 
-    setAsyncTablePath(
-      `${foreignKeyRelation.referencedSchema || 'public'}.${
-        foreignKeyRelation.referencedTable
-      }`,
+    const normalizedSchema = foreignKeyRelation.referencedSchema?.replace(
+      /(\\"|")/g,
+      '',
     );
+    const normalizedTable = foreignKeyRelation.referencedTable?.replace(
+      /(\\"|")/g,
+      '',
+    );
+
+    setAsyncTablePath(`${normalizedSchema || 'public'}.${normalizedTable}`);
 
     setSelectedRelationships((currentRelationships) => [
       ...currentRelationships,
       {
-        schema: foreignKeyRelation.referencedSchema || 'public',
-        table: foreignKeyRelation.referencedTable,
+        schema: normalizedSchema || 'public',
+        table: normalizedTable,
         name: nextPath,
       },
     ]);
 
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [
+    currentTablePath,
+    asyncTablePath,
     selectedSchema,
     selectedTable,
     metadata?.tables,
@@ -258,6 +294,9 @@ export default function useAsyncInitialValue({
     selectedColumn: initialized ? selectedColumn : null,
     setSelectedRelationships,
     setSelectedColumn,
-    relationshipDotNotation,
+    relationshipDotNotation:
+      initialized && selectedRelationships?.length > 0
+        ? relationshipDotNotation
+        : '',
   };
 }

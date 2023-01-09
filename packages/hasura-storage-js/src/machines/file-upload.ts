@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
+import { toIso88591 } from '../utils'
 
-import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { ErrorPayload, FileUploadConfig } from '../utils'
 
 export type FileUploadContext = {
   progress: number | null
@@ -128,7 +129,7 @@ export const createFileUploadMachine = () =>
             headers['x-nhost-bucket-id'] = bucketId
           }
           const file = (event.file || context.file)!
-          headers['x-nhost-file-name'] = event.name || file.name
+          headers['x-nhost-file-name'] = toIso88591(event.name || file.name)
           const data = new FormData()
           data.append('file', file)
           if (event.adminSecret) {

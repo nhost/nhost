@@ -65,7 +65,13 @@ const Template: ComponentStory<typeof RuleGroupEditor> = function Template(
     <div className="grid grid-flow-row gap-2">
       <FormProvider {...form}>
         <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-2">
-          <RuleGroupEditor {...args} name="ruleGroupEditor" onRemove={null} />
+          <RuleGroupEditor
+            schema="public"
+            table="books"
+            {...args}
+            name="ruleGroupEditor"
+            onRemove={null}
+          />
 
           <Button type="submit" className="justify-self-start">
             Submit

@@ -117,22 +117,22 @@ export default function SystemEnvironmentVariableSettings() {
       description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       rootClassName="gap-0"
-      className="px-0 mt-2 mb-2.5"
+      className="mt-2 mb-2.5 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="grid grid-cols-3 border-b-1 gap-2 border-gray-200 px-4 py-3">
+      <div className="grid grid-cols-3 gap-2 border-b-1 border-gray-200 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Value</Text>
       </div>
 
       <List>
-        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
+        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col lg:col-span-2 gap-2 items-center justify-start">
-            <Text className="text-greyscaleGreyDark truncate">
+          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+            <Text className="truncate text-greyscaleGreyDark">
               {showAdminSecret ? (
-                <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
+                <InlineCode className="!text-sm font-medium">
                   {currentApplication?.hasuraGraphqlAdminSecret}
                 </InlineCode>
               ) : (
@@ -149,9 +149,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowAdminSecret((show) => !show)}
             >
               {showAdminSecret ? (
-                <EyeOffIcon className="w-5 h-5" />
+                <EyeOffIcon className="h-5 w-5" />
               ) : (
-                <EyeIcon className="w-5 h-5" />
+                <EyeIcon className="h-5 w-5" />
               )}
             </IconButton>
           </div>
@@ -159,13 +159,13 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!my-4" />
 
-        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
+        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col gap-2 lg:col-span-2 items-center justify-start">
-            <Text className="text-greyscaleGreyDark truncate">
+          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+            <Text className="truncate text-greyscaleGreyDark">
               {showWebhookSecret ? (
-                <InlineCode className="!text-sm font-medium max-h-[initial] h-[initial]">
+                <InlineCode className="!text-sm font-medium">
                   {data?.app?.webhookSecret}
                 </InlineCode>
               ) : (
@@ -184,9 +184,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowWebhookSecret((show) => !show)}
             >
               {showWebhookSecret ? (
-                <EyeOffIcon className="w-5 h-5" />
+                <EyeOffIcon className="h-5 w-5" />
               ) : (
-                <EyeIcon className="w-5 h-5" />
+                <EyeIcon className="h-5 w-5" />
               )}
             </IconButton>
           </div>
@@ -196,7 +196,7 @@ export default function SystemEnvironmentVariableSettings() {
 
         {systemEnvironmentVariables.map((environmentVariable, index) => (
           <Fragment key={environmentVariable.key}>
-            <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
               <ListItem.Text>{environmentVariable.key}</ListItem.Text>
 
               <Text className="truncate lg:col-span-2">
@@ -212,7 +212,7 @@ export default function SystemEnvironmentVariableSettings() {
 
         <Divider component="li" className="!mt-4 !mb-2.5" />
 
-        <ListItem.Root className="px-4 grid grid-cols-2 lg:grid-cols-3 justify-start">
+        <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
           <div className="grid grid-flow-row md:grid-flow-col gap-1.5 justify-center text-center lg:text-left lg:justify-start items-center lg:col-span-2">

@@ -6,10 +6,10 @@ import UsersBody from '@/components/users/UsersBody';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
+import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { SearchIcon } from '@heroicons/react/solid';
@@ -198,7 +198,7 @@ export default function UsersPage() {
     [handleSearchStringChange],
   );
 
-  function handleViewUser() {
+  function openCreateUserDialog() {
     openDialog('CREATE_USER', {
       title: 'Create User',
       payload: {
@@ -237,7 +237,7 @@ export default function UsersPage() {
             onChange={handleSearchStringChange}
           />
           <Button
-            onClick={handleViewUser}
+            onClick={openCreateUserDialog}
             startIcon={<PlusIcon className="w-4 h-4" />}
             className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
             size="small"
@@ -271,7 +271,7 @@ export default function UsersPage() {
           onChange={handleSearchStringChange}
         />
         <Button
-          onClick={handleViewUser}
+          onClick={openCreateUserDialog}
           startIcon={<PlusIcon className="w-4 h-4" />}
           className="grid h-full grid-flow-col gap-1 p-2 place-items-center"
           size="small"
@@ -296,7 +296,7 @@ export default function UsersPage() {
               color="primary"
               className="w-full"
               aria-label="Create User"
-              onClick={handleViewUser}
+              onClick={openCreateUserDialog}
               startIcon={<PlusIcon className="w-4 h-4" />}
             >
               Create User

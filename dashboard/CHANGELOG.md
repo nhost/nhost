@@ -1,5 +1,29 @@
 # @nhost/dashboard
 
+## 0.9.1
+
+### Patch Changes
+
+- d0f80811: fix(dashboard): don't show error when signing out the user
+
+## 0.9.0
+
+### Minor Changes
+
+- d92891b2: feat(dashboard): add Permission Editor to the Database section
+
+### Patch Changes
+
+- 3d379128: fix(dashboard): create new user
+  - @nhost/react-apollo@4.13.0
+  - @nhost/nextjs@1.13.0
+
+## 0.8.1
+
+### Patch Changes
+
+- 7cadd944: fix(dashboard): display Twitter provider settings
+
 ## 0.8.0
 
 ### Minor Changes

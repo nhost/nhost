@@ -85,6 +85,11 @@ const EditTableForm = dynamic(
   { ssr: false, loading: () => LoadingComponent() },
 );
 
+const EditPermissionsForm = dynamic(
+  () => import('@/components/dataBrowser/EditPermissionsForm'),
+  { ssr: false, loading: () => LoadingComponent() },
+);
+
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const router = useRouter();
 
@@ -196,23 +201,31 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [],
   );
 
-  function closeDrawerWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDrawerDirty.current && event?.type !== 'submit') {
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
-      return;
-    }
+  const closeDrawerWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDrawerDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
+        return;
+      }
 
-    closeDrawer();
-  }
+      closeDrawer();
+    },
+    [closeDrawer, openDirtyConfirmation],
+  );
 
-  function closeDialogWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDialogDirty.current && event?.type !== 'submit') {
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
-      return;
-    }
+  const closeDialogWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDialogDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
+        return;
+      }
 
-    closeDialog();
-  }
+      closeDialog();
+    },
+    [closeDialog, openDirtyConfirmation],
+  );
 
   // We are coupling this logic with the location of the dialog content which is
   // not ideal. We shoule figure out a better logic for tracking the dirty
@@ -239,10 +252,22 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openAlertDialog,
       closeDialog,
       closeDrawer,
+      closeDialogWithDirtyGuard,
+      closeDrawerWithDirtyGuard,
       closeAlertDialog,
       onDirtyStateChange,
+      openDirtyConfirmation,
     }),
-    [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
+    [
+      closeDialog,
+      closeDialogWithDirtyGuard,
+      closeDrawer,
+      closeDrawerWithDirtyGuard,
+      onDirtyStateChange,
+      openDialog,
+      openDirtyConfirmation,
+      openDrawer,
+    ],
   );
 
   const sharedDialogProps = {
@@ -391,13 +416,19 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       </BaseDialog>
 
       <Drawer
+        anchor="right"
         {...drawerProps}
         title={drawerTitle}
         open={drawerOpen}
         onClose={closeDrawerWithDirtyGuard}
         SlideProps={{ onExited: clearDrawerContent, unmountOnExit: false }}
-        anchor="right"
-        PaperProps={{ className: 'max-w-2.5xl w-full' }}
+        PaperProps={{
+          ...drawerProps?.PaperProps,
+          className: twMerge(
+            'max-w-2.5xl w-full',
+            drawerProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary>
           {activeDrawerType === 'CREATE_RECORD' && (
@@ -430,6 +461,15 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               {...sharedDrawerProps}
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
+            />
+          )}
+
+          {activeDrawerType === 'EDIT_PERMISSIONS' && (
+            <EditPermissionsForm
+              {...sharedDrawerProps}
+              disabled={drawerPayload?.disabled}
+              schema={drawerPayload?.schema}
+              table={drawerPayload?.table}
             />
           )}
 

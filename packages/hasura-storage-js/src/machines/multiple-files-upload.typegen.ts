@@ -8,9 +8,9 @@ export interface Typegen0 {
   invokeSrcNameMap: {}
   missingImplementations: {
     actions: never
-    services: never
-    guards: never
     delays: never
+    guards: never
+    services: never
   }
   eventsCausingActions: {
     addItem: 'ADD' | 'UPLOAD'
@@ -25,13 +25,13 @@ export interface Typegen0 {
     startProgress: 'UPLOAD'
     upload: 'UPLOAD'
   }
-  eventsCausingServices: {}
+  eventsCausingDelays: {}
   eventsCausingGuards: {
     hasFileToDownload: 'UPLOAD'
     isAllUploaded: 'UPLOAD_DONE' | 'UPLOAD_ERROR'
     isAllUploadedOrError: 'UPLOAD_DONE' | 'UPLOAD_ERROR'
   }
-  eventsCausingDelays: {}
+  eventsCausingServices: {}
   matchesStates: 'error' | 'idle' | 'uploaded' | 'uploading'
   tags: never
 }

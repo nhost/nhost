@@ -27,6 +27,10 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * @default []
    */
   orderBy?: OrderBy[];
+  /**
+   * Determines whether the query should fetch the rows or not.
+   */
+  preventRowFetching?: boolean;
 }
 
 export interface FetchTableReturnType {
@@ -68,10 +72,13 @@ export default async function fetchTable({
   limit,
   offset,
   orderBy,
+  preventRowFetching,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
-  if (limit && offset) {
+  if (preventRowFetching) {
+    limitAndOffsetClause = `LIMIT 0`;
+  } else if (limit && offset) {
     limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
   } else if (limit) {
     limitAndOffsetClause = `LIMIT ${limit}`;
