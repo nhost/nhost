@@ -1,4 +1,4 @@
-import { computed, unref } from 'vue'
+import { computed, ComputedRef, unref } from 'vue'
 
 import { RefOrValue } from './helpers'
 import { useHasuraClaims } from './useHasuraClaims'
@@ -14,7 +14,7 @@ import { useHasuraClaims } from './useHasuraClaims'
  *
  * @docs https://docs.nhost.io/reference/vue/use-hasura-claim
  */
-export const useHasuraClaim = (name: RefOrValue<string>) => {
+export const useHasuraClaim = (name: RefOrValue<string>): ComputedRef<string | string[] | null> => {
   const hasuraClaims = useHasuraClaims()
   return computed(() => {
     const unrefName = unref(name)
