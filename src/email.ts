@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 
 import { ENV } from './utils/env';
 import { EmailLocals, renderTemplate } from './templates';
+import { logger } from './logger';
 
 /**
  * SMTP transport.
@@ -22,9 +23,34 @@ const transport = nodemailer.createTransport({
 /**
  * Reusable email client.
  */
-export const emailClient = new Email<EmailLocals>({
+const emailClient = new Email<EmailLocals>({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,
   render: renderTemplate,
 });
+
+export const sendEmail = async (
+  options: Parameters<typeof emailClient['send']>[0]
+) => {
+  try {
+    await emailClient.send(options);
+  } catch (err) {
+    const error = err as Error;
+    logger.warn(
+      `SMTP error`,
+      Object.entries(error).reduce(
+        (acc, [key, value]) => ({
+          ...acc,
+          [key]: value,
+        }),
+        {}
+      )
+    );
+    logger.warn(`SMTP error context`, {
+      template: options.template,
+      to: options.message.to,
+    });
+    throw err;
+  }
+};

@@ -9,7 +9,7 @@ import {
   UserRegistrationOptionsWithRedirect,
 } from '@/types';
 import { hashPassword } from '../password';
-import { emailClient } from '@/email';
+import { sendEmail } from '@/email';
 import { createEmailRedirectionLink } from '../redirect';
 import { getUserByEmail } from './getters';
 
@@ -43,7 +43,7 @@ const sendEmailIfNotVerified = async ({
       ticket,
       redirectTo
     );
-    await emailClient.send({
+    await sendEmail({
       template,
       message: {
         to: email,

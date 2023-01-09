@@ -9,7 +9,7 @@ import {
   getUserByEmail,
   pgClient,
 } from '@/utils';
-import { emailClient } from '@/email';
+import { sendEmail } from '@/email';
 import { Joi, email, redirectTo } from '@/validation';
 import { EMAIL_TYPES } from '@/types';
 import { sendError } from '@/errors';
@@ -70,7 +70,7 @@ export const userEmailChange: RequestHandler<
     ticket,
     redirectTo
   );
-  await emailClient.send({
+  await sendEmail({
     template,
     locals: {
       link,

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import { pgClient, createEmailRedirectionLink, getUserByEmail } from '@/utils';
-import { emailClient } from '@/email';
+import { sendEmail } from '@/email';
 import { sendError } from '@/errors';
 
 import { ENV } from '../env';
@@ -80,7 +80,7 @@ export const handleDeanonymizeUserEmailPassword = async (
       ticket,
       redirectTo
     );
-    await emailClient.send({
+    await sendEmail({
       template,
       message: {
         to: email,

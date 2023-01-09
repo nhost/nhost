@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { emailClient } from '@/email';
+import { sendEmail } from '@/email';
 import {
   getUserByEmail,
   generateTicketExpiresAt,
@@ -58,7 +58,7 @@ export const userPasswordResetHandler: RequestHandler<
     ticket,
     redirectTo
   );
-  await emailClient.send({
+  await sendEmail({
     template,
     locals: {
       link,

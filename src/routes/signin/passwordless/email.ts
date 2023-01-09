@@ -11,7 +11,7 @@ import {
   createEmailRedirectionLink,
   pgClient,
 } from '@/utils';
-import { emailClient } from '@/email';
+import { sendEmail } from '@/email';
 import { EMAIL_TYPES, UserRegistrationOptionsWithRedirect } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, email, registrationOptions } from '@/validation';
@@ -87,7 +87,7 @@ export const signInPasswordlessEmailHandler: RequestHandler<
     ticket,
     redirectTo
   );
-  await emailClient.send({
+  await sendEmail({
     template,
     message: {
       to: email,
