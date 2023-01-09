@@ -1,7 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
 import { FileItemRef, FileUploadMachine } from '../machines'
-import { ActionErrorState, FileUploadConfig, StorageUploadFileParams } from '../utils/types'
+import { ActionErrorState, FileUploadConfig, StorageUploadFileParams } from '../utils'
 
 export interface UploadProgressState {
   /**

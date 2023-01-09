@@ -5,6 +5,7 @@ import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+import useRuleGroupEditor from './useRuleGroupEditor';
 
 export interface RuleGroupControlsProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
@@ -30,6 +31,7 @@ export default function RuleGroupControls({
   className,
   ...props
 }: RuleGroupControlsProps) {
+  const { disabled } = useRuleGroupEditor();
   const currentOperator: RuleGroup['operator'] = useWatch({
     name: `${name}.operator`,
   });
@@ -41,6 +43,7 @@ export default function RuleGroupControls({
     >
       {showSelect ? (
         <ControlledSelect
+          disabled={disabled}
           name={`${name}.operator`}
           slotProps={{ root: { className: 'bg-white' } }}
           fullWidth

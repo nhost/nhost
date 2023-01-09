@@ -27,6 +27,7 @@ export function useRemoteApplicationGQLClient() {
                 : currentApplication?.hasuraGraphqlAdminSecret,
           },
         }),
+        
       }),
     [
       currentApplication?.subdomain,

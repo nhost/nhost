@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosProgressEvent, RawAxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
+import { toIso88591 } from '../utils'
 
-import { ErrorPayload, FileUploadConfig } from '../utils/types'
+import { ErrorPayload, FileUploadConfig } from '../utils'
 
 export type FileUploadContext = {
   progress: number | null
@@ -28,7 +29,14 @@ export type FileUploadEvents =
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
-export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0, error: null }
+export const INITIAL_FILE_CONTEXT: FileUploadContext = {
+  progress: null,
+  loaded: 0,
+  error: null,
+  bucketId: undefined,
+  file: undefined,
+  id: undefined
+}
 
 export type FileUploadMachine = ReturnType<typeof createFileUploadMachine>
 export const createFileUploadMachine = () =>
@@ -62,8 +70,20 @@ export const createFileUploadMachine = () =>
           },
           invoke: { src: 'uploadFile' }
         },
-        uploaded: { entry: ['setFileMetadata', 'sendDone'] },
-        error: { entry: ['setError', 'sendError'] },
+        uploaded: {
+          entry: ['setFileMetadata', 'sendDone'],
+          on: {
+            ADD: { actions: 'addFile', target: 'idle' },
+            UPLOAD: { actions: 'resetContext', target: 'uploading' }
+          }
+        },
+        error: {
+          entry: ['setError', 'sendError'],
+          on: {
+            ADD: { actions: 'addFile', target: 'idle' },
+            UPLOAD: { actions: 'resetContext', target: 'uploading' }
+          }
+        },
         stopped: { type: 'final' }
       }
     },
@@ -88,6 +108,7 @@ export const createFileUploadMachine = () =>
         sendDestroy: () => {},
         sendDone: () => {},
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
+        resetContext: assign((_) => INITIAL_FILE_CONTEXT),
         addFile: assign({
           file: (_, { file }) => file,
           bucketId: (_, { bucketId }) => bucketId,
@@ -108,7 +129,7 @@ export const createFileUploadMachine = () =>
             headers['x-nhost-bucket-id'] = bucketId
           }
           const file = (event.file || context.file)!
-          headers['x-nhost-file-name'] = event.name || file.name
+          headers['x-nhost-file-name'] = toIso88591(event.name || file.name)
           const data = new FormData()
           data.append('file', file)
           if (event.adminSecret) {

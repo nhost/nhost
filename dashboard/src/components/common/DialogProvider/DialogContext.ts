@@ -11,14 +11,18 @@ export type DialogType =
   | 'EDIT_COLUMN'
   | 'CREATE_TABLE'
   | 'EDIT_TABLE'
+  | 'EDIT_PERMISSIONS'
   | 'CREATE_FOREIGN_KEY'
   | 'EDIT_FOREIGN_KEY'
   | 'CREATE_ROLE'
   | 'EDIT_ROLE'
+  | 'CREATE_USER'
   | 'CREATE_PERMISSION_VARIABLE'
   | 'EDIT_PERMISSION_VARIABLE'
   | 'CREATE_ENVIRONMENT_VARIABLE'
   | 'EDIT_ENVIRONMENT_VARIABLE'
+  | 'EDIT_USER'
+  | 'EDIT_USER_PASSWORD'
   | 'EDIT_JWT_SECRET';
 
 export interface DialogConfig<TPayload = unknown> {
@@ -64,6 +68,16 @@ export interface DialogContextProps {
    */
   closeDrawer: VoidFunction;
   /**
+   * Call this function to check if the form is dirty and close the active dialog
+   * if the form is pristine.
+   */
+  closeDialogWithDirtyGuard: VoidFunction;
+  /**
+   * Call this function to check if the form is dirty and close the active drawer
+   * if the form is pristine.
+   */
+  closeDrawerWithDirtyGuard: VoidFunction;
+  /**
    * Call this function to close the active alert dialog.
    */
   closeAlertDialog: VoidFunction;
@@ -74,6 +88,10 @@ export interface DialogContextProps {
     isDirty: boolean,
     location?: 'drawer' | 'dialog',
   ) => void;
+  /**
+   * Call this function to open a dirty confirmation dialog.
+   */
+  openDirtyConfirmation: (config?: Partial<DialogConfig<string>>) => void;
 }
 
 export default createContext<DialogContextProps>({
@@ -82,6 +100,9 @@ export default createContext<DialogContextProps>({
   openAlertDialog: () => {},
   closeDialog: () => {},
   closeDrawer: () => {},
+  closeDialogWithDirtyGuard: () => {},
+  closeDrawerWithDirtyGuard: () => {},
   closeAlertDialog: () => {},
   onDirtyStateChange: () => {},
+  openDirtyConfirmation: () => {},
 });

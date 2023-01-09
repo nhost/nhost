@@ -1,8 +1,8 @@
-import fs from 'fs'
-import { describe, expect, it } from 'vitest'
 import fetch from 'cross-fetch'
-import { v4 as uuidv4 } from 'uuid'
 import FormData from 'form-data'
+import fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
+import { describe, expect, it } from 'vitest'
 
 import { storage } from './utils/helpers'
 
@@ -62,6 +62,19 @@ describe('test upload', () => {
 
     expect(error).toBeNull()
     expect(fileMetadata?.name).toBe(FILE_NAME)
+  })
+
+  it('should upload a file with a non-ISO 8859-1 name', async () => {
+    const fd = new FormData()
+    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+
+    const { fileMetadata, error } = await storage.upload({
+      formData: fd,
+      name: '你 好'
+    })
+
+    expect(error).toBeNull()
+    expect(fileMetadata?.name).toMatchInlineSnapshot('"%E4%BD%A0%20%E5%A5%BD"')
   })
 
   it('should upload a file with specific id and name', async () => {

@@ -33,6 +33,13 @@ export interface MutationOrQueryBaseOptions {
 export interface HasuraMetadataRelationship {
   name: string;
   using: {
+    manual_configuration?: {
+      column_mapping: Record<string, string>;
+      remote_table: {
+        name: string;
+        schema: string;
+      };
+    };
     foreign_key_constraint_on?:
       | string
       | {
@@ -45,6 +52,21 @@ export interface HasuraMetadataRelationship {
   };
 }
 
+export interface HasuraMetadataPermission {
+  role: string;
+  permission: Partial<{
+    columns: string[];
+    filter: Record<string, any>;
+    check: Record<string, any>;
+    limit: number;
+    allow_aggregations: boolean;
+    query_root_fields: string[];
+    subscription_root_fields: string[];
+    set: Record<string, any>;
+    backend_only: boolean;
+  }>;
+}
+
 /**
  * Represents a table from Hasura metadata.
  */
@@ -54,8 +76,12 @@ export interface HasuraMetadataTable {
     schema: string;
   };
   configuration: Record<string, Record<string, any>>;
-  array_relationships: HasuraMetadataRelationship[];
-  object_relationships: HasuraMetadataRelationship[];
+  array_relationships?: HasuraMetadataRelationship[];
+  object_relationships?: HasuraMetadataRelationship[];
+  insert_permissions?: HasuraMetadataPermission[];
+  select_permissions?: HasuraMetadataPermission[];
+  update_permissions?: HasuraMetadataPermission[];
+  delete_permissions?: HasuraMetadataPermission[];
 }
 
 /**
@@ -132,7 +158,7 @@ export interface MetadataError {
       schema: string;
       name: string;
     };
-    using: {
+    using?: {
       foreign_key_constraint_on: string;
     };
   }[];
@@ -385,10 +411,25 @@ export interface DatabaseColumn {
  * Represents a database table.
  */
 export interface DatabaseTable {
+  /**
+   * Name of the table.
+   */
   name: string;
+  /**
+   * Columns of the table.
+   */
   columns: DatabaseColumn[];
+  /**
+   * Primary key of the table.
+   */
   primaryKey: string;
+  /**
+   * Identity column of the table.
+   */
   identityColumn?: string;
+  /**
+   * Foreign key relations of the table.
+   */
   foreignKeyRelations?: ForeignKeyRelation[];
 }
 
@@ -486,6 +527,16 @@ export interface DataBrowserGridCellProps<
 }
 
 /**
+ * Represents an available database action.
+ */
+export type DatabaseAction = 'insert' | 'select' | 'update' | 'delete';
+
+/**
+ * Represents the database access level.
+ */
+export type DatabaseAccessLevel = 'full' | 'partial' | 'none';
+
+/**
  * Represents a Hasura operator.
  */
 export type HasuraOperator =
@@ -534,4 +585,5 @@ export interface RuleGroup {
   operator: '_and' | '_or';
   rules: Rule[];
   groups: RuleGroup[];
+  unsupported?: Record<string, any>[];
 }

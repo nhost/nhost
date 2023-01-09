@@ -50,17 +50,21 @@ export const theme = createTheme({
       main: '#f13154',
       dark: '#c91737',
     },
+    success: {
+      main: 'rgba(170, 240, 204, 0.3)',
+      contrastText: '#3BB174',
+    },
     action: {
       hover: '#f3f4f6',
       active: '#f3f4f6',
       focus: '#f3f4f6',
-      disabled: '#C2CAD6',
+      disabled: '#c2cad6',
     },
     grey: {
       100: '#ffffff',
       200: '#f4f7f9',
       300: '#eaedf0',
-      400: '#c2cad6',
+      400: '#e0e0e0',
       500: '#9ca7b7',
       600: '#556378',
       700: '#21324b',

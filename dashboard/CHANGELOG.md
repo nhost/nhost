@@ -1,5 +1,36 @@
 # @nhost/dashboard
 
+## 0.9.0
+
+### Minor Changes
+
+- d92891b2: feat(dashboard): add Permission Editor to the Database section
+
+### Patch Changes
+
+- 3d379128: fix(dashboard): create new user
+  - @nhost/react-apollo@4.13.0
+  - @nhost/nextjs@1.13.0
+
+## 0.8.1
+
+### Patch Changes
+
+- 7cadd944: fix(dashboard): display Twitter provider settings
+
+## 0.8.0
+
+### Minor Changes
+
+- 9a1aa7bb: add functions to the log dashboard
+- f29abe62: feat(dashboard): Users Management v2
+
+### Patch Changes
+
+- 7766624b: feat(dashboard): add JWT secret editor modal
+  - @nhost/react-apollo@4.12.1
+  - @nhost/nextjs@1.12.1
+
 ## 0.7.13
 
 ### Patch Changes

@@ -1,5 +1,22 @@
 # @nhost/react
 
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- 1be6d324: Only export what is required by the user or `@nhost/nextjs`
+- 2e8f73df: Improve the error message when the application is not wrapped in `<NhostProvider></NhostProvider>`
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+  - @nhost/nhost-js@1.12.1
+
 ## 1.12.0
 
 ### Minor Changes

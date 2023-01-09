@@ -5,7 +5,7 @@ export function copy(toCopy: string, name: string) {
     triggerToast('Error while copying');
   });
 
-  triggerToast(`${name} copied to clipboard.`);
+  triggerToast(`${name} copied to clipboard`);
 }
 
 export default copy;

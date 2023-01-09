@@ -8,6 +8,9 @@ import CreatePermissionVariableForm from '@/components/settings/permissions/Crea
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
+import CreateUserForm from '@/components/users/CreateUserForm';
+import EditUserForm from '@/components/users/EditUserForm';
+import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
@@ -79,6 +82,11 @@ const CreateTableForm = dynamic(
 
 const EditTableForm = dynamic(
   () => import('@/components/dataBrowser/EditTableForm'),
+  { ssr: false, loading: () => LoadingComponent() },
+);
+
+const EditPermissionsForm = dynamic(
+  () => import('@/components/dataBrowser/EditPermissionsForm'),
   { ssr: false, loading: () => LoadingComponent() },
 );
 
@@ -193,23 +201,31 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [],
   );
 
-  function closeDrawerWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDrawerDirty.current && event?.type !== 'submit') {
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
-      return;
-    }
+  const closeDrawerWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDrawerDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
+        return;
+      }
 
-    closeDrawer();
-  }
+      closeDrawer();
+    },
+    [closeDrawer, openDirtyConfirmation],
+  );
 
-  function closeDialogWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDialogDirty.current && event?.type !== 'submit') {
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
-      return;
-    }
+  const closeDialogWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDialogDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
+        return;
+      }
 
-    closeDialog();
-  }
+      closeDialog();
+    },
+    [closeDialog, openDirtyConfirmation],
+  );
 
   // We are coupling this logic with the location of the dialog content which is
   // not ideal. We shoule figure out a better logic for tracking the dirty
@@ -236,10 +252,22 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openAlertDialog,
       closeDialog,
       closeDrawer,
+      closeDialogWithDirtyGuard,
+      closeDrawerWithDirtyGuard,
       closeAlertDialog,
       onDirtyStateChange,
+      openDirtyConfirmation,
     }),
-    [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
+    [
+      closeDialog,
+      closeDialogWithDirtyGuard,
+      closeDrawer,
+      closeDrawerWithDirtyGuard,
+      onDirtyStateChange,
+      openDialog,
+      openDirtyConfirmation,
+      openDrawer,
+    ],
   );
 
   const sharedDialogProps = {
@@ -354,6 +382,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             <EditRoleForm {...sharedDialogProps} />
           )}
 
+          {activeDialogType === 'CREATE_USER' && (
+            <CreateUserForm {...sharedDialogProps} />
+          )}
+
           {activeDialogType === 'CREATE_PERMISSION_VARIABLE' && (
             <CreatePermissionVariableForm {...sharedDialogProps} />
           )}
@@ -370,6 +402,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             <EditEnvironmentVariableForm {...sharedDialogProps} />
           )}
 
+          {activeDialogType === 'EDIT_USER_PASSWORD' && (
+            <EditUserPasswordForm
+              {...sharedDialogProps}
+              user={sharedDialogProps?.user}
+            />
+          )}
+
           {activeDialogType === 'EDIT_JWT_SECRET' && (
             <EditJwtSecretForm {...sharedDialogProps} />
           )}
@@ -377,13 +416,19 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       </BaseDialog>
 
       <Drawer
+        anchor="right"
         {...drawerProps}
         title={drawerTitle}
         open={drawerOpen}
         onClose={closeDrawerWithDirtyGuard}
         SlideProps={{ onExited: clearDrawerContent, unmountOnExit: false }}
-        anchor="right"
-        PaperProps={{ className: 'max-w-2.5xl w-full' }}
+        PaperProps={{
+          ...drawerProps?.PaperProps,
+          className: twMerge(
+            'max-w-2.5xl w-full',
+            drawerProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary>
           {activeDrawerType === 'CREATE_RECORD' && (
@@ -417,6 +462,19 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
               table={drawerPayload?.table}
               schema={drawerPayload?.schema}
             />
+          )}
+
+          {activeDrawerType === 'EDIT_PERMISSIONS' && (
+            <EditPermissionsForm
+              {...sharedDrawerProps}
+              disabled={drawerPayload?.disabled}
+              schema={drawerPayload?.schema}
+              table={drawerPayload?.table}
+            />
+          )}
+
+          {activeDrawerType === 'EDIT_USER' && (
+            <EditUserForm {...sharedDrawerProps} {...drawerPayload} />
           )}
         </RetryableErrorBoundary>
       </Drawer>
