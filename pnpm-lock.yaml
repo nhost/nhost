@@ -1017,7 +1017,7 @@ importers:
       '@nhost/docgen': link:../docgen
       graphql: 16.6.0
       graphql-tag: 2.12.6_graphql@16.6.0
-      start-server-and-test: 1.14.0
+      start-server-and-test: 1.15.2
 
   packages/nhost-js/functions:
     specifiers: {}
