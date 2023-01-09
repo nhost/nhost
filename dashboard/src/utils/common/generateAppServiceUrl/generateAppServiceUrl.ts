@@ -52,8 +52,9 @@ export default function generateAppServiceUrl(
 ) {
   const LOCAL_BACKEND_PORT = getLocalBackendPort();
 
-  // We are treating it as if NEXT_PUBLIC_NHOST_PLATFORM is true, but we need
-  // to make sure to use Hasura on `localhost`
+  // We are treating this case as if NEXT_PUBLIC_NHOST_PLATFORM is true,
+  // but we need to make sure to use Hasura URLs are pointing to `localhost`
+  // as this is currently a limitation of Hasura.
   if (subdomain && subdomain !== 'localhost' && !region) {
     if (service === 'hasura') {
       return `http://localhost:${LOCAL_BACKEND_PORT || 8080}${

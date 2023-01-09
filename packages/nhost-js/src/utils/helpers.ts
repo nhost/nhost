@@ -29,7 +29,7 @@ export function urlFromSubdomain(
   // check if subdomain is [http[s]://]localhost[:port] or [http[s]://]localdev[:port]
   const subdomainLocalhostFound = subdomain.match(LOCALHOST_REGEX)
   if (subdomainLocalhostFound?.groups) {
-    const { protocol = 'http', host, port } = subdomainLocalhostFound.groups
+    const { protocol, host, port } = subdomainLocalhostFound.groups
 
     const urlFromEnv = getValueFromEnv(service)
     if (urlFromEnv) {
@@ -37,15 +37,15 @@ export function urlFromSubdomain(
     }
 
     if (host === 'localhost') {
-      return `${protocol}://localhost:${port || 1337}/v1/${service}`
+      return `${protocol || 'http'}://localhost:${port || 1337}/v1/${service}`
     }
 
     // we omit the port if it's the default port
     if (port) {
-      return `${protocol}://${host}.nhost.run:${port}/v1/${service}`
+      return `${protocol || 'https'}://${host}.nhost.run:${port}/v1/${service}`
     }
 
-    return `${protocol}://${host}.nhost.run/v1/${service}`
+    return `${protocol || 'https'}://${host}.nhost.run/v1/${service}`
   }
 
   if (!region) {

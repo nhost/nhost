@@ -203,8 +203,9 @@ export function UsersTable({
       offset: offset * limit,
     },
     skip:
-      !currentApplication?.subdomain &&
-      !currentApplication?.hasuraGraphqlAdminSecret,
+      !currentApplication ||
+      (!currentApplication?.subdomain &&
+        !currentApplication?.hasuraGraphqlAdminSecret),
   });
 
   if (error) {

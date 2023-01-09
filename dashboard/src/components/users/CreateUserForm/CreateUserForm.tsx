@@ -1,4 +1,5 @@
 import Form from '@/components/common/Form';
+import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
@@ -59,6 +60,10 @@ export default function CreateUserForm({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(CreateUserFormValidationSchema),
   });
+
+  if (!currentApplication) {
+    return <ActivityIndicator label="Loading project..." />;
+  }
 
   const {
     register,

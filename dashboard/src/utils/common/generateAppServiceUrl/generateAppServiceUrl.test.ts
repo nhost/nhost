@@ -150,11 +150,11 @@ test('should use the custom local subdomain for all services, except Hasura', ()
   );
 
   expect(generateAppServiceUrl('localdev', '', 'hasura')).toBe(
-    'http://localhost:1337',
+    'http://localhost:8080',
   );
 
   expect(generateAppServiceUrl('sample', '', 'hasura')).toBe(
-    'http://localhost:1337',
+    'http://localhost:8080',
   );
 
   expect(generateAppServiceUrl('localhost', '', 'hasura')).toBe(

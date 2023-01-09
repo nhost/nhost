@@ -1,3 +1,4 @@
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
@@ -18,10 +19,12 @@ export interface UserSelectProps {
 }
 
 export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const userApplicationClient = useRemoteApplicationGQLClient();
   const { data, loading, error } = useRemoteAppGetUsersCustomQuery({
     client: userApplicationClient,
     variables: { where: {}, limit: 250, offset: 0 },
+    skip: !currentApplication,
   });
 
   if (loading) {
@@ -35,8 +38,6 @@ export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
   if (error) {
     throw error;
   }
-
-  const { users } = data;
 
   return (
     <Select
@@ -57,7 +58,7 @@ export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
           return;
         }
 
-        const user: RemoteAppGetUsersCustomQuery['users'][0] = users.find(
+        const user: RemoteAppGetUsersCustomQuery['users'][0] = data?.users.find(
           ({ id }) => id === userId,
         );
 
@@ -68,7 +69,7 @@ export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
     >
       <Option value="admin">Admin</Option>
 
-      {users.map(({ id, displayName, email, phoneNumber }) => (
+      {data?.users.map(({ id, displayName, email, phoneNumber }) => (
         <Option key={id} value={id}>
           {displayName || email || phoneNumber || id}
         </Option>
