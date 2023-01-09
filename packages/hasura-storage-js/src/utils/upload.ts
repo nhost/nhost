@@ -1,6 +1,17 @@
 import fetch from 'cross-fetch'
 import FormData from 'form-data'
+
 import { ErrorPayload, StorageUploadResponse } from './types'
+
+/** Convert any string into ISO-8859-1 */
+export const toIso88591 = (fileName: string) => {
+  try {
+    btoa(fileName)
+    return fileName
+  } catch {
+    return encodeURIComponent(fileName)
+  }
+}
 
 export const fetchUpload = async (
   backendUrl: string,
@@ -29,7 +40,7 @@ export const fetchUpload = async (
     headers['x-nhost-bucket-id'] = bucketId
   }
   if (name) {
-    headers['x-nhost-file-name'] = name
+    headers['x-nhost-file-name'] = toIso88591(name)
   }
   if (adminSecret) {
     headers['x-hasura-admin-secret'] = adminSecret
@@ -70,6 +81,7 @@ export const fetchUpload = async (
   }
   // * Browser environment: XMLHttpRequest is available
   return new Promise((resolve) => {
+    console.log('NOOOOOOO')
     let xhr = new XMLHttpRequest()
     xhr.responseType = 'json'
 
