@@ -38,7 +38,7 @@ runs:
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 3
-        max_attempts: 3
+        max_attempts: 10
         command: bash <(curl --silent -L https://raw.githubusercontent.com/nhost/cli/main/get.sh) ${{ inputs.version }}
     - name: Set custom configuration
       if: ${{ inputs.config }}
