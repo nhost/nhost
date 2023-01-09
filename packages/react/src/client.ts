@@ -3,12 +3,12 @@ import {
   BackendUrl,
   NhostAuthConstructorParams,
   NhostClient as _VanillaNhostClient,
-  NhostSession,
   NHOST_REFRESH_TOKEN_KEY,
   Subdomain
 } from '@nhost/nhost-js'
 
-export type { NhostSession, NhostAuthConstructorParams, AuthMachine, Subdomain, BackendUrl }
+// * Required for @nhost/nextjs
+export type { NhostAuthConstructorParams, AuthMachine }
 export { NHOST_REFRESH_TOKEN_KEY }
 
 /** @internal */
