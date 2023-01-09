@@ -1,5 +1,18 @@
 # @nhost-examples/react-apollo
 
+## 0.1.6
+
+### Patch Changes
+
+- c2706c7d: Export commonly used types
+
+  `BackendUrl`, `ErrorPayload`, `NhostSession`, `Subdomain`, and `User` are now exported in all our SDKs
+
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/react@1.13.1
+  - @nhost/react-apollo@4.13.1
+
 ## 0.1.5
 
 ### Patch Changes
