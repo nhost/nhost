@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.1
+
+### Patch Changes
+
+- d0f80811: fix(dashboard): don't show error when signing out the user
+
 ## 0.9.0
 
 ### Minor Changes
