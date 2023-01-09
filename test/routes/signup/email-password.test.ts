@@ -146,21 +146,22 @@ describe('email-password', () => {
   it('allowed roles must be subset of env var AUTH_USER_DEFAULT_ALLOWED_ROLES', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-
-    // set env vars
-    await request.post('/change-env').send({
-      ALLOWED_USER_ROLES: 'user,editor',
-    });
-
     await request
       .post('/signup/email-password')
       .send({
         email,
         password,
-        defaultRole: 'user',
-        allowedRoles: ['user', 'some-other-role'],
+        options: {
+          defaultRole: 'user',
+          allowedRoles: ['user', 'some-other-role'],
+        },
       })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.BAD_REQUEST, {
+        status: StatusCodes.BAD_REQUEST,
+        message:
+          '"options.allowedRoles[1]" does not match any of the allowed types',
+        error: 'invalid-request',
+      });
   });
 
   it('user must verify email before being able to sign in', async () => {
@@ -171,7 +172,6 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      AUTH_USER_DEFAULT_ALLOWED_ROLES: '',
     });
 
     await request
@@ -201,7 +201,6 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      AUTH_USER_DEFAULT_ALLOWED_ROLES: '',
     });
 
     const { body } = await request

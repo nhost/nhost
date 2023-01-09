@@ -13,6 +13,7 @@ Object {
   "roles": Array [
     "me",
     "user",
+    "editor",
   ],
 }
 `;
@@ -30,6 +31,7 @@ Object {
   "roles": Array [
     "me",
     "user",
+    "editor",
   ],
 }
 `;
@@ -47,6 +49,7 @@ Object {
   "roles": Array [
     "me",
     "user",
+    "editor",
   ],
 }
 `;

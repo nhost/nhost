@@ -191,12 +191,6 @@ describe('passwordless email (magic link)', () => {
   });
 
   it('should fail to sign in with incorrect allowed roles', async () => {
-    // set env vars
-    await request.post('/change-env').send({
-      AUTH_USER_DEFAULT_ROLE: 'user',
-      AUTH_USER_DEFAULT_ALLOWED_ROLES: 'user',
-    });
-
     await request
       .post('/signin/passwordless/email')
       .send({
@@ -205,6 +199,11 @@ describe('passwordless email (magic link)', () => {
           allowedRoles: ['incorrect'],
         },
       })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.BAD_REQUEST, {
+        status: 400,
+        message:
+          '"options.allowedRoles[0]" does not match any of the allowed types',
+        error: 'invalid-request',
+      });
   });
 });

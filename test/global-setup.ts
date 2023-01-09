@@ -20,4 +20,5 @@ export default async (): Promise<void> => {
   } finally {
     await client.end();
   }
+  process.env['AUTH_USER_DEFAULT_ALLOWED_ROLES'] = 'me,user,editor';
 };

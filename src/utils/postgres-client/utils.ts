@@ -137,7 +137,7 @@ export const createUserQueryWhere = (where: string) =>
             SELECT user_id, coalesce(json_agg(role), '[]') AS roles
             FROM "auth"."user_roles" r
             WHERE r.user_id = u.id
-            GROUP BY user_id, role
+            GROUP BY user_id
         ) r ON r.user_id = id WHERE ${where};`;
 
 export const createUserQueryByColumn = (column: string) =>
