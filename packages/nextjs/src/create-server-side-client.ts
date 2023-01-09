@@ -1,8 +1,14 @@
-import { AuthMachine, NHOST_REFRESH_TOKEN_KEY, VanillaNhostClient } from '@nhost/react'
+import {
+  AuthMachine,
+  NhostSession,
+  NHOST_REFRESH_TOKEN_KEY,
+  VanillaNhostClient
+} from '@nhost/react'
 import Cookies from 'js-cookie'
 import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { NHOST_SESSION_KEY } from './utils'
 
 /**
  * Creates an Nhost client that runs on the server side.
@@ -42,11 +48,17 @@ export const createServerSideClient = async (
         Cookies.remove(key)
       }
     },
-    start: true,
+    start: false,
     autoRefreshToken: false,
     autoSignIn: true
   })
 
+  const strSession = context.req.cookies[NHOST_SESSION_KEY]
+  const refreshToken = context.req.cookies[NHOST_REFRESH_TOKEN_KEY]
+  const initialSession: NhostSession = strSession &&
+    refreshToken && { ...JSON.parse(strSession), refreshToken }
+
+  nhost.auth.client.start({ initialSession })
   await waitFor(
     nhost.auth.client.interpreter!,
     (state: StateFrom<AuthMachine>) => !state.hasTag('loading')
