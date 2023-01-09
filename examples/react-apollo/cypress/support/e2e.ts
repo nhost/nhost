@@ -83,10 +83,9 @@ Cypress.Commands.add('signOut', () => {
 })
 
 Cypress.Commands.add('confirmEmail', (email) => {
-  cy.mhGetMailsByRecipient(email)
+  cy.mhGetMailsByRecipient(email, 1)
     .should('have.length', 1)
     .then(([message]) => {
-      cy.mhDeleteAll()
       cy.visit(message.Content.Headers['X-Link'][0])
       cy.saveRefreshToken()
     })
