@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
-import ActivityIndicator from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
