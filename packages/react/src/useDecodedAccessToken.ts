@@ -12,7 +12,7 @@ import { useAccessToken } from './useAccessToken'
  *
  * @docs https://docs.nhost.io/reference/react/use-decoded-access-token
  */
-export const useDecodedAccessToken = () => {
+export const useDecodedAccessToken = (): JWTClaims | null => {
   const jwt = useAccessToken()
   return jwt ? jwt_decode<JWTClaims>(jwt) : null
 }

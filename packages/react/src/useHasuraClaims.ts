@@ -1,4 +1,4 @@
-
+import { JWTHasuraClaims } from '@nhost/nhost-js'
 import { useDecodedAccessToken } from './useDecodedAccessToken'
 
 /**
@@ -11,7 +11,7 @@ import { useDecodedAccessToken } from './useDecodedAccessToken'
  *
  * @docs https://docs.nhost.io/reference/react/use-hasura-claims
  */
-export const useHasuraClaims = () => {
+export const useHasuraClaims = (): JWTHasuraClaims | null => {
   const claims = useDecodedAccessToken()
   return claims?.['https://hasura.io/jwt/claims'] || null
 }

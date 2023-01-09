@@ -1,4 +1,5 @@
 import { useSelector } from '@xstate/vue'
+import { Ref } from 'vue'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
@@ -12,7 +13,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/vue/use-user-display-name
  */
-export const useUserDisplayName = () => {
+export const useUserDisplayName = (): Ref<string | undefined> => {
   const service = useAuthInterpreter()
   return useSelector(
     service.value,

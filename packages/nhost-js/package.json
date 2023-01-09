@@ -74,7 +74,7 @@
     "@nhost/docgen": "workspace:*",
     "graphql": "16.6.0",
     "graphql-tag": "^2.12.6",
-    "start-server-and-test": "^1.14.0"
+    "start-server-and-test": "^1.15.2"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

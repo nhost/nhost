@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-id
  */
-export const useUserId = () => {
+export const useUserId = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
