@@ -3,7 +3,6 @@ import { User } from '@nhost/hasura-auth-js'
 
 import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
-
 declare module 'mocha' {
   export interface Context {
     refreshToken?: string
