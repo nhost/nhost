@@ -52,6 +52,9 @@ type Config struct {
 	Algorithm PublicKeyAlgorithm
 	// Some known primes that are optionally prepopulated by the caller
 	RSAPrimes []*big.Int
+	// Curve configures the desired packet.Curve if the Algorithm is PubKeyAlgoECDSA,
+	// PubKeyAlgoEdDSA, or PubKeyAlgoECDH. If empty Curve25519 is used.
+	Curve Curve
 	// AEADConfig configures the use of the new AEAD Encrypted Data Packet,
 	// defined in the draft of the next version of the OpenPGP specification.
 	// If a non-nil AEADConfig is passed, usage of this packet is enabled. By
@@ -78,6 +81,19 @@ type Config struct {
 	// By default, the signing key is selected automatically, preferring
 	// signing subkeys if available.
 	SigningKeyId uint64
+	// SigningIdentity is used to specify a user ID (packet Signer's User ID, type 28)
+	// when producing a generic certification signature onto an existing user ID.
+	// The identity must be present in the signer Entity.
+	SigningIdentity string
+	// InsecureAllowUnauthenticatedMessages controls, whether it is tolerated to read
+	// encrypted messages without Modification Detection Code (MDC).
+	// MDC is mandated by the IETF OpenPGP Crypto Refresh draft and has long been implemented
+	// in most OpenPGP implementations. Messages without MDC are considered unnecessarily
+	// insecure and should be prevented whenever possible.
+	// In case one needs to deal with messages from very old OpenPGP implementations, there
+	// might be no other way than to tolerate the missing MDC. Setting this flag, allows this
+	// mode of operation. It should be considered a measure of last resort.
+	InsecureAllowUnauthenticatedMessages bool
 }
 
 func (c *Config) Random() io.Reader {
@@ -152,6 +168,13 @@ func (c *Config) PublicKeyAlgorithm() PublicKeyAlgorithm {
 	return c.Algorithm
 }
 
+func (c *Config) CurveName() Curve {
+	if c == nil || c.Curve == "" {
+		return Curve25519
+	}
+	return c.Curve
+}
+
 func (c *Config) AEAD() *AEADConfig {
 	if c == nil {
 		return nil
@@ -164,4 +187,18 @@ func (c *Config) SigningKey() uint64 {
 		return 0
 	}
 	return c.SigningKeyId
+}
+
+func (c *Config) SigningUserId() string {
+	if c == nil {
+		return ""
+	}
+	return c.SigningIdentity
+}
+
+func (c *Config) AllowUnauthenticatedMessages() bool {
+	if c == nil {
+		return false
+	}
+	return c.InsecureAllowUnauthenticatedMessages
 }

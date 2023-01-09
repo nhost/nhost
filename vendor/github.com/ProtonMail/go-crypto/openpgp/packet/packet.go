@@ -354,7 +354,7 @@ func Read(r io.Reader) (p Packet, err error) {
 	case packetTypeCompressed:
 		p = new(Compressed)
 	case packetTypeSymmetricallyEncrypted:
-		err = errors.UnsupportedError("Symmetrically encrypted packets without MDC are not supported")
+		p = new(SymmetricallyEncrypted)
 	case packetTypeLiteralData:
 		p = new(LiteralData)
 	case packetTypeUserId:
@@ -395,6 +395,7 @@ const (
 	SigTypeDirectSignature                 = 0x1F
 	SigTypeKeyRevocation                   = 0x20
 	SigTypeSubkeyRevocation                = 0x28
+	SigTypeCertificationRevocation         = 0x30
 )
 
 // PublicKeyAlgorithm represents the different public key system specified for
@@ -519,4 +520,20 @@ const (
 	KeySuperseded  ReasonForRevocation = 1
 	KeyCompromised ReasonForRevocation = 2
 	KeyRetired     ReasonForRevocation = 3
+)
+
+// Curve is a mapping to supported ECC curves for key generation.
+// See https://www.ietf.org/archive/id/draft-ietf-openpgp-crypto-refresh-06.html#name-curve-specific-wire-formats
+type Curve string
+
+const (
+	Curve25519 Curve = "Curve25519"
+	Curve448 Curve = "Curve448"
+	CurveNistP256 Curve = "P256"
+	CurveNistP384 Curve = "P384"
+	CurveNistP521 Curve = "P521"
+	CurveSecP256k1 Curve = "SecP256k1"
+	CurveBrainpoolP256 Curve = "BrainpoolP256"
+	CurveBrainpoolP384 Curve = "BrainpoolP384"
+	CurveBrainpoolP512 Curve = "BrainpoolP512"
 )

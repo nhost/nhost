@@ -119,17 +119,25 @@ ParsePackets:
 			default:
 				continue
 			}
-			var keys []Key
-			if p.KeyId == 0 {
-				keys = keyring.DecryptionKeys()
-			} else {
-				keys = keyring.KeysById(p.KeyId)
+			if keyring != nil {
+				var keys []Key
+				if p.KeyId == 0 {
+					keys = keyring.DecryptionKeys()
+				} else {
+					keys = keyring.KeysById(p.KeyId)
+				}
+				for _, k := range keys {
+					pubKeys = append(pubKeys, keyEnvelopePair{k, p})
+				}
 			}
-			for _, k := range keys {
-				pubKeys = append(pubKeys, keyEnvelopePair{k, p})
+		case *packet.SymmetricallyEncrypted:
+			if !p.MDC && !config.AllowUnauthenticatedMessages() {
+				return nil, errors.UnsupportedError("message is not authenticated")
 			}
-		case *packet.SymmetricallyEncrypted, *packet.AEADEncrypted:
-			edp = p.(packet.EncryptedDataPacket)
+			edp = p
+			break ParsePackets
+		case *packet.AEADEncrypted:
+			edp = p
 			break ParsePackets
 		case *packet.Compressed, *packet.LiteralData, *packet.OnePassSignature:
 			// This message isn't encrypted.
@@ -268,9 +276,11 @@ FindLiteralData:
 
 			md.IsSigned = true
 			md.SignedByKeyId = p.KeyId
-			keys := keyring.KeysByIdUsage(p.KeyId, packet.KeyFlagSign)
-			if len(keys) > 0 {
-				md.SignedBy = &keys[0]
+			if keyring != nil {
+				keys := keyring.KeysByIdUsage(p.KeyId, packet.KeyFlagSign)
+				if len(keys) > 0 {
+					md.SignedBy = &keys[0]
+				}
 			}
 		case *packet.LiteralData:
 			md.LiteralData = p
@@ -370,11 +380,25 @@ func (scr *signatureCheckReader) Read(buf []byte) (int, error) {
 
 				// If signature KeyID matches
 				if scr.md.SignedBy != nil && *sig.IssuerKeyId == scr.md.SignedByKeyId {
-					scr.md.Signature = sig
-					scr.md.SignatureError = scr.md.SignedBy.PublicKey.VerifySignature(scr.h, scr.md.Signature)
-					if scr.md.SignatureError == nil && scr.md.Signature.SigExpired(scr.config.Now()) {
-						scr.md.SignatureError = errors.ErrSignatureExpired
+					key := scr.md.SignedBy
+					signatureError := key.PublicKey.VerifySignature(scr.h, sig)
+					if signatureError == nil {
+						now := scr.config.Now()
+						if key.Revoked(now) ||
+							key.Entity.Revoked(now) || // primary key is revoked (redundant if key is the primary key)
+							key.Entity.PrimaryIdentity().Revoked(now) {
+							signatureError = errors.ErrKeyRevoked
+						}
+						if sig.SigExpired(now) {
+							signatureError = errors.ErrSignatureExpired
+						}
+						if key.PublicKey.KeyExpired(key.SelfSignature, now) ||
+							key.SelfSignature.SigExpired(now) {
+							signatureError = errors.ErrKeyExpired
+						}
 					}
+					scr.md.Signature = sig
+					scr.md.SignatureError = signatureError
 				} else {
 					scr.md.UnverifiedSignatures = append(scr.md.UnverifiedSignatures, sig)
 				}
@@ -483,10 +507,16 @@ func CheckDetachedSignatureAndHash(keyring KeyRing, signed, signature io.Reader,
 		err = key.PublicKey.VerifySignature(h, sig)
 		if err == nil {
 			now := config.Now()
+			if key.Revoked(now) ||
+				key.Entity.Revoked(now) || // primary key is revoked (redundant if key is the primary key)
+				key.Entity.PrimaryIdentity().Revoked(now) {
+				return key.Entity, errors.ErrKeyRevoked
+			}
 			if sig.SigExpired(now) {
 				return key.Entity, errors.ErrSignatureExpired
 			}
-			if key.PublicKey.KeyExpired(key.SelfSignature, now) {
+			if key.PublicKey.KeyExpired(key.SelfSignature, now) ||
+				key.SelfSignature.SigExpired(now) {
 				return key.Entity, errors.ErrKeyExpired
 			}
 			return key.Entity, nil

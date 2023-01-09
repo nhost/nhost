@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3.3.0
       -
         name: Get go.mod details
         uses: Eun/go-mod-details@v1.0.6
@@ -21,7 +21,7 @@ jobs:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
         name: GoReleaser
-        uses: goreleaser/goreleaser-action@v3.2.0
+        uses: goreleaser/goreleaser-action@v4.1.0
         with:
           version: latest
           args: release
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: release
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.3.0
         with:
           ref: gh-pages
       - name: Generate releases.json

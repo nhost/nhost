@@ -47,7 +47,7 @@ func (ske *SymmetricKeyEncrypted) parse(r io.Reader) error {
 	if ske.Version == 5 {
 		mode := make([]byte, 1)
 		if _, err := r.Read(mode); err != nil {
-			return errors.StructuralError("cannot read AEAD octect from packet")
+			return errors.StructuralError("cannot read AEAD octet from packet")
 		}
 		ske.Mode = AEADMode(mode[0])
 	}
