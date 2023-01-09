@@ -1,5 +1,5 @@
 ---
-'@nhost/dashboard': patch
+'@nhost/dashboard': minor
 ---
 
-feat(dashboard): add support for custom local subdomain
+feat(dashboard): add support for custom local subdomains
