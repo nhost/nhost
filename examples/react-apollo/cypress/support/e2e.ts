@@ -1,8 +1,13 @@
 import { faker } from '@faker-js/faker'
-import { User } from '@nhost/hasura-auth-js'
+// TODO User is not exported by @nhost/nhost-js not @nhost/react, and @nhost/hasura-auth-js is not directly accessible
+// import { User } from '@nhost/hasura-auth-js'
 
 import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
+
+// TODO see the above comment
+type User = unknown
+
 declare module 'mocha' {
   export interface Context {
     refreshToken?: string
@@ -86,10 +91,10 @@ Cypress.Commands.add('confirmEmail', (email) => {
   cy.mhGetMailsByRecipient(email)
     .should('have.length', 1)
     .then(([message]) => {
-      cy.mhDeleteAll()
       cy.visit(message.Content.Headers['X-Link'][0])
       cy.saveRefreshToken()
     })
+    .mhDeleteAll()
 })
 
 Cypress.Commands.add('signUpAndConfirmEmail', (givenEmail) => {

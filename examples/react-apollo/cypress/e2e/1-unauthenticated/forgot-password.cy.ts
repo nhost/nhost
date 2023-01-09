@@ -7,6 +7,7 @@ context('Forgot password', () => {
     cy.signUpAndConfirmEmail(email)
     cy.signOut()
 
+    // cy.visit('/sign-in')
     cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
     cy.findByRole('button', { name: /Forgot Password?/i }).click()
 
