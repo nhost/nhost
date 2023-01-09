@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-fix(dashboard): sign out user cache bug
+fix(dashboard): don't show error when signing out the user
