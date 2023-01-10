@@ -20,7 +20,7 @@ export interface EditWorkspaceFormProps {
    */
   currentWorkspaceName?: string;
   /**
-   * The current workspace name if this is an edit operation.
+   * The current workspace name id if this is an edit operation.
    */
   currentWorkspaceId?: string;
   /**
