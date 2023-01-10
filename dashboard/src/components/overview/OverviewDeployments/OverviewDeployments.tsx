@@ -11,15 +11,21 @@ import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import type { ListItemRootProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { getLastLiveDeployment } from '@/utils/helpers';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
-import { useGetDeploymentsSubSubscription } from '@/utils/__generated__/graphql';
+import {
+  useGetDeploymentsSubSubscription,
+  useUpdateDeploymentMutation,
+} from '@/utils/__generated__/graphql';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 function OverviewDeploymentsTopBar() {
@@ -54,7 +60,7 @@ function OverviewDeploymentsTopBar() {
   );
 }
 
-interface OverviewDeployProps extends ListItemRootProps {
+interface OverviewDeploymentProps extends ListItemRootProps {
   /**
    * Deployment metadata to display.
    */
@@ -63,13 +69,19 @@ interface OverviewDeployProps extends ListItemRootProps {
    * Determines to show a status badge showing the live status of a deployment reflecting the latest state of the application.
    */
   isDeploymentLive: boolean;
+  /**
+   * Determines whether or not the redeploy button should be available for
+   * the deployment.
+   */
+  allowRedeploy?: boolean;
 }
 
 function OverviewDeployment({
   deployment,
   isDeploymentLive,
   className,
-}: OverviewDeployProps) {
+  allowRedeploy,
+}: OverviewDeploymentProps) {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
@@ -80,23 +92,24 @@ function OverviewDeployment({
     },
   );
 
+  const [updateDeployment] = useUpdateDeploymentMutation();
+
   const { commitMessage } = deployment;
 
   return (
-    <ListItem.Root className={twMerge('grid grid-flow-row', className)}>
+    <ListItem.Root className={className}>
       <ListItem.Button
         className="grid grid-flow-col items-center justify-between gap-2 px-2 py-2"
         component={NavLink}
         href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments/${deployment.id}`}
       >
         <div className="flex cursor-pointer flex-row items-center justify-center space-x-2 self-center">
-          <div>
-            <Avatar
-              name={deployment.commitUserName}
-              avatarUrl={deployment.commitUserAvatarUrl}
-              className="h-8 w-8"
-            />
-          </div>
+          <Avatar
+            name={deployment.commitUserName}
+            avatarUrl={deployment.commitUserAvatarUrl}
+            className="h-8 w-8 shrink-0"
+          />
+
           <div className="grid grid-flow-row truncate text-sm+ font-medium">
             <Text className="inline cursor-pointer truncate font-medium leading-snug text-greyscaleDark">
               {commitMessage?.trim() || (
@@ -105,35 +118,69 @@ function OverviewDeployment({
                 </span>
               )}
             </Text>
+
             <Text className="text-sm font-normal leading-[1.375rem] text-greyscaleGrey">
               {relativeDateOfDeployment}
             </Text>
           </div>
         </div>
-        <div className="grid grid-flow-col items-center self-center">
+
+        <div className="grid grid-flow-col gap-2 items-center">
+          {allowRedeploy && (
+            <Button
+              size="small"
+              color="secondary"
+              variant="outlined"
+              onClick={async (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+
+                const updateDeploymentPromise = updateDeployment({
+                  variables: {
+                    id: deployment.id,
+                    deployment: {},
+                  },
+                });
+
+                await toast.promise(
+                  updateDeploymentPromise,
+                  {
+                    loading: 'Redeploying...',
+                    success: 'Redeployment has been started successfully.',
+                    error: 'An error occurred when redeploying your project.',
+                  },
+                  toastStyleProps,
+                );
+              }}
+              startIcon={<ArrowCounterclockwiseIcon className="w-4 h-4" />}
+              className="rounded-full py-1 px-2 text-xs"
+            >
+              Redeploy
+            </Button>
+          )}
+
           {isDeploymentLive && (
-            <div className="flex self-center align-middle">
+            <div className="w-12 flex justify-end">
               <Status status={StatusEnum.Live}>Live</Status>
             </div>
           )}
 
-          <div className="w-20 self-center text-right align-middle font-mono text-sm- font-medium">
+          <div className="w-16 text-right font-mono text-sm- font-medium">
             {deployment.commitSHA.substring(0, 7)}
           </div>
-          <div className="w-20 self-center text-right align-middle font-mono text-sm-">
+
+          <div className="w-[80px] text-right font-mono text-sm- font-medium">
             <AppDeploymentDuration
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}
             />
           </div>
-          <div className="mx-3 self-center">
-            <StatusCircle
-              status={deployment.deploymentStatus as DeploymentStatus}
-            />
-          </div>
-          <div className="self-center">
-            <ChevronRightIcon className="ml-2 h-4 w-4 cursor-pointer self-center" />
-          </div>
+
+          <StatusCircle
+            status={deployment.deploymentStatus as DeploymentStatus}
+          />
+
+          <ChevronRightIcon className="h-4 w-4" />
         </div>
       </ListItem.Button>
     </ListItem.Root>
@@ -158,6 +205,8 @@ function OverviewDeployments({
       offset: 0,
     },
   });
+
+  console.log(data);
 
   if (loading) {
     return (
@@ -222,7 +271,7 @@ function OverviewDeployments({
 
   return (
     <div className="rounded-x-lg flex flex-col divide-y-1 divide-gray-200 rounded-lg border border-veryLightGray">
-      {deployments.map((deployment) => {
+      {deployments.map((deployment, index) => {
         const isDeploymentLive = deployment.id === getLastLiveDeploymentId;
 
         return (
@@ -230,6 +279,7 @@ function OverviewDeployments({
             key={deployment.id}
             deployment={deployment}
             isDeploymentLive={isDeploymentLive}
+            allowRedeploy={index === 0}
           />
         );
       })}

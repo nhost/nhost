@@ -232,7 +232,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     }
 
     if (page === 1) {
-      setIdOfLiveDeployment(getLastLiveDeployment(data.deployments));
+      setIdOfLiveDeployment(getLastLiveDeployment(data?.deployments));
     }
   }, [data, idOfLiveDeployment, loading, page]);
 
@@ -244,7 +244,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const nrOfDeployments = data.deployments.length;
+  const nrOfDeployments = data?.deployments?.length || 0;
   const nextAllowed = !(nrOfDeployments < limit);
 
   return (
@@ -254,7 +254,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
       ) : (
         <div>
           <div className="mt-3 divide-y-1 border-t border-b">
-            {data.deployments.map((deployment) => (
+            {data?.deployments.map((deployment) => (
               <AppDeploymentRow
                 deployment={deployment}
                 key={deployment.id}

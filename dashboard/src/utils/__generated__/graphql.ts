@@ -17215,6 +17215,14 @@ export type GetDeploymentsQueryVariables = Exact<{
 
 export type GetDeploymentsQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
 
+export type UpdateDeploymentMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  deployment: Deployments_Set_Input;
+}>;
+
+
+export type UpdateDeploymentMutation = { __typename?: 'mutation_root', updateDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
+
 export type GetDeploymentsSubSubscriptionVariables = Exact<{
   id: Scalars['uuid'];
   limit: Scalars['Int'];
@@ -19147,6 +19155,40 @@ export type GetDeploymentsQueryResult = Apollo.QueryResult<GetDeploymentsQuery, 
 export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariables) {
       return { query: GetDeploymentsDocument, variables: variables }
     }
+export const UpdateDeploymentDocument = gql`
+    mutation updateDeployment($id: uuid!, $deployment: deployments_set_input!) {
+  updateDeployment(_set: $deployment, pk_columns: {id: $id}) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+export type UpdateDeploymentMutationFn = Apollo.MutationFunction<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>;
+
+/**
+ * __useUpdateDeploymentMutation__
+ *
+ * To run a mutation, you first call `useUpdateDeploymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDeploymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDeploymentMutation, { data, loading, error }] = useUpdateDeploymentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      deployment: // value for 'deployment'
+ *   },
+ * });
+ */
+export function useUpdateDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>(UpdateDeploymentDocument, options);
+      }
+export type UpdateDeploymentMutationHookResult = ReturnType<typeof useUpdateDeploymentMutation>;
+export type UpdateDeploymentMutationResult = Apollo.MutationResult<UpdateDeploymentMutation>;
+export type UpdateDeploymentMutationOptions = Apollo.BaseMutationOptions<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>;
 export const GetDeploymentsSubDocument = gql`
     subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
