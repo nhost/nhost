@@ -246,8 +246,8 @@ export const oauthProviders = Router()
           userId: user.id,
           providerId: provider,
           providerUserId,
-          accessToken,
           refreshToken,
+          accessToken,
         });
 
         if (!result) {
@@ -263,8 +263,8 @@ export const oauthProviders = Router()
           userId: id,
           providerId: provider,
           providerUserId,
-          accessToken,
           refreshToken,
+          accessToken,
         });
       }
     }
