@@ -1,5 +1,15 @@
 # @nhost/vue
 
+## 1.13.1
+
+### Patch Changes
+
+- c2706c7d: Export commonly used types
+
+  `BackendUrl`, `ErrorPayload`, `NhostSession`, `Subdomain`, and `User` are now exported in all our SDKs
+
+- d42c27ae: Add explicit reutrn types to Vue composables
+
 ## 1.13.0
 
 ### Patch Changes
