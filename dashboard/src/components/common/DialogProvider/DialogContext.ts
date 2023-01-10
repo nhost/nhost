@@ -6,7 +6,7 @@ import { createContext } from 'react';
  * Available dialog types.
  */
 export type DialogType =
-  | 'CREATE_WORKSPACE'
+  | 'EDIT_WORKSPACE_NAME'
   | 'CREATE_RECORD'
   | 'CREATE_COLUMN'
   | 'EDIT_COLUMN'

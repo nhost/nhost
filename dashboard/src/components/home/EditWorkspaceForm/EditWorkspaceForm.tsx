@@ -11,7 +11,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface CreateWorkspaceFormProps {
+export interface EditWorkspaceFormProps {
   /**
    * Determines whether the form is disabled.
    */
@@ -32,7 +32,7 @@ export interface CreateWorkspaceFormProps {
   onCancel?: VoidFunction;
 }
 
-export interface CreateWorkspaceFormValues {
+export interface EditWorkspaceFormValues {
   /**
    * New workspace name.
    */
@@ -59,16 +59,16 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
-export default function CreateWorkspaceForm({
+export default function EditWorkspaceForm({
   disabled,
   onSubmit,
   onCancel,
   submitButtonText = 'Create',
-}: CreateWorkspaceFormProps) {
+}: EditWorkspaceFormProps) {
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
   const router = useRouter();
 
-  const form = useForm<CreateWorkspaceFormValues>({
+  const form = useForm<EditWorkspaceFormValues>({
     defaultValues: {
       newWorkspaceName: '',
     },
@@ -83,7 +83,7 @@ export default function CreateWorkspaceForm({
 
   const currentUser = useUserData();
 
-  async function handleSubmit({ newWorkspaceName }: CreateWorkspaceFormValues) {
+  async function handleSubmit({ newWorkspaceName }: EditWorkspaceFormValues) {
     const slug = slugifyString(newWorkspaceName);
 
     const updateAppPromise = insertWorkspace({
@@ -149,11 +149,10 @@ export default function CreateWorkspaceForm({
           <Input
             {...register('newWorkspaceName')}
             error={Boolean(errors.newWorkspaceName?.message)}
-            label="Workspace"
+            label="Name"
             helperText={errors.newWorkspaceName?.message}
             autoFocus={!disabled}
             disabled={disabled}
-            aria-label="Workspace"
             fullWidth
             hideEmptyHelperText
             placeholder='e.g. "My Workspace"'

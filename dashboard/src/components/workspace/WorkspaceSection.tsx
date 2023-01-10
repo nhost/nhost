@@ -17,7 +17,7 @@ export function WorkspaceSection() {
         variant="borderless"
         color="secondary"
         onClick={() => {
-          openDialog('CREATE_WORKSPACE', {
+          openDialog('EDIT_WORKSPACE_NAME', {
             title: (
               <span className="grid grid-flow-row">
                 <span>New Workspace</span>
