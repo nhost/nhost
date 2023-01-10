@@ -1,7 +1,10 @@
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { useInsertWorkspaceMutation } from '@/utils/__generated__/graphql';
+import {
+  useInsertWorkspaceMutation,
+  useUpdateWorkspaceMutation,
+} from '@/utils/__generated__/graphql';
 import { slugifyString } from '@/utils/helpers';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,6 +15,14 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditWorkspaceFormProps {
+  /**
+   * The current workspace name if this is an edit operation.
+   */
+  currentWorkspaceName?: string;
+  /**
+   * The current workspace name if this is an edit operation.
+   */
+  currentWorkspaceId?: string;
   /**
    * Determines whether the form is disabled.
    */
@@ -63,14 +74,17 @@ export default function EditWorkspaceForm({
   disabled,
   onSubmit,
   onCancel,
+  currentWorkspaceName,
+  currentWorkspaceId,
   submitButtonText = 'Create',
 }: EditWorkspaceFormProps) {
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
+  const [updateWorkspaceName] = useUpdateWorkspaceMutation({});
   const router = useRouter();
 
   const form = useForm<EditWorkspaceFormValues>({
     defaultValues: {
-      newWorkspaceName: '',
+      newWorkspaceName: currentWorkspaceName || '',
     },
     resolver: yupResolver(validationSchema),
   });
@@ -86,34 +100,55 @@ export default function EditWorkspaceForm({
   async function handleSubmit({ newWorkspaceName }: EditWorkspaceFormValues) {
     const slug = slugifyString(newWorkspaceName);
 
-    const updateAppPromise = insertWorkspace({
-      variables: {
-        workspace: {
-          name: newWorkspaceName,
-          companyName: newWorkspaceName,
-          email: currentUser.email,
-          slug,
-          workspaceMembers: {
-            data: [
-              {
-                userId: currentUser.id,
-                type: 'owner',
-              },
-            ],
-          },
-        },
-      },
-    });
     try {
-      await toast.promise(
-        updateAppPromise,
-        {
-          loading: 'Creating new workspace...',
-          success: 'The new workspace has been created successfully.',
-          error: 'An error occurred while creating the new workspace.',
-        },
-        toastStyleProps,
-      );
+      if (currentWorkspaceId) {
+        const editWorkspaceNamePromise = updateWorkspaceName({
+          variables: {
+            id: currentWorkspaceId,
+            workspace: {
+              name: newWorkspaceName,
+              slug,
+            },
+          },
+        });
+        await toast.promise(
+          editWorkspaceNamePromise,
+          {
+            loading: 'Updating workspace name...',
+            success: 'Workspace name has been updated successfully.',
+            error: 'An error occurred while updating the workspace name.',
+          },
+          toastStyleProps,
+        );
+      } else {
+        const insertWorkspaceNamePromise = insertWorkspace({
+          variables: {
+            workspace: {
+              name: newWorkspaceName,
+              companyName: newWorkspaceName,
+              email: currentUser.email,
+              slug,
+              workspaceMembers: {
+                data: [
+                  {
+                    userId: currentUser.id,
+                    type: 'owner',
+                  },
+                ],
+              },
+            },
+          },
+        });
+        await toast.promise(
+          insertWorkspaceNamePromise,
+          {
+            loading: 'Creating new workspace...',
+            success: 'The new workspace has been created successfully.',
+            error: 'An error occurred while creating the new workspace.',
+          },
+          toastStyleProps,
+        );
+      }
     } catch (error) {
       if (error.message?.includes('duplicate key value')) {
         form.setError(
@@ -134,6 +169,7 @@ export default function EditWorkspaceForm({
     await client.refetchQueries({
       include: ['getOneUser'],
     });
+
     await router.push(`/${slug}`);
 
     onSubmit?.();
@@ -168,7 +204,7 @@ export default function EditWorkspaceForm({
               }
               type="submit"
             >
-              {submitButtonText}
+              {currentWorkspaceName ? 'Save' : submitButtonText}
             </Button>
           )}
 
