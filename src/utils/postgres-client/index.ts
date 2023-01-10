@@ -319,7 +319,7 @@ export const pgClient = {
       user = await getUserById(client, userId);
     }
     client.release();
-    return { id: rows[0].id, user: cameliseUser(user) };
+    return { id: rows[0]?.id, user: cameliseUser(user) };
   },
 
   updateAuthUserprovider: async (
