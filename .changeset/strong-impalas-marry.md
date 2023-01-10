@@ -2,7 +2,7 @@
 'hasura-auth': patch
 ---
 
-Improve the logging of SMTP errors
+Improve the logging of the SMTP errors
 
 When an email could not be sent, the logs where too limited. As a result, it was not possible to know the reason why emails could not be sent, nor knowing why hasura-auth was returning an HTTP 500 error.
 
