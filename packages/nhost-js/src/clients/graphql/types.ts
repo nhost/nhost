@@ -41,4 +41,6 @@ export type NhostGraphqlRequestResponse<T = unknown> =
 /** Subset of RequestInit parameters that are supported by the graphql client */
 export interface NhostGraphqlRequestConfig {
   headers?: Record<string, string>
+  /** @deprecated Axios has been replaced by cross-fetch. You should now remove this option. */
+  useAxios?: false
 }

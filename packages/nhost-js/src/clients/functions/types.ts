@@ -28,4 +28,6 @@ export type NhostFunctionCallResponse<T = unknown> =
 /** Subset of RequestInit parameters that are supported by the functions client */
 export interface NhostFunctionCallConfig {
   headers?: Record<string, string>
+  /** @deprecated Axios has been replaced by cross-fetch. You should now remove this option. */
+  useAxios?: false
 }
