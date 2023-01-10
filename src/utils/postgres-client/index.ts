@@ -310,7 +310,7 @@ export const pgClient = {
   getUserByProvider: async (providerId: string, providerUserId: string) => {
     const client = await pool.connect();
     const { rows } = await client.query<{ user_id?: string; id: string }>(
-      `SELECT user_id, id FROM "auth"."user_providers" WHERE up.provider_id = $1 AND up.provider_user_id = $2;`,
+      `SELECT user_id, id FROM "auth"."user_providers" WHERE provider_id = $1 AND provider_user_id = $2;`,
       [providerId, providerUserId]
     );
     let user: SqlUser | null = null;
