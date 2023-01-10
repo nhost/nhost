@@ -118,6 +118,7 @@ export default function BaseColumnForm({
             variant="inline"
             className="col-span-8 py-3"
             autoFocus
+            autoComplete="off"
           />
 
           <ControlledAutocomplete
@@ -272,6 +273,7 @@ export default function BaseColumnForm({
             error={Boolean(errors.comment)}
             variant="inline"
             className="col-span-8 py-3"
+            autoComplete="off"
           />
         </section>
       </div>
