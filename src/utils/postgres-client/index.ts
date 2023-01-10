@@ -205,7 +205,7 @@ export const pgClient = {
   }) => {
     const client = await pool.connect();
     const { rows } = await client.query(
-      `INSERT INTO "auth"."user_providers" (user_id, provider_id, provider_user_id, refresh_token, access_token) VALUES($1, $2, $3, $4, $5, $6);`,
+      `INSERT INTO "auth"."user_providers" (user_id, provider_id, provider_user_id, refresh_token, access_token) VALUES($1, $2, $3, $4, $5);`,
       [userId, providerId, providerUserId, refreshToken, accessToken]
     );
     client.release();
