@@ -6,6 +6,6 @@ Replace `axios` by `cross-fetch`
 
 **Breaking Changes**
 
-The type of the third `config` argument of the method `nhost.functions.call(url, data, config)` is not `AxiosRequestConfig` anymore but `RequestInit`.
+- The `config` type of `nhost.functions.call(url, data, config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
 
-The type of the last `config` argument of the methode `nhost.graphql.request(document, [variables], config)` is not `AxiosRequestConfig` anymore but `RequestInit`.
+- The `config` type of `nhost.graphql.request(document, [variables], config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
