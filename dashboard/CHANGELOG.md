@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.3
+
+### Patch Changes
+
+- 85f0f943: fix(dashboard): don't break the table creation process
+
 ## 0.9.2
 
 ### Patch Changes
