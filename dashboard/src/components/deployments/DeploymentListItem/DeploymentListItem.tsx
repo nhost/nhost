@@ -1,5 +1,5 @@
-import { AppDeploymentDuration } from '@/components/applications/AppDeployments';
 import NavLink from '@/components/common/NavLink';
+import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
 import Status, { StatusEnum } from '@/ui/Status';
@@ -15,6 +15,7 @@ import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import { twMerge } from 'tailwind-merge';
 
 export interface DeploymentListItemProps {
   /**
@@ -118,17 +119,24 @@ export default function DeploymentListItem({
                   await toast.promise(
                     insertDeploymentPromise,
                     {
-                      loading: 'Redeploying...',
-                      success: 'Redeployment has been started successfully.',
-                      error: 'An error occurred when redeploying your project.',
+                      loading: 'Scheduling deployment...',
+                      success: 'Deployment has been scheduled successfully.',
+                      error: 'An error occurred when scheduling deployment.',
                     },
                     toastStyleProps,
                   );
                 }}
-                startIcon={<ArrowCounterclockwiseIcon className="w-4 h-4" />}
+                startIcon={
+                  <ArrowCounterclockwiseIcon
+                    className={twMerge(
+                      'w-4 h-4',
+                      disableRedeploy && 'animate-spin-reverse',
+                    )}
+                  />
+                }
                 className="rounded-full py-1 px-2 text-xs"
               >
-                Redeploy
+                {disableRedeploy ? 'Redeploying...' : 'Redeploy'}
               </Button>
             </Tooltip>
           )}

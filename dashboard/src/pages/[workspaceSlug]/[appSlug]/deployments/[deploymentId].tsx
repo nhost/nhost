@@ -1,4 +1,4 @@
-import { AppDeploymentDuration } from '@/components/applications/AppDeployments';
+import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useDeploymentSubSubscription } from '@/generated/graphql';

@@ -1,8 +1,8 @@
 import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
-import DeploymentListItem from '@/components/common/DeploymentListItem';
 import { useDialog } from '@/components/common/DialogProvider';
 import NavLink from '@/components/common/NavLink';
+import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';

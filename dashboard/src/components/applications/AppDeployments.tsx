@@ -1,4 +1,4 @@
-import DeploymentListItem from '@/components/common/DeploymentListItem';
+import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
@@ -7,10 +7,8 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import List from '@/ui/v2/List';
 import { getLastLiveDeployment } from '@/utils/helpers';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
-import { differenceInSeconds, parseISO } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 
 type AppDeploymentsProps = {
   appId: string;
@@ -58,54 +56,6 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
         <ChevronRightIcon className="h-4 w-4" />
       </a>
     </Link>
-  );
-}
-
-type AppDeploymentDurationProps = {
-  startedAt: string;
-  endedAt: string;
-};
-
-export function AppDeploymentDuration({
-  startedAt,
-  endedAt,
-}: AppDeploymentDurationProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (!endedAt) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-    return () => {
-      clearInterval(interval);
-    };
-  }, [endedAt]);
-
-  const totalDurationInSeconds = differenceInSeconds(
-    endedAt ? parseISO(endedAt) : currentTime,
-    parseISO(startedAt),
-  );
-
-  if (totalDurationInSeconds > 1200) {
-    return <div>20+m</div>;
-  }
-
-  const durationMins = Math.floor(totalDurationInSeconds / 60);
-  const durationSecs = totalDurationInSeconds % 60;
-
-  return (
-    <div
-      style={{
-        fontVariantNumeric: 'tabular-nums',
-      }}
-      className="self-center font-display text-sm+ text-greyscaleDark"
-    >
-      {durationMins}m {durationSecs}s
-    </div>
   );
 }
 
