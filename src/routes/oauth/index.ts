@@ -224,23 +224,26 @@ export const oauthProviders = Router()
 
     const { access_token: accessToken, refresh_token: refreshToken } = response;
 
-    let user: User | null = null;
+    let userId: string | null = null;
 
     // * Look for the user-provider
     const result = await pgClient.getUserByProvider(provider, providerUserId);
 
     if (result.user) {
       // * The userProvider already exists. Update it with the new tokens
-      user = result.user;
+      userId = result.user.id;
       await pgClient.updateAuthUserprovider(result.id, {
         accessToken,
         refreshToken,
       });
     } else {
+      let user: User | null = null;
       if (profile.email) {
         user = await getUserByEmail(profile.email);
       }
       if (user) {
+        userId = user.id;
+
         // * add this provider to existing user with the same email
         const result = await pgClient.insertUserProviderToUser({
           userId: user.id,
@@ -259,6 +262,7 @@ export const oauthProviders = Router()
         // TODO feature: check if registration is enabled
         const userInput = await transformOauthProfile(profile, options);
         const { id } = await insertUser(userInput);
+        userId = id;
         await pgClient.insertUserProviderToUser({
           userId: id,
           providerId: provider,
@@ -269,11 +273,12 @@ export const oauthProviders = Router()
       }
     }
 
-    if (user) {
-      const refreshToken = await pgClient.insertRefreshToken(user.id);
+    if (userId) {
+      const refreshToken = await pgClient.insertRefreshToken(userId);
       // * redirect back user to app url
       return res.redirect(generateRedirectUrl(redirectTo, { refreshToken }));
     }
 
+    logger.error('Could not retrieve user ID');
     return sendErrorFromQuery(undefined, 'OAuth request cancelled');
   });
