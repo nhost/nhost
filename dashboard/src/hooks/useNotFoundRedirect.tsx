@@ -10,7 +10,7 @@ export default function useNotFoundRedirect() {
     useCurrentWorkspaceAndApplication();
   const router = useRouter();
   const {
-    query: { workspaceSlug, appSlug },
+    query: { workspaceSlug, appSlug, mutating },
   } = useRouter();
 
   const notIn404Already = router.pathname !== '/404';
@@ -25,6 +25,9 @@ export default function useNotFoundRedirect() {
   const inSettingsDatabasePage = router.pathname.includes('/settings/database');
 
   useEffect(() => {
+    if (mutating) {
+      return;
+    }
     if (noResolvedWorkspace && notIn404Already) {
       router.push('/404');
     }
@@ -37,6 +40,7 @@ export default function useNotFoundRedirect() {
       router.push('/404');
     }
   }, [
+    mutating,
     currentApplication,
     currentWorkspace,
     noResolvedApplication,

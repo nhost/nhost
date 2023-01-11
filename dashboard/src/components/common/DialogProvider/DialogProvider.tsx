@@ -1,7 +1,7 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
-import EditWorkspaceForm from '@/components/home/EditWorkspaceForm';
+import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
@@ -343,7 +343,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
           {activeDialogType === 'EDIT_WORKSPACE_NAME' && (
-            <EditWorkspaceForm {...sharedDialogProps} />
+            <EditWorkspaceNameForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'CREATE_FOREIGN_KEY' && (

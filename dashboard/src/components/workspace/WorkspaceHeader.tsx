@@ -111,6 +111,10 @@ export default function WorkspaceHeader() {
                       title: (
                         <span className="grid grid-flow-row">
                           <span>Change Workspace Name</span>
+                          <Text variant="subtitle1" component="span">
+                            Changing the workspace name will also affect the URL
+                            of the workspace.
+                          </Text>
                         </span>
                       ),
                       payload: {

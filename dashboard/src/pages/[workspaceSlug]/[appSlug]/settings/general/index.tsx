@@ -9,8 +9,8 @@ import {
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import Input from '@/ui/v2/Input';
+import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
 import { updateOwnCache } from '@/utils/updateOwnCache';
@@ -53,6 +53,7 @@ export default function SettingsGeneralPage() {
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentApplication?.id },
   });
+  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
 
   const form = useForm<ProjectNameValidationSchema>({
@@ -69,6 +70,10 @@ export default function SettingsGeneralPage() {
   const { register, formState } = form;
 
   const handleProjectNameChange = async (data: ProjectNameValidationSchema) => {
+    await router.push({
+      pathname: router.pathname,
+      query: { ...router.query, mutating: true },
+    });
     const newProjectSlug = slugifyString(data.name);
 
     if (newProjectSlug.length < 1 || newProjectSlug.length > 32) {
@@ -100,8 +105,13 @@ export default function SettingsGeneralPage() {
       toastStyleProps,
     );
     try {
-      await client.refetchQueries({ include: ['getOneUser'] });
+      await client.refetchQueries({
+        include: ['getOneUser'],
+      });
       form.reset(undefined, { keepValues: true, keepDirty: false });
+      await router.push(
+        `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
+      );
     } catch (error) {
       await discordAnnounce(
         error.message || 'Error while trying to update application cache',

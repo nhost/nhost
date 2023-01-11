@@ -2,6 +2,7 @@ import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import {
+  refetchGetOneUserQuery,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
@@ -14,7 +15,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditWorkspaceFormProps {
+export interface EditWorkspaceNameFormProps {
   /**
    * The current workspace name if this is an edit operation.
    */
@@ -43,7 +44,7 @@ export interface EditWorkspaceFormProps {
   onCancel?: VoidFunction;
 }
 
-export interface EditWorkspaceFormValues {
+export interface EditWorkspaceNameFormValues {
   /**
    * New workspace name.
    */
@@ -70,19 +71,28 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
-export default function EditWorkspaceForm({
+export default function EditWorkspaceName({
   disabled,
   onSubmit,
   onCancel,
   currentWorkspaceName,
   currentWorkspaceId,
   submitButtonText = 'Create',
-}: EditWorkspaceFormProps) {
+}: EditWorkspaceNameFormProps) {
+  const currentUser = useUserData();
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
-  const [updateWorkspaceName] = useUpdateWorkspaceMutation({});
+  const [updateWorkspaceName] = useUpdateWorkspaceMutation({
+    refetchQueries: [
+      refetchGetOneUserQuery({
+        userId: currentUser.id,
+      }),
+    ],
+    awaitRefetchQueries: true,
+    ignoreResults: true,
+  });
   const router = useRouter();
 
-  const form = useForm<EditWorkspaceFormValues>({
+  const form = useForm<EditWorkspaceNameFormValues>({
     defaultValues: {
       newWorkspaceName: currentWorkspaceName || '',
     },
@@ -95,24 +105,27 @@ export default function EditWorkspaceForm({
   } = form;
   const isDirty = Object.keys(dirtyFields).length > 0;
 
-  const currentUser = useUserData();
-
-  async function handleSubmit({ newWorkspaceName }: EditWorkspaceFormValues) {
+  async function handleSubmit({
+    newWorkspaceName,
+  }: EditWorkspaceNameFormValues) {
     const slug = slugifyString(newWorkspaceName);
 
     try {
       if (currentWorkspaceId) {
-        const editWorkspaceNamePromise = updateWorkspaceName({
-          variables: {
-            id: currentWorkspaceId,
-            workspace: {
-              name: newWorkspaceName,
-              slug,
-            },
-          },
+        await router.push({
+          pathname: router.pathname,
+          query: { ...router.query, mutating: true },
         });
         await toast.promise(
-          editWorkspaceNamePromise,
+          updateWorkspaceName({
+            variables: {
+              id: currentWorkspaceId,
+              workspace: {
+                name: newWorkspaceName,
+                slug,
+              },
+            },
+          }),
           {
             loading: 'Updating workspace name...',
             success: 'Workspace name has been updated successfully.',
@@ -121,26 +134,25 @@ export default function EditWorkspaceForm({
           toastStyleProps,
         );
       } else {
-        const insertWorkspaceNamePromise = insertWorkspace({
-          variables: {
-            workspace: {
-              name: newWorkspaceName,
-              companyName: newWorkspaceName,
-              email: currentUser.email,
-              slug,
-              workspaceMembers: {
-                data: [
-                  {
-                    userId: currentUser.id,
-                    type: 'owner',
-                  },
-                ],
+        await toast.promise(
+          insertWorkspace({
+            variables: {
+              workspace: {
+                name: newWorkspaceName,
+                companyName: newWorkspaceName,
+                email: currentUser.email,
+                slug,
+                workspaceMembers: {
+                  data: [
+                    {
+                      userId: currentUser.id,
+                      type: 'owner',
+                    },
+                  ],
+                },
               },
             },
-          },
-        });
-        await toast.promise(
-          insertWorkspaceNamePromise,
+          }),
           {
             loading: 'Creating new workspace...',
             success: 'The new workspace has been created successfully.',
@@ -170,8 +182,7 @@ export default function EditWorkspaceForm({
       include: ['getOneUser'],
     });
 
-    await router.push(`/${slug}`);
-
+    await router.push(slug);
     onSubmit?.();
   }
 
