@@ -13,6 +13,7 @@ import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import { useTheme } from '@mui/material';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
@@ -41,6 +42,7 @@ export default function ColumnPresetsSection({
   table,
   disabled,
 }: ColumnPresetSectionProps) {
+  const theme = useTheme();
   const {
     data: tableData,
     status: tableStatus,
@@ -131,7 +133,12 @@ export default function ColumnPresetsSection({
                   freeSolo
                   fullWidth
                   disableClearable={false}
-                  clearIcon={<XIcon />}
+                  clearIcon={
+                    <XIcon
+                      className="w-4 h-4 mt-px"
+                      sx={{ color: theme.palette.text.primary }}
+                    />
+                  }
                   autoSelect
                   autoHighlight={false}
                   error={Boolean(
