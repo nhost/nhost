@@ -447,9 +447,6 @@ importers:
     devDependencies:
       cross-fetch: 3.1.5
 
-  examples/docker-compose/functions:
-    specifiers: {}
-
   examples/multi-tenant-one-to-many:
     specifiers:
       '@nhost/nhost-js': '*'
@@ -946,9 +943,6 @@ importers:
       msw: 0.47.4
       start-server-and-test: 1.15.2
 
-  packages/hasura-auth-js/functions:
-    specifiers: {}
-
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': workspace:*
@@ -971,9 +965,6 @@ importers:
       pixelmatch: 5.3.0
       start-server-and-test: 1.15.2
       uuid: 9.0.0
-
-  packages/hasura-storage-js/functions:
-    specifiers: {}
 
   packages/nextjs:
     specifiers:
@@ -1018,9 +1009,6 @@ importers:
       '@nhost/docgen': link:../docgen
       graphql: 16.6.0
       start-server-and-test: 1.15.2
-
-  packages/nhost-js/functions:
-    specifiers: {}
 
   packages/react:
     specifiers:
@@ -13025,7 +13013,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2
+      follow-redirects: 1.15.2_debug@4.3.4
     transitivePeerDependencies:
       - debug
     dev: true
@@ -18503,6 +18491,19 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
+
+  /follow-redirects/1.15.2_debug@4.3.4:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
