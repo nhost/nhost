@@ -272,7 +272,7 @@ export const oauthProviders = Router()
     if (user) {
       const refreshToken = await pgClient.insertRefreshToken(user.id);
       // * redirect back user to app url
-      return res.redirect(`${redirectTo}?refreshToken=${refreshToken}`);
+      return res.redirect(generateRedirectUrl(redirectTo, { refreshToken }));
     }
 
     return sendErrorFromQuery(undefined, 'OAuth request cancelled');
