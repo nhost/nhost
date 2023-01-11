@@ -17215,13 +17215,12 @@ export type GetDeploymentsQueryVariables = Exact<{
 
 export type GetDeploymentsQuery = { __typename?: 'query_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
 
-export type UpdateDeploymentMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  deployment: Deployments_Set_Input;
+export type InsertDeploymentMutationVariables = Exact<{
+  object: Deployments_Insert_Input;
 }>;
 
 
-export type UpdateDeploymentMutation = { __typename?: 'mutation_root', updateDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
+export type InsertDeploymentMutation = { __typename?: 'mutation_root', insertDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
 
 export type GetDeploymentsSubSubscriptionVariables = Exact<{
   id: Scalars['uuid'];
@@ -19155,40 +19154,39 @@ export type GetDeploymentsQueryResult = Apollo.QueryResult<GetDeploymentsQuery, 
 export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariables) {
       return { query: GetDeploymentsDocument, variables: variables }
     }
-export const UpdateDeploymentDocument = gql`
-    mutation updateDeployment($id: uuid!, $deployment: deployments_set_input!) {
-  updateDeployment(_set: $deployment, pk_columns: {id: $id}) {
+export const InsertDeploymentDocument = gql`
+    mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
     ...DeploymentRow
   }
 }
     ${DeploymentRowFragmentDoc}`;
-export type UpdateDeploymentMutationFn = Apollo.MutationFunction<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>;
+export type InsertDeploymentMutationFn = Apollo.MutationFunction<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
 
 /**
- * __useUpdateDeploymentMutation__
+ * __useInsertDeploymentMutation__
  *
- * To run a mutation, you first call `useUpdateDeploymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateDeploymentMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateDeploymentMutation, { data, loading, error }] = useUpdateDeploymentMutation({
+ * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
  *   variables: {
- *      id: // value for 'id'
- *      deployment: // value for 'deployment'
+ *      object: // value for 'object'
  *   },
  * });
  */
-export function useUpdateDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>) {
+export function useInsertDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>(UpdateDeploymentDocument, options);
+        return Apollo.useMutation<InsertDeploymentMutation, InsertDeploymentMutationVariables>(InsertDeploymentDocument, options);
       }
-export type UpdateDeploymentMutationHookResult = ReturnType<typeof useUpdateDeploymentMutation>;
-export type UpdateDeploymentMutationResult = Apollo.MutationResult<UpdateDeploymentMutation>;
-export type UpdateDeploymentMutationOptions = Apollo.BaseMutationOptions<UpdateDeploymentMutation, UpdateDeploymentMutationVariables>;
+export type InsertDeploymentMutationHookResult = ReturnType<typeof useInsertDeploymentMutation>;
+export type InsertDeploymentMutationResult = Apollo.MutationResult<InsertDeploymentMutation>;
+export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
 export const GetDeploymentsSubDocument = gql`
     subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(

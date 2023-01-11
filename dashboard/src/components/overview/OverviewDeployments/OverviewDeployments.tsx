@@ -4,6 +4,7 @@ import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import NavLink from '@/components/common/NavLink';
 import GithubIcon from '@/components/icons/GithubIcon';
+import Tooltip from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
 import Status, { StatusEnum } from '@/ui/Status';
@@ -21,7 +22,7 @@ import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   useGetDeploymentsSubSubscription,
-  useUpdateDeploymentMutation,
+  useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
 import { ChevronRightIcon } from '@heroicons/react/solid';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -70,29 +71,37 @@ interface OverviewDeploymentProps extends ListItemRootProps {
    */
   isDeploymentLive: boolean;
   /**
-   * Determines whether or not the redeploy button should be available for
-   * the deployment.
+   * Determines whether or not the redeploy button should be shown for the
+   * deployment.
    */
-  allowRedeploy?: boolean;
+  showRedeploy?: boolean;
+  /**
+   * Determines whether or not the redeploy button is disabled.
+   */
+  disableRedeploy?: boolean;
 }
 
 function OverviewDeployment({
   deployment,
   isDeploymentLive,
   className,
-  allowRedeploy,
+  showRedeploy,
+  disableRedeploy,
 }: OverviewDeploymentProps) {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const relativeDateOfDeployment = formatDistanceToNowStrict(
-    parseISO(deployment.deploymentStartedAt),
-    {
-      addSuffix: true,
-    },
-  );
+  const showTime =
+    !['SCHEDULED', 'PENDING'].includes(deployment.deploymentStatus) &&
+    deployment.deploymentStartedAt;
 
-  const [updateDeployment] = useUpdateDeploymentMutation();
+  const relativeDateOfDeployment = showTime
+    ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
+        addSuffix: true,
+      })
+    : '';
+
+  const [insertDeployment, { loading }] = useInsertDeploymentMutation();
 
   const { commitMessage } = deployment;
 
@@ -126,37 +135,50 @@ function OverviewDeployment({
         </div>
 
         <div className="grid grid-flow-col gap-2 items-center">
-          {allowRedeploy && (
-            <Button
-              size="small"
-              color="secondary"
-              variant="outlined"
-              onClick={async (event) => {
-                event.stopPropagation();
-                event.preventDefault();
-
-                const updateDeploymentPromise = updateDeployment({
-                  variables: {
-                    id: deployment.id,
-                    deployment: {},
-                  },
-                });
-
-                await toast.promise(
-                  updateDeploymentPromise,
-                  {
-                    loading: 'Redeploying...',
-                    success: 'Redeployment has been started successfully.',
-                    error: 'An error occurred when redeploying your project.',
-                  },
-                  toastStyleProps,
-                );
-              }}
-              startIcon={<ArrowCounterclockwiseIcon className="w-4 h-4" />}
-              className="rounded-full py-1 px-2 text-xs"
+          {showRedeploy && (
+            <Tooltip
+              title="An active deployment cannot be re-triggered"
+              hasDisabledChildren={disableRedeploy || loading}
+              disableHoverListener={!disableRedeploy}
             >
-              Redeploy
-            </Button>
+              <Button
+                disabled={disableRedeploy || loading}
+                size="small"
+                color="secondary"
+                variant="outlined"
+                onClick={async (event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+
+                  const insertDeploymentPromise = insertDeployment({
+                    variables: {
+                      object: {
+                        appId: currentApplication?.id,
+                        commitMessage: deployment.commitMessage,
+                        commitSHA: deployment.commitSHA,
+                        commitUserAvatarUrl: deployment.commitUserAvatarUrl,
+                        commitUserName: deployment.commitUserName,
+                        deploymentStatus: 'SCHEDULED',
+                      },
+                    },
+                  });
+
+                  await toast.promise(
+                    insertDeploymentPromise,
+                    {
+                      loading: 'Redeploying...',
+                      success: 'Redeployment has been started successfully.',
+                      error: 'An error occurred when redeploying your project.',
+                    },
+                    toastStyleProps,
+                  );
+                }}
+                startIcon={<ArrowCounterclockwiseIcon className="w-4 h-4" />}
+                className="rounded-full py-1 px-2 text-xs"
+              >
+                Redeploy
+              </Button>
+            </Tooltip>
           )}
 
           {isDeploymentLive && (
@@ -169,12 +191,14 @@ function OverviewDeployment({
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          <div className="w-[80px] text-right font-mono text-sm- font-medium">
-            <AppDeploymentDuration
-              startedAt={deployment.deploymentStartedAt}
-              endedAt={deployment.deploymentEndedAt}
-            />
-          </div>
+          {showTime && (
+            <div className="w-[80px] text-right font-mono text-sm- font-medium">
+              <AppDeploymentDuration
+                startedAt={deployment.deploymentStartedAt}
+                endedAt={deployment.deploymentEndedAt}
+              />
+            </div>
+          )}
 
           <StatusCircle
             status={deployment.deploymentStatus as DeploymentStatus}
@@ -205,8 +229,6 @@ function OverviewDeployments({
       offset: 0,
     },
   });
-
-  console.log(data);
 
   if (loading) {
     return (
@@ -268,6 +290,11 @@ function OverviewDeployments({
   }
 
   const getLastLiveDeploymentId = getLastLiveDeployment(deployments);
+  const scheduledOrPendingDeploymentIndex = deployments.findIndex(
+    (deployment) =>
+      deployment.deploymentStatus === 'SCHEDULED' ||
+      deployment.deploymentStatus === 'PENDING',
+  );
 
   return (
     <div className="rounded-x-lg flex flex-col divide-y-1 divide-gray-200 rounded-lg border border-veryLightGray">
@@ -279,7 +306,12 @@ function OverviewDeployments({
             key={deployment.id}
             deployment={deployment}
             isDeploymentLive={isDeploymentLive}
-            allowRedeploy={index === 0}
+            showRedeploy={
+              scheduledOrPendingDeploymentIndex !== -1
+                ? scheduledOrPendingDeploymentIndex === index
+                : index === 0
+            }
+            disableRedeploy={scheduledOrPendingDeploymentIndex !== -1}
           />
         );
       })}

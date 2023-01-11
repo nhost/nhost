@@ -20,8 +20,8 @@ query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
   }
 }
 
-mutation updateDeployment($id: uuid!, $deployment: deployments_set_input!) {
-  updateDeployment(_set: $deployment, pk_columns: { id: $id }) {
+mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
     ...DeploymentRow
   }
 }
