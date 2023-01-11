@@ -70,10 +70,14 @@ export default function SettingsGeneralPage() {
   const { register, formState } = form;
 
   const handleProjectNameChange = async (data: ProjectNameValidationSchema) => {
-    await router.push({
+    // In this bit of code we spread the props of the current path (e.g. /workspace/...) and add one key-value pair: `mutating: true`.
+    // We want to indicate that the currently we're in the process of running a mutation state that will affect the routing behaviour of the website
+    // i.e. redirecting to 404 if there's no workspace/project with that slug.
+    await router.replace({
       pathname: router.pathname,
       query: { ...router.query, mutating: true },
     });
+
     const newProjectSlug = slugifyString(data.name);
 
     if (newProjectSlug.length < 1 || newProjectSlug.length > 32) {

@@ -25,9 +25,15 @@ export default function useNotFoundRedirect() {
   const inSettingsDatabasePage = router.pathname.includes('/settings/database');
 
   useEffect(() => {
+    // This code is checking if the URL has a query of the form `?mutating=true`
+    // If it does (mutating is true) this useEffect will immediately exit without executing
+    //  any further statements (e.g. the page will show a loader until mutating is false).
+    // This is to prevent the user from being redirected to the 404 page while we are updating
+    // either the workspace slug or application slug.
     if (mutating) {
       return;
     }
+
     if (noResolvedWorkspace && notIn404Already) {
       router.push('/404');
     }
