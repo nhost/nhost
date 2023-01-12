@@ -8,7 +8,7 @@ import { Buffer } from 'buffer';
 import { initialize, mswDecorator } from 'msw-storybook-addon';
 import { RouterContext } from 'next/dist/shared/lib/router-context';
 import '../src/styles/globals.css';
-import defaultTheme from '../src/theme/default';
+import createTheme from '../src/theme/createTheme';
 
 global.Buffer = Buffer;
 
@@ -32,7 +32,7 @@ export const parameters = {
 
 export const decorators = [
   (Story) => (
-    <ThemeProvider theme={defaultTheme}>
+    <ThemeProvider theme={createTheme('light')}>
       <CssBaseline />
       <Story />
     </ThemeProvider>

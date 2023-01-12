@@ -8,7 +8,7 @@ import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import defaultTheme from '@/theme/default';
+import createTheme from '@/theme/createTheme';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import type { EmotionCache } from '@emotion/react';
@@ -82,6 +82,7 @@ function MyApp({
   }, [router.events]);
 
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+  const theme = createTheme('light');
 
   return (
     <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
@@ -107,7 +108,7 @@ function MyApp({
                       />
                     )}
 
-                    <ThemeProvider theme={defaultTheme}>
+                    <ThemeProvider theme={theme}>
                       <DialogProvider>
                         <CssBaseline />
 
