@@ -6,6 +6,8 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import Chip from '@/ui/Chip';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import ColumnIcon from '@/ui/v2/icons/ColumnIcon';
@@ -15,13 +17,11 @@ import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers/isSchemaLocked
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
-export interface DataBrowserGridControlsProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface DataBrowserGridControlsProps extends BoxProps {
   /**
    * Props passed to the pagination component.
    */
@@ -116,11 +116,8 @@ export default function DataBrowserGridControls({
   }
 
   return (
-    <div
-      className={twMerge(
-        'sticky top-0 z-20 border-b-1 border-gray-200 bg-white p-2',
-        className,
-      )}
+    <Box
+      className={twMerge('sticky top-0 z-20 border-b-1 p-2', className)}
       {...props}
     >
       <div
@@ -228,6 +225,6 @@ export default function DataBrowserGridControls({
           </div>
         )}
       </div>
-    </div>
+    </Box>
   );
 }

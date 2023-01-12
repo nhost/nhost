@@ -31,7 +31,7 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'react-hot-toast';
 
@@ -53,6 +53,7 @@ function MyApp({
   pageProps,
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
   const isPlatform = useIsPlatform();
   const router = useRouter();
 
@@ -82,7 +83,7 @@ function MyApp({
   }, [router.events]);
 
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  const theme = createTheme('dark');
+  const theme = createTheme(colorMode);
 
   return (
     <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
@@ -113,6 +114,21 @@ function MyApp({
                         <CssBaseline />
 
                         {getLayout(<Component {...pageProps} />)}
+
+                        {/* Temporary dark mode toggle button */}
+                        <div className="absolute bottom-0 right-0 z-[200000]">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setColorMode((currentMode) =>
+                                currentMode === 'dark' ? 'light' : 'dark',
+                              )
+                            }
+                            className="bg-black text-white border-white border-1"
+                          >
+                            Toggle Dark Mode
+                          </button>
+                        </div>
                       </DialogProvider>
                     </ThemeProvider>
                   </ManagedUIContext>

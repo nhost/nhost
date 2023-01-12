@@ -1,8 +1,8 @@
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
-export interface AlertProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface AlertProps extends BoxProps {
   /**
    * Severity of the alert.
    *
@@ -18,9 +18,9 @@ export function Alert({
   ...props
 }: AlertProps) {
   return (
-    <div
+    <Box
       className={twMerge(
-        'rounded-sm+ bg-opacity-20 p-2 text-center text-sm+ text-greyscaleDark',
+        'rounded-sm+ bg-opacity-20 p-2 text-center text-sm+',
         severity === 'error' && 'bg-rose-500',
         severity === 'warning' && 'bg-yellow-500',
         severity === 'success' && 'bg-green-500',
@@ -30,7 +30,7 @@ export function Alert({
       {...props}
     >
       {children}
-    </div>
+    </Box>
   );
 }
 

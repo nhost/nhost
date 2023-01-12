@@ -72,7 +72,10 @@ export default function DataGridHeader<T extends object>({
         return (
           <Dropdown.Root
             sx={{
-              backgroundColor: 'background.paper',
+              backgroundColor: (theme) =>
+                column.isDisabled
+                  ? theme.palette.background.default
+                  : theme.palette.background.paper,
               color: 'text.primary',
               borderColor: (theme) =>
                 theme.palette.mode === 'dark'
@@ -98,8 +101,7 @@ export default function DataGridHeader<T extends object>({
           >
             <Dropdown.Trigger
               className={twMerge(
-                'focus:outline-none enabled:hover:bg-gray-100 enabled:focus:bg-gray-100 motion-safe:transition-colors',
-                column.isDisabled && 'bg-gray-100',
+                'focus:outline-none motion-safe:transition-colors',
               )}
               disabled={
                 column.isDisabled ||
@@ -148,7 +150,10 @@ export default function DataGridHeader<T extends object>({
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   disabled={componentsProps?.editActionProps?.disabled}
                 >
-                  <PencilIcon className="h-4 w-4 text-gray-700" />
+                  <PencilIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Edit Column</span>
                 </Dropdown.Item>
@@ -161,7 +166,10 @@ export default function DataGridHeader<T extends object>({
                   onClick={() => column.toggleSortBy(false)}
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 >
-                  <ArrowUpIcon className="h-4 w-4 text-gray-700" />
+                  <ArrowUpIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Sort Ascending</span>
                 </Dropdown.Item>
@@ -172,7 +180,10 @@ export default function DataGridHeader<T extends object>({
                   onClick={() => column.toggleSortBy(true)}
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 >
-                  <ArrowDownIcon className="h-4 w-4 text-gray-700" />
+                  <ArrowDownIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Sort Descending</span>
                 </Dropdown.Item>
@@ -185,10 +196,11 @@ export default function DataGridHeader<T extends object>({
               {onRemoveColumn && !column.isPrimary && (
                 <Dropdown.Item
                   onClick={() => onRemoveColumn(column)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   disabled={componentsProps?.deleteActionProps?.disabled}
+                  sx={{ color: 'error.main' }}
                 >
-                  <TrashIcon className="h-4 w-4 text-red" />
+                  <TrashIcon className="h-4 w-4" sx={{ color: 'error.main' }} />
 
                   <span>Delete Column</span>
                 </Dropdown.Item>
@@ -199,7 +211,7 @@ export default function DataGridHeader<T extends object>({
       })}
 
       {onInsertColumn && (
-        <div className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 border-gray-200 bg-white font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none">
+        <Box className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none">
           <Button
             onClick={onInsertColumn}
             variant="borderless"
@@ -210,7 +222,7 @@ export default function DataGridHeader<T extends object>({
           >
             <PlusIcon className="h-4 w-4 text-greyscaleGrey" />
           </Button>
-        </div>
+        </Box>
       )}
     </div>
   );

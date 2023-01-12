@@ -28,14 +28,21 @@ export interface DropdownContentProps
   menu?: boolean;
 }
 
-const StyledMenu = styled(MaterialMenu)({
+const StyledMenu = styled(MaterialMenu)(({ theme }) => ({
   [`& .${materialMenuClasses.list}`]: {
     padding: 0,
   },
   [`& .${materialMenuClasses.paper}`]: {
-    boxShadow: '0px 4px 10px rgba(33, 50, 75, 0.25)',
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0px 4px 10px rgba(33, 50, 75, 0.25)'
+        : 'none',
+    border:
+      theme.palette.mode === 'dark'
+        ? `1px solid ${theme.palette.grey[200]}`
+        : 'none',
   },
-});
+}));
 
 function DropdownContent({
   children,

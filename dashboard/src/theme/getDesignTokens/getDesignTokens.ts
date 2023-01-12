@@ -20,10 +20,10 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         dark: '#c91737',
       },
       action: {
-        hover: '#f3f4f6',
-        active: '#f3f4f6',
-        focus: '#f3f4f6',
-        disabled: '#c2cad6',
+        hover: '#21262D',
+        active: '#21262D',
+        focus: '#21262D',
+        disabled: '#363a43',
       },
       grey: {
         100: '#10151e',

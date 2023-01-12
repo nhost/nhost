@@ -42,7 +42,7 @@ function InsertPlaceholderTableRow({
         color="secondary"
         className="justify-start w-full h-full px-2 py-3 text-xs font-normal rounded-none hover:shadow-none focus:shadow-none focus:outline-none"
         startIcon={
-          <PlusIcon className="w-4 h-4" sx={{ color: 'text.disabled' }} />
+          <PlusIcon className="w-4 h-4" sx={{ color: 'text.secondary' }} />
         }
       >
         Insert New Row
