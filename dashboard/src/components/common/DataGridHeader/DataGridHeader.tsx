@@ -1,6 +1,7 @@
 import type { DataGridProps } from '@/components/common/DataGrid';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -70,9 +71,17 @@ export default function DataGridHeader<T extends object>({
 
         return (
           <Dropdown.Root
+            sx={{
+              backgroundColor: 'background.paper',
+              color: 'text.primary',
+              borderColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? theme.palette.grey[200]
+                  : theme.palette.grey[300],
+            }}
             className={twMerge(
-              'group relative inline-flex self-stretch overflow-hidden bg-white font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none',
-              'border-b-1 border-r-1 border-gray-200',
+              'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
+              'border-b-1 border-r-1',
               column.id === 'selection' && 'sticky left-0 max-w-2',
             )}
             style={{
@@ -106,7 +115,7 @@ export default function DataGridHeader<T extends object>({
                 {column.render('Header')}
 
                 {allowSort && (
-                  <span className="text-greyscaleDark">
+                  <Box component="span" sx={{ color: 'text.primary' }}>
                     {column.isSorted && !column.isSortedDesc && (
                       <ArrowUpIcon className="h-3 w-3" />
                     )}
@@ -114,7 +123,7 @@ export default function DataGridHeader<T extends object>({
                     {column.isSorted && column.isSortedDesc && (
                       <ArrowDownIcon className="h-3 w-3" />
                     )}
-                  </span>
+                  </Box>
                 )}
               </span>
 

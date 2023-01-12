@@ -72,7 +72,7 @@ function LogsTimePicker({
             '& [type=time]': {
               lineHeight: '1.375rem',
               fontWeight: 500,
-              color: (theme) => theme.palette.text.primary,
+              color: 'text.primary',
               backgroundColor: 'transparent',
               padding: (theme) => theme.spacing(0.75, 3.75),
             },

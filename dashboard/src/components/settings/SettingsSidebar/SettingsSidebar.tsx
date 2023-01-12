@@ -116,9 +116,8 @@ export default function SettingsSidebar({
 
       <Box
         component="aside"
-        sx={{ backgroundColor: (theme) => theme.palette.background.paper }}
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 border-gray-200 px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}

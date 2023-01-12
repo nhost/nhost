@@ -20,17 +20,10 @@ export default function BaseLayout({
   children,
   title,
   seoProps,
-  sx,
   ...props
 }: BaseLayoutProps) {
   return (
-    <Box
-      sx={[
-        { backgroundColor: (theme) => theme.palette.background.paper },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      {...props}
-    >
+    <Box {...props}>
       <NextSeo title={title} {...seoProps} />
 
       {children}

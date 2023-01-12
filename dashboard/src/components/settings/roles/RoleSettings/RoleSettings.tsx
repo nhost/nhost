@@ -8,18 +8,18 @@ import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
 import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
 import LockIcon from '@/ui/v2/icons/LockIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import {
-  useGetRolesQuery,
-  useUpdateAppMutation
-} from '@/utils/__generated__/graphql';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  useGetRolesQuery,
+  useUpdateAppMutation,
+} from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -211,9 +211,7 @@ export default function RoleSettings() {
                       >
                         <Text
                           className="font-medium"
-                          sx={{
-                            color: (theme) => theme.palette.error.main,
-                          }}
+                          sx={{ color: 'error.main' }}
                         >
                           Delete
                         </Text>

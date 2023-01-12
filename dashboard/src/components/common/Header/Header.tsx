@@ -23,10 +23,10 @@ export default function Header({ className, ...props }: HeaderProps) {
   return (
     <Box
       className={twMerge(
-        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 border-gray-200 px-4 py-3 text-greyscaleDark',
+        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
         className,
       )}
-      sx={{ backgroundColor: (theme) => theme.palette.background.paper }}
+      sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
       <div className="grid grid-flow-col items-center gap-3">

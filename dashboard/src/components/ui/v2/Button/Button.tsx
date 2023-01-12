@@ -200,11 +200,11 @@ const OutlinedButton = forwardRef(
           borderColor: 'grey.500',
         },
         '&:active': {
-          backgroundColor: (theme) => theme.palette.action.active,
+          backgroundColor: 'action.active',
           borderColor: 'grey.700',
         },
         '&:focus': {
-          backgroundColor: (theme) => theme.palette.action.focus,
+          backgroundColor: 'action.focus',
           boxShadow: (theme) =>
             `0 0 0 2px ${alpha(theme.palette.text.primary, 0.2)}`,
         },
@@ -284,12 +284,12 @@ const BorderlessButton = forwardRef(
           color: 'text.primary',
         },
         '&:active': {
-          backgroundColor: (theme) => theme.palette.action.active,
+          backgroundColor: 'action.active',
         },
         '&:focus': {
           boxShadow: (theme) =>
             `0 0 0 2px ${alpha(theme.palette.text.primary, 0.1)}`,
-          backgroundColor: (theme) => theme.palette.action.focus,
+          backgroundColor: 'action.focus',
         },
       };
     }

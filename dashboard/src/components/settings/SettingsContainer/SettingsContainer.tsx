@@ -1,4 +1,6 @@
 import ControlledSwitch from '@/components/common/ControlledSwitch';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
@@ -82,7 +84,7 @@ export interface SettingsContainerProps
     /**
      * Props to be passed to the root element.
      */
-    root?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    root?: BoxProps;
     /**
      * Props to be passed to the `<Switch />` component.
      */
@@ -94,7 +96,7 @@ export interface SettingsContainerProps
     /**
      * Props to be passed to the footer element.
      */
-    footer?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    footer?: BoxProps;
   };
 }
 
@@ -116,10 +118,10 @@ export default function SettingsContainer({
   slotProps: { root, switch: switchSlot, submitButton, footer } = {},
 }: SettingsContainerProps) {
   return (
-    <div
+    <Box
       {...root}
       className={twMerge(
-        'grid grid-flow-row gap-4 rounded-lg border-1 border-gray-200 bg-white py-4',
+        'grid grid-flow-row gap-4 rounded-lg border-1 py-4',
         root?.className || rootClassName,
       )}
     >
@@ -141,7 +143,7 @@ export default function SettingsContainer({
             <Text className="text-lg font-semibold">{title}</Text>
 
             {description && (
-              <Text className="text-greyscaleMedium">{description}</Text>
+              <Text sx={{ color: 'text.secondary' }}>{description}</Text>
             )}
           </div>
         </div>
@@ -166,10 +168,10 @@ export default function SettingsContainer({
         {children}
       </div>
 
-      <div
+      <Box
         {...footer}
         className={twMerge(
-          'grid grid-flow-col items-center gap-x-2 border-t border-gray-200 px-4 pt-3.5',
+          'grid grid-flow-col items-center gap-x-2 border-t px-4 pt-3.5',
           docsLink ? 'place-content-between' : 'justify-end',
           footer?.className,
         )}
@@ -208,7 +210,7 @@ export default function SettingsContainer({
         >
           {submitButtonText}
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

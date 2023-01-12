@@ -1,7 +1,7 @@
 import { alpha, styled } from '@mui/material';
 import {
   dayPickerClasses,
-  pickersCalendarHeaderClasses,
+  pickersCalendarHeaderClasses
 } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -89,7 +89,7 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
   },
 
   '& button.Mui-selected': {
-    background: theme.palette.primary.main,
+    backgroundColor: theme.palette.primary.main,
   },
 
   [`& .${dayPickerClasses.header}`]: {

@@ -3,6 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -131,10 +132,10 @@ export default function EnvironmentVariableSettings() {
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 border-b-1 border-gray-200 px-4 py-3">
+      <Box className="grid grid-cols-2 lg:grid-cols-3 gap-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Updated</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         {availableEnvironmentVariables.length > 0 && (
@@ -190,9 +191,7 @@ export default function EnvironmentVariableSettings() {
                           >
                             <Text
                               className="font-medium"
-                              sx={{
-                                color: (theme) => theme.palette.error.main,
-                              }}
+                              sx={{ color: 'error.main' }}
                             >
                               Delete
                             </Text>

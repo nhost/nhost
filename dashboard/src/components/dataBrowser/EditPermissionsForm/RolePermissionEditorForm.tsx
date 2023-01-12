@@ -327,7 +327,8 @@ export default function RolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]"
+        className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
+        sx={{ backgroundColor: 'background.default' }}
       >
         <div className="grid grid-flow-row gap-6 content-start flex-auto py-4 overflow-auto">
           <PermissionSettingsSection

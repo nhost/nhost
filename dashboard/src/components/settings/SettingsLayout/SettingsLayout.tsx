@@ -36,7 +36,7 @@ export default function SettingsLayout({
       />
 
       <Box
-        sx={{ backgroundColor: (theme) => theme.palette.background.default }}
+        sx={{ backgroundColor: 'background.default' }}
         className="flex w-full flex-auto flex-col overflow-x-hidden"
       >
         <RetryableErrorBoundary>{children}</RetryableErrorBoundary>

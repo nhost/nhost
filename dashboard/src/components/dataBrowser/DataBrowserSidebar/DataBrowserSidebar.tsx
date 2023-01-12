@@ -8,6 +8,8 @@ import useDeleteTableWithToastMutation from '@/hooks/dataBrowser/useDeleteTableM
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
@@ -30,15 +32,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { Fragment, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface DataBrowserSidebarProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-    'children'
-  > {
+export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
   /**
    * Function to be called when a sidebar item is clicked.
    */
@@ -236,7 +233,7 @@ function DataBrowserSidebarContent({
       {schemas && schemas.length > 0 && (
         <Listbox value={selectedSchema} onChange={setSelectedSchema}>
           <div className="relative">
-            <Listbox.Button className="relative grid w-full cursor-pointer grid-flow-col items-center justify-start rounded-md border-1 border-gray-200 bg-white py-2 pl-3 pr-10 text-left text-sm font-medium text-greyscaleDark hover:bg-gray-100 active:bg-gray-100 motion-safe:transition-colors">
+            <Listbox.Button className="relative grid w-full cursor-pointer grid-flow-col items-center justify-start rounded-md border-1 border-gray-200 py-2 pl-3 pr-10 text-left text-sm font-medium text-greyscaleDark hover:bg-gray-100 active:bg-gray-100 motion-safe:transition-colors">
               <span className="text-greyscaleGrey">schema.</span>
               <span>{selectedSchema}</span>
 
@@ -251,7 +248,7 @@ function DataBrowserSidebarContent({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                 {schemas.map((schema) => (
                   <Listbox.Option
                     key={schema.schema_name}
@@ -546,9 +543,10 @@ export default function DataBrowserSidebar({
         />
       )}
 
-      <aside
+      <Box
+        component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 border-gray-200 bg-white px-2 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:py-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:py-2.5 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}
@@ -559,7 +557,7 @@ export default function DataBrowserSidebar({
             onSidebarItemClick={handleSidebarItemClick}
           />
         </RetryableErrorBoundary>
-      </aside>
+      </Box>
 
       <FloatingActionButton
         className="absolute bottom-4 left-4 z-[38] sm:hidden"

@@ -82,7 +82,7 @@ function MyApp({
   }, [router.events]);
 
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  const theme = createTheme('light');
+  const theme = createTheme('dark');
 
   return (
     <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>

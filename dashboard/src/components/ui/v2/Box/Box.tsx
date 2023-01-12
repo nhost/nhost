@@ -1,12 +1,28 @@
-import type { BoxProps as MaterialBoxProps } from '@mui/material/Box';
+import { styled } from '@mui/material';
+import type {
+  BoxProps as MaterialBoxProps,
+  BoxTypeMap,
+} from '@mui/material/Box';
 import MaterialBox from '@mui/material/Box';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 
-export interface BoxProps extends PropsWithoutRef<MaterialBoxProps> {}
+export type BoxProps<
+  D extends React.ElementType = BoxTypeMap['defaultComponent'],
+  P = {},
+> = PropsWithoutRef<MaterialBoxProps<D, P>>;
+
+const StyledBox = styled(MaterialBox)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderColor:
+    theme.palette.mode === 'dark'
+      ? theme.palette.grey[200]
+      : theme.palette.grey[300],
+  color: theme.palette.text.primary,
+}));
 
 function Box(props: BoxProps, ref: ForwardedRef<HTMLDivElement>) {
-  return <MaterialBox ref={ref} {...props} />;
+  return <StyledBox ref={ref} {...props} />;
 }
 
 Box.displayName = 'NhostBox';

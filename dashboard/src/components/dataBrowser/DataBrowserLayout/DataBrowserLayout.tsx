@@ -2,6 +2,7 @@ import type { DataBrowserSidebarProps } from '@/components/dataBrowser/DataBrows
 import DataBrowserSidebar from '@/components/dataBrowser/DataBrowserSidebar';
 import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import Box from '@/ui/v2/Box';
 import { useRouter } from 'next/router';
 import { twMerge } from 'tailwind-merge';
 
@@ -40,9 +41,12 @@ export default function DataBrowserLayout({
         />
       )}
 
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-gray-50">
+      <Box
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
+        sx={{ backgroundColor: 'background.default' }}
+      >
         {children}
-      </div>
+      </Box>
     </ProjectLayout>
   );
 }

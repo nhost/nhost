@@ -2,15 +2,12 @@ import type { IconLinkProps } from '@/components/common/IconLink';
 import IconLink from '@/components/common/IconLink';
 import { Nav } from '@/components/dashboard/Nav';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface DesktopNavProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-    'children'
-  > {}
+export interface DesktopNavProps extends Omit<BoxProps, 'children'> {}
 
 interface DesktopNavLinkProps extends IconLinkProps {
   /**
@@ -53,9 +50,9 @@ export default function DesktopNav({ className, ...props }: DesktopNavProps) {
   const { allRoutes } = useProjectRoutes();
 
   return (
-    <aside
+    <Box
       className={twMerge(
-        'w-20 content-start overflow-hidden overflow-y-auto border-r-1 border-gray-200 px-1 pb-10',
+        'w-20 content-start overflow-hidden overflow-y-auto border-r-1 px-1 pb-10',
         className,
       )}
       {...props}
@@ -88,6 +85,6 @@ export default function DesktopNav({ className, ...props }: DesktopNavProps) {
           ),
         )}
       </Nav>
-    </aside>
+    </Box>
   );
 }
