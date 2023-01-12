@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.6
+
+### Patch Changes
+
+- 36c3519c: feat(dashboard): retrigger deployments
+
 ## 0.9.5
 
 ### Patch Changes
