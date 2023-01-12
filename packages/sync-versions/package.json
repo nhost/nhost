@@ -2,7 +2,7 @@
   "name": "@nhost/sync-versions",
   "description": "Sync the versions of Nhost services in each of the packages of a pnpm workspace",
   "private": true,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
