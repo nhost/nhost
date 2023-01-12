@@ -1,5 +1,32 @@
 # @nhost/dashboard
 
+## 0.9.4
+
+### Patch Changes
+
+- dbd3ded5: fix(dashboard): workspaces creation, new form, correct redirects.
+
+## 0.9.3
+
+### Patch Changes
+
+- 85f0f943: fix(dashboard): don't break the table creation process
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [d42c27ae]
+- Updated dependencies [927be4a2]
+  - @nhost/nextjs@1.13.1
+  - @nhost/react-apollo@4.13.1
+
+## 0.9.1
+
+### Patch Changes
+
+- d0f80811: fix(dashboard): don't show error when signing out the user
+
 ## 0.9.0
 
 ### Minor Changes

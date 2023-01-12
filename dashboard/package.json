@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.9.0",
+  "version": "0.9.4",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -105,14 +105,14 @@
     "@types/node": "^16.11.7",
     "@types/pluralize": "^0.0.29",
     "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
+    "@types/react-dom": "18.0.10",
     "@types/react-table": "^7.7.12",
     "@types/testing-library__jest-dom": "^5.14.5",
     "@types/validator": "^13.7.10",
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
     "@vitejs/plugin-react": "^3.0.0",
-    "@vitest/coverage-c8": "^0.26.0",
+    "@vitest/coverage-c8": "^0.27.0",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
@@ -143,7 +143,7 @@
     "typescript": "^4.8.4",
     "vite": "^4.0.2",
     "vite-tsconfig-paths": "^4.0.3",
-    "vitest": "^0.26.2",
+    "vitest": "^0.27.0",
     "webpack": "^5.75.0"
   },
   "browserslist": {

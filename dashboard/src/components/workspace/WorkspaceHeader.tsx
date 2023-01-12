@@ -1,4 +1,4 @@
-import ChangeWorkspaceName from '@/components/applications/ChangeWorkspaceName';
+import { useDialog } from '@/components/common/DialogProvider';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
 import { useUI } from '@/context/UIContext';
 import { useGetWorkspace } from '@/hooks/use-GetWorkspace';
@@ -13,7 +13,6 @@ import { copy } from '@/utils/copy';
 import { nhost } from '@/utils/nhost';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 export default function WorkspaceHeader() {
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
@@ -21,13 +20,13 @@ export default function WorkspaceHeader() {
     query: { workspaceSlug },
   } = useRouter();
 
-  const [changeWorkspaceNameModal, setChangeWorkspaceNameModal] =
-    useState(false);
   const {
     openDeleteWorkspaceModal,
     closeDeleteWorkspaceModal,
     deleteWorkspaceModal,
   } = useUI();
+
+  const { openDialog } = useDialog();
 
   const { data } = useGetWorkspace(workspaceSlug);
 
@@ -45,11 +44,6 @@ export default function WorkspaceHeader() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
-      <Modal
-        showModal={changeWorkspaceNameModal}
-        close={() => setChangeWorkspaceNameModal(!changeWorkspaceNameModal)}
-        Component={ChangeWorkspaceName}
-      />
       <Modal
         showModal={deleteWorkspaceModal}
         close={closeDeleteWorkspaceModal}
@@ -112,9 +106,23 @@ export default function WorkspaceHeader() {
               >
                 <Dropdown.Item
                   className="py-2"
-                  onClick={() =>
-                    setChangeWorkspaceNameModal(!changeWorkspaceNameModal)
-                  }
+                  onClick={() => {
+                    openDialog('EDIT_WORKSPACE_NAME', {
+                      title: (
+                        <span className="grid grid-flow-row">
+                          <span>Change Workspace Name</span>
+                          <Text variant="subtitle1" component="span">
+                            Changing the workspace name will also affect the URL
+                            of the workspace.
+                          </Text>
+                        </span>
+                      ),
+                      payload: {
+                        currentWorkspaceName: currentWorkspace.name,
+                        currentWorkspaceId: currentWorkspace.id,
+                      },
+                    });
+                  }}
                 >
                   Change workspace name
                 </Dropdown.Item>

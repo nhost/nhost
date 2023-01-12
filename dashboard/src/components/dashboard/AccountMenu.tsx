@@ -1,13 +1,11 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
-import { useWorkspaceContext } from '@/context/workspace-context';
-import { useUserDataContext } from '@/context/workspace1-context';
 import { Avatar } from '@/ui/Avatar';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
-import { emptyWorkspace } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
+import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -22,9 +20,8 @@ function AccountMenuContent({
 }: AccountMenuContentProps) {
   const user = useUserData();
   const router = useRouter();
+  const client = useApolloClient();
   const [clicked, setClicked] = useState(false);
-  const { setWorkspaceContext } = useWorkspaceContext();
-  const { setUserContext } = useUserDataContext();
   const { handleClose } = useDropdown();
 
   return (
@@ -34,10 +31,9 @@ function AccountMenuContent({
         color="secondary"
         className="absolute top-6 right-4 grid grid-flow-col items-center gap-1 self-start font-medium"
         onClick={async () => {
-          setWorkspaceContext(emptyWorkspace());
-          setUserContext({ workspaces: [] });
-          nhost.auth.signOut();
           router.push('/signin');
+          await nhost.auth.signOut();
+          await client.resetStore();
         }}
         aria-label="Sign Out"
       >

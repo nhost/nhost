@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { User } from '@nhost/hasura-auth-js'
+import { User } from '@nhost/react'
 
 import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
@@ -83,10 +83,9 @@ Cypress.Commands.add('signOut', () => {
 })
 
 Cypress.Commands.add('confirmEmail', (email) => {
-  cy.mhGetMailsByRecipient(email)
+  cy.mhGetMailsByRecipient(email, 1)
     .should('have.length', 1)
     .then(([message]) => {
-      cy.mhDeleteAll()
       cy.visit(message.Content.Headers['X-Link'][0])
       cy.saveRefreshToken()
     })

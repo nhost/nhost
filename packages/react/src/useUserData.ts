@@ -1,3 +1,4 @@
+import { User } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
@@ -31,7 +32,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-data
  */
-export const useUserData = () => {
+export const useUserData = (): User | null => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
