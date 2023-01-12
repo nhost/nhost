@@ -1,11 +1,12 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import { SidebarTitle } from '@/components/home/SidebarTitle';
-import { useUI } from '@/context/UIContext';
 import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
 import SidebarWorkspaces from './SidebarWorkspaces';
 
 export function WorkspaceSection() {
-  const { openSection } = useUI();
+  const { openDialog } = useDialog();
 
   return (
     <>
@@ -15,7 +16,19 @@ export function WorkspaceSection() {
       <Button
         variant="borderless"
         color="secondary"
-        onClick={openSection}
+        onClick={() => {
+          openDialog('EDIT_WORKSPACE_NAME', {
+            title: (
+              <span className="grid grid-flow-row">
+                <span>New Workspace</span>
+
+                <Text variant="subtitle1" component="span">
+                  Invite team members to workspaces to work collaboratively.
+                </Text>
+              </span>
+            ),
+          });
+        }}
         startIcon={<PlusCircleIcon />}
       >
         New Workspace
