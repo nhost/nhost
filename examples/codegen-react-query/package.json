@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/codegen-react-query",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "dependencies": {
     "@nhost/react": "*",

@@ -1,5 +1,14 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.1.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+  - @nhost/react-apollo@4.13.2
+
 ## 0.1.4
 
 ### Patch Changes

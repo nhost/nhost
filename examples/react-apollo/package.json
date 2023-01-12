@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/react-apollo",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.6.9",

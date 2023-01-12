@@ -1,5 +1,13 @@
 # @nhost/nextjs
 
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+
 ## 1.13.1
 
 ### Patch Changes
