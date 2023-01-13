@@ -151,7 +151,7 @@ function OverviewDeployments({
             disableRedeploy={scheduledOrPendingDeployments.length > 0}
           />
 
-          <Divider component="li" />
+          {index !== deployments.length - 1 && <Divider component="li" />}
         </Fragment>
       ))}
     </List>

@@ -1,3 +1,4 @@
+import Text from '@/ui/v2/Text';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 
@@ -44,11 +45,11 @@ export default function AppDeploymentDuration({
   const durationSecs = totalDurationInSeconds % 60;
 
   return (
-    <div
+    <Text
       style={{ fontVariantNumeric: 'tabular-nums' }}
-      className="self-center font-display text-sm+ text-greyscaleDark"
+      className="self-center font-display text-sm+"
     >
       {durationMins}m {durationSecs}s
-    </div>
+    </Text>
   );
 }

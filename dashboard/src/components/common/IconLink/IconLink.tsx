@@ -33,6 +33,22 @@ function IconLink(
           ? cloneElement(icon, {
               ...icon.props,
               className: twMerge('w-4 h-4', icon.props.className),
+              sx: [
+                ...(Array.isArray(icon.props?.sx)
+                  ? icon.props.sx
+                  : [icon.props?.sx]),
+                {
+                  color: (theme) => {
+                    if (active) {
+                      return 'primary.main';
+                    }
+
+                    return theme.palette.mode === 'dark'
+                      ? 'text.secondary'
+                      : 'text.primary';
+                  },
+                },
+              ],
             })
           : null}
 
@@ -64,6 +80,22 @@ function IconLink(
           ? cloneElement(icon, {
               ...icon.props,
               className: twMerge('w-4 h-4', icon.props.className),
+              sx: [
+                ...(Array.isArray(icon.props?.sx)
+                  ? icon.props.sx
+                  : [icon.props?.sx]),
+                {
+                  color: (theme) => {
+                    if (active) {
+                      return 'primary.main';
+                    }
+
+                    return theme.palette.mode === 'dark'
+                      ? 'text.secondary'
+                      : 'text.primary';
+                  },
+                },
+              ],
             })
           : null}
 
