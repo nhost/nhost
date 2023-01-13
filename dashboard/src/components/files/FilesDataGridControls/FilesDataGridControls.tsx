@@ -4,12 +4,12 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
-import Chip from '@/ui/Chip';
 import type { FileUploadButtonProps } from '@/ui/FileUploadButton';
 import FileUploadButton from '@/ui/FileUploadButton';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -118,7 +118,11 @@ export default function FilesDataGridControls({
     >
       {numberOfSelectedFiles > 0 ? (
         <div className="mx-auto grid grid-flow-col place-content-start items-center gap-3">
-          <Chip variant="info">{numberOfSelectedFiles} selected</Chip>
+          <Chip
+            color="info"
+            size="small"
+            label={`${numberOfSelectedFiles} selected`}
+          />
 
           <Button
             variant="borderless"
@@ -156,10 +160,10 @@ export default function FilesDataGridControls({
           <Box
             component="input"
             className={twMerge(
-              'border-1 col-span-12 rounded-sm p-2 font-display text-sm+ leading-4 xs+:col-span-12 md:col-span-9 xl:col-span-10',
+              'col-span-12 rounded-sm p-2 font-display text-sm+ leading-4 xs+:col-span-12 md:col-span-9 xl:col-span-10 outline-none',
               filterClassName,
             )}
-            sx={{ borderColor: 'grey.300' }}
+            sx={{ backgroundColor: 'grey.200' }}
             {...restFilterProps}
           />
 

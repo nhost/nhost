@@ -172,7 +172,12 @@ export default function DataGridTextCell<TData extends object>({
           }}
           className="-ml-px min-w-0 p-0"
           aria-label="Copy value"
-          sx={{ color: 'text.secondary' }}
+          sx={{
+            color: (theme) =>
+              theme.palette.mode === 'dark'
+                ? 'text.secondary'
+                : 'text.disabled',
+          }}
         >
           <CopyIcon className="h-4 w-4" />
         </Button>
