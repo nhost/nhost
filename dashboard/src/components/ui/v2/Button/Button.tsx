@@ -1,12 +1,18 @@
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { SxProps, Theme } from '@mui/material';
 import { alpha, styled } from '@mui/material';
-import type { ButtonProps as MaterialButtonProps } from '@mui/material/Button';
+import type {
+  ButtonProps as MaterialButtonProps,
+  ButtonTypeMap,
+} from '@mui/material/Button';
 import MaterialButton, { buttonClasses } from '@mui/material/Button';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
-export interface ButtonProps extends Omit<MaterialButtonProps, 'variant'> {
+export type ButtonProps<
+  D extends React.ElementType = ButtonTypeMap['defaultComponent'],
+  P = {},
+> = Omit<MaterialButtonProps<D, P>, 'variant'> & {
   /**
    * Variant of the button.
    */
@@ -15,7 +21,7 @@ export interface ButtonProps extends Omit<MaterialButtonProps, 'variant'> {
    * Determines whether the button should show an activity indicator.
    */
   loading?: boolean;
-}
+};
 
 const StyledButton = styled(MaterialButton)(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
