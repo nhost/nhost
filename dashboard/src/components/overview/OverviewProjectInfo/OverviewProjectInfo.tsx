@@ -11,9 +11,7 @@ export default function OverviewProjectInfo() {
 
   return (
     <div className="grid grid-flow-row content-start gap-6">
-      <Text variant="h3" className="lg:!font-bold">
-        Project Info
-      </Text>
+      <Text variant="h3">Project Info</Text>
 
       {currentApplication && (
         <div className="grid grid-flow-row gap-3">
@@ -31,7 +29,7 @@ export default function OverviewProjectInfo() {
                     height={16}
                   />
 
-                  <Text className="text-sm font-medium text-greyscaleDark">
+                  <Text className="text-sm font-medium truncate">
                     {region.city} ({region.awsName})
                   </Text>
                 </div>

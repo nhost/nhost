@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { ApplicationStatus } from '@/types/application';
-import Chip from '@/ui/Chip';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
 import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
@@ -29,10 +29,10 @@ export default function OverviewMigration() {
   return (
     <div className="pb-12">
       <div className="flex flex-col gap-2">
-        <Text variant="h3" className="lg:!font-bold">
+        <Text variant="h3">
           Migrate Database
           <span className="relative -top-0.5 ml-2 self-center">
-            <Chip variant="filled">New</Chip>
+            <Chip label="New" color="primary" size="small" />
           </span>
         </Text>
 

@@ -1,21 +1,19 @@
 import type { CardElement } from '@/components/overview/frameworks';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
-import type { DetailedHTMLProps, HTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface OverviewCardProps extends CardElement {
   /**
    * Props to be passed to the internal components.
    */
-  componentsProps?: {
-    iconWrapper?: DetailedHTMLProps<
-      HTMLAttributes<HTMLDivElement>,
-      HTMLDivElement
-    >;
+  slotProps?: {
+    iconWrapper?: BoxProps;
     imgIcon?: Partial<ImageProps>;
   };
 }
@@ -27,27 +25,24 @@ export default function OverviewCard({
   link,
   iconIsComponent = true,
   className,
-  componentsProps = {
-    iconWrapper: {
-      className: '',
-    },
-  },
+  slotProps = {},
   ...props
 }: OverviewCardProps) {
   return (
-    <div
+    <Box
       className={twMerge(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg bg-card py-3 px-4 shadow-sm',
+        'flex h-full flex-col place-content-between gap-12 rounded-lg py-3 px-4 shadow-sm',
         className,
       )}
+      sx={{ backgroundColor: 'grey.200' }}
       {...props}
     >
       <div className="flex flex-col gap-4">
-        <div
-          {...componentsProps.iconWrapper}
+        <Box
+          {...(slotProps.iconWrapper || {})}
           className={twMerge(
             'inline-flex h-12 w-12 items-center',
-            componentsProps.iconWrapper?.className,
+            slotProps.iconWrapper?.className,
           )}
         >
           {iconIsComponent
@@ -56,12 +51,12 @@ export default function OverviewCard({
                 <Image
                   src={icon}
                   alt={title}
-                  width={componentsProps.imgIcon?.width}
-                  height={componentsProps.imgIcon?.height}
-                  {...componentsProps.imgIcon}
+                  width={slotProps.imgIcon?.width}
+                  height={slotProps.imgIcon?.height}
+                  {...slotProps.imgIcon}
                 />
               )}
-        </div>
+        </Box>
         <div className="grid grid-flow-row gap-1">
           <Text variant="h3" className="!font-bold">
             {title}
@@ -78,8 +73,8 @@ export default function OverviewCard({
         className="font-medium"
       >
         Learn more
-        <ArrowRightIcon className="ml-1.5 inline-flex h-4 w-4 cursor-pointer text-blue" />
+        <ArrowRightIcon className="ml-1.5 inline-flex h-4 w-4 cursor-pointer" />
       </Link>
-    </div>
+    </Box>
   );
 }

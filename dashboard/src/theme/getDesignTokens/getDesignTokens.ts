@@ -40,7 +40,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         default: '#151a22',
         paper: '#171d26',
       },
-      divider: '#21262d',
+      divider: '#2f363d',
     };
   }
 

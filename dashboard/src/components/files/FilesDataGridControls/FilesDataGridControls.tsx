@@ -159,7 +159,7 @@ export default function FilesDataGridControls({
               'border-1 col-span-12 rounded-sm p-2 font-display text-sm+ leading-4 xs+:col-span-12 md:col-span-9 xl:col-span-10',
               filterClassName,
             )}
-            sx={{ borderColor: 'gray.400' }}
+            sx={{ borderColor: 'grey.300' }}
             {...restFilterProps}
           />
 
