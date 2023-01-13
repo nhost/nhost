@@ -19,6 +19,11 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         main: '#f13154',
         dark: '#c91737',
       },
+      success: {
+        light: 'rgba(170, 240, 204, 0.3)',
+        main: '#62d198',
+        dark: '#3bb174',
+      },
       action: {
         hover: '#21262D',
         active: '#21262D',
@@ -61,8 +66,9 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       dark: '#c91737',
     },
     success: {
-      main: 'rgba(170, 240, 204, 0.3)',
-      contrastText: '#3BB174',
+      light: 'rgba(170, 240, 204, 0.3)',
+      main: '#62d198',
+      dark: '#3bb174',
     },
     action: {
       hover: '#f3f4f6',

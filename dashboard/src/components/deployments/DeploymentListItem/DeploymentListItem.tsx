@@ -1,8 +1,8 @@
 import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
+import Chip from '@/components/ui/v2/Chip';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
-import Status, { StatusEnum } from '@/ui/Status';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
@@ -143,7 +143,7 @@ export default function DeploymentListItem({
 
           {isLive && (
             <div className="w-12 flex justify-end">
-              <Status status={StatusEnum.Live}>Live</Status>
+              <Chip size="small" color="success" label="Live" />
             </div>
           )}
 
