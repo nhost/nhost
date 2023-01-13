@@ -39,7 +39,7 @@ test('should generate a per service subdomain in remote mode', () => {
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'https://test.storage.eu-west-1.nhost.run/v1',
+    'https://test.storage.eu-west-1.nhost.run/v1/files',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
@@ -64,7 +64,7 @@ test('should generate staging subdomains in staging environment', () => {
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'https://test.storage.eu-west-1.staging.nhost.run/v1',
+    'https://test.storage.eu-west-1.staging.nhost.run/v1/files',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(

@@ -1,3 +1,4 @@
+import Box from '@/ui/v2/Box';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
@@ -40,25 +41,40 @@ function ReadOnlyToggle(
       )}
       ref={ref}
     >
-      <span
+      <Box
+        component="span"
+        sx={{
+          backgroundColor: (theme) => {
+            if (checked) {
+              return theme.palette.mode === 'dark' ? 'grey.400' : 'grey.700';
+            }
+
+            return 'transparent';
+          },
+          borderColor: checked ? 'transparent' : 'grey.700',
+        }}
         className={twMerge(
-          'box-border inline-grid h-3 w-5 items-center rounded-full px-0.5',
-          checked === true &&
-            'border-1 border-transparent justify-end bg-greyscaleDark',
-          checked === false && 'border-1 border-greyscaleDark',
-          checked === null && 'border-1 border-greyscaleDark',
+          'box-border border-1 inline-grid h-3 w-5 items-center rounded-full px-0.5',
+          checked === true && 'justify-end',
         )}
       >
-        <span
+        <Box
+          component="span"
+          sx={{
+            backgroundColor: (theme) => {
+              if (checked) {
+                return theme.palette.mode === 'dark' ? 'grey.700' : 'grey.200';
+              }
+
+              return 'grey.700';
+            },
+          }}
           className={twMerge(
-            'inline-block rounded-full',
-            checked === true && 'h-2 w-2 bg-white',
-            checked === false && 'h-2 w-2 bg-greyscaleDark',
-            checked === null &&
-              'h-px my-px w-2 justify-self-center bg-greyscaleDark',
+            'inline-block rounded-full h-2 w-2',
+            checked === null && 'h-px my-px justify-self-center',
           )}
         />
-      </span>
+      </Box>
 
       <Text
         {...(slotProps?.label || {})}

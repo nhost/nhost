@@ -10,6 +10,9 @@ interface DropdownProps {
   transparent?: boolean;
 }
 
+/**
+ * @deprecated Use `@/ui/v2/Dropdown` instead.
+ */
 export function Dropdown({
   children,
   text = 'Project Options',

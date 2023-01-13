@@ -2,6 +2,7 @@ import type { CommonDataGridCellProps } from '@/components/common/DataGridCell';
 import { useDataGridCell } from '@/components/common/DataGridCell';
 import Button from '@/ui/v2/Button';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import type { ChangeEvent, KeyboardEvent, MutableRefObject } from 'react';
 import { useEffect } from 'react';
@@ -169,26 +170,27 @@ export default function DataGridTextCell<TData extends object>({
 
             copy(copiableValue, 'Value');
           }}
-          className="-ml-px min-w-0 p-0 text-greyscaleGrey"
+          className="-ml-px min-w-0 p-0"
           aria-label="Copy value"
+          sx={{ color: 'text.secondary' }}
         >
           <CopyIcon className="h-4 w-4" />
         </Button>
 
-        <span className="truncate text-greyscaleDark">
+        <Text className="truncate text-xs">
           {typeof normalizedOptimisticValue === 'object'
             ? JSON.stringify(normalizedOptimisticValue)
             : normalizedOptimisticValue}
-        </span>
+        </Text>
       </div>
     );
   }
 
   return (
-    <span className="truncate text-greyscaleDark">
+    <Text className="truncate text-xs">
       {typeof normalizedOptimisticValue === 'object'
         ? JSON.stringify(normalizedOptimisticValue)
         : normalizedOptimisticValue}
-    </span>
+    </Text>
   );
 }

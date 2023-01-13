@@ -77,10 +77,7 @@ export default function DataGridHeader<T extends object>({
                   ? theme.palette.background.default
                   : theme.palette.background.paper,
               color: 'text.primary',
-              borderColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? theme.palette.grey[200]
-                  : theme.palette.grey[300],
+              borderColor: 'grey.300',
             }}
             className={twMerge(
               'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',

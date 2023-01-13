@@ -304,7 +304,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
     <Box
       ref={cellRef}
       className={twMerge(
-        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1 border-transparent',
+        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',

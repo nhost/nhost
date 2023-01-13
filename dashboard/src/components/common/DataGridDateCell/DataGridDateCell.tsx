@@ -1,12 +1,9 @@
 import type { CommonDataGridCellProps } from '@/components/common/DataGridCell';
 import { useDataGridCell } from '@/components/common/DataGridCell';
+import type { TextProps } from '@/ui/v2/Text';
+import Text from '@/ui/v2/Text';
 import { getDateComponents } from '@/utils/formatDate';
-import type {
-  ChangeEvent,
-  DetailedHTMLProps,
-  HTMLProps,
-  KeyboardEvent,
-} from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface DataGridDateCellProps<TData extends object>
@@ -14,11 +11,11 @@ export interface DataGridDateCellProps<TData extends object>
   /**
    * Props to be passed to date display.
    */
-  dateProps?: DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>;
+  dateProps?: TextProps;
   /**
    * Props to be passed to time display.
    */
-  timeProps?: DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>;
+  timeProps?: TextProps;
 }
 
 export default function DataGridDateCell<TData extends object>({
@@ -101,39 +98,41 @@ export default function DataGridDateCell<TData extends object>({
   }
 
   if (!optimisticValue) {
-    return <span className="truncate text-greyscaleGrey">null</span>;
+    return (
+      <Text className="truncate text-xs" sx={{ color: 'text.secondary' }}>
+        null
+      </Text>
+    );
   }
 
   if (specificType === 'interval') {
-    return (
-      <span className="truncate text-greyscaleDark">{optimisticValue}</span>
-    );
+    return <Text className="truncate text-xs">{optimisticValue}</Text>;
   }
 
   return (
     <div className={twMerge('grid grid-flow-row', className)}>
       {specificType !== 'time' && specificType !== 'timetz' && (
-        <span
-          className={twMerge('truncate text-greyscaleDark', dateClassName)}
+        <Text
+          className={twMerge('truncate text-xs', dateClassName)}
           {...restDateProps}
         >
           {[year, month, day].filter(Boolean).join('-')}
-        </span>
+        </Text>
       )}
 
       {specificType !== 'date' && (
-        <span
-          className={twMerge(
-            'truncate',
-            specificType === 'time' || specificType === 'timetz'
-              ? 'text-greyscaleDark'
-              : 'text-greyscaleGrey',
-            timeClassName,
-          )}
+        <Text
+          className={twMerge('truncate text-xs', timeClassName)}
+          sx={{
+            color:
+              specificType === 'time' || specificType === 'timetz'
+                ? 'text.primary'
+                : 'text.secondary',
+          }}
           {...restTimeProps}
         >
           {[hour, minute, second].filter(Boolean).join(':')}
-        </span>
+        </Text>
       )}
     </div>
   );

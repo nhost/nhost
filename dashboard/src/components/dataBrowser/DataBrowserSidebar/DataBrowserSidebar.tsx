@@ -25,14 +25,14 @@ import UsersIcon from '@/ui/v2/icons/UsersIcon';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
+import Option from '@/ui/v2/Option';
+import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
-import { Listbox, Transition } from '@headlessui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import clsx from 'clsx';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
@@ -231,59 +231,48 @@ function DataBrowserSidebarContent({
   return (
     <div className="grid gap-1">
       {schemas && schemas.length > 0 && (
-        <Listbox value={selectedSchema} onChange={setSelectedSchema}>
-          <div className="relative">
-            <Listbox.Button className="relative grid w-full cursor-pointer grid-flow-col items-center justify-start rounded-md border-1 border-gray-200 py-2 pl-3 pr-10 text-left text-sm font-medium text-greyscaleDark hover:bg-gray-100 active:bg-gray-100 motion-safe:transition-colors">
-              <span className="text-greyscaleGrey">schema.</span>
-              <span>{selectedSchema}</span>
-
-              {(isSelectedSchemaLocked || isGitHubConnected) && (
-                <LockIcon className="ml-1 h-3 w-3" />
-              )}
-            </Listbox.Button>
-
-            <Transition
-              as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
+        <Select
+          renderValue={(option) => (
+            <span className="grid grid-flow-col gap-1 items-center">
+              {option?.label}
+            </span>
+          )}
+          slotProps={{
+            listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
+            popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
+          }}
+          value={selectedSchema}
+          onChange={(_event, value) => setSelectedSchema(value as string)}
+        >
+          {schemas.map((schema) => (
+            <Option
+              className="grid grid-flow-col gap-1 items-center"
+              value={schema.schema_name}
+              key={schema.schema_name}
             >
-              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {schemas.map((schema) => (
-                  <Listbox.Option
-                    key={schema.schema_name}
-                    value={schema.schema_name}
-                    as={Fragment}
-                  >
-                    {({ active, selected }) => (
-                      <li
-                        className={clsx(
-                          'grid cursor-pointer grid-flow-col items-center justify-start break-all p-2 text-sm font-medium text-greyscaleDark motion-safe:transition-colors',
-                          active && 'bg-gray-100 active:bg-gray-100',
-                        )}
-                      >
-                        <span className="text-greyscaleGrey">schema.</span>
-
-                        <span
-                          className={twMerge(
-                            selected && 'truncate font-bold text-blue',
-                          )}
-                        >
-                          {schema.schema_name}
-                        </span>
-
-                        {(isSchemaLocked(schema.schema_name) ||
-                          isGitHubConnected) && (
-                          <LockIcon className="ml-1 h-3 w-3" />
-                        )}
-                      </li>
-                    )}
-                  </Listbox.Option>
-                ))}
-              </Listbox.Options>
-            </Transition>
-          </div>
-        </Listbox>
+              <Text className="text-sm">
+                <Text component="span" sx={{ color: 'text.disabled' }}>
+                  schema.
+                </Text>
+                <Text
+                  component="span"
+                  sx={{
+                    color:
+                      selectedSchema === schema.schema_name
+                        ? 'primary.main'
+                        : 'text.primary',
+                  }}
+                  className="font-medium"
+                >
+                  {schema.schema_name}
+                </Text>
+              </Text>
+              {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
+                <LockIcon className="h-3 w-3" />
+              )}
+            </Option>
+          ))}
+        </Select>
       )}
 
       {isGitHubConnected && (
