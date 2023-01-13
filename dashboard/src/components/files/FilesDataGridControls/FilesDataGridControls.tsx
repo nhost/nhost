@@ -10,13 +10,16 @@ import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
+import type { InputProps } from '@/ui/v2/Input';
+import Input from '@/ui/v2/Input';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
+import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
-export type FilterProps = BoxProps<'input'>;
+export type FilterProps = PropsWithoutRef<InputProps>;
 
 export interface FilesDataGridControlsProps extends BoxProps {
   paginationProps?: DataGridPaginationProps;
@@ -117,7 +120,7 @@ export default function FilesDataGridControls({
       {...props}
     >
       {numberOfSelectedFiles > 0 ? (
-        <div className="mx-auto grid grid-flow-col place-content-start items-center gap-3">
+        <div className="mx-auto h-[40px] grid grid-flow-col justify-start items-center gap-2">
           <Chip
             color="info"
             size="small"
@@ -157,13 +160,12 @@ export default function FilesDataGridControls({
         </div>
       ) : (
         <div className="mx-auto grid w-full grid-cols-12 gap-2">
-          <Box
-            component="input"
+          <Input
             className={twMerge(
-              'col-span-12 rounded-sm p-2 font-display text-sm+ leading-4 xs+:col-span-12 md:col-span-9 xl:col-span-10 outline-none',
+              'col-span-12 xs+:col-span-12 md:col-span-9 xl:col-span-10',
               filterClassName,
             )}
-            sx={{ backgroundColor: 'grey.200' }}
+            fullWidth
             {...restFilterProps}
           />
 
