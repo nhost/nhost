@@ -1,5 +1,5 @@
 ---
-name: Build containers and publish them
+name: Build containers
 
 on:
   workflow_call:

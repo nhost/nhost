@@ -1,5 +1,5 @@
 ---
-name: Build containers and publish them
+name: Publish containers
 
 env:
   CONTAINER_NAME: nhost/hasura-storage

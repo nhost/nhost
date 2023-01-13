@@ -1,5 +1,5 @@
 ---
-name: Run tests and linters
+name: Release
 on:
   release:
     types: [published]
@@ -23,9 +23,3 @@ jobs:
     uses: nhost/hasura-storage/.github/workflows/copy-docker-image-to-aws.yaml@main
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_ACCOUNT_ID }}
-
-  copy-to-aws-staging:
-    needs: build
-    uses: nhost/hasura-storage/.github/workflows/copy-docker-image-to-aws.yaml@main
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_STAGING_ACCOUNT_ID }}

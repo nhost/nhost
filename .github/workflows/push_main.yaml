@@ -1,5 +1,5 @@
 ---
-name: Run tests and linters
+name: "main: Release drafter"
 on:
   push:
     branches:

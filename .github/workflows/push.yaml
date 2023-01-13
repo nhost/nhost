@@ -1,5 +1,5 @@
 ---
-name: Run tests and linters
+name: "push: Run tests and linters"
 on:
   - push
   - pull_request
