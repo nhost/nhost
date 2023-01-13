@@ -61,7 +61,9 @@ export default function OverviewCard({
           <Text variant="h3" className="!font-bold">
             {title}
           </Text>
-          <Text className="!font-medium">{description}</Text>
+          <Text className="!font-medium" sx={{ color: 'text.secondary' }}>
+            {description}
+          </Text>
         </div>
       </div>
       <Link
@@ -70,10 +72,10 @@ export default function OverviewCard({
         href={link}
         target="_blank"
         rel="dofollow"
-        className="font-medium"
+        className="font-medium grid grid-flow-col gap-1 justify-start items-center"
       >
         Learn more
-        <ArrowRightIcon className="ml-1.5 inline-flex h-4 w-4 cursor-pointer" />
+        <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </Box>
   );

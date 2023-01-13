@@ -287,7 +287,10 @@ function DataBrowserSidebarContent({
       )}
 
       {isGitHubConnected && (
-        <div className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md bg-gray-100 p-2 text-greyscaleMedium">
+        <Box
+          className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md p-2"
+          sx={{ backgroundColor: 'grey.200' }}
+        >
           <Text>
             Your project is connected to GitHub. Please use the CLI to make
             schema changes.
@@ -302,7 +305,7 @@ function DataBrowserSidebarContent({
           >
             Learn More <ArrowRightIcon />
           </Link>
-        </div>
+        </Box>
       )}
 
       {!isSelectedSchemaLocked && (

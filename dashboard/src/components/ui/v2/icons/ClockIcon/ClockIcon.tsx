@@ -1,5 +1,5 @@
 import type { IconProps } from '@/ui/v2/icons';
-import SvgIcon from '@mui/material/SvgIcon';
+import SvgIcon from '@/ui/v2/icons/SvgIcon';
 
 function ClockIcon(props: IconProps) {
   return (

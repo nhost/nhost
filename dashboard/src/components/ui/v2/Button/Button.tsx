@@ -196,17 +196,16 @@ const OutlinedButton = forwardRef(
         color: 'text.primary',
         borderColor: 'grey.400',
         '&:hover': {
-          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
-          borderColor: 'grey.500',
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.400',
         },
         '&:active': {
-          backgroundColor: 'action.active',
-          borderColor: 'grey.700',
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.400',
         },
         '&:focus': {
-          backgroundColor: 'action.focus',
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.text.primary, 0.2)}`,
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.400',
         },
       };
     }
@@ -264,15 +263,15 @@ const BorderlessButton = forwardRef(
     let styles: SxProps<Theme> = {
       color: 'primary.main',
       '&:hover': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.05),
-        color: 'primary.dark',
+        backgroundColor: 'primary.light',
       },
       '&:active': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-        color: 'primary.dark',
+        boxShadow: 'none',
+        backgroundColor: 'primary.light',
       },
       '&:focus': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        boxShadow: 'none',
+        backgroundColor: 'primary.light',
       },
     };
 
@@ -280,15 +279,15 @@ const BorderlessButton = forwardRef(
       styles = {
         color: 'text.primary',
         '&:hover': {
-          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
+          backgroundColor: 'grey.400',
           color: 'text.primary',
         },
         '&:active': {
+          boxShadow: 'none',
           backgroundColor: 'action.active',
         },
         '&:focus': {
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.text.primary, 0.1)}`,
+          boxShadow: 'none',
           backgroundColor: 'action.focus',
         },
       };

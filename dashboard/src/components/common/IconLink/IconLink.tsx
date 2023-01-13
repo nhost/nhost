@@ -1,7 +1,8 @@
 import type { NavLinkProps } from '@/components/common/NavLink';
+import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
 import Link from '@/ui/v2/Link';
 import NavLink from 'next/link';
-import type { ForwardedRef, ReactNode } from 'react';
+import type { ForwardedRef, ReactElement } from 'react';
 import { cloneElement, forwardRef, isValidElement } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -9,7 +10,7 @@ export interface IconLinkProps extends Omit<NavLinkProps, 'ref'> {
   /**
    * The icon to display.
    */
-  icon?: ReactNode;
+  icon?: ReactElement<SvgIconProps>;
   /**
    * Determines if the content should be displayed in the primary color.
    */

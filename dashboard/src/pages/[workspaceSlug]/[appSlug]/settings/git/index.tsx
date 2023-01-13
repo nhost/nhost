@@ -46,8 +46,8 @@ export default function SettingsGitPage() {
         ) : (
           <div className="border-greyscaleGreyLight col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
             <div className="ml-2 flex flex-row">
-              <GithubIcon className="mr-1.5 h-7 w-7 self-center text-black" />
-              <Text className="self-center font-normal text-black">
+              <GithubIcon className="mr-1.5 h-7 w-7 self-center" />
+              <Text className="self-center font-normal">
                 {currentApplication.githubRepository.fullName}
               </Text>
             </div>
