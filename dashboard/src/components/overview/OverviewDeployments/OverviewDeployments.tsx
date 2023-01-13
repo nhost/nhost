@@ -73,9 +73,9 @@ function OverviewDeployments({
 
   if (loading || scheduledOrPendingDeploymentsLoading) {
     return (
-      <div className="h-60">
+      <Box className="h-[323px] p-2 border-1 rounded-lg">
         <ActivityIndicator label="Loading deployments..." />
-      </div>
+      </Box>
     );
   }
 
@@ -83,10 +83,7 @@ function OverviewDeployments({
 
   if (deployments.length === 0) {
     return (
-      <Box
-        className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm"
-        sx={{ borderWidth: 1 }}
-      >
+      <Box className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm border-1">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -185,10 +182,7 @@ export default function OverviewDeploymentsPage() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box
-        className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm"
-        sx={{ borderWidth: 1 }}
-      >
+      <Box className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm border-1">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">

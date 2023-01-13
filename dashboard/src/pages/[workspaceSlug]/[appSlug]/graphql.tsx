@@ -318,7 +318,52 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout mainContainerProps={{ className: 'flex flex-col' }}>
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex flex-col',
+        sx: {
+          [`& .graphiql-container .graphiql-main`]: {
+            backgroundColor: 'background.default',
+          },
+          [`& .graphiql-container .graphiql-sessions`]: {
+            backgroundColor: 'background.default',
+          },
+          [`& .graphiql-container .graphiql-editors`]: {
+            backgroundColor: 'background.paper',
+          },
+          [`& .graphiql-container .graphiql-editor`]: {
+            backgroundColor: 'background.paper',
+          },
+          [`& .graphiql-container .CodeMirror`]: {
+            backgroundColor: 'background.paper',
+          },
+          [`& .graphiql-container .CodeMirror-gutters`]: {
+            backgroundColor: 'background.paper',
+          },
+          [`& .graphiql-container .CodeMirror-linenumber`]: {
+            color: 'text.disabled',
+          },
+          [`& .graphiql-container .graphiql-doc-explorer`]: {
+            backgroundColor: 'background.paper',
+          },
+          [`& .graphiql-container .graphiql-tabs button`]: {
+            outline: 'none',
+          },
+          [`& .graphiql-container .graphiql-tabs button.graphiql-tab`]: {
+            color: 'text.disabled',
+          },
+          [`& .graphiql-container .graphiql-tabs button.graphiql-tab-active`]: {
+            color: 'text.secondary',
+          },
+          [`& .graphiql-container .graphiql-editor-tools-tabs button`]: {
+            color: 'text.disabled',
+          },
+          [`& .graphiql-container .graphiql-editor-tools-tabs button.active`]: {
+            color: 'text.secondary',
+          },
+        },
+      }}
+    >
       {page}
     </ProjectLayout>
   );

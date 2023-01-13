@@ -5,7 +5,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
     return {
       mode: 'dark',
       primary: {
-        light: '#ebf3ff',
+        light: '#162945',
         main: '#3888ff',
         dark: '#063799',
       },

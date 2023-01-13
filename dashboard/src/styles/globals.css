@@ -49,12 +49,8 @@ body {
   @apply hidden !important;
 }
 
-.graphiql-container .graphiql-main {
-  @apply bg-gray-100 !important;
-}
-
 .graphiql-container .graphiql-sessions {
-  @apply m-0 rounded-none bg-gray-100 !important;
+  @apply m-0 rounded-none !important;
 }
 
 .graphiql-container .graphiql-plugin-visible .graphiql-session {
@@ -62,7 +58,7 @@ body {
 }
 
 .graphiql-container .graphiql-doc-explorer {
-  @apply h-full overflow-y-auto border-l-0 bg-white py-3 px-3 !important;
+  @apply h-full overflow-y-auto border-l-0 py-3 px-3 !important;
 }
 
 .graphiql-container .graphiql-plugin {
