@@ -1,11 +1,11 @@
 import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
-import Chip from '@/components/ui/v2/Chip';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
