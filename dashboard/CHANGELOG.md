@@ -1,5 +1,20 @@
 # @nhost/dashboard
 
+## 0.9.6
+
+### Patch Changes
+
+- 36c3519c: feat(dashboard): retrigger deployments
+
+## 0.9.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/nextjs@1.13.2
+  - @nhost/react-apollo@4.13.2
+
 ## 0.9.4
 
 ### Patch Changes
