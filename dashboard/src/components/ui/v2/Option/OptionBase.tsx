@@ -13,17 +13,29 @@ const OptionBase = styled('li')(({ theme }) => ({
   fontSize: '0.9375rem',
   lineHeight: '1.375rem',
   transition: theme.transitions.create(['background-color'], { duration: 100 }),
+  '&[aria-selected="true"]': {
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? `${darken(theme.palette.action.hover, 0.15)} !important`
+        : `${theme.palette.action.hover} !important`,
+  },
+  '&.Mui-focused[aria-selected="true"], &[aria-selected="true"]:hover': {
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? `${darken(theme.palette.action.hover, 0.25)} !important`
+        : `${darken(theme.palette.action.hover, 0.15)} !important`,
+  },
   '&.Mui-focused, &:hover': {
     backgroundColor:
       theme.palette.mode === 'dark'
-        ? darken(theme.palette.action.hover, 0.1)
-        : theme.palette.action.hover,
+        ? `${darken(theme.palette.action.hover, 0.15)} !important`
+        : `${theme.palette.action.hover} !important`,
   },
   '&.Mui-focusVisible:hover': {
     backgroundColor:
       theme.palette.mode === 'dark'
-        ? darken(theme.palette.action.hover, 0.1)
-        : theme.palette.action.hover,
+        ? `${darken(theme.palette.action.hover, 0.15)} !important`
+        : `${theme.palette.action.hover} !important`,
   },
   '&:disabled': {
     color: theme.palette.text.disabled,
