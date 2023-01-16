@@ -70,6 +70,7 @@ function NameInput({ index }: FieldArrayInputProps) {
           }
         },
       })}
+      autoComplete="off"
       aria-label="Name"
       placeholder="Enter name"
       hideEmptyHelperText

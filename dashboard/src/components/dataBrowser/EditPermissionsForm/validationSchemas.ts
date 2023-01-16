@@ -1,0 +1,98 @@
+import type { DatabaseAction } from '@/types/dataBrowser';
+import * as Yup from 'yup';
+
+const ruleSchema = Yup.object().shape({
+  column: Yup.string().nullable().required('Please select a column.'),
+  operator: Yup.string().nullable().required('Please select an operator.'),
+  value: Yup.string().nullable().required('Please enter a value.'),
+});
+
+const ruleGroupSchema = Yup.object().shape({
+  operator: Yup.string().test(
+    'operator',
+    'Please select an operator.',
+    (selectedOperator, ctx) => {
+      // `from` is part of the Yup API, but it's not typed.
+      // @ts-ignore
+      const [, { value }] = ctx.from;
+
+      if (Object.keys(value.filter).length > 0 && !selectedOperator) {
+        return false;
+      }
+
+      return true;
+    },
+  ),
+  rules: Yup.array().of(ruleSchema),
+  groups: Yup.array().of(Yup.lazy(() => ruleGroupSchema) as any),
+});
+
+const baseValidationSchema = Yup.object().shape({
+  filter: ruleGroupSchema.nullable().required('Please select a filter type.'),
+  columns: Yup.array().of(Yup.string()).nullable(true),
+});
+
+const selectValidationSchema = baseValidationSchema.shape({
+  limit: Yup.number().min(0, 'Limit must not be negative.').nullable(true),
+  allowAggregations: Yup.boolean().nullable(true),
+  queryRootFields: Yup.array().of(Yup.string()).nullable(true),
+  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(true),
+});
+
+const columnPresetSchema = Yup.object().shape({
+  column: Yup.string()
+    .nullable()
+    .test('column', 'Please select a column.', (selectedColumn, ctx) => {
+      // `from` is part of the Yup API, but it's not typed.
+      // @ts-ignore
+      const [, { value }] = ctx.from;
+
+      if (
+        (value.columnPresets.length > 1 && !selectedColumn) ||
+        (!!ctx.parent.value && !selectedColumn)
+      ) {
+        return false;
+      }
+
+      return true;
+    }),
+  value: Yup.string()
+    .nullable()
+    .test('value', 'Please enter a value.', (selectedValue, ctx) => {
+      // `from` is part of the Yup API, but it's not typed.
+      // @ts-ignore
+      const [, { value }] = ctx.from;
+
+      if (
+        (value.columnPresets.length > 1 && !selectedValue) ||
+        (!!ctx.parent.column && !selectedValue)
+      ) {
+        return false;
+      }
+
+      return true;
+    }),
+});
+
+const insertValidationSchema = baseValidationSchema.shape({
+  backendOnly: Yup.boolean().nullable(true),
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+});
+
+const updateValidationSchema = baseValidationSchema.shape({
+  backendOnly: Yup.boolean().nullable(true),
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+});
+
+const deleteValidationSchema = baseValidationSchema.shape({
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+});
+
+const validationSchemas: Record<DatabaseAction, Yup.ObjectSchema<any>> = {
+  select: selectValidationSchema,
+  insert: insertValidationSchema,
+  update: updateValidationSchema,
+  delete: deleteValidationSchema,
+};
+
+export default validationSchemas;

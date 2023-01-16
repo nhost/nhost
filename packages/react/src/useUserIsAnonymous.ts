@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-is-anonymous
  */
-export const useUserIsAnonymous = () => {
+export const useUserIsAnonymous = (): boolean | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,

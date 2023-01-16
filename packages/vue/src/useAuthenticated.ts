@@ -1,4 +1,5 @@
 import { useSelector } from '@xstate/vue'
+import { Ref } from 'vue'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
@@ -12,7 +13,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/vue/use-access-token
  */
-export const useAuthenticated = () => {
+export const useAuthenticated = (): Ref<boolean> => {
   const service = useAuthInterpreter()
   return useSelector(service.value, (state) => state.matches({ authentication: 'signedIn' }))
 }

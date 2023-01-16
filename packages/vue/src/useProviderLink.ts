@@ -32,7 +32,9 @@ import { useNhostClient } from './useNhostClient'
  * };
  * ```
  */
-export const useProviderLink = (options?: NestedRefOfValue<ProviderOptions | undefined>) => {
+export const useProviderLink = (
+  options?: NestedRefOfValue<ProviderOptions | undefined>
+): Record<Provider, string> => {
   const { nhost } = useNhostClient()
   return reactive(
     new Proxy({} as Record<Provider, string>, {

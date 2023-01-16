@@ -184,7 +184,7 @@ export default function prepareUpdateTableQuery({
           );
 
           return [
-            ...args,
+            ...updatedArgs,
             ...prepareUpdateForeignKeyConstraintQuery({
               ...baseVariables,
               originalForeignKeyRelation,

@@ -34,13 +34,13 @@ export function Repo({ repo, setSelectedRepoId }: RepoProps) {
   const [updateApp, { loading, error }] = useUpdateAppMutation({
     refetchQueries: [
       refetchGetAppByWorkspaceAndNameQuery({
-        workspace: currentWorkspace.slug,
-        slug: currentApplication.slug,
+        workspace: currentWorkspace?.slug,
+        slug: currentApplication?.slug,
       }),
     ],
   });
 
-  const { githubRepository } = currentApplication;
+  const { githubRepository } = currentApplication || {};
 
   const isThisRepositoryAlreadyConnected =
     githubRepository?.fullName && githubRepository.fullName === repo.fullName;

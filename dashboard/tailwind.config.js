@@ -13,8 +13,13 @@ module.exports = {
       ...defaultTheme.screens,
     },
     extend: {
+      animation: {
+        'spin-reverse': 'spin 1.5s linear infinite reverse',
+      },
       colors: {
-        primary: 'var(--primary)',
+        primary: '#0052cd',
+        'primary-light': '#ebf3ff',
+        'primary-dark': '#063799',
         'primary-2': 'var(--primary-2)',
         'secondary-2': 'var(--secondary-2)',
         hover: 'var(--hover)',

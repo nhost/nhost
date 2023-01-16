@@ -65,25 +65,44 @@ export default function useColumnGroups({
   const objectAndArrayRelationships = [
     ...(object_relationships || []),
     ...(array_relationships || []),
-  ].map((relationship) => {
-    const { foreign_key_constraint_on } = relationship?.using || {};
+  ].reduce((relationships, currentRelationship) => {
+    const { foreign_key_constraint_on, manual_configuration } =
+      currentRelationship?.using || {};
 
-    if (typeof foreign_key_constraint_on === 'string') {
-      return {
-        schema: selectedSchema,
-        table: selectedTable,
-        column: foreign_key_constraint_on,
-        name: relationship.name,
-      };
+    if (manual_configuration) {
+      return [
+        ...relationships,
+        ...Object.keys(manual_configuration.column_mapping).map((column) => ({
+          schema: manual_configuration.remote_table?.schema || 'public',
+          table: manual_configuration.remote_table?.name,
+          column,
+          name: currentRelationship.name,
+        })),
+      ];
     }
 
-    return {
-      schema: foreign_key_constraint_on.table.schema,
-      table: foreign_key_constraint_on.table.name,
-      column: foreign_key_constraint_on.column,
-      name: relationship.name,
-    };
-  });
+    if (typeof foreign_key_constraint_on === 'string') {
+      return [
+        ...relationships,
+        {
+          schema: selectedSchema,
+          table: selectedTable,
+          column: foreign_key_constraint_on,
+          name: currentRelationship.name,
+        },
+      ];
+    }
+
+    return [
+      ...relationships,
+      {
+        schema: foreign_key_constraint_on.table.schema,
+        table: foreign_key_constraint_on.table.name,
+        column: foreign_key_constraint_on.column,
+        name: currentRelationship.name,
+      },
+    ];
+  }, [] as { schema: string; table: string; column: string; name: string }[]);
 
   return [
     ...columnOptions,
@@ -93,6 +112,9 @@ export default function useColumnGroups({
       group: 'relationships',
       metadata: {
         target: {
+          schema: relationship.schema,
+          table: relationship.table,
+          column: relationship.column,
           ...(columnTargetMap?.get(relationship.column) || {}),
           name: relationship.name,
         },

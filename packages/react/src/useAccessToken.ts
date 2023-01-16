@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-access-token
  */
-export const useAccessToken = () => {
+export const useAccessToken = (): string | null => {
   const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.accessToken.value)
 }

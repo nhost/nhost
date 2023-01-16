@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios, { AxiosInstance } from 'axios'
+import { toIso88591 } from './utils'
 
 import {
   ApiDeleteParams,
@@ -9,7 +10,7 @@ import {
   ApiUploadParams,
   ApiUploadResponse,
   UploadHeaders
-} from './utils/types'
+} from './utils'
 
 /**
  * @internal
@@ -50,7 +51,14 @@ export class HasuraStorageApi {
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
       const { fileId } = params
-      const res = await this.httpClient.get(`/files/${fileId}/presignedurl`, {
+      const url = `/files/${fileId}/presignedurl`
+      // TODO not implemented yet in hasura-storage
+      // const { fileId, ...imageTransformationParams } = params
+      // const url = appendImageTransformationParameters(
+      //   `/files/${fileId}/presignedurl`,
+      //   imageTransformationParams
+      // )
+      const res = await this.httpClient.get(url, {
         headers: {
           ...this.generateAuthHeaders()
         }
@@ -110,7 +118,7 @@ export class HasuraStorageApi {
       uploadheaders['x-nhost-file-id'] = id
     }
     if (name) {
-      uploadheaders['x-nhost-file-name'] = name
+      uploadheaders['x-nhost-file-name'] = toIso88591(name)
     }
 
     return uploadheaders

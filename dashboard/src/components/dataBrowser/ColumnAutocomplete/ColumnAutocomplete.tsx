@@ -25,8 +25,8 @@ import type {
 } from 'react';
 import { forwardRef, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { UseAsyncInitialValueOptions } from './useAsyncInitialValue';
-import useAsyncInitialValue from './useAsyncInitialValue';
+import type { UseAsyncValueOptions } from './useAsyncValue';
+import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
 
@@ -54,7 +54,7 @@ export interface ColumnAutocompleteProps
   /**
    * Function to be called when the input is asynchronously initialized.
    */
-  onInitialized?: UseAsyncInitialValueOptions['onInitialized'];
+  onInitialized?: UseAsyncValueOptions['onInitialized'];
   /**
    * Class name to be applied to the root element.
    */
@@ -107,7 +107,11 @@ function ColumnAutocomplete(
   ref: ForwardedRef<HTMLInputElement>,
 ) {
   const [open, setOpen] = useState(false);
-  const [activeRelationship, setActiveRelationship] = useState<any>();
+  const [activeRelationship, setActiveRelationship] = useState<{
+    schema: string;
+    table: string;
+    name: string;
+  }>();
   const selectedSchema = activeRelationship?.schema || defaultSchema;
   const selectedTable = activeRelationship?.table || defaultTable;
 
@@ -119,6 +123,7 @@ function ColumnAutocomplete(
   } = useTableQuery([`default.${selectedSchema}.${selectedTable}`], {
     schema: selectedSchema,
     table: selectedTable,
+    preventRowFetching: true,
     queryOptions: { refetchOnWindowFocus: false },
   });
 
@@ -141,7 +146,7 @@ function ColumnAutocomplete(
     setSelectedRelationships,
     relationshipDotNotation,
     activeRelationship: asyncActiveRelationship,
-  } = useAsyncInitialValue({
+  } = useAsyncValue({
     selectedSchema,
     selectedTable,
     initialValue: externalValue as string,
@@ -226,7 +231,7 @@ function ColumnAutocomplete(
     inputValue,
     options,
     id: props?.name,
-    openOnFocus: true,
+    openOnFocus: !props.disabled,
     disableCloseOnSelect: true,
     value: selectedColumn,
     onClose: () => setOpen(false),
@@ -256,24 +261,43 @@ function ColumnAutocomplete(
               ),
             },
           }}
-          onFocus={() => setOpen(true)}
-          onClick={() => setOpen(true)}
-          error={Boolean(tableError || metadataError)}
-          helperText={String(tableError || metadataError || '')}
+          onFocus={() => {
+            if (props.disabled) {
+              return;
+            }
+
+            setOpen(true);
+          }}
+          onClick={() => {
+            if (props.disabled) {
+              return;
+            }
+
+            setOpen(true);
+          }}
+          error={Boolean(tableError || metadataError) || props.error}
+          helperText={
+            String(tableError || metadataError || '') || props.helperText
+          }
           onChange={(event) => setInputValue(event.target.value)}
           value={inputValue}
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
-              <Text className="!ml-2 lg:max-w-[200px] flex-shrink-0 truncate">
+              <Text
+                className={twMerge(
+                  '!ml-2 lg:max-w-[200px] flex-shrink-0 truncate',
+                  props.disabled && 'text-greyscaleGrey',
+                )}
+              >
                 <span className="text-greyscaleGrey">{defaultTable}</span>.
                 {relationshipDotNotation && (
                   <>
                     <span className="hidden lg:inline">
-                      {getTruncatedText(relationshipDotNotation, 15, 'start')}.
+                      {getTruncatedText(relationshipDotNotation, 15, 'end')}.
                     </span>
 
                     <span className="inline lg:hidden">
-                      {relationshipDotNotation}.
+                      {getTruncatedText(relationshipDotNotation, 35, 'end')}.
                     </span>
                   </>
                 )}

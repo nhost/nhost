@@ -20,6 +20,23 @@ query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
   }
 }
 
+subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
+  deployments(
+    where: {
+      deploymentStatus: { _in: ["PENDING", "SCHEDULED"] }
+      appId: { _eq: $appId }
+    }
+  ) {
+    ...DeploymentRow
+  }
+}
+
+mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
+    ...DeploymentRow
+  }
+}
+
 subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: { appId: { _eq: $id } }

@@ -1,12 +1,18 @@
 import {
+  AuthMachine,
   BackendUrl,
   NhostAuthConstructorParams,
-  NhostClient as VanillaNhostClient,
+  NhostClient as _VanillaNhostClient,
+  NHOST_REFRESH_TOKEN_KEY,
   Subdomain
 } from '@nhost/nhost-js'
 
-export * from '@nhost/nhost-js'
-export { VanillaNhostClient }
+// * Required for @nhost/nextjs
+export type { NhostAuthConstructorParams, AuthMachine }
+export { NHOST_REFRESH_TOKEN_KEY }
+
+/** @internal */
+export const VanillaNhostClient = _VanillaNhostClient
 
 export interface NhostReactClientConstructorParams
   extends Partial<BackendUrl>,

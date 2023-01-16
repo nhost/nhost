@@ -1,5 +1,96 @@
 # @nhost/dashboard
 
+## 0.9.6
+
+### Patch Changes
+
+- 36c3519c: feat(dashboard): retrigger deployments
+
+## 0.9.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/nextjs@1.13.2
+  - @nhost/react-apollo@4.13.2
+
+## 0.9.4
+
+### Patch Changes
+
+- dbd3ded5: fix(dashboard): workspaces creation, new form, correct redirects.
+
+## 0.9.3
+
+### Patch Changes
+
+- 85f0f943: fix(dashboard): don't break the table creation process
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [d42c27ae]
+- Updated dependencies [927be4a2]
+  - @nhost/nextjs@1.13.1
+  - @nhost/react-apollo@4.13.1
+
+## 0.9.1
+
+### Patch Changes
+
+- d0f80811: fix(dashboard): don't show error when signing out the user
+
+## 0.9.0
+
+### Minor Changes
+
+- d92891b2: feat(dashboard): add Permission Editor to the Database section
+
+### Patch Changes
+
+- 3d379128: fix(dashboard): create new user
+  - @nhost/react-apollo@4.13.0
+  - @nhost/nextjs@1.13.0
+
+## 0.8.1
+
+### Patch Changes
+
+- 7cadd944: fix(dashboard): display Twitter provider settings
+
+## 0.8.0
+
+### Minor Changes
+
+- 9a1aa7bb: add functions to the log dashboard
+- f29abe62: feat(dashboard): Users Management v2
+
+### Patch Changes
+
+- 7766624b: feat(dashboard): add JWT secret editor modal
+  - @nhost/react-apollo@4.12.1
+  - @nhost/nextjs@1.12.1
+
+## 0.7.13
+
+### Patch Changes
+
+- dd0738d5: fix(dashboard): provisioning status polling
+
+## 0.7.12
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 9e0486a3: fix(dashboard): close modals when navigating
+- Updated dependencies [b21222b3]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+  - @nhost/nextjs@1.12.0
+  - @nhost/react-apollo@4.12.0
+
 ## 0.7.11
 
 ### Patch Changes

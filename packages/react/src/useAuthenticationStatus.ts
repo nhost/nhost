@@ -1,3 +1,4 @@
+import { ErrorPayload } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
@@ -10,7 +11,13 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  * const { isAuthenticated, isLoading } = useAuthenticationStatus();
  * ```
  */
-export const useAuthenticationStatus = () => {
+export const useAuthenticationStatus = (): {
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: ErrorPayload | null
+  isError: boolean
+  connectionAttempts: number
+} => {
   const service = useAuthInterpreter()
   return useSelector(
     service,

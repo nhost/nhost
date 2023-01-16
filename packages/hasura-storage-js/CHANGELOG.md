@@ -1,5 +1,56 @@
 # @nhost/hasura-storage-js
 
+## 1.13.1
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+
+## 1.13.0
+
+### Minor Changes
+
+- 83e0a4d3: Image transformation parameters
+
+  It is now possible to pass on image transformation parameters in `nhost.storage.getPublicUrl()`.
+  Available parameters:
+
+  - height
+  - width
+  - blur
+  - quality
+
+  For instance:
+
+  ```ts
+  const url = nhost.storage.getPublicUrl({
+    fileId: 'cd8eaca3-30a9-460e-b4d7-b4b7afc759c1',
+    width: 800,
+    blur: 20
+  })
+  ```
+
+### Patch Changes
+
+- 13876ed5: Convert non ISO-8859-1 file names
+
+  It is now possible to upload files with names that are not ISO-8859-1 compliant.
+  In that case, file names will be converted using `encodeURIComponent`.
+
+## 1.12.1
+
+### Patch Changes
+
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+
+## 1.12.0
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+
 ## 0.8.0
 
 ### Minor Changes

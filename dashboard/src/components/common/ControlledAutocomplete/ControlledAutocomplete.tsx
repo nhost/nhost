@@ -52,12 +52,14 @@ function ControlledAutocomplete(
 
   return (
     <Autocomplete
+      inputValue={typeof field.value === 'string' ? field.value : undefined}
       {...props}
       {...field}
-      inputValue={typeof field.value === 'string' ? field.value : undefined}
       ref={mergeRefs([field.ref, ref])}
       onChange={(event, options, reason, details) => {
-        setValue?.(controllerProps?.name || name, options);
+        setValue?.(controllerProps?.name || name, options, {
+          shouldDirty: true,
+        });
 
         if (props.onChange) {
           props.onChange(event, options, reason, details);

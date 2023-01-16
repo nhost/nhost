@@ -1,5 +1,76 @@
 # @nhost/nextjs
 
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+
+## 1.13.1
+
+### Patch Changes
+
+- d42c27ae: Add explicit return types to React hooks
+- 927be4a2: Store the session in a cookie so there is no need for an SSR page to ask for a new access token
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/react@1.13.1
+
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/react@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- Updated dependencies [1be6d324]
+- Updated dependencies [2e8f73df]
+- Updated dependencies [85683547]
+  - @nhost/react@1.12.1
+
+## 1.12.0
+
+### Minor Changes
+
+- 65687bee: Remove `@nhost/react` from `peerDepencencies`
+
+  The contents of the `@nhost/react` package are now exported by `@nhost/nextjs`. As a result,
+  It is not required to install `@nhost/react` alongside `@nhost/nextjs`.
+
+  Before:
+
+  ```
+  yarn add @nhost/react @nhost/nextjs graphql
+  ```
+
+  After:
+
+  ```
+  yarn add @nhost/nextjs graphql
+  ```
+
+  Closes [#1335](https://github.com/nhost/nhost/issues/1335)
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Use initial session sent from the server
+
+  When running a SSR page, the session was correctly created from the refresh token on the server side and was sent to the client side, but was not used correctly on the client side.
+  As a result, the client was refreshing the access token when loading the page, rather than using the access token sent by the server.
+  The client now uses the session sent from the server.
+
+- Updated dependencies [b21222b3]
+- Updated dependencies [54df0df4]
+- Updated dependencies [54df0df4]
+- Updated dependencies [65687bee]
+  - @nhost/react@1.12.0
+
 ## 1.11.0
 
 ### Minor Changes

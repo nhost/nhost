@@ -13,7 +13,7 @@ import { NhostReactContext } from './provider'
  *
  * @docs https://docs.nhost.io/reference/react/use-nhost-backend-url
  */
-export const useNhostBackendUrl = () => {
+export const useNhostBackendUrl = (): string => {
   const nhost = useContext(NhostReactContext)
   return nhost.auth.client.backendUrl.replace('/v1/auth', '')
 }

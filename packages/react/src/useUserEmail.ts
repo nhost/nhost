@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-email
  */
-export const useUserEmail = () => {
+export const useUserEmail = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,

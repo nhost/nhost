@@ -1,13 +1,39 @@
+import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
+import FormControlLabel from '@/ui/v2/FormControlLabel';
 import SwitchUnstyled, {
   switchUnstyledClasses,
 } from '@mui/base/SwitchUnstyled';
 import type { SwitchUnstyledProps } from '@mui/base/SwitchUnstyled/SwitchUnstyled.types';
-
 import { styled } from '@mui/material';
-import type { ForwardedRef } from 'react';
+import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 
-export interface SwitchProps extends SwitchUnstyledProps {}
+export interface SwitchProps extends SwitchUnstyledProps {
+  /**
+   * Label to be displayed next to the checkbox.
+   */
+  label?: FormControlLabelProps['label'];
+  /**
+   * Props to be passed to the internal components.
+   */
+  slotProps?: SwitchUnstyledProps['slotProps'] & {
+    /**
+     * Props to be passed to the `Switch` component.
+     */
+    root?: Partial<SwitchUnstyledProps>;
+    /**
+     * Props to be passed to the `FormControlLabel` component.
+     */
+    formControlLabel?: Partial<PropsWithoutRef<FormControlLabelProps>>;
+  };
+}
+
+const StyledFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
+  display: 'grid',
+  gridAutoFlow: 'column',
+  gap: theme.spacing(1.25),
+  justifyContent: 'start',
+}));
 
 const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
   position: 'relative',
@@ -86,13 +112,21 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
 }));
 
 function Switch(
-  { children, ...props }: SwitchProps,
+  { label, slotProps, ...props }: SwitchProps,
   ref: ForwardedRef<HTMLSpanElement>,
 ) {
+  if (!label) {
+    return <StyledSwitch {...(slotProps?.root || {})} {...props} ref={ref} />;
+  }
+
   return (
-    <StyledSwitch {...props} ref={ref}>
-      {children}
-    </StyledSwitch>
+    <StyledFormControlLabel
+      {...(slotProps?.formControlLabel || {})}
+      control={
+        <StyledSwitch {...(slotProps?.root || {})} {...props} ref={ref} />
+      }
+      label={label}
+    />
   );
 }
 
