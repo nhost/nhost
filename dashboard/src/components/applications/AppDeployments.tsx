@@ -1,11 +1,11 @@
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import {
   useGetDeploymentsSubSubscription,
+  useLatestLiveDeploymentSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/generated/graphql';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import List from '@/ui/v2/List';
-import { getLastLiveDeployment } from '@/utils/helpers';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -71,37 +71,36 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const limit = 10;
   const offset = (page - 1) * limit;
 
-  const { data, loading, error } = useGetDeploymentsSubSubscription({
-    variables: {
-      id: appId,
-      limit,
-      offset,
-    },
+  const {
+    data: deploymentPageData,
+    loading: deploymentPageLoading,
+    error,
+  } = useGetDeploymentsSubSubscription({
+    variables: { id: appId, limit, offset },
   });
 
-  const { data: latestDeploymentData, loading: latestDeplyomentLoading } =
+  const { data: latestDeploymentData, loading: latestDeploymentLoading } =
     useGetDeploymentsSubSubscription({
-      variables: {
-        id: appId,
-        limit: 1,
-        offset: 0,
-      },
+      variables: { id: appId, limit: 1, offset: 0 },
     });
+
+  const {
+    data: latestLiveDeploymentData,
+    loading: latestLiveDeploymentLoading,
+  } = useLatestLiveDeploymentSubSubscription({ variables: { appId } });
 
   const {
     data: scheduledOrPendingDeploymentsData,
     loading: scheduledOrPendingDeploymentsLoading,
-  } = useScheduledOrPendingDeploymentsSubSubscription({
-    variables: {
-      appId,
-    },
-  });
+  } = useScheduledOrPendingDeploymentsSubSubscription({ variables: { appId } });
 
-  if (
-    loading ||
+  const loading =
+    deploymentPageLoading ||
     scheduledOrPendingDeploymentsLoading ||
-    latestDeplyomentLoading
-  ) {
+    latestDeploymentLoading ||
+    latestLiveDeploymentLoading;
+
+  if (loading) {
     return (
       <ActivityIndicator
         delay={500}
@@ -115,15 +114,16 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const { deployments } = data || {};
+  const { deployments } = deploymentPageData || {};
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || {};
 
   const latestDeployment = latestDeploymentData?.deployments[0];
+  const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
 
   const nrOfDeployments = deployments?.length || 0;
   const nextAllowed = !(nrOfDeployments < limit);
-  const liveDeploymentId = getLastLiveDeployment(deployments);
+  const liveDeploymentId = latestLiveDeployment?.id || '';
 
   return (
     <div className="mt-6">
@@ -137,10 +137,8 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                 key={deployment.id}
                 deployment={deployment}
                 isLive={liveDeploymentId === deployment.id}
-                showRedeploy={
-                  latestDeployment.id === deployment.id &&
-                  scheduledOrPendingDeployments.length === 0
-                }
+                showRedeploy={latestDeployment.id === deployment.id}
+                disableRedeploy={scheduledOrPendingDeployments.length > 0}
               />
             ))}
           </List>

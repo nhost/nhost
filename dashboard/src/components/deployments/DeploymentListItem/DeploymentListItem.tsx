@@ -9,6 +9,7 @@ import Button from '@/ui/v2/Button';
 import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
+import Tooltip from '@/ui/v2/Tooltip';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
@@ -30,17 +31,22 @@ export interface DeploymentListItemProps {
    * deployment.
    */
   showRedeploy?: boolean;
+  /**
+   * Determines whether or not the redeploy button is disabled.
+   */
+  disableRedeploy?: boolean;
 }
 
 export default function DeploymentListItem({
   deployment,
   isLive,
   showRedeploy,
+  disableRedeploy,
 }: DeploymentListItemProps) {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const showTime =
+  const showDeploymentDuration =
     !['SCHEDULED', 'PENDING'].includes(deployment.deploymentStatus) &&
     deployment.deploymentStartedAt;
 
@@ -48,7 +54,7 @@ export default function DeploymentListItem({
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
         addSuffix: true,
       })
-    : null;
+    : '';
 
   const [insertDeployment, { loading }] = useInsertDeploymentMutation();
   const { commitMessage } = deployment;
@@ -83,45 +89,51 @@ export default function DeploymentListItem({
 
         <div className="grid grid-flow-col gap-2 items-center">
           {showRedeploy && (
-            <Button
-              disabled={loading}
-              size="small"
-              color="secondary"
-              variant="outlined"
-              onClick={async (event) => {
-                event.stopPropagation();
-                event.preventDefault();
-
-                const insertDeploymentPromise = insertDeployment({
-                  variables: {
-                    object: {
-                      appId: currentApplication?.id,
-                      commitMessage: deployment.commitMessage,
-                      commitSHA: deployment.commitSHA,
-                      commitUserAvatarUrl: deployment.commitUserAvatarUrl,
-                      commitUserName: deployment.commitUserName,
-                      deploymentStatus: 'SCHEDULED',
-                    },
-                  },
-                });
-
-                await toast.promise(
-                  insertDeploymentPromise,
-                  {
-                    loading: 'Scheduling deployment...',
-                    success: 'Deployment has been scheduled successfully.',
-                    error: 'An error occurred when scheduling deployment.',
-                  },
-                  toastStyleProps,
-                );
-              }}
-              startIcon={
-                <ArrowCounterclockwiseIcon className={twMerge('w-4 h-4')} />
-              }
-              className="rounded-full py-1 px-2 text-xs"
+            <Tooltip
+              title="Deployments cannot be re-triggered when a deployment is in progress."
+              hasDisabledChildren={disableRedeploy || loading}
+              disableHoverListener={!disableRedeploy}
             >
-              Redeploy
-            </Button>
+              <Button
+                disabled={disableRedeploy || loading}
+                size="small"
+                color="secondary"
+                variant="outlined"
+                onClick={async (event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+
+                  const insertDeploymentPromise = insertDeployment({
+                    variables: {
+                      object: {
+                        appId: currentApplication?.id,
+                        commitMessage: deployment.commitMessage,
+                        commitSHA: deployment.commitSHA,
+                        commitUserAvatarUrl: deployment.commitUserAvatarUrl,
+                        commitUserName: deployment.commitUserName,
+                        deploymentStatus: 'SCHEDULED',
+                      },
+                    },
+                  });
+
+                  await toast.promise(
+                    insertDeploymentPromise,
+                    {
+                      loading: 'Scheduling deployment...',
+                      success: 'Deployment has been scheduled successfully.',
+                      error: 'An error occurred when scheduling deployment.',
+                    },
+                    toastStyleProps,
+                  );
+                }}
+                startIcon={
+                  <ArrowCounterclockwiseIcon className={twMerge('w-4 h-4')} />
+                }
+                className="rounded-full py-1 px-2 text-xs"
+              >
+                Redeploy
+              </Button>
+            </Tooltip>
           )}
 
           {isLive && (
@@ -134,7 +146,7 @@ export default function DeploymentListItem({
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          {showTime && (
+          {showDeploymentDuration && (
             <div className="w-[80px] text-right font-mono text-sm- font-medium">
               <AppDeploymentDuration
                 startedAt={deployment.deploymentStartedAt}
