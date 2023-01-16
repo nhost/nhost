@@ -1,6 +1,7 @@
 import type { QueryError, QueryResult } from '@/types/dataBrowser';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { isPlatform } from '@/utils/env';
 
 export interface FetchProjectDatabaseSizeOptions {
   /**
@@ -32,6 +33,7 @@ export default async function fetchProjectDatabaseSize({
   region,
   adminSecret,
 }: FetchProjectDatabaseSizeOptions): Promise<FetchProjectDatabaseSizeReturnType> {
+  const IS_PLATFORM = isPlatform();
   const response = await fetch(
     `${generateAppServiceUrl(subdomain, region, 'hasura')}/v2/query`,
     {
@@ -43,7 +45,7 @@ export default async function fetchProjectDatabaseSize({
         type: 'run_sql',
         args: {
           sql: `SELECT pg_database_size('${
-            subdomain && !region ? 'postgres' : subdomain
+            !IS_PLATFORM ? 'postgres' : subdomain
           }');`,
         },
       }),

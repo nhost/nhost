@@ -6,7 +6,7 @@ import type {
   QueryResult,
 } from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { getLocalHasuraMigrationServiceUrl } from '@/utils/env';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 export interface TrackTableMigrationVariables {
   /**
@@ -24,32 +24,29 @@ export default async function trackTableMigration({
   adminSecret,
   table,
 }: TrackTableMigrationOptions & TrackTableMigrationVariables) {
-  const response = await fetch(
-    `${getLocalHasuraMigrationServiceUrl()}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `add_existing_table_or_view_${schema}_${table.name}`,
-        down: [
-          {
-            type: 'pg_untrack_table',
-            args: { source: dataSource, table: { schema, name: table.name } },
-          },
-        ],
-        up: [
-          {
-            args: { source: dataSource, table: { schema, name: table.name } },
-            type: 'pg_track_table',
-          },
-        ],
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `add_existing_table_or_view_${schema}_${table.name}`,
+      down: [
+        {
+          type: 'pg_untrack_table',
+          args: { source: dataSource, table: { schema, name: table.name } },
+        },
+      ],
+      up: [
+        {
+          args: { source: dataSource, table: { schema, name: table.name } },
+          type: 'pg_track_table',
+        },
+      ],
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

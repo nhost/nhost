@@ -8,6 +8,7 @@ import Chip from '@/ui/Chip';
 import type { FileUploadButtonProps } from '@/ui/FileUploadButton';
 import FileUploadButton from '@/ui/FileUploadButton';
 import Button from '@/ui/v2/Button';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
@@ -73,7 +74,7 @@ export default function FilesDataGridControls({
     try {
       const storageWithAdminSecret = appClient.storage.setAdminSecret(
         process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? 'nhost-admin-secret'
+          ? getHasuraAdminSecret()
           : currentApplication.hasuraGraphqlAdminSecret,
       );
 

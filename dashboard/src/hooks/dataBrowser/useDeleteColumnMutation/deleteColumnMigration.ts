@@ -8,7 +8,7 @@ import type {
 } from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { getLocalHasuraMigrationServiceUrl } from '@/utils/env';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 export interface DeleteColumnMigrationVariables {
   /**
@@ -46,30 +46,27 @@ export default async function deleteColumnMigration({
     },
   });
 
-  const response = await fetch(
-    `${getLocalHasuraMigrationServiceUrl()}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `alter_table_${schema}_${table}_drop_column_${column.id}`,
-        down: recreateColumnArgs,
-        up: [
-          getPreparedHasuraQuery(
-            dataSource,
-            'ALTER TABLE %I.%I DROP COLUMN IF EXISTS %I CASCADE',
-            schema,
-            table,
-            column.id,
-          ),
-        ],
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `alter_table_${schema}_${table}_drop_column_${column.id}`,
+      down: recreateColumnArgs,
+      up: [
+        getPreparedHasuraQuery(
+          dataSource,
+          'ALTER TABLE %I.%I DROP COLUMN IF EXISTS %I CASCADE',
+          schema,
+          table,
+          column.id,
+        ),
+      ],
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

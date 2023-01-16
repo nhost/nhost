@@ -1,6 +1,7 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -48,7 +49,7 @@ export default function useDeleteTableMutation({
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
+            ? getHasuraAdminSecret()
             : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),

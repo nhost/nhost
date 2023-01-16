@@ -1,9 +1,25 @@
-import { getLocalSubdomain } from '@/utils/env';
+import {
+  getAuthServiceUrl,
+  getFunctionsServiceUrl,
+  getGraphqlServiceUrl,
+  getStorageServiceUrl,
+  isPlatform,
+} from '@/utils/env';
 import { NhostClient } from '@nhost/nextjs';
 
-export const nhost =
-  process.env.NEXT_PUBLIC_NHOST_PLATFORM === 'true'
-    ? new NhostClient({ backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL })
-    : new NhostClient({ subdomain: getLocalSubdomain() });
+// eslint-disable-next-line no-nested-ternary
+export const nhost = isPlatform()
+  ? new NhostClient({ backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL })
+  : getAuthServiceUrl() &&
+    getGraphqlServiceUrl() &&
+    getStorageServiceUrl() &&
+    getFunctionsServiceUrl()
+  ? new NhostClient({
+      authUrl: getAuthServiceUrl(),
+      graphqlUrl: getGraphqlServiceUrl(),
+      storageUrl: getStorageServiceUrl(),
+      functionsUrl: getFunctionsServiceUrl(),
+    })
+  : new NhostClient({ subdomain: 'localhost' });
 
 export default nhost;

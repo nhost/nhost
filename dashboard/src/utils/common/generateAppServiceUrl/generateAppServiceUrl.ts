@@ -1,4 +1,12 @@
-import { getLocalHasuraServiceUrl, getLocalServicesPort } from '@/utils/env';
+import {
+  getAuthServiceUrl,
+  getFunctionsServiceUrl,
+  getGraphqlServiceUrl,
+  getHasuraSchemaApiUrl,
+  getLocalHasuraServiceUrl,
+  getStorageServiceUrl,
+  isPlatform,
+} from '@/utils/env';
 
 export type NhostService =
   | 'auth'
@@ -50,34 +58,41 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
-  const LOCAL_SERVICES_PORT = getLocalServicesPort();
+  // // We are treating this case as if NEXT_PUBLIC_NHOST_PLATFORM is true,
+  // // but we need to make sure to use Hasura URLs are pointing to `localhost`
+  // // as this is currently a limitation of Hasura.
+  // if (subdomain && subdomain !== 'localhost' && !region) {
+  //   if (service === 'hasura') {
+  //     return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
+  //   }
+
+  //   const nhostBackend =
+  //     process.env.NEXT_PUBLIC_ENV === 'staging'
+  //       ? 'staging.nhost.run'
+  //       : 'nhost.run';
+
+  //   const customSubdomainWithProtocol = `https://${subdomain}`;
+
+  //   if (LOCAL_SERVICES_PORT && LOCAL_SERVICES_PORT !== '443') {
+  //     return `${customSubdomainWithProtocol}.${nhostBackend}:${LOCAL_SERVICES_PORT}${localBackendSlugs[service]}`;
+  //   }
+
+  //   return `${customSubdomainWithProtocol}.${nhostBackend}${localBackendSlugs[service]}`;
+  // }
+  const IS_PLATFORM = isPlatform();
+  const serviceUrls: Record<typeof service, string> = {
+    auth: getAuthServiceUrl(),
+    graphql: getGraphqlServiceUrl(),
+    storage: getStorageServiceUrl(),
+    functions: getFunctionsServiceUrl(),
+    hasura: getHasuraSchemaApiUrl(),
+  };
+
+  if (!IS_PLATFORM && serviceUrls[service]) {
+    return serviceUrls[service];
+  }
+
   const LOCAL_HASURA_URL = getLocalHasuraServiceUrl();
-
-  // We are treating this case as if NEXT_PUBLIC_NHOST_PLATFORM is true,
-  // but we need to make sure to use Hasura URLs are pointing to `localhost`
-  // as this is currently a limitation of Hasura.
-  if (subdomain && subdomain !== 'localhost' && !region) {
-    if (service === 'hasura') {
-      return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
-    }
-
-    const nhostBackend =
-      process.env.NEXT_PUBLIC_ENV === 'staging'
-        ? 'staging.nhost.run'
-        : 'nhost.run';
-
-    const customSubdomainWithProtocol = `https://${subdomain}`;
-
-    if (LOCAL_SERVICES_PORT && LOCAL_SERVICES_PORT !== '443') {
-      return `${customSubdomainWithProtocol}.${nhostBackend}:${LOCAL_SERVICES_PORT}${localBackendSlugs[service]}`;
-    }
-
-    return `${customSubdomainWithProtocol}.${nhostBackend}${localBackendSlugs[service]}`;
-  }
-
-  if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
-  }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
     return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || LOCAL_HASURA_URL}${

@@ -2,7 +2,7 @@ import { useUserDataContext } from '@/context/workspace1-context';
 import type { Application } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import { getSubdomain } from '@/utils/env';
+import { getHasuraAdminSecret, getSubdomain } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useIsPlatform from './common/useIsPlatform';
@@ -32,7 +32,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         id: 'local',
         slug: 'local',
         name: 'local',
-        hasuraGraphqlAdminSecret: 'nhost-admin-secret',
+        hasuraGraphqlAdminSecret: getHasuraAdminSecret(),
         appStates: [
           {
             id: 'local',

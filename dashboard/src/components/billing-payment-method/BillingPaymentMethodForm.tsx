@@ -20,7 +20,9 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import React, { useState } from 'react';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK!);
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PK
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK)
+  : null;
 
 type AddPaymentMethodFormProps = {
   close: () => void;
