@@ -1,6 +1,7 @@
 import { NhostClientConstructorParams } from './types'
 
 // a port can be a number or a placeholder string with leading and trailing double underscores, f.e. "8080" or "__PLACEHOLDER_NAME__"
+// TODO: Change `localdev` to `local`
 const LOCALHOST_REGEX =
   /^((?<protocol>http[s]?):\/\/)?(?<host>(localhost|localdev))(:(?<port>(\d+|__\w+__)))?$/
 
@@ -44,6 +45,7 @@ export function urlFromSubdomain(
       return `${protocol || 'http'}://localhost:${port || 1337}/v1/${service}`
     }
 
+    // TODO: Change `localdev` to `local`
     if (port) {
       return `${protocol || 'https'}://localdev.nhost.run:${port}/v1/${service}`
     }
