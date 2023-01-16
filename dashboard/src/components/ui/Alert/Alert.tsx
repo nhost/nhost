@@ -15,18 +15,31 @@ export function Alert({
   severity = 'info',
   children,
   className,
+  sx,
   ...props
 }: AlertProps) {
   return (
     <Box
       className={twMerge(
         'rounded-sm+ bg-opacity-20 p-2 text-center text-sm+',
-        severity === 'error' && 'bg-rose-500',
-        severity === 'warning' && 'bg-yellow-500',
-        severity === 'success' && 'bg-green-500',
-        severity === 'info' && 'bg-lightBlue',
         className,
       )}
+      sx={[
+        ...(Array.isArray(sx) ? sx : [sx]),
+        severity === 'error' && {
+          backgroundColor: 'error.light',
+          color: 'error.main',
+        },
+        severity === 'warning' && {
+          backgroundColor: 'warning.light',
+          color: 'warning.main',
+        },
+        severity === 'success' && {
+          backgroundColor: 'success.light',
+          color: 'success.main',
+        },
+        severity === 'info' && { backgroundColor: 'primary.light' },
+      ]}
       {...props}
     >
       {children}

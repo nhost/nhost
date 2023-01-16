@@ -371,7 +371,10 @@ function DataBrowserSidebarContent({
                                 )
                               }
                             >
-                              <UsersIcon className="h-4 w-4 text-gray-700" />
+                              <UsersIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
 
                               <span>View Permissions</span>
                             </Dropdown.Item>
@@ -396,7 +399,10 @@ function DataBrowserSidebarContent({
                                   })
                                 }
                               >
-                                <PencilIcon className="h-4 w-4 text-gray-700" />
+                                <PencilIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
 
                                 <span>Edit Table</span>
                               </Dropdown.Item>,
@@ -414,7 +420,10 @@ function DataBrowserSidebarContent({
                                   )
                                 }
                               >
-                                <UsersIcon className="h-4  w-4 text-gray-700" />
+                                <UsersIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
 
                                 <span>Edit Permissions</span>
                               </Dropdown.Item>,
@@ -432,7 +441,10 @@ function DataBrowserSidebarContent({
                                   )
                                 }
                               >
-                                <TrashIcon className="h-4 w-4 text-red" />
+                                <TrashIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'error.main' }}
+                                />
 
                                 <span>Delete Table</span>
                               </Dropdown.Item>,

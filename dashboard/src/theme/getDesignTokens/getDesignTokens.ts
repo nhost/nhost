@@ -27,12 +27,17 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         disabled: '#8b949e',
       },
       error: {
-        light: '#ff5c7a',
+        light: 'rgba(241, 49, 84, 0.2)',
         main: '#f13154',
         dark: '#c91737',
       },
+      warning: {
+        light: 'rgba(255, 154, 35, 0.2)',
+        main: '#ff9a23',
+        dark: '#ed7200',
+      },
       success: {
-        light: 'rgba(170, 240, 204, 0.3)',
+        light: 'rgba(98, 209, 152, 0.2)',
         main: '#62d198',
         dark: '#3bb174',
       },
@@ -83,15 +88,20 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       secondary: '#556378',
       disabled: '#9ca7b7',
     },
-    error: {
-      light: '#ff5c7a',
-      main: '#f13154',
-      dark: '#c91737',
-    },
     success: {
       light: 'rgba(170, 240, 204, 0.3)',
       main: '#62d198',
       dark: '#3bb174',
+    },
+    error: {
+      light: '#ffe4de',
+      main: '#f13154',
+      dark: '#c91737',
+    },
+    warning: {
+      light: '#ffebd3',
+      main: '#ff9a23',
+      dark: '#ed7200',
     },
     action: {
       hover: '#f3f4f6',

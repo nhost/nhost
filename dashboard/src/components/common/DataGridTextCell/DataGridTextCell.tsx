@@ -2,11 +2,11 @@ import type { CommonDataGridCellProps } from '@/components/common/DataGridCell';
 import { useDataGridCell } from '@/components/common/DataGridCell';
 import Button from '@/ui/v2/Button';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import type { ChangeEvent, KeyboardEvent, MutableRefObject } from 'react';
+import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export type DataGridTextCellProps<TData extends object> =
   CommonDataGridCellProps<TData, string>;
@@ -120,37 +120,73 @@ export default function DataGridTextCell<TData extends object>({
 
   if (isEditing && isMultiline) {
     return (
-      <textarea
-        ref={inputRef as MutableRefObject<HTMLTextAreaElement>}
+      <Input
+        multiline
+        ref={inputRef as Ref<HTMLInputElement>}
         value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
         onChange={handleChange}
         onKeyDown={handleTextAreaKeyDown}
-        className={twMerge(
-          'absolute top-0 z-10 -mx-0.5 h-full min-h-38 w-full resize-none border-none px-2 pt-4 text-xs text-greyscaleDark shadow-outline focus:outline-none focus:ring-0',
-          isEditing && 'focus:shadow-outline-dark',
-        )}
+        fullWidth
+        className="absolute top-0 z-10 min-h-38 h-full -mx-0.5"
         rows={5}
+        sx={{
+          [`&.${inputClasses.focused}`]: {
+            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
+            borderColor: 'transparent !important',
+            borderRadius: 0,
+          },
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark'
+              ? `${theme.palette.secondary[100]} !important`
+              : `${theme.palette.common.white} !important`,
+        }}
+        slotProps={{
+          inputRoot: {
+            className:
+              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
+          },
+        }}
       />
     );
   }
 
   if (isEditing) {
     return (
-      <input
-        value={normalizedTemporaryValue || ''}
-        onKeyDown={handleInputKeyDown}
+      <Input
+        ref={inputRef as Ref<HTMLInputElement>}
+        value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
         onChange={handleChange}
-        ref={inputRef as MutableRefObject<HTMLInputElement>}
-        className="h-full w-full border-none px-2 text-xs text-greyscaleDark focus:outline-none focus:ring-0"
+        onKeyDown={handleInputKeyDown}
+        fullWidth
+        className="absolute top-0 z-10 h-full -mx-0.5 place-content-stretch"
+        sx={{
+          [`&.${inputClasses.focused}`]: {
+            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
+            borderColor: 'transparent !important',
+            borderRadius: 0,
+          },
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark'
+              ? `${theme.palette.secondary[100]} !important`
+              : `${theme.palette.common.white} !important`,
+        }}
+        slotProps={{
+          inputWrapper: { className: 'h-full' },
+          input: { className: 'h-full' },
+          inputRoot: {
+            className:
+              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
+          },
+        }}
       />
     );
   }
 
   if (!optimisticValue) {
     return (
-      <span className="truncate text-greyscaleGrey">
+      <Text className="truncate !text-xs" sx={{ color: 'text.secondary' }}>
         {optimisticValue === '' ? 'empty' : 'null'}
-      </span>
+      </Text>
     );
   }
 
