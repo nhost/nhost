@@ -1,4 +1,5 @@
-import type { PaletteMode, PaletteOptions } from '@mui/material';
+import type { PaletteMode } from '@mui/material';
+import type { PaletteOptions } from '@mui/material/styles';
 
 export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
   if (mode === 'dark') {
@@ -8,6 +9,17 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         light: '#162945',
         main: '#3888ff',
         dark: '#063799',
+      },
+      secondary: {
+        100: '#21262d',
+        200: '#252b33',
+        300: '#37404b',
+        400: '#44505e',
+        500: '#576473',
+        600: '#6e7c8d',
+        700: '#8595a9',
+        800: '#a4b2c2',
+        A400: '#576473',
       },
       text: {
         primary: '#dfecf5',
@@ -54,6 +66,17 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       light: '#ebf3ff',
       main: '#0052cd',
       dark: '#063799',
+    },
+    secondary: {
+      100: '#f4f7f9',
+      200: '#e6eaef',
+      300: '#d8dfe7',
+      400: '#ccd4de',
+      500: '#bfcad5',
+      600: '#b4c0ce',
+      700: '#a9b6c7',
+      800: '#a0aec0',
+      A400: '#bfcad5',
     },
     text: {
       primary: '#21324b',

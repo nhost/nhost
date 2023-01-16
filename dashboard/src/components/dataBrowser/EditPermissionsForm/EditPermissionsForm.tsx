@@ -342,7 +342,7 @@ export default function EditPermissionsForm({
         </Box>
       </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button variant="borderless" color="secondary" onClick={onCancel}>
           Cancel
         </Button>

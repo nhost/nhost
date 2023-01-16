@@ -8,6 +8,7 @@ import type {
   RuleGroup,
 } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
@@ -386,7 +387,7 @@ export default function RolePermissionEditorForm({
           {action !== 'select' && <BackendOnlySection disabled={disabled} />}
         </div>
 
-        <div className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 border-gray-200 p-2 bg-white">
+        <Box className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 p-2">
           <Button
             variant="borderless"
             color="secondary"
@@ -397,7 +398,7 @@ export default function RolePermissionEditorForm({
           </Button>
 
           {!disabled && (
-            <div className="grid grid-flow-row sm:grid-flow-col gap-2">
+            <Box className="grid grid-flow-row sm:grid-flow-col gap-2">
               {Boolean(permission) && (
                 <Button
                   variant="outlined"
@@ -417,9 +418,9 @@ export default function RolePermissionEditorForm({
               >
                 Save
               </Button>
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       </Form>
     </FormProvider>
   );

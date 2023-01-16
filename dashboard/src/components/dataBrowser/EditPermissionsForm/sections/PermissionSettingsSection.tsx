@@ -1,13 +1,12 @@
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
-import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface PermissionSettingsSectionProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-    'title'
-  > {
+  extends Omit<BoxProps, 'title'> {
   /**
    * Title of the section.
    */
@@ -19,7 +18,7 @@ export interface PermissionSettingsSectionProps
     /**
      * Props to be passed to the root slot.
      */
-    root?: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>;
+    root?: BoxProps;
     /**
      * Props to be passed to the title slot.
      */
@@ -35,33 +34,28 @@ export default function PermissionSettingsSection({
   ...props
 }: PermissionSettingsSectionProps) {
   return (
-    <section
+    <Box
+      component="section"
       {...(slotProps?.root || {})}
-      className={twMerge(
-        'bg-white border-y-1 border-gray-200',
-        slotProps?.root?.className,
-      )}
+      className={twMerge('border-y-1', slotProps?.root?.className)}
     >
       <Text
         component="h2"
         {...(slotProps?.title || {})}
-        className={twMerge(
-          'px-6 py-3 font-bold border-b-1 border-gray-200',
-          slotProps?.title?.className,
-        )}
+        className={twMerge('px-6 py-3 font-bold', slotProps?.title?.className)}
       >
         {title}
       </Text>
 
-      <div
+      <Box
         {...props}
         className={twMerge(
-          'grid grid-flow-row gap-4 items-center px-6 py-4',
+          'grid grid-flow-row gap-4 items-center px-6 py-4 border-t-1',
           className,
         )}
       >
         {children}
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }

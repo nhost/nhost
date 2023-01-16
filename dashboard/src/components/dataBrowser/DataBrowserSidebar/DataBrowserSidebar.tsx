@@ -203,9 +203,7 @@ function DataBrowserSidebarContent({
       title: (
         <span className="inline-grid grid-flow-col gap-2 items-center">
           Permissions
-          <InlineCode className="!text-sm+ font-normal text-greyscaleMedium">
-            {table}
-          </InlineCode>
+          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),

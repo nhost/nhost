@@ -141,7 +141,15 @@ export default function RuleEditorRow({
         schema={schema}
         table={table}
         rootClassName="h-10"
-        slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
+        slotProps={{
+          input: {
+            className: 'lg:!rounded-r-none',
+            sx: {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? 'grey.300' : 'common.white',
+            },
+          },
+        }}
         fullWidth
         error={Boolean(columnState?.error?.message)}
         onChange={(_event, { value, columnMetadata, disableReset }) => {
@@ -178,7 +186,15 @@ export default function RuleEditorRow({
         name={`${rowName}.operator`}
         className="h-10"
         slotProps={{
-          root: { className: 'bg-white lg:!rounded-none' },
+          root: {
+            className: 'lg:!rounded-none',
+            sx: {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `${theme.palette.grey[300]} !important`
+                  : `${theme.palette.common.white} !important`,
+            },
+          },
           listbox: { className: 'max-h-[300px]' },
           popper: { disablePortal: false, className: 'z-[10000]' },
         }}

@@ -5,7 +5,10 @@ export default function HighlightedText({
   children,
 }: PropsWithChildren<unknown>) {
   return (
-    <InlineCode className="text-greyscaleDark bg-primary-light font-display text-sm">
+    <InlineCode
+      className="font-display text-sm"
+      sx={{ color: 'text.primary', backgroundColor: 'primary.light' }}
+    >
       {children}
     </InlineCode>
   );

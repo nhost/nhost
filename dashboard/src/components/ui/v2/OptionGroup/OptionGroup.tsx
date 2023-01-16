@@ -9,6 +9,7 @@ export interface OptionGroupProps extends OptionGroupUnstyledProps {}
 
 const StyledGroupRoot = styled('li')(({ theme }) => ({
   listStyle: 'none',
+  backgroundColor: theme.palette.background.paper,
   '&:not(:first-of-type)': {
     marginTop: theme.spacing(1),
   },

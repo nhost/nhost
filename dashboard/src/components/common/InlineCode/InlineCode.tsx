@@ -12,7 +12,7 @@ function InlineCode({ className, children, ...props }: InlineCodeProps) {
         'inline-grid max-w-xs items-center truncate rounded-sm px-1 font-mono text-[11px]',
         className,
       )}
-      sx={{ backgroundColor: 'grey.300' }}
+      sx={{ backgroundColor: 'grey.300', color: 'text.primary' }}
       {...props}
     >
       {children}
