@@ -3,7 +3,6 @@ import {
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
   getHasuraSchemaApiUrl,
-  getLocalHasuraServiceUrl,
   getStorageServiceUrl,
   isPlatform,
 } from '@/utils/env';
@@ -58,46 +57,30 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
-  // // We are treating this case as if NEXT_PUBLIC_NHOST_PLATFORM is true,
-  // // but we need to make sure to use Hasura URLs are pointing to `localhost`
-  // // as this is currently a limitation of Hasura.
-  // if (subdomain && subdomain !== 'localhost' && !region) {
-  //   if (service === 'hasura') {
-  //     return `${LOCAL_HASURA_URL}${localBackendSlugs[service]}`;
-  //   }
-
-  //   const nhostBackend =
-  //     process.env.NEXT_PUBLIC_ENV === 'staging'
-  //       ? 'staging.nhost.run'
-  //       : 'nhost.run';
-
-  //   const customSubdomainWithProtocol = `https://${subdomain}`;
-
-  //   if (LOCAL_SERVICES_PORT && LOCAL_SERVICES_PORT !== '443') {
-  //     return `${customSubdomainWithProtocol}.${nhostBackend}:${LOCAL_SERVICES_PORT}${localBackendSlugs[service]}`;
-  //   }
-
-  //   return `${customSubdomainWithProtocol}.${nhostBackend}${localBackendSlugs[service]}`;
-  // }
   const IS_PLATFORM = isPlatform();
-  const serviceUrls: Record<typeof service, string> = {
-    auth: getAuthServiceUrl(),
-    graphql: getGraphqlServiceUrl(),
-    storage: getStorageServiceUrl(),
-    functions: getFunctionsServiceUrl(),
-    hasura: getHasuraSchemaApiUrl(),
-  };
 
-  if (!IS_PLATFORM && serviceUrls[service]) {
+  if (!IS_PLATFORM) {
+    const serviceUrls: Record<typeof service, string> = {
+      auth: getAuthServiceUrl(),
+      graphql: getGraphqlServiceUrl(),
+      storage: getStorageServiceUrl(),
+      functions: getFunctionsServiceUrl(),
+      hasura: getHasuraSchemaApiUrl(),
+    };
+
+    if (!serviceUrls[service]) {
+      throw new Error(
+        `Service URL for "${service}" is not defined. Please check your .env file.`,
+      );
+    }
+
     return serviceUrls[service];
   }
 
-  const LOCAL_HASURA_URL = getLocalHasuraServiceUrl();
-
+  // This is only used when running the dashboard locally against its own
+  // backend.
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || LOCAL_HASURA_URL}${
-      localBackendSlugs[service]
-    }`;
+    return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}${localBackendSlugs[service]}`;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {

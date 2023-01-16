@@ -2,7 +2,7 @@ import { useUserDataContext } from '@/context/workspace1-context';
 import type { Application } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import { getHasuraAdminSecret, getSubdomain } from '@/utils/env';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useIsPlatform from './common/useIsPlatform';
@@ -42,7 +42,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
           },
         ],
         deployments: [],
-        subdomain: getSubdomain(),
+        subdomain: 'local',
         region: {
           id: null,
           countryCode: null,

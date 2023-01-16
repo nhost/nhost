@@ -62,7 +62,7 @@ export function generateRemoteAppUrl(subdomain: string): string {
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || getLocalBackendUrl();
+    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {

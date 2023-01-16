@@ -14,7 +14,13 @@ beforeEach(() => {
   process.env = {
     NEXT_PUBLIC_NHOST_PLATFORM: 'false',
     NEXT_PUBLIC_ENV: 'dev',
-    NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN: 'localhost',
+    NEXT_PUBLIC_NHOST_AUTH_URL: 'https://localdev.nhost.run/v1/auth',
+    NEXT_PUBLIC_NHOST_FUNCTIONS_URL: 'https://localdev.nhost.run/v1/functions',
+    NEXT_PUBLIC_NHOST_GRAPHQL_URL: 'https://localdev.nhost.run/v1/graphql',
+    NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://localdev.nhost.run/v1/storage',
+    NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'http://localhost:9695',
+    NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'http://localhost:9693',
+    NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL: 'http://localhost:8080',
     ...env,
   };
 });
@@ -73,15 +79,11 @@ test('should generate staging subdomains in staging environment', () => {
   );
 });
 
-test('should generate a /v1/files as a slug for storage in local mode', () => {
-  expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:8080/v1/files',
-  );
-});
-
 test('should generate no slug for Hasura neither in local mode nor in remote mode', () => {
+  process.env.NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL = 'http://localhost:8082';
+
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
-    'http://localhost:8080',
+    'http://localhost:8082',
   );
 
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -96,15 +98,6 @@ test('should generate no slug for Hasura neither in local mode nor in remote mod
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.nhost.run',
   );
-});
-
-test('should be able to override the default local backend slugs', () => {
-  expect(
-    generateAppServiceUrl('test', 'eu-west-1', 'storage', {
-      ...defaultLocalBackendSlugs,
-      storage: '/v1/storage',
-    }),
-  ).toBe('http://localhost:8080/v1/storage');
 });
 
 test('should be able to override the default remote backend slugs', () => {
@@ -122,77 +115,60 @@ test('should be able to override the default remote backend slugs', () => {
   ).toBe('https://test.hasura.eu-west-1.nhost.run/lorem-ipsum');
 });
 
-test('should use the custom local subdomain for all services, except Hasura', () => {
-  process.env.NEXT_PUBLIC_NHOST_LOCAL_SUBDOMAIN = 'localdev';
+test('should construct service URLs based on environment variables', () => {
+  process.env.NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL =
+    'https://localdev0.nhost.run';
 
-  expect(generateAppServiceUrl('localdev', '', 'auth')).toBe(
-    'https://localdev.nhost.run/v1/auth',
+  expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
+    `https://localdev0.nhost.run`,
   );
 
-  expect(generateAppServiceUrl('localdev', '', 'functions')).toBe(
-    'https://localdev.nhost.run/v1/functions',
-  );
+  process.env.NEXT_PUBLIC_NHOST_AUTH_URL =
+    'https://localdev1.nhost.run/v1/auth';
 
-  expect(generateAppServiceUrl('localdev', '', 'graphql')).toBe(
-    'https://localdev.nhost.run/v1/graphql',
-  );
-
-  expect(generateAppServiceUrl('localdev', '', 'storage')).toBe(
-    'https://localdev.nhost.run/v1/files',
-  );
-
-  expect(generateAppServiceUrl('custom-local-domain', '', 'storage')).toBe(
-    'https://custom-local-domain.nhost.run/v1/files',
-  );
-
-  expect(generateAppServiceUrl('localdev', '', 'hasura')).toBe(
-    'http://localhost:8080',
-  );
-
-  expect(generateAppServiceUrl('sample', '', 'hasura')).toBe(
-    'http://localhost:8080',
-  );
-
-  expect(generateAppServiceUrl('localhost', '', 'hasura')).toBe(
-    'http://localhost:8080',
-  );
-});
-
-test('should generate a basic subdomain without region in local mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'auth')).toBe(
-    `http://localhost:8080/v1/auth`,
+    `https://localdev1.nhost.run/v1/auth`,
   );
+
+  process.env.NEXT_PUBLIC_NHOST_STORAGE_URL =
+    'https://localdev2.nhost.run/v1/storage';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:8080/v1/files',
+    'https://localdev2.nhost.run/v1/storage',
   );
+
+  process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL =
+    'https://localdev3.nhost.run/v1/graphql';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'graphql')).toBe(
-    'http://localhost:8080/v1/graphql',
+    'https://localdev3.nhost.run/v1/graphql',
   );
 
+  process.env.NEXT_PUBLIC_NHOST_FUNCTIONS_URL =
+    'https://localdev4.nhost.run/v1/functions';
+
   expect(generateAppServiceUrl('test', 'eu-west-1', 'functions')).toBe(
-    'http://localhost:8080/v1/functions',
+    'https://localdev4.nhost.run/v1/functions',
   );
 });
 
 test('should generate a basic subdomain with a custom port if provided', () => {
-  const CUSTOM_BACKEND_PORT = '1338';
-  process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT = CUSTOM_BACKEND_PORT;
+  process.env.NEXT_PUBLIC_NHOST_BACKEND_URL = `http://localhost:1338`;
+  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'auth')).toBe(
-    `http://localhost:${CUSTOM_BACKEND_PORT}/v1/auth`,
+    `http://localhost:1338/v1/auth`,
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    `http://localhost:${CUSTOM_BACKEND_PORT}/v1/files`,
+    `http://localhost:1338/v1/files`,
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'graphql')).toBe(
-    `http://localhost:${CUSTOM_BACKEND_PORT}/v1/graphql`,
+    `http://localhost:1338/v1/graphql`,
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'functions')).toBe(
-    `http://localhost:${CUSTOM_BACKEND_PORT}/v1/functions`,
+    `http://localhost:1338/v1/functions`,
   );
 });
