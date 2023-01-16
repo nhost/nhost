@@ -203,15 +203,15 @@ const OutlinedButton = forwardRef(
         borderColor: 'grey.400',
         '&:hover': {
           backgroundColor: 'grey.300',
-          borderColor: 'grey.400',
+          borderColor: 'grey.300',
         },
         '&:active': {
           backgroundColor: 'grey.300',
-          borderColor: 'grey.400',
+          borderColor: 'grey.300',
         },
         '&:focus': {
           backgroundColor: 'grey.300',
-          borderColor: 'grey.400',
+          borderColor: 'grey.300',
         },
       };
     }
@@ -285,16 +285,16 @@ const BorderlessButton = forwardRef(
       styles = {
         color: 'text.primary',
         '&:hover': {
-          backgroundColor: 'grey.400',
+          backgroundColor: 'grey.300',
           color: 'text.primary',
         },
         '&:active': {
+          backgroundColor: 'grey.300',
           boxShadow: 'none',
-          backgroundColor: 'action.active',
         },
         '&:focus': {
+          backgroundColor: 'grey.300',
           boxShadow: 'none',
-          backgroundColor: 'action.focus',
         },
       };
     }

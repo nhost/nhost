@@ -4,24 +4,25 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import Avatar from '@/ui/v2/Avatar';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import { copy } from '@/utils/copy';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Avatar } from '@mui/material';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
@@ -179,18 +180,24 @@ export default function EditUserForm({
   return (
     <FormProvider {...form}>
       <Form
-        className="flex flex-col border-gray-200 lg:content-between lg:flex-auto border-t-1"
+        className="flex flex-col lg:content-between lg:flex-auto border-t-1 overflow-hidden"
         onSubmit={handleSubmit(async (values) => {
           await onEditUser(values, user);
         })}
       >
-        <div className="flex-auto divide-y">
-          <section className="grid grid-flow-col p-6 lg:grid-cols-7">
+        <Box className="flex-auto divide-y overflow-y-auto">
+          <Box
+            component="section"
+            className="grid grid-flow-col p-6 lg:grid-cols-7"
+          >
             <div className="grid items-center grid-flow-col col-span-6 gap-4 place-content-start">
-              <Avatar className="w-12 h-12 border" src={user.avatarUrl} />
+              <Avatar className="w-12 h-12" src={user.avatarUrl} />
               <div className="grid items-center grid-flow-row">
                 <Text className="text-lg font-medium">{user.displayName}</Text>
-                <Text className="font-normal text-sm+ text-greyscaleGreyDark">
+                <Text
+                  className="font-normal text-sm+"
+                  sx={{ color: 'text.secondary' }}
+                >
                   {user.email}
                 </Text>
               </div>
@@ -200,24 +207,20 @@ export default function EditUserForm({
                   color="error"
                   size="small"
                   label="Banned"
-                  className="self-center align-middle"
                 />
               )}
             </div>
             <div>
               <Dropdown.Root>
-                <Dropdown.Trigger
-                  autoFocus={false}
-                  asChild
-                  className="gap-2"
-                >
+                <Dropdown.Trigger autoFocus={false} asChild className="gap-2">
                   <Button variant="outlined" color="secondary">
                     Actions
                   </Button>
                 </Dropdown.Trigger>
                 <Dropdown.Content menu disablePortal className="w-full h-full">
                   <Dropdown.Item
-                    className="font-medium text-red"
+                    className="font-medium"
+                    sx={{ color: 'error.main' }}
                     onClick={() => {
                       handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
@@ -226,7 +229,8 @@ export default function EditUserForm({
                     {isUserBanned ? 'Unban User' : 'Ban User'}
                   </Dropdown.Item>
                   <Dropdown.Item
-                    className="font-medium text-red"
+                    className="font-medium"
+                    sx={{ color: 'error.main' }}
                     onClick={() => {
                       onDeleteUser(user);
                     }}
@@ -236,8 +240,11 @@ export default function EditUserForm({
                 </Dropdown.Content>
               </Dropdown.Root>
             </div>
-          </section>
-          <section className="grid grid-flow-row grid-cols-4 gap-8 p-6">
+          </Box>
+          <Box
+            component="section"
+            className="grid grid-flow-row grid-cols-4 gap-8 p-6"
+          >
             <InputLabel as="h3" className="self-center col-span-1">
               User ID
             </InputLabel>
@@ -271,8 +278,8 @@ export default function EditUserForm({
                 ? `${format(new Date(user.lastSeen), 'yyyy-mm-dd hh:mm:ss')}`
                 : '-'}
             </Text>
-          </section>
-          <section className="grid grid-flow-row gap-8 p-6">
+          </Box>
+          <Box component="section" className="grid grid-flow-row gap-8 p-6">
             <Input
               {...register('displayName')}
               id="Display Name"
@@ -373,15 +380,18 @@ export default function EditUserForm({
                 fr
               </Option>
             </ControlledSelect>
-          </section>
-          <section className="grid gap-4 p-6 lg:grid-cols-4 place-content-start">
+          </Box>
+          <Box
+            component="section"
+            className="grid gap-4 p-6 lg:grid-cols-4 place-content-start"
+          >
             <div className="items-center self-center col-span-1 align-middle">
               <InputLabel as="h3">OAuth Providers</InputLabel>
             </div>
             <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
               {user.userProviders.length === 0 && (
                 <div className="grid grid-flow-col gap-x-1 place-content-between">
-                  <Text className="font-normal text-greyscaleGrey">
+                  <Text className="font-normal" sx={{ color: 'text.disabled' }}>
                     This user has no OAuth providers connected.
                   </Text>
                 </div>
@@ -410,9 +420,12 @@ export default function EditUserForm({
                 </div>
               ))}
             </div>
-          </section>
+          </Box>
           {!isAnonymous && (
-            <section className="grid grid-flow-row p-6 gap-y-10">
+            <Box
+              component="section"
+              className="grid grid-flow-row p-6 gap-y-10"
+            >
               <ControlledSelect
                 {...register('defaultRole')}
                 id="defaultRole"
@@ -440,17 +453,18 @@ export default function EditUserForm({
                     <ControlledCheckbox
                       id={`roles.${i}`}
                       label={Object.keys(role)[0]}
-                      defaultChecked={Object.values(role)[0]}
                       name={`roles.${i}`}
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={`roles.${i}`}
                     />
                   ))}
                 </div>
               </div>
-            </section>
+            </Box>
           )}
-        </div>
+        </Box>
 
-        <div className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 border-gray-200 place-self-end border-t-1 snap-end">
+        <Box className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 place-self-end border-t-1 snap-end">
           <Button
             variant="outlined"
             color="secondary"
@@ -468,7 +482,7 @@ export default function EditUserForm({
           >
             Save
           </Button>
-        </div>
+        </Box>
       </Form>
     </FormProvider>
   );

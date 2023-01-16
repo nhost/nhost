@@ -108,7 +108,7 @@ export default function CreateUserForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleCreateUser}
-        className="grid grid-flow-row gap-6 p-6"
+        className="grid grid-flow-row gap-4 px-6 pb-6"
       >
         <Input
           {...register('email')}

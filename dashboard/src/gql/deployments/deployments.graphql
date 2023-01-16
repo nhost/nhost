@@ -22,10 +22,7 @@ query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
 
 subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
-    where: {
-      deploymentStatus: { _in: ["PENDING", "SCHEDULED"] }
-      appId: { _eq: $appId }
-    }
+    where: { deploymentStatus: { _in: ["SCHEDULED"] }, appId: { _eq: $appId } }
   ) {
     ...DeploymentRow
   }

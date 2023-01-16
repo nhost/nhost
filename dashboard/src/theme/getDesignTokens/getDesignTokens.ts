@@ -12,7 +12,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       text: {
         primary: '#dfecf5',
         secondary: '#a2b3be',
-        disabled: '#363a43',
+        disabled: '#8b949e',
       },
       error: {
         light: '#ff5c7a',
