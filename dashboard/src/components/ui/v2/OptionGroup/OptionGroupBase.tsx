@@ -5,6 +5,7 @@ const OptionGroupBase = styled('span')(({ theme }) => ({
   lineHeight: '1.375rem',
   fontWeight: 600,
   color: theme.palette.text.disabled,
+  backgroundColor: 'transparent',
   padding: theme.spacing(1.25, 1.5, 0.5, 1.5),
   display: 'block',
   cursor: 'default',

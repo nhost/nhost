@@ -38,7 +38,15 @@ function ColumnSelectorInput({
       table={table}
       disableRelationships
       slotProps={{
-        input: { className: 'lg:!rounded-none !bg-white !z-10' },
+        input: {
+          className: 'lg:!rounded-none !bg-white !z-10',
+          sx: {
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? theme.palette.grey[300]
+                : theme.palette.common.white,
+          },
+        },
       }}
       onChange={(_event, { value }) => {
         if (selectedTablePath === `${schema}.${table}`) {
@@ -101,7 +109,15 @@ export default function RuleValueInput({
         name={inputName}
         fullWidth
         slotProps={{
-          root: { className: 'bg-white lg:!rounded-none h-10' },
+          root: {
+            className: 'lg:!rounded-none h-10',
+            sx: {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `${theme.palette.grey[300]} !important`
+                  : `${theme.palette.common.white} !important`,
+            },
+          },
           popper: { disablePortal: false, className: 'z-[10000]' },
         }}
         error={error}
@@ -132,7 +148,17 @@ export default function RuleValueInput({
         multiple
         freeSolo
         limitTags={3}
-        slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
+        slotProps={{
+          input: {
+            className: 'lg:!rounded-none !z-10',
+            sx: {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? theme.palette.grey[300]
+                  : theme.palette.common.white,
+            },
+          },
+        }}
         options={[]}
         fullWidth
         filterSelectedOptions
@@ -181,7 +207,15 @@ export default function RuleValueInput({
       name={inputName}
       groupBy={(option) => option.group}
       slotProps={{
-        input: { className: 'lg:!rounded-none !bg-white' },
+        input: {
+          className: 'lg:!rounded-none',
+          sx: {
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? theme.palette.grey[300]
+                : theme.palette.common.white,
+          },
+        },
         formControl: { className: '!bg-transparent' },
       }}
       fullWidth

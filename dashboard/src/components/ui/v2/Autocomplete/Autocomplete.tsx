@@ -140,7 +140,10 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   [`& .${materialAutocompleteClasses.paper}`]: {
     borderRadius: theme.shape.borderRadius,
     overflow: 'hidden',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.secondary[100]
+        : theme.palette.common.white,
     boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
   },
   [`& .${materialAutocompleteClasses.listbox}`]: {
@@ -149,19 +152,28 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
     maxWidth: 600,
     maxHeight: 400,
     margin: 0,
-    backgroundColor: theme.palette.common.white,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.secondary[100]
+        : theme.palette.common.white,
     padding: 0,
     [`& .${materialAutocompleteClasses.option}`]: {
       padding: theme.spacing(1, 1.5),
       cursor: 'default',
       minHeight: 'initial',
     },
+    [`& .${materialAutocompleteClasses.option}:hover`]: {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? darken(theme.palette.action.hover, 0.1)
+          : theme.palette.action.hover,
+    },
     [`& .${materialAutocompleteClasses.option}[aria-selected="true"]`]: {
-      backgroundColor: darken(theme.palette.action.hover, 0.025),
+      backgroundColor: darken(theme.palette.action.hover, 0.15),
     },
     [`& .${materialAutocompleteClasses.option}[aria-selected="true"].Mui-focused`]:
       {
-        backgroundColor: darken(theme.palette.action.hover, 0.1),
+        backgroundColor: darken(theme.palette.action.hover, 0.15),
       },
   },
   [`& .${materialAutocompleteClasses.noOptions}`]: {

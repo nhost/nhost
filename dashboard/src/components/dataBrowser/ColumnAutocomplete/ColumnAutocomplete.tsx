@@ -4,6 +4,7 @@ import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { AutocompletePopper } from '@/ui/v2/Autocomplete';
+import Box from '@/ui/v2/Box';
 import IconButton from '@/ui/v2/IconButton';
 import ArrowLeftIcon from '@/ui/v2/icons/ArrowLeftIcon';
 import type { InputProps } from '@/ui/v2/Input';
@@ -84,7 +85,7 @@ function renderOption(
       {...optionProps}
       className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
     >
-      <span>{option.label}</span>
+      <Text component="span">{option.label}</Text>
 
       {option.group === 'columns' && (
         <InlineCode>{option.metadata?.type || option.value}</InlineCode>
@@ -322,8 +323,18 @@ function ColumnAutocomplete(
         anchorEl={anchorEl}
         style={{ width: anchorEl?.parentElement?.clientWidth }}
       >
-        <div className={autocompleteClasses.paper}>
-          <div className="px-3 py-2.5 border-b-1 border-greyscale-100 grid grid-flow-col gap-2 justify-start items-center">
+        <Box
+          className={autocompleteClasses.paper}
+          sx={{
+            borderWidth: (theme) => (theme.palette.mode === 'dark' ? 1 : 0),
+            borderColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'grey.400' : 'none',
+          }}
+        >
+          <Box
+            className="px-3 py-2.5 border-b-1 grid grid-flow-col gap-2 justify-start items-center"
+            sx={{ backgroundColor: 'transparent' }}
+          >
             {selectedRelationships.length > 0 && (
               <IconButton
                 variant="borderless"
@@ -343,7 +354,9 @@ function ColumnAutocomplete(
             )}
 
             <Text className="truncate direction-rtl text-left">
-              <span className="!text-greyscaleMedium">{defaultTable}</span>
+              <Text component="span" sx={{ color: 'text.disabled' }}>
+                {defaultTable}
+              </Text>
 
               {relationshipDotNotation && (
                 <>
@@ -357,7 +370,7 @@ function ColumnAutocomplete(
                 </>
               )}
             </Text>
-          </div>
+          </Box>
 
           {(tableStatus === 'loading' ||
             metadataStatus === 'loading' ||
@@ -397,7 +410,7 @@ function ColumnAutocomplete(
           {groupedOptions.length === 0 && Boolean(anchorEl) && (
             <Text className={autocompleteClasses.noOptions}>No options</Text>
           )}
-        </div>
+        </Box>
       </AutocompletePopper>
     </>
   );

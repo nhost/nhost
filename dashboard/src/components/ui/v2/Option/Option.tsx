@@ -16,18 +16,21 @@ const StyledOption = styled(OptionUnstyled)(({ theme }) => ({
       backgroundColor: 'transparent',
     },
   [`&.${optionUnstyledClasses.highlighted}`]: {
-    backgroundColor: darken(theme.palette.action.active, 0.025),
+    backgroundColor: darken(theme.palette.action.hover, 0.1),
   },
   [`&.${optionUnstyledClasses.highlighted}:not(.${optionUnstyledClasses.disabled}):hover`]:
     {
-      backgroundColor: darken(theme.palette.action.hover, 0.1),
+      backgroundColor: darken(theme.palette.action.hover, 0.15),
     },
   [`&.${optionUnstyledClasses.disabled}`]: {
     color: theme.palette.text.disabled,
   },
   [`&:not(.${optionUnstyledClasses.disabled}):not(.${optionUnstyledClasses.highlighted}):hover`]:
     {
-      backgroundColor: theme.palette.action.hover,
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? darken(theme.palette.action.hover, 0.1)
+          : theme.palette.action.hover,
     },
 }));
 

@@ -45,7 +45,16 @@ export default function RuleGroupControls({
         <ControlledSelect
           disabled={disabled}
           name={`${name}.operator`}
-          slotProps={{ root: { className: 'bg-white' } }}
+          slotProps={{
+            root: {
+              sx: {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? `${theme.palette.grey[300]} !important`
+                    : `${theme.palette.common.white} !important`,
+              },
+            },
+          }}
           fullWidth
         >
           <Option value="_and">and</Option>

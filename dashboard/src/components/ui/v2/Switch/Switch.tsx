@@ -52,7 +52,7 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
   },
 
   [`& .${switchUnstyledClasses.track}`]: {
-    backgroundColor: theme.palette.grey[600],
+    backgroundColor: theme.palette.grey[500],
     borderRadius: '16px',
     display: 'block',
     height: '100%',
