@@ -149,14 +149,8 @@ function OverviewDeployments({
           deployment={deployment}
           isLive={deployment.id === liveDeploymentId}
           showRedeploy={
-            scheduledOrPendingDeployments.length > 0
-              ? scheduledOrPendingDeployments.some(
-                  (scheduledOrPendingDeployment) =>
-                    scheduledOrPendingDeployment.id === deployment.id,
-                )
-              : index === 0
+            scheduledOrPendingDeployments.length === 0 && index === 0
           }
-          disableRedeploy={scheduledOrPendingDeployments.length > 0}
         />
       ))}
     </List>

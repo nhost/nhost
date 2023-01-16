@@ -79,6 +79,15 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     },
   });
 
+  const { data: latestDeploymentData, loading: latestDeplyomentLoading } =
+    useGetDeploymentsSubSubscription({
+      variables: {
+        id: appId,
+        limit: 1,
+        offset: 0,
+      },
+    });
+
   const {
     data: scheduledOrPendingDeploymentsData,
     loading: scheduledOrPendingDeploymentsLoading,
@@ -88,7 +97,11 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     },
   });
 
-  if (loading || scheduledOrPendingDeploymentsLoading) {
+  if (
+    loading ||
+    scheduledOrPendingDeploymentsLoading ||
+    latestDeplyomentLoading
+  ) {
     return (
       <ActivityIndicator
         delay={500}
@@ -106,6 +119,8 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || {};
 
+  const latestDeployment = latestDeploymentData?.deployments[0];
+
   const nrOfDeployments = deployments?.length || 0;
   const nextAllowed = !(nrOfDeployments < limit);
   const liveDeploymentId = getLastLiveDeployment(deployments);
@@ -117,20 +132,15 @@ export default function AppDeployments(props: AppDeploymentsProps) {
       ) : (
         <div>
           <List className="mt-3 divide-y-1 border-t border-b">
-            {deployments.map((deployment, index) => (
+            {deployments.map((deployment) => (
               <DeploymentListItem
                 key={deployment.id}
                 deployment={deployment}
                 isLive={liveDeploymentId === deployment.id}
                 showRedeploy={
-                  scheduledOrPendingDeployments.length > 0
-                    ? scheduledOrPendingDeployments.some(
-                        (scheduledOrPendingDeployment) =>
-                          scheduledOrPendingDeployment.id === deployment.id,
-                      )
-                    : index === 0
+                  latestDeployment.id === deployment.id &&
+                  scheduledOrPendingDeployments.length === 0
                 }
-                disableRedeploy={scheduledOrPendingDeployments.length > 0}
               />
             ))}
           </List>
