@@ -21,6 +21,12 @@
         "apigeeconnect": {
             "component": "apigeeconnect"
         },
+        "apigeeregistry": {
+            "component": "apigeeregistry"
+        },
+        "apikeys": {
+            "component": "apikeys"
+        },
         "appengine": {
             "component": "appengine"
         },
@@ -38,6 +44,15 @@
         },
         "automl": {
             "component": "automl"
+        },
+        "baremetalsolution": {
+            "component": "baremetalsolution"
+        },
+        "batch": {
+            "component": "batch"
+        },
+        "beyondcorp": {
+            "component": "beyondcorp"
         },
         "billing": {
             "component": "billing"
@@ -77,6 +92,9 @@
         },
         "dataflow": {
             "component": "dataflow"
+        },
+        "dataform": {
+            "component": "dataform"
         },
         "datafusion": {
             "component": "datafusion"

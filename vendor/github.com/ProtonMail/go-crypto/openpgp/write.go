@@ -208,6 +208,15 @@ func EncryptSplit(keyWriter io.Writer, dataWriter io.Writer, to []*Entity, signe
 	return encrypt(keyWriter, dataWriter, to, signed, hints, packet.SigTypeBinary, config)
 }
 
+// EncryptTextSplit encrypts a message to a number of recipients and, optionally, signs
+// it. hints contains optional information, that is also encrypted, that aids
+// the recipients in processing the message. The resulting WriteCloser must
+// be closed after the contents of the file have been written.
+// If config is nil, sensible defaults will be used.
+func EncryptTextSplit(keyWriter io.Writer, dataWriter io.Writer, to []*Entity, signed *Entity, hints *FileHints, config *packet.Config) (plaintext io.WriteCloser, err error) {
+	return encrypt(keyWriter, dataWriter, to, signed, hints, packet.SigTypeText, config)
+}
+
 // writeAndSign writes the data as a payload package and, optionally, signs
 // it. hints contains optional information, that is also encrypted,
 // that aids the recipients in processing the message. The resulting
@@ -358,7 +367,7 @@ func encrypt(keyWriter io.Writer, dataWriter io.Writer, to []*Entity, signed *En
 		var ok bool
 		encryptKeys[i], ok = to[i].EncryptionKey(config.Now())
 		if !ok {
-			return nil, errors.InvalidArgumentError("cannot encrypt a message to key id " + strconv.FormatUint(to[i].PrimaryKey.KeyId, 16) + " because it has no encryption keys")
+			return nil, errors.InvalidArgumentError("cannot encrypt a message to key id " + strconv.FormatUint(to[i].PrimaryKey.KeyId, 16) + " because it has no valid encryption keys")
 		}
 
 		sig := to[i].PrimaryIdentity().SelfSignature
@@ -416,7 +425,7 @@ func encrypt(keyWriter io.Writer, dataWriter io.Writer, to []*Entity, signed *En
 	}
 
 	var payload io.WriteCloser
-	if aeadSupported {
+	if config.AEAD() != nil && aeadSupported {
 		payload, err = packet.SerializeAEADEncrypted(dataWriter, symKey, cipher, mode, config)
 		if err != nil {
 			return

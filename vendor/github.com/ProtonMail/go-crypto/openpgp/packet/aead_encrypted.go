@@ -33,7 +33,7 @@ type aeadCrypter struct {
 	associatedData []byte       // Chunk-independent associated data
 	chunkIndex     []byte       // Chunk counter
 	bytesProcessed int          // Amount of plaintext bytes encrypted/decrypted
-	buffer         bytes.Buffer // Buffered bytes accross chunks
+	buffer         bytes.Buffer // Buffered bytes across chunks
 }
 
 // aeadEncrypter encrypts and writes bytes. It encrypts when necessary according
@@ -346,7 +346,7 @@ func (wo *aeadCrypter) computeNextNonce() (nonce []byte) {
 	return
 }
 
-// incrementIndex perfoms an integer increment by 1 of the integer represented by the
+// incrementIndex performs an integer increment by 1 of the integer represented by the
 // slice, modifying it accordingly.
 func (wo *aeadCrypter) incrementIndex() error {
 	index := wo.chunkIndex
