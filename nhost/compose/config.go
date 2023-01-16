@@ -15,6 +15,10 @@ import (
 )
 
 const (
+	// hosts
+	hostDockerInternal = "host.docker.internal"
+	hostGateway        = "host-gateway"
+
 	// docker compose service names
 	SvcPostgres  = "postgres"
 	SvcAuth      = "auth"
@@ -122,6 +126,13 @@ func NewConfig(conf *nhost.Configuration, p *ports.Ports, env []string, gitBranc
 	return &Config{nhostConfig: conf, ports: p, dotenv: env, gitBranch: gitBranch, composeProjectName: projectName}
 }
 
+func (c Config) addLocaldevExtraHost(svc *types.ServiceConfig) *types.ServiceConfig {
+	svc.ExtraHosts = map[string]string{
+		hostDockerInternal: hostGateway, // for Linux
+	}
+	return svc
+}
+
 func (c Config) serviceDockerImage(svcName, dockerImageFallback string) string {
 	if svcConf, ok := c.nhostConfig.Services[svcName]; ok && svcConf != nil {
 		if svcConf.Image != "" {
@@ -168,7 +179,7 @@ func (c *Config) build() *types.Config {
 	// loop over services and filter out nils, i.e. services that are not enabled
 	for _, service := range services {
 		if service != nil {
-			config.Services = append(config.Services, *service)
+			config.Services = append(config.Services, *c.addLocaldevExtraHost(service))
 		}
 	}
 

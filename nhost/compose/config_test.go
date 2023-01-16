@@ -41,3 +41,13 @@ func TestConfig_dashboardService(t *testing.T) {
 		"NEXT_TELEMETRY_DISABLED=1",
 	}), svc.Environment)
 }
+
+func TestConfig_addLocaldevExtraHost(t *testing.T) {
+	t.Parallel()
+	assert := assert.New(t)
+	c := &Config{}
+	svc := &types.ServiceConfig{}
+	c.addLocaldevExtraHost(svc)
+
+	assert.Equal(svc.ExtraHosts["host.docker.internal"], "host-gateway")
+}
