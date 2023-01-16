@@ -26,12 +26,6 @@ export function urlFromSubdomain(
     throw new Error('Either `backendUrl` or `subdomain` must be set.')
   }
 
-  if (subdomain === 'localhost') {
-    console.warn(
-      'The `subdomain` is set to "localhost". Support for this will be removed in a future release. Please use "local" instead.'
-    )
-  }
-
   // check if subdomain is [http[s]://]localhost[:port] or [http[s]://]local[:port]
   const subdomainLocalhostFound = subdomain.match(LOCALHOST_REGEX)
   if (subdomainLocalhostFound?.groups) {
@@ -43,15 +37,18 @@ export function urlFromSubdomain(
     }
 
     if (host === 'localhost') {
+      console.warn(
+        'The `subdomain` is set to "localhost". Support for this will be removed in a future release. Please use "local" instead.'
+      )
+
       return `${protocol || 'http'}://localhost:${port || 1337}/v1/${service}`
     }
 
-    // we omit the port if it's the default port
     if (port) {
-      return `${protocol || 'https'}://${host}.nhost.run:${port}/v1/${service}`
+      return `${protocol || 'https'}://localdev.nhost.run:${port}/v1/${service}`
     }
 
-    return `${protocol || 'https'}://${host}.nhost.run/v1/${service}`
+    return `${protocol || 'https'}://localdev.nhost.run/v1/${service}`
   }
 
   if (!region) {
