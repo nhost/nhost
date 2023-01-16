@@ -35,7 +35,16 @@ You can connect the Nhost Dashboard to your locally running backend by setting t
 ```bash
 NEXT_PUBLIC_ENV=dev
 NEXT_PUBLIC_NHOST_PLATFORM=false
+NEXT_PUBLIC_NHOST_AUTH_URL=https://local.auth.nhost.run/v1
+NEXT_PUBLIC_NHOST_FUNCTIONS_URL=https://local.functions.nhost.run/v1
+NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1
+NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1
+NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run
+NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run/v1/migrations
+NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL=https://local.hasura.nhost.run/v1/schema
 ```
+
+This will connect the Nhost Dashboard to your locally running Nhost backend.
 
 ### Storybook
 
