@@ -1,7 +1,7 @@
 import { alpha, styled } from '@mui/material';
 import {
   dayPickerClasses,
-  pickersCalendarHeaderClasses
+  pickersCalendarHeaderClasses,
 } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -67,9 +67,8 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
 
   '& .MuiPickersArrowSwitcher-button': {
     color: theme.palette.text.secondary,
-
     '&:disabled': {
-      color: theme.palette.grey[400],
+      color: theme.palette.text.disabled,
       borderWidth: 1,
       fontWeight: 400,
       cursor: 'not-allowed',
@@ -81,6 +80,10 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
     '&:focus': {
       boxShadow: `0 0 0 1px ${alpha(theme.palette.primary.main, 0.3)}`,
     },
+  },
+
+  [`& .${pickersCalendarHeaderClasses.switchViewIcon}`]: {
+    color: theme.palette.text.secondary,
   },
 
   '& button': {
@@ -124,7 +127,7 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
     gap: '3px',
 
     '&:disabled': {
-      color: theme.palette.grey[400],
+      color: theme.palette.text.disabled,
       borderWidth: 1,
       fontWeight: 400,
       cursor: 'not-allowed',
