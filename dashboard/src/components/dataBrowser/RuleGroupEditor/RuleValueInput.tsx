@@ -158,6 +158,7 @@ export default function RuleValueInput({
                   : theme.palette.common.white,
             },
           },
+          paper: { className: 'hidden' },
         }}
         options={[]}
         fullWidth
