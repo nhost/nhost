@@ -54,22 +54,7 @@ function MyApp({
   pageProps,
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      const storedColorMode = window.localStorage.getItem(
-        COLOR_MODE_STORAGE_KEY,
-      );
-
-      if (storedColorMode !== 'light' && storedColorMode !== 'dark') {
-        return 'light';
-      }
-
-      return storedColorMode as 'light' | 'dark';
-    }
-
-    return 'light';
-  });
-
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
   const isPlatform = useIsPlatform();
   const router = useRouter();
 
@@ -97,6 +82,21 @@ function MyApp({
       router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router.events]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const storedColorMode = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
+
+    if (storedColorMode !== 'light' && storedColorMode !== 'dark') {
+      setColorMode('light');
+      return;
+    }
+
+    setColorMode(storedColorMode as 'light' | 'dark');
+  }, []);
 
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
   const theme = createTheme(colorMode);

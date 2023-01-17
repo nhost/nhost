@@ -3,6 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
@@ -156,9 +157,9 @@ export default function RoleSettings() {
       className="px-0 my-2"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="px-4 py-3 border-gray-200 border-b-1">
+      <Box className="px-4 py-3 border-b-1">
         <Text className="font-medium">Name</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         <List>

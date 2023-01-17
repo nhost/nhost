@@ -2,11 +2,12 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import FeedbackForm from '@/components/common/FeedbackForm';
 import { Logo } from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
-import NavLink from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import { Dropdown } from '@/ui/v2/Dropdown';
+import Link from '@/ui/v2/Link';
+import NavLink from 'next/link';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -44,7 +45,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           <Dropdown.Root>
             <Dropdown.Trigger
               hideChevron
-              className="rounded-md px-2.5 py-1.5 text-sm hover:bg-gray-100 motion-safe:transition-colors"
+              className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
             >
               Feedback
             </Dropdown.Trigger>
@@ -60,11 +61,21 @@ export default function Header({ className, ...props }: HeaderProps) {
 
         <NavLink
           href="https://docs.nhost.io"
-          className="mr-2 rounded-md px-2.5 py-1.5 text-sm hover:bg-gray-100 motion-safe:transition-colors"
+          passHref
           target="_blank"
           rel="noopener noreferrer"
         >
-          Docs
+          <Link
+            underline="none"
+            href="https://docs.nhost.io"
+            className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+            sx={{
+              color: 'text.primary',
+              '&:hover': { backgroundColor: 'grey.200' },
+            }}
+          >
+            Docs
+          </Link>
         </NavLink>
 
         {isPlatform && <AccountMenu />}

@@ -3,6 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { CustomClaim } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -138,10 +139,10 @@ export default function PermissionVariableSettings() {
       className="px-0 my-2"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="grid grid-cols-2 border-b-1 border-gray-200 px-4 py-3">
+      <Box className="grid grid-cols-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Field name</Text>
         <Text className="font-medium">Path</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         <List>

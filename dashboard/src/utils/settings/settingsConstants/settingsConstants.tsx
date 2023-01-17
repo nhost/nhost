@@ -1,5 +1,7 @@
+import getDesignTokens from '@/theme/getDesignTokens';
 import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
+import { COLOR_MODE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import type { DefaultToastOptions } from 'react-hot-toast';
 
 /**
@@ -9,7 +11,13 @@ import type { DefaultToastOptions } from 'react-hot-toast';
 export const toastStyleProps: DefaultToastOptions = {
   style: {
     minWidth: '400px',
-    backgroundColor: 'rgb(33 50 75)',
+    backgroundColor:
+      // eslint-disable-next-line no-nested-ternary
+      typeof window !== 'undefined'
+        ? window.localStorage.getItem(COLOR_MODE_STORAGE_KEY) === 'dark'
+          ? getDesignTokens('dark').grey?.[700]
+          : getDesignTokens('light').grey?.[400]
+        : '',
     color: '#fff',
   },
   success: {
