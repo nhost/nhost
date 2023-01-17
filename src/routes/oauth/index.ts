@@ -157,7 +157,7 @@ export const oauthProviders = Router()
    * 4. Connect the user to the provider
    * 5. Generate and return a new refresh token
    */
-  .use(async ({ session, query }, res) => {
+  .all(`${OAUTH_ROUTE}/:provider/callback`, async ({ session, query }, res) => {
     const { grant, options, redirectTo = ENV.AUTH_CLIENT_URL } = { ...session };
     // * Destroy the session as it is only needed for the oauth flow
     await new Promise((resolve) => {
