@@ -238,7 +238,7 @@ export default function EditPermissionsForm({
             </Text>
           </div>
 
-          <TableContainer>
+          <TableContainer sx={{ backgroundColor: 'background.paper' }}>
             <Table>
               <TableHead className="block">
                 <TableRow className="grid grid-cols-5 items-center">

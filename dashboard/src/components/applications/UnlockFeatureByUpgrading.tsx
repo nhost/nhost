@@ -1,8 +1,8 @@
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { Alert } from '@/ui/Alert';
 import { Modal } from '@/ui/Modal';
-import { Text } from '@/ui/Text';
 import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

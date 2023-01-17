@@ -8,6 +8,7 @@ export interface TableContainerProps extends MaterialTableContainerProps {}
 
 const StyledTableContainer = styled(MaterialTableContainer)(({ theme }) => ({
   borderColor: theme.palette.grey[300],
+  backgroundColor: theme.palette.background.default,
 }));
 
 function TableContainer(

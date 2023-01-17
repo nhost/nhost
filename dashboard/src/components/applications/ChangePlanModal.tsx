@@ -11,6 +11,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
 import { planDescriptions } from '@/utils/planDescriptions';
 import { triggerToast } from '@/utils/toast';
@@ -35,16 +36,13 @@ function Plan({
       tabIndex={-1}
     >
       <div className="grid grid-flow-row gap-y-0.5">
-        <div className="flex flex-row">
-          <input
-            id="plan"
-            aria-describedby="plan"
-            name="plan"
-            type="checkbox"
-            className="h-4.5 w-4.5 cursor-pointer self-center rounded border-gray-300 text-blue focus:ring-blue"
+        <div className="flex flex-row items-center">
+          <Checkbox
             onChange={setPlan}
             checked={selectedPlanId === planId}
+            aria-label={planName}
           />
+
           <Text
             variant="h3"
             component="p"

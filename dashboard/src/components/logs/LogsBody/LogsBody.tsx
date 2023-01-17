@@ -136,7 +136,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
 
   if (loading && !error) {
     return (
-      <TableContainer className="h-full w-full bg-transparent px-4 py-2">
+      <TableContainer className="h-full w-full px-4 py-2">
         <ActivityIndicator
           delay={500}
           className="mx-auto"
