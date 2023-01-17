@@ -9,6 +9,7 @@ import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import createTheme from '@/theme/createTheme';
+import { COLOR_MODE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import type { EmotionCache } from '@emotion/react';
@@ -53,7 +54,22 @@ function MyApp({
   pageProps,
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const storedColorMode = window.localStorage.getItem(
+        COLOR_MODE_STORAGE_KEY,
+      );
+
+      if (storedColorMode !== 'light' && storedColorMode !== 'dark') {
+        return 'light';
+      }
+
+      return storedColorMode as 'light' | 'dark';
+    }
+
+    return 'light';
+  });
+
   const isPlatform = useIsPlatform();
   const router = useRouter();
 
@@ -119,11 +135,18 @@ function MyApp({
                         <div className="absolute bottom-0 right-0 z-[200000]">
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                window.localStorage.setItem(
+                                  COLOR_MODE_STORAGE_KEY,
+                                  colorMode === 'dark' ? 'light' : 'dark',
+                                );
+                              }
+
                               setColorMode((currentMode) =>
                                 currentMode === 'dark' ? 'light' : 'dark',
-                              )
-                            }
+                              );
+                            }}
                             className="bg-black text-white border-white border-1"
                           >
                             Toggle Dark Mode

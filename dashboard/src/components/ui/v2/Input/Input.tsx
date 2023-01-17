@@ -1,6 +1,6 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import FormControl from '@/ui/v2/FormControl';
-import { darken, lighten, styled } from '@mui/material';
+import { darken, styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
@@ -73,10 +73,7 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   [`&.${inputBaseClasses.disabled}`]: {
     color: `${theme.palette.grey[600]} !important`,
     borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
-    backgroundColor: `${lighten(
-      theme.palette.action.disabled,
-      0.75,
-    )} !important`,
+    backgroundColor: theme.palette.grey[200],
   },
   [`&:not(.${inputBaseClasses.disabled}):hover`]: {
     borderColor: theme.palette.grey[600],

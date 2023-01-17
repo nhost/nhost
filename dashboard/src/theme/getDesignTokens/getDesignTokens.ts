@@ -111,10 +111,10 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
     },
     grey: {
       100: '#ffffff',
-      200: '#F4F7F9',
+      200: '#f4f7f9',
       300: '#eaedf0',
-      400: '#C2CAD6',
-      500: '#9CA7B7',
+      400: '#c2cad6',
+      500: '#9ca7b7',
       600: '#556378',
       700: '#21324b',
       800: '#0e1827',

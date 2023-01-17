@@ -17,3 +17,8 @@ export const INSUFFICIENT_PERMISSIONS_MESSAGE =
  * A list of database schemas that are not editable.
  */
 export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
+
+/**
+ * Key used to store the color mode in local storage.
+ */
+export const COLOR_MODE_STORAGE_KEY = 'nhost-color-mode';
