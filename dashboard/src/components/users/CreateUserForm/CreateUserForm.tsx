@@ -4,7 +4,7 @@ import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import { useState } from 'react';
@@ -88,7 +88,7 @@ export default function CreateUserForm({
           success: 'User created successfully.',
           error: 'An error occurred while trying to create the user.',
         },
-        toastStyleProps,
+        getToastStyleProps(),
       );
       onSuccess?.();
     } catch (error) {

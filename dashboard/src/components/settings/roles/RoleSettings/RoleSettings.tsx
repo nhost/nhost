@@ -16,7 +16,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateAppMutation,
@@ -73,7 +73,7 @@ export default function RoleSettings() {
         success: 'Default role has been updated successfully.',
         error: 'An error occurred while trying to update the default role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
@@ -103,7 +103,7 @@ export default function RoleSettings() {
         success: 'Role has been deleted successfully.',
         error: 'An error occurred while trying to delete the role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 

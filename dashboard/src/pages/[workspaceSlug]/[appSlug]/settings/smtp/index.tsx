@@ -7,7 +7,7 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetSmtpSettingsQuery,
   useUpdateAppMutation,
@@ -159,7 +159,7 @@ export default function SMTPSettingsPage() {
         success: `SMTP settings updated successfully`,
         error: `Error while updating SMTP settings`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
   };
 

@@ -12,7 +12,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -94,7 +94,7 @@ export default function SettingsGeneralPage() {
         success: `Project name has been updated successfully.`,
         error: `An error occurred while trying to update project name.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
     try {
       await client.refetchQueries({
@@ -119,7 +119,7 @@ export default function SettingsGeneralPage() {
         success: `${currentApplication.name} deleted`,
         error: `Error while trying to ${currentApplication.name} project name`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
     await router.push('/');
     await updateOwnCache(client);

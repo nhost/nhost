@@ -13,7 +13,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteEnvironmentVariableMutation,
   useGetEnvironmentVariablesQuery,
@@ -70,7 +70,7 @@ export default function EnvironmentVariableSettings() {
         success: 'Environment variable has been deleted successfully.',
         error: 'An error occurred while deleting the environment variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 

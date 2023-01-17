@@ -15,7 +15,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
@@ -145,7 +145,7 @@ export default function UsersBody({
         success: 'User settings updated successfully.',
         error: `An error occurred while trying to update this user's settings.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
     await onSuccessfulAction?.();
 
@@ -174,7 +174,7 @@ export default function UsersBody({
               success: 'User deleted successfully.',
               error: 'An error occurred while trying to delete this user.',
             },
-            toastStyleProps,
+            getToastStyleProps(),
           );
 
           await onSuccessfulAction();

@@ -2,7 +2,7 @@ import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetAuthSettingsQuery,
   useUpdateAppMutation,
@@ -77,7 +77,7 @@ export default function DisableNewUsersSettings() {
         success: `New user sign ups have been disabled successfully.`,
         error: `An error occurred while trying to disable new user sign ups.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);

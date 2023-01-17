@@ -17,7 +17,7 @@ import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
@@ -172,7 +172,7 @@ export default function EditUserForm({
           ? 'An error occurred while trying to unban the user.'
           : 'An error occurred while trying to ban the user.',
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
     await onSuccessfulAction();
   }

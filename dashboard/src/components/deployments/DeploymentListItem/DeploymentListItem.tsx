@@ -10,7 +10,7 @@ import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -123,7 +123,7 @@ export default function DeploymentListItem({
                       success: 'Deployment has been scheduled successfully.',
                       error: 'An error occurred when scheduling deployment.',
                     },
-                    toastStyleProps,
+                    getToastStyleProps(),
                   );
                 }}
                 startIcon={

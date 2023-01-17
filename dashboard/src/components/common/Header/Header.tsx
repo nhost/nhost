@@ -1,6 +1,6 @@
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import FeedbackForm from '@/components/common/FeedbackForm';
-import { Logo } from '@/components/common/Logo';
+import Logo from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';

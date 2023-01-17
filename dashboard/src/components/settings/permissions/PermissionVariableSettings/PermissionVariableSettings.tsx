@@ -16,7 +16,7 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetAppCustomClaimsQuery,
   useUpdateAppMutation,
@@ -83,7 +83,7 @@ export default function PermissionVariableSettings() {
         success: 'Permission variable has been deleted successfully.',
         error: 'An error occurred while trying to delete permission variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 

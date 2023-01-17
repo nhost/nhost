@@ -1,8 +1,13 @@
-import type { SVGProps } from 'react';
+import type { ForwardedRef, SVGProps } from 'react';
+import { forwardRef } from 'react';
 
-export function Logo(props: SVGProps<SVGSVGElement>) {
+function Logo(
+  props: SVGProps<SVGSVGElement>,
+  ref: ForwardedRef<SVGSVGElement>,
+) {
   return (
     <svg
+      ref={ref}
       width="32"
       height="34"
       fill="none"
@@ -18,4 +23,4 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export default Logo;
+export default forwardRef(Logo);

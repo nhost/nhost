@@ -13,7 +13,7 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -239,7 +239,7 @@ export default function RolePermissionEditorForm({
         success: 'Permission has been saved successfully.',
         error: 'An error occurred while saving the permission.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onDirtyStateChange(false, 'drawer');
@@ -277,7 +277,7 @@ export default function RolePermissionEditorForm({
         success: 'Permission has been deleted successfully.',
         error: 'An error occurred while deleting the permission.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onDirtyStateChange(false, 'drawer');
