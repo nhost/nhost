@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.7
+
+### Patch Changes
+
+- c126b20d: fix(dashboard): correct redeployment button
+
 ## 0.9.6
 
 ### Patch Changes
