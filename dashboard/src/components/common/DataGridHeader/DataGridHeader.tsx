@@ -208,7 +208,7 @@ export default function DataGridHeader<T extends object>({
       })}
 
       {onInsertColumn && (
-        <Box className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none">
+        <Box className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 font-display text-xs font-bold focus:outline-none focus-visible:outline-none">
           <Button
             onClick={onInsertColumn}
             variant="borderless"
@@ -217,7 +217,7 @@ export default function DataGridHeader<T extends object>({
             aria-label="Insert New Column"
             disabled={componentsProps?.insertActionProps?.disabled}
           >
-            <PlusIcon className="h-4 w-4 text-greyscaleGrey" />
+            <PlusIcon className="h-4 w-4" sx={{ color: 'text.disabled' }} />
           </Button>
         </Box>
       )}

@@ -213,6 +213,11 @@ const OutlinedButton = forwardRef(
           backgroundColor: 'grey.300',
           borderColor: 'grey.300',
         },
+        '&:disabled': {
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'grey.200' : 'common.white',
+          borderColor: 'grey.200',
+        },
       };
     }
 
@@ -295,6 +300,10 @@ const BorderlessButton = forwardRef(
         '&:focus': {
           backgroundColor: 'grey.300',
           boxShadow: 'none',
+        },
+        '&:disabled': {
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'grey.200' : 'common.white',
         },
       };
     }

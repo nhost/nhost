@@ -202,7 +202,10 @@ export default function DataBrowserGridControls({
                       className="grid w-full grid-flow-col items-center gap-2 px-3 py-2 text-sm+ font-medium"
                       disabled={isGitHubConnected}
                     >
-                      <ColumnIcon className="h-4.5 w-4.5 text-greyscaleMedium" />
+                      <ColumnIcon
+                        className="h-4.5 w-4.5"
+                        sx={{ color: 'secondary.800' }}
+                      />
 
                       <span>Column</span>
                     </Dropdown.Item>
@@ -212,9 +215,13 @@ export default function DataBrowserGridControls({
                     <Dropdown.Item
                       aria-label="Insert Row"
                       onClick={onInsertRowClick}
-                      className="grid grid-flow-col items-center gap-2 border-t-1 border-solid border-gray-200 px-3 py-2 text-sm+ font-medium"
+                      className="grid grid-flow-col items-center gap-2 border-t-1 border-solid px-3 py-2 text-sm+ font-medium"
+                      sx={{ borderColor: 'grey.300' }}
                     >
-                      <RowIcon className="h-4.5 w-4.5 text-greyscaleMedium" />
+                      <RowIcon
+                        className="h-4.5 w-4.5"
+                        sx={{ color: 'secondary.800' }}
+                      />
 
                       <span>Row</span>
                     </Dropdown.Item>

@@ -266,7 +266,10 @@ function DataBrowserSidebarContent({
                 </Text>
               </Text>
               {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
-                <LockIcon className="h-3 w-3" />
+                <LockIcon
+                  className="h-3 w-3"
+                  sx={{ color: 'text.secondary' }}
+                />
               )}
             </Option>
           ))}

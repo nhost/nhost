@@ -4,9 +4,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
 import type { ColumnType, DatabaseColumn } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
+import Text from '@/ui/v2/Text';
 import {
   identityTypes,
   postgresFunctions,
@@ -94,7 +96,7 @@ export default function BaseColumnForm({
   return (
     <Form
       onSubmit={handleExternalSubmit}
-      className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto">
         <section className="grid grid-cols-8 py-3 px-6">
@@ -166,10 +168,14 @@ export default function BaseColumnForm({
               label={
                 <span className="inline-grid grid-flow-row">
                   <span>Identity</span>
-                  <span className="font-normal text-greyscaleMedium">
+                  <Text
+                    component="span"
+                    className="font-normal text-xs"
+                    sx={{ color: 'text.secondary' }}
+                  >
                     Attach an implicit sequence to the column and make it
                     non-nullable
-                  </span>
+                  </Text>
                 </span>
               }
               className="col-span-8 m-0 w-full py-3 sm:col-span-6 sm:col-start-3 sm:ml-1"
@@ -183,7 +189,10 @@ export default function BaseColumnForm({
           )}
         </section>
 
-        <section className="grid grid-cols-8 border-t-1 border-gray-200 py-3 px-6">
+        <Box
+          component="section"
+          className="grid grid-cols-8 border-t-1 py-3 px-6"
+        >
           <ControlledAutocomplete
             id="defaultValue"
             name="defaultValue"
@@ -234,10 +243,14 @@ export default function BaseColumnForm({
             label={
               <span className="inline-grid grid-flow-row">
                 <span>Nullable</span>
-                <span className="font-normal text-greyscaleMedium">
+                <Text
+                  component="span"
+                  className="font-normal text-xs"
+                  sx={{ color: 'text.secondary' }}
+                >
                   Allow the column to assume a NULL value if no value is
                   provided
-                </span>
+                </Text>
               </span>
             }
             disabled={isIdentity}
@@ -250,9 +263,13 @@ export default function BaseColumnForm({
             label={
               <span className="inline-grid grid-flow-row">
                 <span>Unique</span>
-                <span className="font-normal text-greyscaleMedium">
+                <Text
+                  component="span"
+                  className="font-normal text-xs"
+                  sx={{ color: 'text.secondary' }}
+                >
                   Enforce values in the column to be unique across rows
-                </span>
+                </Text>
               </span>
             }
             disabled={isIdentity}
@@ -275,10 +292,10 @@ export default function BaseColumnForm({
             className="col-span-8 py-3"
             autoComplete="off"
           />
-        </section>
+        </Box>
       </div>
 
-      <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
           variant="borderless"
           color="secondary"
@@ -296,7 +313,7 @@ export default function BaseColumnForm({
         >
           {submitButtonText}
         </Button>
-      </div>
+      </Box>
     </Form>
   );
 }
