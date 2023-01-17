@@ -22,7 +22,7 @@ export function Avatar({
   const classes = twMerge(
     'border rounded-full bg-cover bg-center',
     className,
-    noAvatar && 'bg-accent-3 text-white flex items-center justify-center',
+    noAvatar && 'border-0 text-white flex items-center justify-center',
   );
 
   if (noAvatar) {
@@ -39,7 +39,16 @@ export function Avatar({
     }
 
     return (
-      <Box className={classes} style={style} {...rest}>
+      <Box
+        className={classes}
+        style={style}
+        sx={{
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? `grey.400` : `grey.500`,
+          color: (theme) => `${theme.palette.common.white} !important`,
+        }}
+        {...rest}
+      >
         {initials}
       </Box>
     );
