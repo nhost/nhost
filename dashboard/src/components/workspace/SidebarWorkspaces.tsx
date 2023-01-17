@@ -1,7 +1,8 @@
 import { Avatar } from '@/ui/Avatar';
+import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
-import { useGetWorkspacesQuery } from '@/utils/__generated__/graphql';
 import { nhost } from '@/utils/nhost';
+import { useGetWorkspacesQuery } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -61,10 +62,12 @@ export default function SidebarWorkspaces() {
     <div className="mt-3 mb-4 grid grid-flow-row gap-1.5">
       {data?.workspaces?.map(({ name, slug, id, creatorUserId }) => (
         <Link href={`/${slug}`} passHref key={id}>
-          <a
-            className="flex flex-row items-center rounded-md p-1 font-display text-sm+ font-medium leading-6.5 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
+          <Button
             aria-label={name}
-            href={slug}
+            variant="borderless"
+            color="secondary"
+            className="justify-start"
+            size="small"
           >
             {name === 'Default Workspace' && creatorUserId === user.id ? (
               <Avatar
@@ -84,7 +87,7 @@ export default function SidebarWorkspaces() {
             )}
 
             <Text className="ml-2 font-medium">{name}</Text>
-          </a>
+          </Button>
         </Link>
       ))}
     </div>
