@@ -1,47 +1,30 @@
-import ConnectGithubModal from '@/components/applications/ConnectGithubModal';
 import { FunctionsNotDeployed } from '@/components/applications/functions/FunctionsNotDeployed';
 import { normalizeFunctionMetadata } from '@/components/applications/functions/normalizeFunctionMetadata';
-import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
-import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import Folder from '@/components/icons/Folder';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { Button } from '@/ui/Button';
-import DelayedLoading from '@/ui/DelayedLoading';
-import { Modal } from '@/ui/Modal';
 import Status, { StatusEnum } from '@/ui/Status';
-import { Text } from '@/ui/Text';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import Text from '@/ui/v2/Text';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
-import { ChevronRightIcon } from '@heroicons/react/solid';
 import clsx from 'clsx';
 import Image from 'next/image';
-import Link from 'next/link';
+import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 
 function FunctionsNoRepo() {
-  const [githubModal, setGithubModal] = useState(false);
-  const [githubRepoModal, setGithubRepoModal] = useState(false);
-  const { openGitHubModal } = useGitHubModal();
+  const { currentWorkspace, currentApplication } =
+    useCurrentWorkspaceAndApplication();
 
   return (
     <>
-      <Modal showModal={githubModal} close={() => setGithubModal(!githubModal)}>
-        <ConnectGithubModal close={() => setGithubModal(false)} />
-      </Modal>
-      <Modal
-        showModal={githubRepoModal}
-        close={() => setGithubRepoModal(!githubRepoModal)}
-      >
-        <EditRepositorySettings
-          openConnectGithubModal={() => setGithubModal(true)}
-          close={() => setGithubRepoModal(false)}
-          handleSelectAnotherRepository={openGitHubModal}
-        />
-      </Modal>
       <div className="mx-auto flex w-centImage flex-col text-center">
         <Image
           src="/assets/githubRepo.svg"
@@ -50,26 +33,24 @@ function FunctionsNoRepo() {
           alt="GitHub Logo"
         />
       </div>
-      <Text className="mt-4 font-medium" size="large" color="dark">
-        Function Logs
-      </Text>
+      <Text className="mt-4 font-medium text-lg">Function Logs</Text>
       <div className="flex">
         <div className="mx-auto flex flex-row self-center text-center">
-          <Text size="normal" color="greyscaleDark" className="mt-1">
+          <Text className="mt-1">
             To deploy serverless functions, you need to connect your project to
             version control.
           </Text>
         </div>
       </div>
       <div className="mt-3 flex text-center">
-        <Button
-          transparent
-          color="blue"
-          className="mx-auto font-medium"
-          onClick={() => setGithubModal(true)}
+        <NavLink
+          href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+          passHref
         >
-          Connect your Project to GitHub
-        </Button>
+          <Button variant="borderless" className="mx-auto font-medium">
+            Connect your Project to GitHub
+          </Button>
+        </NavLink>
       </div>
     </>
   );
@@ -107,8 +88,8 @@ export default function FunctionsPage() {
 
   if (loading) {
     return (
-      <Container>
-        <DelayedLoading delay={500} className="mt-12" />
+      <Container className="pt-12 text-center grid items-center">
+        <ActivityIndicator delay={500} />
       </Container>
     );
   }
@@ -122,7 +103,11 @@ export default function FunctionsPage() {
   }
 
   if (error) {
-    return <Container>Error</Container>;
+    return (
+      <Container>
+        <Text sx={{ color: 'error.main' }}>{error.message}</Text>
+      </Container>
+    );
   }
 
   return (
@@ -142,13 +127,10 @@ export default function FunctionsPage() {
                   <Folder className="self-center align-middle text-greyscaleGrey" />
                 )}
                 <Text
-                  color="greyscaleDark"
-                  variant="body"
                   className={clsx(
-                    'font-medium',
+                    'font-medium text-xs',
                     folder.nestedLevel > 0 && 'ml-2',
                   )}
-                  size="tiny"
                 >
                   {folder.folder}/
                 </Text>
@@ -156,29 +138,15 @@ export default function FunctionsPage() {
               {folder.nestedLevel === 0 ? (
                 <div className="flex w-full flex-row">
                   <div className="flex w-52">
-                    <Text
-                      color="greyscaleDark"
-                      variant="body"
-                      className="font-medium"
-                      size="tiny"
-                    >
-                      Created At
-                    </Text>
+                    <Text className="font-medium text-xs">Created At</Text>
                   </div>
                   <div className="flex w-16 self-end">
-                    <Text
-                      color="greyscaleDark"
-                      variant="body"
-                      className="font-medium"
-                      size="tiny"
-                    >
-                      Status
-                    </Text>
+                    <Text className="font-medium text-xs">Status</Text>
                   </div>
                 </div>
               ) : null}
             </div>
-            <div
+            <Box
               className={clsx(
                 'border-t py-1',
                 folder.nestedLevel < 2 && 'ml-6',
@@ -186,7 +154,7 @@ export default function FunctionsPage() {
               )}
             >
               {folder.funcs.map((func) => (
-                <Link
+                <NavLink
                   key={func.id}
                   href={{
                     pathname:
@@ -214,51 +182,37 @@ export default function FunctionsPage() {
                         height={16}
                       />
 
-                      <Text
-                        color="greyscaleDark"
-                        variant="body"
-                        className="pl-2 font-medium"
-                        size="small"
-                      >
-                        {func.name}
-                      </Text>
+                      <Text className="pl-2 font-medium">{func.name}</Text>
                     </div>
                     <div className="flex w-full flex-row">
                       <div className={clsx('flex w-52 self-center')}>
-                        <Text
-                          color="greyscaleDark"
-                          variant="body"
-                          className=""
-                          size="tiny"
-                        >
+                        <Text className="text-xs">
                           {func.formattedCreatedAt || '-'}
                         </Text>
                       </div>
                       <div className="flex w-16 self-center">
                         <Status status={StatusEnum.Live}>Live</Status>
 
-                        <ChevronRightIcon className="middl ml-2 h-4 w-4 cursor-pointer self-center" />
+                        <ChevronRightIcon className="ml-2 h-4 w-4 self-center" />
                       </div>
                     </div>
                   </a>
-                </Link>
+                </NavLink>
               ))}
-            </div>
+            </Box>
           </div>
         ))}
       </div>
 
-      <div className="mx-auto mt-10 max-w-6xl">
-        <div className="text-center">
-          <Text size="tiny" color="greyscaleDark" className="font-medium">
-            Base URL for function endpoints is{' '}
-            {generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
-              'functions',
-            )}
-          </Text>
-        </div>
+      <div className="mx-auto mt-10 max-w-6xl text-center">
+        <Text className="font-medium text-xs">
+          Base URL for function endpoints is{' '}
+          {generateAppServiceUrl(
+            currentApplication.subdomain,
+            currentApplication.region.awsName,
+            'functions',
+          )}
+        </Text>
       </div>
     </Container>
   );

@@ -26,7 +26,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
   auth: '/v1',
   graphql: '/v1',
   functions: '/v1',
-  storage: '/v1/files',
+  storage: '/v1',
   hasura: '',
 };
 

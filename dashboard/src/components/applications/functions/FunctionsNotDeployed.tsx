@@ -1,6 +1,6 @@
-import { Button } from '@/ui/Button';
-import Loading from '@/ui/Loading';
-import { Text } from '@/ui/Text';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 
 export function FunctionsNotDeployed() {
@@ -14,30 +14,29 @@ export function FunctionsNotDeployed() {
           height={72}
         />
       </div>
-      <Text className="mt-4 font-medium" size="large" color="dark">
-        Functions Logs
-      </Text>
-      <Text size="normal" color="greyscaleDark" className="mt-1 transform">
+      <Text className="mt-4 font-medium text-lg">Functions Logs</Text>
+      <Text className="mt-1 transform">
         Once you deploy a function, you can view the logs here.
       </Text>
       <div className="mt-1.5 flex text-center">
         <Button
-          Component="a"
-          transparent
-          color="blue"
+          variant="borderless"
           className="mx-auto cursor-pointer font-medium"
           href="https://docs.nhost.io/platform/serverless-functions"
+          // Both `target` and `rel` are available when `href` is set. This is
+          // a limitation of MUI.
+          // @ts-ignore
           target="_blank"
           rel="noreferrer"
         >
           Read more
         </Button>
       </div>
-      <div className="mt-24 flex flex-col text-center">
-        <Loading />
-        <Text size="normal" color="greyscaleDark" className="mt-1 transform">
-          Awaiting new requests…
-        </Text>
+      <div className="mt-12 flex flex-col text-center">
+        <ActivityIndicator
+          label="Awaiting new requests..."
+          className="mx-auto"
+        />
       </div>
     </div>
   );
