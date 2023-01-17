@@ -31,8 +31,10 @@ export default function Header({ className, ...props }: HeaderProps) {
       {...props}
     >
       <div className="grid grid-flow-col items-center gap-3">
-        <NavLink href="/" className="w-12">
-          <Logo className="mx-auto cursor-pointer" />
+        <NavLink href="/" passHref>
+          <Link href="/" className="w-12">
+            <Logo className="mx-auto cursor-pointer" />
+          </Link>
         </NavLink>
 
         {(router.query.workspaceSlug || router.query.appSlug) && (
