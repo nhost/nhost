@@ -51,11 +51,7 @@ export default function DeploymentDetailsPage() {
     );
   }
 
-  const showTime =
-    !['SCHEDULED', 'PENDING'].includes(deployment.deploymentStatus) &&
-    deployment.deploymentStartedAt;
-
-  const relativeDateOfDeployment = showTime
+  const relativeDateOfDeployment = deployment.deploymentStartedAt
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
         addSuffix: true,
       })
@@ -130,14 +126,12 @@ export default function DeploymentDetailsPage() {
             {deployment.commitSHA.substring(0, 7)}
           </Link>
 
-          {showTime && (
-            <div className="w-20 text-right">
-              <AppDeploymentDuration
-                startedAt={deployment.deploymentStartedAt}
-                endedAt={deployment.deploymentEndedAt}
-              />
-            </div>
-          )}
+          <div className="w-20 text-right">
+            <AppDeploymentDuration
+              startedAt={deployment.deploymentStartedAt}
+              endedAt={deployment.deploymentEndedAt}
+            />
+          </div>
         </div>
       </div>
       <div>
