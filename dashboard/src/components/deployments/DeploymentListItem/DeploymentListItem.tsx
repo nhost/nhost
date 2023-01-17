@@ -46,10 +46,6 @@ export default function DeploymentListItem({
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const showDeploymentDuration =
-    !['SCHEDULED', 'PENDING'].includes(deployment.deploymentStatus) &&
-    deployment.deploymentStartedAt;
-
   const relativeDateOfDeployment = deployment.deploymentStartedAt
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
         addSuffix: true,
@@ -146,14 +142,12 @@ export default function DeploymentListItem({
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          {showDeploymentDuration && (
-            <div className="w-[80px] text-right font-mono text-sm- font-medium">
-              <AppDeploymentDuration
-                startedAt={deployment.deploymentStartedAt}
-                endedAt={deployment.deploymentEndedAt}
-              />
-            </div>
-          )}
+          <div className="w-[80px] text-right font-mono text-sm- font-medium">
+            <AppDeploymentDuration
+              startedAt={deployment.deploymentStartedAt}
+              endedAt={deployment.deploymentEndedAt}
+            />
+          </div>
 
           <StatusCircle
             status={deployment.deploymentStatus as DeploymentStatus}

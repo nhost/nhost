@@ -48,7 +48,13 @@ export default function AppDeploymentDuration({
       style={{ fontVariantNumeric: 'tabular-nums' }}
       className="self-center font-display text-sm+ text-greyscaleDark"
     >
-      {durationMins}m {durationSecs}s
+      {Number.isNaN(durationMins) || Number.isNaN(durationSecs) ? (
+        <span>0m 0s</span>
+      ) : (
+        <span>
+          {durationMins}m {durationSecs}s
+        </span>
+      )}
     </div>
   );
 }
