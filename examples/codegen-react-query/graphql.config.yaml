@@ -2,15 +2,3 @@ schema:
   - http://localhost:1337/v1/graphql:
       headers:
         x-hasura-admin-secret: nhost-admin-secret
-generates:
-  src/utils/__generated__/graphql.ts:
-    documents:
-      - 'src/**/*.graphql'
-    plugins:
-      - 'typescript'
-      - 'typescript-operations'
-      - 'typescript-react-query'
-    config:
-      fetcher:
-        func: '../graphql-fetcher#fetchData'
-        isReactHook: false

@@ -17222,6 +17222,13 @@ export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
 
 export type ScheduledOrPendingDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
 
+export type LatestLiveDeploymentSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type LatestLiveDeploymentSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
 export type InsertDeploymentMutationVariables = Exact<{
   object: Deployments_Insert_Input;
 }>;
@@ -19193,6 +19200,41 @@ export function useScheduledOrPendingDeploymentsSubSubscription(baseOptions: Apo
       }
 export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<typeof useScheduledOrPendingDeploymentsSubSubscription>;
 export type ScheduledOrPendingDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
+export const LatestLiveDeploymentSubDocument = gql`
+    subscription LatestLiveDeploymentSub($appId: uuid!) {
+  deployments(
+    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
+    order_by: {deploymentEndedAt: desc}
+    limit: 1
+    offset: 0
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useLatestLiveDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestLiveDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>(LatestLiveDeploymentSubDocument, options);
+      }
+export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveDeploymentSubSubscription>;
+export type LatestLiveDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
 export const InsertDeploymentDocument = gql`
     mutation InsertDeployment($object: deployments_insert_input!) {
   insertDeployment(object: $object) {

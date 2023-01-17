@@ -7,6 +7,8 @@ configuration:
       custom_name: accessToken
     created_at:
       custom_name: createdAt
+    id:
+      custom_name: id
     provider_id:
       custom_name: providerId
     provider_user_id:
@@ -20,6 +22,7 @@ configuration:
   custom_column_names:
     access_token: accessToken
     created_at: createdAt
+    id: id
     provider_id: providerId
     provider_user_id: providerUserId
     refresh_token: refreshToken

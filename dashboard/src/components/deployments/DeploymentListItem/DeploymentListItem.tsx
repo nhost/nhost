@@ -46,11 +46,7 @@ export default function DeploymentListItem({
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const showTime =
-    !['SCHEDULED', 'PENDING'].includes(deployment.deploymentStatus) &&
-    deployment.deploymentStartedAt;
-
-  const relativeDateOfDeployment = showTime
+  const relativeDateOfDeployment = deployment.deploymentStartedAt
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
         addSuffix: true,
       })
@@ -90,7 +86,7 @@ export default function DeploymentListItem({
         <div className="grid grid-flow-col gap-2 items-center">
           {showRedeploy && (
             <Tooltip
-              title="An active deployment cannot be re-triggered"
+              title="Deployments cannot be re-triggered when a deployment is in progress."
               hasDisabledChildren={disableRedeploy || loading}
               disableHoverListener={!disableRedeploy}
             >
@@ -127,16 +123,11 @@ export default function DeploymentListItem({
                   );
                 }}
                 startIcon={
-                  <ArrowCounterclockwiseIcon
-                    className={twMerge(
-                      'w-4 h-4',
-                      disableRedeploy && 'animate-spin-reverse',
-                    )}
-                  />
+                  <ArrowCounterclockwiseIcon className={twMerge('w-4 h-4')} />
                 }
                 className="rounded-full py-1 px-2 text-xs"
               >
-                {disableRedeploy ? 'Redeploying...' : 'Redeploy'}
+                Redeploy
               </Button>
             </Tooltip>
           )}
@@ -151,14 +142,12 @@ export default function DeploymentListItem({
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          {showTime && (
-            <div className="w-[80px] text-right font-mono text-sm- font-medium">
-              <AppDeploymentDuration
-                startedAt={deployment.deploymentStartedAt}
-                endedAt={deployment.deploymentEndedAt}
-              />
-            </div>
-          )}
+          <div className="w-[80px] text-right font-mono text-sm- font-medium">
+            <AppDeploymentDuration
+              startedAt={deployment.deploymentStartedAt}
+              endedAt={deployment.deploymentEndedAt}
+            />
+          </div>
 
           <StatusCircle
             status={deployment.deploymentStatus as DeploymentStatus}
