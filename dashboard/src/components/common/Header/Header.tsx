@@ -32,7 +32,7 @@ export default function Header({ className, ...props }: HeaderProps) {
     >
       <div className="grid grid-flow-col items-center gap-3">
         <NavLink href="/" className="w-12">
-          <Logo className="mx-auto" />
+          <Logo className="mx-auto cursor-pointer" />
         </NavLink>
 
         {(router.query.workspaceSlug || router.query.appSlug) && (

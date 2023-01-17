@@ -6,16 +6,17 @@ import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
-import { Text } from '@/ui/Text';
+import Box from '@/ui/v2/Box';
+import Link from '@/ui/v2/Link';
+import Text from '@/ui/v2/Text';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { formatDistance } from 'date-fns';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ContainerAllWorkspacesApplications } from './ContainerAllWorkspacesApplications';
+import NavLink from 'next/link';
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
-    <Text color="dark" className="cursor-pointer self-center text-sm">
+    <Text className="text-sm">
       created{' '}
       {formatDistance(new Date(createdAt), new Date(), {
         addSuffix: true,
@@ -98,17 +99,17 @@ export function RenderWorkspacesWithApps({
 
           return (
             <div key={workspace.slug} className="my-8">
-              <Link href={`/${workspace.slug}`}>
-                <Text
-                  variant="a"
-                  color="greyscaleGrey"
-                  size="normal"
-                  className="mb-3 cursor-pointer font-medium"
+              <NavLink href={`/${workspace.slug}`} passHref>
+                <Link
+                  href={`/${workspace.slug}`}
+                  className="block mb-1.5 font-medium"
+                  underline="none"
+                  sx={{ color: 'text.primary' }}
                 >
                   {workspace.name}
-                </Text>
-              </Link>
-              <ContainerAllWorkspacesApplications>
+                </Link>
+              </NavLink>
+              <Box className="grid grid-flow-row divide-y-1 border-y">
                 {workspace.applications
                   .filter((app: Application) =>
                     app.name.toLowerCase().includes(query.toLowerCase()),
@@ -137,12 +138,16 @@ export function RenderWorkspacesWithApps({
                     const isDeployingToProduction = app.deployments[0]
                       ? app.deployments[0].deploymentStatus === 'DEPLOYING'
                       : false;
+
                     return (
-                      <div key={app.slug} className="cursor-pointer py-4">
-                        <Link href={`${workspace?.slug}/${app.slug}`} passHref>
+                      <Box key={app.slug} className="cursor-pointer py-4">
+                        <NavLink
+                          href={`${workspace?.slug}/${app.slug}`}
+                          passHref
+                        >
                           <a
                             href={`${workspace?.slug}/${app.slug}`}
-                            className="flex place-content-between rounded-sm border-divide bg-white px-2"
+                            className="flex place-content-between rounded-sm px-2"
                           >
                             <div className="flex w-full flex-col self-center">
                               <div className="flex w-full flex-row place-content-between">
@@ -156,15 +161,10 @@ export function RenderWorkspacesWithApps({
                                     />
                                   </div>
                                   <div className="ml-2 flex flex-col text-left">
-                                    <div>
-                                      <Text
-                                        color="dark"
-                                        size="normal"
-                                        className="cursor-pointer self-center text-left font-medium capitalize"
-                                      >
-                                        {app.name}
-                                      </Text>
-                                    </div>
+                                    <Text className="text-left font-medium capitalize">
+                                      {app.name}
+                                    </Text>
+
                                     <div>
                                       {isDeployingToProduction && (
                                         <CurrentDeployment
@@ -216,11 +216,11 @@ export function RenderWorkspacesWithApps({
                               </div>
                             </div>
                           </a>
-                        </Link>
-                      </div>
+                        </NavLink>
+                      </Box>
                     );
                   })}
-              </ContainerAllWorkspacesApplications>
+              </Box>
             </div>
           );
         })}

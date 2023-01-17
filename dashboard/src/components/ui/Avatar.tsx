@@ -1,3 +1,4 @@
+import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
 type AvatarProps = {
@@ -19,7 +20,7 @@ export function Avatar({
   const noAvatar = !avatarUrl || avatarUrl.includes('blank');
 
   const classes = twMerge(
-    'border border-gray-400 rounded-full bg-cover bg-center',
+    'border rounded-full bg-cover bg-center',
     className,
     noAvatar && 'bg-accent-3 text-white flex items-center justify-center',
   );
@@ -38,14 +39,14 @@ export function Avatar({
     }
 
     return (
-      <div className={classes} style={style} {...rest}>
+      <Box className={classes} style={style} {...rest}>
         {initials}
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
+    <Box
       style={Object.assign(style, { backgroundImage: `url(${avatarUrl})` })}
       className={classes}
       {...rest}

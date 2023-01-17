@@ -39,8 +39,8 @@ export function NoApplications() {
             size="normal"
             className="mt-9 text-white opacity-40"
           >
-            Looking for your old projects? They’re still on console.nhost.io
-            during this beta.
+            Looking for your old projects? They&apos;re still on
+            console.nhost.io during this beta.
           </Text>
         </div>
       </div>
