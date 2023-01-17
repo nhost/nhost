@@ -130,15 +130,17 @@ export default function WorkspaceHeader() {
                 <Divider component="li" sx={{ margin: 0 }} />
 
                 <Dropdown.Item
-                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium text-red"
+                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium"
                   disabled={!noApplications}
                   onClick={openDeleteWorkspaceModal}
+                  sx={{ color: 'error.main' }}
                 >
                   I want to remove this workspace
                   {!noApplications && (
                     <Text
                       variant="caption"
-                      className="font-medium text-greyscaleGrey"
+                      className="font-medium"
+                      sx={{ color: 'text.disabled' }}
                     >
                       You can&apos;t remove this workspace because you have apps
                       running. Remove all apps first.

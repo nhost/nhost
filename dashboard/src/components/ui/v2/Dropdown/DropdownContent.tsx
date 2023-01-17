@@ -33,6 +33,12 @@ const StyledMenu = styled(MaterialMenu)(({ theme }) => ({
     padding: 0,
   },
   [`& .${materialMenuClasses.paper}`]: {
+    backgroundColor: theme.palette.background.paper,
+    borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
+    borderColor:
+      theme.palette.mode === 'dark'
+        ? `${theme.palette.grey[400]} !important`
+        : 'none',
     boxShadow:
       theme.palette.mode === 'light'
         ? '0px 4px 10px rgba(33, 50, 75, 0.25)'
@@ -41,6 +47,10 @@ const StyledMenu = styled(MaterialMenu)(({ theme }) => ({
       theme.palette.mode === 'dark'
         ? `1px solid ${theme.palette.grey[200]}`
         : 'none',
+  },
+  [`& .${materialMenuClasses.list}`]: {
+    padding: 0,
+    backgroundColor: theme.palette.background.paper,
   },
 }));
 
