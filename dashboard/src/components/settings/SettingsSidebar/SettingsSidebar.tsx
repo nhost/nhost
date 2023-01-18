@@ -1,6 +1,7 @@
 import NavLink from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import FloatingActionButton from '@/ui/FloatingActionButton';
+import Backdrop from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import List from '@/ui/v2/List';
@@ -97,22 +98,21 @@ export default function SettingsSidebar({
 
   return (
     <>
-      {expanded && (
-        <div
-          className="absolute top-0 left-0 bottom-0 right-0 z-[34] bg-black bg-opacity-10 md:hidden"
-          role="button"
-          tabIndex={-1}
-          onClick={() => setExpanded(false)}
-          aria-label="Close sidebar overlay"
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') {
-              return;
-            }
+      <Backdrop
+        open={expanded}
+        className="absolute top-0 left-0 bottom-0 right-0 z-[34] md:hidden"
+        role="button"
+        tabIndex={-1}
+        onClick={() => setExpanded(false)}
+        aria-label="Close sidebar overlay"
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+          }
 
-            setExpanded(false);
-          }}
-        />
-      )}
+          setExpanded(false);
+        }}
+      />
 
       <Box
         component="aside"
