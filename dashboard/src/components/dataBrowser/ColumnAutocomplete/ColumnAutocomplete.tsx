@@ -285,12 +285,16 @@ function ColumnAutocomplete(
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
               <Text
-                className={twMerge(
-                  '!ml-2 lg:max-w-[200px] flex-shrink-0 truncate',
-                  props.disabled && 'text-greyscaleGrey',
-                )}
+                component="span"
+                sx={{
+                  color: props.disabled ? 'text.disabled' : 'text.primary',
+                }}
+                className="!ml-2 lg:max-w-[200px] flex-shrink-0 truncate"
               >
-                <span className="text-greyscaleGrey">{defaultTable}</span>.
+                <Text component="span" sx={{ color: 'text.disabled' }}>
+                  {defaultTable}
+                </Text>
+                .
                 {relationshipDotNotation && (
                   <>
                     <span className="hidden lg:inline">

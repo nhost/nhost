@@ -14,6 +14,7 @@ import {
   postgresFunctions,
   postgresTypeGroups,
 } from '@/utils/dataBrowser/postgresqlConstants';
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -223,6 +224,11 @@ export default function BaseColumnForm({
             autoSelect={(filteredOptions) =>
               filteredOptions.length === 0 && defaultValueInputText.length > 0
             }
+            slotProps={{
+              paper: {
+                className: clsx(availableFunctions.length === 0 && 'hidden'),
+              },
+            }}
             error={Boolean(errors.defaultValue)}
             hideEmptyHelperText
             autoHighlight

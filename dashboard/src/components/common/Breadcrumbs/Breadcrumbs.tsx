@@ -22,11 +22,11 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
         )}
         {...props}
       >
-        <span className="text-greyscaleGrey">/</span>
+        <Text sx={{ color: 'text.disabled' }}>/</Text>
 
-        <span className="truncate text-[13px] sm:text-sm">local</span>
+        <Text className="truncate text-[13px] sm:text-sm">local</Text>
 
-        <span className="text-greyscaleGrey">/</span>
+        <Text sx={{ color: 'text.disabled' }}>/</Text>
 
         <NavLink
           href="/local/local"

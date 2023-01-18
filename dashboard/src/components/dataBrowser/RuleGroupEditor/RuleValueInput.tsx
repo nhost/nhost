@@ -10,6 +10,7 @@ import type { InputProps } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import clsx from 'clsx';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -218,6 +219,7 @@ export default function RuleValueInput({
           },
         },
         formControl: { className: '!bg-transparent' },
+        paper: { className: clsx(!isHasuraInput && 'hidden') },
       }}
       fullWidth
       loading={loading}

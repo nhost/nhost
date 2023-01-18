@@ -55,7 +55,11 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
   overflow: 'hidden',
-  transition: theme.transitions.create(['border-color', 'box-shadow']),
+  transition: theme.transitions.create([
+    'border-color',
+    'box-shadow',
+    'background-color',
+  ]),
   [`& .${inputBaseClasses.input}`]: {
     fontSize: theme.typography.pxToRem(15),
     lineHeight: theme.typography.pxToRem(22),
@@ -75,11 +79,8 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
     backgroundColor: theme.palette.grey[200],
   },
-  [`&:not(.${inputBaseClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
-  },
   [`&.${inputBaseClasses.focused}`]: {
-    borderColor: theme.palette.grey[700],
+    borderColor: theme.palette.primary.main,
     outline: 'none',
     boxShadow: 'none',
   },

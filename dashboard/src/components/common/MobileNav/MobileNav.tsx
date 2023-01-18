@@ -15,6 +15,7 @@ import MenuIcon from '@/ui/v2/icons/MenuIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import { useSignOut } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
@@ -149,9 +150,9 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             !shouldDisplayNav && 'mt-2',
           )}
         >
-          <h2 className="text-xl font-semibold text-greyscaleDark">
+          <Text variant="h2" className="text-xl font-semibold">
             Resources
-          </h2>
+          </Text>
 
           <div className="grid grid-flow-row gap-2">
             {isPlatform && (
@@ -191,9 +192,9 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
-            <h2 className="text-xl font-semibold text-greyscaleDark">
+            <Text variant="h2" className="text-xl font-semibold">
               Account
-            </h2>
+            </Text>
 
             <div className="grid grid-flow-row gap-2">
               <div className="after:mt-2 after:block after:h-px after:w-full after:bg-gray-200">

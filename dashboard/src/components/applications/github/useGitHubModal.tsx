@@ -4,6 +4,9 @@
 import ConnectGithubModal from '@/components/applications/ConnectGithubModal';
 import { useDialog } from '@/components/common/DialogProvider';
 
+/**
+ * @deprecated Redirect users to /[workspaceSlug]/[applicationSlug]/settings/git instead.
+ */
 function useGitHubModal() {
   const { openAlertDialog } = useDialog();
 
