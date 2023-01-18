@@ -8,7 +8,7 @@ import Box from '@/ui/v2/Box';
 import IconButton from '@/ui/v2/IconButton';
 import ArrowLeftIcon from '@/ui/v2/icons/ArrowLeftIcon';
 import type { InputProps } from '@/ui/v2/Input';
-import Input from '@/ui/v2/Input';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
@@ -251,7 +251,20 @@ function ColumnAutocomplete(
           slotProps={{
             ...(props.slotProps || {}),
             label: getInputLabelProps(),
-            input: { ...(props.slotProps?.input || {}), ref: setAnchorEl },
+            input: {
+              ...(props.slotProps?.input || {}),
+              ref: setAnchorEl,
+              sx: [
+                ...(Array.isArray(props.slotProps?.input?.sx)
+                  ? props.slotProps.input.sx
+                  : [props.slotProps?.input?.sx || {}]),
+                {
+                  [`& .${inputClasses.input}`]: {
+                    backgroundColor: 'transparent',
+                  },
+                },
+              ],
+            },
             inputRoot: {
               ...getInputProps(),
               className: twMerge(

@@ -7,6 +7,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { InputProps } from '@/ui/v2/Input';
+import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
@@ -93,6 +94,15 @@ export default function RuleValueInput({
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
+  const sharedInputSx: InputProps['sx'] = {
+    backgroundColor: (theme) =>
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[300]
+        : theme.palette.common.white,
+    [`& .${inputClasses.input}`]: {
+      backgroundColor: 'transparent',
+    },
+  };
 
   const {
     data,
@@ -152,12 +162,7 @@ export default function RuleValueInput({
         slotProps={{
           input: {
             className: 'lg:!rounded-none !z-10',
-            sx: {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? theme.palette.grey[300]
-                  : theme.palette.common.white,
-            },
+            sx: sharedInputSx,
           },
           paper: { className: 'hidden' },
         }}
@@ -211,12 +216,7 @@ export default function RuleValueInput({
       slotProps={{
         input: {
           className: 'lg:!rounded-none',
-          sx: {
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? theme.palette.grey[300]
-                : theme.palette.common.white,
-          },
+          sx: sharedInputSx,
         },
         formControl: { className: '!bg-transparent' },
         paper: { className: clsx(!isHasuraInput && 'hidden') },

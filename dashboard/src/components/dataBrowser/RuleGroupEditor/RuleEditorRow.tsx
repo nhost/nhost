@@ -82,7 +82,7 @@ function renderOption({
       </Text>
 
       {helperText && (
-        <Text component="span" className="!text-greyscaleGrey">
+        <Text component="span" sx={{ color: 'text.disabled' }}>
           {helperText}
         </Text>
       )}

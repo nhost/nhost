@@ -318,9 +318,9 @@ function DataBrowserSidebarContent({
       )}
 
       {schemas && schemas.length > 0 && tablesInSelectedSchema.length === 0 && (
-        <span className="py-1.5 px-2 text-xs text-greyscaleGrey">
+        <Text className="py-1.5 px-2 text-xs" sx={{ color: 'text.disabled' }}>
           No tables found.
-        </span>
+        </Text>
       )}
 
       <nav aria-label="Database navigation">

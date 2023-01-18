@@ -2,6 +2,7 @@ import type { IconButtonProps } from '@/ui/v2/IconButton';
 import IconButton from '@/ui/v2/IconButton';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import Text from '@/ui/v2/Text';
 import clsx from 'clsx';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 
@@ -71,7 +72,13 @@ export default function DataGridPagination({
         )}
       >
         {currentPage}
-        <span className="mx-1 inline-block text-greyscaleGrey">/</span>
+        <Text
+          component="span"
+          className="mx-1 inline-block"
+          sx={{ color: 'text.disabled' }}
+        >
+          /
+        </Text>
         {totalPages}
       </span>
 
