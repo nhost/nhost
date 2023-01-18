@@ -20,7 +20,7 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
-import { ThemeProvider } from '@mui/material';
+import { GlobalStyles, ThemeProvider } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
@@ -128,6 +128,13 @@ function MyApp({
                     <ThemeProvider theme={theme}>
                       <DialogProvider>
                         <CssBaseline />
+                        <GlobalStyles
+                          styles={{
+                            body: {
+                              backgroundColor: theme.palette.background.default,
+                            },
+                          }}
+                        />
 
                         {getLayout(<Component {...pageProps} />)}
 

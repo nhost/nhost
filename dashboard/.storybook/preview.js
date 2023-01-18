@@ -31,12 +31,18 @@ export const parameters = {
 };
 
 export const decorators = [
-  (Story) => (
-    <ThemeProvider theme={createTheme('light')}>
-      <CssBaseline />
-      <Story />
-    </ThemeProvider>
-  ),
+  (Story, context) => {
+    const isDarkMode = !context.globals?.backgrounds?.value
+      ?.toLowerCase()
+      ?.startsWith('#f');
+
+    return (
+      <ThemeProvider theme={createTheme(isDarkMode ? 'dark' : 'light')}>
+        <CssBaseline />
+        <Story />
+      </ThemeProvider>
+    );
+  },
   (Story) => (
     <QueryClientProvider client={queryClient}>
       <Story />

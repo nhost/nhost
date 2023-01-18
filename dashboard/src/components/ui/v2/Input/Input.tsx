@@ -66,7 +66,7 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     padding: theme.spacing(1, 1.25),
     color: theme.palette.text.primary,
     outline: 'none',
-    backgroundColor: 'transparent',
+    backgroundColor: theme.palette.background.paper,
   },
   [`&.${inputBaseClasses.multiline}`]: {
     padding: 0,

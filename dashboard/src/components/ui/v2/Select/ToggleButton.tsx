@@ -4,7 +4,7 @@ import type { ButtonUnstyledProps } from '@mui/base/ButtonUnstyled';
 import ButtonUnstyled from '@mui/base/ButtonUnstyled';
 import { selectUnstyledClasses } from '@mui/base/SelectUnstyled';
 import type { SxProps } from '@mui/material';
-import { darken, lighten, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import type { Theme } from '@mui/system';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
@@ -49,21 +49,15 @@ const StyledButton = styled(ButtonUnstyled)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
   backgroundColor: `${theme.palette.background.paper} !important`,
-  [`&:not(.${selectUnstyledClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
-  },
   [`&.${selectUnstyledClasses.disabled}`]: {
     color: `${theme.palette.grey[600]} !important`,
-    borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
-    backgroundColor:
-      theme.palette.mode === 'dark'
-        ? `${theme.palette.grey[300]} !important`
-        : `${lighten(theme.palette.action.disabled, 0.75)} !important`,
+    borderColor: `${theme.palette.grey[400]} !important`,
+    backgroundColor: `${theme.palette.grey[200]} !important`,
   },
   [`&.${selectUnstyledClasses.focusVisible}, &.${selectUnstyledClasses.expanded}`]:
     {
       outline: 'none',
-      borderColor: theme.palette.grey[700],
+      borderColor: theme.palette.primary.main,
     },
   [`&.${selectUnstyledClasses.expanded} .expand`]: {
     display: 'none',
