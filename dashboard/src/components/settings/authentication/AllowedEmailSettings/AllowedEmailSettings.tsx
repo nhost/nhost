@@ -5,7 +5,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -32,6 +32,17 @@ export default function AllowedEmailDomainsSettings() {
       id: currentApplication?.id,
     },
   });
+
+  useEffect(() => {
+    if (
+      !data.app?.authAccessControlAllowedEmails &&
+      !data.app?.authAccessControlAllowedEmailDomains
+    ) {
+      return;
+    }
+
+    setEnabled(true);
+  }, [data.app]);
 
   const form = useForm<AllowedEmailSettingsFormValues>({
     reValidateMode: 'onSubmit',
