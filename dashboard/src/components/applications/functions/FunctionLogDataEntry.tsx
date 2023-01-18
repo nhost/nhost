@@ -1,5 +1,6 @@
-import { Text } from '@/ui/Text';
-import { ChevronRightIcon } from '@heroicons/react/solid';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import { formatDistance } from 'date-fns';
 
 export interface FunctionLogDataEntryProps {
@@ -9,21 +10,20 @@ export interface FunctionLogDataEntryProps {
 
 export function FunctionLogDataEntry({ time, nav }: FunctionLogDataEntryProps) {
   return (
-    <a href={`#${nav}`}>
-      <div className="flex cursor-pointer flex-row place-content-between border-t py-3">
-        <Text
-          color="greyscaleDark"
-          variant="body"
-          className="flex font-medium"
-          size="tiny"
-        >
+    <ListItem.Root>
+      <ListItem.Button
+        className="flex flex-row place-content-between py-3 rounded-none"
+        href={`#${nav}`}
+      >
+        <Text className="flex font-medium text-xs">
           {formatDistance(new Date(time), new Date(), {
             addSuffix: true,
           })}
         </Text>
-        <ChevronRightIcon className="ml-2 h-4 w-4 cursor-pointer self-center text-greyscaleDark" />
-      </div>
-    </a>
+
+        <ChevronRightIcon className="ml-2 h-4 w-4" />
+      </ListItem.Button>
+    </ListItem.Root>
   );
 }
 

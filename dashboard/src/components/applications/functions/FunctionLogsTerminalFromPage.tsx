@@ -1,7 +1,11 @@
 import { normalizeToIndividualFunctionsWithLogs } from '@/components/applications/functions/normalizeToIndividualFunctionsWithLogs';
+import darkTerminalTheme from '@/data/darkTerminalTheme';
 import terminalTheme from '@/data/terminalTheme';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Box from '@/ui/v2/Box';
+import Text from '@/ui/v2/Text';
 import { useGetFunctionLogQuery } from '@/utils/__generated__/graphql';
+import { useTheme } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import json from 'react-syntax-highlighter/dist/cjs/languages/hljs/json';
@@ -10,6 +14,7 @@ import { FunctionLogHistory } from './FunctionLogHistory';
 SyntaxHighlighter.registerLanguage('json', json);
 
 export function FunctionsLogsTerminalPage({ functionName }: any) {
+  const theme = useTheme();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [normalizedFunctionData, setNormalizedFunctionData] = useState(null);
 
@@ -41,32 +46,48 @@ export function FunctionsLogsTerminalPage({ functionName }: any) {
     normalizedFunctionData.logs.length === 0
   ) {
     return (
-      <div className="w-full rounded-lg text-white">
-        <div className="h-terminal overflow-auto rounded-lg bg-log px-4 py-4 font-mono shadow-sm">
-          <div className="font-mono text-xs text-grey">
+      <div className="w-full rounded-lg">
+        <Box
+          className="h-terminal overflow-auto rounded-lg px-4 py-4 font-mono shadow-sm"
+          sx={{ backgroundColor: 'grey.200' }}
+        >
+          <Text className="font-mono text-xs" sx={{ color: 'text.disabled' }}>
             There are no stored logs yet. Try calling your function for logs to
             appear.
-          </div>
-        </div>
+          </Text>
+        </Box>
         <FunctionLogHistory />
       </div>
     );
   }
+
   return (
-    <div className="w-full rounded-lg text-white">
-      <div className="h-terminal overflow-auto rounded-lg bg-log px-4 py-4 font-mono shadow-sm">
-        {normalizedFunctionData.logs.map((log) => (
+    <div className="w-full rounded-lg">
+      <Box
+        className="h-terminal overflow-auto rounded-lg px-6 py-2 font-mono shadow-sm"
+        sx={{ backgroundColor: 'grey.200' }}
+      >
+        {normalizedFunctionData?.logs?.map((log) => (
           <div
             key={`${log.date}-${log.message.slice(66)}`}
             className=" flex text-sm"
           >
             <div id={`#-${log.date}`}>
               <pre className="inline">
-                <span className="mr-4 text-greyscaleGrey">{log.date}</span>{' '}
-                <span className="">
-                  {' '}
+                <Text
+                  component="span"
+                  className="mr-4"
+                  sx={{ color: 'text.disabled' }}
+                >
+                  {log.date}
+                </Text>{' '}
+                <span>
                   <SyntaxHighlighter
-                    style={terminalTheme}
+                    style={
+                      theme.palette.mode === 'dark'
+                        ? darkTerminalTheme
+                        : terminalTheme
+                    }
                     customStyle={{
                       display: 'inline',
                     }}
@@ -80,8 +101,8 @@ export function FunctionsLogsTerminalPage({ functionName }: any) {
             </div>
           </div>
         ))}
-      </div>
-      <FunctionLogHistory logs={normalizedFunctionData.logs} />
+      </Box>
+      <FunctionLogHistory logs={normalizedFunctionData?.logs} />
     </div>
   );
 }

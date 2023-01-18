@@ -2,12 +2,13 @@ import { FunctionsLogsTerminalPage } from '@/components/applications/functions/F
 import type { Func } from '@/components/applications/functions/normalizeFunctionMetadata';
 import { normalizeFunctionMetadata } from '@/components/applications/functions/normalizeFunctionMetadata';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import Help from '@/components/icons/Help';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
-import { Text } from '@/ui/Text';
+import IconButton from '@/ui/v2/IconButton';
+import QuestionMarkCircleIcon from '@/ui/v2/icons/QuestionMarkCircleIcon';
+import Text from '@/ui/v2/Text';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { yieldFunction } from '@/utils/helpers';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
@@ -64,7 +65,7 @@ export default function FunctionDetailsPage() {
     <>
       <Container>
         <div className="flex place-content-between">
-          <div className="flex flex-row items-center py-1">
+          <div className="grid grid-flow-col gap-2 items-center py-1">
             <Image
               src={`/assets/functions/${
                 currentFunction.name.split('.')[1]
@@ -74,17 +75,12 @@ export default function FunctionDetailsPage() {
               height={40}
             />
 
-            <div className="flex flex-col">
-              <Text
-                color="greyscaleDark"
-                variant="body"
-                className="ml-2 font-medium"
-                size="big"
-              >
+            <div className="grid grid-flow-row justify-start">
+              <Text className="font-medium text-2xl">
                 {currentFunction.name}
               </Text>
+
               <a
-                className="ml-2 text-xs font-medium text-greyscaleGrey"
                 href={`${generateAppServiceUrl(
                   currentApplication.subdomain,
                   currentApplication.region.awsName,
@@ -93,39 +89,42 @@ export default function FunctionDetailsPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                {`${generateAppServiceUrl(
-                  currentApplication.subdomain,
-                  currentApplication.region.awsName,
-                  'functions',
-                )}${currentFunction?.route}`}
+                <Text
+                  className="text-xs font-medium"
+                  sx={{ color: 'text.disabled' }}
+                >
+                  {`${generateAppServiceUrl(
+                    currentApplication.subdomain,
+                    currentApplication.region.awsName,
+                    'functions',
+                  )}${currentFunction?.route}`}
+                </Text>
               </a>
             </div>
           </div>
         </div>
       </Container>
 
-      <Container className="pt-10">
+      <Container>
         <div className="flex flex-row place-content-between">
           <div className="flex">
-            <Text size="large" className="font-medium" color="greyscaleDark">
-              Log
-            </Text>
+            <Text className="font-medium text-xl">Log</Text>
           </div>
-          <div className="flex">
-            <Text
-              size="tiny"
-              className="self-center font-medium"
-              color="greyscaleDark"
-            >
-              Awaiting new requests…
-            </Text>
-            <a
+          <div className="flex items-center">
+            <Text className="font-medium text-xs">Awaiting new requests…</Text>
+
+            <IconButton
+              variant="borderless"
               href="https://docs.nhost.io/platform/serverless-functions"
+              // Both `target` and `rel` are available when `href` is set. This is
+              // a limitation of MUI.
+              // @ts-ignore
               target="_blank"
               rel="noreferrer"
+              aria-label="Learn more about serverless functions"
             >
-              <Help className="h-7 w-7" />
-            </a>
+              <QuestionMarkCircleIcon className="h-7 w-7" />
+            </IconButton>
           </div>
         </div>
 

@@ -39,7 +39,7 @@ test('should generate a per service subdomain in remote mode', () => {
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'https://test.storage.eu-west-1.nhost.run/v1/files',
+    'https://test.storage.eu-west-1.nhost.run/v1',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
@@ -64,17 +64,11 @@ test('should generate staging subdomains in staging environment', () => {
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'https://test.storage.eu-west-1.staging.nhost.run/v1/files',
+    'https://test.storage.eu-west-1.staging.nhost.run/v1',
   );
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.staging.nhost.run',
-  );
-});
-
-test('should generate a /v1/files as a slug for storage in local mode', () => {
-  expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:1337/v1/files',
   );
 });
 
