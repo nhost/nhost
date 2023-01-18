@@ -93,7 +93,10 @@ export function ChangePasswordModal({ close }: any) {
 
           <div className="grid grid-flow-row gap-2">
             {formState.error && (
-              <Text className="w-full px-4 text-center text-red">
+              <Text
+                className="w-full px-4 text-center"
+                sx={{ color: 'error.main' }}
+              >
                 Error: {formState.error}
               </Text>
             )}
@@ -104,7 +107,6 @@ export function ChangePasswordModal({ close }: any) {
 
             <Button
               type="reset"
-              className="text-grayscaleDark text-sm+ font-normal"
               variant="outlined"
               color="secondary"
               onClick={close}

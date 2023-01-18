@@ -33,13 +33,19 @@ export default function WorkspaceMember({
             </Text>
             {isSelf && <Chip size="small" color="info" label="Me" />}
           </div>
-          <Text className="font-medium">{workspaceMember.user.email}</Text>
+          <Text className="font-medium" sx={{ color: 'text.disabled' }}>
+            {workspaceMember.user.email}
+          </Text>
         </div>
       </div>
       <div className="flex flex-row self-center">
         {/* @TODO: Don't allow owner to remove themselves if there are no other owners on workspace. */}
         {isOwner && isSelf && (
-          <Chip size="small" color="info" label={workspaceMember.type} />
+          <Chip
+            size="small"
+            color="info"
+            label={capitalize(workspaceMember.type)}
+          />
         )}
 
         {isOwner && !isSelf && (
