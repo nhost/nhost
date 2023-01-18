@@ -5,10 +5,10 @@ import useDeleteRecordMutation from '@/hooks/dataBrowser/useDeleteRecordMutation
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
-import Chip from '@/ui/Chip';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import ColumnIcon from '@/ui/v2/icons/ColumnIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -127,8 +127,12 @@ export default function DataBrowserGridControls({
         )}
       >
         {isSchemaEditable && numberOfSelectedRows > 0 && (
-          <div className="grid grid-flow-col place-content-start items-center gap-3">
-            <Chip variant="info">{numberOfSelectedRows} selected</Chip>
+          <div className="grid grid-flow-col place-content-start items-center gap-2">
+            <Chip
+              size="small"
+              color="info"
+              label={`${numberOfSelectedRows} selected`}
+            />
 
             <Button
               variant="borderless"

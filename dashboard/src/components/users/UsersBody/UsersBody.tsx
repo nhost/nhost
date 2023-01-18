@@ -298,11 +298,7 @@ export default function UsersBody({
                 </div>
               </div>
 
-              <Text
-                color="greyscaleDark"
-                className="hidden px-2 font-normal md:block"
-                size="normal"
-              >
+              <Text className="hidden px-2 font-normal md:block">
                 {user.createdAt
                   ? `${formatDistance(
                       new Date(user.createdAt),
@@ -310,11 +306,7 @@ export default function UsersBody({
                     )} ago`
                   : '-'}
               </Text>
-              <Text
-                color="greyscaleDark"
-                className="hidden px-4 font-normal md:block"
-                size="normal"
-              >
+              <Text className="hidden px-4 font-normal md:block">
                 {user.lastSeen
                   ? `${formatDistance(new Date(user.lastSeen), new Date())} ago`
                   : '-'}
