@@ -1,12 +1,16 @@
+import type { InlineCodeProps } from '@/components/common/InlineCode';
 import InlineCode from '@/components/common/InlineCode';
-import type { PropsWithChildren } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export default function HighlightedText({
   children,
-}: PropsWithChildren<unknown>) {
+  className,
+  ...props
+}: InlineCodeProps) {
   return (
     <InlineCode
-      className="font-display text-sm"
+      {...props}
+      className={twMerge('font-display text-sm', className)}
       sx={{ color: 'text.primary', backgroundColor: 'primary.light' }}
     >
       {children}
