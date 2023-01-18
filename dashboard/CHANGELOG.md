@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.9
+
+### Patch Changes
+
+- 31abbe5f: fix(dashboard): enable toggle when settings are filled in
+
 ## 0.9.8
 
 ### Patch Changes
