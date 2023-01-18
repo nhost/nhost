@@ -1,6 +1,5 @@
 import { FunctionsNotDeployed } from '@/components/applications/functions/FunctionsNotDeployed';
 import { normalizeFunctionMetadata } from '@/components/applications/functions/normalizeFunctionMetadata';
-import Folder from '@/components/icons/Folder';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useWorkspaceContext } from '@/context/workspace-context';
@@ -9,7 +8,11 @@ import Status, { StatusEnum } from '@/ui/Status';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import FolderIcon from '@/ui/v2/icons/FolderIcon';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useGetAppFunctionsMetadataQuery } from '@/utils/__generated__/graphql';
@@ -17,7 +20,8 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 function FunctionsNoRepo() {
   const { currentWorkspace, currentApplication } =
@@ -114,20 +118,23 @@ export default function FunctionsPage() {
     <Container>
       <div className="mt-2">
         {normalizedFunctions?.map((folder) => (
-          <div key={folder.folder}>
+          <Box key={folder.folder}>
             <div
-              className={clsx(
+              className={twMerge(
                 'flex flex-row pt-8 pb-2 align-middle',
                 folder.nestedLevel < 2 && 'ml-6',
                 folder.nestedLevel >= 2 && 'ml-12',
               )}
             >
-              <div className={clsx('flex w-full')}>
+              <div className="flex w-full">
                 {folder.nestedLevel > 0 && (
-                  <Folder className="self-center align-middle text-greyscaleGrey" />
+                  <FolderIcon
+                    className="self-center align-middle w-4 h-4"
+                    sx={{ color: 'text.disabled' }}
+                  />
                 )}
                 <Text
-                  className={clsx(
+                  className={twMerge(
                     'font-medium text-xs',
                     folder.nestedLevel > 0 && 'ml-2',
                   )}
@@ -148,59 +155,61 @@ export default function FunctionsPage() {
             </div>
             <Box
               className={clsx(
-                'border-t py-1',
+                'border-t',
                 folder.nestedLevel < 2 && 'ml-6',
                 folder.nestedLevel >= 2 && 'ml-12',
               )}
             >
-              {folder.funcs.map((func) => (
-                <NavLink
-                  key={func.id}
-                  href={{
-                    pathname:
-                      '/[workspaceSlug]/[appSlug]/functions/[functionId]',
-                    query: {
-                      workspaceSlug: currentWorkspace.slug,
-                      appSlug: currentApplication.slug,
-                      functionId: func.functionName,
-                    },
-                  }}
-                  passHref
-                >
-                  <a
-                    href="[workspaceSlug]/[appSlug]/functions/[functionId]"
-                    className={clsx(
-                      'flex cursor-pointer flex-row border-b py-2.5',
-                      folder.nestedLevel && 'ml-0',
-                    )}
-                  >
-                    <div className="flex w-full flex-row items-center">
-                      <Image
-                        src={`/assets/functions/${func.lang}.svg`}
-                        alt={`Logo of ${func.lang}`}
-                        width={16}
-                        height={16}
-                      />
+              <List>
+                {folder.funcs.map((func) => (
+                  <Fragment key={func.id}>
+                    <ListItem.Root>
+                      <NavLink
+                        href={{
+                          pathname:
+                            '/[workspaceSlug]/[appSlug]/functions/[functionId]',
+                          query: {
+                            workspaceSlug: currentWorkspace.slug,
+                            appSlug: currentApplication.slug,
+                            functionId: func.functionName,
+                          },
+                        }}
+                        passHref
+                      >
+                        <ListItem.Button className="flex flex-row items-center rounded-none">
+                          <div className="flex w-full flex-row items-center">
+                            <Image
+                              src={`/assets/functions/${func.lang}.svg`}
+                              alt={`Logo of ${func.lang}`}
+                              width={16}
+                              height={16}
+                            />
 
-                      <Text className="pl-2 font-medium">{func.name}</Text>
-                    </div>
-                    <div className="flex w-full flex-row">
-                      <div className={clsx('flex w-52 self-center')}>
-                        <Text className="text-xs">
-                          {func.formattedCreatedAt || '-'}
-                        </Text>
-                      </div>
-                      <div className="flex w-16 self-center">
-                        <Status status={StatusEnum.Live}>Live</Status>
+                            <Text className="pl-2 font-medium">
+                              {func.name}
+                            </Text>
+                          </div>
+                          <div className="flex w-full flex-row">
+                            <div className={clsx('flex w-52 self-center')}>
+                              <Text className="text-xs">
+                                {func.formattedCreatedAt || '-'}
+                              </Text>
+                            </div>
+                            <div className="flex w-16 self-center">
+                              <Status status={StatusEnum.Live}>Live</Status>
 
-                        <ChevronRightIcon className="ml-2 h-4 w-4 self-center" />
-                      </div>
-                    </div>
-                  </a>
-                </NavLink>
-              ))}
+                              <ChevronRightIcon className="ml-2 h-4 w-4 self-center" />
+                            </div>
+                          </div>
+                        </ListItem.Button>
+                      </NavLink>
+                    </ListItem.Root>
+                    <Divider component="li" />
+                  </Fragment>
+                ))}
+              </List>
             </Box>
-          </div>
+          </Box>
         ))}
       </div>
 

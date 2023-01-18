@@ -41,20 +41,4 @@ export default function Status({
   }
 
   return <Chip color="default" size="small" label={children} />;
-
-  // return (
-  //   <div
-  //     className={clsx(
-  //       'flex self-center rounded-2xl bg-opacity-20 py-0.5 px-2 align-middle text-xs font-medium',
-  //       status === StatusEnum.Closed && 'bg-greyscaleGrey text-greyscaleDark',
-
-  //       status === StatusEnum.Error && 'bg-lightRed text-red',
-  //       // status === StatusEnum.Plan && 'bg-blue text-white',
-  //       // status === StatusEnum.Soon && 'bg-lightBlue text-blue',
-  //       status === StatusEnum.Paused && 'bg-greyscaleGrey text-greyscaleDark',
-  //     )}
-  //   >
-  //     <span className="font-display text-xs font-medium">{children}</span>
-  //   </div>
-  // );
 }
