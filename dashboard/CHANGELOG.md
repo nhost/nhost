@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.9.8
+
+### Patch Changes
+
+- 5bdd31ad: chore(dashboard): list fewer images per page on the Storage page
+- 5121851c: fix(dashboard): don't throw validation error for valid permission rules
+
 ## 0.9.7
 
 ### Patch Changes
