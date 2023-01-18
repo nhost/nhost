@@ -253,16 +253,7 @@ function DataBrowserSidebarContent({
                 <Text component="span" sx={{ color: 'text.disabled' }}>
                   schema.
                 </Text>
-                <Text
-                  component="span"
-                  sx={{
-                    color:
-                      selectedSchema === schema.schema_name
-                        ? 'primary.main'
-                        : 'text.primary',
-                  }}
-                  className="font-medium"
-                >
+                <Text component="span" className="font-medium">
                   {schema.schema_name}
                 </Text>
               </Text>

@@ -11,18 +11,19 @@ export interface OptionProps<TValue extends {}>
   extends OptionUnstyledProps<TValue> {}
 
 const StyledOption = styled(OptionUnstyled)(({ theme }) => ({
+  transition: theme.transitions.create(['background-color']),
   [`&.${optionUnstyledClasses.selected}`]: {
     backgroundColor:
       theme.palette.mode === 'dark'
-        ? `${darken(theme.palette.action.hover, 0.15)} !important`
-        : `${theme.palette.action.hover} !important`,
+        ? `${darken(theme.palette.action.hover, 0.1)} !important`
+        : `${darken(theme.palette.action.hover, 0.05)} !important`,
   },
   [`&.${optionUnstyledClasses.selected}:hover, &.${optionUnstyledClasses.selected}.${optionUnstyledClasses.highlighted}`]:
     {
       backgroundColor:
         theme.palette.mode === 'dark'
           ? `${darken(theme.palette.action.hover, 0.25)} !important`
-          : `${darken(theme.palette.action.hover, 0.15)} !important`,
+          : `${darken(theme.palette.action.hover, 0.075)} !important`,
     },
   [`&.${optionUnstyledClasses.highlighted}, &:hover`]: {
     backgroundColor:

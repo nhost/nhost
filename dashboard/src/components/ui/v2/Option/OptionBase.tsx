@@ -16,14 +16,14 @@ const OptionBase = styled('li')(({ theme }) => ({
   '&[aria-selected="true"]': {
     backgroundColor:
       theme.palette.mode === 'dark'
-        ? `${darken(theme.palette.action.hover, 0.15)} !important`
-        : `${theme.palette.action.hover} !important`,
+        ? `${darken(theme.palette.action.hover, 0.1)} !important`
+        : `${darken(theme.palette.action.hover, 0.05)} !important`,
   },
   '&.Mui-focused[aria-selected="true"], &[aria-selected="true"]:hover': {
     backgroundColor:
       theme.palette.mode === 'dark'
         ? `${darken(theme.palette.action.hover, 0.25)} !important`
-        : `${darken(theme.palette.action.hover, 0.15)} !important`,
+        : `${darken(theme.palette.action.hover, 0.075)} !important`,
   },
   '&.Mui-focused, &:hover': {
     backgroundColor:
