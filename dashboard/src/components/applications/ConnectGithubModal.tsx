@@ -4,16 +4,20 @@ import GitHubInstallNhostApplication from '@/components/applications/github/GitH
 // ConnectGitHubModal and EditRepositorySettings form a dependency cycle which
 // needs to be fixed
 // eslint-disable-next-line import/no-cycle
-import { Repo } from '@/components/applications/github/Repo';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
+import { Avatar } from '@/ui/Avatar';
 import DelayedLoading from '@/ui/DelayedLoading/DelayedLoading';
-import { Text } from '@/ui/Text';
+import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
+import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { GitHubNoRepositoriesAdded } from './github/GitHubNoRepositoriesAdded';
 
 export type ConnectGithubModalState = 'CONNECTING' | 'EDITING';
@@ -109,7 +113,7 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
       <div className="flex flex-col">
         <div className="mx-auto text-center">
           <div className="mx-auto h-8 w-8">
-            <GithubIcon className="h-8 w-8 text-greyscaleDark" />
+            <GithubIcon className="h-8 w-8 " />
           </div>
         </div>
         {noRepositoriesAdded ? (
@@ -119,25 +123,17 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
         ) : (
           <div>
             <div>
-              <Text
-                variant="subHeading"
-                color="greyscaleDark"
-                size="large"
-                className="mt-2.5 text-center"
-              >
+              <Text className="mt-2.5 text-center text-lg font-medium">
                 Connect repository
               </Text>
               <Text
-                variant="body"
-                color="greyscaleDark"
-                size="tiny"
-                className="text-center font-normal"
+                className="text-center font-normal text-xs"
+                sx={{ color: 'text.secondary' }}
               >
-                Showing repositories from{' '}
-                <span className="">{data.githubAppInstallations.length}</span>{' '}
+                Showing repositories from {data.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
-              <div className="mt-6 flex w-full">
+              <div className="mt-6 flex w-full mb-2">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}
@@ -147,15 +143,45 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
               </div>
             </div>
             <RetryableErrorBoundary>
-              <div className="h-import  divide-y-1 divide-divide overflow-y-auto border-t-1 border-b-1">
+              {githubRepositoriesToDisplay.length > 0 ? (
+                <Divider />
+              ) : (
+                <Text variant="subtitle2">No results found.</Text>
+              )}
+              <List className="h-import overflow-y-auto">
                 {githubRepositoriesToDisplay.map((repo) => (
-                  <Repo
-                    key={repo.id}
-                    repo={repo}
-                    setSelectedRepoId={() => setSelectedRepoId(repo.id)}
-                  />
+                  <Fragment key={repo.id}>
+                    <ListItem.Root
+                      className="grid grid-flow-col gap-2 py-2.5 justify-start"
+                      secondaryAction={
+                        <Button
+                          variant="borderless"
+                          color="primary"
+                          onClick={() => setSelectedRepoId(repo.id)}
+                        >
+                          Connect
+                        </Button>
+                      }
+                    >
+                      <ListItem.Avatar>
+                        <Avatar
+                          name={repo.githubAppInstallation.accountLogin}
+                          avatarUrl={
+                            repo.githubAppInstallation.accountAvatarUrl
+                          }
+                          className="h-8 w-8 self-center"
+                        />
+                      </ListItem.Avatar>
+                      <ListItem.Text
+                        primary={repo.name}
+                        secondary={repo.githubAppInstallation.accountLogin}
+                      />
+                    </ListItem.Root>
+
+                    <Divider component="li" />
+                  </Fragment>
                 ))}
-              </div>
+              </List>
             </RetryableErrorBoundary>
           </div>
         )}

@@ -193,10 +193,9 @@ export default function OverviewDeploymentsPage() {
             variant="contained"
             color="primary"
             className="w-full"
-            aria-label="Connect a GitHub Repository to the project"
             onClick={openGitHubModal}
           >
-            <GithubIcon className="mr-1.5 h-4 w-4 self-center text-white" />
+            <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub
           </Button>
         </div>

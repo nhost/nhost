@@ -6,7 +6,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
     return {
       mode: 'dark',
       primary: {
-        light: '#1a283c',
+        light: '#1b2534',
         main: '#3888ff',
         dark: '#063799',
       },
@@ -24,7 +24,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       text: {
         primary: '#dfecf5',
         secondary: '#a2b3be',
-        disabled: '#8b949e',
+        disabled: '#68717a',
       },
       error: {
         light: 'rgba(241, 49, 84, 0.2)',
