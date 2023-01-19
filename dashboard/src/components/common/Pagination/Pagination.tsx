@@ -1,9 +1,9 @@
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -75,17 +75,22 @@ export default function Pagination({
         <Button
           variant="outlined"
           color="secondary"
-          className="block text-xs"
+          className="text-xs"
           disabled={currentPageNumber === 1}
           aria-label="Previous page"
           onClick={onPrevPageClick}
+          startIcon={<ChevronLeftIcon className="w-4 h-4" />}
         >
-          <ChevronLeftIcon className="w-4 h-4" />
           Back
         </Button>
 
-        <div className="grid items-center grid-cols-3 gap-1 text-center grid-col !text-greyscaleGreyDark">
-          <Text className="text-xs align-middle ">Page</Text>
+        <div className="grid items-center grid-cols-3 gap-1 text-center grid-col">
+          <Text
+            className="text-xs align-middle"
+            sx={{ color: 'text.secondary' }}
+          >
+            Page
+          </Text>
           <Input
             value={currentPageNumber}
             onChange={(e) => {
@@ -102,7 +107,10 @@ export default function Pagination({
               },
             }}
           />
-          <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
+          <Text
+            className="self-center text-xs align-middle"
+            sx={{ color: 'text.secondary' }}
+          >
             of {totalNrOfPages}
           </Text>
         </div>
@@ -114,14 +122,14 @@ export default function Pagination({
           aria-label="Next page"
           disabled={currentPageNumber === totalNrOfPages}
           onClick={onNextPageClick}
+          endIcon={<ChevronRightIcon className="w-4 h-4" />}
           {...slotProps?.nextButton}
         >
           Next
-          <ChevronRightIcon className="w-4 h-4" />
         </Button>
       </div>
       <div className="flex flex-row items-center justify-end text-center gap-x-1">
-        <Text className="text-xs text-greyscaleGreyDark">
+        <Text className="text-xs" sx={{ color: 'text.secondary' }}>
           {currentPageNumber === 1 && currentPageNumber}
           {currentPageNumber === 2 && elementsPerPage + currentPageNumber - 1}
           {currentPageNumber > 2 &&
