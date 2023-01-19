@@ -88,7 +88,7 @@ function renderOption(
       <Text component="span">{option.label}</Text>
 
       {option.group === 'columns' && (
-        <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+        <InlineCode>{option.metadata?.udt_name || option.value}</InlineCode>
       )}
     </OptionBase>
   );

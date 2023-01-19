@@ -20,6 +20,7 @@ function ColumnSelectorInput({
   selectedTablePath,
   schema,
   table,
+  disabled,
   ...props
 }: ColumnAutocompleteProps & { selectedTablePath: string }) {
   const { setValue, control } = useFormContext();
@@ -32,6 +33,7 @@ function ColumnSelectorInput({
     <ColumnAutocomplete
       {...props}
       {...field}
+      disabled={disabled}
       value={
         // this array can either be ['$', 'columnName'] or ['columnName']
         Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value
@@ -41,13 +43,18 @@ function ColumnSelectorInput({
       disableRelationships
       slotProps={{
         input: {
-          className: 'lg:!rounded-none !bg-white !z-10',
-          sx: {
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? theme.palette.grey[300]
-                : theme.palette.common.white,
-          },
+          className: 'lg:!rounded-none !z-10',
+          sx: !disabled
+            ? {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? theme.palette.grey[300]
+                    : theme.palette.common.white,
+                [`& .${inputClasses.input}`]: {
+                  backgroundColor: 'transparent',
+                },
+              }
+            : undefined,
         },
       }}
       onChange={(_event, { value }) => {
@@ -94,15 +101,17 @@ export default function RuleValueInput({
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
-  const sharedInputSx: InputProps['sx'] = {
-    backgroundColor: (theme) =>
-      theme.palette.mode === 'dark'
-        ? theme.palette.grey[300]
-        : theme.palette.common.white,
-    [`& .${inputClasses.input}`]: {
-      backgroundColor: 'transparent',
-    },
-  };
+  const sharedInputSx: InputProps['sx'] = !disabled
+    ? {
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? theme.palette.grey[300]
+            : theme.palette.common.white,
+        [`& .${inputClasses.input}`]: {
+          backgroundColor: 'transparent',
+        },
+      }
+    : undefined;
 
   const {
     data,
@@ -122,12 +131,14 @@ export default function RuleValueInput({
         slotProps={{
           root: {
             className: 'lg:!rounded-none h-10',
-            sx: {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? `${theme.palette.grey[300]} !important`
-                  : `${theme.palette.common.white} !important`,
-            },
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? `${theme.palette.grey[300]} !important`
+                      : `${theme.palette.common.white} !important`,
+                }
+              : null,
           },
           popper: { disablePortal: false, className: 'z-[10000]' },
         }}

@@ -1,6 +1,6 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import FormControl from '@/ui/v2/FormControl';
-import { darken, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
@@ -68,6 +68,10 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     outline: 'none',
     backgroundColor: theme.palette.background.paper,
   },
+  [`& .${inputBaseClasses.input}::placeholder`]: {
+    color: theme.palette.grey[500],
+    opacity: 0.6,
+  },
   [`&.${inputBaseClasses.multiline}`]: {
     padding: 0,
   },
@@ -75,8 +79,10 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     outline: 'none',
   },
   [`&.${inputBaseClasses.disabled}`]: {
-    color: `${theme.palette.grey[600]} !important`,
-    borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
+    color: theme.palette.grey[600],
+    borderColor: theme.palette.grey[400],
+  },
+  [`&.${inputBaseClasses.disabled} .${inputBaseClasses.input}`]: {
     backgroundColor: theme.palette.grey[200],
   },
   [`&.${inputBaseClasses.focused}`]: {

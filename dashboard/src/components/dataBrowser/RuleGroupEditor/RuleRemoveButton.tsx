@@ -41,12 +41,16 @@ function RuleRemoveButton({
       {...props}
       aria-label="Remove Rule"
       onClick={onRemove}
-      sx={{
-        backgroundColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? `${theme.palette.grey[300]} !important`
-            : `${theme.palette.common.white} !important`,
-      }}
+      sx={
+        !disabled
+          ? {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `${theme.palette.grey[300]} !important`
+                  : `${theme.palette.common.white} !important`,
+            }
+          : undefined
+      }
     >
       <XIcon className="!w-4 !h-4" />
     </Button>

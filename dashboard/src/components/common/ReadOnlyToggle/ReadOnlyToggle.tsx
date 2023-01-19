@@ -46,7 +46,7 @@ function ReadOnlyToggle(
         sx={{
           backgroundColor: (theme) => {
             if (checked) {
-              return theme.palette.mode === 'dark' ? 'grey.200' : 'grey.700';
+              return theme.palette.mode === 'dark' ? 'grey.400' : 'grey.700';
             }
 
             return 'transparent';

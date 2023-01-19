@@ -144,10 +144,12 @@ export default function RuleEditorRow({
         slotProps={{
           input: {
             className: 'lg:!rounded-r-none',
-            sx: {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.300' : 'common.white',
-            },
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'grey.300' : 'common.white',
+                }
+              : undefined,
           },
         }}
         fullWidth
@@ -188,12 +190,14 @@ export default function RuleEditorRow({
         slotProps={{
           root: {
             className: 'lg:!rounded-none',
-            sx: {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? `${theme.palette.grey[300]} !important`
-                  : `${theme.palette.common.white} !important`,
-            },
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? `${theme.palette.grey[300]} !important`
+                      : `${theme.palette.common.white} !important`,
+                }
+              : {},
           },
           listbox: { className: 'max-h-[300px]' },
           popper: { disablePortal: false, className: 'z-[10000]' },

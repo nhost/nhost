@@ -118,6 +118,10 @@ const ContainedButton = forwardRef(
           boxShadow: (theme) =>
             `0 0 0 2px ${alpha(theme.palette.text.primary, 0.3)}`,
         },
+        '&:disabled': {
+          color: 'grey.600',
+          backgroundColor: (theme) => `${theme.palette.grey[200]} !important`,
+        },
       };
     }
 
@@ -214,7 +218,9 @@ const OutlinedButton = forwardRef(
           borderColor: 'grey.300',
         },
         '&:disabled': {
-          opacity: 0.72,
+          color: 'grey.600',
+          backgroundColor: 'grey.200',
+          borderColor: 'grey.400',
         },
       };
     }
@@ -300,7 +306,8 @@ const BorderlessButton = forwardRef(
           boxShadow: 'none',
         },
         '&:disabled': {
-          opacity: 0.72,
+          color: 'grey.600',
+          backgroundColor: 'grey.200',
         },
       };
     }

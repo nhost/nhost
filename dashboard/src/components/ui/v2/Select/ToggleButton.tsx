@@ -50,8 +50,8 @@ const StyledButton = styled(ButtonUnstyled)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
   backgroundColor: theme.palette.background.paper,
   [`&.${selectUnstyledClasses.disabled}`]: {
-    color: `${theme.palette.grey[600]} !important`,
-    borderColor: `${theme.palette.grey[400]} !important`,
+    color: theme.palette.grey[600],
+    borderColor: theme.palette.grey[400],
     backgroundColor: theme.palette.grey[200],
   },
   [`&.${selectUnstyledClasses.focusVisible}, &.${selectUnstyledClasses.expanded}`]:
