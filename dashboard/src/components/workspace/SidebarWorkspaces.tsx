@@ -1,14 +1,16 @@
 import { Avatar } from '@/ui/Avatar';
 import Text from '@/ui/v2/Text';
-import { nhost } from '@/utils/nhost';
 import { useGetWorkspacesQuery } from '@/utils/__generated__/graphql';
+import { nhost } from '@/utils/nhost';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
 export default function SidebarWorkspaces() {
   const user = nhost.auth.getUser();
-  const { data, loading, startPolling, stopPolling } = useGetWorkspacesQuery();
+  const { data, loading, startPolling, stopPolling } = useGetWorkspacesQuery({
+    fetchPolicy: 'cache-and-network',
+  });
 
   useEffect(() => {
     startPolling(1000);
@@ -28,7 +30,7 @@ export default function SidebarWorkspaces() {
       <div className="mt-3 mb-4 space-y-2">
         <div className="flex flex-row">
           <svg
-            className="ml-1 h-4 w-4 animate-spin self-center text-dark"
+            className="self-center w-4 h-4 ml-1 animate-spin text-dark"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -47,7 +49,7 @@ export default function SidebarWorkspaces() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          <Text size="tiny" className="ml-2 self-center" color="greyscaleGrey">
+          <Text size="tiny" className="self-center ml-2" color="greyscaleGrey">
             Creating first workspace...
           </Text>
         </div>
@@ -66,12 +68,12 @@ export default function SidebarWorkspaces() {
           >
             {name === 'Default Workspace' && creatorUserId === user.id ? (
               <Avatar
-                className="h-8 w-8 self-center rounded-full"
+                className="self-center w-8 h-8 rounded-full"
                 name={user?.displayName}
                 avatarUrl={user?.avatarUrl}
               />
             ) : (
-              <div className="inline-block h-8 w-8 overflow-hidden rounded-lg">
+              <div className="inline-block w-8 h-8 overflow-hidden rounded-lg">
                 <Image
                   src="/logos/new.svg"
                   alt="Nhost Logo"

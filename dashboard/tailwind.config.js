@@ -13,6 +13,9 @@ module.exports = {
       ...defaultTheme.screens,
     },
     extend: {
+      animation: {
+        'spin-reverse': 'spin 1.5s linear infinite reverse',
+      },
       colors: {
         primary: '#0052cd',
         'primary-light': '#ebf3ff',

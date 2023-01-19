@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -72,7 +72,7 @@
     "@faker-js/faker": "^7.6.0",
     "@nhost/docgen": "workspace:*",
     "graphql": "16.6.0",
-    "start-server-and-test": "^1.14.0"
+    "start-server-and-test": "^1.15.2"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

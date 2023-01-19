@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+
 ## 0.1.4
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # @nhost/react-urql
 
+## 1.0.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/react@1.13.1
+
 ## 1.0.0
 
 ### Patch Changes

@@ -4,7 +4,17 @@ import * as Yup from 'yup';
 const ruleSchema = Yup.object().shape({
   column: Yup.string().nullable().required('Please select a column.'),
   operator: Yup.string().nullable().required('Please select an operator.'),
-  value: Yup.string().nullable().required('Please enter a value.'),
+  value: Yup.mixed()
+    .test(
+      'isArray',
+      'Please enter a valid value.',
+      (value) =>
+        typeof value === 'string' ||
+        (Array.isArray(value) &&
+          value.every((item) => typeof item === 'string')),
+    )
+    .nullable()
+    .required('Please enter a value.'),
 });
 
 const ruleGroupSchema = Yup.object().shape({

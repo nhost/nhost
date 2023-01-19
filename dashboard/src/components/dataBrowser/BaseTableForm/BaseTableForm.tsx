@@ -88,6 +88,7 @@ function NameInput() {
       error={Boolean(errors.name)}
       variant="inline"
       className="col-span-8 py-3"
+      autoComplete="off"
       autoFocus
     />
   );

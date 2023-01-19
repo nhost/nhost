@@ -11,7 +11,7 @@ import { useHasuraClaims } from './useHasuraClaims'
  *
  * @docs https://docs.nhost.io/reference/react/use-hasura-claim
  */
-export const useHasuraClaim = (name: string) => {
+export const useHasuraClaim = (name: string): string | string[] | null => {
   const hasuraClaims = useHasuraClaims()
   return hasuraClaims?.[name.startsWith('x-hasura-') ? name : `x-hasura-${name}`] || null
 }

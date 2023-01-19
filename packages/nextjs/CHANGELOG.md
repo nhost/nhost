@@ -1,5 +1,23 @@
 # @nhost/nextjs
 
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+
+## 1.13.1
+
+### Patch Changes
+
+- d42c27ae: Add explicit return types to React hooks
+- 927be4a2: Store the session in a cookie so there is no need for an SSR page to ask for a new access token
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/react@1.13.1
+
 ## 1.13.0
 
 ### Patch Changes

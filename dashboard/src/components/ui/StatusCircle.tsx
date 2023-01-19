@@ -1,9 +1,11 @@
-import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export type DeploymentStatus =
   | 'DEPLOYING'
   | 'DEPLOYED'
   | 'FAILED'
+  | 'PENDING'
+  | 'SCHEDULED'
   | undefined
   | null;
 
@@ -12,32 +14,30 @@ type StatusCircleProps = {
   className?: string;
 };
 
-export function StatusCircle(props: StatusCircleProps) {
-  const { status, className } = props;
-
+export function StatusCircle({ status, className }: StatusCircleProps) {
   const baseClasses = 'w-1.5 h-1.5 rounded-full';
 
-  if (!status) {
-    const classes = clsx(baseClasses, 'bg-gray-300', className);
-    return <div className={classes} />;
-  }
-
-  if (status === 'DEPLOYING') {
-    const classes = clsx(baseClasses, 'bg-yellow-300', className);
-    return <div className={classes} />;
+  if (status === 'DEPLOYING' || status === 'PENDING') {
+    return (
+      <div
+        className={twMerge(
+          baseClasses,
+          'bg-yellow-300 animate-pulse',
+          className,
+        )}
+      />
+    );
   }
 
   if (status === 'DEPLOYED') {
-    const classes = clsx(baseClasses, 'bg-green-300', className);
-    return <div className={classes} />;
+    return <div className={twMerge(baseClasses, 'bg-green-300', className)} />;
   }
 
   if (status === 'FAILED') {
-    const classes = clsx(baseClasses, 'bg-red', className);
-    return <div className={classes} />;
+    return <div className={twMerge(baseClasses, 'bg-red', className)} />;
   }
 
-  return null;
+  return <div className={twMerge(baseClasses, 'bg-gray-300', className)} />;
 }
 
 export default StatusCircle;

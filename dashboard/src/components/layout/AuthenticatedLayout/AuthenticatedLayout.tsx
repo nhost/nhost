@@ -4,11 +4,8 @@ import { InviteAnnounce } from '@/components/home/InviteAnnounce';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import BaseLayout from '@/components/layout/BaseLayout';
 import Container from '@/components/layout/Container';
-import AddWorkspace from '@/components/workspace/AddWorkspace';
-import { useUI } from '@/context/UIContext';
 import useIsHealthy from '@/hooks/common/useIsHealthy';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { Modal } from '@/ui';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
@@ -39,7 +36,6 @@ export default function AuthenticatedLayout({
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { newWorkspace, closeSection } = useUI();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
 
@@ -85,7 +81,7 @@ export default function AuthenticatedLayout({
       <BaseLayout {...props}>
         <Header className="flex max-h-[59px] flex-auto" />
 
-        <Container className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center">
+        <Container className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center">
           <div className="mx-auto">
             <Image
               src="/terminal-text.svg"
@@ -123,13 +119,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex h-full flex-col" {...props}>
-      <Modal
-        showModal={newWorkspace}
-        close={closeSection}
-        Component={AddWorkspace}
-      />
-
+    <BaseLayout className="flex flex-col h-full" {...props}>
       <Header className="flex max-h-[59px] flex-auto" />
 
       <InviteAnnounce />

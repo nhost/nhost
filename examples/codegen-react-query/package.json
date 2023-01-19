@@ -1,17 +1,9 @@
 {
   "name": "@nhost-examples/codegen-react-query",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
-  "dependencies": {
-    "@nhost/react": "*",
-    "@tanstack/react-query": "^4.2.3",
-    "@tanstack/react-query-devtools": "^4.2.3",
-    "graphql": "15.7.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
   "scripts": {
-    "codegen": "graphql-codegen --config graphql.config.yaml --errors-only",
+    "codegen": "graphql-codegen",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host localhost --port 3000"
@@ -22,26 +14,28 @@
       "react-app/jest"
     ]
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "@nhost/react": "*",
+    "@tanstack/react-query": "^4.2.3",
+    "@tanstack/react-query-devtools": "^4.2.3",
+    "clsx": "^1.2.1",
+    "graphql": "15.7.2",
+    "graphql-request": "^5.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^2.12.0",
-    "@graphql-codegen/typescript-operations": "^2.5.3",
-    "@graphql-codegen/typescript-react-query": "^4.0.1",
-    "@types/node": "^16.11.7",
+    "@graphql-codegen/cli": "^2.14.1",
+    "@graphql-codegen/client-preset": "^1.1.5",
+    "@graphql-typed-document-node/core": "^3.1.1",
+    "@tailwindcss/forms": "^0.5.3",
+    "@types/node": "^16.11.56",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "autoprefixer": "^10.4.13",
     "eslint": "^8.23.0",
+    "postcss": "^8.4.20",
+    "tailwindcss": "^3.2.4",
     "typescript": "^4.8.2",
     "vite": "^4.0.2"
   }

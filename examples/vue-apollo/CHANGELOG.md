@@ -1,5 +1,26 @@
 # @nhost-examples/vue-apollo
 
+## 0.0.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/apollo@4.13.1
+  - @nhost/vue@1.13.2
+
+## 0.0.4
+
+### Patch Changes
+
+- c2706c7d: Export commonly used types
+
+  `BackendUrl`, `ErrorPayload`, `NhostSession`, `Subdomain`, and `User` are now exported in all our SDKs
+
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/vue@1.13.1
+
 ## 0.0.3
 
 ### Patch Changes
