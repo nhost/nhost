@@ -148,7 +148,7 @@ function SignInWithEmail({ setSignInMethod }: any) {
           variant="borderless"
           type="button"
           size="small"
-          onClick={() => setSignInMethod('email')}
+          onClick={() => setSignInMethod('github')}
           className="hover:underline hover:bg-transparent"
         >
           sign in with GitHub

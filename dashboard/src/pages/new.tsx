@@ -27,7 +27,6 @@ import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
-
 import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
