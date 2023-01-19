@@ -60,6 +60,7 @@ const StyledPopover = styled(MaterialPopover)(({ theme }) => ({
   [`& .${materialPopoverClasses.paper}`]: {
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
+    backgroundImage: 'none',
     borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
     borderColor:
       theme.palette.mode === 'dark'
