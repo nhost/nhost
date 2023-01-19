@@ -1,6 +1,6 @@
 # Nhost Dashboard
 
-This is the Nhost Dashboard, a web application that allows you to manage your Nhost project.
+This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
 To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
 ```bash

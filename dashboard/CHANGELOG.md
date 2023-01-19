@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 0.9.9
+
+### Patch Changes
+
+- 31abbe5f: fix(dashboard): enable toggle when settings are filled in
+
+## 0.9.8
+
+### Patch Changes
+
+- 5bdd31ad: chore(dashboard): list fewer images per page on the Storage page
+- 5121851c: fix(dashboard): don't throw validation error for valid permission rules
+
 ## 0.9.7
 
 ### Patch Changes

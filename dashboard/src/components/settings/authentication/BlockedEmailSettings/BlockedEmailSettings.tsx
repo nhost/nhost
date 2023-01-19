@@ -5,12 +5,16 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface BlockedEmailFormValues {
+  /**
+   * Determines whether or not the blocked email settings are enabled.
+   */
+  enabled: boolean;
   /**
    * Set of emails that are blocked from registering to the user's project.
    */
@@ -24,7 +28,6 @@ export interface BlockedEmailFormValues {
 export default function BlockedEmailSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
-  const [enabled, setEnabled] = useState(false);
 
   const { data, loading, error } = useGetAppQuery({
     variables: {
@@ -35,11 +38,29 @@ export default function BlockedEmailSettings() {
   const form = useForm<BlockedEmailFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
+      enabled:
+        Boolean(data?.app?.authAccessControlBlockedEmails) ||
+        Boolean(data?.app?.authAccessControlBlockedEmailDomains),
       authAccessControlBlockedEmails: data?.app?.authAccessControlBlockedEmails,
       authAccessControlBlockedEmailDomains:
         data?.app?.authAccessControlBlockedEmailDomains,
     },
   });
+
+  const { register, formState, setValue, watch } = form;
+  const enabled = watch('enabled');
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  useEffect(() => {
+    if (
+      !data.app?.authAccessControlBlockedEmails &&
+      !data.app?.authAccessControlBlockedEmailDomains
+    ) {
+      return;
+    }
+
+    setValue('enabled', true, { shouldDirty: false });
+  }, [data.app, setValue]);
 
   if (loading) {
     return (
@@ -55,8 +76,6 @@ export default function BlockedEmailSettings() {
     throw error;
   }
 
-  const { register, formState } = form;
-
   const handleAllowedEmailDomainsChange = async (
     values: BlockedEmailFormValues,
   ) => {
@@ -64,7 +83,12 @@ export default function BlockedEmailSettings() {
       variables: {
         id: currentApplication.id,
         app: {
-          ...values,
+          authAccessControlBlockedEmails: values.enabled
+            ? values.authAccessControlBlockedEmails
+            : '',
+          authAccessControlBlockedEmailDomains: values.enabled
+            ? values.authAccessControlBlockedEmailDomains
+            : '',
         },
       },
     });
@@ -88,13 +112,17 @@ export default function BlockedEmailSettings() {
         <SettingsContainer
           title="Blocked Emails and Domains"
           description="Block specific email addresses and domains to sign up."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isValid || !isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication"
           enabled={enabled}
-          onEnabledChange={setEnabled}
+          onEnabledChange={(switchEnabled) =>
+            setValue('enabled', switchEnabled, { shouldDirty: true })
+          }
           showSwitch
           className={twMerge(
             'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
