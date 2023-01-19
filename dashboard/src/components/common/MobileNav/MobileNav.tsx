@@ -2,8 +2,6 @@ import { ChangePasswordModal } from '@/components/applications/ChangePasswordMod
 import FeedbackForm from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
 import { Nav } from '@/components/dashboard/Nav';
-import Divider from '@/components/ui/v2/Divider';
-import List from '@/components/ui/v2/List';
 import { useUserDataContext } from '@/context/workspace1-context';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
@@ -11,22 +9,19 @@ import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import { Modal } from '@/ui/Modal';
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
 import Drawer from '@/ui/v2/Drawer';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import MenuIcon from '@/ui/v2/icons/MenuIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
+import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useSignOut } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
-import {
-  cloneElement,
-  Fragment,
-  isValidElement,
-  ReactNode,
-  useState,
-} from 'react';
+import type { ReactNode } from 'react';
+import { cloneElement, Fragment, isValidElement, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface MobileNavProps extends ButtonProps {}
