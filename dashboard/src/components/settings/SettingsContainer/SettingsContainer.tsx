@@ -129,12 +129,7 @@ export default function SettingsContainer({
         <div className="grid grid-flow-col gap-4">
           {(typeof icon === 'string' && (
             <div className="flex items-center self-center justify-self-center align-middle">
-              <Image
-                src={icon}
-                alt={`icon of ${title}`}
-                width={32}
-                height={32}
-              />
+              <Image src={icon} alt={icon} width={32} height={32} />
             </div>
           )) ||
             icon}

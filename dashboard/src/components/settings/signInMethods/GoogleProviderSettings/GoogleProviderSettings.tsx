@@ -95,7 +95,7 @@ export default function GoogleProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-google"
           docsTitle="how to sign in users with Google"
-          icon="/logos/Google.svg"
+          icon="/assets/brands/google.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

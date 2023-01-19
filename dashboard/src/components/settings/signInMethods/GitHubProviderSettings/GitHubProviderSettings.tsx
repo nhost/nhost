@@ -15,11 +15,13 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function GitHubProviderSettings() {
+  const theme = useTheme();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
@@ -95,7 +97,11 @@ export default function GitHubProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-github"
           docsTitle="how to sign in users with GitHub"
-          icon="/logos/Github.svg"
+          icon={
+            theme.palette.mode === 'dark'
+              ? '/assets/brands/light/github.svg'
+              : '/assets/brands/github.svg'
+          }
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

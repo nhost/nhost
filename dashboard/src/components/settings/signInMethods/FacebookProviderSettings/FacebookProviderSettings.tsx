@@ -95,7 +95,7 @@ export default function FacebookProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-facebook"
           docsTitle="how to sign in users with Facebook"
-          icon="/logos/Facebook.svg"
+          icon="/assets/brands/facebook.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

@@ -94,7 +94,7 @@ export default function TwitterProviderSettings() {
             loading: formState.isSubmitting,
           }}
           docsTitle="how to sign in users with Twitter"
-          icon="/logos/Twitter.svg"
+          icon="/assets/brands/twitter.svg"
           switchId="authTwitterEnabled"
           showSwitch
           enabled={authEnabled}

@@ -95,7 +95,7 @@ export default function SpotifyProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-spotify"
           docsTitle="how to sign in users with Spotify"
-          icon="/logos/Spotify.svg"
+          icon="/assets/brands/spotify.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

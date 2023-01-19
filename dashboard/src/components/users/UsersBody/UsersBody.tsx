@@ -25,7 +25,9 @@ import {
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import type { ApolloQueryResult } from '@apollo/client';
+import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
+import kebabCase from 'just-kebab-case';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
@@ -50,6 +52,7 @@ export default function UsersBody({
   users,
   onSuccessfulAction,
 }: UsersBodyProps<ApolloQueryResult<RemoteAppGetUsersQuery>>) {
+  const theme = useTheme();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -334,7 +337,15 @@ export default function UsersBody({
                     }}
                     icon={
                       <Image
-                        src={`/logos/${provider.providerId}.svg`}
+                        src={
+                          theme.palette.mode === 'dark'
+                            ? `/assets/brands/light/${kebabCase(
+                                provider.providerId,
+                              )}.svg`
+                            : `/assets/brands/${kebabCase(
+                                provider.providerId,
+                              )}.svg`
+                        }
                         width={16}
                         height={16}
                       />

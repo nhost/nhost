@@ -95,7 +95,7 @@ export default function DiscordProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-discord"
           docsTitle="how to sign in users with Discord"
-          icon="/logos/Discord.svg"
+          icon="/assets/brands/discord.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

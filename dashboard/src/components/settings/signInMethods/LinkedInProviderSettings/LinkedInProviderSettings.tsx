@@ -95,7 +95,7 @@ export default function LinkedInProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-linkedin"
           docsTitle="how to sign in users with LinkedIn"
-          icon="/logos/Linkedin.svg"
+          icon="/assets/brands/linkedin.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

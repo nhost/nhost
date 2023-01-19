@@ -404,7 +404,7 @@ export default function EditUserForm({
                 >
                   <div className="grid grid-flow-col gap-3 span-cols-1">
                     <Image
-                      src={`/logos/${
+                      src={`/assets/brands/${
                         provider.providerId[0].toUpperCase() +
                         provider.providerId.slice(1)
                       }.svg`}

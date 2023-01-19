@@ -125,7 +125,7 @@ export default function SMSSettings() {
           >
             <Option value="twilio">
               <Image
-                src="/assets/twilio.svg"
+                src="/assets/brands/twilio.svg"
                 alt="Logo of Twilio"
                 width={20}
                 height={20}

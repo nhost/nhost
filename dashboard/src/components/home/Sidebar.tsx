@@ -41,7 +41,7 @@ export default function Sidebar() {
             aria-labelledby="discord-button-label"
           >
             <Image
-              src="/logos/Discord.svg"
+              src="/assets/brands/discord.svg"
               alt="Discord Logo"
               width={24}
               height={24}

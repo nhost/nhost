@@ -101,7 +101,7 @@ export default function WorkOsProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-workos"
           docsTitle="how to sign in users with WorkOS"
-          icon="/logos/WorkOs.svg"
+          icon="/assets/brands/workos.svg"
           switchId="authWorkOsEnabled"
           showSwitch
           enabled={authEnabled}
