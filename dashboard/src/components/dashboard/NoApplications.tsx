@@ -12,10 +12,13 @@ export function NoApplications() {
   return (
     <div className="noapps mt-4 h-80 rounded-md text-center font-display font-normal">
       <div className="pt-12">
-        <Text className="text-center text-white text-2xl font-semibold">
+        <Text
+          className="text-center text-2xl font-semibold"
+          sx={{ color: 'common.white' }}
+        >
           Welcome to Nhost!
         </Text>
-        <Text className="mt-2 text-white">
+        <Text className="mt-2" sx={{ color: 'common.white' }}>
           Let&apos;s set up your first backend - the Nhost way.
         </Text>
         <div className="inline-block pt-10">

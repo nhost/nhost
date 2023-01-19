@@ -126,10 +126,11 @@ export default function DeploymentDetailsPage() {
       </div>
       <div>
         <Box
-          className="rounded-lg p-4 text-sm- text-white"
+          className="rounded-lg p-4 text-sm-"
           sx={{
+            color: 'common.white',
             backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.100' : `grey.800`,
+              theme.palette.mode === 'dark' ? 'grey.100' : 'grey.800',
           }}
         >
           {deployment.deploymentLogs.length === 0 && (
