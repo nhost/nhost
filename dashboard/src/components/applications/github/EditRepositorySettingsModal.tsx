@@ -14,9 +14,6 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useFormContext } from 'react-hook-form';
 import { RepoAndBranch } from './RepoAndBranch';
 
-/**
- * @deprecated Redirect users to /[workspaceSlug]/[applicationSlug]/settings/git instead.
- */
 export function EditRepositorySettingsModal({
   selectedRepoId,
   close,
@@ -99,9 +96,8 @@ export function EditRepositorySettingsModal({
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
-              <div className="">
-                <RepoAndBranch />
-              </div>
+              <RepoAndBranch />
+
               <div className="mt-2 flex flex-col">
                 <Button
                   type="submit"

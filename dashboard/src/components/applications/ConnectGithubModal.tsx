@@ -1,14 +1,12 @@
 import { CheckGithubConfiguration } from '@/components/applications/github/CheckGithubConfiguration';
 import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
 import GitHubInstallNhostApplication from '@/components/applications/github/GitHubInstallNhostApplication';
-// ConnectGitHubModal and EditRepositorySettings form a dependency cycle which
-// needs to be fixed
-// eslint-disable-next-line import/no-cycle
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
 import DelayedLoading from '@/ui/DelayedLoading/DelayedLoading';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
@@ -143,45 +141,48 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
               </div>
             </div>
             <RetryableErrorBoundary>
-              {githubRepositoriesToDisplay.length > 0 ? (
-                <Divider />
+              {githubRepositoriesToDisplay.length === 0 ? (
+                <Box className="h-import py-2">
+                  <Text variant="subtitle2">No results found.</Text>
+                </Box>
               ) : (
-                <Text variant="subtitle2">No results found.</Text>
-              )}
-              <List className="h-import overflow-y-auto">
-                {githubRepositoriesToDisplay.map((repo) => (
-                  <Fragment key={repo.id}>
-                    <ListItem.Root
-                      className="grid grid-flow-col gap-2 py-2.5 justify-start"
-                      secondaryAction={
-                        <Button
-                          variant="borderless"
-                          color="primary"
-                          onClick={() => setSelectedRepoId(repo.id)}
-                        >
-                          Connect
-                        </Button>
-                      }
-                    >
-                      <ListItem.Avatar>
-                        <Avatar
-                          name={repo.githubAppInstallation.accountLogin}
-                          avatarUrl={
-                            repo.githubAppInstallation.accountAvatarUrl
-                          }
-                          className="h-8 w-8 self-center"
+                <List className="h-import overflow-y-auto border-y">
+                  {githubRepositoriesToDisplay.map((repo, index) => (
+                    <Fragment key={repo.id}>
+                      <ListItem.Root
+                        className="grid grid-flow-col gap-2 py-2.5 justify-start"
+                        secondaryAction={
+                          <Button
+                            variant="borderless"
+                            color="primary"
+                            onClick={() => setSelectedRepoId(repo.id)}
+                          >
+                            Connect
+                          </Button>
+                        }
+                      >
+                        <ListItem.Avatar>
+                          <Avatar
+                            name={repo.githubAppInstallation.accountLogin}
+                            avatarUrl={
+                              repo.githubAppInstallation.accountAvatarUrl
+                            }
+                            className="h-8 w-8 self-center"
+                          />
+                        </ListItem.Avatar>
+                        <ListItem.Text
+                          primary={repo.name}
+                          secondary={repo.githubAppInstallation.accountLogin}
                         />
-                      </ListItem.Avatar>
-                      <ListItem.Text
-                        primary={repo.name}
-                        secondary={repo.githubAppInstallation.accountLogin}
-                      />
-                    </ListItem.Root>
+                      </ListItem.Root>
 
-                    <Divider component="li" />
-                  </Fragment>
-                ))}
-              </List>
+                      {index < githubRepositoriesToDisplay.length - 1 && (
+                        <Divider component="li" />
+                      )}
+                    </Fragment>
+                  ))}
+                </List>
+              )}
             </RetryableErrorBoundary>
           </div>
         )}
