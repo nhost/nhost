@@ -23,10 +23,10 @@ export default function OverviewProjectInfo() {
               region.city && (
                 <div className="grid grid-flow-col items-center gap-1 self-center">
                   <Image
-                    src={`/assets/${region.countryCode}.svg`}
+                    src={`/assets/flags/${region.countryCode}.svg`}
                     alt={`Logo of ${region.countryCode}`}
                     width={16}
-                    height={16}
+                    height={12}
                   />
 
                   <Text className="text-sm font-medium truncate">
