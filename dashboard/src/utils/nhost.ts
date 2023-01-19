@@ -20,6 +20,6 @@ export const nhost = isPlatform()
       storageUrl: getStorageServiceUrl(),
       functionsUrl: getFunctionsServiceUrl(),
     })
-  : new NhostClient({ subdomain: 'localhost' });
+  : new NhostClient({ subdomain: 'local' });
 
 export default nhost;

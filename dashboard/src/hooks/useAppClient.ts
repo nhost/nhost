@@ -38,7 +38,7 @@ export function useAppClient(
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
     return new NhostClient({
-      subdomain: 'localhost',
+      subdomain: 'local',
       ...options,
     });
   }
