@@ -15,6 +15,7 @@ import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
+import getReadableProviderName from '@/utils/common/getReadableProviderName';
 import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
@@ -23,7 +24,9 @@ import {
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
+import kebabCase from 'just-kebab-case';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useState } from 'react';
@@ -91,6 +94,7 @@ export default function EditUserForm({
   roles,
   onSuccessfulAction,
 }: EditUserFormProps) {
+  const theme = useTheme();
   const { onDirtyStateChange, openDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
@@ -402,19 +406,22 @@ export default function EditUserForm({
                   className="grid grid-flow-col gap-3 place-content-between"
                   key={provider.id}
                 >
-                  <div className="grid grid-flow-col gap-3 span-cols-1">
+                  <div className="grid grid-flow-col gap-2 span-cols-1">
                     <Image
-                      src={`/assets/brands/${
-                        provider.providerId[0].toUpperCase() +
-                        provider.providerId.slice(1)
-                      }.svg`}
+                      src={
+                        theme.palette.mode === 'dark'
+                          ? `/assets/brands/light/${kebabCase(
+                              provider.providerId,
+                            )}.svg`
+                          : `/assets/brands/${kebabCase(
+                              provider.providerId,
+                            )}.svg`
+                      }
                       width={25}
                       height={25}
                     />
                     <Text className="font-medium capitalize">
-                      {provider.providerId === 'github'
-                        ? 'GitHub'
-                        : provider.providerId}
+                      {getReadableProviderName(provider.providerId)}
                     </Text>
                   </div>
                 </div>

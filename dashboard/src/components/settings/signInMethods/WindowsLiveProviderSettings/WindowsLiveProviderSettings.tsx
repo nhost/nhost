@@ -94,7 +94,7 @@ export default function WindowsLiveProviderSettings() {
             loading: formState.isSubmitting,
           }}
           docsTitle="how to sign in users with Windows Live"
-          icon="/assets/brands/windows-live.svg"
+          icon="/assets/brands/windowslive.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

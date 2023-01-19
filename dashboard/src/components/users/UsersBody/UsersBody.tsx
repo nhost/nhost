@@ -14,6 +14,7 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getReadableProviderName from '@/utils/common/getReadableProviderName';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
@@ -326,12 +327,7 @@ export default function UsersBody({
                     color="default"
                     size="small"
                     key={provider.id}
-                    label={
-                      provider.providerId === 'github'
-                        ? 'GitHub'
-                        : provider.providerId
-                    }
-                    className="capitalize"
+                    label={getReadableProviderName(provider.providerId)}
                     sx={{
                       paddingLeft: '0.55rem',
                     }}
