@@ -20,7 +20,7 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
-import { GlobalStyles, ThemeProvider } from '@mui/material';
+import { GlobalStyles, ThemeProvider, useMediaQuery } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
@@ -57,6 +57,7 @@ function MyApp({
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
   const isPlatform = useIsPlatform();
   const router = useRouter();
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   // segment snippet
   function renderSnippet() {
@@ -90,13 +91,18 @@ function MyApp({
 
     const storedColorMode = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
 
+    if (storedColorMode === 'system') {
+      setColorMode(prefersDarkMode ? 'dark' : 'light');
+      return;
+    }
+
     if (storedColorMode !== 'light' && storedColorMode !== 'dark') {
       setColorMode('light');
       return;
     }
 
     setColorMode(storedColorMode as 'light' | 'dark');
-  }, []);
+  }, [prefersDarkMode]);
 
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
   const theme = createTheme(colorMode);
