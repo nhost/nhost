@@ -1,6 +1,6 @@
-import createTheme from '@/theme/createTheme';
 import Loading from '@/ui/Loading';
 import Box from '@/ui/v2/Box';
+import createTheme from '@/ui/v2/createTheme';
 import { ThemeProvider } from '@mui/material';
 import clsx from 'clsx';
 import type { ToastOptions } from 'react-hot-toast';

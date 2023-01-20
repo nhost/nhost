@@ -8,7 +8,7 @@ import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import createTheme from '@/theme/createTheme';
+import ThemeProvider from '@/ui/v2/ThemeProvider';
 import { COLOR_MODE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
@@ -20,8 +20,6 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
-import { GlobalStyles, ThemeProvider, useMediaQuery } from '@mui/material';
-import CssBaseline from '@mui/material/CssBaseline';
 import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import * as snippet from '@segment/snippet';
@@ -32,7 +30,7 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
 import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'react-hot-toast';
 
@@ -54,10 +52,8 @@ function MyApp({
   pageProps,
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
   const isPlatform = useIsPlatform();
   const router = useRouter();
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   // segment snippet
   function renderSnippet() {
@@ -84,28 +80,7 @@ function MyApp({
     };
   }, [router.events]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const storedColorMode = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
-
-    if (storedColorMode === 'system') {
-      setColorMode(prefersDarkMode ? 'dark' : 'light');
-      return;
-    }
-
-    if (storedColorMode !== 'light' && storedColorMode !== 'dark') {
-      setColorMode('light');
-      return;
-    }
-
-    setColorMode(storedColorMode as 'light' | 'dark');
-  }, [prefersDarkMode]);
-
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
-  const theme = createTheme(colorMode);
 
   return (
     <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
@@ -131,40 +106,9 @@ function MyApp({
                       />
                     )}
 
-                    <ThemeProvider theme={theme}>
+                    <ThemeProvider colorModeStorageKey={COLOR_MODE_STORAGE_KEY}>
                       <DialogProvider>
-                        <CssBaseline />
-                        <GlobalStyles
-                          styles={{
-                            body: {
-                              backgroundColor: theme.palette.background.default,
-                            },
-                          }}
-                        />
-
                         {getLayout(<Component {...pageProps} />)}
-
-                        {/* Temporary dark mode toggle button */}
-                        <div className="absolute bottom-0 right-0 z-[200000]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (typeof window !== 'undefined') {
-                                window.localStorage.setItem(
-                                  COLOR_MODE_STORAGE_KEY,
-                                  colorMode === 'dark' ? 'light' : 'dark',
-                                );
-                              }
-
-                              setColorMode((currentMode) =>
-                                currentMode === 'dark' ? 'light' : 'dark',
-                              );
-                            }}
-                            className="bg-black text-white border-white border-1"
-                          >
-                            Toggle Dark Mode
-                          </button>
-                        </div>
                       </DialogProvider>
                     </ThemeProvider>
                   </ManagedUIContext>

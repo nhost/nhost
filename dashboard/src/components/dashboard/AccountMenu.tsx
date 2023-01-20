@@ -5,6 +5,8 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
 import PowerIcon from '@/ui/v2/icons/PowerIcon';
+import Option from '@/ui/v2/Option';
+import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { useApolloClient } from '@apollo/client';
@@ -22,7 +24,6 @@ function AccountMenuContent({
   const user = useUserData();
   const router = useRouter();
   const client = useApolloClient();
-  const [clicked, setClicked] = useState(false);
   const { handleClose } = useDropdown();
 
   return (
@@ -57,32 +58,28 @@ function AccountMenuContent({
         </Text>
       </div>
 
-      {!clicked ? (
+      <div className="grid grid-flow-row gap-2">
         <Button
           variant="outlined"
           color="secondary"
-          onClick={() => setClicked(!clicked)}
+          onClick={() => {
+            onChangePasswordClick();
+            handleClose();
+          }}
         >
-          Account Options
+          Change Password
         </Button>
-      ) : (
-        <div className="grid grid-flow-row gap-2">
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              onChangePasswordClick();
-              handleClose();
-            }}
-          >
-            Change Password
-          </Button>
 
-          <Button color="error" disabled>
-            Remove Account
-          </Button>
-        </div>
-      )}
+        <Button color="error" disabled>
+          Remove Account
+        </Button>
+      </div>
+
+      <Select label="Theme">
+        <Option value="light">Light</Option>
+        <Option value="dark">Dark</Option>
+        <Option value="system">System</Option>
+      </Select>
     </Box>
   );
 }

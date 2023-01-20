@@ -4,7 +4,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
 import { WorkspaceProvider } from '@/context/workspace-context';
 import { UserDataProvider } from '@/context/workspace1-context';
-import createTheme from '@/theme/createTheme';
+import createTheme from '@/ui/v2/createTheme';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { NhostProvider } from '@nhost/nextjs';
