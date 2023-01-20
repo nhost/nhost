@@ -36,7 +36,12 @@ type (
 		GraphQLAdminSecret string   `json:"hasuraGraphqlAdminSecret,omitempty"`
 		Subdomain          string   `json:"subdomain,omitempty"`
 		EnvVars            []EnvVar `json:"environmentVariables,omitempty"`
+		Region             Region   `json:"region"`
 		Workspace          string   `json:"workspace,omitempty"`
+	}
+
+	Region struct {
+		AwsName string `json:"awsName"`
 	}
 
 	EnvVar struct {

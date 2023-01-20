@@ -57,7 +57,7 @@ var defaultTemplates = []nhost.Template{
 	},
 }
 
-//  initCmd represents the init command
+// initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [--remote | --remote <sudomain>]",
 	Short: "Initialize current directory as Nhost app",
@@ -239,10 +239,8 @@ in the following manner:
 				status.Fatal("Failed to save app configuration")
 			}
 
-			hasuraEndpoint := fmt.Sprintf("https://%s.%s", selectedProject.Subdomain, nhost.DOMAIN)
-			//	hasuraEndpoint := "http://localhost:9231"
+			hasuraEndpoint := fmt.Sprintf("https://%s.hasura.%s.%s", selectedProject.Subdomain, selectedProject.Region.AwsName, nhost.DOMAIN)
 			adminSecret := selectedProject.GraphQLAdminSecret
-			//	adminSecret := "hasura-admin-secret"
 
 			//  create new hasura client
 			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, viper.GetString(userDefinedHasuraCliFlag), nil)
