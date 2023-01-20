@@ -1,26 +1,15 @@
+import ColorPreferenceProvider from '@/ui/v2/ColorPreferenceProvider';
 import createTheme from '@/ui/v2/createTheme';
-import useColorMode from '@/ui/v2/useColorMode';
+import useColorPreference from '@/ui/v2/useColorPreference';
 import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import type { PropsWithChildren } from 'react';
 
-export interface ThemeProviderProps extends PropsWithChildren<unknown> {
-  /**
-   * The key used to store the color mode in the localStorage.
-   *
-   * @default 'color-mode'
-   */
-  colorModeStorageKey?: string;
-}
-
-function ThemeProvider({
-  children,
-  colorModeStorageKey = 'color-mode',
-}: ThemeProviderProps) {
-  const [colorMode, setColorMode] = useColorMode({ colorModeStorageKey });
-
-  const theme = createTheme(colorMode);
+function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
+  const { color, setColorPreference, colorPreferenceStorageKey } =
+    useColorPreference();
+  const theme = createTheme(color);
 
   return (
     <MaterialThemeProvider theme={theme}>
@@ -42,13 +31,13 @@ function ThemeProvider({
           onClick={() => {
             if (typeof window !== 'undefined') {
               window.localStorage.setItem(
-                colorModeStorageKey,
-                colorMode === 'dark' ? 'light' : 'dark',
+                colorPreferenceStorageKey,
+                color === 'dark' ? 'light' : 'dark',
               );
             }
 
-            setColorMode((currentMode) =>
-              currentMode === 'dark' ? 'light' : 'dark',
+            setColorPreference((currentPreference) =>
+              currentPreference === 'dark' ? 'light' : 'dark',
             );
           }}
           className="bg-black text-white border-white border-1"
@@ -57,6 +46,28 @@ function ThemeProvider({
         </button>
       </div>
     </MaterialThemeProvider>
+  );
+}
+
+export interface ThemeProviderProps extends PropsWithChildren<unknown> {
+  /**
+   * The key used to store the color preference in the local storage.
+   *
+   * @default 'color-mode'
+   */
+  colorPreferenceStorageKey?: string;
+}
+
+function ThemeProvider({
+  children,
+  colorPreferenceStorageKey = 'color-preference',
+}: ThemeProviderProps) {
+  return (
+    <ColorPreferenceProvider
+      colorPreferenceStorageKey={colorPreferenceStorageKey}
+    >
+      <ThemeProviderContent>{children}</ThemeProviderContent>
+    </ColorPreferenceProvider>
   );
 }
 
