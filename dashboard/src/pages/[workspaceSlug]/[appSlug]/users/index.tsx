@@ -322,7 +322,7 @@ export default function UsersPage() {
             {dataRemoteAppUsers?.filteredUsersAggreggate.aggregate.count ===
               0 &&
               usersCount !== 0 && (
-                <div className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-b border-l border-r border-veryLightGray">
+                <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border-b border-x">
                   <UserIcon
                     strokeWidth={1}
                     className="w-10 h-10"
@@ -336,7 +336,7 @@ export default function UsersPage() {
                       Try a different search
                     </Text>
                   </div>
-                </div>
+                </Box>
               )}
             {thereAreUsers && (
               <div className="grid grid-flow-row gap-4">

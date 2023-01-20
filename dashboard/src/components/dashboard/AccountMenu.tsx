@@ -1,14 +1,12 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
+import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/ui/Avatar';
 import { Modal } from '@/ui/Modal';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
 import PowerIcon from '@/ui/v2/icons/PowerIcon';
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
-import useColorPreference from '@/ui/v2/useColorPreference';
 import { nhost } from '@/utils/nhost';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
@@ -22,7 +20,6 @@ interface AccountMenuContentProps {
 function AccountMenuContent({
   onChangePasswordClick,
 }: AccountMenuContentProps) {
-  const { colorPreference, setColorPreference } = useColorPreference();
   const user = useUserData();
   const router = useRouter();
   const client = useApolloClient();
@@ -77,17 +74,7 @@ function AccountMenuContent({
         </Button>
       </div>
 
-      <Select
-        label="Theme"
-        value={colorPreference}
-        onChange={(_, value) =>
-          setColorPreference(value as typeof colorPreference)
-        }
-      >
-        <Option value="light">Light</Option>
-        <Option value="dark">Dark</Option>
-        <Option value="system">System</Option>
-      </Select>
+      <ThemeSwitcher label="Theme" fullWidth />
     </Box>
   );
 }

@@ -53,10 +53,12 @@ export default function FunctionDetailsPage() {
   if (!currentFunction) {
     return (
       <Container>
-        <h1 className="text-4xl font-semibold text-greyscaleDark">Not found</h1>
-        <p className="text-sm text-greyscaleGrey">
+        <Text variant="h1" className="text-4xl font-semibold">
+          Not found
+        </Text>
+        <Text className="text-sm" sx={{ color: 'text.disabled' }}>
           This function does not exist.
-        </p>
+        </Text>
       </Container>
     );
   }

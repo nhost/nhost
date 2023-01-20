@@ -44,10 +44,12 @@ export default function DeploymentDetailsPage() {
   if (!deployment) {
     return (
       <Container>
-        <h1 className="text-4xl font-semibold text">Not found</h1>
-        <p className="text-sm text-greyscaleGrey">
+        <Text variant="h1" className="text-4xl font-semibold text">
+          Not found
+        </Text>
+        <Text className="text-sm" sx={{ color: 'text.disabled' }}>
           This deployment does not exist.
-        </p>
+        </Text>
       </Container>
     );
   }

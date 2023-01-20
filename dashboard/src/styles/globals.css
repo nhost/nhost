@@ -1,6 +1,18 @@
 @tailwind base;
 @tailwind components;
 
+@media (prefers-color-scheme: dark) {
+  #__next {
+    background-color: #151a22;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #__next {
+    background-color: #fafafa;
+  }
+}
+
 .sb-show-main {
   overflow: auto;
 }
@@ -79,10 +91,6 @@ body {
 
 .graphiql-container .graphiql-editors {
   @apply rounded-none shadow-none !important;
-}
-
-[data-reach-dialog-overlay] {
-  @apply z-[100] bg-greyscaleDark bg-opacity-25 !important;
 }
 
 /* Layout bugs on codemirror */

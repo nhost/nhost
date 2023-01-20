@@ -1,7 +1,7 @@
 import getDesignTokens from '@/theme/getDesignTokens';
 import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
-import { COLOR_MODE_STORAGE_KEY } from '@/utils/CONSTANTS';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import type { DefaultToastOptions } from 'react-hot-toast';
 
 function getToastBackgroundColor() {
@@ -12,7 +12,7 @@ function getToastBackgroundColor() {
     return lightTokens.grey?.[700] || 'rgb(33 50 75)';
   }
 
-  const colorMode = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY);
+  const colorMode = window.localStorage.getItem(COLOR_PREFERENCE_STORAGE_KEY);
 
   if (colorMode === 'dark') {
     return darkTokens.grey?.[400] || 'rgb(33 50 75)';

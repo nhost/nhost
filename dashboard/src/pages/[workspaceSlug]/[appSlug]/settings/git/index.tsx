@@ -45,7 +45,7 @@ export default function SettingsGitPage() {
             Connect to GitHub
           </Button>
         ) : (
-          <Box className="border-greyscaleGreyLight col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
+          <Box className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
             <div className="ml-2 flex flex-row">
               <GithubIcon className="mr-1.5 h-7 w-7 self-center" />
               <Text className="self-center font-normal">

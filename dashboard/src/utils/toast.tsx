@@ -5,16 +5,30 @@ import { ThemeProvider } from '@mui/material';
 import clsx from 'clsx';
 import type { ToastOptions } from 'react-hot-toast';
 import toast from 'react-hot-toast';
-import { COLOR_MODE_STORAGE_KEY } from './CONSTANTS';
+import { COLOR_PREFERENCE_STORAGE_KEY } from './CONSTANTS';
+
+function getColor() {
+  const colorPreference =
+    typeof window !== 'undefined'
+      ? window.localStorage.getItem(COLOR_PREFERENCE_STORAGE_KEY)
+      : 'light';
+  const prefersDarkMode =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : false;
+
+  if (colorPreference === 'system') {
+    return prefersDarkMode ? 'dark' : 'light';
+  }
+
+  return colorPreference as 'light' | 'dark';
+}
 
 export function triggerToast(string: string) {
-  const colorMode =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem(COLOR_MODE_STORAGE_KEY)
-      : 'light';
+  const color = getColor();
 
   toast.custom((t) => (
-    <ThemeProvider theme={createTheme(colorMode as 'dark' | 'light')}>
+    <ThemeProvider theme={createTheme(color)}>
       <Box
         className={clsx(
           'rounded-sm+ px-2 py-1.5 font-normal shadow-md',
@@ -33,14 +47,11 @@ export function triggerToast(string: string) {
 }
 
 export function showLoadingToast(message: string, opts?: ToastOptions) {
-  const colorMode =
-    typeof window !== 'undefined'
-      ? window.localStorage.getItem(COLOR_MODE_STORAGE_KEY)
-      : 'light';
+  const color = getColor();
 
   return toast.custom(
     ({ visible }) => (
-      <ThemeProvider theme={createTheme(colorMode as 'dark' | 'light')}>
+      <ThemeProvider theme={createTheme(color)}>
         <Box
           className={clsx(
             'grid grid-flow-col gap-2 rounded-sm+ px-2 py-1.5 font-normal shadow-md',

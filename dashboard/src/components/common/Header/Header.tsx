@@ -2,6 +2,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Logo from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
+import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import Box from '@/ui/v2/Box';
@@ -80,7 +81,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           </Link>
         </NavLink>
 
-        {isPlatform && <AccountMenu />}
+        {isPlatform ? <AccountMenu /> : <ThemeSwitcher className="w-52" />}
       </div>
 
       <MobileNav className="sm:hidden" />
