@@ -1,15 +1,13 @@
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import type { IconButtonProps } from '@/ui/v2/IconButton';
 import IconButton from '@/ui/v2/IconButton';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import Text from '@/ui/v2/Text';
 import clsx from 'clsx';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 
-export type DataGridPaginationProps = DetailedHTMLProps<
-  HTMLProps<HTMLDivElement>,
-  HTMLDivElement
-> & {
+export interface DataGridPaginationProps extends BoxProps {
   /**
    * Number of pages.
    */
@@ -34,7 +32,7 @@ export type DataGridPaginationProps = DetailedHTMLProps<
    * Props to be passed to the previous button component.
    */
   prevButtonProps?: IconButtonProps;
-};
+}
 
 export default function DataGridPagination({
   className,
@@ -47,9 +45,9 @@ export default function DataGridPagination({
   ...props
 }: DataGridPaginationProps) {
   return (
-    <div
+    <Box
       className={clsx(
-        'grid grid-flow-col items-center justify-around rounded-md border-1 border-transGrey',
+        'grid grid-flow-col items-center justify-around rounded-md border-1',
         className,
       )}
       {...props}
@@ -92,6 +90,6 @@ export default function DataGridPagination({
       >
         <ChevronRightIcon className="h-4 w-4" />
       </IconButton>
-    </div>
+    </Box>
   );
 }

@@ -31,9 +31,12 @@ export default function WorkspaceMemberInvite({
             workspaceMemberInvite={workspaceMemberInvite}
           />
         ) : (
-          <div className="self-center font-display text-sm font-medium capitalize text-blue">
+          <Text
+            className="self-center font-display text-sm font-medium capitalize"
+            sx={{ color: 'primary.main' }}
+          >
             {workspaceMemberInvite.memberType}
-          </div>
+          </Text>
         )}
       </div>
     </div>

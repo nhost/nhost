@@ -428,7 +428,8 @@ function DataBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="delete-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                sx={{ color: 'error.main' }}
                                 onClick={() =>
                                   handleDeleteTableClick(
                                     table.table_schema,

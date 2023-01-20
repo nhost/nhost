@@ -93,6 +93,7 @@ export function Modal({
                   className ||
                     'mt-14 inline-block transform rounded-md shadow-xl transition-all',
                 )}
+                sx={{ backgroundColor: 'transparent' }}
               >
                 {!children ? (
                   <Component close={close} handler={handler} data={data} />

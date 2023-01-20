@@ -5,7 +5,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
-import DelayedLoading from '@/ui/DelayedLoading/DelayedLoading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -61,7 +61,9 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
   }
 
   if (loading) {
-    return <DelayedLoading delay={500} />;
+    return (
+      <ActivityIndicator delay={500} label="Loading GitHub repositories..." />
+    );
   }
 
   if (selectedRepoId !== null) {

@@ -13,6 +13,7 @@ import generateAppServiceUrl, {
 } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { LOCAL_HASURA_URL } from '@/utils/env';
+import { showLoadingToast } from '@/utils/toast';
 import Image from 'next/image';
 
 interface HasuraDataProps {
@@ -92,6 +93,10 @@ export function HasuraData({ close }: HasuraDataProps) {
               </IconButton>
             </div>
           </div>
+
+          <IconButton onClick={() => showLoadingToast('Deleting table...')}>
+            a
+          </IconButton>
         </Box>
 
         <div className="mt-6 grid grid-flow-row gap-2">
@@ -111,7 +116,7 @@ export function HasuraData({ close }: HasuraDataProps) {
             <Button
               variant="outlined"
               color="secondary"
-              className="text-grayscaleDark text-sm+ font-normal"
+              className="text-sm+ font-normal"
               onClick={close}
             >
               Cancel

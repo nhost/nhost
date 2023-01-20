@@ -6,7 +6,7 @@ import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Modal } from '@/ui';
-import DelayedLoading from '@/ui/DelayedLoading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
@@ -90,7 +90,13 @@ function BackupsTable() {
   });
 
   if (loading) {
-    return <DelayedLoading className="my-5" delay={500} />;
+    return (
+      <ActivityIndicator
+        delay={500}
+        className="my-5"
+        label="Loading backups..."
+      />
+    );
   }
 
   if (error) {

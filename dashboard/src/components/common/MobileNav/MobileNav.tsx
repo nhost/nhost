@@ -1,6 +1,7 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
 import FeedbackForm from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
+import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';
 import { useUserDataContext } from '@/context/workspace1-context';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -206,6 +207,14 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
               </ListItem.Button>
             </ListItem.Root>
           </List>
+        </section>
+
+        <section className={twMerge('grid grid-flow-row gap-3')}>
+          <Text variant="h2" className="text-xl font-semibold">
+            Theme
+          </Text>
+
+          <ThemeSwitcher aria-label="Theme" />
         </section>
 
         {isPlatform && (

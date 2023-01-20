@@ -230,9 +230,12 @@ export default function DataGridPreviewCell<TData extends object>({
 
   if (error) {
     return (
-      <div className="grid w-full grid-flow-col items-center justify-center gap-1 text-center text-red">
+      <Box
+        className="grid w-full grid-flow-col items-center justify-center gap-1 text-center"
+        sx={{ color: 'error.main' }}
+      >
         <FileIcon error /> Error
-      </div>
+      </Box>
     );
   }
 
@@ -306,11 +309,14 @@ export default function DataGridPreviewCell<TData extends object>({
           )}
 
           {previewError && (
-            <div className="px-6 py-3.5 pr-12 text-start font-medium text-red">
+            <Box
+              className="px-6 py-3.5 pr-12 text-start font-medium"
+              sx={{ color: 'error.main' }}
+            >
               <p>Error: Preview can&apos;t be loaded.</p>
 
               <p>{previewError.message}</p>
-            </div>
+            </Box>
           )}
 
           {previewUrl && isImage && (

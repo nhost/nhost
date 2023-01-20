@@ -1,4 +1,4 @@
-import Loading from '@/ui/Loading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import createTheme from '@/ui/v2/createTheme';
 import { ThemeProvider } from '@mui/material';
@@ -63,9 +63,9 @@ export function showLoadingToast(message: string, opts?: ToastOptions) {
               theme.palette.mode === 'dark' ? 'grey.400' : 'grey.700',
           }}
         >
-          <Loading color="white" />
-
-          {message}
+          <ThemeProvider theme={createTheme('dark')}>
+            <ActivityIndicator label={message} />
+          </ThemeProvider>
         </Box>
       </ThemeProvider>
     ),

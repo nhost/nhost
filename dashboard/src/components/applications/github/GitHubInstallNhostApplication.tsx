@@ -1,6 +1,6 @@
 import GithubIcon from '@/components/icons/GithubIcon';
+import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
-import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 
 export default function GitHubInstallNhostApplication() {
@@ -19,16 +19,17 @@ export default function GitHubInstallNhostApplication() {
         </Text>
       </div>
 
-      <Link
+      <Button
         href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
+        // Both `target` and `rel` are available when `href` is set. This is
+        // a limitation of MUI.
+        // @ts-ignore
         target="_blank"
         rel="noreferrer noopener"
-        className="mt-2 grid grid-flow-col items-center justify-center gap-1 rounded-[4px] bg-btn p-2 text-sm+ font-medium text-white hover:ring-2 motion-safe:transition-all"
-        underline="none"
+        endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
       >
-        Configure the Nhost application on GitHub{' '}
-        <ArrowSquareOutIcon className="h-4 w-4" />
-      </Link>
+        Configure the Nhost application on GitHub
+      </Button>
     </div>
   );
 }

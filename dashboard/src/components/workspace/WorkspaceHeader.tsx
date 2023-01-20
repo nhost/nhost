@@ -70,12 +70,13 @@ export default function WorkspaceHeader() {
           )}
 
           <div className="flex flex-col items-start pl-3">
-            <h1 className="font-display text-3xl font-medium">
+            <Text variant="h1" className="font-display text-3xl font-medium">
               {currentWorkspace.name}
-            </h1>
-            <button
-              type="button"
-              className="cursor-pointer py-1 pl-1 font-display text-xs font-medium"
+            </Text>
+            <Button
+              variant="borderless"
+              color="secondary"
+              className="py-1 pl-1 font-display text-xs font-medium"
               onClick={() =>
                 copy(
                   `https://app.nhost.io/${currentWorkspace.slug}`,
@@ -83,9 +84,15 @@ export default function WorkspaceHeader() {
                 )
               }
             >
-              <span className="text-grayscale">app.nhost.io/</span>
+              <Text
+                component="span"
+                sx={{ color: 'text.secondary' }}
+                className="text-xs font-medium"
+              >
+                app.nhost.io/
+              </Text>
               {currentWorkspace.slug}
-            </button>
+            </Button>
           </div>
         </div>
 

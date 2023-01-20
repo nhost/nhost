@@ -50,7 +50,7 @@ function SignUpWithGithub({ setSignUpMethod }: any) {
           nhost.auth.signIn({ provider: 'github' });
         }}
       >
-        <GithubIcon className="h-6 w-6 text-white " />
+        <GithubIcon className="h-6 w-6 text-white" />
         <div>Sign Up with GitHub</div>
       </button>
       <div className="mt-2 grid grid-flow-col gap-px items-center justify-center">

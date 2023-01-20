@@ -6,8 +6,8 @@ import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWor
 import { useLazyRefetchUserData } from '@/hooks/useLazyRefetchUserData';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
-import DelayedLoading from '@/ui/DelayedLoading';
 import { Modal } from '@/ui/Modal';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
@@ -609,7 +609,9 @@ export default function NewProjectPage() {
   }
 
   if (loading) {
-    return <DelayedLoading delay={500} />;
+    return (
+      <ActivityIndicator delay={500} label="Loading plans and regions..." />
+    );
   }
 
   const { workspace } = router.query;

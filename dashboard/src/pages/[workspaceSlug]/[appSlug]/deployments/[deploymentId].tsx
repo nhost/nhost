@@ -4,9 +4,9 @@ import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
-import DelayedLoading from '@/ui/DelayedLoading';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
@@ -30,7 +30,7 @@ export default function DeploymentDetailsPage() {
   if (loading) {
     return (
       <Container>
-        <DelayedLoading delay={500} />
+        <ActivityIndicator delay={500} label="Loading deployment..." />
       </Container>
     );
   }
