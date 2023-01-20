@@ -27,7 +27,7 @@ export default function DataBrowserEmptyState({
   return (
     <div
       className={twMerge(
-        'grid w-full place-content-center gap-2 py-16 px-4 text-center text-gray-700',
+        'grid w-full place-content-center gap-2 py-16 px-4 text-center',
         className,
       )}
       {...props}

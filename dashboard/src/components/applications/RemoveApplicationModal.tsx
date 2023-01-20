@@ -88,7 +88,11 @@ export function RemoveApplicationModal({
           {description || 'Are you sure you want to delete this app?'}
         </Text>
 
-        <Text variant="subtitle2" className="font-bold !text-rose-600">
+        <Text
+          variant="subtitle2"
+          className="font-bold"
+          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
+        >
           This cannot be undone.
         </Text>
 
