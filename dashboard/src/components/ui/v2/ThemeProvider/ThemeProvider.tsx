@@ -7,8 +7,7 @@ import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import type { PropsWithChildren } from 'react';
 
 function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
-  const { color, setColorPreference, colorPreferenceStorageKey } =
-    useColorPreference();
+  const { color } = useColorPreference();
   const theme = createTheme(color);
 
   return (
@@ -23,28 +22,6 @@ function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
       />
 
       {children}
-
-      {/* Temporary dark mode toggle button */}
-      <div className="absolute bottom-0 right-0 z-[200000]">
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem(
-                colorPreferenceStorageKey,
-                color === 'dark' ? 'light' : 'dark',
-              );
-            }
-
-            setColorPreference((currentPreference) =>
-              currentPreference === 'dark' ? 'light' : 'dark',
-            );
-          }}
-          className="bg-black text-white border-white border-1"
-        >
-          Toggle Dark Mode
-        </button>
-      </div>
     </MaterialThemeProvider>
   );
 }

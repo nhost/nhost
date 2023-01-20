@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from 'react';
 import { createContext } from 'react';
 
 export interface ColorPreferenceContextProps {
@@ -17,7 +16,7 @@ export interface ColorPreferenceContextProps {
   /**
    * The function used to set the color preference.
    */
-  setColorPreference: Dispatch<SetStateAction<'light' | 'dark' | 'system'>>;
+  setColorPreference: (preference: 'light' | 'dark' | 'system') => void;
   /**
    * The key used to store the color preference in the local storage.
    *

@@ -19,6 +19,6 @@ export const INSUFFICIENT_PERMISSIONS_MESSAGE =
 export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
 
 /**
- * Key used to store the color mode in local storage.
+ * Key used to store the color preference in local storage.
  */
-export const COLOR_MODE_STORAGE_KEY = 'nhost-color-mode';
+export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';

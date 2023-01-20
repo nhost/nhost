@@ -1,6 +1,6 @@
 import useMediaQuery from '@mui/material/useMediaQuery';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ColorPreferenceContext from './ColorPreferenceContext';
 
 export interface ColorPreferenceProviderProps
@@ -31,24 +31,30 @@ function ColorPreferenceProvider({
       colorPreferenceStorageKey,
     );
 
-    if (storedColorPreference === 'system') {
-      setColorPreference(prefersDarkMode ? 'dark' : 'light');
-
-      return;
-    }
-
-    if (storedColorPreference !== 'light' && storedColorPreference !== 'dark') {
+    if (!['light', 'dark', 'system'].includes(storedColorPreference)) {
       setColorPreference('light');
+
       return;
     }
 
-    setColorPreference(storedColorPreference as 'light' | 'dark');
+    setColorPreference(storedColorPreference as typeof colorPreference);
   }, [colorPreferenceStorageKey, prefersDarkMode]);
+
+  const updateColorPreference = useCallback(
+    (preference: typeof colorPreference) => {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(colorPreferenceStorageKey, preference);
+      }
+
+      setColorPreference(preference);
+    },
+    [colorPreferenceStorageKey],
+  );
 
   const memoizedValue = useMemo(() => {
     const returnValues = {
       colorPreference,
-      setColorPreference,
+      setColorPreference: updateColorPreference,
       colorPreferenceStorageKey,
     };
 
@@ -60,7 +66,12 @@ function ColorPreferenceProvider({
     }
 
     return { ...returnValues, color: colorPreference };
-  }, [colorPreference, colorPreferenceStorageKey, prefersDarkMode]);
+  }, [
+    colorPreference,
+    colorPreferenceStorageKey,
+    prefersDarkMode,
+    updateColorPreference,
+  ]);
 
   return (
     <ColorPreferenceContext.Provider value={memoizedValue}>

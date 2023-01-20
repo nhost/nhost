@@ -317,6 +317,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
       tabIndex={isEditable ? 0 : undefined}
       onClick={handleClick}
       role="textbox"
+      sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
       {Children.map(children, (child) => {

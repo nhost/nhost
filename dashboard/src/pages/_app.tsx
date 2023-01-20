@@ -9,7 +9,7 @@ import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import ThemeProvider from '@/ui/v2/ThemeProvider';
-import { COLOR_MODE_STORAGE_KEY } from '@/utils/CONSTANTS';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import type { EmotionCache } from '@emotion/react';
@@ -106,7 +106,9 @@ function MyApp({
                       />
                     )}
 
-                    <ThemeProvider colorModeStorageKey={COLOR_MODE_STORAGE_KEY}>
+                    <ThemeProvider
+                      colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+                    >
                       <DialogProvider>
                         {getLayout(<Component {...pageProps} />)}
                       </DialogProvider>
