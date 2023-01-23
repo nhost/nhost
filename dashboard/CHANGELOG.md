@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.9.10
+
+### Patch Changes
+
+- 4e2f8ccd: fix(dashboard): don't break Auth page in local mode
+
 ## 0.9.9
 
 ### Patch Changes
