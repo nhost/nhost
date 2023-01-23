@@ -6,13 +6,16 @@ import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
-import Box from '@/ui/v2/Box';
 import Link from '@/ui/v2/Link';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { formatDistance } from 'date-fns';
 import Image from 'next/image';
 import NavLink from 'next/link';
+import { Fragment } from 'react';
+import Divider from '../ui/v2/Divider';
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
@@ -97,130 +100,128 @@ export function RenderWorkspacesWithApps({
             return null;
           }
 
+          const workspaceProjects = workspace.applications
+            .filter((app: Application) =>
+              app.name.toLowerCase().includes(query.toLowerCase()),
+            )
+            .sort((appA, appB) => {
+              // sort apps based on either:
+              // 1. When the app was recently deployed, if there is any deployments available
+              // 2. When the app was created
+
+              const appASort =
+                appA.deployments.length > 0
+                  ? new Date(appA.deployments[0].deploymentEndedAt)
+                  : new Date(appA.createdAt);
+
+              const appBSort =
+                appB.deployments.length > 0
+                  ? new Date(appB.deployments[0].deploymentEndedAt)
+                  : new Date(appB.createdAt);
+
+              if (appASort > appBSort) {
+                return -1;
+              }
+              return 1;
+            });
+
           return (
             <div key={workspace.slug} className="my-8">
               <NavLink href={`/${workspace.slug}`} passHref>
                 <Link
-                  href={`/${workspace.slug}`}
-                  className="block mb-1.5 font-medium"
+                  href={`${workspace.slug}`}
+                  className="mb-1.5 block font-medium"
                   underline="none"
                   sx={{ color: 'text.primary' }}
                 >
                   {workspace.name}
                 </Link>
               </NavLink>
-              <Box className="grid grid-flow-row divide-y-1 border-y">
-                {workspace.applications
-                  .filter((app: Application) =>
-                    app.name.toLowerCase().includes(query.toLowerCase()),
-                  )
-                  .sort((appA, appB) => {
-                    // sort apps based on either:
-                    // 1. When the app was recently deployed, if there is any deployments available
-                    // 2. When the app was created
+              <List className="grid grid-flow-row border-y">
+                {workspaceProjects.map((app, index) => {
+                  const isDeployingToProduction = app.deployments[0]
+                    ? app.deployments[0].deploymentStatus === 'DEPLOYING'
+                    : false;
 
-                    const appASort =
-                      appA.deployments.length > 0
-                        ? new Date(appA.deployments[0].deploymentEndedAt)
-                        : new Date(appA.createdAt);
-
-                    const appBSort =
-                      appB.deployments.length > 0
-                        ? new Date(appB.deployments[0].deploymentEndedAt)
-                        : new Date(appB.createdAt);
-
-                    if (appASort > appBSort) {
-                      return -1;
-                    }
-                    return 1;
-                  })
-                  .map((app) => {
-                    const isDeployingToProduction = app.deployments[0]
-                      ? app.deployments[0].deploymentStatus === 'DEPLOYING'
-                      : false;
-
-                    return (
-                      <Box key={app.slug} className="cursor-pointer py-4">
+                  return (
+                    <Fragment key={app.slug}>
+                      <ListItem.Root
+                        secondaryAction={
+                          <div className="grid grid-flow-col gap-px">
+                            {app.deployments[0] && (
+                              <div className="mr-2 flex self-center align-middle">
+                                <StatusCircle
+                                  status={
+                                    app.deployments[0]
+                                      .deploymentStatus as DeploymentStatus
+                                  }
+                                />
+                              </div>
+                            )}
+                            <StateBadge
+                              status={checkStatusOfTheApplication(
+                                app.appStates,
+                              )}
+                              title={getApplicationStatusString(
+                                checkStatusOfTheApplication(app.appStates),
+                              )}
+                            />
+                          </div>
+                        }
+                      >
                         <NavLink
                           href={`${workspace?.slug}/${app.slug}`}
                           passHref
                         >
-                          <a
-                            href={`${workspace?.slug}/${app.slug}`}
-                            className="flex place-content-between rounded-sm px-2"
-                          >
-                            <div className="flex w-full flex-col self-center">
-                              <div className="flex w-full flex-row place-content-between">
-                                <div className="flex flex-row items-center self-center">
-                                  <div className="h-10 w-10 overflow-hidden rounded-lg">
-                                    <Image
-                                      src="/logos/new.svg"
-                                      alt="Nhost Logo"
-                                      width={40}
-                                      height={40}
-                                    />
-                                  </div>
-                                  <div className="ml-2 flex flex-col text-left">
-                                    <Text className="text-left font-medium capitalize">
-                                      {app.name}
-                                    </Text>
-
-                                    <div>
-                                      {isDeployingToProduction && (
-                                        <CurrentDeployment
-                                          deployment={app.deployments[0]}
-                                        />
-                                      )}
-
-                                      {!isDeployingToProduction &&
-                                        app.deployments[0] && (
-                                          <LastSuccesfulDeployment
-                                            deployment={app.deployments[0]}
-                                          />
-                                        )}
-
-                                      {!isDeployingToProduction &&
-                                        !app.deployments[0] && (
-                                          <ApplicationCreatedAt
-                                            createdAt={app.createdAt}
-                                          />
-                                        )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-row">
-                                  <div className="flex self-center align-middle">
-                                    {app.deployments[0] && (
-                                      <div className="mr-2 flex self-center align-middle">
-                                        <StatusCircle
-                                          status={
-                                            app.deployments[0]
-                                              .deploymentStatus as DeploymentStatus
-                                          }
-                                        />
-                                      </div>
-                                    )}
-                                    <StateBadge
-                                      status={checkStatusOfTheApplication(
-                                        app.appStates,
-                                      )}
-                                      title={getApplicationStatusString(
-                                        checkStatusOfTheApplication(
-                                          app.appStates,
-                                        ),
-                                      )}
-                                    />
-                                  </div>
-                                </div>
+                          <ListItem.Button className="rounded-none">
+                            <ListItem.Avatar>
+                              <div className="h-10 w-10 overflow-hidden rounded-lg">
+                                <Image
+                                  src="/logos/new.svg"
+                                  alt="Nhost Logo"
+                                  width={40}
+                                  height={40}
+                                />
                               </div>
-                            </div>
-                          </a>
+                            </ListItem.Avatar>
+
+                            <ListItem.Text
+                              primary={app.name}
+                              secondary={
+                                <>
+                                  {isDeployingToProduction && (
+                                    <CurrentDeployment
+                                      deployment={app.deployments[0]}
+                                    />
+                                  )}
+
+                                  {!isDeployingToProduction &&
+                                    app.deployments[0] && (
+                                      <LastSuccesfulDeployment
+                                        deployment={app.deployments[0]}
+                                      />
+                                    )}
+
+                                  {!isDeployingToProduction &&
+                                    !app.deployments[0] && (
+                                      <ApplicationCreatedAt
+                                        createdAt={app.createdAt}
+                                      />
+                                    )}
+                                </>
+                              }
+                            />
+                          </ListItem.Button>
                         </NavLink>
-                      </Box>
-                    );
-                  })}
-              </Box>
+                      </ListItem.Root>
+
+                      {index < workspaceProjects.length - 1 && (
+                        <Divider component="li" />
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </List>
             </div>
           );
         })}
