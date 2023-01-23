@@ -149,7 +149,7 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <div className="w-modal2 px-6 pt-6 pb-6 text-left">
+    <Box className="w-modal2 px-6 pt-6 pb-6 text-left rounded-lg">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
           <Text className="text-center text-lg font-medium">
@@ -195,7 +195,7 @@ function AddPaymentMethodForm({
           </div>
         </form>
       </div>
-    </div>
+    </Box>
   );
 }
 

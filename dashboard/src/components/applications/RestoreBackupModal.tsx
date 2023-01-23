@@ -53,7 +53,7 @@ export function RestoreBackupModal({
 
   if (mutationIsCompleted) {
     return (
-      <div className="w-modal p-6">
+      <Box className="w-modal p-6 rounded-lg">
         <div className="flex flex-col">
           <Text className="text-center font-medium text-lg">
             The backup has been restored successfully.
@@ -63,12 +63,12 @@ export function RestoreBackupModal({
             OK
           </Button>
         </div>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="w-modal px-6 py-6 text-left">
+    <Box className="w-modal px-6 py-6 text-left rounded-lg">
       <div className="flex flex-col">
         <Text className="text-center text-lg font-medium">
           Restore Database Backup
@@ -89,9 +89,9 @@ export function RestoreBackupModal({
           />
         </Box>
         <Button onClick={handleSubmit} disabled={!isSure} loading={loading}>
-          Restore this database backup
+          Restore
         </Button>
       </div>
-    </div>
+    </Box>
   );
 }
