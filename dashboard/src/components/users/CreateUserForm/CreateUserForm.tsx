@@ -1,7 +1,6 @@
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
@@ -61,10 +60,6 @@ export default function CreateUserForm({
     resolver: yupResolver(CreateUserFormValidationSchema),
   });
 
-  if (!currentApplication) {
-    return <ActivityIndicator label="Loading project..." />;
-  }
-
   const {
     register,
     formState: { errors, isSubmitting },
@@ -72,8 +67,8 @@ export default function CreateUserForm({
   } = form;
 
   const baseAuthUrl = generateAppServiceUrl(
-    currentApplication.subdomain,
-    currentApplication.region.awsName,
+    currentApplication?.subdomain,
+    currentApplication?.region?.awsName,
     'auth',
   );
 
