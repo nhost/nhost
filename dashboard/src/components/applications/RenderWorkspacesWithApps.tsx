@@ -6,6 +6,7 @@ import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
+import Divider from '@/ui/v2/Divider';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
@@ -15,7 +16,6 @@ import { formatDistance } from 'date-fns';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
-import Divider from '../ui/v2/Divider';
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
