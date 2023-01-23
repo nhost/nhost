@@ -7,12 +7,14 @@ import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
 import DotsHorizontalIcon from '@/ui/v2/icons/DotsHorizontalIcon';
 import TrashIcon from '@/ui/v2/icons/TrashIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
@@ -21,9 +23,6 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ApolloQueryResult } from '@apollo/client';
 import { Avatar } from '@mui/material';
 import { formatDistance } from 'date-fns';
@@ -77,7 +76,7 @@ export default function UsersBody({
    * in the drawer form.
    */
   const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
+    variables: { id: currentApplication?.id },
   });
 
   const allAvailableProjectRoles = useMemo(
