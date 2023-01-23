@@ -142,7 +142,7 @@ export default function EditUserForm({
   }
 
   const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
+    variables: { id: currentApplication?.id },
   });
 
   const allAvailableProjectRoles = getUserRoles(

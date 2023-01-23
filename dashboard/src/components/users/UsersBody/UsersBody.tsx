@@ -80,7 +80,7 @@ export default function UsersBody({
    * in the drawer form.
    */
   const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
+    variables: { id: currentApplication?.id },
   });
 
   const allAvailableProjectRoles = useMemo(
