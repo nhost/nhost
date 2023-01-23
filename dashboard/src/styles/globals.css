@@ -49,6 +49,17 @@ body {
 
 /* GraphiQL overrides */
 
+#__next .dark .graphiql-container {
+  --color-primary: 349, 87%, 57%;
+  --color-secondary: 263, 63%, 66%;
+  --color-tertiary: 172, 66%, 50%;
+  --color-info: 216, 100%, 61%;
+  --color-neutral: 210, 17%, 93%;
+  --color-base: 216, 25%, 12%;
+  --color-warning: 32, 100%, 57%;
+  --color-success: 149, 55%, 60%;
+}
+
 .graphiql-container {
   @apply h-auto flex-1 !important;
 }

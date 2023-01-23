@@ -322,44 +322,31 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
       mainContainerProps={{
         className: 'flex flex-col',
         sx: {
-          [`& .graphiql-container .graphiql-main`]: {
-            backgroundColor: 'background.default',
-          },
-          [`& .graphiql-container .graphiql-sessions`]: {
-            backgroundColor: 'background.default',
-          },
-          [`& .graphiql-container .graphiql-editors`]: {
-            backgroundColor: 'background.paper',
-          },
-          [`& .graphiql-container .graphiql-editor`]: {
-            backgroundColor: 'background.paper',
-          },
-          [`& .graphiql-container .CodeMirror`]: {
-            backgroundColor: 'background.paper',
-          },
-          [`& .graphiql-container .CodeMirror-gutters`]: {
-            backgroundColor: 'background.paper',
-          },
-          [`& .graphiql-container .CodeMirror-linenumber`]: {
-            color: 'text.disabled',
-          },
-          [`& .graphiql-container .graphiql-doc-explorer`]: {
-            backgroundColor: 'background.paper',
-          },
-          [`& .graphiql-container .graphiql-tabs button`]: {
-            outline: 'none',
-          },
-          [`& .graphiql-container .graphiql-tabs button.graphiql-tab`]: {
-            color: 'text.disabled',
-          },
-          [`& .graphiql-container .graphiql-tabs button.graphiql-tab-active`]: {
-            color: 'text.secondary',
-          },
-          [`& .graphiql-container .graphiql-editor-tools-tabs button`]: {
-            color: 'text.disabled',
-          },
-          [`& .graphiql-container .graphiql-editor-tools-tabs button.active`]: {
-            color: 'text.secondary',
+          [`& .graphiql-container`]: {
+            [`& .graphiql-main, & .graphiql-sessions`]: {
+              backgroundColor: 'background.default',
+            },
+            [`& .graphiql-editors, & .graphiql-editor, & .CodeMirror, & .CodeMirror-gutters, & .graphiql-container .graphiql-doc-explorer, & .graphiql-doc-explorer-search-input + div > ul, & .cm-searching`]:
+              {
+                backgroundColor: 'background.paper',
+              },
+            [`& .CodeMirror-linenumber, & .CodeMirror-line, & .graphiql-tabs button.graphiql-tab, & .graphiql-editor-tools-tabs button`]:
+              {
+                color: 'text.disabled',
+              },
+            [`& .graphiql-editor-tools-tabs button.active, & .graphiql-tabs button.graphiql-tab-active, & .graphiql-markdown-description, & .graphiql-doc-explorer-section-title`]:
+              {
+                color: 'text.secondary',
+              },
+            [`& .graphiql-doc-explorer .graphiql-doc-explorer-header`]: {
+              color: 'text.primary',
+            },
+            [`& .graphiql-tabs button`]: {
+              outline: 'none',
+            },
+            [`& .CodeMirror-hint`]: {
+              borderColor: `grey.300`,
+            },
           },
         },
       }}
