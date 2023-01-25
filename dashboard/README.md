@@ -41,7 +41,7 @@ NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1
 NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1
 NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run
 NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run/v1/migrations
-NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL=https://local.hasura.nhost.run/v1/schema
+NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run
 ```
 
 This will connect the Nhost Dashboard to your locally running Nhost backend.
@@ -71,9 +71,9 @@ pnpm storybook
 | `NEXT_PUBLIC_NHOST_FUNCTIONS_URL` | The URL of the Functions service. When working locally, point it to the Functions service started by the CLI. When self-hosting, point it to the self-hosted Functions service. |
 | `NEXT_PUBLIC_NHOST_GRAPHQL_URL` | The URL of the GraphQL service. When working locally, point it to the GraphQL service started by the CLI. When self-hosting, point it to the self-hosted GraphQL service. |
 | `NEXT_PUBLIC_NHOST_STORAGE_URL` | The URL of the Storage service. When working locally, point it to the Storage service started by the CLI. When self-hosting, point it to the self-hosted Storage service. |
-| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL` | TBD |
-| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | TBD |
-| `NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL` | TBD |
+| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL` | The URL of the Hasura Console. When working locally, point it to the Hasura Console started by the CLI. When self-hosting, point it to the self-hosted Hasura Console. |
+| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI. |
+| `NEXT_PUBLIC_NHOST_HASURA_API_URL` | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
 
 ### Other Environment Variables
 

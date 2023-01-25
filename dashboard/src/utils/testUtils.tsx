@@ -43,7 +43,7 @@ process.env = {
   NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://localdev.nhost.run/v1/storage',
   NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'http://localhost:9695',
   NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'http://localhost:9693',
-  NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL: 'http://localhost:8080',
+  NEXT_PUBLIC_NHOST_HASURA_API_URL: 'http://localhost:8080',
 };
 
 const mockRouter: NextRouter = {

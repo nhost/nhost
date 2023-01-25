@@ -20,7 +20,7 @@ beforeEach(() => {
     NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://localdev.nhost.run/v1/storage',
     NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'http://localhost:9695',
     NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'http://localhost:9693',
-    NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL: 'http://localhost:8080',
+    NEXT_PUBLIC_NHOST_HASURA_API_URL: 'http://localhost:8080',
     ...env,
   };
 });
@@ -80,7 +80,7 @@ test('should generate staging subdomains in staging environment', () => {
 });
 
 test('should generate no slug for Hasura neither in local mode nor in remote mode', () => {
-  process.env.NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL = 'http://localhost:8082';
+  process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL = 'http://localhost:8082';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'http://localhost:8082',
@@ -116,8 +116,7 @@ test('should be able to override the default remote backend slugs', () => {
 });
 
 test('should construct service URLs based on environment variables', () => {
-  process.env.NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL =
-    'https://localdev0.nhost.run';
+  process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL = 'https://localdev0.nhost.run';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     `https://localdev0.nhost.run`,

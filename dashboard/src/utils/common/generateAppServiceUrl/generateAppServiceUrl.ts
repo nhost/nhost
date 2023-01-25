@@ -2,7 +2,7 @@ import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
-  getHasuraSchemaApiUrl,
+  getHasuraApiUrl,
   getStorageServiceUrl,
   isPlatform,
 } from '@/utils/env';
@@ -65,7 +65,7 @@ export default function generateAppServiceUrl(
       graphql: getGraphqlServiceUrl(),
       storage: getStorageServiceUrl(),
       functions: getFunctionsServiceUrl(),
-      hasura: getHasuraSchemaApiUrl(),
+      hasura: getHasuraApiUrl(),
     };
 
     if (!serviceUrls[service]) {

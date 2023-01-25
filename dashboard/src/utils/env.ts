@@ -84,9 +84,9 @@ export function getHasuraMigrationsApiUrl() {
 /**
  * Custom URL of the Hasura Schema and Metadata API.
  */
-export function getHasuraSchemaApiUrl() {
+export function getHasuraApiUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_HASURA_SCHEMA_API_URL ||
-    'https://local.hasura.nhost.run/v1/schema'
+    process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL ||
+    'https://local.hasura.nhost.run'
   );
 }
