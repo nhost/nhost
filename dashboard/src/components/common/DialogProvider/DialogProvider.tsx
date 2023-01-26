@@ -9,6 +9,7 @@ import CreatePermissionVariableForm from '@/components/settings/permissions/Crea
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
+import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
 import CreateUserForm from '@/components/users/CreateUserForm';
 import EditUserForm from '@/components/users/EditUserForm';
 import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
@@ -416,6 +417,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_JWT_SECRET' && (
             <EditJwtSecretForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'CREATE_SECRET' && (
+            <CreateSecretForm {...sharedDialogProps} />
           )}
         </RetryableErrorBoundary>
       </BaseDialog>

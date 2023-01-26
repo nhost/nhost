@@ -179,6 +179,14 @@ export default function SettingsSidebar({
             >
               Environment Variables
             </SettingsNavLink>
+
+            <SettingsNavLink
+              href="/secrets"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Secrets
+            </SettingsNavLink>
           </List>
         </nav>
       </Box>
