@@ -30,8 +30,12 @@ import (
 	"fmt"
 	"github.com/nhost/cli/internal/git"
 	"github.com/nhost/cli/internal/ports"
+	nhostssl "github.com/nhost/cli/internal/ssl"
+	"github.com/nhost/cli/nhost/compose"
+	"net"
 	"os"
 	"os/signal"
+	"path"
 	"reflect"
 	"strings"
 	"syscall"
@@ -103,9 +107,23 @@ var devCmd = &cobra.Command{
 
 		return nil
 	},
+	PostRunE: func(cmd *cobra.Command, args []string) error {
+		// get current PWD
+		pwd, err := os.Getwd()
+		if err != nil {
+			log.Debug(err)
+			return err
+		}
+
+		return os.RemoveAll(path.Join(pwd, ".nhost", "traefik"))
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// add a line-break after the command
 		fmt.Println()
+
+		if err := checkHostnames(); err != nil {
+			os.Exit(1)
+		}
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
@@ -131,7 +149,8 @@ var devCmd = &cobra.Command{
 		}
 
 		debug := logger.DEBUG
-		hc, err := hasura.InitClient(fmt.Sprintf("http://localhost:%d", ports.GraphQL()), util.ADMIN_SECRET, viper.GetString(userDefinedHasuraCliFlag), nil)
+
+		hc, err := hasura.InitClient(compose.HasuraAPIHostname(ports.GraphQL()), util.ADMIN_SECRET, viper.GetString(userDefinedHasuraCliFlag), nil)
 		if err != nil {
 			return fmt.Errorf("failed to init hasura client: %v", err)
 		}
@@ -156,7 +175,14 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to get current working directory: %v", err)
 		}
 
-		dcMgr, err := service.NewDockerComposeManager(config, cwd, hc, ports, env, gitBranchName,
+		dcMgr, err := service.NewDockerComposeManager(
+			nhostssl.NewNhostSSLCert(),
+			config,
+			cwd,
+			hc,
+			ports,
+			env,
+			gitBranchName,
 			projectName,
 			log,
 			status,
@@ -193,7 +219,7 @@ var devCmd = &cobra.Command{
 				openURL := launcher.HasuraConsoleURL()
 
 				if uiType(uiTypeValue).IsNhost() {
-					openURL = fmt.Sprintf("http://localhost:%d", ports.Dashboard())
+					openURL = compose.DashboardHostname(ports.SSLProxy())
 				}
 
 				_ = openbrowser(openURL)
@@ -224,11 +250,45 @@ var devCmd = &cobra.Command{
 	},
 }
 
+func checkHostnames() error {
+	hostnames := []string{compose.HostLocalDashboardNhostRun, compose.HostLocalGraphqlNhostRun, compose.HostLocalAuthNhostRun, compose.HostLocalStorageNhostRun, compose.HostLocalFunctionsNhostRun, compose.HostLocalMailNhostRun}
+
+	for _, hostname := range hostnames {
+		_, err := net.LookupIP(compose.HostLocalDashboardNhostRun)
+		if err != nil {
+			logger.DEBUG = false
+			fmt.Println(fmt.Sprintf(`Failed to resolve '%s' hostname
+
+Make sure that you have internet connection.
+
+If you want to use CLI offline, make sure to add the following lines in /etc/hosts:
+
+%s
+`, hostname, offlineConfigForSslHostnames(hostnames)))
+			return fmt.Errorf("failed to resolve '%s' hostname: %v", hostname, err)
+		}
+	}
+
+	return nil
+}
+
+func offlineConfigForSslHostnames(hostnames []string) string {
+	lines := []string{}
+	for _, hostname := range hostnames {
+		lines = append(lines, fmt.Sprintf("127.0.0.1	%s", hostname))
+	}
+	return strings.Join(lines, "\n")
+}
+
 func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
-	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort, dashboardPort uint32
+	var proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port uint32
 	var err error
 
 	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
+		return nil, err
+	}
+
+	if sslProxyPort, err = fs.GetUint32(ports.FlagSSLPortProxy); err != nil {
 		return nil, err
 	}
 
@@ -256,15 +316,7 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
-	if mailhogPort, err = fs.GetUint32(ports.FlagPortMailhog); err != nil {
-		return nil, err
-	}
-
-	if dashboardPort, err = fs.GetUint32(ports.FlagPortDashboard); err != nil {
-		return nil, err
-	}
-
-	return ports.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort, dashboardPort), nil
+	return ports.NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port), nil
 }
 
 type Printer struct {
@@ -302,14 +354,13 @@ func init() {
 	rootCmd.AddCommand(devCmd)
 
 	devCmd.PersistentFlags().Uint32P(ports.FlagPortProxy, "p", ports.DefaultProxyPort, "Port for dev proxy")
+	devCmd.PersistentFlags().Uint32(ports.FlagSSLPortProxy, ports.DefaultSSLProxyPort, "SSL port for dev proxy")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortDB, ports.DefaultDBPort, "Port for database")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortGraphQL, ports.DefaultGraphQLPort, "Port for graphql server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsole, ports.DefaultHasuraConsolePort, "Port for hasura console")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsoleAPI, ports.DefaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
-	devCmd.PersistentFlags().Uint32(ports.FlagPortMailhog, ports.DefaultMailhogPort, "Port for mailhog UI")
-	devCmd.PersistentFlags().Uint32(ports.FlagPortDashboard, ports.DefaultDashboardPort, "Port for dashboard UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 	devCmd.PersistentFlags().StringVar(&uiTypeValue, uiTypeFlag, uiTypeHasura.String(), "UI type, possible values: [hasura, nhost]")

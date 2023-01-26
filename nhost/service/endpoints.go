@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/nhost/cli/nhost/compose"
 	"io"
 )
 
@@ -46,5 +47,5 @@ URLs:
 - subdomain:		%s
 - region:		(empty)
 
-`, e.db, e.graphql, e.auth, e.storage, e.functions, e.dashboard, e.console, e.mailhog, "localhost")
+`, e.db, e.graphql, e.auth, e.storage, e.functions, e.dashboard, e.console, e.mailhog, compose.HostLocalDashboardNhostRun)
 }

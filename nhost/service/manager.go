@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	nhostssl "github.com/nhost/cli/internal/ssl"
 	"net/http"
 	"os"
 	"os/exec"
@@ -36,9 +37,9 @@ type Manager interface {
 	Endpoints() *Endpoints
 }
 
-func NewDockerComposeManager(c *nhost.Configuration, workdir string, hc *hasura.Client, p *ports.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
+func NewDockerComposeManager(cert *nhostssl.SSLCert, c *nhost.Configuration, workdir string, hc *hasura.Client, p *ports.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
 	dcConf := compose.NewConfig(c, p, env, gitBranch, projectName)
-	w, err := compose.InitWrapper(workdir, gitBranch, dcConf)
+	w, err := compose.InitWrapper(workdir, cert, gitBranch, dcConf)
 	if err != nil {
 		return nil, err
 	}
@@ -237,13 +238,13 @@ func (m *dockerComposeManager) HasuraConsoleURL() string {
 func (m *dockerComposeManager) Endpoints() *Endpoints {
 	return newEndpoints(
 		m.composeConfig.PublicPostgresConnectionString(),
-		m.composeConfig.PublicHasuraConnectionString(),
+		m.composeConfig.PublicHasuraGraphqlEndpoint(),
 		m.composeConfig.PublicAuthConnectionString(),
 		m.composeConfig.PublicStorageConnectionString(),
 		m.composeConfig.PublicFunctionsConnectionString(),
 		m.HasuraConsoleURL(),
 		m.composeConfig.DashboardURL(),
-		fmt.Sprintf("http://localhost:%d", m.ports.Mailhog()),
+		m.composeConfig.PublicMailURL(),
 	)
 }
 
@@ -441,7 +442,7 @@ func (m *dockerComposeManager) restartContainers(ctx context.Context, ds *compos
 
 func (m *dockerComposeManager) hasuraHealthcheck(ctx context.Context) (bool, error) {
 	// GET /healthz and check for 200
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/healthz", m.ports.GraphQL()), http.NoBody)
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/healthz", compose.HostLocalDashboardNhostRun, m.ports.GraphQL()), http.NoBody)
 	if err != nil {
 		return false, err
 	}
