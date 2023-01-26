@@ -154,10 +154,10 @@ export default function RoleSettings() {
       description="Roles are used to control access to your application."
       docsLink="https://docs.nhost.io/authentication/users#roles"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <Box className="px-4 py-3 border-b-1">
+      <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
       </Box>
 
@@ -172,7 +172,7 @@ export default function RoleSettings() {
                     <Dropdown.Trigger
                       asChild
                       hideChevron
-                      className="absolute -translate-y-1/2 right-4 top-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       <IconButton variant="borderless" color="secondary">
                         <DotsVerticalIcon />
@@ -210,10 +210,7 @@ export default function RoleSettings() {
                         disabled={role.isSystemRole}
                         onClick={() => handleConfirmDelete(role)}
                       >
-                        <Text
-                          className="font-medium"
-                          sx={{ color: 'error.main' }}
-                        >
+                        <Text className="font-medium" color="error">
                           Delete
                         </Text>
                       </Dropdown.Item>
@@ -230,7 +227,7 @@ export default function RoleSettings() {
                     <>
                       {role.name}
 
-                      {role.isSystemRole && <LockIcon className="w-4 h-4" />}
+                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
                       {data?.app?.authUserDefaultRole === role.name && (
                         <Chip

@@ -51,7 +51,7 @@ export function FunctionsLogsTerminalPage({ functionName }: any) {
           className="h-terminal overflow-auto rounded-lg px-4 py-4 font-mono shadow-sm"
           sx={{ backgroundColor: 'grey.200' }}
         >
-          <Text className="font-mono text-xs" sx={{ color: 'text.disabled' }}>
+          <Text className="font-mono text-xs" color="disabled">
             There are no stored logs yet. Try calling your function for logs to
             appear.
           </Text>
@@ -74,11 +74,7 @@ export function FunctionsLogsTerminalPage({ functionName }: any) {
           >
             <div id={`#-${log.date}`}>
               <pre className="inline">
-                <Text
-                  component="span"
-                  className="mr-4"
-                  sx={{ color: 'text.disabled' }}
-                >
+                <Text component="span" className="mr-4" color="disabled">
                   {log.date}
                 </Text>{' '}
                 <span>

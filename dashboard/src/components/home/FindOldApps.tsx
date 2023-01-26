@@ -4,7 +4,7 @@ import Text from '@/ui/v2/Text';
 export function FindOldApps() {
   return (
     <div className="mt-4">
-      <Text className="font-medium" sx={{ color: 'text.secondary' }}>
+      <Text className="font-medium" color="secondary">
         Looking for your old apps? They&apos;re still on{' '}
         <span className="pb-0.25">
           <Link

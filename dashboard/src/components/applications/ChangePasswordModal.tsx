@@ -51,7 +51,7 @@ export function ChangePasswordModal({ close }: any) {
   };
 
   return (
-    <Box className="w-full max-w-md px-6 py-6 text-left rounded-md">
+    <Box className="w-full max-w-md rounded-md px-6 py-6 text-left">
       <form onSubmit={handleSubmit}>
         <div className="grid grid-flow-row gap-4">
           <div className="grid grid-flow-row gap-2">
@@ -93,10 +93,7 @@ export function ChangePasswordModal({ close }: any) {
 
           <div className="grid grid-flow-row gap-2">
             {formState.error && (
-              <Text
-                className="w-full px-4 text-center"
-                sx={{ color: 'error.main' }}
-              >
+              <Text className="w-full px-4 text-center" color="error">
                 Error: {formState.error}
               </Text>
             )}

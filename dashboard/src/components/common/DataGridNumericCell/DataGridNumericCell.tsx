@@ -71,7 +71,7 @@ export default function DataGridNumericCell<TData extends object>({
         onKeyDown={handleKeyDown}
         onChange={handleChange}
         fullWidth
-        className="absolute top-0 z-10 h-full -mx-0.5 place-content-stretch"
+        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
         sx={{
           [`&.${inputClasses.focused}`]: {
             boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
@@ -100,15 +100,11 @@ export default function DataGridNumericCell<TData extends object>({
 
   if (optimisticValue === null || typeof optimisticValue === 'undefined') {
     return (
-      <Text className="truncate !text-xs" sx={{ color: 'text.disabled' }}>
+      <Text className="truncate !text-xs" color="disabled">
         null
       </Text>
     );
   }
 
-  return (
-    <Text className="truncate !text-xs" sx={{ color: 'text.primary' }}>
-      {optimisticValue}
-    </Text>
-  );
+  return <Text className="truncate !text-xs">{optimisticValue}</Text>;
 }

@@ -202,7 +202,7 @@ function DataBrowserSidebarContent({
   ) {
     openDrawer('EDIT_PERMISSIONS', {
       title: (
-        <span className="inline-grid grid-flow-col gap-2 items-center">
+        <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           <Chip label="Preview" size="small" color="info" component="span" />
@@ -232,7 +232,7 @@ function DataBrowserSidebarContent({
       {schemas && schemas.length > 0 && (
         <Select
           renderValue={(option) => (
-            <span className="grid grid-flow-col gap-1 items-center">
+            <span className="grid grid-flow-col items-center gap-1">
               {option?.label}
             </span>
           )}
@@ -245,12 +245,12 @@ function DataBrowserSidebarContent({
         >
           {schemas.map((schema) => (
             <Option
-              className="grid grid-flow-col gap-1 items-center"
+              className="grid grid-flow-col items-center gap-1"
               value={schema.schema_name}
               key={schema.schema_name}
             >
               <Text className="text-sm">
-                <Text component="span" sx={{ color: 'text.disabled' }}>
+                <Text component="span" color="disabled">
                   schema.
                 </Text>
                 <Text component="span" className="font-medium">
@@ -310,7 +310,7 @@ function DataBrowserSidebarContent({
       )}
 
       {schemas && schemas.length > 0 && tablesInSelectedSchema.length === 0 && (
-        <Text className="py-1.5 px-2 text-xs" sx={{ color: 'text.disabled' }}>
+        <Text className="py-1.5 px-2 text-xs" color="disabled">
           No tables found.
         </Text>
       )}

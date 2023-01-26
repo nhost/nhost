@@ -22,11 +22,11 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
         )}
         {...props}
       >
-        <Text sx={{ color: 'text.disabled' }}>/</Text>
+        <Text color="disabled">/</Text>
 
         <Text className="truncate text-[13px] sm:text-sm">local</Text>
 
-        <Text sx={{ color: 'text.disabled' }}>/</Text>
+        <Text color="disabled">/</Text>
 
         <NavLink
           href="/local/local"
@@ -48,7 +48,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
     >
       {currentWorkspace && (
         <>
-          <Text sx={{ color: 'text.disabled' }}>/</Text>
+          <Text color="disabled">/</Text>
 
           <NavLink
             href={`/${currentWorkspace.slug}`}
@@ -61,7 +61,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
 
       {currentApplication && (
         <>
-          <Text sx={{ color: 'text.disabled' }}>/</Text>
+          <Text color="disabled">/</Text>
 
           <NavLink
             href={`/${currentWorkspace.slug}/${currentApplication.slug}`}

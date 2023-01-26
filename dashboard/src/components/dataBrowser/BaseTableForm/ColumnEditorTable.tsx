@@ -30,7 +30,7 @@ export default function ColumnEditorTable() {
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Name
-              <Text component="span" sx={{ color: 'error.main' }}>
+              <Text component="span" color="error">
                 *
               </Text>
             </InputLabel>
@@ -39,7 +39,7 @@ export default function ColumnEditorTable() {
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Type
-              <Text component="span" sx={{ color: 'error.main' }}>
+              <Text component="span" color="error">
                 *
               </Text>
             </InputLabel>

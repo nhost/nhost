@@ -17,8 +17,8 @@ function AllWorkspaceApps() {
 
   if (noApplications) {
     return (
-      <Box className="flex flex-row py-4 border-y">
-        <Text className="text-xs" sx={{ color: 'text.secondary' }}>
+      <Box className="flex flex-row border-y py-4">
+        <Text className="text-xs" color="secondary">
           No projects on this workspace.
         </Text>
       </Box>
@@ -34,7 +34,7 @@ function AllWorkspaceApps() {
           <ListItem.Root>
             <NavLink href={`${currentWorkspace?.slug}/${app.slug}`} passHref>
               <ListItem.Button className="grid grid-flow-col justify-between gap-2">
-                <div className="grid grid-flow-col gap-2 items-center">
+                <div className="grid grid-flow-col items-center gap-2">
                   <div className="h-8 w-8 overflow-hidden rounded-lg">
                     <Image
                       src="/logos/new.svg"
@@ -65,7 +65,7 @@ export default function WorkspaceApps() {
     <div className="mt-9">
       <div className="mx-auto max-w-3xl font-display">
         <div className="mb-4 flex flex-row place-content-between">
-          <Text className="font-medium text-lg">Projects</Text>
+          <Text className="text-lg font-medium">Projects</Text>
           <NavLink
             href={{
               pathname: '/new',

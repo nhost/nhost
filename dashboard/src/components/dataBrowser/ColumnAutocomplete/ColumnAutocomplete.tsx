@@ -302,9 +302,9 @@ function ColumnAutocomplete(
                 sx={{
                   color: props.disabled ? 'text.disabled' : 'text.primary',
                 }}
-                className="!ml-2 lg:max-w-[200px] flex-shrink-0 truncate"
+                className="!ml-2 flex-shrink-0 truncate lg:max-w-[200px]"
               >
-                <Text component="span" sx={{ color: 'text.disabled' }}>
+                <Text component="span" color="disabled">
                   {defaultTable}
                 </Text>
                 .
@@ -349,7 +349,7 @@ function ColumnAutocomplete(
           }}
         >
           <Box
-            className="px-3 py-2.5 border-b-1 grid grid-flow-col gap-2 justify-start items-center"
+            className="grid grid-flow-col items-center justify-start gap-2 border-b-1 px-3 py-2.5"
             sx={{ backgroundColor: 'transparent' }}
           >
             {selectedRelationships.length > 0 && (
@@ -366,12 +366,12 @@ function ColumnAutocomplete(
                   );
                 }}
               >
-                <ArrowLeftIcon className="w-4 h-4" />
+                <ArrowLeftIcon className="h-4 w-4" />
               </IconButton>
             )}
 
-            <Text className="truncate direction-rtl text-left">
-              <Text component="span" sx={{ color: 'text.disabled' }}>
+            <Text className="direction-rtl truncate text-left">
+              <Text component="span" color="disabled">
                 {defaultTable}
               </Text>
 

@@ -113,7 +113,7 @@ export default function EmailAndPasswordSettings() {
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Require Verified Emails</Text>
-                <Text component="span" sx={{ color: 'text.secondary' }}>
+                <Text component="span" color="secondary">
                   Users must verify their email to be able to sign in.
                 </Text>
               </span>
@@ -126,7 +126,7 @@ export default function EmailAndPasswordSettings() {
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Password Protection</Text>
-                <Text component="span" sx={{ color: 'text.secondary' }}>
+                <Text component="span" color="secondary">
                   Passwords must pass haveibeenpwned.com during sign-up.
                 </Text>
               </span>

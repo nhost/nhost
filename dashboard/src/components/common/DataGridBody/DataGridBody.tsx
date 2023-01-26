@@ -40,9 +40,9 @@ function InsertPlaceholderTableRow({
         onClick={onInsertRow}
         variant="borderless"
         color="secondary"
-        className="justify-start w-full h-full px-2 py-3 text-xs font-normal rounded-none hover:shadow-none focus:shadow-none focus:outline-none"
+        className="h-full w-full justify-start rounded-none px-2 py-3 text-xs font-normal hover:shadow-none focus:shadow-none focus:outline-none"
         startIcon={
-          <PlusIcon className="w-4 h-4" sx={{ color: 'text.secondary' }} />
+          <PlusIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
         }
       >
         Insert New Row
@@ -181,7 +181,7 @@ export default function DataGridBody<T extends object>({
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
-        <div className="flex pr-5 flex-nowrap">
+        <div className="flex flex-nowrap pr-5">
           {onInsertRow ? (
             <InsertPlaceholderTableRow
               style={{
@@ -263,7 +263,7 @@ export default function DataGridBody<T extends object>({
                       backgroundColor: column.isDisabled
                         ? 'grey.100'
                         : 'background.paper',
-                      text: isCellDisabled ? 'text.secondary' : 'text.primary',
+                      color: isCellDisabled ? 'text.secondary' : 'text.primary',
                     }}
                     className={twMerge(
                       'h-12 font-display text-xs motion-safe:transition-colors',
