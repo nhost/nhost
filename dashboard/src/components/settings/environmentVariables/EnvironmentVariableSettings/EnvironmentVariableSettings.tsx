@@ -127,12 +127,12 @@ export default function EnvironmentVariableSettings() {
       docsTitle="Environment Variables"
       rootClassName="gap-0"
       className={twMerge(
-        'px-0 my-2',
+        'my-2 px-0',
         availableEnvironmentVariables.length === 0 && 'gap-2',
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-2 lg:grid-cols-3 gap-2 border-b-1 px-4 py-3">
+      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Updated</Text>
       </Box>
@@ -149,7 +149,7 @@ export default function EnvironmentVariableSettings() {
               return (
                 <Fragment key={environmentVariable.id}>
                   <ListItem.Root
-                    className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2"
+                    className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
                     secondaryAction={
                       <Dropdown.Root>
                         <Dropdown.Trigger
@@ -189,10 +189,7 @@ export default function EnvironmentVariableSettings() {
                               handleConfirmDelete(environmentVariable)
                             }
                           >
-                            <Text
-                              className="font-medium"
-                              sx={{ color: 'error.main' }}
-                            >
+                            <Text className="font-medium" color="error">
                               Delete
                             </Text>
                           </Dropdown.Item>
@@ -206,7 +203,7 @@ export default function EnvironmentVariableSettings() {
 
                     <Text
                       variant="subtitle1"
-                      className="lg:col-span-2 truncate"
+                      className="truncate lg:col-span-2"
                     >
                       {timestamp === '0 seconds ago' ||
                       timestamp === 'in 0 seconds'
@@ -230,7 +227,7 @@ export default function EnvironmentVariableSettings() {
         )}
 
         <Button
-          className="justify-self-start mx-4"
+          className="mx-4 justify-self-start"
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}

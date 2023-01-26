@@ -82,7 +82,7 @@ function renderOption({
       </Text>
 
       {helperText && (
-        <Text component="span" sx={{ color: 'text.disabled' }}>
+        <Text component="span" color="disabled">
           {helperText}
         </Text>
       )}
@@ -130,7 +130,7 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'grid lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] grid-flow-row lg:max-h-10 space-y-1 lg:space-y-0',
+        'grid grid-flow-row space-y-1 lg:max-h-10 lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] lg:space-y-0',
         className,
       )}
       {...props}

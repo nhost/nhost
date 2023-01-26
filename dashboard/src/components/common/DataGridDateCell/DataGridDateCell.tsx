@@ -98,7 +98,7 @@ export default function DataGridDateCell<TData extends object>({
         onKeyDown={handleKeyDown}
         onChange={handleChange}
         fullWidth
-        className="absolute top-0 z-10 h-full -mx-0.5 place-content-stretch"
+        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
         sx={{
           [`&.${inputClasses.focused}`]: {
             boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
@@ -127,7 +127,7 @@ export default function DataGridDateCell<TData extends object>({
 
   if (!optimisticValue) {
     return (
-      <Text className="truncate text-xs" sx={{ color: 'text.secondary' }}>
+      <Text className="truncate text-xs" color="secondary">
         null
       </Text>
     );
@@ -151,12 +151,11 @@ export default function DataGridDateCell<TData extends object>({
       {specificType !== 'date' && (
         <Text
           className={twMerge('truncate text-xs', timeClassName)}
-          sx={{
-            color:
-              specificType === 'time' || specificType === 'timetz'
-                ? 'text.primary'
-                : 'text.secondary',
-          }}
+          color={
+            specificType === 'time' || specificType === 'timetz'
+              ? 'primary'
+              : 'secondary'
+          }
           {...restTimeProps}
         >
           {[hour, minute, second].filter(Boolean).join(':')}

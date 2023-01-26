@@ -88,7 +88,7 @@ export default function DatabaseRecordInputGroup({
       )}
 
       {description && (
-        <Text className="mb-3 text-xs" sx={{ color: 'text.secondary' }}>
+        <Text className="mb-3 text-xs" color="secondary">
           {description}
         </Text>
       )}

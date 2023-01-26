@@ -28,7 +28,7 @@ function ApplicationCreatedAt({ createdAt }: any) {
   );
 }
 
-function LastSuccesfulDeployment({ deployment }: any) {
+function LastSuccessfulDeployment({ deployment }: any) {
   return (
     <div className="flex flex-row">
       <Avatar
@@ -36,7 +36,7 @@ function LastSuccesfulDeployment({ deployment }: any) {
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="cursor-pointer self-center text-sm">
+      <Text className="self-center text-sm">
         {deployment.commitUserName} deployed{' '}
         {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
           addSuffix: true,
@@ -54,7 +54,7 @@ function CurrentDeployment({ deployment }: any) {
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="cursor-pointer self-center text-sm">
+      <Text className="self-center text-sm">
         {deployment.commitUserName} updated just now
       </Text>
     </div>
@@ -197,7 +197,7 @@ export function RenderWorkspacesWithApps({
 
                                   {!isDeployingToProduction &&
                                     app.deployments[0] && (
-                                      <LastSuccesfulDeployment
+                                      <LastSuccessfulDeployment
                                         deployment={app.deployments[0]}
                                       />
                                     )}

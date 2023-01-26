@@ -149,7 +149,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
   if (error) {
     return (
       <LogsBodyCustomMessage>
-        <Text color="red" className="truncate font-mono text-xs- font-normal">
+        <Text color="error" className="truncate font-mono text-xs- font-normal">
           {error?.message.includes('the query time range exceeds the limit')
             ? 'The query time range exceeds the limit, please select a shorter range.'
             : error?.message}

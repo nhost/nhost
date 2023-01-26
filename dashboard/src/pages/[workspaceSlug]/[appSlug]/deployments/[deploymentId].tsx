@@ -44,10 +44,10 @@ export default function DeploymentDetailsPage() {
   if (!deployment) {
     return (
       <Container>
-        <Text variant="h1" className="text-4xl font-semibold text">
+        <Text variant="h1" className="text text-4xl font-semibold">
           Not found
         </Text>
-        <Text className="text-sm" sx={{ color: 'text.disabled' }}>
+        <Text className="text-sm" color="disabled">
           This deployment does not exist.
         </Text>
       </Container>
@@ -93,7 +93,7 @@ export default function DeploymentDetailsPage() {
         </div>
       </div>
       <div className="my-8 flex justify-between">
-        <div className="grid grid-flow-col gap-4 items-center">
+        <div className="grid grid-flow-col items-center gap-4">
           <Avatar
             name={deployment.commitUserName}
             avatarUrl={deployment.commitUserAvatarUrl}
@@ -102,9 +102,7 @@ export default function DeploymentDetailsPage() {
 
           <div>
             <Text>{deployment.commitMessage}</Text>
-            <Text sx={{ color: 'text.secondary' }}>
-              {relativeDateOfDeployment}
-            </Text>
+            <Text color="secondary">{relativeDateOfDeployment}</Text>
           </div>
         </div>
         <div className=" flex items-center">

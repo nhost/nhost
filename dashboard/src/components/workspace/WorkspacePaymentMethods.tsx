@@ -238,7 +238,7 @@ export default function WorkspacePaymentMethods() {
             </Button>
           )}
           {maxPaymentMethodsReached && (
-            <Text className="my-2 text-sm" sx={{ color: 'error.main' }}>
+            <Text className="my-2 text-sm" color="error">
               You can have at most three payment methods per workspace. To add a
               new payment method, please first delete one of your existing
               payment methods.

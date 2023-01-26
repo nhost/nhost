@@ -137,9 +137,7 @@ export default function SettingsContainer({
           <div className="grid grid-flow-row gap-1">
             <Text className="text-lg font-semibold">{title}</Text>
 
-            {description && (
-              <Text sx={{ color: 'text.secondary' }}>{description}</Text>
-            )}
+            {description && <Text color="secondary">{description}</Text>}
           </div>
         </div>
         {!switchId && showSwitch && (

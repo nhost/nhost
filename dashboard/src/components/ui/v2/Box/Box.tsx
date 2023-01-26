@@ -14,7 +14,7 @@ export type BoxProps<
 
 const StyledBox = styled(MaterialBox)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
-  borderColor: theme.palette.grey[300],
+  borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
 }));
 

@@ -37,7 +37,7 @@ function FunctionsNoRepo() {
           alt="GitHub Logo"
         />
       </div>
-      <Text className="mt-4 font-medium text-lg">Function Logs</Text>
+      <Text className="mt-4 text-lg font-medium">Function Logs</Text>
       <div className="flex">
         <div className="mx-auto flex flex-row self-center text-center">
           <Text className="mt-1">
@@ -92,7 +92,7 @@ export default function FunctionsPage() {
 
   if (loading) {
     return (
-      <Container className="pt-12 text-center grid items-center">
+      <Container className="grid items-center pt-12 text-center">
         <ActivityIndicator delay={500} />
       </Container>
     );
@@ -109,7 +109,7 @@ export default function FunctionsPage() {
   if (error) {
     return (
       <Container>
-        <Text sx={{ color: 'error.main' }}>{error.message}</Text>
+        <Text color="error">{error.message}</Text>
       </Container>
     );
   }
@@ -129,13 +129,13 @@ export default function FunctionsPage() {
               <div className="flex w-full">
                 {folder.nestedLevel > 0 && (
                   <FolderIcon
-                    className="self-center align-middle w-4 h-4"
+                    className="h-4 w-4 self-center align-middle"
                     sx={{ color: 'text.disabled' }}
                   />
                 )}
                 <Text
                   className={twMerge(
-                    'font-medium text-xs',
+                    'text-xs font-medium',
                     folder.nestedLevel > 0 && 'ml-2',
                   )}
                 >
@@ -145,10 +145,10 @@ export default function FunctionsPage() {
               {folder.nestedLevel === 0 ? (
                 <div className="flex w-full flex-row">
                   <div className="flex w-52">
-                    <Text className="font-medium text-xs">Created At</Text>
+                    <Text className="text-xs font-medium">Created At</Text>
                   </div>
                   <div className="flex w-16 self-end">
-                    <Text className="font-medium text-xs">Status</Text>
+                    <Text className="text-xs font-medium">Status</Text>
                   </div>
                 </div>
               ) : null}
@@ -214,7 +214,7 @@ export default function FunctionsPage() {
       </div>
 
       <div className="mx-auto mt-10 max-w-6xl text-center">
-        <Text className="font-medium text-xs">
+        <Text className="text-xs font-medium">
           Base URL for function endpoints is{' '}
           {generateAppServiceUrl(
             currentApplication.subdomain,

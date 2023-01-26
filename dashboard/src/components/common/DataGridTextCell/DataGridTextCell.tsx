@@ -127,7 +127,7 @@ export default function DataGridTextCell<TData extends object>({
         onChange={handleChange}
         onKeyDown={handleTextAreaKeyDown}
         fullWidth
-        className="absolute top-0 z-10 min-h-38 h-full -mx-0.5"
+        className="absolute top-0 z-10 -mx-0.5 h-full min-h-38"
         rows={5}
         sx={{
           [`&.${inputClasses.focused}`]: {
@@ -161,7 +161,7 @@ export default function DataGridTextCell<TData extends object>({
         onChange={handleChange}
         onKeyDown={handleInputKeyDown}
         fullWidth
-        className="absolute top-0 z-10 h-full -mx-0.5 place-content-stretch"
+        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
         sx={{
           [`&.${inputClasses.focused}`]: {
             boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
@@ -187,7 +187,7 @@ export default function DataGridTextCell<TData extends object>({
 
   if (!optimisticValue) {
     return (
-      <Text className="truncate !text-xs" sx={{ color: 'text.secondary' }}>
+      <Text className="truncate !text-xs" color="secondary">
         {optimisticValue === '' ? 'empty' : 'null'}
       </Text>
     );

@@ -4,7 +4,7 @@ import Text from '@/ui/v2/Text';
 export default function Resources() {
   return (
     <div>
-      <Text sx={{ color: 'text.disabled' }}>Resources</Text>
+      <Text color="disabled">Resources</Text>
       <div className="mt-4 flex flex-col space-y-1">
         <Resource
           text="Documentation"

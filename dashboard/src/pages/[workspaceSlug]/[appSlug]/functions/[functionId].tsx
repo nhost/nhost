@@ -56,7 +56,7 @@ export default function FunctionDetailsPage() {
         <Text variant="h1" className="text-4xl font-semibold">
           Not found
         </Text>
-        <Text className="text-sm" sx={{ color: 'text.disabled' }}>
+        <Text className="text-sm" color="disabled">
           This function does not exist.
         </Text>
       </Container>
@@ -67,7 +67,7 @@ export default function FunctionDetailsPage() {
     <>
       <Container>
         <div className="flex place-content-between">
-          <div className="grid grid-flow-col gap-2 items-center py-1">
+          <div className="grid grid-flow-col items-center gap-2 py-1">
             <Image
               src={`/assets/functions/${
                 currentFunction.name.split('.')[1]
@@ -78,7 +78,7 @@ export default function FunctionDetailsPage() {
             />
 
             <div className="grid grid-flow-row justify-start">
-              <Text className="font-medium text-2xl">
+              <Text className="text-2xl font-medium">
                 {currentFunction.name}
               </Text>
 
@@ -91,10 +91,7 @@ export default function FunctionDetailsPage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <Text
-                  className="text-xs font-medium"
-                  sx={{ color: 'text.disabled' }}
-                >
+                <Text className="text-xs font-medium" color="disabled">
                   {`${generateAppServiceUrl(
                     currentApplication.subdomain,
                     currentApplication.region.awsName,
@@ -110,10 +107,10 @@ export default function FunctionDetailsPage() {
       <Container>
         <div className="flex flex-row place-content-between">
           <div className="flex">
-            <Text className="font-medium text-xl">Log</Text>
+            <Text className="text-xl font-medium">Log</Text>
           </div>
           <div className="flex items-center">
-            <Text className="font-medium text-xs">Awaiting new requests…</Text>
+            <Text className="text-xs font-medium">Awaiting new requests…</Text>
 
             <IconButton
               variant="borderless"

@@ -72,7 +72,7 @@ function ResetPasswordForm() {
 
       {isError && (
         <div className="my-3">
-          <Text className="font-medium" sx={{ color: 'error.main' }}>
+          <Text className="font-medium" color="error">
             Error: {error.message}
           </Text>
         </div>
@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
             </Box>
 
             <div className="mt-3 flex justify-center">
-              <div className="grid grid-flow-col gap-1 justify-center items-center">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
                 <Text className="text-sm">Is your password okay?</Text>
 
                 <NavLink href="/signin" passHref>
