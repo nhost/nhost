@@ -9,7 +9,8 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetSmtpSettingsQuery,
+  GetSmtpDocument,
+  useGetSmtpQuery,
   useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -53,11 +54,12 @@ export type SettingsSMTPValidationSchemaFormData = yup.InferType<
 export default function SMTPSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { data, loading, error } = useGetSmtpSettingsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSmtpQuery({
+    variables: { appId: currentApplication?.id },
   });
+
+  const { secure, host, port, user, method, sender } =
+    data?.config?.provider?.smtp || {};
 
   const form = useForm<
     Optional<SettingsSMTPValidationSchemaFormData, 'authSmtpPass'>
@@ -65,12 +67,12 @@ export default function SMTPSettingsPage() {
     reValidateMode: 'onSubmit',
     resolver: yupResolver(settingsSMTPValidationSchema),
     defaultValues: {
-      AuthSmtpSecure: data?.app?.AuthSmtpSecure,
-      authSmtpHost: data?.app?.authSmtpHost,
-      authSmtpPort: data?.app?.authSmtpPort,
-      authSmtpUser: data?.app?.authSmtpUser,
-      AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
-      authSmtpSender: data?.app.authSmtpSender,
+      AuthSmtpSecure: secure,
+      authSmtpHost: host,
+      authSmtpPort: port,
+      authSmtpUser: user,
+      AuthSmtpAuthMethod: method,
+      authSmtpSender: sender,
     },
     mode: 'onSubmit',
     criteriaMode: 'all',
@@ -78,14 +80,14 @@ export default function SMTPSettingsPage() {
 
   useEffect(() => {
     form.reset(() => ({
-      AuthSmtpSecure: data?.app?.AuthSmtpSecure || false,
-      authSmtpHost: data?.app?.authSmtpHost,
-      authSmtpPort: data?.app?.authSmtpPort,
-      authSmtpUser: data?.app?.authSmtpUser,
-      AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
-      authSmtpSender: data?.app.authSmtpSender,
+      AuthSmtpSecure: secure || false,
+      authSmtpHost: host,
+      authSmtpPort: port,
+      authSmtpUser: user,
+      AuthSmtpAuthMethod: method,
+      authSmtpSender: sender,
     }));
-  }, [data?.app, form, form.reset]);
+  }, [form, host, method, port, secure, sender, user]);
 
   const {
     register,
@@ -94,7 +96,7 @@ export default function SMTPSettingsPage() {
 
   const [updateApp, { loading: loadingUpdateAppMutation }] =
     useUpdateAppMutation({
-      refetchQueries: ['getSMTPSettings'],
+      refetchQueries: [GetSmtpDocument],
     });
 
   if (currentApplication.plan.isFree) {

@@ -18657,20 +18657,6 @@ export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
-export type GetSmsSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetSmsSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authSmsPasswordlessEnabled: boolean, authSmsTwilioAccountSid: string, authSmsTwilioAuthToken: string, authSmsTwilioMessagingServiceId: string, authSmsTwilioFrom: string } | null };
-
-export type GetSmtpSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authSmtpSender?: string | null, authSmtpUser?: string | null, authSmtpHost?: string | null, authSmtpPort?: number | null, AuthSmtpSecure?: boolean | null, AuthSmtpAuthMethod?: string | null } | null };
-
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
 }>;
@@ -18726,6 +18712,13 @@ export type GetSignInMethodsQueryVariables = Exact<{
 
 
 export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename?: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
+
+export type GetSmtpQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSmtpQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -20356,93 +20349,6 @@ export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQ
 export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
       return { query: GetRemoteAppRolesDocument, variables: variables }
     }
-export const GetSmsSettingsDocument = gql`
-    query getSMSSettings($id: uuid!) {
-  app(id: $id) {
-    id
-    authSmsPasswordlessEnabled
-    authSmsTwilioAccountSid
-    authSmsTwilioAuthToken
-    authSmsTwilioMessagingServiceId
-    authSmsTwilioFrom
-  }
-}
-    `;
-
-/**
- * __useGetSmsSettingsQuery__
- *
- * To run a query within a React component, call `useGetSmsSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSmsSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetSmsSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>(GetSmsSettingsDocument, options);
-      }
-export function useGetSmsSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>(GetSmsSettingsDocument, options);
-        }
-export type GetSmsSettingsQueryHookResult = ReturnType<typeof useGetSmsSettingsQuery>;
-export type GetSmsSettingsLazyQueryHookResult = ReturnType<typeof useGetSmsSettingsLazyQuery>;
-export type GetSmsSettingsQueryResult = Apollo.QueryResult<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>;
-export function refetchGetSmsSettingsQuery(variables: GetSmsSettingsQueryVariables) {
-      return { query: GetSmsSettingsDocument, variables: variables }
-    }
-export const GetSmtpSettingsDocument = gql`
-    query getSMTPSettings($id: uuid!) {
-  app(id: $id) {
-    id
-    authSmtpSender
-    authSmtpUser
-    authSmtpHost
-    authSmtpPort
-    AuthSmtpSecure
-    AuthSmtpAuthMethod
-  }
-}
-    `;
-
-/**
- * __useGetSmtpSettingsQuery__
- *
- * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSmtpSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetSmtpSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-      }
-export function useGetSmtpSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-        }
-export type GetSmtpSettingsQueryHookResult = ReturnType<typeof useGetSmtpSettingsQuery>;
-export type GetSmtpSettingsLazyQueryHookResult = ReturnType<typeof useGetSmtpSettingsLazyQuery>;
-export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>;
-export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
-      return { query: GetSmtpSettingsDocument, variables: variables }
-    }
 export const InsertApplicationDocument = gql`
     mutation insertApplication($app: apps_insert_input!) {
   insertApp(object: $app) {
@@ -20793,6 +20699,53 @@ export type GetSignInMethodsLazyQueryHookResult = ReturnType<typeof useGetSignIn
 export type GetSignInMethodsQueryResult = Apollo.QueryResult<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>;
 export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVariables) {
       return { query: GetSignInMethodsDocument, variables: variables }
+    }
+export const GetSmtpDocument = gql`
+    query GetSmtp($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    provider {
+      smtp {
+        host
+        method
+        port
+        secure
+        sender
+        user
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSmtpQuery__
+ *
+ * To run a query within a React component, call `useGetSmtpQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSmtpQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSmtpQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSmtpQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpQuery, GetSmtpQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSmtpQuery, GetSmtpQueryVariables>(GetSmtpDocument, options);
+      }
+export function useGetSmtpLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpQuery, GetSmtpQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSmtpQuery, GetSmtpQueryVariables>(GetSmtpDocument, options);
+        }
+export type GetSmtpQueryHookResult = ReturnType<typeof useGetSmtpQuery>;
+export type GetSmtpLazyQueryHookResult = ReturnType<typeof useGetSmtpLazyQuery>;
+export type GetSmtpQueryResult = Apollo.QueryResult<GetSmtpQuery, GetSmtpQueryVariables>;
+export function refetchGetSmtpQuery(variables: GetSmtpQueryVariables) {
+      return { query: GetSmtpDocument, variables: variables }
     }
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
