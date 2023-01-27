@@ -1,7 +1,10 @@
 // TODO: We should infer the types from GraphQL Codegens and never manually create types like this.
 // It's too easy to get types out-of-sync which will generate bugs down the line
 
-import type { GetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import type {
+  GetEnvironmentVariablesQuery,
+  GetSecretsQuery,
+} from '@/utils/__generated__/graphql';
 
 /**
  * The current state of the application.
@@ -92,3 +95,5 @@ export type Role = {
 
 export type EnvironmentVariable =
   GetEnvironmentVariablesQuery['environmentVariables'][number];
+
+export type Secret = GetSecretsQuery['appSecrets'][number];

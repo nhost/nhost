@@ -3,6 +3,7 @@ import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { Secret } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -14,17 +15,27 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { useGetSecretsQuery } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  GetSecretsDocument,
+  useDeleteSecretMutation,
+  useGetSecretsQuery,
+} from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function SecretsPage() {
-  const { openDialog } = useDialog();
+  const { openDialog, openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSecretsQuery({
     variables: { appId: currentApplication?.id },
+  });
+
+  const [deleteSecret] = useDeleteSecretMutation({
+    refetchQueries: [GetSecretsDocument],
   });
 
   if (loading) {
@@ -35,22 +46,71 @@ export default function SecretsPage() {
     throw error;
   }
 
+  async function handleDeleteSecret(secret: Secret) {
+    const deleteSecretPromise = deleteSecret({
+      variables: {
+        appId: currentApplication?.id,
+        name: secret.name,
+      },
+    });
+
+    try {
+      await toast.promise(
+        deleteSecretPromise,
+        {
+          loading: 'Deleting secret...',
+          success: 'Secret has been deleted successfully.',
+          error: (arg: Error) =>
+            arg?.message
+              ? `Error: ${arg?.message}`
+              : 'An error occurred while deleting the secret.',
+        },
+        getToastStyleProps(),
+      );
+    } catch (deleteSecretError) {
+      console.error(deleteSecretError);
+    }
+  }
+
   function handleOpenCreator() {
     openDialog('CREATE_SECRET', {
       title: 'Create Secret',
       props: {
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-md' },
       },
     });
   }
 
-  function handleOpenEditor(value: any) {
-    console.log(value);
+  function handleOpenEditor(originalSecret: Secret) {
+    openDialog('EDIT_SECRET', {
+      title: 'Edit Secret',
+      payload: {
+        originalSecret,
+      },
+      props: {
+        titleProps: { className: '!pb-0' },
+        PaperProps: { className: 'gap-2 max-w-md' },
+      },
+    });
   }
 
-  function handleConfirmDelete(value: any) {
-    console.log(value);
+  function handleConfirmDelete(originalSecret: Secret) {
+    openAlertDialog({
+      title: 'Delete Secret',
+      payload: (
+        <Text>
+          Are you sure you want to delete the &quot;
+          <strong>{originalSecret.name}</strong>&quot; secret? This cannot be
+          undone.
+        </Text>
+      ),
+      props: {
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+        onPrimaryAction: () => handleDeleteSecret(originalSecret),
+      },
+    });
   }
 
   const secrets = data?.appSecrets || [];

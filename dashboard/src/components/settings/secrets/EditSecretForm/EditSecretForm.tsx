@@ -6,30 +6,36 @@ import BaseSecretForm, {
   BaseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { Secret } from '@/types/application';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSecretsDocument,
-  useInsertSecretMutation,
+  useUpdateSecretMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface CreateSecretFormProps
+export interface EditSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {
+  /**
+   * The secret to edit.
+   */
+  originalSecret: Secret;
   /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: () => Promise<void>;
 }
 
-export default function CreateSecretForm({
+export default function EditSecretForm({
+  originalSecret,
   onSubmit,
   ...props
-}: CreateSecretFormProps) {
+}: EditSecretFormProps) {
   const form = useForm<BaseSecretFormValues>({
     defaultValues: {
-      name: '',
+      name: originalSecret.name,
       value: '',
     },
     reValidateMode: 'onSubmit',
@@ -37,12 +43,12 @@ export default function CreateSecretForm({
   });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [insertSecret] = useInsertSecretMutation({
+  const [updateSecret] = useUpdateSecretMutation({
     refetchQueries: [GetSecretsDocument],
   });
 
   async function handleSubmit({ name, value }: BaseSecretFormValues) {
-    const insertSecretPromise = insertSecret({
+    const updateSecretPromise = updateSecret({
       variables: {
         appId: currentApplication?.id,
         secret: {
@@ -54,14 +60,14 @@ export default function CreateSecretForm({
 
     try {
       await toast.promise(
-        insertSecretPromise,
+        updateSecretPromise,
         {
-          loading: 'Creating secret...',
-          success: 'Secret has been created successfully.',
+          loading: 'Updating secret...',
+          success: 'Secret has been updated successfully.',
           error: (arg: Error) =>
             arg?.message
               ? `Error: ${arg?.message}`
-              : 'An error occurred while creating the secret.',
+              : 'An error occurred while updating the secret.',
         },
         getToastStyleProps(),
       );
@@ -75,8 +81,8 @@ export default function CreateSecretForm({
   return (
     <FormProvider {...form}>
       <BaseSecretForm
-        mode="create"
-        submitButtonText="Create"
+        mode="edit"
+        submitButtonText="Edit"
         onSubmit={handleSubmit}
         {...props}
       />

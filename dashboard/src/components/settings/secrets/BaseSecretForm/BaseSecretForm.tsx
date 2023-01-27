@@ -115,9 +115,10 @@ export default function BaseSecretForm({
           error={!!errors.value}
           helperText={errors?.value?.message}
           fullWidth
-          autoComplete="off"
           multiline
           rows={5}
+          autoComplete="off"
+          autoFocus={mode === 'edit'}
         />
 
         <div className="grid grid-flow-row gap-2">

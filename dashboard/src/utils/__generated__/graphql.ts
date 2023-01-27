@@ -18732,6 +18732,14 @@ export type UpdateApplicationMutationVariables = Exact<{
 
 export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string } | null };
 
+export type UpdateSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -20700,6 +20708,40 @@ export function useUpdateApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type UpdateApplicationMutationHookResult = ReturnType<typeof useUpdateApplicationMutation>;
 export type UpdateApplicationMutationResult = Apollo.MutationResult<UpdateApplicationMutation>;
 export type UpdateApplicationMutationOptions = Apollo.BaseMutationOptions<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
+export const UpdateSecretDocument = gql`
+    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  updateSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
+
+/**
+ * __useUpdateSecretMutation__
+ *
+ * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
+      }
+export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
+export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
+export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetCountriesDocument = gql`
     query getCountries {
   countries(order_by: {name: asc}) {

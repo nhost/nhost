@@ -25,7 +25,8 @@ export type DialogType =
   | 'EDIT_USER'
   | 'EDIT_USER_PASSWORD'
   | 'EDIT_JWT_SECRET'
-  | 'CREATE_SECRET';
+  | 'CREATE_SECRET'
+  | 'EDIT_SECRET';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
