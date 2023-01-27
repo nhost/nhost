@@ -140,9 +140,9 @@ func Info() (App, error) {
 	return response, err
 }
 
-//  fetches the required asset from release
-//  depending on OS and Architecture
-//  by matching download URL
+// fetches the required asset from release
+// depending on OS and Architecture
+// by matching download URL
 func (release *Release) Asset() Asset {
 
 	log.Debug("Extracting asset from release")
@@ -165,7 +165,7 @@ func (r *Release) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-//	Compares and updates the changelog for specified release
+// Compares and updates the changelog for specified release
 func (r *Release) Changes(releases []Release) (string, error) {
 
 	var response string
@@ -183,7 +183,7 @@ func (r *Release) Changes(releases []Release) (string, error) {
 	return response, nil
 }
 
-//  Seaches for required release from supplied list of releases, and returns it.
+// Seaches for required release from supplied list of releases, and returns it.
 func SearchRelease(releases []Release, version string) (Release, error) {
 
 	log.Debug("Fetching latest release")
@@ -240,7 +240,7 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 	return releases[0], nil
 }
 
-//	Downloads the list of all releases from GitHub API
+// Downloads the list of all releases from GitHub API
 func GetReleases() ([]Release, error) {
 
 	log.Debug("Fetching list of all releases")
@@ -259,7 +259,7 @@ func GetReleases() ([]Release, error) {
 	return array, nil
 }
 
-//  fetches the list of Nhost production servers
+// fetches the list of Nhost production servers
 func Servers() ([]Server, error) {
 
 	log.Debug("Fetching server locations")
@@ -293,14 +293,14 @@ func Servers() ([]Server, error) {
 	return response, err
 }
 
-//  generates fresh config.yaml for /nhost dir
+// generates fresh config.yaml for /nhost dir
 func GenerateConfig(options App) Configuration {
 
 	log.Debug("Generating app configuration")
 
 	hasura := Service{
 		Environment: map[string]interface{}{
-			"hasura_graphql_enable_remote_schema_permissions": false,
+			"hasura_graphql_enable_remote_schema_permissions": true,
 		},
 	}
 
@@ -506,7 +506,7 @@ func generateProviders() map[string]interface{} {
 	}
 }
 
-//  fetches saved credentials from auth file
+// fetches saved credentials from auth file
 func LoadCredentials() (Credentials, error) {
 
 	log.Debug("Fetching saved auth credentials")
