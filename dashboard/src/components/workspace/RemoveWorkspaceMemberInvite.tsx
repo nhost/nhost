@@ -1,4 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 
@@ -20,7 +21,7 @@ export default function RemoveWorkspaceMemberInvite({
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
 
   return (
-    <div className="w-miniModal px-6 py-6 text-left grid grid-flow-row gap-2">
+    <Box className="grid w-miniModal grid-flow-row gap-2 rounded-lg p-6 text-left">
       <div className="grid grid-flow-row">
         <Text className="text-lg font-medium">
           Remove Invite from {currentWorkspace.name}?
@@ -40,6 +41,6 @@ export default function RemoveWorkspaceMemberInvite({
           Cancel
         </Button>
       </div>
-    </div>
+    </Box>
   );
 }

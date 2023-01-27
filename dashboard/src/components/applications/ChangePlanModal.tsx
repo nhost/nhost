@@ -10,6 +10,7 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
@@ -141,7 +142,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   };
 
   return (
-    <div className="w-welcome p-6 text-left">
+    <Box className="w-welcome rounded-lg p-6 text-left">
       <Modal
         showModal={paymentModal}
         close={closePaymentModal}
@@ -209,7 +210,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           </Button>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }
 

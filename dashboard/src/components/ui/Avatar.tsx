@@ -1,7 +1,8 @@
+import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
-type AvatarProps = {
+type AvatarProps = Pick<BoxProps, 'component'> & {
   style?: {
     [key: string]: string;
   };

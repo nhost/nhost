@@ -1,4 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
@@ -78,7 +79,9 @@ export function RemoveApplicationModal({
   }
 
   return (
-    <div className={twMerge('w-full max-w-sm p-6 text-left', className)}>
+    <Box
+      className={twMerge('w-full max-w-sm rounded-lg p-6 text-left', className)}
+    >
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h2">
           {title || 'Delete Project'}
@@ -131,6 +134,6 @@ export function RemoveApplicationModal({
           </Button>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }
