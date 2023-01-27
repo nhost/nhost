@@ -19,7 +19,7 @@ import { Fragment } from 'react';
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
-    <Text className="text-sm">
+    <Text component="span" className="text-sm">
       created{' '}
       {formatDistance(new Date(createdAt), new Date(), {
         addSuffix: true,
@@ -30,26 +30,28 @@ function ApplicationCreatedAt({ createdAt }: any) {
 
 function LastSuccessfulDeployment({ deployment }: any) {
   return (
-    <div className="flex flex-row">
+    <span className="flex flex-row">
       <Avatar
+        component="span"
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text className="self-center text-sm">
+      <Text component="span" className="self-center text-sm">
         {deployment.commitUserName} deployed{' '}
         {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
           addSuffix: true,
         })}
       </Text>
-    </div>
+    </span>
   );
 }
 
 function CurrentDeployment({ deployment }: any) {
   return (
-    <div className="flex flex-row">
+    <span className="flex flex-row">
       <Avatar
+        component="span"
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
@@ -57,7 +59,7 @@ function CurrentDeployment({ deployment }: any) {
       <Text className="self-center text-sm">
         {deployment.commitUserName} updated just now
       </Text>
-    </div>
+    </span>
   );
 }
 
