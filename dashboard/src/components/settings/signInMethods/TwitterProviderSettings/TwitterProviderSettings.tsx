@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -27,19 +27,20 @@ export default function TwitterProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { consumerKey, consumerSecret, enabled } =
+    data?.config?.auth?.method?.oauth?.twitter || {};
 
   const form = useForm<TwitterProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authTwitterConsumerSecret: data?.app?.authTwitterConsumerSecret,
-      authTwitterConsumerKey: data?.app?.authTwitterConsumerKey,
-      authTwitterEnabled: data?.app?.authTwitterEnabled,
+      authTwitterConsumerSecret: consumerSecret,
+      authTwitterConsumerKey: consumerKey,
+      authTwitterEnabled: enabled,
     },
   });
 
@@ -47,7 +48,7 @@ export default function TwitterProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Twitter settings..."
+        label="Loading settings for Twitter..."
         className="justify-center"
       />
     );
@@ -154,7 +155,7 @@ export default function TwitterProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

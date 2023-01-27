@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -21,7 +21,6 @@ export interface WorkOsProviderFormValues {
   authWorkOsEnabled: boolean;
   authWorkOsClientId: string;
   authWorkOsClientSecret: string;
-  authWorkOsDefaultDomain: string;
   authWorkOsDefaultOrganization: string;
   authWorkOsDefaultConnection: string;
 }
@@ -30,22 +29,22 @@ export default function WorkOsProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, clientSecret, organization, connection, enabled } =
+    data?.config?.auth?.method?.oauth?.workos || {};
 
   const form = useForm<WorkOsProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authWorkOsClientId: data?.app?.authWorkOsClientId,
-      authWorkOsClientSecret: data?.app?.authWorkOsClientSecret,
-      authWorkOsDefaultDomain: data?.app?.authWorkOsDefaultDomain,
-      authWorkOsDefaultOrganization: data?.app?.authWorkOsDefaultOrganization,
-      authWorkOsDefaultConnection: data?.app?.authWorkOsDefaultConnection,
-      authWorkOsEnabled: data?.app?.authWorkOsEnabled,
+      authWorkOsClientId: clientId,
+      authWorkOsClientSecret: clientSecret,
+      authWorkOsDefaultOrganization: organization,
+      authWorkOsDefaultConnection: connection,
+      authWorkOsEnabled: enabled,
     },
   });
 
@@ -53,7 +52,7 @@ export default function WorkOsProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading WorkOS settings..."
+        label="Loading settings for WorkOS..."
         className="justify-center"
       />
     );
@@ -136,17 +135,7 @@ export default function WorkOsProviderSettings() {
             id="authWorkOsDefaultOrganization"
             label="Default Organization ID (optional)"
             placeholder="Default Organization ID"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-          />
-          <Input
-            {...register('authWorkOsDefaultDomain')}
-            name="authWorkOsDefaultDomain"
-            id="authWorkOsDefaultDomain"
-            label="Default Domain (optional)"
-            placeholder="Default Domain"
-            className="col-span-2"
+            className="col-span-3"
             fullWidth
             hideEmptyHelperText
           />
@@ -156,7 +145,7 @@ export default function WorkOsProviderSettings() {
             id="authWorkOsDefaultConnection"
             label="Default Connection (optional)"
             placeholder="Default Connection"
-            className="col-span-2"
+            className="col-span-3"
             fullWidth
             hideEmptyHelperText
           />
@@ -191,7 +180,7 @@ export default function WorkOsProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

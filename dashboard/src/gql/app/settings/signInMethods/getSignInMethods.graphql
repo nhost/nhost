@@ -1,0 +1,69 @@
+query GetSignInMethods($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    auth {
+      method {
+        oauth {
+          apple {
+            enabled
+            clientId
+            keyId
+            teamId
+            privateKey
+          }
+          discord {
+            enabled
+            clientId
+            clientSecret
+          }
+          facebook {
+            enabled
+            clientId
+            clientSecret
+          }
+          github {
+            enabled
+            clientId
+            clientSecret
+          }
+          google {
+            enabled
+            clientId
+            clientSecret
+          }
+          linkedin {
+            enabled
+            clientId
+            clientSecret
+          }
+          spotify {
+            enabled
+            clientId
+            clientSecret
+          }
+          twitch {
+            enabled
+            clientId
+            clientSecret
+          }
+          twitter {
+            enabled
+            consumerKey
+            consumerSecret
+          }
+          windowslive {
+            enabled
+            clientId
+            clientSecret
+          }
+          workos {
+            enabled
+            clientId
+            clientSecret
+            connection
+            organization
+          }
+        }
+      }
+    }
+  }
+}

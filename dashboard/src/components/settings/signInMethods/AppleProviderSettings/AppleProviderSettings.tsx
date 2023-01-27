@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -31,33 +31,22 @@ export default function AppleProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const {
-    data: {
-      app: {
-        authAppleEnabled,
-        authAppleTeamId,
-        authAppleKeyId,
-        authAppleClientId,
-        authApplePrivateKey,
-      },
-    },
-    loading,
-    error,
-  } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, enabled, keyId, privateKey, teamId } =
+    data?.config?.auth?.method?.oauth?.apple || {};
 
   const form = useForm<AppleProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAppleTeamId,
-      authAppleKeyId,
-      authAppleClientId,
-      authApplePrivateKey,
-      authAppleEnabled,
+      authAppleTeamId: teamId,
+      authAppleKeyId: keyId,
+      authAppleClientId: clientId,
+      authApplePrivateKey: privateKey,
+      authAppleEnabled: enabled,
     },
   });
 
@@ -65,7 +54,7 @@ export default function AppleProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Apple settings..."
+        label="Loading settings for Apple..."
         className="justify-center"
       />
     );
@@ -199,7 +188,7 @@ export default function AppleProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

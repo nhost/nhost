@@ -3,7 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
 import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -23,19 +23,20 @@ export default function SpotifyProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, clientSecret, enabled } =
+    data?.config?.auth?.method?.oauth?.spotify || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientId: data?.app?.authSpotifyClientId,
-      authClientSecret: data?.app?.authSpotifyClientSecret,
-      authEnabled: data?.app?.authSpotifyEnabled,
+      authClientId: clientId,
+      authClientSecret: clientSecret,
+      authEnabled: enabled,
     },
   });
 
@@ -43,7 +44,7 @@ export default function SpotifyProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Spotify settings..."
+        label="Loading settings for Spotify..."
         className="justify-center"
       />
     );
@@ -136,7 +137,7 @@ export default function SpotifyProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

@@ -392,7 +392,6 @@ export type ConfigAuthMethodOauthWorkos = {
   clientId?: Maybe<Scalars['String']>;
   clientSecret?: Maybe<Scalars['String']>;
   connection?: Maybe<Scalars['String']>;
-  domain?: Maybe<Scalars['String']>;
   enabled?: Maybe<Scalars['Boolean']>;
   organization?: Maybe<Scalars['String']>;
   scope?: Maybe<Array<Scalars['String']>>;
@@ -405,7 +404,6 @@ export type ConfigAuthMethodOauthWorkosComparisonExp = {
   clientId?: InputMaybe<ConfigStringComparisonExp>;
   clientSecret?: InputMaybe<ConfigStringComparisonExp>;
   connection?: InputMaybe<ConfigStringComparisonExp>;
-  domain?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
   organization?: InputMaybe<ConfigStringComparisonExp>;
   scope?: InputMaybe<ConfigStringComparisonExp>;
@@ -415,7 +413,6 @@ export type ConfigAuthMethodOauthWorkosInsertInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   connection?: InputMaybe<Scalars['String']>;
-  domain?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<Scalars['String']>;
   scope?: InputMaybe<Array<Scalars['String']>>;
@@ -425,7 +422,6 @@ export type ConfigAuthMethodOauthWorkosUpdateInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   connection?: InputMaybe<Scalars['String']>;
-  domain?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<Scalars['String']>;
   scope: Array<Scalars['String']>;
@@ -18558,14 +18554,6 @@ export type DeleteApplicationMutationVariables = Exact<{
 
 export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteApp?: { __typename?: 'apps', id: any } | null };
 
-export type DeleteSecretMutationVariables = Exact<{
-  appId: Scalars['uuid'];
-  name: Scalars['String'];
-}>;
-
-
-export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
-
 export type GetAllAppsWhereQueryVariables = Exact<{
   where: Apps_Bool_Exp;
 }>;
@@ -18683,27 +18671,12 @@ export type GetSmtpSettingsQueryVariables = Exact<{
 
 export type GetSmtpSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authSmtpSender?: string | null, authSmtpUser?: string | null, authSmtpHost?: string | null, authSmtpPort?: number | null, AuthSmtpSecure?: boolean | null, AuthSmtpAuthMethod?: string | null } | null };
 
-export type GetSecretsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
-
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
 }>;
 
 
 export type InsertApplicationMutation = { __typename?: 'mutation_root', insertApp?: { __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } } | null };
-
-export type InsertSecretMutationVariables = Exact<{
-  appId: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
-}>;
-
-
-export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
 
 export type PrefetchNewAppRegionsFragment = { __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } };
 
@@ -18715,6 +18688,44 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+
+export type DeleteSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  name: Scalars['String'];
+}>;
+
+
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type GetSecretsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
+
+export type InsertSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type UpdateSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type GetSignInMethodsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -18731,14 +18742,6 @@ export type UpdateApplicationMutationVariables = Exact<{
 
 
 export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string } | null };
-
-export type UpdateSecretMutationVariables = Exact<{
-  appId: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
-}>;
-
-
-export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
 
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -19784,40 +19787,6 @@ export function useDeleteApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type DeleteApplicationMutationHookResult = ReturnType<typeof useDeleteApplicationMutation>;
 export type DeleteApplicationMutationResult = Apollo.MutationResult<DeleteApplicationMutation>;
 export type DeleteApplicationMutationOptions = Apollo.BaseMutationOptions<DeleteApplicationMutation, DeleteApplicationMutationVariables>;
-export const DeleteSecretDocument = gql`
-    mutation DeleteSecret($appId: uuid!, $name: String!) {
-  deleteSecret(appID: $appId, key: $name) {
-    name
-  }
-}
-    `;
-export type DeleteSecretMutationFn = Apollo.MutationFunction<DeleteSecretMutation, DeleteSecretMutationVariables>;
-
-/**
- * __useDeleteSecretMutation__
- *
- * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      name: // value for 'name'
- *   },
- * });
- */
-export function useDeleteSecretMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSecretMutation, DeleteSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteSecretMutation, DeleteSecretMutationVariables>(DeleteSecretDocument, options);
-      }
-export type DeleteSecretMutationHookResult = ReturnType<typeof useDeleteSecretMutation>;
-export type DeleteSecretMutationResult = Apollo.MutationResult<DeleteSecretMutation>;
-export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecretMutation, DeleteSecretMutationVariables>;
 export const GetAllAppsWhereDocument = gql`
     query getAllAppsWhere($where: apps_bool_exp!) {
   apps(where: $where) {
@@ -20481,44 +20450,6 @@ export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery
 export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
       return { query: GetSmtpSettingsDocument, variables: variables }
     }
-export const GetSecretsDocument = gql`
-    query GetSecrets($appId: uuid!) {
-  appSecrets(appID: $appId) {
-    name
-  }
-}
-    `;
-
-/**
- * __useGetSecretsQuery__
- *
- * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSecretsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
-      }
-export function useGetSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
-        }
-export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
-export type GetSecretsLazyQueryHookResult = ReturnType<typeof useGetSecretsLazyQuery>;
-export type GetSecretsQueryResult = Apollo.QueryResult<GetSecretsQuery, GetSecretsQueryVariables>;
-export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
-      return { query: GetSecretsDocument, variables: variables }
-    }
 export const InsertApplicationDocument = gql`
     mutation insertApplication($app: apps_insert_input!) {
   insertApp(object: $app) {
@@ -20559,40 +20490,6 @@ export function useInsertApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type InsertApplicationMutationHookResult = ReturnType<typeof useInsertApplicationMutation>;
 export type InsertApplicationMutationResult = Apollo.MutationResult<InsertApplicationMutation>;
 export type InsertApplicationMutationOptions = Apollo.BaseMutationOptions<InsertApplicationMutation, InsertApplicationMutationVariables>;
-export const InsertSecretDocument = gql`
-    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
-  insertSecret(appID: $appId, secret: $secret) {
-    name
-  }
-}
-    `;
-export type InsertSecretMutationFn = Apollo.MutationFunction<InsertSecretMutation, InsertSecretMutationVariables>;
-
-/**
- * __useInsertSecretMutation__
- *
- * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      secret: // value for 'secret'
- *   },
- * });
- */
-export function useInsertSecretMutation(baseOptions?: Apollo.MutationHookOptions<InsertSecretMutation, InsertSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertSecretMutation, InsertSecretMutationVariables>(InsertSecretDocument, options);
-      }
-export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMutation>;
-export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
-export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
 export const PrefetchNewAppDocument = gql`
     query PrefetchNewApp {
   regions(order_by: {city: asc}) {
@@ -20637,6 +20534,248 @@ export type PrefetchNewAppLazyQueryHookResult = ReturnType<typeof usePrefetchNew
 export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>;
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
+    }
+export const DeleteSecretDocument = gql`
+    mutation DeleteSecret($appId: uuid!, $name: String!) {
+  deleteSecret(appID: $appId, key: $name) {
+    name
+  }
+}
+    `;
+export type DeleteSecretMutationFn = Apollo.MutationFunction<DeleteSecretMutation, DeleteSecretMutationVariables>;
+
+/**
+ * __useDeleteSecretMutation__
+ *
+ * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useDeleteSecretMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSecretMutation, DeleteSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteSecretMutation, DeleteSecretMutationVariables>(DeleteSecretDocument, options);
+      }
+export type DeleteSecretMutationHookResult = ReturnType<typeof useDeleteSecretMutation>;
+export type DeleteSecretMutationResult = Apollo.MutationResult<DeleteSecretMutation>;
+export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecretMutation, DeleteSecretMutationVariables>;
+export const GetSecretsDocument = gql`
+    query GetSecrets($appId: uuid!) {
+  appSecrets(appID: $appId) {
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetSecretsQuery__
+ *
+ * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecretsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+      }
+export function useGetSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+        }
+export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
+export type GetSecretsLazyQueryHookResult = ReturnType<typeof useGetSecretsLazyQuery>;
+export type GetSecretsQueryResult = Apollo.QueryResult<GetSecretsQuery, GetSecretsQueryVariables>;
+export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
+      return { query: GetSecretsDocument, variables: variables }
+    }
+export const InsertSecretDocument = gql`
+    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  insertSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type InsertSecretMutationFn = Apollo.MutationFunction<InsertSecretMutation, InsertSecretMutationVariables>;
+
+/**
+ * __useInsertSecretMutation__
+ *
+ * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useInsertSecretMutation(baseOptions?: Apollo.MutationHookOptions<InsertSecretMutation, InsertSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertSecretMutation, InsertSecretMutationVariables>(InsertSecretDocument, options);
+      }
+export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMutation>;
+export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
+export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
+export const UpdateSecretDocument = gql`
+    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  updateSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
+
+/**
+ * __useUpdateSecretMutation__
+ *
+ * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
+      }
+export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
+export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
+export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
+export const GetSignInMethodsDocument = gql`
+    query GetSignInMethods($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    auth {
+      method {
+        oauth {
+          apple {
+            enabled
+            clientId
+            keyId
+            teamId
+            privateKey
+          }
+          discord {
+            enabled
+            clientId
+            clientSecret
+          }
+          facebook {
+            enabled
+            clientId
+            clientSecret
+          }
+          github {
+            enabled
+            clientId
+            clientSecret
+          }
+          google {
+            enabled
+            clientId
+            clientSecret
+          }
+          linkedin {
+            enabled
+            clientId
+            clientSecret
+          }
+          spotify {
+            enabled
+            clientId
+            clientSecret
+          }
+          twitch {
+            enabled
+            clientId
+            clientSecret
+          }
+          twitter {
+            enabled
+            consumerKey
+            consumerSecret
+          }
+          windowslive {
+            enabled
+            clientId
+            clientSecret
+          }
+          workos {
+            enabled
+            clientId
+            clientSecret
+            connection
+            organization
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSignInMethodsQuery__
+ *
+ * To run a query within a React component, call `useGetSignInMethodsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSignInMethodsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSignInMethodsQuery(baseOptions: Apollo.QueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
+      }
+export function useGetSignInMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
+        }
+export type GetSignInMethodsQueryHookResult = ReturnType<typeof useGetSignInMethodsQuery>;
+export type GetSignInMethodsLazyQueryHookResult = ReturnType<typeof useGetSignInMethodsLazyQuery>;
+export type GetSignInMethodsQueryResult = Apollo.QueryResult<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>;
+export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVariables) {
+      return { query: GetSignInMethodsDocument, variables: variables }
     }
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
@@ -20708,40 +20847,6 @@ export function useUpdateApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type UpdateApplicationMutationHookResult = ReturnType<typeof useUpdateApplicationMutation>;
 export type UpdateApplicationMutationResult = Apollo.MutationResult<UpdateApplicationMutation>;
 export type UpdateApplicationMutationOptions = Apollo.BaseMutationOptions<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
-export const UpdateSecretDocument = gql`
-    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
-  updateSecret(appID: $appId, secret: $secret) {
-    name
-  }
-}
-    `;
-export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
-
-/**
- * __useUpdateSecretMutation__
- *
- * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      secret: // value for 'secret'
- *   },
- * });
- */
-export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
-      }
-export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
-export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
-export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetCountriesDocument = gql`
     query getCountries {
   countries(order_by: {name: asc}) {
