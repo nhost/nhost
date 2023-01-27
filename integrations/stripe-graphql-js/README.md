@@ -1,5 +1,5 @@
-<h1 align="center">@nhost/stripe-graphql-js</h1>
-<h2 align="center">Stripe GraphQL API</h2>
+<h1 align="center">Stripe GraphQL API</h1>
+<h2 align="center">@nhost/stripe-graphql-js</h2>
 
 <p align="center">
   <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql-js">
