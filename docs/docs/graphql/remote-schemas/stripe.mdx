@@ -8,9 +8,9 @@ image: /img/og/graphql.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-This package creates a Stripe GraphQL API that can be used to interact with Stripe via GraphQL.
+This package creates a Stripe GraphQL API to interact with Stripe.
 
-The package is also meant to be used alongside your existing GraphQL API to connect data from your database and Stripe.
+The package works best when it's used alongside your existing GraphQL API to connect data from your database and Stripe.
 
 Here's an example of how to use the Stripe GraphQL API to get a list of invoices for a specific Stripe customer:
 
@@ -65,7 +65,7 @@ query {
   </TabItem>
 </Tabs>
 
-You can also add the Stripe GraphQL API as a Hasura Remote Schema and connect data from your database and Stripe. This allows you to request data from your database and Stripe in a single GraphQL query:
+It's recommended to add the Stripe GraphQL API as a [Remote Schema in Hasura](https://hasura.io/docs/latest/remote-schemas/index/) and connect data from your database with data in Stripe. By doing so, it's possible to request data from your database and Stripe in a single GraphQL query.
 
 Here's an example of how to use the Stripe GraphQL API to get a list of invoices for a specific Stripe customer. Note that the user data is fetched from your database and the Stripe customer data is fetched from Stripe:
 
@@ -124,7 +124,7 @@ pnpm install @nhost/stripe-graphql-js
 
 ## Serverless Function
 
-Create a new [Serverless Function](/platform/serverless-functions): `functions/graphql/stripe.ts`:
+Create a new [Serverless Function](/serverless-functions): `functions/graphql/stripe.ts`:
 
 ```ts
 import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'
@@ -156,7 +156,7 @@ Learn more about [Stripe API keys](https://stripe.com/docs/keys#obtain-api-keys)
 nhost up
 ```
 
-Learn more about the [Nhost CLI](/platform/cli).
+Learn more about the [Nhost CLI](/cli).
 
 ## Test
 
@@ -177,7 +177,7 @@ Add the Stripe GraphQL API as a Remote Schema in Hasura.
 **Headers**
 
 ```
-x-nhost-webhook-secret: NHOST_WEBHOOK_SECRET (from env var)
+x-nhost-webhook-secret: NHOST_WEBHOOK_SECRET (From env var)
 ```
 
 > The `NHOST_WEBHOOK_SECRET` is used to verify that the request is coming from Nhost. The environment variable is a [system environment variable](/platform/environment-variables#system-environment-variables) and is always available.
