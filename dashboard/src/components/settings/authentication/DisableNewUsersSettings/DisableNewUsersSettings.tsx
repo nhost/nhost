@@ -4,10 +4,10 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetAuthSettingsQuery,
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
   useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 
@@ -20,26 +20,23 @@ export interface DisableNewUsersFormValues {
 
 export default function DisableNewUsersSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAuthSettingsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { enabled } = data?.config?.auth?.signUp || {};
 
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authDisableNewUsers: data?.app?.authDisableNewUsers,
+      authDisableNewUsers: !enabled || false,
     },
   });
-
-  useEffect(() => {
-    form.reset(() => ({
-      authDisableNewUsers: data?.app?.authDisableNewUsers,
-    }));
-  }, [data?.app?.authDisableNewUsers, form, form.reset]);
 
   if (loading) {
     return (

@@ -1,6 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateAppMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
@@ -17,19 +21,21 @@ export interface ClientURLFormValues {
 
 export default function ClientURLSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['GetApp'] });
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
-    fetchPolicy: 'cache-first',
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { clientUrl } = data?.config?.auth?.redirections || {};
 
   const form = useForm<ClientURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientUrl: data?.app?.authClientUrl,
+      authClientUrl: clientUrl,
     },
   });
 
@@ -78,9 +84,11 @@ export default function ClientURLSettings() {
         <SettingsContainer
           title="Client URL"
           description="This should be the URL of your frontend app where users are redirected after authenticating."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isValid || !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication"
           className="grid grid-flow-row lg:grid-cols-5"

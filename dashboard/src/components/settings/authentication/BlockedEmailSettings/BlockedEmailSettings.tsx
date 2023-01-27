@@ -1,11 +1,14 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateAppMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -27,40 +30,30 @@ export interface BlockedEmailFormValues {
 
 export default function BlockedEmailSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { email, emailDomains } = data?.config?.auth?.user || {};
 
   const form = useForm<BlockedEmailFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled:
-        Boolean(data?.app?.authAccessControlBlockedEmails) ||
-        Boolean(data?.app?.authAccessControlBlockedEmailDomains),
-      authAccessControlBlockedEmails: data?.app?.authAccessControlBlockedEmails,
+      enabled: email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
+      authAccessControlBlockedEmails: email?.blocked?.join(', ') || '',
       authAccessControlBlockedEmailDomains:
-        data?.app?.authAccessControlBlockedEmailDomains,
+        emailDomains?.blocked?.join(', ') || '',
     },
   });
 
   const { register, formState, setValue, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  useEffect(() => {
-    if (
-      !data.app?.authAccessControlBlockedEmails &&
-      !data.app?.authAccessControlBlockedEmailDomains
-    ) {
-      return;
-    }
-
-    setValue('enabled', true, { shouldDirty: false });
-  }, [data.app, setValue]);
 
   if (loading) {
     return (

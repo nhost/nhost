@@ -9,13 +9,12 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetSmtpDocument,
-  useGetSmtpQuery,
+  GetSmtpSettingsDocument,
+  useGetSmtpSettingsQuery,
   useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import type { Optional } from 'utility-types';
@@ -54,7 +53,7 @@ export type SettingsSMTPValidationSchemaFormData = yup.InferType<
 export default function SMTPSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { data, loading, error } = useGetSmtpQuery({
+  const { data, loading, error } = useGetSmtpSettingsQuery({
     variables: { appId: currentApplication?.id },
   });
 
@@ -66,8 +65,8 @@ export default function SMTPSettingsPage() {
   >({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(settingsSMTPValidationSchema),
-    defaultValues: {
-      AuthSmtpSecure: secure,
+    values: {
+      AuthSmtpSecure: secure || false,
       authSmtpHost: host,
       authSmtpPort: port,
       authSmtpUser: user,
@@ -78,26 +77,13 @@ export default function SMTPSettingsPage() {
     criteriaMode: 'all',
   });
 
-  useEffect(() => {
-    form.reset(() => ({
-      AuthSmtpSecure: secure || false,
-      authSmtpHost: host,
-      authSmtpPort: port,
-      authSmtpUser: user,
-      AuthSmtpAuthMethod: method,
-      authSmtpSender: sender,
-    }));
-  }, [form, host, method, port, secure, sender, user]);
-
   const {
     register,
     formState: { errors, isDirty, isValid },
   } = form;
 
   const [updateApp, { loading: loadingUpdateAppMutation }] =
-    useUpdateAppMutation({
-      refetchQueries: [GetSmtpDocument],
-    });
+    useUpdateAppMutation({ refetchQueries: [GetSmtpSettingsDocument] });
 
   if (currentApplication.plan.isFree) {
     return (
@@ -176,12 +162,14 @@ export default function SMTPSettingsPage() {
             title="SMTP Settings"
             description="Configure your SMTP settings to send emails from your email domain."
             submitButtonText="Save"
-            primaryActionButtonProps={{
-              loading: loadingUpdateAppMutation,
-              disabled:
-                !isValid ||
-                !isDirty ||
-                (errors && Object.keys(errors).length > 0),
+            slotProps={{
+              submitButton: {
+                loading: loadingUpdateAppMutation,
+                disabled:
+                  !isValid ||
+                  !isDirty ||
+                  (errors && Object.keys(errors).length > 0),
+              },
             }}
             className="grid grid-cols-9 gap-4"
           >

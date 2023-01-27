@@ -1,11 +1,14 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateAppMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -28,40 +31,31 @@ export interface AllowedEmailSettingsFormValues {
 
 export default function AllowedEmailDomainsSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { email, emailDomains } = data?.config?.auth?.user || {};
 
   const form = useForm<AllowedEmailSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled:
-        Boolean(data?.app?.authAccessControlAllowedEmails) ||
-        Boolean(data?.app?.authAccessControlAllowedEmailDomains),
-      authAccessControlAllowedEmails: data?.app?.authAccessControlAllowedEmails,
+      enabled: email?.allowed?.length > 0 || emailDomains?.allowed?.length > 0,
+      authAccessControlAllowedEmails: email?.allowed?.join(', ') || '',
       authAccessControlAllowedEmailDomains:
-        data?.app?.authAccessControlAllowedEmailDomains,
+        emailDomains?.allowed?.join(', ') || '',
     },
   });
 
   const { register, formState, setValue, watch } = form;
   const enabled = watch('enabled');
+
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  useEffect(() => {
-    if (
-      !data.app?.authAccessControlAllowedEmails &&
-      !data.app?.authAccessControlAllowedEmailDomains
-    ) {
-      return;
-    }
-
-    setValue('enabled', true, { shouldDirty: false });
-  }, [data.app, setValue]);
 
   if (loading) {
     return (

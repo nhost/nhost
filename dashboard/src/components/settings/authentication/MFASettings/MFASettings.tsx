@@ -1,14 +1,14 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useGetAuthSettingsQuery,
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -26,28 +26,24 @@ export interface MFASettingsFormValues {
 
 export default function MFASettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAuthSettingsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { enabled, issuer } = data?.config?.auth?.totp || {};
 
   const form = useForm<MFASettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authMfaTotpIssuer: data?.app?.authMfaTotpIssuer,
-      authMfaEnabled: data?.app?.authMfaEnabled,
+      authMfaTotpIssuer: issuer,
+      authMfaEnabled: enabled,
     },
   });
-
-  useEffect(() => {
-    form.reset(() => ({
-      authMfaTotpIssuer: data?.app?.authMfaTotpIssuer,
-      authMfaEnabled: data?.app?.authMfaEnabled,
-    }));
-  }, [data?.app, form, form.reset]);
 
   if (loading) {
     return (
@@ -95,9 +91,11 @@ export default function MFASettings() {
         <SettingsContainer
           title="Multi-Factor Authentication"
           description="Enable users to use MFA to sign in"
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isValid || !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication"
           switchId="authMfaEnabled"

@@ -65,7 +65,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-error-boundary": "^3.1.4",
-    "react-hook-form": "^7.39.5",
+    "react-hook-form": "^7.42.1",
     "react-hot-toast": "^2.4.0",
     "react-is": "17.0.2",
     "react-loading-skeleton": "^2.2.0",

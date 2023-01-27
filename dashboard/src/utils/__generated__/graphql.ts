@@ -18675,6 +18675,13 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
 
+export type GetAuthenticationSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
+
 export type DeleteSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
   name: Scalars['String'];
@@ -18711,14 +18718,14 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename?: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename?: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
 
-export type GetSmtpQueryVariables = Exact<{
+export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetSmtpQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -18925,13 +18932,6 @@ export type GetAppFunctionsMetadataQueryVariables = Exact<{
 
 
 export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', metadataFunctions: any } | null };
-
-export type GetAuthSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAuthSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', authAnonymousUsersEnabled: boolean, authDisableNewUsers: boolean, authPasswordMinLength: number, authMfaEnabled: boolean, authMfaTotpIssuer: string, authAccessControlAllowedRedirectUrls: string } | null };
 
 export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -20434,6 +20434,72 @@ export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, 
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
+export const GetAuthenticationSettingsDocument = gql`
+    query GetAuthenticationSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    auth {
+      redirections {
+        clientUrl
+        allowedUrls
+      }
+      totp {
+        enabled
+        issuer
+      }
+      signUp {
+        enabled
+      }
+      user {
+        email {
+          allowed
+          blocked
+        }
+        emailDomains {
+          allowed
+          blocked
+        }
+        gravatar {
+          enabled
+          default
+          rating
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAuthenticationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthenticationSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAuthenticationSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+      }
+export function useGetAuthenticationSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+        }
+export type GetAuthenticationSettingsQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsQuery>;
+export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsLazyQuery>;
+export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
+export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
+      return { query: GetAuthenticationSettingsDocument, variables: variables }
+    }
 export const DeleteSecretDocument = gql`
     mutation DeleteSecret($appId: uuid!, $name: String!) {
   deleteSecret(appID: $appId, key: $name) {
@@ -20577,6 +20643,8 @@ export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecre
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
   config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
     provider {
       sms {
         accountSid
@@ -20700,9 +20768,10 @@ export type GetSignInMethodsQueryResult = Apollo.QueryResult<GetSignInMethodsQue
 export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVariables) {
       return { query: GetSignInMethodsDocument, variables: variables }
     }
-export const GetSmtpDocument = gql`
-    query GetSmtp($appId: uuid!) {
+export const GetSmtpSettingsDocument = gql`
+    query GetSmtpSettings($appId: uuid!) {
   config(appID: $appId, resolve: true) {
+    id: __typename
     provider {
       smtp {
         host
@@ -20718,34 +20787,34 @@ export const GetSmtpDocument = gql`
     `;
 
 /**
- * __useGetSmtpQuery__
+ * __useGetSmtpSettingsQuery__
  *
- * To run a query within a React component, call `useGetSmtpQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmtpQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSmtpQuery({
+ * const { data, loading, error } = useGetSmtpSettingsQuery({
  *   variables: {
  *      appId: // value for 'appId'
  *   },
  * });
  */
-export function useGetSmtpQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpQuery, GetSmtpQueryVariables>) {
+export function useGetSmtpSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmtpQuery, GetSmtpQueryVariables>(GetSmtpDocument, options);
+        return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
       }
-export function useGetSmtpLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpQuery, GetSmtpQueryVariables>) {
+export function useGetSmtpSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmtpQuery, GetSmtpQueryVariables>(GetSmtpDocument, options);
+          return Apollo.useLazyQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
         }
-export type GetSmtpQueryHookResult = ReturnType<typeof useGetSmtpQuery>;
-export type GetSmtpLazyQueryHookResult = ReturnType<typeof useGetSmtpLazyQuery>;
-export type GetSmtpQueryResult = Apollo.QueryResult<GetSmtpQuery, GetSmtpQueryVariables>;
-export function refetchGetSmtpQuery(variables: GetSmtpQueryVariables) {
-      return { query: GetSmtpDocument, variables: variables }
+export type GetSmtpSettingsQueryHookResult = ReturnType<typeof useGetSmtpSettingsQuery>;
+export type GetSmtpSettingsLazyQueryHookResult = ReturnType<typeof useGetSmtpSettingsLazyQuery>;
+export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>;
+export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
+      return { query: GetSmtpSettingsDocument, variables: variables }
     }
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
@@ -21792,49 +21861,6 @@ export type GetAppFunctionsMetadataLazyQueryHookResult = ReturnType<typeof useGe
 export type GetAppFunctionsMetadataQueryResult = Apollo.QueryResult<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>;
 export function refetchGetAppFunctionsMetadataQuery(variables: GetAppFunctionsMetadataQueryVariables) {
       return { query: GetAppFunctionsMetadataDocument, variables: variables }
-    }
-export const GetAuthSettingsDocument = gql`
-    query getAuthSettings($id: uuid!) {
-  app(id: $id) {
-    authAnonymousUsersEnabled
-    authDisableNewUsers
-    authPasswordMinLength
-    authMfaEnabled
-    authMfaTotpIssuer
-    authAccessControlAllowedRedirectUrls
-  }
-}
-    `;
-
-/**
- * __useGetAuthSettingsQuery__
- *
- * To run a query within a React component, call `useGetAuthSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAuthSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>(GetAuthSettingsDocument, options);
-      }
-export function useGetAuthSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>(GetAuthSettingsDocument, options);
-        }
-export type GetAuthSettingsQueryHookResult = ReturnType<typeof useGetAuthSettingsQuery>;
-export type GetAuthSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthSettingsLazyQuery>;
-export type GetAuthSettingsQueryResult = Apollo.QueryResult<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>;
-export function refetchGetAuthSettingsQuery(variables: GetAuthSettingsQueryVariables) {
-      return { query: GetAuthSettingsDocument, variables: variables }
     }
 export const GetRemoteAppFilesUsageDocument = gql`
     query getRemoteAppFilesUsage {

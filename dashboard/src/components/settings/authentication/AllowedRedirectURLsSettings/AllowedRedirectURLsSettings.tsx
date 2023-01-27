@@ -1,6 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateAppMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
@@ -17,19 +21,21 @@ export interface AllowedRedirectURLFormValues {
 
 export default function AllowedRedirectURLsSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { allowedUrls } = data?.config?.auth?.redirections || {};
 
   const form = useForm<AllowedRedirectURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAccessControlAllowedRedirectUrls:
-        data?.app?.authAccessControlAllowedRedirectUrls,
+      authAccessControlAllowedRedirectUrls: allowedUrls?.join(', ') || '',
     },
   });
 

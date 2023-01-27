@@ -2,7 +2,8 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useGetGravatarSettingsQuery,
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -13,7 +14,6 @@ import {
   AUTH_GRAVATAR_RATING,
   getToastStyleProps,
 } from '@/utils/settings/settingsConstants';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -35,30 +35,29 @@ export interface GravatarFormValues {
 
 export default function GravatarSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetGravatarSettingsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const {
+    default: defaultGravatar,
+    rating,
+    enabled,
+  } = data?.config?.auth?.user?.gravatar || {};
 
   const form = useForm<GravatarFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authGravatarDefault: data?.app?.authGravatarDefault || '',
-      authGravatarRating: data?.app?.authGravatarRating || '',
-      authGravatarEnabled: data?.app?.authGravatarEnabled || false,
+      authGravatarDefault: defaultGravatar || '',
+      authGravatarRating: rating || '',
+      authGravatarEnabled: enabled || false,
     },
   });
-
-  useEffect(() => {
-    form.reset(() => ({
-      authGravatarDefault: data?.app?.authGravatarDefault || '',
-      authGravatarRating: data?.app?.authGravatarRating || '',
-      authGravatarEnabled: data?.app?.authGravatarEnabled || false,
-    }));
-  }, [data?.app, form, form.reset]);
 
   if (loading) {
     return (
@@ -75,7 +74,7 @@ export default function GravatarSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authGravatarEnabled = watch('authGravatarEnabled');
+  const authGravatarEnabled = watch('authGravatarEnabled') ?? false;
 
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
     const updateAppMutation = updateApp({
