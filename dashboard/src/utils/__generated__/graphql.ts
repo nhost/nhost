@@ -18727,6 +18727,14 @@ export type GetSmtpSettingsQueryVariables = Exact<{
 
 export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
 
+export type UpdateConfigMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  config: ConfigConfigUpdateInput;
+}>;
+
+
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig' } };
+
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
   app: Apps_Set_Input;
@@ -20816,6 +20824,40 @@ export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery
 export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
       return { query: GetSmtpSettingsDocument, variables: variables }
     }
+export const UpdateConfigDocument = gql`
+    mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
+  updateConfig(appID: $appId, config: $config) {
+    id: __typename
+  }
+}
+    `;
+export type UpdateConfigMutationFn = Apollo.MutationFunction<UpdateConfigMutation, UpdateConfigMutationVariables>;
+
+/**
+ * __useUpdateConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateConfigMutation, { data, loading, error }] = useUpdateConfigMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateConfigMutation, UpdateConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateConfigMutation, UpdateConfigMutationVariables>(UpdateConfigDocument, options);
+      }
+export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
+export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
+export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
   updateApp(pk_columns: {id: $id}, _set: $app) {
