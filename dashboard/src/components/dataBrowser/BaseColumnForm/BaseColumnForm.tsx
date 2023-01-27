@@ -171,8 +171,8 @@ export default function BaseColumnForm({
                   <span>Identity</span>
                   <Text
                     component="span"
-                    className="font-normal text-xs"
-                    sx={{ color: 'text.secondary' }}
+                    className="text-xs font-normal"
+                    color="secondary"
                   >
                     Attach an implicit sequence to the column and make it
                     non-nullable
@@ -251,8 +251,8 @@ export default function BaseColumnForm({
                 <span>Nullable</span>
                 <Text
                   component="span"
-                  className="font-normal text-xs"
-                  sx={{ color: 'text.secondary' }}
+                  className="text-xs font-normal"
+                  color="secondary"
                 >
                   Allow the column to assume a NULL value if no value is
                   provided
@@ -271,8 +271,8 @@ export default function BaseColumnForm({
                 <span>Unique</span>
                 <Text
                   component="span"
-                  className="font-normal text-xs"
-                  sx={{ color: 'text.secondary' }}
+                  className="text-xs font-normal"
+                  color="secondary"
                 >
                   Enforce values in the column to be unique across rows
                 </Text>

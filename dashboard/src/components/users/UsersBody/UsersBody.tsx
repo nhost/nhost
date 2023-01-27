@@ -210,12 +210,12 @@ export default function UsersBody({
 
   if (!users) {
     return (
-      <div className="w-screen h-screen overflow-hidden">
-        <div className="absolute top-0 left-0 z-50 block w-full h-full">
-          <span className="relative block mx-auto my-0 top50percent top-1/2">
+      <div className="h-screen w-screen overflow-hidden">
+        <div className="absolute top-0 left-0 z-50 block h-full w-full">
+          <span className="top50percent relative top-1/2 mx-auto my-0 block">
             <ActivityIndicator
               label="Loading users..."
-              className="flex items-center justify-center my-auto"
+              className="my-auto flex items-center justify-center"
             />
           </span>
         </div>
@@ -228,7 +228,7 @@ export default function UsersBody({
       {users.map((user) => (
         <Fragment key={user.id}>
           <ListItem.Root
-            className="w-full h-[64px]"
+            className="h-[64px] w-full"
             secondaryAction={
               <Dropdown.Root>
                 <Dropdown.Trigger asChild hideChevron>
@@ -249,7 +249,7 @@ export default function UsersBody({
                     }}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
-                    <UserIcon className="w-4 h-4" />
+                    <UserIcon className="h-4 w-4" />
                     <Text className="font-medium">View User</Text>
                   </Dropdown.Item>
 
@@ -260,8 +260,8 @@ export default function UsersBody({
                     sx={{ color: 'error.main' }}
                     onClick={() => handleDeleteUser(user)}
                   >
-                    <TrashIcon className="w-4 h-4" />
-                    <Text className="font-medium" sx={{ color: 'error.main' }}>
+                    <TrashIcon className="h-4 w-4" />
+                    <Text className="font-medium" color="error">
                       Delete User
                     </Text>
                   </Dropdown.Item>
@@ -270,17 +270,17 @@ export default function UsersBody({
             }
           >
             <ListItem.Button
-              className="grid lg:grid-cols-6 grid-cols-1 py-2.5 h-full w-full"
+              className="grid h-full w-full grid-cols-1 py-2.5 lg:grid-cols-6"
               onClick={() => handleViewUser(user)}
             >
-              <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
+              <div className="col-span-2 grid grid-flow-col place-content-start gap-4">
                 <Avatar
                   src={user.avatarUrl}
                   alt={`Avatar of ${user.displayName}`}
                 />
-                <div className="grid items-center grid-flow-row">
-                  <div className="grid items-center grid-flow-col gap-2">
-                    <Text className="font-medium leading-5 truncate">
+                <div className="grid grid-flow-row items-center">
+                  <div className="grid grid-flow-col items-center gap-2">
+                    <Text className="truncate font-medium leading-5">
                       {user.displayName}
                     </Text>
                     {user.disabled && (
@@ -293,10 +293,7 @@ export default function UsersBody({
                     )}
                   </div>
 
-                  <Text
-                    className="font-normal truncate"
-                    sx={{ color: 'text.secondary' }}
-                  >
+                  <Text className="truncate font-normal" color="secondary">
                     {user.email}
                   </Text>
                 </div>
@@ -316,7 +313,7 @@ export default function UsersBody({
                   : '-'}
               </Text>
 
-              <div className="hidden grid-flow-col col-span-2 gap-3 px-4 lg:grid place-content-start">
+              <div className="col-span-2 hidden grid-flow-col place-content-start gap-3 px-4 lg:grid">
                 {user.userProviders.length === 0 && (
                   <Text className="col-span-3 font-medium">-</Text>
                 )}

@@ -73,7 +73,7 @@ export default function OverviewMigration() {
                                 <Text
                                   component="span"
                                   className="font-semibold"
-                                  sx={{ color: 'text.secondary' }}
+                                  color="secondary"
                                 >
                                   {index + 1}
                                 </Text>

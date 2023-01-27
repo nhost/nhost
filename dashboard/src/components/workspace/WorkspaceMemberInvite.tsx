@@ -16,11 +16,11 @@ export default function WorkspaceMemberInvite({
       <div className=" flex flex-row">
         <Avatar className="h-12 w-12" name={workspaceMemberInvite.email} />
         <div className="ml-3 self-center">
-          <div className="grid grid-flow-col gap-2 justify-start">
+          <div className="grid grid-flow-col justify-start gap-2">
             <Text className="font-medium">{workspaceMemberInvite.email}</Text>
             <Chip size="small" color="info" label="Pending Invitation" />
           </div>
-          <Text className="font-medium" sx={{ color: 'text.disabled' }}>
+          <Text className="font-medium" color="disabled">
             {workspaceMemberInvite.email}
           </Text>
         </div>

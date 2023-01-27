@@ -131,7 +131,7 @@ export default function SystemEnvironmentVariableSettings() {
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
           <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" sx={{ color: 'text.secondary' }}>
+            <Text className="truncate" color="secondary">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium">
                   {currentApplication?.hasuraGraphqlAdminSecret}
@@ -164,7 +164,7 @@ export default function SystemEnvironmentVariableSettings() {
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
           <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" sx={{ color: 'text.secondary' }}>
+            <Text className="truncate" color="secondary">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium">
                   {data?.app?.webhookSecret}
@@ -216,7 +216,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-row md:grid-flow-col gap-1.5 justify-center text-center lg:text-left lg:justify-start items-center lg:col-span-2">
+          <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
             <Button
               variant="borderless"
               onClick={showViewJwtSecretModal}

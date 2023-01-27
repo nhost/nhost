@@ -127,13 +127,13 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
                 Connect repository
               </Text>
               <Text
-                className="text-center font-normal text-xs"
-                sx={{ color: 'text.secondary' }}
+                className="text-center text-xs font-normal"
+                color="secondary"
               >
                 Showing repositories from {data.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
-              <div className="mt-6 flex w-full mb-2">
+              <div className="mt-6 mb-2 flex w-full">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}
@@ -152,7 +152,7 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
                   {githubRepositoriesToDisplay.map((repo, index) => (
                     <Fragment key={repo.id}>
                       <ListItem.Root
-                        className="grid grid-flow-col gap-2 py-2.5 justify-start"
+                        className="grid grid-flow-col justify-start gap-2 py-2.5"
                         secondaryAction={
                           <Button
                             variant="borderless"

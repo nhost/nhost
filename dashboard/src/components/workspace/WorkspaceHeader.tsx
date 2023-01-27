@@ -86,8 +86,8 @@ export default function WorkspaceHeader() {
             >
               <Text
                 component="span"
-                sx={{ color: 'text.secondary' }}
                 className="text-xs font-medium"
+                color="secondary"
               >
                 app.nhost.io/
               </Text>
@@ -147,7 +147,7 @@ export default function WorkspaceHeader() {
                     <Text
                       variant="caption"
                       className="font-medium"
-                      sx={{ color: 'text.disabled' }}
+                      color="disabled"
                     >
                       You can&apos;t remove this workspace because you have apps
                       running. Remove all apps first.

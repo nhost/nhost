@@ -27,13 +27,13 @@ export default function WorkspaceMember({
           avatarUrl={workspaceMember.user.avatarUrl}
         />
         <div className="ml-3 self-center">
-          <div className="grid items-center grid-flow-col gap-2 justify-start">
+          <div className="grid grid-flow-col items-center justify-start gap-2">
             <Text className="font-medium">
               {workspaceMember.user.displayName}
             </Text>
             {isSelf && <Chip size="small" color="info" label="Me" />}
           </div>
-          <Text className="font-medium" sx={{ color: 'text.disabled' }}>
+          <Text className="font-medium" color="disabled">
             {workspaceMember.user.email}
           </Text>
         </div>

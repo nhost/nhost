@@ -31,10 +31,8 @@ export default function OverviewDocumentation({
   return (
     <div {...props}>
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" sx={{ color: 'text.primary' }}>
-          {title}
-        </Text>
-        <Text sx={{ color: 'text.secondary' }}>{description}</Text>
+        <Text variant="h3">{title}</Text>
+        <Text color="secondary">{description}</Text>
       </div>
 
       <div className="mt-6 grid grid-flow-row items-center gap-6 xs:grid-cols-2 lg:grid-cols-4 lg:gap-4">

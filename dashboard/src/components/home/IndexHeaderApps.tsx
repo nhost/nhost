@@ -21,7 +21,7 @@ export function IndexHeaderApps({ query, setQuery }: IndexHeaderAppsProps) {
         placeholder="Find Project"
         startAdornment={
           <SearchIcon
-            className="w-4 h-4 ml-2 -mr-1 shrink-0"
+            className="ml-2 -mr-1 h-4 w-4 shrink-0"
             sx={{ color: 'text.disabled' }}
           />
         }

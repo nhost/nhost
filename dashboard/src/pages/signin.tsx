@@ -33,14 +33,14 @@ function SignInWithGithub({ setSignInMethod }: any) {
         <GithubIcon className="h-6 w-6" />
         <div>Continue with GitHub</div>
       </button>
-      <div className="mt-2 grid grid-flow-col gap-px items-center justify-center">
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
         <span>or</span>
         <Button
           variant="borderless"
           type="button"
           size="small"
           onClick={() => setSignInMethod('email')}
-          className="hover:underline hover:bg-transparent"
+          className="hover:bg-transparent hover:underline"
         >
           sign in with email
         </Button>
@@ -137,19 +137,19 @@ function SignInWithEmail({ setSignInMethod }: any) {
       </FormProvider>
 
       {isError && (
-        <Text className="my-3 font-medium" sx={{ color: 'error.main' }}>
+        <Text className="my-3 font-medium" color="error">
           Error: {error.message}
         </Text>
       )}
 
-      <div className="mt-2 grid gap-px grid-flow-col items-center justify-center">
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
         <span>or</span>
         <Button
           variant="borderless"
           type="button"
           size="small"
           onClick={() => setSignInMethod('github')}
-          className="hover:underline hover:bg-transparent"
+          className="hover:bg-transparent hover:underline"
         >
           sign in with GitHub
         </Button>
@@ -206,7 +206,7 @@ export default function SignInPage() {
             </Box>
 
             <div className="mt-3 flex justify-center">
-              <div className="grid grid-flow-col gap-1 justify-center items-center">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
                 <Text className="text-sm">Don&apos;t have an account?</Text>
 
                 <NavLink href="/signup" passHref>

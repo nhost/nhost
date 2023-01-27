@@ -53,14 +53,14 @@ function SignUpWithGithub({ setSignUpMethod }: any) {
         <GithubIcon className="h-6 w-6 text-white" />
         <div>Sign Up with GitHub</div>
       </button>
-      <div className="mt-2 grid grid-flow-col gap-px items-center justify-center">
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
         <span>or</span>
         <Button
           variant="borderless"
           type="button"
           size="small"
           onClick={() => setSignUpMethod('email')}
-          className="hover:underline hover:bg-transparent"
+          className="hover:bg-transparent hover:underline"
         >
           sign up with email
         </Button>
@@ -172,19 +172,19 @@ function SignUpWithEmail({ setSignUpMethod }: any) {
       </FormProvider>
 
       {isError && (
-        <Text className="font-medium" sx={{ color: 'error.main' }}>
+        <Text className="font-medium" color="error">
           Error: {error.message}
         </Text>
       )}
 
-      <div className="mt-2 grid grid-flow-col gap-px items-center justify-center">
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
         <span>or</span>
         <Button
           variant="borderless"
           type="button"
           size="small"
           onClick={() => setSignUpMethod('github')}
-          className="hover:underline hover:bg-transparent"
+          className="hover:bg-transparent hover:underline"
         >
           sign up with GitHub
         </Button>
@@ -235,10 +235,7 @@ export default function SignUpPage() {
               <div className="my-4">
                 <SignUpController />
               </div>
-              <Text
-                className="mt-4 text-center text-xs"
-                sx={{ color: 'text.secondary' }}
-              >
+              <Text className="mt-4 text-center text-xs" color="secondary">
                 By signing up, you agree to our{' '}
                 <Link
                   href="https://nhost.io/legal/terms-of-service"
@@ -261,7 +258,7 @@ export default function SignUpPage() {
               </Text>
             </Box>
             <div className="mt-3 flex justify-center">
-              <div className="grid grid-flow-col gap-1 justify-center items-center">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
                 <Text className="text-sm">Already have an account?</Text>
 
                 <NavLink href="/signin" passHref>
@@ -310,7 +307,7 @@ export default function SignUpPage() {
                   height={24}
                 />
 
-                <Text className="!text-xl" sx={{ color: 'text.secondary' }}>
+                <Text className="!text-xl" color="secondary">
                   {sellingPoint}
                 </Text>
               </div>

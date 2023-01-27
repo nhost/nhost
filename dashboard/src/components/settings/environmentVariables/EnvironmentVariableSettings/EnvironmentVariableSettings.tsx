@@ -185,10 +185,7 @@ export default function EnvironmentVariableSettings() {
                               handleConfirmDelete(environmentVariable)
                             }
                           >
-                            <Text
-                              className="font-medium"
-                              sx={{ color: 'error.main' }}
-                            >
+                            <Text className="font-medium" color="error">
                               Delete
                             </Text>
                           </Dropdown.Item>

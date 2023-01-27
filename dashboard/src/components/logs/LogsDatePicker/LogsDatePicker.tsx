@@ -55,7 +55,7 @@ function LogsDatePicker({
             htmlFor={label}
             component="label"
             className="self-center text-sm+ font-normal"
-            sx={{ color: 'text.secondary' }}
+            color="secondary"
           >
             {label}
           </Text>

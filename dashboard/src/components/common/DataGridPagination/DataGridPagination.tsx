@@ -70,11 +70,7 @@ export default function DataGridPagination({
         )}
       >
         {currentPage}
-        <Text
-          component="span"
-          className="mx-1 inline-block"
-          sx={{ color: 'text.disabled' }}
-        >
+        <Text component="span" className="mx-1 inline-block" color="disabled">
           /
         </Text>
         {totalPages}

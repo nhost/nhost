@@ -9,7 +9,7 @@ export function WorkspaceSection() {
 
   return (
     <div>
-      <Text sx={{ color: 'text.disabled' }}>My Workspaces</Text>
+      <Text color="disabled">My Workspaces</Text>
       <SidebarWorkspaces />
 
       <Button
