@@ -5,6 +5,9 @@ sidebar_label: 'Overview'
 image: /img/og/graphql.png
 ---
 
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
 A GraphQL API is automatically and instantly available based on the tables and columns in your [database](/database).
 
 The GraphQL API has support for inserting, selecting, updating, and deleting data, which usually accounts for 80% of all API operations you need.
@@ -21,11 +24,11 @@ Building your GraphQL API is a lot of work, but with Nhost it's easy because eve
 
 ## Endpoint
 
-The GraphQL API is available at `https://[subdomain].nhost.run/v1/graphql` When using the [CLI](/cli) the GraphQL API is available at `http://localhost:1337/v1/graphql`.
+The GraphQL API is available at `https://[subdomain].graphql.[region].nhost.run/v1` When using the [CLI](/cli) the GraphQL API is available at `http://localhost:1337/v1/graphql`.
 
 ## GraphQL Clients for JavaScript
 
-The Nhost JavaScript client comes with a simple [GraphQL client](/reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
+The [Nhost JavaScript client](/reference/javascript) comes with a simple [GraphQL client](/reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
 
 When building more complex frontend applications, we recommend using a more advanced GraphQL client such as:
 
@@ -38,7 +41,7 @@ When building more complex frontend applications, we recommend using a more adva
 
 ## Queries
 
-A GraphQL query is used to fetch data from the database.
+A query is used to fetch data from the GraphQL API.
 
 :::tip
 The [Queries documentation from Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/) is applicable since we're using Hasura's GraphQL Engine for your project.
@@ -46,7 +49,10 @@ The [Queries documentation from Hasura](https://hasura.io/docs/latest/graphql/co
 
 **Example:** A GraphQL query to select `title`, `body`, and `isCompleted` for every row in the `todos` table.
 
-```graphql title=GraphQL
+<Tabs >
+  <TabItem value="request" label="Request" default>
+
+```graphql
 query GetTodos {
   todos {
     title
@@ -56,9 +62,10 @@ query GetTodos {
 }
 ```
 
-**Response:**
+  </TabItem>
+  <TabItem value="response" label="Response">
 
-```json title=Response
+```json
 {
   "data": {
     "todos": [
@@ -72,13 +79,19 @@ query GetTodos {
 }
 ```
 
+  </TabItem>
+</Tabs>
+
 #### Filtering and sorting
 
 More complex queries utilize filters, limits, sorting, and aggregation.
 
 Here's an example of a more complex GraphQL query that selects all items in the `todos` table that are not completed, with the total number of comments and the last five comments:
 
-```graphql title=GraphQL
+<Tabs >
+  <TabItem value="request" label="Request" default>
+
+```graphql
 query GetTodosWithLatestComments {
   todos(where: { isCompleted: { _eq: false } }) {
     title
@@ -97,7 +110,10 @@ query GetTodosWithLatestComments {
 }
 ```
 
-```json title=Response
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
 {
   "data": {
     "todos": [
@@ -127,6 +143,9 @@ query GetTodosWithLatestComments {
 }
 ```
 
+  </TabItem>
+</Tabs>
+
 ## Mutations
 
 A GraphQL mutation is used to insert, upsert, update, or delete data.
@@ -139,7 +158,10 @@ The [Mutations documentation from Hasura](https://hasura.io/docs/latest/graphql/
 
 **Example:** A GraphQL mutation to insert data:
 
-```graphql title=GraphQL
+<Tabs >
+  <TabItem value="request" label="Request" default>
+
+```graphql
 mutation InsertTodo {
   insert_todos(
     objects: [{ title: "Delete Firebase account", body: "Migrate to Nhost", isCompleted: false }]
@@ -154,7 +176,10 @@ mutation InsertTodo {
 }
 ```
 
-```json title=Reponse
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
 {
   "data": {
     "insert_todos": [
@@ -168,6 +193,9 @@ mutation InsertTodo {
   }
 }
 ```
+
+  </TabItem>
+</Tabs>
 
 #### Insert Multiple Rows
 
@@ -303,9 +331,7 @@ mutation DeleteDoneTodos {
 }
 ```
 
-If you have set up foreign keys which will restrict a delete violation, you will get an error and will not be able to delete the data until all violations are solved. The simplest way to solve this is by set `On Delete Violation` to `CASCADE` when you set up a foreign Key.
-
----
+If you have set up foreign keys which will restrict a delete violation, you will get an error and will not be able to delete the data until all violations are solved. The simplest way to solve this is by set `On Delete Violation` to `CASCADE` when you set up a foreign key.
 
 ## Subscriptions
 
