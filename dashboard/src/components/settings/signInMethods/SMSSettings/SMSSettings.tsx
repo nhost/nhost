@@ -1,8 +1,8 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  GetSmsSettingsDocument,
-  useSignInMethodsQuery,
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -27,26 +27,25 @@ export interface SMSSettingsFormValues {
 export default function SMSSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation({
-    refetchQueries: [GetSmsSettingsDocument],
+    refetchQueries: [GetSignInMethodsDocument],
   });
 
-  const { data, loading } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, error, loading } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
-    onError: (error) => {
-      throw error;
-    },
   });
+
+  const { accountSid, authToken, messagingServiceId } =
+    data?.config?.provider?.sms || {};
+  const { enabled } = data?.config?.auth?.method?.smsPasswordless || {};
 
   const form = useForm<SMSSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authSmsTwilioAccountSid: data.app.authSmsTwilioAccountSid,
-      authSmsTwilioAuthToken: data.app.authSmsTwilioAuthToken,
-      authSmsTwilioMessagingServiceId: data.app.authSmsTwilioMessagingServiceId,
-      authSmsPasswordlessEnabled: data.app.authSmsPasswordlessEnabled,
+      authSmsTwilioAccountSid: accountSid,
+      authSmsTwilioAuthToken: authToken,
+      authSmsTwilioMessagingServiceId: messagingServiceId,
+      authSmsPasswordlessEnabled: enabled,
     },
   });
 
@@ -54,10 +53,14 @@ export default function SMSSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading SMS settings..."
+        label="Loading settings for the SMS provider..."
         className="justify-center"
       />
     );
+  }
+
+  if (error) {
+    throw error;
   }
 
   const { register, formState, watch } = form;

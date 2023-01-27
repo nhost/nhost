@@ -1,7 +1,8 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -19,19 +20,21 @@ export interface AnonymousSignInFormValues {
 
 export default function AnonymousSignInSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { enabled } = data?.config?.auth?.method?.anonymous || {};
 
   const form = useForm<AnonymousSignInFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAnonymousUsersEnabled: data.app.authAnonymousUsersEnabled,
+      authAnonymousUsersEnabled: enabled,
     },
   });
 
@@ -39,7 +42,7 @@ export default function AnonymousSignInSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading..."
+        label="Loading anonymous sign-in settings..."
         className="justify-center"
       />
     );
@@ -80,11 +83,13 @@ export default function AnonymousSignInSettings() {
         <SettingsContainer
           title="Anonymous Users"
           description="Allow users to sign in anonymously."
-          primaryActionButtonProps={{
-            disabled:
-              form.formState.isSubmitting ||
-              !form.formState.isValid ||
-              !form.formState.isDirty,
+          slotProps={{
+            submitButton: {
+              disabled:
+                form.formState.isSubmitting ||
+                !form.formState.isValid ||
+                !form.formState.isDirty,
+            },
           }}
           enabled={form.getValues('authAnonymousUsersEnabled')}
           switchId="authAnonymousUsersEnabled"

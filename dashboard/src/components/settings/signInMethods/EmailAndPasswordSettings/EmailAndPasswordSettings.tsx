@@ -2,7 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -27,19 +27,19 @@ export default function EmailAndPasswordSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, error, loading } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, error, loading } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { hibpEnabled, emailVerificationRequired } =
+    data?.config?.auth?.method?.emailPassword || {};
 
   const form = useForm<EmailAndPasswordFormValues>({
     reValidateMode: 'onChange',
     defaultValues: {
-      authPasswordHibpEnabled: data?.app?.authPasswordHibpEnabled || false,
-      authEmailSigninEmailVerifiedRequired:
-        data?.app?.authEmailSigninEmailVerifiedRequired || false,
+      authPasswordHibpEnabled: hibpEnabled,
+      authEmailSigninEmailVerifiedRequired: emailVerificationRequired,
     },
   });
 

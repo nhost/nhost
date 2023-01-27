@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -21,17 +21,17 @@ export default function MagicLinkSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { enabled } = data?.config?.auth?.method?.emailPasswordless || {};
 
   const form = useForm<MagicLinkFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authEmailPasswordlessEnabled: data.app.authEmailPasswordlessEnabled,
+      authEmailPasswordlessEnabled: enabled,
     },
   });
 
@@ -39,7 +39,7 @@ export default function MagicLinkSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Magic Link settings..."
+        label="Loading settings for Magic Link..."
         className="justify-center"
       />
     );

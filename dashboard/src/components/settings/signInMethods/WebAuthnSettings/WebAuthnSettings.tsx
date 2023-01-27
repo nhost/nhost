@@ -1,7 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
-  useSignInMethodsQuery,
+  useGetSignInMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -22,17 +22,17 @@ export default function WebAuthnSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { enabled } = data?.config?.auth?.method?.webauthn || {};
 
   const form = useForm<WebAuthnFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authWebAuthnEnabled: data.app.authWebAuthnEnabled,
+      authWebAuthnEnabled: enabled,
     },
   });
 

@@ -1,7 +1,31 @@
 query GetSignInMethods($appId: uuid!) {
   config(appID: $appId, resolve: true) {
+    provider {
+      sms {
+        accountSid
+        authToken
+        messagingServiceId
+        provider
+      }
+    }
     auth {
       method {
+        emailPassword {
+          emailVerificationRequired
+          hibpEnabled
+        }
+        emailPasswordless {
+          enabled
+        }
+        smsPasswordless {
+          enabled
+        }
+        anonymous {
+          enabled
+        }
+        webauthn {
+          enabled
+        }
         oauth {
           apple {
             enabled
