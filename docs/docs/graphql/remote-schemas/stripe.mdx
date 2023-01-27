@@ -14,10 +14,13 @@ The package is also meant to be used alongside your existing GraphQL API to conn
 
 Here's an example of how to use the Stripe GraphQL API to get a list of invoices for a specific Stripe customer:
 
+<Tabs >
+  <TabItem value="request" label="Request" default>
+
 ```graphql
 query {
   stripe {
-    customer(id: "cus_xxx" {
+    customer(id: "cus_xxx") {
       id
       name
       invoices {
@@ -32,6 +35,35 @@ query {
   }
 }
 ```
+
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
+{
+  "data": {
+    "stripe": {
+      "customer": {
+        "id": "cus_xxx",
+        "name": "joe@example.com",
+        "invoices": {
+          "data": [
+            {
+              "id": "in_1MUmwnCCF9wuB4xxxxxxxx",
+              "created": 1674806769,
+              "paid": true,
+              "hostedInvoiceUrl": "https://invoice.stripe.com/i/acct_xxxxxxx/test_YWNjdF8xS25xV1lDQ0Y5d3VCNGZYLF9ORkhWxxxxxxxxxxxx?s=ap"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
 
 You can also add the Stripe GraphQL API as a Hasura Remote Schema and connect data from your database and Stripe. This allows you to request data from your database and Stripe in a single GraphQL query:
 
