@@ -80,7 +80,7 @@ export default function MagicLinkSettings() {
       <Form onSubmit={handleMagicLinkSettingsUpdate}>
         <SettingsContainer
           title="Magic Link"
-          description="Allow users to sign in with a magic link."
+          description="Allow users to sign in with a Magic Link."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
