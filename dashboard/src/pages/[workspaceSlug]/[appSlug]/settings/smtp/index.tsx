@@ -75,13 +75,12 @@ export default function SMTPSettingsPage() {
 
   const {
     register,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, isSubmitting },
   } = form;
 
-  const [updateConfig, { loading: updateConfigLoading }] =
-    useUpdateConfigMutation({
-      refetchQueries: [GetSmtpSettingsDocument],
-    });
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSmtpSettingsDocument],
+  });
 
   if (currentApplication.plan.isFree) {
     return (
@@ -153,7 +152,7 @@ export default function SMTPSettingsPage() {
             className="grid grid-cols-9 gap-4"
             slotProps={{
               submitButton: {
-                loading: updateConfigLoading,
+                loading: isSubmitting,
                 disabled: !isDirty,
               },
             }}

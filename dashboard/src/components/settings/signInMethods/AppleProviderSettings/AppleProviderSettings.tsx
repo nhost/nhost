@@ -1,8 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import type { ConfigConfigUpdateInput } from '@/generated/graphql';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -18,18 +20,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
-export interface AppleProviderFormValues {
-  authAppleEnabled: boolean;
-  authAppleTeamId: string;
-  authAppleKeyId: string;
-  authAppleClientId: string;
-  authApplePrivateKey: string;
-}
+export type AppleProviderFormValues =
+  ConfigConfigUpdateInput['auth']['method']['oauth']['apple'];
 
 export default function AppleProviderSettings() {
   const theme = useTheme();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
@@ -42,11 +41,11 @@ export default function AppleProviderSettings() {
   const form = useForm<AppleProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAppleTeamId: teamId,
-      authAppleKeyId: keyId,
-      authAppleClientId: clientId,
-      authApplePrivateKey: privateKey,
-      authAppleEnabled: enabled,
+      teamId,
+      keyId,
+      clientId,
+      privateKey,
+      enabled,
     },
   });
 
@@ -65,18 +64,26 @@ export default function AppleProviderSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authEnabled = watch('authAppleEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (values: AppleProviderFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                apple: values,
+              },
+            },
+          },
+        },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Apple settings are being updated...`,
         success: `Apple settings have been updated successfully.`,
@@ -107,18 +114,17 @@ export default function AppleProviderSettings() {
               ? '/assets/brands/light/apple.svg'
               : '/assets/brands/apple.svg'
           }
-          switchId="authAppleEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
           <Input
-            {...register(`authAppleTeamId`)}
-            name="authAppleTeamId"
-            id="authAppleTeamId"
+            {...register('teamId')}
+            name="teamId"
+            id="teamId"
             label="Team ID"
             placeholder="Apple Team ID"
             className="col-span-1"
@@ -126,9 +132,9 @@ export default function AppleProviderSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAppleClientId')}
-            name="authAppleClientId"
-            id="authAppleClientId"
+            {...register('clientId')}
+            name="clientId"
+            id="clientId"
             label="Service ID"
             placeholder="Apple Service ID"
             className="col-span-1"
@@ -136,9 +142,9 @@ export default function AppleProviderSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAppleKeyId')}
-            name="authAppleKeyId"
-            id="authAppleKeyId"
+            {...register('keyId')}
+            name="keyId"
+            id="keyId"
             label="Key ID"
             placeholder="Apple Key ID"
             className="col-span-2"
@@ -146,11 +152,11 @@ export default function AppleProviderSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authApplePrivateKey')}
+            {...register('privateKey')}
             multiline
             rows={4}
-            name="authApplePrivateKey"
-            id="authApplePrivateKey"
+            name="privateKey"
+            id="privateKey"
             label="Private Key"
             placeholder="Paste Private Key here"
             className="col-span-2"

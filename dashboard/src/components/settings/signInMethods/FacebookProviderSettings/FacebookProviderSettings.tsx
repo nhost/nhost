@@ -3,8 +3,9 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
 import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -21,22 +22,24 @@ import { twMerge } from 'tailwind-merge';
 
 export default function FacebookProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, enabled } =
+  const { clientId, clientSecret, enabled, scope } =
     data?.config?.auth?.method?.oauth?.facebook || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientId: clientId,
-      authClientSecret: clientSecret,
-      authEnabled: enabled,
+      clientId,
+      clientSecret,
+      enabled,
     },
   });
 
@@ -55,24 +58,31 @@ export default function FacebookProviderSettings() {
   }
 
   const { formState, watch } = form;
-  const authEnabled = watch('authEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authFacebookClientId: values.authClientId,
-          authFacebookClientSecret: values.authClientSecret,
-          authFacebookEnabled: values.authEnabled,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                facebook: {
+                  ...values,
+                  scope,
+                },
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Facebook settings are being updated...`,
         success: `Facebook settings have been updated successfully.`,
@@ -90,16 +100,17 @@ export default function FacebookProviderSettings() {
         <SettingsContainer
           title="Facebook"
           description="Allow users to sign in with Facebook."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-facebook"
           docsTitle="how to sign in users with Facebook"
           icon="/assets/brands/facebook.svg"
-          switchId="authEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',

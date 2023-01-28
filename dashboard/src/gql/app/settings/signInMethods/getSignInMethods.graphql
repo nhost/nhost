@@ -40,11 +40,13 @@ query GetSignInMethods($appId: uuid!) {
             enabled
             clientId
             clientSecret
+            scope
           }
           facebook {
             enabled
             clientId
             clientSecret
+            scope
           }
           github {
             enabled

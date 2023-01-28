@@ -2,9 +2,9 @@ import Input from '@/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
 
 export interface BaseProviderSettingsFormValues {
-  authEnabled: boolean;
-  authClientId: string;
-  authClientSecret: string;
+  enabled: boolean;
+  clientId: string;
+  clientSecret: string;
 }
 
 /**
@@ -39,8 +39,8 @@ export default function BaseProviderSettings() {
   return (
     <>
       <Input
-        {...register(`authClientId`)}
-        id="authClientId"
+        {...register('clientId')}
+        id="clientId"
         label="Client ID"
         placeholder="Enter your Client ID"
         className="col-span-1"
@@ -48,8 +48,8 @@ export default function BaseProviderSettings() {
         hideEmptyHelperText
       />
       <Input
-        {...register(`authClientSecret`)}
-        id="authClientSecret"
+        {...register('clientSecret')}
+        id="clientSecret"
         label="Client Secret"
         placeholder="Enter your Client Secret"
         className="col-span-1"
