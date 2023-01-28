@@ -1,10 +1,13 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
-import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import BaseProviderSettings, {
+  baseProviderValidationSchema,
+} from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -15,6 +18,7 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -23,23 +27,26 @@ import { twMerge } from 'tailwind-merge';
 export default function GitHubProviderSettings() {
   const theme = useTheme();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, enabled } =
+  const { clientId, clientSecret, enabled, scope } =
     data?.config?.auth?.method?.oauth?.github || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientId: clientId,
-      authClientSecret: clientSecret,
-      authEnabled: enabled,
+      clientId,
+      clientSecret,
+      enabled,
     },
+    resolver: yupResolver(baseProviderValidationSchema),
   });
 
   if (loading) {
@@ -57,24 +64,31 @@ export default function GitHubProviderSettings() {
   }
 
   const { formState, watch } = form;
-  const authEnabled = watch('authEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authGithubClientId: values.authClientId,
-          authGithubClientSecret: values.authClientSecret,
-          authGithubEnabled: values.authEnabled,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                github: {
+                  ...values,
+                  scope: scope || [],
+                },
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `GitHub settings are being updated...`,
         success: `GitHub settings have been updated successfully.`,
@@ -92,9 +106,11 @@ export default function GitHubProviderSettings() {
         <SettingsContainer
           title="GitHub"
           description="Allow users to sign in with GitHub."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-github"
           docsTitle="how to sign in users with GitHub"
@@ -103,9 +119,8 @@ export default function GitHubProviderSettings() {
               ? '/assets/brands/light/github.svg'
               : '/assets/brands/github.svg'
           }
-          switchId="authEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',

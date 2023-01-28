@@ -1,10 +1,13 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
-import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import BaseProviderSettings, {
+  baseProviderValidationSchema,
+} from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -15,29 +18,33 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function SpotifyProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, enabled } =
+  const { clientId, clientSecret, enabled, scope } =
     data?.config?.auth?.method?.oauth?.spotify || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientId: clientId,
-      authClientSecret: clientSecret,
-      authEnabled: enabled,
+      clientId,
+      clientSecret,
+      enabled,
     },
+    resolver: yupResolver(baseProviderValidationSchema),
   });
 
   if (loading) {
@@ -55,24 +62,31 @@ export default function SpotifyProviderSettings() {
   }
 
   const { formState, watch } = form;
-  const authEnabled = watch('authEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authSpotifyClientId: values.authClientId,
-          authSpotifyClientSecret: values.authClientSecret,
-          authSpotifyEnabled: values.authEnabled,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                spotify: {
+                  ...values,
+                  scope: scope || [],
+                },
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Spotify settings are being updated...`,
         success: `Spotify settings have been updated successfully.`,
@@ -90,16 +104,17 @@ export default function SpotifyProviderSettings() {
         <SettingsContainer
           title="Spotify"
           description="Allow users to sign in with Spotify."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-spotify"
           docsTitle="how to sign in users with Spotify"
           icon="/assets/brands/spotify.svg"
-          switchId="authEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',

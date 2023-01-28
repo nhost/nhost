@@ -1,6 +1,5 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import type { ConfigConfigUpdateInput } from '@/generated/graphql';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -15,13 +14,22 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export type AppleProviderFormValues =
-  ConfigConfigUpdateInput['auth']['method']['oauth']['apple'];
+const validationSchema = Yup.object({
+  teamId: Yup.string().label('Team ID').nullable().required(),
+  keyId: Yup.string().label('Key ID').nullable().required(),
+  clientId: Yup.string().label('Client ID').nullable().required(),
+  privateKey: Yup.string().label('Private Key').nullable().required(),
+  enabled: Yup.boolean(),
+});
+
+export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
   const theme = useTheme();
@@ -47,6 +55,7 @@ export default function AppleProviderSettings() {
       privateKey,
       enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -103,7 +112,7 @@ export default function AppleProviderSettings() {
           description="Allow users to sign in with Apple."
           slotProps={{
             submitButton: {
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}
@@ -130,6 +139,8 @@ export default function AppleProviderSettings() {
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.teamId}
+            helperText={formState.errors?.teamId?.message}
           />
           <Input
             {...register('clientId')}
@@ -140,6 +151,8 @@ export default function AppleProviderSettings() {
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.clientId}
+            helperText={formState.errors?.clientId?.message}
           />
           <Input
             {...register('keyId')}
@@ -150,6 +163,8 @@ export default function AppleProviderSettings() {
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.keyId}
+            helperText={formState.errors?.keyId?.message}
           />
           <Input
             {...register('privateKey')}
@@ -162,6 +177,8 @@ export default function AppleProviderSettings() {
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.privateKey}
+            helperText={formState.errors?.privateKey?.message}
           />
           <Input
             name="redirectUrl"

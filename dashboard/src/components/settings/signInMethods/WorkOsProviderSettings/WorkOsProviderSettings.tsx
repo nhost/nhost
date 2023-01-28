@@ -1,8 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -13,39 +15,46 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface WorkOsProviderFormValues {
-  authWorkOsEnabled: boolean;
-  authWorkOsClientId: string;
-  authWorkOsClientSecret: string;
-  authWorkOsDefaultOrganization: string;
-  authWorkOsDefaultConnection: string;
-}
+const validationSchema = Yup.object({
+  clientId: Yup.string().label('Client ID').nullable().required(),
+  clientSecret: Yup.string().label('Client Secret').nullable().required(),
+  organization: Yup.string().label('Organization').nullable().required(),
+  connection: Yup.string().label('Connection').nullable().required(),
+  enabled: Yup.boolean(),
+});
+
+export type WorkOsProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WorkOsProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, organization, connection, enabled } =
+  const { clientId, clientSecret, organization, connection, enabled, scope } =
     data?.config?.auth?.method?.oauth?.workos || {};
 
   const form = useForm<WorkOsProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authWorkOsClientId: clientId,
-      authWorkOsClientSecret: clientSecret,
-      authWorkOsDefaultOrganization: organization,
-      authWorkOsDefaultConnection: connection,
-      authWorkOsEnabled: enabled,
+      clientId,
+      clientSecret,
+      organization,
+      connection,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -63,20 +72,29 @@ export default function WorkOsProviderSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authEnabled = watch('authWorkOsEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (values: WorkOsProviderFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                workos: {
+                  ...values,
+                  scope: scope || [],
+                },
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `WorkOS settings are being updated...`,
         success: `WorkOS settings have been updated successfully.`,
@@ -94,60 +112,46 @@ export default function WorkOsProviderSettings() {
         <SettingsContainer
           title="WorkOS"
           description="Allow users to sign in with WorkOS."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-workos"
           docsTitle="how to sign in users with WorkOS"
           icon="/assets/brands/workos.svg"
-          switchId="authWorkOsEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
-            'grid-flow-rows grid grid-cols-6 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
+            'grid grid-flow-row grid-cols-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
+          <BaseProviderSettings />
           <Input
-            {...register(`authWorkOsClientId`)}
-            name="authWorkOsClientId"
-            id="authWorkOsClientId"
-            label="Client ID"
-            placeholder="Enter your Client ID"
-            className="col-span-3"
-            fullWidth
-            hideEmptyHelperText
-          />
-          <Input
-            {...register('authWorkOsClientSecret')}
-            name="authWorkOsClientSecret"
-            id="authWorkOsClientSecret"
-            label="Client Secret"
-            placeholder="Enter your Client Secret"
-            className="col-span-3"
-            fullWidth
-            hideEmptyHelperText
-          />
-          <Input
-            {...register('authWorkOsDefaultOrganization')}
-            name="authWorkOsDefaultOrganization"
-            id="authWorkOsDefaultOrganization"
+            {...register('organization')}
+            name="organization"
+            id="organization"
             label="Default Organization ID (optional)"
             placeholder="Default Organization ID"
-            className="col-span-3"
+            className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.organization}
+            helperText={formState.errors?.organization?.message}
           />
           <Input
-            {...register('authWorkOsDefaultConnection')}
-            name="authWorkOsDefaultConnection"
-            id="authWorkOsDefaultConnection"
+            {...register('connection')}
+            name="connection"
+            id="connection"
             label="Default Connection (optional)"
             placeholder="Default Connection"
-            className="col-span-3"
+            className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.connection}
+            helperText={formState.errors?.connection?.message}
           />
           <Input
             name="redirectUrl"
@@ -157,7 +161,7 @@ export default function WorkOsProviderSettings() {
               currentApplication.region.awsName,
               'auth',
             )}/signin/provider/workos/callback`}
-            className="col-span-6"
+            className="col-span-2"
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"

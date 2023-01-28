@@ -1,11 +1,16 @@
 import Input from '@/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
+import * as Yup from 'yup';
 
-export interface BaseProviderSettingsFormValues {
-  enabled: boolean;
-  clientId: string;
-  clientSecret: string;
-}
+export const baseProviderValidationSchema = Yup.object({
+  clientId: Yup.string().label('Client ID').nullable().required(),
+  clientSecret: Yup.string().label('Client Secret').nullable().required(),
+  enabled: Yup.bool(),
+});
+
+export type BaseProviderSettingsFormValues = Yup.InferType<
+  typeof baseProviderValidationSchema
+>;
 
 /**
  * Third-party auth providers e.g. Google, GitHub.
@@ -34,7 +39,8 @@ export interface BaseProviderSettingsFormValues {
  *
  */
 export default function BaseProviderSettings() {
-  const { register } = useFormContext<BaseProviderSettingsFormValues>();
+  const { register, formState } =
+    useFormContext<BaseProviderSettingsFormValues>();
 
   return (
     <>
@@ -46,6 +52,8 @@ export default function BaseProviderSettings() {
         className="col-span-1"
         fullWidth
         hideEmptyHelperText
+        error={!!formState.errors?.clientId}
+        helperText={formState.errors?.clientId?.message}
       />
       <Input
         {...register('clientSecret')}
@@ -55,6 +63,8 @@ export default function BaseProviderSettings() {
         className="col-span-1"
         fullWidth
         hideEmptyHelperText
+        error={!!formState.errors?.clientSecret}
+        helperText={formState.errors?.clientSecret?.message}
       />
     </>
   );

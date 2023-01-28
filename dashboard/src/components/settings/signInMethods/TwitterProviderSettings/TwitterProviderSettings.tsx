@@ -1,8 +1,9 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -13,19 +14,25 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface TwitterProviderFormValues {
-  authTwitterConsumerSecret: string;
-  authTwitterConsumerKey: string;
-  authTwitterEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  consumerSecret: Yup.string().label('Consumer Secret').nullable().required(),
+  consumerKey: Yup.string().label('Consumer Key').nullable().required(),
+  enabled: Yup.boolean(),
+});
+
+export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
@@ -38,10 +45,11 @@ export default function TwitterProviderSettings() {
   const form = useForm<TwitterProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authTwitterConsumerSecret: consumerSecret,
-      authTwitterConsumerKey: consumerKey,
-      authTwitterEnabled: enabled,
+      consumerSecret,
+      consumerKey,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -59,20 +67,26 @@ export default function TwitterProviderSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authEnabled = watch('authTwitterEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (values: TwitterProviderFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                twitter: values,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Twitter settings are being updated...`,
         success: `Twitter settings have been updated successfully.`,
@@ -90,39 +104,44 @@ export default function TwitterProviderSettings() {
         <SettingsContainer
           title="Twitter"
           description="Allow users to sign in with Twitter."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsTitle="how to sign in users with Twitter"
           icon="/assets/brands/twitter.svg"
-          switchId="authTwitterEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
           <Input
-            {...register(`authTwitterConsumerKey`)}
-            name="authTwitterConsumerKey"
-            id="authTwitterConsumerKey"
+            {...register(`consumerKey`)}
+            name="consumerKey"
+            id="consumerKey"
             label="Twitter Consumer Key"
             placeholder="Twitter Consumer Key"
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.consumerKey}
+            helperText={formState.errors?.consumerKey?.message}
           />
           <Input
-            {...register('authTwitterConsumerSecret')}
-            name="authTwitterConsumerSecret"
-            id="authTwitterConsumerSecret"
+            {...register('consumerSecret')}
+            name="consumerSecret"
+            id="consumerSecret"
             label="Twitter Consumer Secret"
             placeholder="Twitter Consumer Secret"
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.consumerSecret}
+            helperText={formState.errors?.consumerSecret?.message}
           />
           <Input
             name="redirectUrl"

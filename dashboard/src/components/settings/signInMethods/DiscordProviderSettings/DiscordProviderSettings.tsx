@@ -1,7 +1,9 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
-import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import BaseProviderSettings, {
+  baseProviderValidationSchema,
+} from '@/components/settings/signInMethods/BaseProviderSettings';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -16,6 +18,7 @@ import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -41,6 +44,7 @@ export default function DiscordProviderSettings() {
       clientSecret,
       enabled,
     },
+    resolver: yupResolver(baseProviderValidationSchema),
   });
 
   if (loading) {
@@ -72,7 +76,7 @@ export default function DiscordProviderSettings() {
               oauth: {
                 discord: {
                   ...values,
-                  scope,
+                  scope: scope || [],
                 },
               },
             },

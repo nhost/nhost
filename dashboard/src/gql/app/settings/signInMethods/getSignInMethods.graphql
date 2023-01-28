@@ -52,26 +52,31 @@ query GetSignInMethods($appId: uuid!) {
             enabled
             clientId
             clientSecret
+            scope
           }
           google {
             enabled
             clientId
             clientSecret
+            scope
           }
           linkedin {
             enabled
             clientId
             clientSecret
+            scope
           }
           spotify {
             enabled
             clientId
             clientSecret
+            scope
           }
           twitch {
             enabled
             clientId
             clientSecret
+            scope
           }
           twitter {
             enabled
@@ -82,6 +87,7 @@ query GetSignInMethods($appId: uuid!) {
             enabled
             clientId
             clientSecret
+            scope
           }
           workos {
             enabled
@@ -89,6 +95,7 @@ query GetSignInMethods($appId: uuid!) {
             clientSecret
             connection
             organization
+            scope
           }
         }
       }
