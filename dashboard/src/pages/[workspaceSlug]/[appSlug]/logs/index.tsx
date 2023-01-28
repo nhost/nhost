@@ -62,35 +62,36 @@ export default function LogsPage() {
             return prev;
           }
 
+          const prevLogs = prev.logs;
+
           // if there are no previous logs just return the new ones
-          if (!prev.logs || prev.logs.length === 0) {
+          if (!prevLogs || prevLogs.length === 0) {
             return subscriptionData.data;
           }
+
+          const newLogs = subscriptionData.data.logs;
 
           // Next, we need to understand if the new logs are the same as the previous ones.
           // We'll first check if the length of the logs is the same.
           // We'll then pick the first log from `prev` and see if we can find it in `subscriptionData.data`.
           // If it exists, we'll assume that the logs are the same and we'll return `prev`.
           // NOTE: We can't compare elements in the array becayse they are sent out of order. The logs are sorted by timestamp in the LogsBody component.
-          const prevLog = prev.logs[0];
 
-          const sameLogs =
-            prev.logs.length === subscriptionData.data.logs.length &&
-            subscriptionData.data.logs.some(
+          const prevAndNewLogsAreTheSame =
+            prevLogs.length === newLogs.length &&
+            newLogs.some(
               (log) =>
-                log.timestamp === prevLog.timestamp &&
-                log.service === prevLog.service,
+                log.timestamp === prevLogs[0].timestamp &&
+                log.service === prevLogs[0].service,
             );
 
-          if (sameLogs) {
-            return prev;
+          if (prevAndNewLogsAreTheSame) {
+            return prevLogs;
           }
 
           // if the logs are not the same, it means we got new logs. We'll merge the new logs with the existing logs.
-          const newLogs = subscriptionData.data.logs;
-
           return {
-            logs: [...prev.logs, ...newLogs],
+            logs: [...prevLogs, ...newLogs],
           };
         },
       }),
