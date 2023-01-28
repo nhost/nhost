@@ -86,7 +86,7 @@ export default function LogsPage() {
             );
 
           if (prevAndNewLogsAreTheSame) {
-            return prevLogs;
+            return prev;
           }
 
           // if the logs are not the same, it means we got new logs. We'll merge the new logs with the existing logs.
