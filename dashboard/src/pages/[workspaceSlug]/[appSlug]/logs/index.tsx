@@ -25,6 +25,7 @@ export default function LogsPage() {
     AvailableLogsServices.ALL,
   );
 
+  // create a client that sends http requests to Hausra but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
@@ -56,6 +57,7 @@ export default function LogsPage() {
           from: fromDate,
         },
         updateQuery: (prev, { subscriptionData }) => {
+          // if there is no new data, just return the previous data
           if (!subscriptionData.data) {
             return prev;
           }
@@ -65,24 +67,30 @@ export default function LogsPage() {
             return subscriptionData.data;
           }
 
-          const previousLogsLength = prev.logs.length;
-          const newLogsLength = subscriptionData.data.logs.length;
-          const timestampOfFirstPreviousLog = prev.logs[0].timestamp;
-          const timestampOfFirstSubscriptionLog =
-            subscriptionData.data.logs[newLogsLength - 1].timestamp;
+          // Next, we need to understand if the new logs are the same as the previous ones.
+          // We'll first check if the length of the logs is the same.
+          // We'll then pick the first log from `prev` and see if we can find it in `subscriptionData.data`.
+          // If it exists, we'll assume that the logs are the same and we'll return `prev`.
+          // NOTE: We can't compare elements in the array becayse they are sent out of order. The logs are sorted by timestamp in the LogsBody component.
+          const prevLog = prev.logs[0];
+
           const sameLogs =
-            previousLogsLength === newLogsLength &&
-            timestampOfFirstPreviousLog === timestampOfFirstSubscriptionLog;
+            prev.logs.length === subscriptionData.data.logs.length &&
+            subscriptionData.data.logs.some(
+              (log) =>
+                log.timestamp === prevLog.timestamp &&
+                log.service === prevLog.service,
+            );
 
           if (sameLogs) {
-            return subscriptionData.data;
+            return prev;
           }
 
+          // if the logs are not the same, it means we got new logs. We'll merge the new logs with the existing logs.
           const newLogs = subscriptionData.data.logs;
 
           return {
-            ...prev,
-            logs: [...newLogs, ...prev.logs],
+            logs: [...prev.logs, ...newLogs],
           };
         },
       }),
