@@ -8,6 +8,7 @@ import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import { availableServices, logsCustomIntervals } from '@/utils/logs';
 import { subMinutes } from 'date-fns';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface LogsHeaderProps extends Omit<HTMLDivProps, 'children'> {
@@ -46,6 +47,7 @@ export default function LogsHeader({
   onServiceChange,
   ...props
 }: LogsHeaderProps) {
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const applicationCreationDate = new Date(currentApplication.createdAt);
   const isLive = !toDate;
@@ -73,7 +75,22 @@ export default function LogsHeader({
     }
 
     onToDateChange(null);
+    setCurrentTime(new Date());
   }
+
+  useEffect(() => {
+    let interval = null;
+
+    if (!interval && isLive) {
+      interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLive, onToDateChange]);
 
   return (
     <div
@@ -93,7 +110,7 @@ export default function LogsHeader({
           <div className="grid grid-flow-col text-greyscaleMedium">
             <LogsDatePicker
               label="To"
-              value={toDate}
+              value={!isLive ? toDate : currentTime}
               disabled={isLive}
               onChange={onToDateChange}
               minDate={fromDate}
