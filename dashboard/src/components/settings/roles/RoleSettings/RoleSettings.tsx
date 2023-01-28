@@ -98,7 +98,7 @@ export default function RoleSettings() {
     await toast.promise(
       updateAppPromise,
       {
-        loading: 'Removing allowed role...',
+        loading: 'Deleting allowed role...',
         success: 'Allowed Role has been deleted successfully.',
         error: 'An error occurred while trying to delete the allowed role.',
       },
@@ -108,7 +108,7 @@ export default function RoleSettings() {
 
   function handleOpenCreator() {
     openDialog('CREATE_ROLE', {
-      title: 'Add Allowed Role',
+      title: 'Create Allowed Role',
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -129,10 +129,10 @@ export default function RoleSettings() {
 
   function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
-      title: 'Remove Allowed Role',
+      title: 'Delete Allowed Role',
       payload: (
         <Text>
-          Are you sure you want to remove the allowed role &quot;
+          Are you sure you want to delete the allowed role &quot;
           <strong>{originalRole.name}</strong>&quot;?.
         </Text>
       ),
@@ -265,7 +265,7 @@ export default function RoleSettings() {
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
         >
-          Add Allowed Role
+          Create Allowed Role
         </Button>
       </div>
     </SettingsContainer>
