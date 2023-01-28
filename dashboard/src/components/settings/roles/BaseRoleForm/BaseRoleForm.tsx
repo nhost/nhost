@@ -58,10 +58,10 @@ export default function BaseRoleForm({
   return (
     <div className="grid grid-flow-row gap-3 px-6 pb-6">
       <Text variant="subtitle1" component="span">
-        Enter the name for the role below.
+        Enter the name for the allowed role below.
       </Text>
 
-      {submitButtonText !== 'Create' && (
+      {submitButtonText !== 'Add' && (
         <Alert severity="warning" className="text-left">
           <span className="text-left">
             <strong>Note:</strong> Changing the name of the role will lose the
