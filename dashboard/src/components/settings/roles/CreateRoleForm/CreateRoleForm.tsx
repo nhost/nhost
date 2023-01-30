@@ -85,11 +85,7 @@ export default function CreateRoleForm({
 
   return (
     <FormProvider {...form}>
-      <BaseRoleForm
-        submitButtonText="Create"
-        onSubmit={handleSubmit}
-        {...props}
-      />
+      <BaseRoleForm submitButtonText="Add" onSubmit={handleSubmit} {...props} />
     </FormProvider>
   );
 }
