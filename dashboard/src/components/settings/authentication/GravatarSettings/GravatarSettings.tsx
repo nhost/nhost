@@ -109,7 +109,7 @@ export default function GravatarSettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#gravatar"
           switchId="authGravatarEnabled"
           showSwitch
           enabled={authGravatarEnabled}

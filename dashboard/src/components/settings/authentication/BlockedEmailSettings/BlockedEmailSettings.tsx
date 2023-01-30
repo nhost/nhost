@@ -111,7 +111,7 @@ export default function BlockedEmailSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#blocked-emails-and-domains"
           enabled={enabled}
           onEnabledChange={(switchEnabled) =>
             setValue('enabled', switchEnabled, { shouldDirty: true })

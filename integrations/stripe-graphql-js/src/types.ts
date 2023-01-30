@@ -1,6 +1,6 @@
 import type Stripe from 'stripe'
 
-import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
+import type { CORSOptions, YogaInitialContext } from 'graphql-yoga'
 
 export type StripeGraphQLContext = {
   isAllowed: (stripeCustomerId: string, context: Context) => boolean | Promise<boolean>

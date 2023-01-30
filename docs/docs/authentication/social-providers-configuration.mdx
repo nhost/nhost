@@ -1,20 +1,18 @@
 ---
-title: Social Providers Configuration
-sidebar_label: Social Providers Configuration
+title: Social Providers
+sidebar_label: Social Providers
 sidebar_position: 10
 ---
 
 ## Enabling Social Sign-In Provider
 
-To start with social sign-in, select your project in Nhost Dashboard and go to **Users** → **Authentication Settings**.
-
-You need to set the Client ID and Client Secret for each provider that you want to enable.
+To start with social sign-in, select your project in Nhost Dashboard and go to **Settings -> Sign-In Methods**.
 
 ## Implementing sign-in experience
 
 Use the [Nhost JavaScript SDK](/reference/javascript) and the `signIn()` method to implement social sign-in for your project.
 
-Here's an example of how to implement sign-in with GitHub:
+**Example**: Sign in a user with [GitHub](/authentication/sign-in-with-github).
 
 ```js
 nhost.auth.signIn({
@@ -22,18 +20,20 @@ nhost.auth.signIn({
 })
 ```
 
-Users are redirected to your Nhost project's **client URL** by default. By default, your Nhost project's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Authentication Settings** → **Client URL**.
+During the sign-in flow, the user is redirected to the provider's website to authenticate. After the user authenticates, they are redirected back to your Nhost project's [**Client URL**](/authentication#client-url) by default. You can change where the user gets redirected to after authentication by passing the `redirectTo` option.
 
-Here is an example of how to redirect to another host or path:
+**Example:** Redirect the user to `https://staging.example.com/welcome` after they complete the sign-in flow.
 
 ```js
 nhost.auth.signIn({
-  provider: '<provider>'
+  provider: 'github'
   options: {
-    redirectTo: "<host>/<slug>" // Example: "https://example.com/dashboard"
+    redirectTo: "https://staging.example.com/welcome",
   },
 })
 ```
+
+In the example above, it's important to note that the `redirectTo` URL must be part of the [Allowed Redirect URLs](/authentication#allowed-redirect-urls) of your Nhost project.
 
 ## Provider OAuth scopes
 
