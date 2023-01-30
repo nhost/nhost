@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 0.0.12
+
+### Patch Changes
+
+- e146d32e: chore(deps): update dependency @types/react to v18.0.27
+- 5b65cac9: updated authentication documentation
+
 ## 0.0.11
 
 ### Patch Changes
