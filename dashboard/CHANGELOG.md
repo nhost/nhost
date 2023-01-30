@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.10.1
+
+### Patch Changes
+
+- e146d32e: chore(deps): update dependency @types/react to v18.0.27
+- 59347fcd: correct allowed role name
+- 5b65cac9: updated authentication documentation
+- 963f9b5e: feat(dashboard): include project info in feedback
+
 ## 0.10.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.1
+
+### Patch Changes
+
+- e146d32e: chore(deps): update dependency @types/react to v18.0.27
+
 ## 1.0.0
 
 ### Major Changes
