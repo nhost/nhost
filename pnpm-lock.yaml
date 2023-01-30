@@ -7341,11 +7341,11 @@ packages:
       extract-files: 11.0.0
       graphql: 16.6.0
       graphql-ws: 5.11.2_graphql@16.6.0
-      isomorphic-ws: 5.0.0_ws@8.11.0
+      isomorphic-ws: 5.0.0_ws@8.9.0
       meros: 1.2.0
       tslib: 2.4.1
       value-or-promise: 1.0.11
-      ws: 8.11.0
+      ws: 8.9.0
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
@@ -7369,11 +7369,11 @@ packages:
       extract-files: 11.0.0
       graphql: 16.6.0
       graphql-ws: 5.11.2_graphql@16.6.0
-      isomorphic-ws: 5.0.0_ws@8.11.0
+      isomorphic-ws: 5.0.0_ws@8.9.0
       meros: 1.2.0_@types+node@16.18.11
       tslib: 2.4.1
       value-or-promise: 1.0.11
-      ws: 8.11.0
+      ws: 8.9.0
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
@@ -14205,7 +14205,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2
+      follow-redirects: 1.15.2_debug@4.3.4
     transitivePeerDependencies:
       - debug
     dev: true
@@ -19642,6 +19642,19 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
+
+  /follow-redirects/1.15.2_debug@4.3.4:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -21945,12 +21958,12 @@ packages:
       - encoding
     dev: true
 
-  /isomorphic-ws/5.0.0_ws@8.11.0:
+  /isomorphic-ws/5.0.0_ws@8.9.0:
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
     peerDependencies:
       ws: '*'
     dependencies:
-      ws: 8.11.0
+      ws: 8.9.0
     dev: true
 
   /isstream/0.1.2:
