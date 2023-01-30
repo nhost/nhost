@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.9.10",
+  "version": "0.10.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -8,7 +8,7 @@
     "build": "next build --no-lint",
     "analyze": "ANALYZE=true pnpm build --no-lint",
     "start": "next start",
-    "lint": "next lint --max-warnings 3",
+    "lint": "next lint --max-warnings 2",
     "test": "vitest",
     "codegen": "graphql-codegen --config graphql.config.yaml --errors-only",
     "nhost:dev": "nhost dev -d",
