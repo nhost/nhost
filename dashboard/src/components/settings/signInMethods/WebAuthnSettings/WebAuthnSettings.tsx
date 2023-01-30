@@ -1,26 +1,29 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface WebAuthnFormValues {
-  /**
-   * When enabled, passwordless Webauthn authentication can be done
-   * via device supported strong authenticators like fingerprint, Face ID, etc.
-   */
-  authWebAuthnEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean(),
+});
+
+export type WebAuthnFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WebAuthnSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
@@ -32,8 +35,9 @@ export default function WebAuthnSettings() {
   const form = useForm<WebAuthnFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authWebAuthnEnabled: enabled,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -50,21 +54,24 @@ export default function WebAuthnSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
-  const authWebAuthnEnabled = watch('authWebAuthnEnabled');
+  const { formState } = form;
 
   const handleWebAuthnSettingsUpdate = async (values: WebAuthnFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authWebAuthnEnabled: values.authWebAuthnEnabled,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              webauthn: values,
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `WebAuthn settings are being updated...`,
         success: `WebAuthn settings have been updated successfully.`,
@@ -82,14 +89,15 @@ export default function WebAuthnSettings() {
         <SettingsContainer
           title="Security Keys"
           description="Allow users to sign in with security keys using WebAuthn."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-security-keys"
           docsTitle="how to sign in users with security keys"
-          enabled={authWebAuthnEnabled}
-          switchId="authWebAuthnEnabled"
+          switchId="enabled"
           showSwitch
           className="hidden"
         />

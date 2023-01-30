@@ -7,17 +7,6 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BasePermissionVariableFormValues {
-  /**
-   * Permission variable key.
-   */
-  key: string;
-  /**
-   * Permission variable value.
-   */
-  value: string;
-}
-
 export interface BasePermissionVariableFormProps {
   /**
    * Function to be called when the form is submitted.
@@ -39,6 +28,10 @@ export const basePermissionVariableValidationSchema = Yup.object({
   key: Yup.string().required('This field is required.'),
   value: Yup.string().required('This field is required.'),
 });
+
+export type BasePermissionVariableFormValues = Yup.InferType<
+  typeof basePermissionVariableValidationSchema
+>;
 
 export default function BasePermissionVariableForm({
   onSubmit,

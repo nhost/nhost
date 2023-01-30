@@ -2,30 +2,31 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface EmailAndPasswordFormValues {
-  /**
-   * When enabled, users will need to verify their email by a link sent to their specified email.
-   */
-  authEmailSigninEmailVerifiedRequired: boolean;
-  /**
-   * If true, users' passwords will be checked against https://haveibeenpwned.com/Passwords
-   */
-  authPasswordHibpEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  emailVerificationRequired: Yup.boolean(),
+  hibpEnabled: Yup.boolean(),
+});
+
+export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailAndPasswordSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, error, loading } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
@@ -38,9 +39,10 @@ export default function EmailAndPasswordSettings() {
   const form = useForm<EmailAndPasswordFormValues>({
     reValidateMode: 'onChange',
     defaultValues: {
-      authPasswordHibpEnabled: hibpEnabled,
-      authEmailSigninEmailVerifiedRequired: emailVerificationRequired,
+      hibpEnabled,
+      emailVerificationRequired,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -62,19 +64,21 @@ export default function EmailAndPasswordSettings() {
   const handleEmailAndPasswordSettingsChange = async (
     values: EmailAndPasswordFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authPasswordHibpEnabled: values.authPasswordHibpEnabled,
-          authEmailSigninEmailVerifiedRequired:
-            values.authEmailSigninEmailVerifiedRequired,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              emailPassword: values,
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Email and password sign-in settings are being updated...`,
         success: `Email and password sign-in settings have been updated successfully.`,
@@ -102,14 +106,14 @@ export default function EmailAndPasswordSettings() {
               disabled: true,
             },
             submitButton: {
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}
         >
           <ControlledCheckbox
-            name="authEmailSigninEmailVerifiedRequired"
-            id="authEmailSigninEmailVerifiedRequired"
+            name="emailVerificationRequired"
+            id="emailVerificationRequired"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Require Verified Emails</Text>
@@ -121,8 +125,8 @@ export default function EmailAndPasswordSettings() {
           />
 
           <ControlledCheckbox
-            name="authPasswordHibpEnabled"
-            id="authPasswordHibpEnabled"
+            name="hibpEnabled"
+            id="hibpEnabled"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Password Protection</Text>

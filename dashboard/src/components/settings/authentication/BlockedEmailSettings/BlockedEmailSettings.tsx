@@ -118,7 +118,7 @@ export default function BlockedEmailSettings() {
           description="Block specific email addresses and domains to sign up."
           slotProps={{
             submitButton: {
-              disabled: !formState.isValid || !isDirty,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

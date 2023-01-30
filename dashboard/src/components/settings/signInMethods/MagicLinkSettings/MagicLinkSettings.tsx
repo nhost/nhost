@@ -1,25 +1,29 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
+  GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface MagicLinkFormValues {
-  /**
-   * Enables passwordless authentication by email.
-   */
-  authEmailPasswordlessEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean(),
+});
+
+export type MagicLinkFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function MagicLinkSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentApplication?.id },
@@ -31,8 +35,9 @@ export default function MagicLinkSettings() {
   const form = useForm<MagicLinkFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authEmailPasswordlessEnabled: enabled,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -49,21 +54,24 @@ export default function MagicLinkSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
-  const authEmailPasswordlessEnabled = watch('authEmailPasswordlessEnabled');
+  const { formState } = form;
 
   const handleMagicLinkSettingsUpdate = async (values: MagicLinkFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              emailPasswordless: values,
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Magic Link settings are being updated...`,
         success: `Magic Link settings have been updated successfully.`,
@@ -81,14 +89,15 @@ export default function MagicLinkSettings() {
         <SettingsContainer
           title="Magic Link"
           description="Allow users to sign in with a Magic Link."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-magic-link"
           docsTitle="how to sign in users with Magic Link"
-          enabled={authEmailPasswordlessEnabled}
-          switchId="authEmailPasswordlessEnabled"
+          switchId="enabled"
           showSwitch
           className="hidden"
         />

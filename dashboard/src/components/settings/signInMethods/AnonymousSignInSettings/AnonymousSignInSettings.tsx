@@ -3,24 +3,25 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface AnonymousSignInFormValues {
-  /**
-   * Enables users to register as an anonymous user.
-   */
-  authAnonymousUsersEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean(),
+});
+
+export type AnonymousSignInFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AnonymousSignInSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
@@ -34,8 +35,9 @@ export default function AnonymousSignInSettings() {
   const form = useForm<AnonymousSignInFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAnonymousUsersEnabled: enabled,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -55,17 +57,21 @@ export default function AnonymousSignInSettings() {
   const handlePasswordProtectionSettingsChange = async (
     values: AnonymousSignInFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              anonymous: values,
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `Anonymous sign-in settings are being updated...`,
         success: `Anonymous sign-in settings have been updated successfully.`,
@@ -85,14 +91,11 @@ export default function AnonymousSignInSettings() {
           description="Allow users to sign in anonymously."
           slotProps={{
             submitButton: {
-              disabled:
-                form.formState.isSubmitting ||
-                !form.formState.isValid ||
-                !form.formState.isDirty,
+              disabled: !form.formState.isDirty,
+              loading: form.formState.isSubmitting,
             },
           }}
-          enabled={form.getValues('authAnonymousUsersEnabled')}
-          switchId="authAnonymousUsersEnabled"
+          switchId="enabled"
           showSwitch
           className="hidden"
         />

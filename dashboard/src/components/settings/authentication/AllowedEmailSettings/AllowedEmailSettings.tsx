@@ -121,7 +121,7 @@ export default function AllowedEmailDomainsSettings() {
           description="Allow specific email addresses and domains to sign up."
           slotProps={{
             submitButton: {
-              disabled: !formState.isValid || !isDirty,
+              disabled: !isDirty,
               loading: formState.isSubmitting,
             },
           }}

@@ -3,7 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -12,21 +12,28 @@ import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Image from 'next/image';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface SMSSettingsFormValues {
-  authSmsTwilioAccountSid: string;
-  authSmsTwilioAuthToken: string;
-  authSmsTwilioMessagingServiceId: string;
-  authSmsPasswordlessEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  accountSid: Yup.string().label('Account SID').nullable().required(),
+  authToken: Yup.string().label('Auth Token').nullable().required(),
+  messagingServiceId: Yup.string()
+    .label('Messaging Service ID')
+    .nullable()
+    .required(),
+  enabled: Yup.boolean().label('Enabled'),
+});
+
+export type SMSSettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function SMSSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
@@ -42,11 +49,12 @@ export default function SMSSettings() {
   const form = useForm<SMSSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authSmsTwilioAccountSid: accountSid,
-      authSmsTwilioAuthToken: authToken,
-      authSmsTwilioMessagingServiceId: messagingServiceId,
-      authSmsPasswordlessEnabled: enabled,
+      accountSid,
+      authToken,
+      messagingServiceId,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -64,20 +72,33 @@ export default function SMSSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authSmsPasswordlessEnabled = watch('authSmsPasswordlessEnabled');
+  const authSmsPasswordlessEnabled = watch('enabled');
 
   const handleSMSSettingsChange = async (values: SMSSettingsFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          provider: {
+            sms: {
+              accountSid: values.accountSid,
+              authToken: values.authToken,
+              messagingServiceId: values.messagingServiceId,
+            },
+          },
+          auth: {
+            method: {
+              smsPasswordless: {
+                enabled: values.enabled,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppMutation,
+      updateConfigMutation,
       {
         loading: `SMS settings are being updated...`,
         success: `SMS settings have been updated successfully.`,
@@ -95,12 +116,13 @@ export default function SMSSettings() {
         <SettingsContainer
           title="Phone Number (SMS)"
           description="Allow users to sign in with Phone Number (SMS)."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
-          switchId="authSmsPasswordlessEnabled"
-          enabled={authSmsPasswordlessEnabled}
+          switchId="enabled"
           showSwitch
           docsLink="https://docs.nhost.io/authentication/sign-in-with-phone-number-sms"
           docsTitle="how to sign in users with a phone number (SMS)"
@@ -139,34 +161,40 @@ export default function SMSSettings() {
             </Option>
           </Select>
           <Input
-            {...register('authSmsTwilioAccountSid')}
-            name="authSmsTwilioAccountSid"
-            id="authSmsTwilioAccountSid"
+            {...register('accountSid')}
+            name="accountSid"
+            id="accountSid"
             placeholder="Account SID"
             className="col-span-2 lg:col-span-1"
             fullWidth
             hideEmptyHelperText
             label="Account SID"
+            error={!!formState.errors?.accountSid}
+            helperText={formState.errors?.accountSid?.message}
           />
           <Input
-            {...register('authSmsTwilioAuthToken')}
-            name="authSmsTwilioAuthToken"
-            id="authSmsTwilioAuthToken"
+            {...register('authToken')}
+            name="authToken"
+            id="authToken"
             placeholder="Auth Token"
             className="col-span-2 lg:col-span-1"
             fullWidth
             hideEmptyHelperText
             label="Auth Token"
+            error={!!formState.errors?.authToken}
+            helperText={formState.errors?.authToken?.message}
           />
           <Input
-            {...register('authSmsTwilioMessagingServiceId')}
-            name="authSmsTwilioMessagingServiceId"
-            id="authSmsTwilioMessagingServiceId"
+            {...register('messagingServiceId')}
+            name="messagingServiceId"
+            id="messagingServiceId"
             placeholder="Messaging Service ID"
             className="col-span-2 lg:col-span-1"
             fullWidth
             hideEmptyHelperText
             label="Messaging Service ID"
+            error={!!formState.errors?.messagingServiceId}
+            helperText={formState.errors?.messagingServiceId?.message}
           />
         </SettingsContainer>
       </Form>
