@@ -18580,13 +18580,6 @@ export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
 
 export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } }> };
 
-export type GetAppCustomClaimsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppCustomClaimsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, authJwtCustomClaims: any } | null };
-
 export type GetAppInjectedVariablesQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -18674,6 +18667,22 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 
 
 export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
+
+export type GetAppCustomClaimsQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetAppCustomClaimsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, authJwtCustomClaims: any } | null };
+
+export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
+
+export type GetPermissionVariablesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetPermissionVariablesQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string }> | null } | null } | null } | null } };
 
 export type GetRolesQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19403,6 +19412,13 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
   }
 }
     `;
+export const PermissionVariableFragmentDoc = gql`
+    fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
+  id: key
+  key
+  value
+}
+    `;
 export const DeploymentRowFragmentDoc = gql`
     fragment DeploymentRow on deployments {
   id
@@ -19902,46 +19918,6 @@ export type GetAppByWorkspaceAndNameLazyQueryHookResult = ReturnType<typeof useG
 export type GetAppByWorkspaceAndNameQueryResult = Apollo.QueryResult<GetAppByWorkspaceAndNameQuery, GetAppByWorkspaceAndNameQueryVariables>;
 export function refetchGetAppByWorkspaceAndNameQuery(variables: GetAppByWorkspaceAndNameQueryVariables) {
       return { query: GetAppByWorkspaceAndNameDocument, variables: variables }
-    }
-export const GetAppCustomClaimsDocument = gql`
-    query getAppCustomClaims($id: uuid!) {
-  app(id: $id) {
-    id
-    name
-    authJwtCustomClaims
-  }
-}
-    `;
-
-/**
- * __useGetAppCustomClaimsQuery__
- *
- * To run a query within a React component, call `useGetAppCustomClaimsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppCustomClaimsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppCustomClaimsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppCustomClaimsQuery(baseOptions: Apollo.QueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
-      }
-export function useGetAppCustomClaimsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
-        }
-export type GetAppCustomClaimsQueryHookResult = ReturnType<typeof useGetAppCustomClaimsQuery>;
-export type GetAppCustomClaimsLazyQueryHookResult = ReturnType<typeof useGetAppCustomClaimsLazyQuery>;
-export type GetAppCustomClaimsQueryResult = Apollo.QueryResult<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>;
-export function refetchGetAppCustomClaimsQuery(variables: GetAppCustomClaimsQueryVariables) {
-      return { query: GetAppCustomClaimsDocument, variables: variables }
     }
 export const GetAppInjectedVariablesDocument = gql`
     query getAppInjectedVariables($id: uuid!) {
@@ -20467,6 +20443,93 @@ export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof use
 export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
 export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
       return { query: GetAuthenticationSettingsDocument, variables: variables }
+    }
+export const GetAppCustomClaimsDocument = gql`
+    query getAppCustomClaims($id: uuid!) {
+  app(id: $id) {
+    id
+    name
+    authJwtCustomClaims
+  }
+}
+    `;
+
+/**
+ * __useGetAppCustomClaimsQuery__
+ *
+ * To run a query within a React component, call `useGetAppCustomClaimsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAppCustomClaimsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAppCustomClaimsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAppCustomClaimsQuery(baseOptions: Apollo.QueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
+      }
+export function useGetAppCustomClaimsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
+        }
+export type GetAppCustomClaimsQueryHookResult = ReturnType<typeof useGetAppCustomClaimsQuery>;
+export type GetAppCustomClaimsLazyQueryHookResult = ReturnType<typeof useGetAppCustomClaimsLazyQuery>;
+export type GetAppCustomClaimsQueryResult = Apollo.QueryResult<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>;
+export function refetchGetAppCustomClaimsQuery(variables: GetAppCustomClaimsQueryVariables) {
+      return { query: GetAppCustomClaimsDocument, variables: variables }
+    }
+export const GetPermissionVariablesDocument = gql`
+    query GetPermissionVariables($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    auth {
+      session {
+        accessToken {
+          customClaims {
+            ...PermissionVariable
+          }
+        }
+      }
+    }
+  }
+}
+    ${PermissionVariableFragmentDoc}`;
+
+/**
+ * __useGetPermissionVariablesQuery__
+ *
+ * To run a query within a React component, call `useGetPermissionVariablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPermissionVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPermissionVariablesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPermissionVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetPermissionVariablesQuery, GetPermissionVariablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPermissionVariablesQuery, GetPermissionVariablesQueryVariables>(GetPermissionVariablesDocument, options);
+      }
+export function useGetPermissionVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPermissionVariablesQuery, GetPermissionVariablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPermissionVariablesQuery, GetPermissionVariablesQueryVariables>(GetPermissionVariablesDocument, options);
+        }
+export type GetPermissionVariablesQueryHookResult = ReturnType<typeof useGetPermissionVariablesQuery>;
+export type GetPermissionVariablesLazyQueryHookResult = ReturnType<typeof useGetPermissionVariablesLazyQuery>;
+export type GetPermissionVariablesQueryResult = Apollo.QueryResult<GetPermissionVariablesQuery, GetPermissionVariablesQueryVariables>;
+export function refetchGetPermissionVariablesQuery(variables: GetPermissionVariablesQueryVariables) {
+      return { query: GetPermissionVariablesDocument, variables: variables }
     }
 export const GetRolesDocument = gql`
     query GetRoles($appId: uuid!) {

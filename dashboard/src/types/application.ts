@@ -4,6 +4,7 @@
 import type {
   GetEnvironmentVariablesQuery,
   GetSecretsQuery,
+  PermissionVariableFragment,
 } from '@/utils/__generated__/graphql';
 
 /**
@@ -82,11 +83,9 @@ export type Application = {
   providersUpdated: boolean;
 };
 
-export type CustomClaim = {
-  key: string;
-  value: string;
-  isSystemClaim?: boolean;
-};
+export interface PermissionVariable extends PermissionVariableFragment {
+  isSystemVariable?: boolean;
+}
 
 export type Role = {
   name: string;

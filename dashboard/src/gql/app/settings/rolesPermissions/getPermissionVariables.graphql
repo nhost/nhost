@@ -1,0 +1,20 @@
+fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
+  id: key
+  key
+  value
+}
+
+query GetPermissionVariables($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    id: __typename
+    auth {
+      session {
+        accessToken {
+          customClaims {
+            ...PermissionVariable
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,12 +7,12 @@ import BasePermissionVariableForm, {
 } from '@/components/settings/permissions/BasePermissionVariableForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
-import getPermissionVariablesObject from '@/utils/settings/getPermissionVariablesObject';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetAppCustomClaimsQuery,
-  useUpdateAppMutation,
+  GetPermissionVariablesDocument,
+  useGetPermissionVariablesQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -32,10 +32,13 @@ export default function CreatePermissionVariableForm({
 }: CreatePermissionVariableFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { data, error, loading } = useGetAppCustomClaimsQuery({
-    variables: { id: currentApplication?.id },
+  const { data, error, loading } = useGetPermissionVariablesQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { customClaims: permissionVariables } =
+    data?.config?.auth?.session?.accessToken || {};
 
   const form = useForm<BasePermissionVariableFormValues>({
     defaultValues: {
@@ -46,8 +49,8 @@ export default function CreatePermissionVariableForm({
     resolver: yupResolver(basePermissionVariableValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getAppCustomClaims'],
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetPermissionVariablesDocument],
   });
 
   if (loading) {
@@ -61,9 +64,8 @@ export default function CreatePermissionVariableForm({
   }
 
   const { setError } = form;
-  const availablePermissionVariables = getPermissionVariablesArray(
-    data?.app?.authJwtCustomClaims,
-  );
+  const availablePermissionVariables =
+    getAllPermissionVariables(permissionVariables);
 
   async function handleSubmit({
     key,
@@ -79,26 +81,29 @@ export default function CreatePermissionVariableForm({
       return;
     }
 
-    const permissionVariablesObject = getPermissionVariablesObject(
-      availablePermissionVariables.filter(
-        (permissionVariable) => !permissionVariable.isSystemClaim,
-      ),
-    );
-
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authJwtCustomClaims: {
-            ...permissionVariablesObject,
-            [key]: value,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            session: {
+              accessToken: {
+                customClaims: [
+                  ...(permissionVariables?.map((permissionVariable) => ({
+                    key: permissionVariable.key,
+                    value: permissionVariable.value,
+                  })) || []),
+                  { key, value },
+                ],
+              },
+            },
           },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Creating permission variable...',
         success: 'Permission variable has been created successfully.',

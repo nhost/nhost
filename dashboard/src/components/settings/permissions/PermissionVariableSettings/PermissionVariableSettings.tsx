@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { CustomClaim } from '@/types/application';
+import type { PermissionVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -15,36 +15,32 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetAppCustomClaimsDocument,
-  useGetAppCustomClaimsQuery,
-  useUpdateAppMutation,
+  GetPermissionVariablesDocument,
+  useGetPermissionVariablesQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
-export interface PermissionVariableSettingsFormValues {
-  /**
-   * Permission variables.
-   */
-  authJwtCustomClaims: CustomClaim[];
-}
-
 export default function PermissionVariableSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetAppCustomClaimsQuery({
+  const { data, loading, error } = useGetPermissionVariablesQuery({
     variables: {
-      id: currentApplication?.id,
+      appId: currentApplication?.id,
     },
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: [GetAppCustomClaimsDocument],
+  const { customClaims: permissionVariables } =
+    data?.config?.auth?.session?.accessToken || {};
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetPermissionVariablesDocument],
   });
 
   if (loading) {
@@ -57,28 +53,29 @@ export default function PermissionVariableSettings() {
     throw error;
   }
 
-  async function handleDeleteVariable({ key }: CustomClaim) {
-    const filteredCustomClaims = Object.keys(
-      data?.app?.authJwtCustomClaims,
-    ).filter((customClaimKey) => customClaimKey !== key);
-
-    const updateAppPromise = updateApp({
+  async function handleDeleteVariable({ id }: PermissionVariable) {
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authJwtCustomClaims: filteredCustomClaims.reduce(
-            (customClaims, currentKey) => ({
-              ...customClaims,
-              [currentKey]: data?.app?.authJwtCustomClaims[currentKey],
-            }),
-            {},
-          ),
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            session: {
+              accessToken: {
+                customClaims: permissionVariables
+                  ?.filter((permissionVariable) => permissionVariable.id !== id)
+                  .map((permissionVariable) => ({
+                    key: permissionVariable.key,
+                    value: permissionVariable.value,
+                  })),
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Deleting permission variable...',
         success: 'Permission variable has been deleted successfully.',
@@ -98,7 +95,7 @@ export default function PermissionVariableSettings() {
     });
   }
 
-  function handleOpenEditor(originalVariable: CustomClaim) {
+  function handleOpenEditor(originalVariable: PermissionVariable) {
     openDialog('EDIT_PERMISSION_VARIABLE', {
       title: 'Edit Permission Variable',
       payload: { originalVariable },
@@ -109,7 +106,7 @@ export default function PermissionVariableSettings() {
     });
   }
 
-  function handleConfirmDelete(originalVariable: CustomClaim) {
+  function handleConfirmDelete(originalVariable: PermissionVariable) {
     openAlertDialog({
       title: 'Delete Permission Variable',
       payload: (
@@ -127,9 +124,8 @@ export default function PermissionVariableSettings() {
     });
   }
 
-  const availablePermissionVariables = getPermissionVariablesArray(
-    data?.app?.authJwtCustomClaims,
-  );
+  const availablePermissionVariables =
+    getAllPermissionVariables(permissionVariables);
 
   return (
     <SettingsContainer
@@ -147,28 +143,30 @@ export default function PermissionVariableSettings() {
 
       <div className="grid grid-flow-row gap-2">
         <List>
-          {availablePermissionVariables.map((customClaim, index) => (
-            <Fragment key={customClaim.key}>
+          {availablePermissionVariables.map((permissionVariable, index) => (
+            <Fragment key={permissionVariable.id}>
               <ListItem.Root
                 className="grid grid-cols-2 px-4"
                 secondaryAction={
                   <Dropdown.Root>
                     <Tooltip
                       title={
-                        customClaim.isSystemClaim
+                        permissionVariable.isSystemVariable
                           ? "You can't edit system permission variables"
                           : ''
                       }
                       placement="right"
-                      disableHoverListener={!customClaim.isSystemClaim}
-                      hasDisabledChildren={customClaim.isSystemClaim}
+                      disableHoverListener={
+                        !permissionVariable.isSystemVariable
+                      }
+                      hasDisabledChildren={permissionVariable.isSystemVariable}
                       className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       <Dropdown.Trigger asChild hideChevron>
                         <IconButton
                           variant="borderless"
                           color="secondary"
-                          disabled={customClaim.isSystemClaim}
+                          disabled={permissionVariable.isSystemVariable}
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -188,7 +186,7 @@ export default function PermissionVariableSettings() {
                       }}
                     >
                       <Dropdown.Item
-                        onClick={() => handleOpenEditor(customClaim)}
+                        onClick={() => handleOpenEditor(permissionVariable)}
                       >
                         <Text className="font-medium">Edit</Text>
                       </Dropdown.Item>
@@ -196,7 +194,7 @@ export default function PermissionVariableSettings() {
                       <Divider component="li" />
 
                       <Dropdown.Item
-                        onClick={() => handleConfirmDelete(customClaim)}
+                        onClick={() => handleConfirmDelete(permissionVariable)}
                       >
                         <Text
                           className="font-medium"
@@ -214,15 +212,17 @@ export default function PermissionVariableSettings() {
                 <ListItem.Text
                   primary={
                     <>
-                      X-Hasura-{customClaim.key}{' '}
-                      {customClaim.isSystemClaim && (
+                      X-Hasura-{permissionVariable.key}{' '}
+                      {permissionVariable.isSystemVariable && (
                         <LockIcon className="h-4 w-4" />
                       )}
                     </>
                   }
                 />
 
-                <Text className="font-medium">user.{customClaim.value}</Text>
+                <Text className="font-medium">
+                  user.{permissionVariable.value}
+                </Text>
               </ListItem.Root>
 
               <Divider
