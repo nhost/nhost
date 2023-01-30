@@ -1,5 +1,17 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.0
+
+### Major Changes
+
+- e6dad4d6: Added remote schemas
+
+## 0.0.8
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+
 ## 0.0.7
 
 ### Patch Changes

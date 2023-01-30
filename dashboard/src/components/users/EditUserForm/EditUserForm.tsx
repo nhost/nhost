@@ -8,18 +8,18 @@ import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import { copy } from '@/utils/copy';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Avatar } from '@mui/material';
 import { format } from 'date-fns';
@@ -137,7 +137,7 @@ export default function EditUserForm({
   }
 
   const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
+    variables: { id: currentApplication?.id },
   });
 
   const allAvailableProjectRoles = getUserRoles(
@@ -206,11 +206,7 @@ export default function EditUserForm({
             </div>
             <div>
               <Dropdown.Root>
-                <Dropdown.Trigger
-                  autoFocus={false}
-                  asChild
-                  className="gap-2"
-                >
+                <Dropdown.Trigger autoFocus={false} asChild className="gap-2">
                   <Button variant="outlined" color="secondary">
                     Actions
                   </Button>

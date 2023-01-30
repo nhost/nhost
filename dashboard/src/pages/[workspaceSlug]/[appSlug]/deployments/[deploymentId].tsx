@@ -1,4 +1,4 @@
-import { AppDeploymentDuration } from '@/components/applications/AppDeployments';
+import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
@@ -8,6 +8,7 @@ import DelayedLoading from '@/ui/DelayedLoading';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import { Text } from '@/ui/Text';
+import Link from '@/ui/v2/Link';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -49,6 +50,12 @@ export default function DeploymentDetailsPage() {
       </Container>
     );
   }
+
+  const relativeDateOfDeployment = deployment.deploymentStartedAt
+    ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
+        addSuffix: true,
+      })
+    : '';
 
   return (
     <Container>
@@ -104,24 +111,20 @@ export default function DeploymentDetailsPage() {
               {deployment.commitMessage}
             </div>
             <div className="text-sm+ text-greyscaleGrey">
-              {formatDistanceToNowStrict(
-                parseISO(deployment.deploymentStartedAt),
-                {
-                  addSuffix: true,
-                },
-              )}
+              {relativeDateOfDeployment}
             </div>
           </div>
         </div>
         <div className=" flex items-center">
-          <a
-            className="self-center font-mono text-sm- font-medium text-greyscaleDark"
+          <Link
+            className="self-center font-mono text-sm- font-medium"
             target="_blank"
             rel="noreferrer"
             href={`https://github.com/${currentApplication.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
+            underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}
-          </a>
+          </Link>
 
           <div className="w-20 text-right">
             <AppDeploymentDuration
@@ -133,6 +136,10 @@ export default function DeploymentDetailsPage() {
       </div>
       <div>
         <div className="rounded-lg bg-verydark p-4 text-sm- text-white">
+          {deployment.deploymentLogs.length === 0 && (
+            <span className="font-mono">No message.</span>
+          )}
+
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
               <div className=" mr-2 flex-shrink-0">

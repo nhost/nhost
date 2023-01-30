@@ -9,8 +9,8 @@ import {
   useUpdateAppMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import Input from '@/ui/v2/Input';
+import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
 import { updateOwnCache } from '@/utils/updateOwnCache';
@@ -53,6 +53,7 @@ export default function SettingsGeneralPage() {
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentApplication?.id },
   });
+  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
 
   const form = useForm<ProjectNameValidationSchema>({
@@ -69,6 +70,14 @@ export default function SettingsGeneralPage() {
   const { register, formState } = form;
 
   const handleProjectNameChange = async (data: ProjectNameValidationSchema) => {
+    // In this bit of code we spread the props of the current path (e.g. /workspace/...) and add one key-value pair: `updating: true`.
+    // We want to indicate that the currently we're in the process of running a mutation state that will affect the routing behaviour of the website
+    // i.e. redirecting to 404 if there's no workspace/project with that slug.
+    await router.replace({
+      pathname: router.pathname,
+      query: { ...router.query, updating: true },
+    });
+
     const newProjectSlug = slugifyString(data.name);
 
     if (newProjectSlug.length < 1 || newProjectSlug.length > 32) {
@@ -100,8 +109,13 @@ export default function SettingsGeneralPage() {
       toastStyleProps,
     );
     try {
-      await client.refetchQueries({ include: ['getOneUser'] });
+      await client.refetchQueries({
+        include: ['getOneUser'],
+      });
       form.reset(undefined, { keepValues: true, keepDirty: false });
+      await router.push(
+        `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
+      );
     } catch (error) {
       await discordAnnounce(
         error.message || 'Error while trying to update application cache',

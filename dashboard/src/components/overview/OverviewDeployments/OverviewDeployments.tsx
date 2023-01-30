@@ -1,25 +1,21 @@
-import { AppDeploymentDuration } from '@/components/applications/AppDeployments';
 import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import NavLink from '@/components/common/NavLink';
+import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { Avatar } from '@/ui/Avatar';
-import Status, { StatusEnum } from '@/ui/Status';
-import type { DeploymentStatus } from '@/ui/StatusCircle';
-import { StatusCircle } from '@/ui/StatusCircle';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
-import type { ListItemRootProps } from '@/ui/v2/ListItem';
-import { ListItem } from '@/ui/v2/ListItem';
+import List from '@/ui/v2/List';
 import Text from '@/ui/v2/Text';
 import { getLastLiveDeployment } from '@/utils/helpers';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
-import { useGetDeploymentsSubSubscription } from '@/utils/__generated__/graphql';
+import {
+  useGetDeploymentsSubSubscription,
+  useScheduledOrPendingDeploymentsSubSubscription,
+} from '@/utils/__generated__/graphql';
 import { ChevronRightIcon } from '@heroicons/react/solid';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 
 function OverviewDeploymentsTopBar() {
@@ -54,92 +50,6 @@ function OverviewDeploymentsTopBar() {
   );
 }
 
-interface OverviewDeployProps extends ListItemRootProps {
-  /**
-   * Deployment metadata to display.
-   */
-  deployment: DeploymentRowFragment;
-  /**
-   * Determines to show a status badge showing the live status of a deployment reflecting the latest state of the application.
-   */
-  isDeploymentLive: boolean;
-}
-
-function OverviewDeployment({
-  deployment,
-  isDeploymentLive,
-  className,
-}: OverviewDeployProps) {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-
-  const relativeDateOfDeployment = formatDistanceToNowStrict(
-    parseISO(deployment.deploymentStartedAt),
-    {
-      addSuffix: true,
-    },
-  );
-
-  const { commitMessage } = deployment;
-
-  return (
-    <ListItem.Root className={twMerge('grid grid-flow-row', className)}>
-      <ListItem.Button
-        className="grid grid-flow-col items-center justify-between gap-2 px-2 py-2"
-        component={NavLink}
-        href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments/${deployment.id}`}
-      >
-        <div className="flex cursor-pointer flex-row items-center justify-center space-x-2 self-center">
-          <div>
-            <Avatar
-              name={deployment.commitUserName}
-              avatarUrl={deployment.commitUserAvatarUrl}
-              className="h-8 w-8"
-            />
-          </div>
-          <div className="grid grid-flow-row truncate text-sm+ font-medium">
-            <Text className="inline cursor-pointer truncate font-medium leading-snug text-greyscaleDark">
-              {commitMessage?.trim() || (
-                <span className="truncate pr-1 font-normal italic">
-                  No commit message
-                </span>
-              )}
-            </Text>
-            <Text className="text-sm font-normal leading-[1.375rem] text-greyscaleGrey">
-              {relativeDateOfDeployment}
-            </Text>
-          </div>
-        </div>
-        <div className="grid grid-flow-col items-center self-center">
-          {isDeploymentLive && (
-            <div className="flex self-center align-middle">
-              <Status status={StatusEnum.Live}>Live</Status>
-            </div>
-          )}
-
-          <div className="w-20 self-center text-right align-middle font-mono text-sm- font-medium">
-            {deployment.commitSHA.substring(0, 7)}
-          </div>
-          <div className="w-20 self-center text-right align-middle font-mono text-sm-">
-            <AppDeploymentDuration
-              startedAt={deployment.deploymentStartedAt}
-              endedAt={deployment.deploymentEndedAt}
-            />
-          </div>
-          <div className="mx-3 self-center">
-            <StatusCircle
-              status={deployment.deploymentStatus as DeploymentStatus}
-            />
-          </div>
-          <div className="self-center">
-            <ChevronRightIcon className="ml-2 h-4 w-4 cursor-pointer self-center" />
-          </div>
-        </div>
-      </ListItem.Button>
-    </ListItem.Root>
-  );
-}
-
 interface OverviewDeploymentsProps {
   projectId: string;
   githubRepository: { fullName: string };
@@ -159,9 +69,18 @@ function OverviewDeployments({
     },
   });
 
-  if (loading) {
+  const {
+    data: scheduledOrPendingDeploymentsData,
+    loading: scheduledOrPendingDeploymentsLoading,
+  } = useScheduledOrPendingDeploymentsSubSubscription({
+    variables: {
+      appId: projectId,
+    },
+  });
+
+  if (loading || scheduledOrPendingDeploymentsLoading) {
     return (
-      <div style={{ height: '240px' }}>
+      <div className="h-60">
         <ActivityIndicator label="Loading deployments..." />
       </div>
     );
@@ -218,22 +137,22 @@ function OverviewDeployments({
     );
   }
 
-  const getLastLiveDeploymentId = getLastLiveDeployment(deployments);
+  const liveDeploymentId = getLastLiveDeployment(deployments);
+  const { deployments: scheduledOrPendingDeployments } =
+    scheduledOrPendingDeploymentsData;
 
   return (
-    <div className="rounded-x-lg flex flex-col divide-y-1 divide-gray-200 rounded-lg border border-veryLightGray">
-      {deployments.map((deployment) => {
-        const isDeploymentLive = deployment.id === getLastLiveDeploymentId;
-
-        return (
-          <OverviewDeployment
-            key={deployment.id}
-            deployment={deployment}
-            isDeploymentLive={isDeploymentLive}
-          />
-        );
-      })}
-    </div>
+    <List className="rounded-x-lg flex flex-col divide-y-1 divide-gray-200 rounded-lg border border-veryLightGray">
+      {deployments.map((deployment, index) => (
+        <DeploymentListItem
+          key={deployment.id}
+          deployment={deployment}
+          isLive={deployment.id === liveDeploymentId}
+          showRedeploy={index === 0}
+          disableRedeploy={scheduledOrPendingDeployments.length > 0}
+        />
+      ))}
+    </List>
   );
 }
 

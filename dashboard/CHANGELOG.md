@@ -1,5 +1,72 @@
 # @nhost/dashboard
 
+## 0.10.0
+
+### Minor Changes
+
+- ed4c7801: chore(dashboard): remove Functions section
+
+## 0.9.10
+
+### Patch Changes
+
+- 4e2f8ccd: fix(dashboard): don't break Auth page in local mode
+
+## 0.9.9
+
+### Patch Changes
+
+- 31abbe5f: fix(dashboard): enable toggle when settings are filled in
+
+## 0.9.8
+
+### Patch Changes
+
+- 5bdd31ad: chore(dashboard): list fewer images per page on the Storage page
+- 5121851c: fix(dashboard): don't throw validation error for valid permission rules
+
+## 0.9.7
+
+### Patch Changes
+
+- c126b20d: fix(dashboard): correct redeployment button
+
+## 0.9.6
+
+### Patch Changes
+
+- 36c3519c: feat(dashboard): retrigger deployments
+
+## 0.9.5
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/nextjs@1.13.2
+  - @nhost/react-apollo@4.13.2
+
+## 0.9.4
+
+### Patch Changes
+
+- dbd3ded5: fix(dashboard): workspaces creation, new form, correct redirects.
+
+## 0.9.3
+
+### Patch Changes
+
+- 85f0f943: fix(dashboard): don't break the table creation process
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [d42c27ae]
+- Updated dependencies [927be4a2]
+  - @nhost/nextjs@1.13.1
+  - @nhost/react-apollo@4.13.1
+
 ## 0.9.1
 
 ### Patch Changes

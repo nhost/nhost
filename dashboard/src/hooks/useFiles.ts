@@ -70,7 +70,7 @@ export default function useFiles({
                   currentApplication.subdomain,
                   currentApplication.region.awsName,
                   'storage',
-                )}/${file.id}`;
+                )}/files/${file.id}`;
 
                 const fetchParams = new URLSearchParams();
 

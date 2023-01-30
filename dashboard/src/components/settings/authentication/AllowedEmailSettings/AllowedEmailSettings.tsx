@@ -5,12 +5,16 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface AllowedEmailSettingsFormValues {
+  /**
+   * Determines whether or not the allowed email settings are enabled.
+   */
+  enabled: boolean;
   /**
    * Set of email that are allowed to be used for project's users authentication.
    */
@@ -25,7 +29,6 @@ export interface AllowedEmailSettingsFormValues {
 export default function AllowedEmailDomainsSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
-  const [enabled, setEnabled] = useState(false);
 
   const { data, loading, error } = useGetAppQuery({
     variables: {
@@ -36,11 +39,29 @@ export default function AllowedEmailDomainsSettings() {
   const form = useForm<AllowedEmailSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
+      enabled:
+        Boolean(data?.app?.authAccessControlAllowedEmails) ||
+        Boolean(data?.app?.authAccessControlAllowedEmailDomains),
       authAccessControlAllowedEmails: data?.app?.authAccessControlAllowedEmails,
       authAccessControlAllowedEmailDomains:
         data?.app?.authAccessControlAllowedEmailDomains,
     },
   });
+
+  const { register, formState, setValue, watch } = form;
+  const enabled = watch('enabled');
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  useEffect(() => {
+    if (
+      !data.app?.authAccessControlAllowedEmails &&
+      !data.app?.authAccessControlAllowedEmailDomains
+    ) {
+      return;
+    }
+
+    setValue('enabled', true, { shouldDirty: false });
+  }, [data.app, setValue]);
 
   if (loading) {
     return (
@@ -56,8 +77,6 @@ export default function AllowedEmailDomainsSettings() {
     throw error;
   }
 
-  const { register, formState } = form;
-
   const handleAllowedEmailDomainsChange = async (
     values: AllowedEmailSettingsFormValues,
   ) => {
@@ -65,7 +84,12 @@ export default function AllowedEmailDomainsSettings() {
       variables: {
         id: currentApplication.id,
         app: {
-          ...values,
+          authAccessControlAllowedEmails: values.enabled
+            ? values.authAccessControlAllowedEmails
+            : '',
+          authAccessControlAllowedEmailDomains: values.enabled
+            ? values.authAccessControlAllowedEmailDomains
+            : '',
         },
       },
     });
@@ -89,13 +113,17 @@ export default function AllowedEmailDomainsSettings() {
         <SettingsContainer
           title="Allowed Emails and Domains"
           description="Allow specific email addresses and domains to sign up."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isValid || !isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#allowed-emails-and-domains"
           enabled={enabled}
-          onEnabledChange={setEnabled}
+          onEnabledChange={(switchEnabled) =>
+            setValue('enabled', switchEnabled, { shouldDirty: true })
+          }
           showSwitch
           className={twMerge(
             'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',

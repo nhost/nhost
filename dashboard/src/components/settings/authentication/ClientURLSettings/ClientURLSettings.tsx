@@ -82,7 +82,7 @@ export default function ClientURLSettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#client-url"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           <Input

@@ -37,7 +37,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     parseInt(router.query.page as string, 10) - 1 || 0,
   );
   const [sortBy, setSortBy] = useState<SortingRule<StoredFile>[]>();
-  const limit = 25;
+  const limit = 10;
   const emptyStateMessage = searchString
     ? 'No search results found.'
     : 'No files are uploaded yet.';

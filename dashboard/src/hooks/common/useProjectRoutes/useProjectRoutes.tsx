@@ -6,7 +6,6 @@ import FileTextIcon from '@/ui/v2/icons/FileTextIcon';
 import GraphQLIcon from '@/ui/v2/icons/GraphQLIcon';
 import HasuraIcon from '@/ui/v2/icons/HasuraIcon';
 import HomeIcon from '@/ui/v2/icons/HomeIcon';
-import LambdaIcon from '@/ui/v2/icons/LambdaIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import StorageIcon from '@/ui/v2/icons/StorageIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
@@ -54,13 +53,6 @@ export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
 
   const nhostRoutes: ProjectRoute[] = [
-    {
-      relativePath: '/functions',
-      exact: false,
-      label: 'Functions',
-      icon: <LambdaIcon />,
-      disabled: !isPlatform,
-    },
     {
       relativePath: '/deployments',
       exact: false,
