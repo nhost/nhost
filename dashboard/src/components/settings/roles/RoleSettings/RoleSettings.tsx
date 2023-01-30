@@ -18,8 +18,9 @@ import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetRolesDocument,
   useGetRolesQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -41,11 +42,14 @@ export default function RoleSettings() {
   const { openDialog, openAlertDialog } = useDialog();
 
   const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+    variables: { appId: currentApplication?.id },
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
+  const { allowed: allowedRoles, default: defaultRole } =
+    data?.config?.auth?.user?.roles || {};
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesDocument],
   });
 
   if (loading) {
@@ -57,17 +61,24 @@ export default function RoleSettings() {
   }
 
   async function handleSetAsDefault({ name }: Role) {
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultRole: name,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: allowedRoles,
+                default: name,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Updating default role...',
         success: 'Default role has been updated successfully.',
@@ -78,26 +89,24 @@ export default function RoleSettings() {
   }
 
   async function handleDeleteRole({ name }: Role) {
-    const filteredRoles = data?.app?.authUserDefaultAllowedRoles
-      .split(',')
-      .filter((role) => role !== name)
-      .join(',');
-
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultAllowedRoles: filteredRoles,
-          authUserDefaultRole:
-            name === data?.app?.authUserDefaultRole
-              ? 'user'
-              : data?.app?.authUserDefaultRole,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: allowedRoles.filter((role) => role !== name),
+                default: name === defaultRole ? 'user' : defaultRole,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Deleting allowed role...',
         success: 'Allowed Role has been deleted successfully.',
@@ -145,9 +154,7 @@ export default function RoleSettings() {
     });
   }
 
-  const availableAllowedRoles = getUserRoles(
-    data?.app?.authUserDefaultAllowedRoles,
-  );
+  const availableAllowedRoles = getUserRoles(allowedRoles);
 
   return (
     <SettingsContainer
@@ -230,7 +237,7 @@ export default function RoleSettings() {
 
                       {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
-                      {data?.app?.authUserDefaultRole === role.name && (
+                      {defaultRole === role.name && (
                         <Chip
                           component="span"
                           color="info"

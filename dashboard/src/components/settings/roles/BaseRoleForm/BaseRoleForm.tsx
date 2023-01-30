@@ -8,13 +8,6 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseRoleFormValues {
-  /**
-   * The name of the role.
-   */
-  name: string;
-}
-
 export interface BaseRoleFormProps {
   /**
    * Function to be called when the form is submitted.
@@ -35,6 +28,10 @@ export interface BaseRoleFormProps {
 export const baseRoleFormValidationSchema = Yup.object({
   name: Yup.string().required('This field is required.'),
 });
+
+export type BaseRoleFormValues = Yup.InferType<
+  typeof baseRoleFormValidationSchema
+>;
 
 export default function BaseRoleForm({
   onSubmit,

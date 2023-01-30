@@ -10,8 +10,9 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetRolesDocument,
   useGetRolesQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -31,9 +32,10 @@ export default function CreateRoleForm({
 }: CreateRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+  const { allowed: allowedRoles } = data?.config?.auth?.user?.roles || {};
 
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {},
@@ -41,7 +43,9 @@ export default function CreateRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['getRoles'] });
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesDocument],
+  });
 
   if (loading) {
     return <ActivityIndicator delay={1000} label="Loading roles..." />;
@@ -52,7 +56,7 @@ export default function CreateRoleForm({
   }
 
   const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableRoles = getUserRoles(allowedRoles);
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
     if (availableRoles.some((role) => role.name === name)) {
@@ -61,17 +65,23 @@ export default function CreateRoleForm({
       return;
     }
 
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultAllowedRoles: `${data?.app?.authUserDefaultAllowedRoles},${name}`,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: [...allowedRoles, name],
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Creating role...',
         success: 'Role has been created successfully.',

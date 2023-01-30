@@ -8,7 +8,7 @@ export interface IconButtonProps extends ButtonProps {}
 
 const StyledButton = styled(Button)({
   padding: 0,
-  minWidth: 0,
+  minWidth: `0 !important`,
 });
 
 function IconButton(

@@ -11,8 +11,9 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetRolesDocument,
   useGetRolesQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -36,9 +37,12 @@ export default function EditRoleForm({
 }: EditRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { allowed: allowedRoles, default: defaultRole } =
+    data?.config?.auth?.user?.roles || {};
 
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {
@@ -48,8 +52,8 @@ export default function EditRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesDocument],
   });
 
   if (loading) {
@@ -61,7 +65,7 @@ export default function EditRoleForm({
   }
 
   const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableRoles = getUserRoles(allowedRoles);
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
     if (
@@ -74,38 +78,40 @@ export default function EditRoleForm({
       return;
     }
 
-    const defaultAllowedRolesList =
-      data?.app?.authUserDefaultAllowedRoles.split(',') || [];
+    const defaultAllowedRolesList = allowedRoles || [];
 
     const originalRoleIndex = defaultAllowedRolesList.findIndex(
       (role) => role.trim() === originalRole.name,
     );
 
-    const updatedDefaultAllowedRoles = defaultAllowedRolesList
-      .map((role, index) => {
+    const updatedDefaultAllowedRoles = defaultAllowedRolesList.map(
+      (role, index) => {
         if (index === originalRoleIndex) {
           return name;
         }
 
         return role;
-      })
-      .join(',');
+      },
+    );
 
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultRole:
-            data?.app?.authUserDefaultRole === originalRole.name
-              ? name
-              : data?.app?.authUserDefaultRole,
-          authUserDefaultAllowedRoles: updatedDefaultAllowedRoles,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                default: defaultRole === originalRole.name ? name : defaultRole,
+                allowed: updatedDefaultAllowedRoles,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Updating role...',
         success: 'Role has been updated successfully.',

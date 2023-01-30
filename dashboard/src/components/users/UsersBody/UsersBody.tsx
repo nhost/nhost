@@ -80,12 +80,14 @@ export default function UsersBody({
    * in the drawer form.
    */
   const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+    variables: { appId: currentApplication?.id },
   });
 
+  const { allowed: allowedRoles } = dataRoles?.config?.auth?.user?.roles || {};
+
   const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(dataRoles?.app?.authUserDefaultAllowedRoles),
-    [dataRoles],
+    () => getUserRoles(allowedRoles),
+    [allowedRoles],
   );
 
   async function handleEditUser(
