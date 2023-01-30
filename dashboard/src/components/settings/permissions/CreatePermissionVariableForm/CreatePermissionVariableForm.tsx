@@ -10,8 +10,8 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetPermissionVariablesDocument,
-  useGetPermissionVariablesQuery,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,7 +32,7 @@ export default function CreatePermissionVariableForm({
 }: CreatePermissionVariableFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { data, error, loading } = useGetPermissionVariablesQuery({
+  const { data, error, loading } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
@@ -50,7 +50,7 @@ export default function CreatePermissionVariableForm({
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetPermissionVariablesDocument],
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {

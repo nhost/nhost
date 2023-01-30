@@ -20,7 +20,7 @@ import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
+  useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -141,7 +141,7 @@ export default function EditUserForm({
     });
   }
 
-  const { data: dataRoles } = useGetRolesQuery({
+  const { data: dataRoles } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
   });
 

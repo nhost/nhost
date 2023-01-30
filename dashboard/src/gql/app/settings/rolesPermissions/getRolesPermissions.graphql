@@ -4,10 +4,16 @@ fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
   value
 }
 
-query GetPermissionVariables($appId: uuid!) {
+query GetRolesPermissions($appId: uuid!) {
   config(appID: $appId, resolve: false) {
     id: __typename
     auth {
+      user {
+        roles {
+          allowed
+          default
+        }
+      }
       session {
         accessToken {
           customClaims {

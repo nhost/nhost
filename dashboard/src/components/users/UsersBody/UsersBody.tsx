@@ -20,7 +20,7 @@ import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
-  useGetRolesQuery,
+  useGetRolesPermissionsQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
@@ -79,7 +79,7 @@ export default function UsersBody({
    * going to use once the user selects a user of their application; we use it
    * in the drawer form.
    */
-  const { data: dataRoles } = useGetRolesQuery({
+  const { data: dataRoles } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
   });
 

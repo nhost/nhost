@@ -12,7 +12,7 @@ import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
-import { useGetPermissionVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
@@ -51,7 +51,7 @@ export default function ColumnPresetsSection({
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data: permissionVariablesData } = useGetPermissionVariablesQuery({
+  const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
     skip: !currentApplication?.id,
   });

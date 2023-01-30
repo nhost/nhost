@@ -10,8 +10,8 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetRolesDocument,
-  useGetRolesQuery,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -31,7 +31,7 @@ export default function CreateRoleForm({
   ...props
 }: CreateRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
+  const { data, loading, error } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
@@ -44,7 +44,7 @@ export default function CreateRoleForm({
   });
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesDocument],
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {

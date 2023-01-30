@@ -10,7 +10,7 @@ import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
-import { useGetPermissionVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import clsx from 'clsx';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
@@ -117,7 +117,7 @@ export default function RuleValueInput({
     data,
     loading,
     error: customClaimsError,
-  } = useGetPermissionVariablesQuery({
+  } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
     skip: !isHasuraInput || !currentApplication?.id,
   });

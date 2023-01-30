@@ -18,8 +18,8 @@ import Tooltip from '@/ui/v2/Tooltip';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetPermissionVariablesDocument,
-  useGetPermissionVariablesQuery,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
@@ -30,17 +30,16 @@ export default function PermissionVariableSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetPermissionVariablesQuery({
-    variables: {
-      appId: currentApplication?.id,
-    },
+  const { data, loading, error } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
   const { customClaims: permissionVariables } =
     data?.config?.auth?.session?.accessToken || {};
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetPermissionVariablesDocument],
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {

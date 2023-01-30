@@ -18,8 +18,8 @@ import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  GetRolesDocument,
-  useGetRolesQuery,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
@@ -41,15 +41,16 @@ export default function RoleSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesQuery({
+  const { data, loading, error } = useGetRolesPermissionsQuery({
     variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
   const { allowed: allowedRoles, default: defaultRole } =
     data?.config?.auth?.user?.roles || {};
 
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetRolesDocument],
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {
