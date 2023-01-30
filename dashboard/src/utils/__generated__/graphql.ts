@@ -18506,35 +18506,6 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
-export type DeleteEnvironmentVariableMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteEnvironmentVariableMutation = { __typename?: 'mutation_root', deleteEnvironmentVariable?: { __typename?: 'environmentVariables', id: any } | null };
-
-export type UpdateEnvironmentVariableMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  environmentVariable: EnvironmentVariables_Set_Input;
-}>;
-
-
-export type UpdateEnvironmentVariableMutation = { __typename?: 'mutation_root', updateEnvironmentVariable?: { __typename?: 'environmentVariables', id: any } | null };
-
-export type GetEnvironmentVariablesQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', environmentVariables: Array<{ __typename?: 'environmentVariables', id: any, name: string, updatedAt: any, prodValue: string, devValue: string }> };
-
-export type InsertEnvironmentVariablesMutationVariables = Exact<{
-  environmentVariables: Array<EnvironmentVariables_Insert_Input> | EnvironmentVariables_Insert_Input;
-}>;
-
-
-export type InsertEnvironmentVariablesMutation = { __typename?: 'mutation_root', insertEnvironmentVariables?: { __typename?: 'environmentVariables_mutation_response', affected_rows: number } | null };
-
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
 export type GetAppPlanAndGlobalPlansPlanFragment = { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number };
@@ -18668,6 +18639,15 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 
 export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
 
+export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
+
+export type GetEnvironmentVariablesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null } };
+
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
 export type GetRolesPermissionsQueryVariables = Exact<{
@@ -18684,6 +18664,8 @@ export type DeleteSecretMutationVariables = Exact<{
 
 
 export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
 
 export type GetSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19398,11 +19380,23 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
   }
 }
     `;
+export const EnvironmentVariableFragmentDoc = gql`
+    fragment EnvironmentVariable on ConfigEnvironmentVariable {
+  id: name
+  name
+  value
+}
+    `;
 export const PermissionVariableFragmentDoc = gql`
     fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
   id: key
   key
   value
+}
+    `;
+export const SecretFragmentDoc = gql`
+    fragment Secret on ConfigEnvironmentVariable {
+  name
 }
     `;
 export const DeploymentRowFragmentDoc = gql`
@@ -19565,148 +19559,6 @@ export const GetWorkspaceFragmentDoc = gql`
   }
 }
     `;
-export const DeleteEnvironmentVariableDocument = gql`
-    mutation deleteEnvironmentVariable($id: uuid!) {
-  deleteEnvironmentVariable(id: $id) {
-    id
-  }
-}
-    `;
-export type DeleteEnvironmentVariableMutationFn = Apollo.MutationFunction<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>;
-
-/**
- * __useDeleteEnvironmentVariableMutation__
- *
- * To run a mutation, you first call `useDeleteEnvironmentVariableMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteEnvironmentVariableMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteEnvironmentVariableMutation, { data, loading, error }] = useDeleteEnvironmentVariableMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteEnvironmentVariableMutation(baseOptions?: Apollo.MutationHookOptions<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>(DeleteEnvironmentVariableDocument, options);
-      }
-export type DeleteEnvironmentVariableMutationHookResult = ReturnType<typeof useDeleteEnvironmentVariableMutation>;
-export type DeleteEnvironmentVariableMutationResult = Apollo.MutationResult<DeleteEnvironmentVariableMutation>;
-export type DeleteEnvironmentVariableMutationOptions = Apollo.BaseMutationOptions<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>;
-export const UpdateEnvironmentVariableDocument = gql`
-    mutation updateEnvironmentVariable($id: uuid!, $environmentVariable: environmentVariables_set_input!) {
-  updateEnvironmentVariable(pk_columns: {id: $id}, _set: $environmentVariable) {
-    id
-  }
-}
-    `;
-export type UpdateEnvironmentVariableMutationFn = Apollo.MutationFunction<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>;
-
-/**
- * __useUpdateEnvironmentVariableMutation__
- *
- * To run a mutation, you first call `useUpdateEnvironmentVariableMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateEnvironmentVariableMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateEnvironmentVariableMutation, { data, loading, error }] = useUpdateEnvironmentVariableMutation({
- *   variables: {
- *      id: // value for 'id'
- *      environmentVariable: // value for 'environmentVariable'
- *   },
- * });
- */
-export function useUpdateEnvironmentVariableMutation(baseOptions?: Apollo.MutationHookOptions<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>(UpdateEnvironmentVariableDocument, options);
-      }
-export type UpdateEnvironmentVariableMutationHookResult = ReturnType<typeof useUpdateEnvironmentVariableMutation>;
-export type UpdateEnvironmentVariableMutationResult = Apollo.MutationResult<UpdateEnvironmentVariableMutation>;
-export type UpdateEnvironmentVariableMutationOptions = Apollo.BaseMutationOptions<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>;
-export const GetEnvironmentVariablesDocument = gql`
-    query getEnvironmentVariables($id: uuid!) {
-  environmentVariables(where: {appId: {_eq: $id}}, order_by: {updatedAt: desc}) {
-    id
-    name
-    updatedAt
-    prodValue
-    devValue
-  }
-}
-    `;
-
-/**
- * __useGetEnvironmentVariablesQuery__
- *
- * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEnvironmentVariablesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-      }
-export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-        }
-export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
-export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
-export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
-export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
-      return { query: GetEnvironmentVariablesDocument, variables: variables }
-    }
-export const InsertEnvironmentVariablesDocument = gql`
-    mutation insertEnvironmentVariables($environmentVariables: [environmentVariables_insert_input!]!) {
-  insertEnvironmentVariables(objects: $environmentVariables) {
-    affected_rows
-  }
-}
-    `;
-export type InsertEnvironmentVariablesMutationFn = Apollo.MutationFunction<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>;
-
-/**
- * __useInsertEnvironmentVariablesMutation__
- *
- * To run a mutation, you first call `useInsertEnvironmentVariablesMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertEnvironmentVariablesMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertEnvironmentVariablesMutation, { data, loading, error }] = useInsertEnvironmentVariablesMutation({
- *   variables: {
- *      environmentVariables: // value for 'environmentVariables'
- *   },
- * });
- */
-export function useInsertEnvironmentVariablesMutation(baseOptions?: Apollo.MutationHookOptions<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>(InsertEnvironmentVariablesDocument, options);
-      }
-export type InsertEnvironmentVariablesMutationHookResult = ReturnType<typeof useInsertEnvironmentVariablesMutation>;
-export type InsertEnvironmentVariablesMutationResult = Apollo.MutationResult<InsertEnvironmentVariablesMutation>;
-export type InsertEnvironmentVariablesMutationOptions = Apollo.BaseMutationOptions<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>;
 export const GetAppPlanAndGlobalPlansDocument = gql`
     query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
   apps(where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $appSlug}}) {
@@ -20431,6 +20283,48 @@ export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthent
 export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
       return { query: GetAuthenticationSettingsDocument, variables: variables }
     }
+export const GetEnvironmentVariablesDocument = gql`
+    query GetEnvironmentVariables($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    global {
+      environment {
+        ...EnvironmentVariable
+      }
+    }
+  }
+}
+    ${EnvironmentVariableFragmentDoc}`;
+
+/**
+ * __useGetEnvironmentVariablesQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentVariablesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
+      }
+export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
+        }
+export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
+export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
+export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
+export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
+      return { query: GetEnvironmentVariablesDocument, variables: variables }
+    }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -20522,10 +20416,10 @@ export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecre
 export const GetSecretsDocument = gql`
     query GetSecrets($appId: uuid!) {
   appSecrets(appID: $appId) {
-    name
+    ...Secret
   }
 }
-    `;
+    ${SecretFragmentDoc}`;
 
 /**
  * __useGetSecretsQuery__

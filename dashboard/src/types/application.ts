@@ -2,9 +2,9 @@
 // It's too easy to get types out-of-sync which will generate bugs down the line
 
 import type {
-  GetEnvironmentVariablesQuery,
-  GetSecretsQuery,
+  EnvironmentVariableFragment,
   PermissionVariableFragment,
+  SecretFragment,
 } from '@/utils/__generated__/graphql';
 
 /**
@@ -92,7 +92,5 @@ export type Role = {
   isSystemRole?: boolean;
 };
 
-export type EnvironmentVariable =
-  GetEnvironmentVariablesQuery['environmentVariables'][number];
-
-export type Secret = GetSecretsQuery['appSecrets'][number];
+export type EnvironmentVariable = EnvironmentVariableFragment;
+export type Secret = SecretFragment;

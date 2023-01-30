@@ -7,25 +7,6 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseEnvironmentVariableFormValues {
-  /**
-   * Identifier of the environment variable.
-   */
-  id: string;
-  /**
-   * The name of the role.
-   */
-  name: string;
-  /**
-   * Development environment variable value.
-   */
-  devValue: string;
-  /**
-   * Production environment variable value.
-   */
-  prodValue: string;
-}
-
 export interface BaseEnvironmentVariableFormProps {
   /**
    * Determines the mode of the form.
@@ -50,8 +31,11 @@ export interface BaseEnvironmentVariableFormProps {
 }
 
 export const baseEnvironmentVariableFormValidationSchema = Yup.object({
+  id: Yup.string().label('ID'),
   name: Yup.string()
-    .required('This field is required.')
+    .label('Name')
+    .nullable()
+    .required()
     .test(
       'isEnvVarPermitted',
       'This is a reserved name.',
@@ -80,9 +64,12 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
     .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
       /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  devValue: Yup.string().required('This field is required.'),
-  prodValue: Yup.string().required('This field is required.'),
+  value: Yup.string().label('Value').nullable().required(),
 });
+
+export type BaseEnvironmentVariableFormValues = Yup.InferType<
+  typeof baseEnvironmentVariableFormValidationSchema
+>;
 
 export default function BaseEnvironmentVariableForm({
   mode = 'edit',
@@ -143,28 +130,16 @@ export default function BaseEnvironmentVariableForm({
         />
 
         <Input
-          {...register('prodValue')}
-          id="prodValue"
-          label="Production Value"
+          {...register('value')}
+          id="value"
+          label="Value"
           placeholder="Enter value"
           hideEmptyHelperText
-          error={!!errors.prodValue}
-          helperText={errors?.prodValue?.message}
+          error={!!errors.value}
+          helperText={errors?.value?.message}
           fullWidth
           autoComplete="off"
           autoFocus={mode === 'edit'}
-        />
-
-        <Input
-          {...register('devValue')}
-          id="devValue"
-          label="Development Value"
-          placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.devValue}
-          helperText={errors?.devValue?.message}
-          fullWidth
-          autoComplete="off"
         />
 
         <div className="grid grid-flow-row gap-2">

@@ -9,8 +9,9 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
-  useInsertEnvironmentVariablesMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -31,8 +32,7 @@ export default function CreateEnvironmentVariableForm({
   const form = useForm<BaseEnvironmentVariableFormValues>({
     defaultValues: {
       name: '',
-      devValue: '',
-      prodValue: '',
+      value: '',
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseEnvironmentVariableFormValidationSchema),
@@ -41,14 +41,14 @@ export default function CreateEnvironmentVariableForm({
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const [insertEnvironmentVariables] = useInsertEnvironmentVariablesMutation({
-    refetchQueries: ['getEnvironmentVariables'],
+  const availableEnvironmentVariables = data?.config?.global?.environment || [];
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   if (loading) {
@@ -68,13 +68,10 @@ export default function CreateEnvironmentVariableForm({
 
   async function handleSubmit({
     name,
-    prodValue,
-    devValue,
+    value,
   }: BaseEnvironmentVariableFormValues) {
     if (
-      data?.environmentVariables?.some(
-        (environmentVariable) => environmentVariable.name === name,
-      )
+      availableEnvironmentVariables?.some((variable) => variable.name === name)
     ) {
       setError('name', {
         message: 'This environment variable already exists.',
@@ -83,16 +80,28 @@ export default function CreateEnvironmentVariableForm({
       return;
     }
 
-    const insertEnvironmentVariablePromise = insertEnvironmentVariables({
+    const updateConfigPromise = updateConfig({
       variables: {
-        environmentVariables: [
-          { appId: currentApplication.id, name, prodValue, devValue },
-        ],
+        appId: currentApplication?.id,
+        config: {
+          global: {
+            environment: [
+              ...(availableEnvironmentVariables?.map((variable) => ({
+                name: variable.name,
+                value: variable.value,
+              })) || []),
+              {
+                name,
+                value,
+              },
+            ],
+          },
+        },
       },
     });
 
     await toast.promise(
-      insertEnvironmentVariablePromise,
+      updateConfigPromise,
       {
         loading: 'Creating environment variable...',
         success: 'Environment variable has been created successfully.',

@@ -10,8 +10,9 @@ import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
-  useUpdateEnvironmentVariableMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -38,8 +39,7 @@ export default function EditEnvironmentVariableForm({
     defaultValues: {
       id: originalEnvironmentVariable.id || '',
       name: originalEnvironmentVariable.name || '',
-      devValue: originalEnvironmentVariable.devValue || '',
-      prodValue: originalEnvironmentVariable.prodValue || '',
+      value: originalEnvironmentVariable.value || '',
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseEnvironmentVariableFormValidationSchema),
@@ -48,14 +48,14 @@ export default function EditEnvironmentVariableForm({
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const [updateEnvironmentVariable] = useUpdateEnvironmentVariableMutation({
-    refetchQueries: ['getEnvironmentVariables'],
+  const availableEnvironmentVariables = data?.config?.global?.environment || [];
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   if (loading) {
@@ -76,14 +76,13 @@ export default function EditEnvironmentVariableForm({
   async function handleSubmit({
     id,
     name,
-    prodValue,
-    devValue,
+    value,
   }: BaseEnvironmentVariableFormValues) {
     if (
-      data?.environmentVariables?.some(
-        (environmentVariable) =>
-          environmentVariable.name === name &&
-          environmentVariable.name !== originalEnvironmentVariable.name,
+      availableEnvironmentVariables.some(
+        (variable) =>
+          variable.name === name &&
+          variable.name !== originalEnvironmentVariable.name,
       )
     ) {
       setError('name', {
@@ -93,18 +92,30 @@ export default function EditEnvironmentVariableForm({
       return;
     }
 
-    const updateEnvironmentVariablePromise = updateEnvironmentVariable({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id,
-        environmentVariable: {
-          prodValue,
-          devValue,
+        appId: currentApplication?.id,
+        config: {
+          global: {
+            environment: [
+              ...availableEnvironmentVariables
+                .filter((variable) => variable.id !== id)
+                .map((variable) => ({
+                  name: variable.name,
+                  value: variable.value,
+                })),
+              {
+                name,
+                value,
+              },
+            ],
+          },
         },
       },
     });
 
     await toast.promise(
-      updateEnvironmentVariablePromise,
+      updateConfigPromise,
       {
         loading: 'Updating environment variable...',
         success: 'Environment variable has been updated successfully.',

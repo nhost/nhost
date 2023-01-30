@@ -15,10 +15,10 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useDeleteEnvironmentVariableMutation,
+  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -34,13 +34,25 @@ export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+    variables: { appId: currentApplication?.id },
   });
 
-  const [deleteEnvironmentVariable] = useDeleteEnvironmentVariableMutation({
-    refetchQueries: ['getEnvironmentVariables'],
+  const availableEnvironmentVariables = [
+    ...(data?.config?.global?.environment || []),
+  ].sort((a, b) => {
+    if (a.name < b.name) {
+      return -1;
+    }
+
+    if (a.name > b.name) {
+      return 1;
+    }
+
+    return 0;
+  });
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   if (loading) {
@@ -57,14 +69,24 @@ export default function EnvironmentVariableSettings() {
   }
 
   async function handleDeleteVariable({ id }: EnvironmentVariable) {
-    const deleteEnvironmentVariablePromise = deleteEnvironmentVariable({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id,
+        appId: currentApplication?.id,
+        config: {
+          global: {
+            environment: availableEnvironmentVariables
+              .filter((variable) => variable.id !== id)
+              .map((variable) => ({
+                name: variable.name,
+                value: variable.value,
+              })),
+          },
+        },
       },
     });
 
     await toast.promise(
-      deleteEnvironmentVariablePromise,
+      updateConfigPromise,
       {
         loading: 'Deleting environment variable...',
         success: 'Environment variable has been deleted successfully.',
@@ -113,8 +135,6 @@ export default function EnvironmentVariableSettings() {
     });
   }
 
-  const availableEnvironmentVariables = data?.environmentVariables || [];
-
   return (
     <SettingsContainer
       title="Project Environment Variables"
@@ -130,95 +150,75 @@ export default function EnvironmentVariableSettings() {
     >
       <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium lg:col-span-2">Updated</Text>
       </Box>
 
       <div className="grid grid-flow-row gap-2">
         {availableEnvironmentVariables.length > 0 && (
           <List>
-            {availableEnvironmentVariables.map((environmentVariable, index) => {
-              const timestamp = formatDistanceToNowStrict(
-                parseISO(environmentVariable.updatedAt),
-                { addSuffix: true, roundingMethod: 'floor' },
-              );
+            {availableEnvironmentVariables.map((environmentVariable, index) => (
+              <Fragment key={environmentVariable.id}>
+                <ListItem.Root
+                  className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
+                  secondaryAction={
+                    <Dropdown.Root>
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                      >
+                        <IconButton variant="borderless" color="secondary">
+                          <DotsVerticalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
 
-              return (
-                <Fragment key={environmentVariable.id}>
-                  <ListItem.Root
-                    className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
-                    secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                      <Dropdown.Content
+                        menu
+                        PaperProps={{ className: 'w-32' }}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                      >
+                        <Dropdown.Item
+                          onClick={() => handleOpenEditor(environmentVariable)}
                         >
-                          <IconButton variant="borderless" color="secondary">
-                            <DotsVerticalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+                          <Text className="font-medium">Edit</Text>
+                        </Dropdown.Item>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
+                        <Divider component="li" />
+
+                        <Dropdown.Item
+                          onClick={() =>
+                            handleConfirmDelete(environmentVariable)
+                          }
                         >
-                          <Dropdown.Item
-                            onClick={() =>
-                              handleOpenEditor(environmentVariable)
-                            }
-                          >
-                            <Text className="font-medium">Edit</Text>
-                          </Dropdown.Item>
+                          <Text className="font-medium" color="error">
+                            Delete
+                          </Text>
+                        </Dropdown.Item>
+                      </Dropdown.Content>
+                    </Dropdown.Root>
+                  }
+                >
+                  <ListItem.Text className="truncate">
+                    {environmentVariable.name}
+                  </ListItem.Text>
+                </ListItem.Root>
 
-                          <Divider component="li" />
-
-                          <Dropdown.Item
-                            onClick={() =>
-                              handleConfirmDelete(environmentVariable)
-                            }
-                          >
-                            <Text className="font-medium" color="error">
-                              Delete
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
-                  >
-                    <ListItem.Text className="truncate">
-                      {environmentVariable.name}
-                    </ListItem.Text>
-
-                    <Text
-                      variant="subtitle1"
-                      className="truncate lg:col-span-2"
-                    >
-                      {timestamp === '0 seconds ago' ||
-                      timestamp === 'in 0 seconds'
-                        ? 'Now'
-                        : timestamp}
-                    </Text>
-                  </ListItem.Root>
-
-                  <Divider
-                    component="li"
-                    className={twMerge(
-                      index === availableEnvironmentVariables.length - 1
-                        ? '!mt-4'
-                        : '!my-4',
-                    )}
-                  />
-                </Fragment>
-              );
-            })}
+                <Divider
+                  component="li"
+                  className={twMerge(
+                    index === availableEnvironmentVariables.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
+                  )}
+                />
+              </Fragment>
+            ))}
           </List>
         )}
 

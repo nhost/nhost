@@ -1,5 +1,0 @@
-mutation deleteEnvironmentVariable($id: uuid!) {
-  deleteEnvironmentVariable(id: $id) {
-    id
-  }
-}

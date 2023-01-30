@@ -1,0 +1,15 @@
+fragment EnvironmentVariable on ConfigEnvironmentVariable {
+  id: name
+  name
+  value
+}
+
+query GetEnvironmentVariables($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    global {
+      environment {
+        ...EnvironmentVariable
+      }
+    }
+  }
+}
