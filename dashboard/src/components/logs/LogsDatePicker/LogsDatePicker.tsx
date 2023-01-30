@@ -66,7 +66,7 @@ function LogsDatePicker({
             endIcon={<ChevronDownIcon className="h-4 w-4 self-center" />}
             {...buttonSlotProps}
             className={twMerge(
-              'text-left text-greyscaleMedium transition-all',
+              'text-left text-greyscaleMedium transition-all tabular-nums',
               buttonSlotProps?.className,
             )}
           >
