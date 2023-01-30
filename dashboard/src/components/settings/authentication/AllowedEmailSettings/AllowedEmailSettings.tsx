@@ -3,35 +3,31 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface AllowedEmailSettingsFormValues {
-  /**
-   * Determines whether or not the allowed email settings are enabled.
-   */
-  enabled: boolean;
-  /**
-   * Set of email that are allowed to be used for project's users authentication.
-   */
-  authAccessControlAllowedEmails: string;
-  /**
-   * Set of email domains that are allowed to be used for project's users authentication.
-   * @example 'nhost.io'
-   */
-  authAccessControlAllowedEmailDomains: string;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean().label('Enabled'),
+  allowedEmails: Yup.string().label('Allowed Emails'),
+  allowedEmailDomains: Yup.string().label('Allowed Email Domains'),
+});
+
+export type AllowedEmailSettingsFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
 export default function AllowedEmailDomainsSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -46,13 +42,13 @@ export default function AllowedEmailDomainsSettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       enabled: email?.allowed?.length > 0 || emailDomains?.allowed?.length > 0,
-      authAccessControlAllowedEmails: email?.allowed?.join(', ') || '',
-      authAccessControlAllowedEmailDomains:
-        emailDomains?.allowed?.join(', ') || '',
+      allowedEmails: email?.allowed?.join(', ') || '',
+      allowedEmailDomains: emailDomains?.allowed?.join(', ') || '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, setValue, watch } = form;
+  const { register, formState, watch } = form;
   const enabled = watch('enabled');
 
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
@@ -74,16 +70,32 @@ export default function AllowedEmailDomainsSettings() {
   const handleAllowedEmailDomainsChange = async (
     values: AllowedEmailSettingsFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authAccessControlAllowedEmails: values.enabled
-            ? values.authAccessControlAllowedEmails
-            : '',
-          authAccessControlAllowedEmailDomains: values.enabled
-            ? values.authAccessControlAllowedEmailDomains
-            : '',
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            user: {
+              email: {
+                blocked: email.blocked,
+                allowed:
+                  values.enabled && values.allowedEmails
+                    ? values.allowedEmails
+                        .split(',')
+                        .map((allowedEmail) => allowedEmail.trim())
+                    : [],
+              },
+              emailDomains: {
+                blocked: emailDomains.blocked,
+                allowed:
+                  values.enabled && values.allowedEmailDomains
+                    ? values.allowedEmailDomains
+                        .split(',')
+                        .map((allowedEmailDomain) => allowedEmailDomain.trim())
+                    : [],
+              },
+            },
+          },
         },
       },
     });
@@ -114,10 +126,7 @@ export default function AllowedEmailDomainsSettings() {
             },
           }}
           docsLink="https://docs.nhost.io/authentication#allowed-emails-and-domains"
-          enabled={enabled}
-          onEnabledChange={(switchEnabled) =>
-            setValue('enabled', switchEnabled, { shouldDirty: true })
-          }
+          switchId="enabled"
           showSwitch
           className={twMerge(
             'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
@@ -125,9 +134,9 @@ export default function AllowedEmailDomainsSettings() {
           )}
         >
           <Input
-            {...register('authAccessControlAllowedEmails')}
-            name="authAccessControlAllowedEmails"
-            id="authAccessControlAllowedEmails"
+            {...register('allowedEmails')}
+            name="allowedEmails"
+            id="allowedEmails"
             placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
             className="col-span-2"
             label="Allowed Emails (comma separated)"
@@ -135,9 +144,9 @@ export default function AllowedEmailDomainsSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAccessControlAllowedEmailDomains')}
-            name="authAccessControlAllowedEmailDomains"
-            id="authAccessControlAllowedEmailDomains"
+            {...register('allowedEmailDomains')}
+            name="allowedEmailDomains"
+            id="allowedEmailDomains"
             label="Allowed Email Domains (comma sepated list)"
             placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
             className="col-span-2"

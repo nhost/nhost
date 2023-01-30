@@ -3,25 +3,26 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface ClientURLFormValues {
-  /**
-   * The URL of the frontend app of where users are redirected after authenticating.
-   */
-  authClientUrl: string;
-}
+const validationSchema = Yup.object({
+  clientUrl: Yup.string().label('Client URL'),
+});
+
+export type ClientURLFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function ClientURLSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -30,13 +31,14 @@ export default function ClientURLSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { clientUrl } = data?.config?.auth?.redirections || {};
+  const { clientUrl, allowedUrls } = data?.config?.auth?.redirections || {};
 
   const form = useForm<ClientURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientUrl: clientUrl,
+      clientUrl,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -56,11 +58,16 @@ export default function ClientURLSettings() {
   const { register, formState } = form;
 
   const handleClientURLChange = async (values: ClientURLFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            redirections: {
+              ...values,
+              allowedUrls,
+            },
+          },
         },
       },
     });
@@ -86,7 +93,7 @@ export default function ClientURLSettings() {
           description="This should be the URL of your frontend app where users are redirected after authenticating."
           slotProps={{
             submitButton: {
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}
@@ -94,14 +101,16 @@ export default function ClientURLSettings() {
           className="grid grid-flow-row lg:grid-cols-5"
         >
           <Input
-            {...register('authClientUrl')}
-            name="authClientUrl"
-            id="authClientUrl"
+            {...register('clientUrl')}
+            name="clientUrl"
+            id="clientUrl"
             placeholder="http://localhost:3000"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
             aria-label="Client URL"
+            error={!!formState.errors?.clientUrl}
+            helperText={formState.errors?.clientUrl?.message}
           />
         </SettingsContainer>
       </Form>

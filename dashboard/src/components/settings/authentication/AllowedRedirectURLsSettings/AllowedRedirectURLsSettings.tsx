@@ -3,25 +3,28 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface AllowedRedirectURLFormValues {
-  /**
-   * Set of URLs that are allowed to be redirected to after project's users authentication.
-   */
-  authAccessControlAllowedRedirectUrls: string;
-}
+const validationSchema = Yup.object({
+  allowedUrls: Yup.string().label('Allowed Redirect URLs'),
+});
+
+export type AllowedRedirectURLFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
 export default function AllowedRedirectURLsSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -35,8 +38,9 @@ export default function AllowedRedirectURLsSettings() {
   const form = useForm<AllowedRedirectURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAccessControlAllowedRedirectUrls: allowedUrls?.join(', ') || '',
+      allowedUrls: allowedUrls?.join(', ') || '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -58,11 +62,17 @@ export default function AllowedRedirectURLsSettings() {
   const handleAllowedRedirectURLsChange = async (
     values: AllowedRedirectURLFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            redirections: {
+              allowedUrls: values.allowedUrls
+                ? values.allowedUrls.split(',').map((url) => url.trim())
+                : [],
+            },
+          },
         },
       },
     });
@@ -86,17 +96,19 @@ export default function AllowedRedirectURLsSettings() {
         <SettingsContainer
           title="Allowed Redirect URLs"
           description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication#allowed-redirect-urls"
           className="grid grid-flow-row px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('authAccessControlAllowedRedirectUrls')}
-            name="authAccessControlAllowedRedirectUrls"
-            id="authAccessControlAllowedRedirectUrls"
+            {...register('allowedUrls')}
+            name="allowedUrls"
+            id="allowedUrls"
             placeholder="http://localhost:3000, http://localhost:4000"
             className="col-span-2"
             fullWidth

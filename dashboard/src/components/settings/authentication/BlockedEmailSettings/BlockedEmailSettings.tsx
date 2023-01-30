@@ -3,34 +3,29 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface BlockedEmailFormValues {
-  /**
-   * Determines whether or not the blocked email settings are enabled.
-   */
-  enabled: boolean;
-  /**
-   * Set of emails that are blocked from registering to the user's project.
-   */
-  authAccessControlBlockedEmails: string;
-  /**
-   * Set of email domains that are blocked from registering to the user's project.
-   */
-  authAccessControlBlockedEmailDomains: string;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean().label('Enabled'),
+  blockedEmails: Yup.string().label('Blocked Emails'),
+  blockedEmailDomains: Yup.string().label('Blocked Email Domains'),
+});
+
+export type BlockedEmailFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function BlockedEmailSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -45,13 +40,13 @@ export default function BlockedEmailSettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       enabled: email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
-      authAccessControlBlockedEmails: email?.blocked?.join(', ') || '',
-      authAccessControlBlockedEmailDomains:
-        emailDomains?.blocked?.join(', ') || '',
+      blockedEmails: email?.blocked?.join(', ') || '',
+      blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, setValue, watch } = form;
+  const { register, formState, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
@@ -72,16 +67,32 @@ export default function BlockedEmailSettings() {
   const handleAllowedEmailDomainsChange = async (
     values: BlockedEmailFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authAccessControlBlockedEmails: values.enabled
-            ? values.authAccessControlBlockedEmails
-            : '',
-          authAccessControlBlockedEmailDomains: values.enabled
-            ? values.authAccessControlBlockedEmailDomains
-            : '',
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            user: {
+              email: {
+                allowed: email.allowed,
+                blocked:
+                  values.enabled && values.blockedEmails
+                    ? values.blockedEmails
+                        .split(',')
+                        .map((blockedEmail) => blockedEmail.trim())
+                    : [],
+              },
+              emailDomains: {
+                allowed: emailDomains.allowed,
+                blocked:
+                  values.enabled && values.blockedEmailDomains
+                    ? values.blockedEmailDomains
+                        .split(',')
+                        .map((blockedEmailDomain) => blockedEmailDomain.trim())
+                    : [],
+              },
+            },
+          },
         },
       },
     });
@@ -112,10 +123,7 @@ export default function BlockedEmailSettings() {
             },
           }}
           docsLink="https://docs.nhost.io/authentication#blocked-emails-and-domains"
-          enabled={enabled}
-          onEnabledChange={(switchEnabled) =>
-            setValue('enabled', switchEnabled, { shouldDirty: true })
-          }
+          switchId="enabled"
           showSwitch
           className={twMerge(
             'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
@@ -123,9 +131,9 @@ export default function BlockedEmailSettings() {
           )}
         >
           <Input
-            {...register('authAccessControlBlockedEmails')}
-            name="authAccessControlBlockedEmails"
-            id="authAccessControlBlockedEmails"
+            {...register('blockedEmails')}
+            name="blockedEmails"
+            id="blockedEmails"
             placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
             className="col-span-2"
             label="Blocked Emails (comma separated)"
@@ -133,9 +141,9 @@ export default function BlockedEmailSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAccessControlBlockedEmailDomains')}
-            name="authAccessControlBlockedEmailDomains"
-            id="authAccessControlBlockedEmailDomains"
+            {...register('blockedEmailDomains')}
+            name="blockedEmailDomains"
+            id="blockedEmailDomains"
             label="Blocked Email Domains (comma sepated list)"
             placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
             className="col-span-2"
