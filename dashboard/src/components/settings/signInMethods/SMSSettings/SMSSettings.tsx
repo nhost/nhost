@@ -90,7 +90,7 @@ export default function SMSSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSMSSettingsChange}>
         <SettingsContainer
-          title="SMS"
+          title="Phone Number (SMS)"
           description="Allow users to sign in with Phone Number (SMS)."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,

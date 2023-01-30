@@ -84,7 +84,7 @@ export default function AllowedRedirectURLsSettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#allowed-redirect-urls"
           className="grid grid-flow-row px-4 lg:grid-cols-5"
         >
           <Input
