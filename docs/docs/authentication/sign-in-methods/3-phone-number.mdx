@@ -7,21 +7,17 @@ image: /img/og/sign-in-with-phone-number-sms.png
 
 Follow this guide to sign in users with a phone number (SMS).
 
-## Setup
+## Configuration
 
 You need a [Twilio account](https://www.twilio.com/try-twilio) to use this feature because all SMS are sent through Twilio.
 
-Enable the Phone Number (SMS) sign-in method in the Nhost dashboard under **Users** -> **Authentication Settings** -> **Passwordless SMS**.
+Enable the Phone Number (SMS) sign-in method in the Nhost dashboard under **Settings -> Sign-In Methods -> Phone Number (SMS)**.
 
 You need to insert the following settings in the Nhost dashboard from Twilio:
 
 - Account SID
 - Auth Token
 - Messaging Service SID (or a Twilio phone number)
-
-<video width="99%" autoPlay muted loop controls="true" style={{ marginBottom: '15px' }}>
-  <source src="/videos/enable-sms-sign-in.mp4" type="video/mp4" />
-</video>
 
 ## Sign In
 
@@ -44,7 +40,7 @@ await nhost.auth.signIn({
 })
 ```
 
-The first time a user signs in using a phone number, the user is created. That means you don't need to sign up the user before signin in the user.
+The first time a user signs in using a phone number, the user is created. That means you don't need to sign up users before signing in users.
 
 :::info
 
