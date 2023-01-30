@@ -3,30 +3,28 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface MFASettingsFormValues {
-  /**
-   * One Time Password issuer
-   */
-  authMfaTotpIssuer: string;
-  /**
-   * Enable Multi Factor Authentication for this project
-   */
-  authMfaEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean().label('Enabled'),
+  issuer: Yup.string().label('OTP Issuer').nullable().required(),
+});
+
+export type MFASettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function MFASettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -40,9 +38,10 @@ export default function MFASettings() {
   const form = useForm<MFASettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authMfaTotpIssuer: issuer,
-      authMfaEnabled: enabled,
+      issuer,
+      enabled,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -60,14 +59,16 @@ export default function MFASettings() {
   }
 
   const { register, formState, watch } = form;
-  const authMfaEnabled = watch('authMfaEnabled');
+  const authMfaEnabled = watch('enabled');
 
   const handleMFASettingsChange = async (values: MFASettingsFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            totp: values,
+          },
         },
       },
     });
@@ -93,13 +94,12 @@ export default function MFASettings() {
           description="Enable users to use MFA to sign in"
           slotProps={{
             submitButton: {
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isDirty,
               loading: formState.isSubmitting,
             },
           }}
           docsLink="https://docs.nhost.io/authentication#multi-factor-authentication"
-          switchId="authMfaEnabled"
-          enabled={authMfaEnabled}
+          switchId="enabled"
           showSwitch
           className={twMerge(
             'grid grid-flow-row lg:grid-cols-5',
@@ -107,14 +107,16 @@ export default function MFASettings() {
           )}
         >
           <Input
-            {...register('authMfaTotpIssuer')}
-            name="authMfaTotpIssuer"
-            id="authMfaTotpIssuer"
+            {...register('issuer')}
+            name="issuer"
+            id="issuer"
             label="OTP Issuer"
             placeholder="Name of the One Time Password (OTP) issuer"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.issuer}
+            helperText={formState.errors?.issuer?.message}
           />
         </SettingsContainer>
       </Form>

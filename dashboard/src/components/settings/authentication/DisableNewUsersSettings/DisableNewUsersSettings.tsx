@@ -6,21 +6,21 @@ import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface DisableNewUsersFormValues {
-  /**
-   * Disable new users from signing up to this project
-   */
-  authDisableNewUsers: boolean;
-}
+const validationSchema = Yup.object({
+  disabled: Yup.boolean(),
+});
+
+export type DisableNewUsersFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DisableNewUsersSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({
+  const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
@@ -34,7 +34,7 @@ export default function DisableNewUsersSettings() {
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authDisableNewUsers: !enabled || false,
+      disabled: !enabled || false,
     },
   });
 
@@ -52,17 +52,20 @@ export default function DisableNewUsersSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
-  const authDisableNewUsers = watch('authDisableNewUsers');
+  const { formState } = form;
 
   const handleDisableNewUsersChange = async (
     values: DisableNewUsersFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateAppMutation = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            signUp: {
+              enabled: !values.disabled,
+            },
+          },
         },
       },
     });
@@ -85,14 +88,15 @@ export default function DisableNewUsersSettings() {
       <Form onSubmit={handleDisableNewUsersChange}>
         <SettingsContainer
           title="Disable New Users"
-          description="If set, newly registered users are disabled and won’t be able to sign in."
+          description="If set, newly registered users are disabled and won't be able to sign in."
           docsLink="https://docs.nhost.io/authentication#disable-new-users"
-          switchId="authDisableNewUsers"
+          switchId="disabled"
           showSwitch
-          enabled={authDisableNewUsers}
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty,
+              loading: formState.isSubmitting,
+            },
           }}
           className="hidden"
         />
