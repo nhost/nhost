@@ -9,7 +9,7 @@ Nhost Authentication supports the following sign-in methods:
 - [Email and Password](/authentication/sign-in-with-email-and-password)
 - [Magic Link](/authentication/sign-in-with-magic-link)
 - [Phone Number (SMS)](/authentication/sign-in-with-phone-number-sms)
-- [Security Keys (WebAuthn)](/authentication/sign-in-with-phone-number-sms)
+- [Security Keys (WebAuthn)](/authentication/sign-in-with-security-keys)
 - [Apple](/authentication/sign-in-with-apple)
 - [Discord](/authentication/sign-in-with-discord)
 - [Facebook](/authentication/sign-in-with-facebook)
