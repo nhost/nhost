@@ -167,11 +167,14 @@ export default function DataGridTextCell<TData extends object>({
             boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
             borderColor: 'transparent !important',
             borderRadius: 0,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? `${theme.palette.secondary[100]} !important`
+                : `${theme.palette.common.white} !important`,
           },
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark'
-              ? `${theme.palette.secondary[100]} !important`
-              : `${theme.palette.common.white} !important`,
+          [`& .${inputClasses.input}`]: {
+            backgroundColor: 'transparent',
+          },
         }}
         slotProps={{
           inputWrapper: { className: 'h-full' },

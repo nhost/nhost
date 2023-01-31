@@ -448,10 +448,10 @@ export function NewProjectPageContent({
               >
                 <span className="row-span-2 flex">
                   <Image
-                    src={`/assets/${option.code}.svg`}
+                    src={`/assets/flags/${option.code}.svg`}
                     alt={`${option.country} country flag`}
-                    width={20}
-                    height={20}
+                    width={16}
+                    height={12}
                   />
                 </span>
 
