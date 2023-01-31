@@ -58,7 +58,7 @@ export default function ClientURLSettings() {
   const { register, formState } = form;
 
   const handleClientURLChange = async (values: ClientURLFormValues) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -72,17 +72,21 @@ export default function ClientURLSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Client URL is being updated...`,
-        success: `Client URL has been updated successfully.`,
-        error: `An error occurred while trying to update the project's Client URL.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Client URL is being updated...`,
+          success: `Client URL has been updated successfully.`,
+          error: `An error occurred while trying to update the project's Client URL.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

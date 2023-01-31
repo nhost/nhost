@@ -76,7 +76,7 @@ export default function AppleProviderSettings() {
   const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (values: AppleProviderFormValues) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -91,17 +91,21 @@ export default function AppleProviderSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Apple settings are being updated...`,
-        success: `Apple settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Apple settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Apple settings are being updated...`,
+          success: `Apple settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Apple settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

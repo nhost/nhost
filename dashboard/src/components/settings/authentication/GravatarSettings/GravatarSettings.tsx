@@ -73,7 +73,7 @@ export default function GravatarSettings() {
   const gravatarEnabled = watch('enabled') ?? false;
 
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -86,17 +86,21 @@ export default function GravatarSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Gravatar settings are being updated...`,
-        success: `Gravatar settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Gravatar settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Gravatar settings are being updated...`,
+          success: `Gravatar settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Gravatar settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

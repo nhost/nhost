@@ -57,7 +57,7 @@ export default function MagicLinkSettings() {
   const { formState } = form;
 
   const handleMagicLinkSettingsUpdate = async (values: MagicLinkFormValues) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -70,17 +70,21 @@ export default function MagicLinkSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Magic Link settings are being updated...`,
-        success: `Magic Link settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Magic Link settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Magic Link settings are being updated...`,
+          success: `Magic Link settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Magic Link settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

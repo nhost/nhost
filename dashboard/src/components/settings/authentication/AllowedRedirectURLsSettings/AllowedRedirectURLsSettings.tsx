@@ -62,7 +62,7 @@ export default function AllowedRedirectURLsSettings() {
   const handleAllowedRedirectURLsChange = async (
     values: AllowedRedirectURLFormValues,
   ) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -77,17 +77,21 @@ export default function AllowedRedirectURLsSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Allowed redirect URL settings are being updated...`,
-        success: `Allowed redirect URL settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's allowed redirect URL settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Allowed redirect URL settings are being updated...`,
+          success: `Allowed redirect URL settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's allowed redirect URL settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

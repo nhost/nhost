@@ -113,7 +113,7 @@ export default function SMTPSettingsPage() {
   const handleEditSMTPSettings = async (values: SmtpFormValues) => {
     const { password, ...valuesWithoutPassword } = values;
 
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -124,18 +124,22 @@ export default function SMTPSettingsPage() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `SMTP settings are being updated...`,
-        success: `SMTP settings have been updated successfully.`,
-        error: (arg: Error) =>
-          arg?.message
-            ? `Error: ${arg.message}`
-            : `An error occurred while trying to update the SMTP settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `SMTP settings are being updated...`,
+          success: `SMTP settings have been updated successfully.`,
+          error: (arg: Error) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : `An error occurred while trying to update the SMTP settings.`,
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

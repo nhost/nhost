@@ -87,15 +87,20 @@ export default function SettingsGeneralPage() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Project name is being updated...`,
-        success: `Project name has been updated successfully.`,
-        error: `An error occurred while trying to update project name.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateAppMutation,
+        {
+          loading: `Project name is being updated...`,
+          success: `Project name has been updated successfully.`,
+          error: `An error occurred while trying to update project name.`,
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
+
     try {
       await client.refetchQueries({
         include: ['getOneUser'],

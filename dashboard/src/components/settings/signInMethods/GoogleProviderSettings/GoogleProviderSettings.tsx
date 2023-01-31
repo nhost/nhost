@@ -67,7 +67,7 @@ export default function GoogleProviderSettings() {
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -85,17 +85,21 @@ export default function GoogleProviderSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Google settings are being updated...`,
-        success: `Google settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Google settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Google settings are being updated...`,
+          success: `Google settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Google settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

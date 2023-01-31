@@ -69,7 +69,7 @@ export default function TwitchProviderSettings() {
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -87,17 +87,21 @@ export default function TwitchProviderSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Twitch settings are being updated...`,
-        success: `Twitch settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Twitch settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Twitch settings are being updated...`,
+          success: `Twitch settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Twitch settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

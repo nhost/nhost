@@ -70,7 +70,7 @@ export default function AllowedEmailDomainsSettings() {
   const handleAllowedEmailDomainsChange = async (
     values: AllowedEmailSettingsFormValues,
   ) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -100,15 +100,19 @@ export default function AllowedEmailDomainsSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Allowed email settings are being updated...`,
-        success: `Allowed email settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's allowed email settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Allowed email settings are being updated...`,
+          success: `Allowed email settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's allowed email settings.`,
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error
+    }
 
     form.reset(values);
   };

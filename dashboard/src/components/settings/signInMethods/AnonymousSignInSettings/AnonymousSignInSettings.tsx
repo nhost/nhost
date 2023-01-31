@@ -57,7 +57,7 @@ export default function AnonymousSignInSettings() {
   const handlePasswordProtectionSettingsChange = async (
     values: AnonymousSignInFormValues,
   ) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -70,17 +70,21 @@ export default function AnonymousSignInSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Anonymous sign-in settings are being updated...`,
-        success: `Anonymous sign-in settings have been updated successfully.`,
-        error: `An error occurred while trying to update Anonymous sign-in settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Anonymous sign-in settings are being updated...`,
+          success: `Anonymous sign-in settings have been updated successfully.`,
+          error: `An error occurred while trying to update Anonymous sign-in settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

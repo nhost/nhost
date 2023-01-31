@@ -67,7 +67,7 @@ export default function BlockedEmailSettings() {
   const handleAllowedEmailDomainsChange = async (
     values: BlockedEmailFormValues,
   ) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -97,17 +97,21 @@ export default function BlockedEmailSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Blocked email and domain settings are being updated...`,
-        success: `Blocked email and domain settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's blocked email and domain settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Blocked email and domain settings are being updated...`,
+          success: `Blocked email and domain settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's blocked email and domain settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

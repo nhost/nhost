@@ -57,7 +57,7 @@ export default function DisableNewUsersSettings() {
   const handleDisableNewUsersChange = async (
     values: DisableNewUsersFormValues,
   ) => {
-    const updateAppMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -70,17 +70,21 @@ export default function DisableNewUsersSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Disabling new user sign ups...`,
-        success: `New user sign ups have been disabled successfully.`,
-        error: `An error occurred while trying to disable new user sign ups.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Disabling new user sign ups...`,
+          success: `New user sign ups have been disabled successfully.`,
+          error: `An error occurred while trying to disable new user sign ups.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

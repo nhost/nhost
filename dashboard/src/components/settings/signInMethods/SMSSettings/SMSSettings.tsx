@@ -75,7 +75,7 @@ export default function SMSSettings() {
   const authSmsPasswordlessEnabled = watch('enabled');
 
   const handleSMSSettingsChange = async (values: SMSSettingsFormValues) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -97,17 +97,21 @@ export default function SMSSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `SMS settings are being updated...`,
-        success: `SMS settings have been updated successfully.`,
-        error: `An error occurred while trying to update SMS settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `SMS settings are being updated...`,
+          success: `SMS settings have been updated successfully.`,
+          error: `An error occurred while trying to update SMS settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

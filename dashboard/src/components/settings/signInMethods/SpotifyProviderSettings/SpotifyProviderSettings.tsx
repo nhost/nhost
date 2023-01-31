@@ -67,7 +67,7 @@ export default function SpotifyProviderSettings() {
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -85,17 +85,21 @@ export default function SpotifyProviderSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Spotify settings are being updated...`,
-        success: `Spotify settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Spotify settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Spotify settings are being updated...`,
+          success: `Spotify settings have been updated successfully.`,
+          error: `An error occurred while trying to update the project's Spotify settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (

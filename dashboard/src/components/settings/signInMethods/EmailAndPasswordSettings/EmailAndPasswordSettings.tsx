@@ -64,7 +64,7 @@ export default function EmailAndPasswordSettings() {
   const handleEmailAndPasswordSettingsChange = async (
     values: EmailAndPasswordFormValues,
   ) => {
-    const updateConfigMutation = updateConfig({
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication.id,
         config: {
@@ -77,17 +77,21 @@ export default function EmailAndPasswordSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigMutation,
-      {
-        loading: `Email and password sign-in settings are being updated...`,
-        success: `Email and password sign-in settings have been updated successfully.`,
-        error: `An error occurred while trying to update email sign-in settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Email and password sign-in settings are being updated...`,
+          success: `Email and password sign-in settings have been updated successfully.`,
+          error: `An error occurred while trying to update email sign-in settings.`,
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
