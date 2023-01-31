@@ -45,6 +45,9 @@
       "@nhost/docgen": [
         "../packages/docgen/src/index.ts"
       ],
+      "@nhost/graphql-js": [
+        "../packages/graphql-js/src/index.ts"
+      ],
       "@nhost/hasura-auth-js": [
         "../packages/hasura-auth-js/src/index.ts"
       ],

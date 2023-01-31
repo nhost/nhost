@@ -1,7 +1,8 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import fetch from 'cross-fetch'
-import { urlFromSubdomain } from '../../utils/helpers'
-import { NhostClientConstructorParams } from '../../utils/types'
+import { toRawGraphQL } from './graphql-object/query-builder'
+import { GenericSchema, getRootOperationNames } from './graphql-object/schema'
+import { OperationFactory } from './graphql-object/types'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {
@@ -15,34 +16,52 @@ import {
 } from './types'
 
 /**
- * Creates a client for GraphQL from either a subdomain or a URL
- */
-export function createGraphqlClient(params: NhostClientConstructorParams) {
-  const graphqlUrl =
-    'subdomain' in params || 'backendUrl' in params
-      ? urlFromSubdomain(params, 'graphql')
-      : params.graphqlUrl
-
-  if (!graphqlUrl) {
-    throw new Error('Please provide `subdomain` or `graphqlUrl`.')
-  }
-
-  return new NhostGraphqlClient({ url: graphqlUrl, ...params })
-}
-/**
  * @alias GraphQL
  */
-export class NhostGraphqlClient {
+export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
 
-  constructor(params: NhostGraphqlConstructorParams) {
-    const { url, adminSecret } = params
+  public query: OperationFactory<Schema, 'Query'>
+  public mutation: OperationFactory<Schema, 'Mutation'>
+
+  constructor(params: NhostGraphqlConstructorParams<Schema>) {
+    const { url, adminSecret, schema } = params
 
     this._url = url
     this.accessToken = null
     this.adminSecret = adminSecret
+
+    this.query = getRootOperationNames(schema, 'Query').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Query', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
+
+    this.mutation = getRootOperationNames(schema, 'Mutation').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Mutation', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
   }
 
   /**

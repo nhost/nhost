@@ -20,6 +20,9 @@
       "@nhost/apollo": [
         "../../integrations/apollo/src/index.ts"
       ],
+      "@nhost/graphql-js": [
+        "../graphql-js/src/index.ts"
+      ],
       "@nhost/hasura-auth-js": [
         "../hasura-auth-js/src/index.ts"
       ],
