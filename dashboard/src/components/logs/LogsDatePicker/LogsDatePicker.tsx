@@ -73,7 +73,7 @@ function LogsDatePicker({
               { color: 'text.secondary' },
             ]}
             className={twMerge(
-              'text-left transition-all',
+              'text-left transition-all tabular-nums',
               buttonSlotProps?.className,
             )}
           >
