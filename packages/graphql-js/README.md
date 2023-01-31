@@ -10,3 +10,4 @@ TODO:
   - add a changeset to `@nhost/nhost-js`
 - remove the `play` script, config, and code
 - adjust `codegen.yaml` with the published plugin
+
