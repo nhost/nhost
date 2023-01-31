@@ -1,13 +1,16 @@
 import Form from '@/components/common/Form';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
+import { useTheme } from '@mui/material';
 import { useSignInEmailPassword } from '@nhost/nextjs';
 import Image from 'next/image';
-import Link from 'next/link';
+import NavLink from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
@@ -27,18 +30,20 @@ function SignInWithGithub({ setSignInMethod }: any) {
           nhost.auth.signIn({ provider: 'github' });
         }}
       >
-        <GithubIcon className="h-6 w-6 text-white " />
+        <GithubIcon className="h-6 w-6" />
         <div>Continue with GitHub</div>
       </button>
-      <div className="mt-2 text-greyscaleMedium">
-        or{' '}
-        <button
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
+        <span>or</span>
+        <Button
+          variant="borderless"
           type="button"
+          size="small"
           onClick={() => setSignInMethod('email')}
-          className="cursor-pointer text-btn hover:underline"
+          className="hover:bg-transparent hover:underline"
         >
           sign in with email
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -73,7 +78,7 @@ function SignInWithEmail({ setSignInMethod }: any) {
   }
 
   return (
-    <div className="flex max-w-2xl flex-col items-center">
+    <Box className="flex max-w-2xl flex-col items-center">
       <FormProvider register={register} {...form}>
         <Form onSubmit={onSubmit} className="grid w-full grid-flow-row gap-3">
           <Input
@@ -104,15 +109,16 @@ function SignInWithEmail({ setSignInMethod }: any) {
               <span className="grid grid-flow-col justify-between">
                 <span>Password</span>
 
-                <Link href="/reset-password" passHref>
-                  <a
+                <NavLink href="/reset-password" passHref>
+                  <Link
                     href="reset-password"
                     tabIndex={-1}
-                    className="text-xs text-btn hover:underline"
+                    className="text-xs"
+                    underline="hover"
                   >
                     Forgot your password?
-                  </a>
-                </Link>
+                  </Link>
+                </NavLink>
               </span>
             }
             inputProps={{ min: 2, max: 128 }}
@@ -131,22 +137,24 @@ function SignInWithEmail({ setSignInMethod }: any) {
       </FormProvider>
 
       {isError && (
-        <Text className="my-3 font-medium text-red">
+        <Text className="my-3 font-medium" color="error">
           Error: {error.message}
         </Text>
       )}
 
-      <div className="mt-2 text-greyscaleMedium">
-        or{' '}
-        <button
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
+        <span>or</span>
+        <Button
+          variant="borderless"
           type="button"
+          size="small"
           onClick={() => setSignInMethod('github')}
-          className="cursor-pointer text-btn hover:underline"
+          className="hover:bg-transparent hover:underline"
         >
           sign in with GitHub
-        </button>
+        </Button>
       </div>
-    </div>
+    </Box>
   );
 }
 
@@ -165,13 +173,19 @@ function SignInController() {
 }
 
 export default function SignInPage() {
+  const theme = useTheme();
+
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="flex max-w-3xl flex-col">
         <div className="z-30 mb-8 flex justify-center">
           <a href="https://nhost.io" tabIndex={-1}>
             <Image
-              src="/assets/Logo.svg"
+              src={
+                theme.palette.mode === 'dark'
+                  ? '/assets/brands/light/nhost-with-text.svg'
+                  : '/assets/brands/nhost-with-text.svg'
+              }
               alt="Nhost Logo"
               width={185}
               height={64}
@@ -180,8 +194,8 @@ export default function SignInPage() {
         </div>
         <div className="flex items-center justify-center">
           <div className="z-10">
-            <div
-              className="grid grid-flow-row gap-4 rounded-lg border border-gray-300 bg-white px-12 py-8"
+            <Box
+              className="grid grid-flow-row gap-4 rounded-lg border px-12 py-8"
               style={{ width: '480px' }}
             >
               <Text variant="h1" className="text-center text-lg font-semibold">
@@ -189,16 +203,17 @@ export default function SignInPage() {
               </Text>
 
               <SignInController />
-            </div>
+            </Box>
 
             <div className="mt-3 flex justify-center">
-              <div className="text-sm text-gray-700">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" passHref>
-                  <a className="text-btn hover:underline" href="signup">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
+                <Text className="text-sm">Don&apos;t have an account?</Text>
+
+                <NavLink href="/signup" passHref>
+                  <Link href="signup" underline="hover">
                     Sign up
-                  </a>
-                </Link>
+                  </Link>
+                </NavLink>
               </div>
             </div>
           </div>

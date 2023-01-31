@@ -1,7 +1,7 @@
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { BoxProps } from '@/ui/v2/Box';
+import type { ReactElement } from 'react';
 
-export interface CardElement
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface CardElement extends BoxProps {
   /**
    * Title for the framework.
    */
@@ -13,7 +13,11 @@ export interface CardElement
   /**
    * Icon to display on the card.
    */
-  icon: string | React.ReactElement;
+  icon: string | ReactElement;
+  /**
+   * Light version of the icon. This is used for the dark mode.
+   */
+  lightIcon?: string | ReactElement;
   /**
    * Determines whether the icon should have a background.
    * @default false
@@ -42,6 +46,7 @@ export const frameworks: CardElement[] = [
     title: 'Next.js',
     description: 'Nhost helps you to build with Next.js',
     icon: '/assets/frameworks/nextjs.svg',
+    lightIcon: '/assets/frameworks/light/nextjs.svg',
     disableIconBackground: true,
     link: 'https://docs.nhost.io/platform/quickstarts/nextjs',
     iconIsComponent: false,

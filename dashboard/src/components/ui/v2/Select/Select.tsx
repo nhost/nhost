@@ -44,7 +44,16 @@ const StyledListbox = styled('ul')(({ theme }) => ({
   maxWidth: 500,
   maxHeight: 400,
   margin: theme.spacing(1.25, 0),
-  backgroundColor: theme.palette.common.white,
+  backgroundColor:
+    theme.palette.mode === 'dark'
+      ? theme.palette.secondary[100]
+      : theme.palette.common.white,
+  border:
+    theme.palette.mode === 'dark'
+      ? `1px solid ${theme.palette.grey[300]}`
+      : 'none',
+  borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
+  borderColor: theme.palette.mode === 'dark' ? 'grey.400' : 'none',
   '&:focus': {
     outline: 'none',
   },

@@ -8,6 +8,9 @@ import useDeleteTableWithToastMutation from '@/hooks/dataBrowser/useDeleteTableM
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Backdrop from '@/ui/v2/Backdrop';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
@@ -23,22 +26,17 @@ import UsersIcon from '@/ui/v2/icons/UsersIcon';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
+import Option from '@/ui/v2/Option';
+import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
-import { Listbox, Transition } from '@headlessui/react';
 import { useQueryClient } from '@tanstack/react-query';
-import clsx from 'clsx';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface DataBrowserSidebarProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-    'children'
-  > {
+export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
   /**
    * Function to be called when a sidebar item is clicked.
    */
@@ -204,11 +202,9 @@ function DataBrowserSidebarContent({
   ) {
     openDrawer('EDIT_PERMISSIONS', {
       title: (
-        <span className="inline-grid grid-flow-col gap-2 items-center">
+        <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
-          <InlineCode className="!text-sm+ font-normal text-greyscaleMedium">
-            {table}
-          </InlineCode>
+          <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
@@ -234,63 +230,49 @@ function DataBrowserSidebarContent({
   return (
     <div className="grid gap-1">
       {schemas && schemas.length > 0 && (
-        <Listbox value={selectedSchema} onChange={setSelectedSchema}>
-          <div className="relative">
-            <Listbox.Button className="relative grid w-full cursor-pointer grid-flow-col items-center justify-start rounded-md border-1 border-gray-200 bg-white py-2 pl-3 pr-10 text-left text-sm font-medium text-greyscaleDark hover:bg-gray-100 active:bg-gray-100 motion-safe:transition-colors">
-              <span className="text-greyscaleGrey">schema.</span>
-              <span>{selectedSchema}</span>
-
-              {(isSelectedSchemaLocked || isGitHubConnected) && (
-                <LockIcon className="ml-1 h-3 w-3" />
-              )}
-            </Listbox.Button>
-
-            <Transition
-              as={Fragment}
-              leave="transition ease-in duration-100"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
+        <Select
+          renderValue={(option) => (
+            <span className="grid grid-flow-col items-center gap-1">
+              {option?.label}
+            </span>
+          )}
+          slotProps={{
+            listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
+            popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
+          }}
+          value={selectedSchema}
+          onChange={(_event, value) => setSelectedSchema(value as string)}
+        >
+          {schemas.map((schema) => (
+            <Option
+              className="grid grid-flow-col items-center gap-1"
+              value={schema.schema_name}
+              key={schema.schema_name}
             >
-              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {schemas.map((schema) => (
-                  <Listbox.Option
-                    key={schema.schema_name}
-                    value={schema.schema_name}
-                    as={Fragment}
-                  >
-                    {({ active, selected }) => (
-                      <li
-                        className={clsx(
-                          'grid cursor-pointer grid-flow-col items-center justify-start break-all p-2 text-sm font-medium text-greyscaleDark motion-safe:transition-colors',
-                          active && 'bg-gray-100 active:bg-gray-100',
-                        )}
-                      >
-                        <span className="text-greyscaleGrey">schema.</span>
-
-                        <span
-                          className={twMerge(
-                            selected && 'truncate font-bold text-blue',
-                          )}
-                        >
-                          {schema.schema_name}
-                        </span>
-
-                        {(isSchemaLocked(schema.schema_name) ||
-                          isGitHubConnected) && (
-                          <LockIcon className="ml-1 h-3 w-3" />
-                        )}
-                      </li>
-                    )}
-                  </Listbox.Option>
-                ))}
-              </Listbox.Options>
-            </Transition>
-          </div>
-        </Listbox>
+              <Text className="text-sm">
+                <Text component="span" color="disabled">
+                  schema.
+                </Text>
+                <Text component="span" className="font-medium">
+                  {schema.schema_name}
+                </Text>
+              </Text>
+              {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
+                <LockIcon
+                  className="h-3 w-3"
+                  sx={{ color: 'text.secondary' }}
+                />
+              )}
+            </Option>
+          ))}
+        </Select>
       )}
 
       {isGitHubConnected && (
-        <div className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md bg-gray-100 p-2 text-greyscaleMedium">
+        <Box
+          className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md p-2"
+          sx={{ backgroundColor: 'grey.200' }}
+        >
           <Text>
             Your project is connected to GitHub. Please use the CLI to make
             schema changes.
@@ -305,7 +287,7 @@ function DataBrowserSidebarContent({
           >
             Learn More <ArrowRightIcon />
           </Link>
-        </div>
+        </Box>
       )}
 
       {!isSelectedSchemaLocked && (
@@ -328,9 +310,9 @@ function DataBrowserSidebarContent({
       )}
 
       {schemas && schemas.length > 0 && tablesInSelectedSchema.length === 0 && (
-        <span className="py-1.5 px-2 text-xs text-greyscaleGrey">
+        <Text className="py-1.5 px-2 text-xs" color="disabled">
           No tables found.
-        </span>
+        </Text>
       )}
 
       <nav aria-label="Database navigation">
@@ -384,7 +366,10 @@ function DataBrowserSidebarContent({
                                 )
                               }
                             >
-                              <UsersIcon className="h-4 w-4 text-gray-700" />
+                              <UsersIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
 
                               <span>View Permissions</span>
                             </Dropdown.Item>
@@ -409,7 +394,10 @@ function DataBrowserSidebarContent({
                                   })
                                 }
                               >
-                                <PencilIcon className="h-4 w-4 text-gray-700" />
+                                <PencilIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
 
                                 <span>Edit Table</span>
                               </Dropdown.Item>,
@@ -427,7 +415,10 @@ function DataBrowserSidebarContent({
                                   )
                                 }
                               >
-                                <UsersIcon className="h-4  w-4 text-gray-700" />
+                                <UsersIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'text.secondary' }}
+                                />
 
                                 <span>Edit Permissions</span>
                               </Dropdown.Item>,
@@ -437,7 +428,8 @@ function DataBrowserSidebarContent({
                               />,
                               <Dropdown.Item
                                 key="delete-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                sx={{ color: 'error.main' }}
                                 onClick={() =>
                                   handleDeleteTableClick(
                                     table.table_schema,
@@ -445,7 +437,10 @@ function DataBrowserSidebarContent({
                                   )
                                 }
                               >
-                                <TrashIcon className="h-4 w-4 text-red" />
+                                <TrashIcon
+                                  className="h-4 w-4"
+                                  sx={{ color: 'error.main' }}
+                                />
 
                                 <span>Delete Table</span>
                               </Dropdown.Item>,
@@ -529,26 +524,26 @@ export default function DataBrowserSidebar({
 
   return (
     <>
-      {expanded && (
-        <div
-          className="absolute top-0 left-0 bottom-0 right-0 z-[34] bg-black bg-opacity-10 sm:hidden"
-          role="button"
-          tabIndex={-1}
-          onClick={() => setExpanded(false)}
-          aria-label="Close sidebar overlay"
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') {
-              return;
-            }
+      <Backdrop
+        open={expanded}
+        className="absolute top-0 left-0 bottom-0 right-0 z-[34] sm:hidden"
+        role="button"
+        tabIndex={-1}
+        onClick={() => setExpanded(false)}
+        aria-label="Close sidebar overlay"
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+          }
 
-            setExpanded(false);
-          }}
-        />
-      )}
+          setExpanded(false);
+        }}
+      />
 
-      <aside
+      <Box
+        component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 border-gray-200 bg-white px-2 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:py-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:py-2.5 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}
@@ -559,7 +554,7 @@ export default function DataBrowserSidebar({
             onSidebarItemClick={handleSidebarItemClick}
           />
         </RetryableErrorBoundary>
-      </aside>
+      </Box>
 
       <FloatingActionButton
         className="absolute bottom-4 left-4 z-[38] sm:hidden"

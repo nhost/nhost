@@ -1,10 +1,12 @@
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
+import { useTheme } from '@mui/material';
 import type { NextSeoProps } from 'next-seo';
 import { NextSeo } from 'next-seo';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface BaseLayoutProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface BaseLayoutProps extends PropsWithoutRef<BoxProps> {
   /**
    * Title of the page.
    */
@@ -19,15 +21,17 @@ export interface BaseLayoutProps
 export default function BaseLayout({
   children,
   title,
-  className,
   seoProps,
+  className,
   ...props
 }: BaseLayoutProps) {
+  const theme = useTheme();
+
   return (
-    <div className={twMerge('bg-white', className)} {...props}>
+    <Box className={twMerge(theme.palette.mode, className)} {...props}>
       <NextSeo title={title} {...seoProps} />
 
       {children}
-    </div>
+    </Box>
   );
 }

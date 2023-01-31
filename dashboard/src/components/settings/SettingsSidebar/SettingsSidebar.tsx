@@ -1,21 +1,19 @@
 import NavLink from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import FloatingActionButton from '@/ui/FloatingActionButton';
+import Backdrop from '@/ui/v2/Backdrop';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import { isK8SPostgresEnabledInCurrentEnvironment } from '@/utils/helpers';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface SettingsSidebarProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
-    'children'
-  > {}
+export interface SettingsSidebarProps extends Omit<BoxProps, 'children'> {}
 
 interface SettingsNavLinkProps extends ListItemButtonProps {
   /**
@@ -100,26 +98,26 @@ export default function SettingsSidebar({
 
   return (
     <>
-      {expanded && (
-        <div
-          className="absolute top-0 left-0 bottom-0 right-0 z-[34] bg-black bg-opacity-10 md:hidden"
-          role="button"
-          tabIndex={-1}
-          onClick={() => setExpanded(false)}
-          aria-label="Close sidebar overlay"
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') {
-              return;
-            }
+      <Backdrop
+        open={expanded}
+        className="absolute top-0 left-0 bottom-0 right-0 z-[34] md:hidden"
+        role="button"
+        tabIndex={-1}
+        onClick={() => setExpanded(false)}
+        aria-label="Close sidebar overlay"
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+          }
 
-            setExpanded(false);
-          }}
-        />
-      )}
+          setExpanded(false);
+        }}
+      />
 
-      <aside
+      <Box
+        component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 border-gray-200 bg-white px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}
@@ -183,7 +181,7 @@ export default function SettingsSidebar({
             </SettingsNavLink>
           </List>
         </nav>
-      </aside>
+      </Box>
 
       <FloatingActionButton
         className="absolute bottom-4 left-4 z-[38] md:hidden"

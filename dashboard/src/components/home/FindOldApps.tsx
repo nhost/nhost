@@ -1,14 +1,20 @@
-import { Text } from '@/ui/Text';
+import Link from '@/ui/v2/Link';
+import Text from '@/ui/v2/Text';
 
 export function FindOldApps() {
   return (
     <div className="mt-4">
-      <Text color="greyscaleGrey" size="normal" className="font-medium">
-        Looking for your old apps? They’re still on{' '}
-        <span className="pb-0.25 border-b">
-          <a href="https://console.nhost.io" target="_blank" rel="noreferrer">
+      <Text className="font-medium" color="secondary">
+        Looking for your old apps? They&apos;re still on{' '}
+        <span className="pb-0.25">
+          <Link
+            href="https://console.nhost.io"
+            target="_blank"
+            rel="noreferrer"
+            underline="hover"
+          >
             console.nhost.io
-          </a>
+          </Link>
         </span>{' '}
         during this beta.
       </Text>

@@ -28,13 +28,13 @@ export default function ApplicationLive() {
           <div className="order-2 grid grid-flow-row gap-12 lg:order-1 lg:col-span-2">
             <OverviewDocumentation
               title="Pick your favorite framework and start learning"
-              description="Nhost integrates smoothly with all of the frameworks you already know"
+              description="Nhost integrates smoothly with all of the frameworks you already know."
               cardElements={frameworks}
             />
 
             <OverviewDocumentation
               title="Platform Documentation"
-              description="More in-depth documentation for key features"
+              description="More in-depth documentation for key features."
               cardElements={features}
             />
           </div>
@@ -59,13 +59,13 @@ export default function ApplicationLive() {
 
           <OverviewDocumentation
             title="Pick your favorite framework and start learning"
-            description="Nhost integrates smoothly with all of the frameworks you already know"
+            description="Nhost integrates smoothly with all of the frameworks you already know."
             cardElements={frameworks}
           />
 
           <OverviewDocumentation
             title="Platform Documentation"
-            description="More in-depth documentation for key features"
+            description="More in-depth documentation for key features."
             cardElements={features}
           />
         </div>

@@ -190,7 +190,10 @@ function FormControl({
                 xs: 'span 1 / span 1',
                 sm: inputColSpan,
               },
-              gridColumnStart: { xs: 0, sm: 3 },
+              gridColumnStart: {
+                xs: 0,
+                sm: inlineInputProportion === '50%' ? 5 : 3,
+              },
             },
             ...(Array.isArray(helperTextSx) ? helperTextSx : [helperTextSx]),
           ]}

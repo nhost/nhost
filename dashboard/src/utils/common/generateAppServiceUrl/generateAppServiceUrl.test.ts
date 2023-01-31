@@ -72,12 +72,6 @@ test('should generate staging subdomains in staging environment', () => {
   );
 });
 
-test('should generate a /v1/files as a slug for storage in local mode', () => {
-  expect(generateAppServiceUrl('test', 'eu-west-1', 'storage')).toBe(
-    'http://localhost:1337/v1/files',
-  );
-});
-
 test('should generate no slug for Hasura neither in local mode nor in remote mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'http://localhost:1337',

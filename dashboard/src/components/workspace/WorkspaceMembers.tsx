@@ -170,13 +170,20 @@ export default function WorkspaceMembers() {
         />
       ))}
 
-      {data?.workspace?.workspaceMemberInvites.map((workspaceMemberInvite) => (
-        <WorkspaceMemberInvite
-          key={workspaceMemberInvite.id}
-          workspaceMemberInvite={workspaceMemberInvite}
-          isOwner={isOwner}
-        />
-      ))}
+      {data?.workspace?.workspaceMemberInvites.length > 0 && (
+        <div className="mt-12">
+          <Text className="font-medium text-lg mb-2">Pending Invitations</Text>
+          {data?.workspace?.workspaceMemberInvites.map(
+            (workspaceMemberInvite) => (
+              <WorkspaceMemberInvite
+                key={workspaceMemberInvite.id}
+                workspaceMemberInvite={workspaceMemberInvite}
+                isOwner={isOwner}
+              />
+            ),
+          )}
+        </div>
+      )}
     </div>
   );
 }

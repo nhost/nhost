@@ -5,35 +5,7 @@ sidebar_position: 1
 image: /img/og/users.png
 ---
 
-Users are stored in the database in the `auth.users` table.
-
-## Get User Information using GraphQL
-
-**Example:** Get all users.
-
-```graphql
-query {
-  users {
-    id
-    displayName
-    email
-    metadata
-  }
-}
-```
-
-**Example:** Get a single user.
-
-```graphql
-query {
-  user(id: "<user-id>") {
-    id
-    displayName
-    email
-    metadata
-  }
-}
-```
+Users are stored in the `auth.users` table in the [database](/database).
 
 ## Creating Users
 
@@ -131,6 +103,34 @@ await nhost.auth.signUp({
     }
   }
 })
+```
+
+## Get User Information using GraphQL
+
+**Example:** Get all users.
+
+```graphql
+query {
+  users {
+    id
+    displayName
+    email
+    metadata
+  }
+}
+```
+
+**Example:** Get a single user.
+
+```graphql
+query {
+  user(id: "<user-id>") {
+    id
+    displayName
+    email
+    metadata
+  }
+}
 ```
 
 ## Import Users

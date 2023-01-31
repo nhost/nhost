@@ -2,8 +2,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { baseColumnValidationSchema } from '@/components/dataBrowser/BaseColumnForm';
 import type { DatabaseTable, ForeignKeyRelation } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import { useEffect } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -110,7 +112,7 @@ function FormFooter({
   }, [isDirty, onDirtyStateChange]);
 
   return (
-    <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
+    <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
       <Button
         variant="borderless"
         color="secondary"
@@ -128,7 +130,7 @@ function FormFooter({
       >
         {submitButtonText}
       </Button>
-    </div>
+    </Box>
   );
 }
 
@@ -140,22 +142,28 @@ export default function BaseTableForm({
   return (
     <Form
       onSubmit={handleExternalSubmit}
-      className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
-        <section className="grid grid-cols-8 py-3 px-6">
+        <Box component="section" className="grid grid-cols-8 py-3 px-6">
           <NameInput />
-        </section>
+        </Box>
 
-        <section className="grid grid-cols-8 border-t-1 border-gray-200 py-3 px-6">
-          <h2 className="col-span-8 mt-3 mb-1.5 text-sm+ font-bold text-greyscaleDark">
+        <Box
+          component="section"
+          className="grid grid-cols-8 border-t-1 py-3 px-6"
+        >
+          <Text
+            variant="h2"
+            className="col-span-8 mt-3 mb-1.5 text-sm+ font-bold"
+          >
             Columns
-          </h2>
+          </Text>
 
           <ColumnEditorTable />
           <PrimaryKeySelect />
           <IdentityColumnSelect />
-        </section>
+        </Box>
 
         <ForeignKeyEditorSection />
       </div>

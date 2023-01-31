@@ -1,11 +1,12 @@
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-export interface InfoCardProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface InfoCardProps extends BoxProps {
   /**
    * The title of the card.
    */
@@ -33,23 +34,16 @@ export default function InfoCard({
   ...props
 }: InfoCardProps) {
   return (
-    <div
-      className="flex flex-row place-content-between rounded-lg bg-card p-3 shadow-sm"
+    <Box
+      className="grid grid-flow-col gap-1 place-content-between items-center rounded-lg p-3 shadow-sm"
+      sx={{ backgroundColor: 'grey.200' }}
       {...props}
     >
-      <div className="flex self-center truncate align-middle">
-        <Text
-          className="text-sm+ font-medium text-greyscaleDark"
-          lineHeight="22px"
-        >
-          {title}
-        </Text>
-      </div>
+      <Text className="text-sm+ font-medium">{title}</Text>
+
       <div className="grid grid-flow-col items-center gap-1 self-center">
         {customValue || (
-          <Text className="text-sm font-medium text-greyscaleDark">
-            {value}
-          </Text>
+          <Text className="text-sm font-medium truncate">{value}</Text>
         )}
 
         {!disableCopy && (
@@ -67,6 +61,6 @@ export default function InfoCard({
           </IconButton>
         )}
       </div>
-    </div>
+    </Box>
   );
 }

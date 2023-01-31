@@ -1,20 +1,22 @@
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
-export interface InlineCodeProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {}
+export interface InlineCodeProps extends BoxProps {}
 
 function InlineCode({ className, children, ...props }: InlineCodeProps) {
   return (
-    <code
+    <Box
+      component="code"
       className={twMerge(
-        'inline-grid max-w-xs items-center truncate rounded-sm bg-gray-100 px-1 font-mono text-[11px] text-greyscaleMedium',
+        'inline-grid max-w-xs items-center truncate rounded-sm px-1 font-mono text-[11px]',
         className,
       )}
+      sx={{ backgroundColor: 'grey.300', color: 'text.primary' }}
       {...props}
     >
       {children}
-    </code>
+    </Box>
   );
 }
 

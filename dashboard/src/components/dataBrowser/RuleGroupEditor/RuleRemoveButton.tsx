@@ -20,6 +20,7 @@ function RuleRemoveButton({
   name,
   onRemove,
   className,
+  disabled,
   ...props
 }: RuleRemoveButtonProps) {
   const rules: Rule[] = useWatch({ name: `${name}.rules` });
@@ -32,14 +33,24 @@ function RuleRemoveButton({
     <Button
       variant="outlined"
       color="secondary"
-      className={twMerge(
-        '!bg-white lg:!rounded-l-none !min-w-0 h-10',
-        className,
-      )}
-      disabled={rules.length === 1 && !groups?.length && !unsupported?.length}
-      aria-label="Remove Rule"
+      className={twMerge('lg:!rounded-l-none !min-w-0 h-10', className)}
+      disabled={
+        disabled ||
+        (rules.length === 1 && !groups?.length && !unsupported?.length)
+      }
       {...props}
+      aria-label="Remove Rule"
       onClick={onRemove}
+      sx={
+        !disabled
+          ? {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? `${theme.palette.grey[300]} !important`
+                  : `${theme.palette.common.white} !important`,
+            }
+          : undefined
+      }
     >
       <XIcon className="!w-4 !h-4" />
     </Button>

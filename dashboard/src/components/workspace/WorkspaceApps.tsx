@@ -1,58 +1,61 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Status, { StatusEnum } from '@/ui/Status';
-import { Text } from '@/ui/Text';
+import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
+import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import Image from 'next/image';
-import Link from 'next/link';
+import NavLink from 'next/link';
+import { Fragment } from 'react';
 
 function AllWorkspaceApps() {
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const noApplications = currentWorkspace?.applications.length === 0;
+
+  if (noApplications) {
+    return (
+      <Box className="flex flex-row border-y py-4">
+        <Text className="text-xs" color="secondary">
+          No projects on this workspace.
+        </Text>
+      </Box>
+    );
+  }
+
   return (
-    <div className="divide-y-1 divide-divide border-t-1 border-b-1 border-divide">
-      {noApplications ? (
-        <div className="flex flex-row px-1 py-4">
-          <Text size="tiny" className="self-center" color="greyscaleGrey">
-            No projects on this workspace.
-          </Text>
-        </div>
-      ) : (
-        <div>
-          {currentWorkspace?.applications.map((app) => (
-            <Link
-              key={app.id}
-              href={`${currentWorkspace?.slug}/${app.slug}`}
-              passHref
-            >
-              <div className="flex cursor-pointer py-4">
-                <div className="flex w-full flex-row place-content-between px-1">
-                  <div className="flex flex-row">
-                    <div className="inline-block h-8 w-8 overflow-hidden rounded-lg">
-                      <Image
-                        src="/logos/new.svg"
-                        alt="Nhost Logo"
-                        width={32}
-                        height={32}
-                      />
-                    </div>
-                    <Text
-                      color="greyscaleDark"
-                      variant="a"
-                      size="normal"
-                      className="ml-2 self-center font-medium"
-                    >
-                      {app.name}
-                    </Text>
+    <List>
+      <Divider component="li" />
+
+      {currentWorkspace?.applications.map((app) => (
+        <Fragment key={app.id}>
+          <ListItem.Root>
+            <NavLink href={`${currentWorkspace?.slug}/${app.slug}`} passHref>
+              <ListItem.Button className="grid grid-flow-col justify-between gap-2">
+                <div className="grid grid-flow-col items-center gap-2">
+                  <div className="h-8 w-8 overflow-hidden rounded-lg">
+                    <Image
+                      src="/logos/new.svg"
+                      alt="Nhost Logo"
+                      width={32}
+                      height={32}
+                    />
                   </div>
-                  <div className="flex">
-                    <Status status={StatusEnum.Plan}>{app.plan.name}</Status>
-                  </div>
+
+                  <Text className="font-medium">{app.name}</Text>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+
+                <Status status={StatusEnum.Plan}>{app.plan.name}</Status>
+              </ListItem.Button>
+            </NavLink>
+          </ListItem.Root>
+
+          <Divider component="li" />
+        </Fragment>
+      ))}
+    </List>
   );
 }
 export default function WorkspaceApps() {
@@ -62,24 +65,21 @@ export default function WorkspaceApps() {
     <div className="mt-9">
       <div className="mx-auto max-w-3xl font-display">
         <div className="mb-4 flex flex-row place-content-between">
-          <Text
-            variant="body"
-            size="large"
-            color="greyscaleDark"
-            className="font-medium"
-          >
-            Projects
-          </Text>
-          <Link
-            key={currentWorkspace.id}
+          <Text className="text-lg font-medium">Projects</Text>
+          <NavLink
             href={{
               pathname: '/new',
               query: { workspace: currentWorkspace.slug },
             }}
-            passHref
           >
-            New Project
-          </Link>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<PlusCircleIcon />}
+            >
+              New Project
+            </Button>
+          </NavLink>
         </div>
 
         <AllWorkspaceApps />

@@ -1,11 +1,12 @@
 import NavLink from '@/components/common/NavLink';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
+import Text from '@/ui/v2/Text';
 import { twMerge } from 'tailwind-merge';
 
-export interface BreadcrumbsProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {}
+export interface BreadcrumbsProps extends BoxProps {}
 
 export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
   const isPlatform = useIsPlatform();
@@ -14,18 +15,18 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
 
   if (!isPlatform) {
     return (
-      <div
+      <Box
         className={twMerge(
-          'grid grid-flow-col items-center gap-3 text-sm font-medium text-greyscaleDark',
+          'grid grid-flow-col items-center gap-3 text-sm font-medium',
           className,
         )}
         {...props}
       >
-        <span className="text-greyscaleGrey">/</span>
+        <Text color="disabled">/</Text>
 
-        <span className="truncate text-[13px] sm:text-sm">local</span>
+        <Text className="truncate text-[13px] sm:text-sm">local</Text>
 
-        <span className="text-greyscaleGrey">/</span>
+        <Text color="disabled">/</Text>
 
         <NavLink
           href="/local/local"
@@ -33,21 +34,21 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
         >
           local
         </NavLink>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
+    <Box
       className={twMerge(
-        'grid grid-flow-col items-center gap-3 text-sm font-medium text-greyscaleDark',
+        'grid grid-flow-col items-center gap-3 text-sm font-medium',
         className,
       )}
       {...props}
     >
       {currentWorkspace && (
         <>
-          <span className="text-greyscaleGrey">/</span>
+          <Text color="disabled">/</Text>
 
           <NavLink
             href={`/${currentWorkspace.slug}`}
@@ -60,7 +61,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
 
       {currentApplication && (
         <>
-          <span className="text-greyscaleGrey">/</span>
+          <Text color="disabled">/</Text>
 
           <NavLink
             href={`/${currentWorkspace.slug}/${currentApplication.slug}`}
@@ -70,6 +71,6 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
           </NavLink>
         </>
       )}
-    </div>
+    </Box>
   );
 }

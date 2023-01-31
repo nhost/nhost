@@ -3,12 +3,18 @@ import ChevronUpIcon from '@/ui/v2/icons/ChevronUpIcon';
 import type { ButtonUnstyledProps } from '@mui/base/ButtonUnstyled';
 import ButtonUnstyled from '@mui/base/ButtonUnstyled';
 import { selectUnstyledClasses } from '@mui/base/SelectUnstyled';
-import { darken, lighten, styled } from '@mui/material';
+import type { SxProps } from '@mui/material';
+import { styled } from '@mui/material';
+import type { Theme } from '@mui/system';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
 
 export interface ToggleButtonProps
   extends Omit<ButtonUnstyledProps, 'slotProps'> {
+  /**
+   * Styles applied to the root element.
+   */
+  sx?: SxProps<Theme>;
   /**
    * Props for component slots.
    */
@@ -42,21 +48,16 @@ const StyledButton = styled(ButtonUnstyled)(({ theme }) => ({
   ]),
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
-  [`&:not(.${selectUnstyledClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
-  },
+  backgroundColor: theme.palette.background.paper,
   [`&.${selectUnstyledClasses.disabled}`]: {
-    color: `${theme.palette.grey[600]} !important`,
-    borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
-    backgroundColor: `${lighten(
-      theme.palette.action.disabled,
-      0.75,
-    )} !important`,
+    color: theme.palette.grey[600],
+    borderColor: theme.palette.grey[400],
+    backgroundColor: theme.palette.grey[200],
   },
   [`&.${selectUnstyledClasses.focusVisible}, &.${selectUnstyledClasses.expanded}`]:
     {
       outline: 'none',
-      borderColor: theme.palette.grey[700],
+      borderColor: theme.palette.primary.main,
     },
   [`&.${selectUnstyledClasses.expanded} .expand`]: {
     display: 'none',

@@ -10,11 +10,12 @@ export type DividerProps<
   P = {},
 > = MaterialDividerProps<D, P>;
 
-const StyledDivider = styled(MaterialDivider)({
+const StyledDivider = styled(MaterialDivider)(({ theme }) => ({
   // todo: change this behaviour later - we should make this possible to
   // configure via `className`
   margin: `0 !important`,
-});
+  backgroundColor: theme.palette.divider,
+}));
 
 function Divider<
   D extends React.ElementType = DividerTypeMap['defaultComponent'],

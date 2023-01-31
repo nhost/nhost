@@ -10,7 +10,7 @@ import type { CustomClaim } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getPermissionVariables from '@/utils/settings/getPermissionVariablesArray';
 import getPermissionVariablesObject from '@/utils/settings/getPermissionVariablesObject';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetAppCustomClaimsQuery,
   useUpdateAppMutation,
@@ -128,7 +128,7 @@ export default function EditPermissionVariableForm({
         error:
           'An error occurred while trying to update the permission variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     await onSubmit?.();

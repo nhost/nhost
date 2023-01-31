@@ -7,9 +7,11 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { InputProps } from '@/ui/v2/Input';
+import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import clsx from 'clsx';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -18,6 +20,7 @@ function ColumnSelectorInput({
   selectedTablePath,
   schema,
   table,
+  disabled,
   ...props
 }: ColumnAutocompleteProps & { selectedTablePath: string }) {
   const { setValue, control } = useFormContext();
@@ -30,6 +33,7 @@ function ColumnSelectorInput({
     <ColumnAutocomplete
       {...props}
       {...field}
+      disabled={disabled}
       value={
         // this array can either be ['$', 'columnName'] or ['columnName']
         Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value
@@ -38,7 +42,20 @@ function ColumnSelectorInput({
       table={table}
       disableRelationships
       slotProps={{
-        input: { className: 'lg:!rounded-none !bg-white !z-10' },
+        input: {
+          className: 'lg:!rounded-none !z-10',
+          sx: !disabled
+            ? {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? theme.palette.grey[300]
+                    : theme.palette.common.white,
+                [`& .${inputClasses.input}`]: {
+                  backgroundColor: 'transparent',
+                },
+              }
+            : undefined,
+        },
       }}
       onChange={(_event, { value }) => {
         if (selectedTablePath === `${schema}.${table}`) {
@@ -84,6 +101,17 @@ export default function RuleValueInput({
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
   const isHasuraInput = operator === '_in_hasura' || operator === '_nin_hasura';
+  const sharedInputSx: InputProps['sx'] = !disabled
+    ? {
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? theme.palette.grey[300]
+            : theme.palette.common.white,
+        [`& .${inputClasses.input}`]: {
+          backgroundColor: 'transparent',
+        },
+      }
+    : undefined;
 
   const {
     data,
@@ -101,7 +129,17 @@ export default function RuleValueInput({
         name={inputName}
         fullWidth
         slotProps={{
-          root: { className: 'bg-white lg:!rounded-none h-10' },
+          root: {
+            className: 'lg:!rounded-none h-10',
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? `${theme.palette.grey[300]} !important`
+                      : `${theme.palette.common.white} !important`,
+                }
+              : null,
+          },
           popper: { disablePortal: false, className: 'z-[10000]' },
         }}
         error={error}
@@ -132,7 +170,13 @@ export default function RuleValueInput({
         multiple
         freeSolo
         limitTags={3}
-        slotProps={{ input: { className: 'lg:!rounded-none !bg-white !z-10' } }}
+        slotProps={{
+          input: {
+            className: 'lg:!rounded-none !z-10',
+            sx: sharedInputSx,
+          },
+          paper: { className: 'hidden' },
+        }}
         options={[]}
         fullWidth
         filterSelectedOptions
@@ -181,8 +225,12 @@ export default function RuleValueInput({
       name={inputName}
       groupBy={(option) => option.group}
       slotProps={{
-        input: { className: 'lg:!rounded-none !bg-white' },
+        input: {
+          className: 'lg:!rounded-none',
+          sx: sharedInputSx,
+        },
         formControl: { className: '!bg-transparent' },
+        paper: { className: clsx(!isHasuraInput && 'hidden') },
       }}
       fullWidth
       loading={loading}

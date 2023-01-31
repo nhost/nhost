@@ -348,7 +348,7 @@ export default function DataBrowserGrid({
         description={
           <span>
             Schema{' '}
-            <InlineCode className="bg-gray-200 bg-opacity-80 px-1.5 text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
               {metadata.schema || schemaSlug}
             </InlineCode>{' '}
             does not exist.
@@ -365,7 +365,7 @@ export default function DataBrowserGrid({
         description={
           <span>
             Table{' '}
-            <InlineCode className="bg-gray-200 bg-opacity-80 px-1.5 text-sm">
+            <InlineCode className="bg-opacity-80 px-1.5 text-sm">
               {metadata.schema || schemaSlug}.{metadata.table || tableSlug}
             </InlineCode>{' '}
             does not exist.

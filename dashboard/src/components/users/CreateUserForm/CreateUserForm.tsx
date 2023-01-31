@@ -4,7 +4,7 @@ import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import axios from 'axios';
 import { useState } from 'react';
@@ -88,7 +88,7 @@ export default function CreateUserForm({
           success: 'User created successfully.',
           error: 'An error occurred while trying to create the user.',
         },
-        toastStyleProps,
+        getToastStyleProps(),
       );
       onSuccess?.();
     } catch (error) {
@@ -108,8 +108,7 @@ export default function CreateUserForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleCreateUser}
-        className="grid grid-flow-row gap-6 px-6 pb-6"
-        autoComplete="off"
+        className="grid grid-flow-row gap-4 px-6 pb-6"
       >
         <Input
           {...register('email')}
@@ -147,7 +146,7 @@ export default function CreateUserForm({
             <Button
               variant="borderless"
               color="error"
-              className="p-1 text-greyscaleDark hover:text-greyscaleDark"
+              size="small"
               onClick={() => {
                 setCreateUserFormError(null);
               }}

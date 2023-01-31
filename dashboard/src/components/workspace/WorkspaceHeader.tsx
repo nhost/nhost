@@ -70,12 +70,13 @@ export default function WorkspaceHeader() {
           )}
 
           <div className="flex flex-col items-start pl-3">
-            <h1 className="font-display text-3xl font-medium">
+            <Text variant="h1" className="font-display text-3xl font-medium">
               {currentWorkspace.name}
-            </h1>
-            <button
-              type="button"
-              className="cursor-pointer py-1 pl-1 font-display text-xs font-medium"
+            </Text>
+            <Button
+              variant="borderless"
+              color="secondary"
+              className="py-1 pl-1 font-display text-xs font-medium"
               onClick={() =>
                 copy(
                   `https://app.nhost.io/${currentWorkspace.slug}`,
@@ -83,9 +84,15 @@ export default function WorkspaceHeader() {
                 )
               }
             >
-              <span className="text-grayscale">app.nhost.io/</span>
+              <Text
+                component="span"
+                className="text-xs font-medium"
+                color="secondary"
+              >
+                app.nhost.io/
+              </Text>
               {currentWorkspace.slug}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -130,15 +137,17 @@ export default function WorkspaceHeader() {
                 <Divider component="li" sx={{ margin: 0 }} />
 
                 <Dropdown.Item
-                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium text-red"
+                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium"
                   disabled={!noApplications}
                   onClick={openDeleteWorkspaceModal}
+                  sx={{ color: 'error.main' }}
                 >
                   I want to remove this workspace
                   {!noApplications && (
                     <Text
                       variant="caption"
-                      className="font-medium text-greyscaleGrey"
+                      className="font-medium"
+                      color="disabled"
                     >
                       You can&apos;t remove this workspace because you have apps
                       running. Remove all apps first.

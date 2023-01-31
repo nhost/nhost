@@ -2,15 +2,15 @@ import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
-import Status, { StatusEnum } from '@/ui/Status';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -119,7 +119,7 @@ export default function DeploymentListItem({
                       success: 'Deployment has been scheduled successfully.',
                       error: 'An error occurred when scheduling deployment.',
                     },
-                    toastStyleProps,
+                    getToastStyleProps(),
                   );
                 }}
                 startIcon={
@@ -134,7 +134,7 @@ export default function DeploymentListItem({
 
           {isLive && (
             <div className="w-12 flex justify-end">
-              <Status status={StatusEnum.Live}>Live</Status>
+              <Chip size="small" color="success" label="Live" />
             </div>
           )}
 

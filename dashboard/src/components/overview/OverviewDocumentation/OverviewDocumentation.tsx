@@ -1,6 +1,7 @@
 import type { CardElement } from '@/components/overview/frameworks';
 import OverviewCard from '@/components/overview/OverviewCard';
 import Text from '@/ui/v2/Text';
+import { useTheme } from '@mui/material';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 
 export interface OverviewDocumentationProps
@@ -25,17 +26,22 @@ export default function OverviewDocumentation({
   cardElements,
   ...props
 }: OverviewDocumentationProps) {
+  const theme = useTheme();
+
   return (
     <div {...props}>
-      <Text variant="h3">{title}</Text>
+      <div className="grid grid-flow-row gap-1">
+        <Text variant="h3">{title}</Text>
+        <Text color="secondary">{description}</Text>
+      </div>
 
-      <Text variant="body1">{description}</Text>
       <div className="mt-6 grid grid-flow-row items-center gap-6 xs:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {cardElements.map(
           ({
             title: cardTitle,
             description: cardDescription,
             icon,
+            lightIcon,
             iconIsComponent,
             disableIconBackground,
             link,
@@ -44,12 +50,19 @@ export default function OverviewDocumentation({
               key={cardTitle}
               title={cardTitle}
               description={cardDescription}
-              icon={icon}
-              componentsProps={{
+              icon={theme.palette.mode === 'dark' ? lightIcon || icon : icon}
+              slotProps={{
                 iconWrapper: {
+                  sx: {
+                    backgroundColor: disableIconBackground
+                      ? 'transparent'
+                      : 'background.paper',
+                    borderColor: 'grey.300',
+                    borderWidth: disableIconBackground ? 0 : 1,
+                  },
                   className: !disableIconBackground
-                    ? 'border-gray-500 bg-white shadow-2xl justify-center rounded-full text-greyscaleGreyDark'
-                    : 'inline-flex h-12 w-12 items-center text-greyscaleGreyDark',
+                    ? 'shadow-2xl justify-center rounded-full'
+                    : 'inline-flex h-12 w-12 items-center',
                 },
                 imgIcon: {
                   width: !disableIconBackground ? 32 : 42,

@@ -84,7 +84,7 @@ export default function EditForeignKeyForm({
             <Button
               variant="borderless"
               color="error"
-              className="p-1 text-greyscaleDark hover:text-greyscaleDark"
+              size="small"
               onClick={() => setError(null)}
             >
               Clear

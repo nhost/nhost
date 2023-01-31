@@ -70,12 +70,13 @@ export default function DataGridBooleanCell<TData extends object>({
       <Dropdown.Trigger
         id="boolean-trigger"
         className={twMerge(
-          'h-full w-full border-none outline-none',
-          isEditing && 'px-1.5 py-1.5',
+          'h-full w-full border-none outline-none p-0',
+          isEditing && 'p-1.5',
         )}
         ref={inputRef}
         onClick={editCell}
         autoFocus={false}
+        sx={{ '&:hover': { backgroundColor: 'transparent !important' } }}
       >
         <ReadOnlyToggle checked={optimisticValue} />
       </Dropdown.Trigger>

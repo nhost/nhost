@@ -11,7 +11,7 @@ import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import Image from 'next/image';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -80,7 +80,7 @@ export default function SMSSettings() {
         success: `SMS settings have been updated successfully.`,
         error: `An error occurred while trying to update SMS settings.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -90,7 +90,7 @@ export default function SMSSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSMSSettingsChange}>
         <SettingsContainer
-          title="SMS"
+          title="Phone Number (SMS)"
           description="Allow users to sign in with Phone Number (SMS)."
           primaryActionButtonProps={{
             disabled: !formState.isValid || !formState.isDirty,
@@ -125,7 +125,7 @@ export default function SMSSettings() {
           >
             <Option value="twilio">
               <Image
-                src="/assets/twilio.svg"
+                src="/assets/brands/twilio.svg"
                 alt="Logo of Twilio"
                 width={20}
                 height={20}

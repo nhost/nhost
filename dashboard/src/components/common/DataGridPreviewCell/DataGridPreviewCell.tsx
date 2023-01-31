@@ -6,8 +6,9 @@ import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import IconButton from '@/ui/v2/IconButton';
-import XIcon from '@heroicons/react/solid/XIcon';
+import XIcon from '@/ui/v2/icons/XIcon';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
@@ -186,6 +187,7 @@ export default function DataGridPreviewCell<TData extends object>({
   const isVideo = mimeType?.startsWith('video');
   const isAudio = mimeType?.startsWith('audio');
   const isImage = mimeType?.startsWith('image');
+  const isJson = mimeType === 'application/json';
 
   async function handleOpenPreview() {
     if (!mimeType) {
@@ -228,9 +230,12 @@ export default function DataGridPreviewCell<TData extends object>({
 
   if (error) {
     return (
-      <div className="grid w-full grid-flow-col items-center justify-center gap-1 text-center text-red">
+      <Box
+        className="grid w-full grid-flow-col items-center justify-center gap-1 text-center"
+        sx={{ color: 'error.main' }}
+      >
         <FileIcon error /> Error
-      </div>
+      </Box>
     );
   }
 
@@ -247,24 +252,51 @@ export default function DataGridPreviewCell<TData extends object>({
             : 'mt-4 inline-block h-near-screen w-full px-12',
         )}
       >
-        <div
+        <Box
           className={clsx(
-            mimeType === 'application/json' ? 'bg-white' : 'bg-checker-pattern',
-            'relative mx-auto flex overflow-hidden rounded-md text-greyscaleDark',
+            !isJson && 'bg-checker-pattern',
+            'relative mx-auto flex overflow-hidden rounded-md',
           )}
+          sx={{
+            backgroundColor: isJson && 'background.default',
+            color: 'text.primary',
+          }}
         >
           {!previewLoading && (
             <IconButton
               aria-label="Close"
               variant="borderless"
               color="secondary"
-              className={clsx(
-                'absolute top-2 right-2 z-50 p-2',
-                isAudio && 'text-white',
-              )}
+              className="absolute top-2 right-2 z-50 p-2"
+              sx={{
+                [`&:hover, &:active, &:focus`]: {
+                  backgroundColor: (theme) => {
+                    if (isAudio || isVideo || isJson) {
+                      return 'common.black';
+                    }
+
+                    return theme.palette.mode === 'dark'
+                      ? 'grey.800'
+                      : 'grey.200';
+                  },
+                },
+              }}
               onClick={() => setShowModal(false)}
             >
-              <XIcon className={clsx('h-5 w-5')} />
+              <XIcon
+                className="h-5 w-5"
+                sx={{
+                  color: (theme) => {
+                    if (isAudio || isVideo || isJson) {
+                      return 'common.white';
+                    }
+
+                    return theme.palette.mode === 'dark'
+                      ? 'grey.100'
+                      : 'grey.700';
+                  },
+                }}
+              />
             </IconButton>
           )}
 
@@ -277,11 +309,14 @@ export default function DataGridPreviewCell<TData extends object>({
           )}
 
           {previewError && (
-            <div className="px-6 py-3.5 pr-12 text-start font-medium text-red">
+            <Box
+              className="px-6 py-3.5 pr-12 text-start font-medium"
+              sx={{ color: 'error.main' }}
+            >
               <p>Error: Preview can&apos;t be loaded.</p>
 
               <p>{previewError.message}</p>
-            </div>
+            </Box>
           )}
 
           {previewUrl && isImage && (
@@ -326,7 +361,7 @@ export default function DataGridPreviewCell<TData extends object>({
                 title="File preview"
               />
             )}
-        </div>
+        </Box>
       </Modal>
 
       <div className="flex h-full w-full justify-center">

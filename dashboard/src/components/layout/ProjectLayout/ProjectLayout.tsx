@@ -9,9 +9,10 @@ import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWor
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
 import { useSetAppWorkspaceContextFromUserContext } from '@/hooks/useSetAppWorkspaceContextFromUserContext';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -19,10 +20,7 @@ export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
   /**
    * Props passed to the internal `<main />` element.
    */
-  mainContainerProps?: DetailedHTMLProps<
-    HTMLProps<HTMLDivElement>,
-    HTMLDivElement
-  >;
+  mainContainerProps?: BoxProps;
 }
 
 function ProjectLayoutContent({
@@ -74,7 +72,8 @@ function ProjectLayoutContent({
       <>
         <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
 
-        <main
+        <Box
+          component="main"
           className={twMerge(
             'relative flex-auto overflow-y-auto',
             mainContainerClassName,
@@ -84,7 +83,7 @@ function ProjectLayoutContent({
           {children}
 
           <NextSeo title="Local App" />
-        </main>
+        </Box>
       </>
     );
   }
@@ -95,7 +94,8 @@ function ProjectLayoutContent({
         <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
       )}
 
-      <main
+      <Box
+        component="main"
         className={twMerge(
           'relative flex-auto overflow-y-auto',
           mainContainerClassName,
@@ -105,7 +105,7 @@ function ProjectLayoutContent({
         {children}
 
         <NextSeo title={currentApplication.name} />
-      </main>
+      </Box>
     </>
   );
 }

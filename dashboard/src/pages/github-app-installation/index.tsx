@@ -1,5 +1,5 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import DelayedLoading from '@/ui/DelayedLoading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { nhost } from '@/utils/nhost';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -66,7 +66,7 @@ function Page() {
   }, [installationId]);
 
   if (state.loading) {
-    return <DelayedLoading delay={500} />;
+    return <ActivityIndicator delay={500} label="Loading..." />;
   }
 
   if (state.error) {

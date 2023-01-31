@@ -1,6 +1,8 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
+import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
@@ -78,7 +80,9 @@ export function RemoveApplicationModal({
   }
 
   return (
-    <div className={twMerge('w-full max-w-sm p-6 text-left', className)}>
+    <Box
+      className={twMerge('w-full max-w-sm rounded-lg p-6 text-left', className)}
+    >
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h2">
           {title || 'Delete Project'}
@@ -88,11 +92,15 @@ export function RemoveApplicationModal({
           {description || 'Are you sure you want to delete this app?'}
         </Text>
 
-        <Text variant="subtitle2" className="font-bold !text-rose-600">
+        <Text
+          variant="subtitle2"
+          className="font-bold"
+          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
+        >
           This cannot be undone.
         </Text>
 
-        <div className="my-4 divide-y-1 border-t border-b">
+        <Box className="my-4 border-y">
           <Checkbox
             id="accept-1"
             label={`I'm sure I want to delete ${appName}`}
@@ -102,6 +110,8 @@ export function RemoveApplicationModal({
             aria-label="Confirm Delete Project #1"
           />
 
+          <Divider />
+
           <Checkbox
             id="accept-2"
             label="I understand this action cannot be undone"
@@ -110,7 +120,7 @@ export function RemoveApplicationModal({
             onChange={(_event, checked) => setRemove2(checked)}
             aria-label="Confirm Delete Project #2"
           />
-        </div>
+        </Box>
 
         <div className="grid grid-flow-row gap-2">
           <Button
@@ -127,6 +137,6 @@ export function RemoveApplicationModal({
           </Button>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }

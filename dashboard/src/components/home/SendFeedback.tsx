@@ -1,22 +1,33 @@
 import { useInsertFeedbackOneMutation } from '@/generated/graphql';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { nhost } from '@/utils/nhost';
+import { useUserData } from '@nhost/nextjs';
 import * as React from 'react';
 
 export function SendFeedback({ setFeedbackSent, feedback, setFeedback }: any) {
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [insertFeedback, { loading }] = useInsertFeedbackOneMutation();
-  const user = nhost.auth.getUser();
+  const user = useUserData();
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const feedbackWithProjectInfo = [
+      currentApplication && `Project ID: ${currentApplication.id}`,
+      typeof window !== 'undefined' && `URL: ${window.location.href}`,
+      feedback,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
     try {
       await insertFeedback({
         variables: {
           feedback: {
-            feedback,
+            feedback: feedbackWithProjectInfo,
           },
         },
       });

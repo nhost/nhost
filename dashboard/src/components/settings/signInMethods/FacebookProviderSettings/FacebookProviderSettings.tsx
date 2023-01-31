@@ -14,7 +14,7 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -77,7 +77,7 @@ export default function FacebookProviderSettings() {
         success: `Facebook settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's Facebook settings.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -95,7 +95,7 @@ export default function FacebookProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-facebook"
           docsTitle="how to sign in users with Facebook"
-          icon="/logos/Facebook.svg"
+          icon="/assets/brands/facebook.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

@@ -4,31 +4,29 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
-import Chip from '@/ui/Chip';
 import type { FileUploadButtonProps } from '@/ui/FileUploadButton';
 import FileUploadButton from '@/ui/FileUploadButton';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
+import type { InputProps } from '@/ui/v2/Input';
+import Input from '@/ui/v2/Input';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
+import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
-export type FilterProps = DetailedHTMLProps<
-  HTMLProps<HTMLInputElement>,
-  HTMLInputElement
->;
+export type FilterProps = PropsWithoutRef<InputProps>;
 
-export type FilesDataGridControlsProps = DetailedHTMLProps<
-  HTMLProps<HTMLDivElement>,
-  HTMLDivElement
-> & {
+export interface FilesDataGridControlsProps extends BoxProps {
   paginationProps?: DataGridPaginationProps;
   fileUploadProps?: FileUploadButtonProps;
   filterProps?: FilterProps;
   refetchData?: () => Promise<any>;
-};
+}
 
 export default function FilesDataGridControls({
   className,
@@ -117,16 +115,17 @@ export default function FilesDataGridControls({
   }
 
   return (
-    <div
-      className={twMerge(
-        'sticky top-0 z-20 border-b-1 border-gray-200 bg-white p-2',
-        className,
-      )}
+    <Box
+      className={twMerge('sticky top-0 z-20 border-b-1 p-2', className)}
       {...props}
     >
       {numberOfSelectedFiles > 0 ? (
-        <div className="mx-auto grid grid-flow-col place-content-start items-center gap-3">
-          <Chip variant="info">{numberOfSelectedFiles} selected</Chip>
+        <div className="mx-auto h-[40px] grid grid-flow-col justify-start items-center gap-2">
+          <Chip
+            color="info"
+            size="small"
+            label={`${numberOfSelectedFiles} selected`}
+          />
 
           <Button
             variant="borderless"
@@ -161,11 +160,12 @@ export default function FilesDataGridControls({
         </div>
       ) : (
         <div className="mx-auto grid w-full grid-cols-12 gap-2">
-          <input
+          <Input
             className={twMerge(
-              'col-span-12 rounded-sm bg-header p-2 font-display text-sm+ leading-4 xs+:col-span-12 md:col-span-9 xl:col-span-10',
+              'col-span-12 xs+:col-span-12 md:col-span-9 xl:col-span-10',
               filterClassName,
             )}
+            fullWidth
             {...restFilterProps}
           />
 
@@ -187,6 +187,6 @@ export default function FilesDataGridControls({
           </div>
         </div>
       )}
-    </div>
+    </Box>
   );
 }

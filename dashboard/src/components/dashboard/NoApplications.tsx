@@ -1,7 +1,8 @@
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useUserDataContext } from '@/context/workspace1-context';
-import { Button } from '@/ui/Button';
-import { Text } from '@/ui/Text';
+import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
+import { darken } from '@mui/system';
 import Link from 'next/link';
 
 export function NoApplications() {
@@ -12,19 +13,26 @@ export function NoApplications() {
     <div className="noapps mt-4 h-80 rounded-md text-center font-display font-normal">
       <div className="pt-12">
         <Text
-          variant="subHeading"
-          size="big"
-          className="text-center text-white"
+          className="text-center text-2xl font-semibold"
+          sx={{ color: 'common.white' }}
         >
           Welcome to Nhost!
         </Text>
-        <Text variant="body" className="mt-2 text-white">
-          Let’s set up your first backend – the Nhost way.
+        <Text className="mt-2" sx={{ color: 'common.white' }}>
+          Let&apos;s set up your first backend - the Nhost way.
         </Text>
         <div className="inline-block pt-10">
           <Link href="/new" passHref>
             <Button
-              variant="secondary"
+              sx={{
+                backgroundColor: (theme) =>
+                  `${theme.palette.common.white} !important`,
+                color: (theme) => `${theme.palette.common.black} !important`,
+                '&:hover': {
+                  backgroundColor: (theme) =>
+                    `${darken(theme.palette.common.white, 0.1)} !important`,
+                },
+              }}
               disabled={
                 !workspaceContext.id && userContext.workspaces.length === 0
               }
@@ -34,13 +42,9 @@ export function NoApplications() {
           </Link>
         </div>
         <div>
-          <Text
-            variant="body"
-            size="normal"
-            className="mt-9 text-white opacity-40"
-          >
-            Looking for your old projects? They’re still on console.nhost.io
-            during this beta.
+          <Text className="mt-9 opacity-40" sx={{ color: 'common.white' }}>
+            Looking for your old projects? They&apos;re still on
+            console.nhost.io during this beta.
           </Text>
         </div>
       </div>

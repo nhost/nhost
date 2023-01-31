@@ -1,7 +1,8 @@
 import LogsDatePicker from '@/components/logs/LogsDatePicker';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { AvailableLogsServices, LogsCustomInterval } from '@/types/logs';
-import type { HTMLDivProps } from '@/types/react';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import ClockIcon from '@/ui/v2/icons/ClockIcon';
 import Option from '@/ui/v2/Option';
@@ -11,7 +12,7 @@ import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface LogsHeaderProps extends Omit<HTMLDivProps, 'children'> {
+export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
    * The date to be displayed in the date picker for the from date.
    */
@@ -137,11 +138,11 @@ export default function LogsHeader({
   }
 
   return (
-    <div
-      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b border-gray-200 bg-white py-2.5 px-4 lg:grid-flow-col lg:justify-between"
+    <Box
+      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b py-2.5 px-4 lg:grid-flow-col lg:justify-between"
       {...props}
     >
-      <div className="grid w-full grid-flow-row items-center justify-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start">
+      <Box className="grid w-full grid-flow-row items-center justify-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start">
         <div className="grid grid-flow-col items-center gap-3 md:justify-start">
           <LogsDatePicker
             label="From"
@@ -158,9 +159,9 @@ export default function LogsHeader({
           />
         </div>
 
-        <div className="-my-2.5 border-gray-200 px-0 py-2.5 lg:border-l lg:px-3">
+        <Box className="-my-2.5 px-0 py-2.5 lg:border-l lg:px-3">
           <Select
-            className="w-full text-sm font-normal text-greyscaleDark"
+            className="w-full text-sm font-normal"
             placeholder="All Services"
             onChange={(_e, value) => {
               if (typeof value !== 'string') {
@@ -179,28 +180,29 @@ export default function LogsHeader({
               <Option
                 key={value}
                 value={value}
-                className="text-sm+ font-medium text-greyscaleGreyDark"
+                className="text-sm+ font-medium"
+                disabled={label === 'Hasura'}
               >
                 {label}
               </Option>
             ))}
           </Select>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div className="hidden grid-flow-col items-center justify-center gap-3 md:grid lg:justify-end">
+      <Box className="hidden grid-flow-col items-center justify-center gap-3 md:grid lg:justify-end">
         {logsCustomIntervals.map((logInterval) => (
           <Button
             key={logInterval.label}
             variant="outlined"
             color="secondary"
-            className="self-center text-greyscaleGreyDark"
+            className="self-center"
             onClick={() => handleIntervalChange(logInterval)}
           >
             {logInterval.label}
           </Button>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

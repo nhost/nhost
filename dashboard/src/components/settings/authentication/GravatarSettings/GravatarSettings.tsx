@@ -11,7 +11,7 @@ import Option from '@/ui/v2/Option';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
-  toastStyleProps,
+  getToastStyleProps,
 } from '@/utils/settings/settingsConstants';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -94,7 +94,7 @@ export default function GravatarSettings() {
         success: `Gravatar settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's Gravatar settings.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -110,7 +110,7 @@ export default function GravatarSettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#gravatar"
           switchId="authGravatarEnabled"
           showSwitch
           enabled={authGravatarEnabled}

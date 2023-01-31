@@ -1,10 +1,9 @@
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { useDropdown } from '@/ui/v2/Dropdown';
 import type { InputProps } from '@/ui/v2/Input';
-
-import { format, set } from 'date-fns';
-
 import Input from '@/ui/v2/Input';
+import { format, set } from 'date-fns';
 
 export interface LogTimePickerProps extends InputProps {
   /**
@@ -56,7 +55,7 @@ function LogsTimePicker({
 
   return (
     <div className="mx-auto grid grid-flow-row items-center self-center">
-      <div className="border border-[#EAEDF0] px-4 py-2">
+      <Box className="border px-4 py-2">
         <Input
           value={format(selectedDate, 'HH:mm:ss')}
           style={{ width: '135px' }}
@@ -72,7 +71,7 @@ function LogsTimePicker({
             '& [type=time]': {
               lineHeight: '1.375rem',
               fontWeight: 500,
-              color: (theme) => theme.palette.text.primary,
+              color: 'text.primary',
               backgroundColor: 'transparent',
               padding: (theme) => theme.spacing(0.75, 3.75),
             },
@@ -82,8 +81,8 @@ function LogsTimePicker({
             step: TIMEPICKER_STEP,
           }}
         />
-      </div>
-      <div className="grid grid-flow-col justify-end gap-x-4 px-4 py-2">
+      </Box>
+      <Box className="grid grid-flow-col justify-end gap-x-4 px-4 py-2">
         <Button variant="outlined" color="secondary" onClick={handleCancel}>
           Cancel
         </Button>
@@ -91,7 +90,7 @@ function LogsTimePicker({
         <Button variant="contained" color="primary" onClick={handleApply}>
           Apply
         </Button>
-      </div>
+      </Box>
     </div>
   );
 }

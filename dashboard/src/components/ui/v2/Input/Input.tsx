@@ -1,6 +1,6 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import FormControl from '@/ui/v2/FormControl';
-import { darken, lighten, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
@@ -55,14 +55,22 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
   overflow: 'hidden',
-  transition: theme.transitions.create(['border-color', 'box-shadow']),
+  transition: theme.transitions.create([
+    'border-color',
+    'box-shadow',
+    'background-color',
+  ]),
   [`& .${inputBaseClasses.input}`]: {
     fontSize: theme.typography.pxToRem(15),
     lineHeight: theme.typography.pxToRem(22),
     padding: theme.spacing(1, 1.25),
     color: theme.palette.text.primary,
     outline: 'none',
-    backgroundColor: 'transparent',
+    backgroundColor: theme.palette.background.paper,
+  },
+  [`& .${inputBaseClasses.input}::placeholder`]: {
+    color: theme.palette.grey[500],
+    opacity: 0.6,
   },
   [`&.${inputBaseClasses.multiline}`]: {
     padding: 0,
@@ -71,18 +79,14 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
     outline: 'none',
   },
   [`&.${inputBaseClasses.disabled}`]: {
-    color: `${theme.palette.grey[600]} !important`,
-    borderColor: `${darken(theme.palette.grey[300], 0.1)} !important`,
-    backgroundColor: `${lighten(
-      theme.palette.action.disabled,
-      0.75,
-    )} !important`,
+    color: theme.palette.grey[600],
+    borderColor: theme.palette.grey[400],
   },
-  [`&:not(.${inputBaseClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
+  [`&.${inputBaseClasses.disabled} .${inputBaseClasses.input}`]: {
+    backgroundColor: theme.palette.grey[200],
   },
   [`&.${inputBaseClasses.focused}`]: {
-    borderColor: theme.palette.grey[700],
+    borderColor: theme.palette.primary.main,
     outline: 'none',
     boxShadow: 'none',
   },

@@ -7,7 +7,7 @@ import BaseEnvironmentVariableForm, {
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetEnvironmentVariablesQuery,
   useInsertEnvironmentVariablesMutation,
@@ -98,7 +98,7 @@ export default function CreateEnvironmentVariableForm({
         success: 'Environment variable has been created successfully.',
         error: 'An error occurred while creating the environment variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onSubmit?.();

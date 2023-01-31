@@ -7,7 +7,7 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -83,7 +83,7 @@ export default function MFASettings() {
         success: `Multi-factor authentication settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's multi-factor authentication settings.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -99,7 +99,7 @@ export default function MFASettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#multi-factor-authentication"
           switchId="authMfaEnabled"
           enabled={authMfaEnabled}
           showSwitch

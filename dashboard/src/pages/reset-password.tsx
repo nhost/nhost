@@ -1,8 +1,13 @@
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
-import { Button, Input, Text } from '@/ui';
+import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
+import Input from '@/ui/v2/Input';
+import Link from '@/ui/v2/Link';
+import Text from '@/ui/v2/Text';
+import { useTheme } from '@mui/material';
 import { useResetPassword } from '@nhost/nextjs';
 import Image from 'next/image';
-import Link from 'next/link';
+import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -14,13 +19,14 @@ function ResetPasswordForm() {
   const { resetPassword, isSent, isLoading, isError, error } =
     useResetPassword();
 
-  const { register, handleSubmit, setValue, getValues } =
-    useForm<ResetPasswordFormProps>({
+  const { register, handleSubmit, getValues } = useForm<ResetPasswordFormProps>(
+    {
       reValidateMode: 'onSubmit',
       defaultValues: {
         email: '',
       },
-    });
+    },
+  );
 
   const onSubmit = async (data: ResetPasswordFormProps) => {
     const { email } = data;
@@ -43,40 +49,22 @@ function ResetPasswordForm() {
         onSubmit={handleSubmit(onSubmit)}
         className="flex w-full flex-col space-y-3"
       >
-        <div>
-          <Text
-            color="greyscaleDark"
-            className="self-center font-medium"
-            size="normal"
-          >
-            Email
-          </Text>
-          <div className="flex w-full">
-            <Input
-              {...register('email')}
-              onChange={(v) => {
-                setValue('email', v);
-              }}
-              autoFocus
-              id="email"
-              placeholder="Email"
-              required
-              minLength={2}
-              maxLength={128}
-              spellCheck="false"
-              aria-label="email"
-              autoCapitalize="none"
-              type="email"
-            />
-          </div>
-        </div>
+        <Input
+          {...register('email')}
+          autoFocus
+          id="email"
+          label="Email"
+          placeholder="Email"
+          required
+          fullWidth
+          inputProps={{ min: 2, max: 128 }}
+          spellCheck="false"
+          autoCapitalize="none"
+          type="email"
+        />
+
         <div className="flex flex-col">
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={isLoading}
-            loading={isLoading}
-          >
+          <Button type="submit" disabled={isLoading} loading={isLoading}>
             Send Reset Instructions
           </Button>
         </div>
@@ -84,7 +72,7 @@ function ResetPasswordForm() {
 
       {isError && (
         <div className="my-3">
-          <Text variant="item" size="small" className="font-medium text-red">
+          <Text className="font-medium" color="error">
             Error: {error.message}
           </Text>
         </div>
@@ -94,13 +82,19 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+  const theme = useTheme();
+
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="flex max-w-3xl flex-col">
         <div className="z-30 mb-8 flex justify-center">
           <a href="https://nhost.io" tabIndex={-1}>
             <Image
-              src="/assets/Logo.svg"
+              src={
+                theme.palette.mode === 'dark'
+                  ? '/assets/brands/light/nhost-with-text.svg'
+                  : '/assets/brands/nhost-with-text.svg'
+              }
               alt="Nhost Logo"
               width={185}
               height={64}
@@ -109,8 +103,8 @@ export default function ResetPasswordPage() {
         </div>
         <div className="flex items-center justify-center">
           <div className="z-30">
-            <div
-              className="rounded-lg border border-gray-300 bg-white px-12 py-4"
+            <Box
+              className="rounded-lg border px-12 py-4"
               style={{ width: '480px' }}
             >
               <div className="my-4">
@@ -119,15 +113,17 @@ export default function ResetPasswordPage() {
                 </div>
                 <ResetPasswordForm />
               </div>
-            </div>
+            </Box>
+
             <div className="mt-3 flex justify-center">
-              <div className="text-sm text-gray-700">
-                Is your password okay?{' '}
-                <Link href="/signin" passHref>
-                  <a href="signin" className="text-btn hover:underline">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
+                <Text className="text-sm">Is your password okay?</Text>
+
+                <NavLink href="/signin" passHref>
+                  <Link href="signin" underline="hover">
                     Sign in
-                  </a>
-                </Link>
+                  </Link>
+                </NavLink>
               </div>
             </div>
           </div>

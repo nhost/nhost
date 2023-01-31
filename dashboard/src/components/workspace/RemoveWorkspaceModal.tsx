@@ -2,6 +2,7 @@ import { useUI } from '@/context/UIContext';
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
@@ -41,7 +42,7 @@ export default function RemoveWorkspaceModal() {
   }
 
   return (
-    <div className="w-modal p-6 text-left">
+    <Box className="w-modal p-6 text-left rounded-lg">
       <div className="grid grid-flow-row gap-4">
         <div className="grid grid-flow-row gap-1">
           <Text variant="h3" component="h2">
@@ -51,7 +52,7 @@ export default function RemoveWorkspaceModal() {
           <Text>There is no way to recover this workspace later.</Text>
         </div>
 
-        <div className="border-t border-b py-2">
+        <Box className="border-y py-2">
           <Checkbox
             id="accept-remove"
             label={`I'm sure I want to delete ${currentWorkspace.name}`}
@@ -59,17 +60,8 @@ export default function RemoveWorkspaceModal() {
             checked={remove}
             onChange={(_event, checked) => setRemove(checked)}
             aria-label="Confirm Delete Workspace"
-            componentsProps={{
-              formControlLabel: {
-                componentsProps: {
-                  typography: {
-                    className: '!text-sm+',
-                  },
-                },
-              },
-            }}
           />
-        </div>
+        </Box>
 
         <div className="grid grid-flow-row gap-2">
           {mutationError && (
@@ -95,6 +87,6 @@ export default function RemoveWorkspaceModal() {
           </Button>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }
