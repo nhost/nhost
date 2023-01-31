@@ -20,8 +20,21 @@ import generateAppServiceUrl, {
 } from '@/utils/common/generateAppServiceUrl';
 import { LOCAL_HASURA_URL } from '@/utils/env';
 import { generateRemoteAppUrl } from '@/utils/helpers';
-import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
+import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
+
+function getJwtSecretsWithoutFalsyValues(jwtSecrets: JwtSecretFragment[]) {
+  return jwtSecrets.map((secret) =>
+    Object.keys(secret).reduce(
+      (secretWithoutFalsyValues, key) =>
+        secret[key] && key !== '__typename'
+          ? { ...secretWithoutFalsyValues, [key]: secret[key] }
+          : secretWithoutFalsyValues,
+      {},
+    ),
+  );
+}
 
 export default function SystemEnvironmentVariableSettings() {
   const [showAdminSecret, setShowAdminSecret] = useState(false);
@@ -29,9 +42,20 @@ export default function SystemEnvironmentVariableSettings() {
 
   const { openDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetAppInjectedVariablesQuery({
-    variables: { id: currentApplication?.id },
+  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
+
+  const { jwtSecrets, webhookSecret, adminSecret } = data?.config?.hasura || {};
+  const jwtSecretsWithoutFalsyValues = getJwtSecretsWithoutFalsyValues(
+    jwtSecrets || [],
+  );
+  const stringifiedJwtSecrets =
+    jwtSecretsWithoutFalsyValues.length === 1
+      ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
+      : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
+
   const isPlatform = useIsPlatform();
 
   const appClient = useAppClient();
@@ -63,7 +87,7 @@ export default function SystemEnvironmentVariableSettings() {
       ),
       payload: {
         disabled: true,
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
+        jwtSecret: stringifiedJwtSecrets,
       },
     });
   }
@@ -81,7 +105,7 @@ export default function SystemEnvironmentVariableSettings() {
         </span>
       ),
       payload: {
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
+        jwtSecret: stringifiedJwtSecrets,
       },
     });
   }
@@ -134,7 +158,7 @@ export default function SystemEnvironmentVariableSettings() {
             <Text className="truncate" color="secondary">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium">
-                  {currentApplication?.hasuraGraphqlAdminSecret}
+                  {adminSecret}
                 </InlineCode>
               ) : (
                 '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
@@ -167,7 +191,7 @@ export default function SystemEnvironmentVariableSettings() {
             <Text className="truncate" color="secondary">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium">
-                  {data?.app?.webhookSecret}
+                  {webhookSecret}
                 </InlineCode>
               ) : (
                 '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'

@@ -18641,12 +18641,14 @@ export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
+export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
+
 export type GetEnvironmentVariablesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null } };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -19385,6 +19387,20 @@ export const EnvironmentVariableFragmentDoc = gql`
   id: name
   name
   value
+}
+    `;
+export const JwtSecretFragmentDoc = gql`
+    fragment JWTSecret on ConfigJWTSecret {
+  issuer
+  key
+  type
+  jwk_url
+  header
+  claims_namespace_path
+  claims_namespace
+  claims_format
+  audience
+  allowed_skew
 }
     `;
 export const PermissionVariableFragmentDoc = gql`
@@ -20291,9 +20307,17 @@ export const GetEnvironmentVariablesDocument = gql`
         ...EnvironmentVariable
       }
     }
+    hasura {
+      adminSecret
+      webhookSecret
+      jwtSecrets {
+        ...JWTSecret
+      }
+    }
   }
 }
-    ${EnvironmentVariableFragmentDoc}`;
+    ${EnvironmentVariableFragmentDoc}
+${JwtSecretFragmentDoc}`;
 
 /**
  * __useGetEnvironmentVariablesQuery__

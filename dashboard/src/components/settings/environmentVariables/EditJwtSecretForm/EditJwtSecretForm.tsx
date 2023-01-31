@@ -5,8 +5,8 @@ import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  refetchGetAppInjectedVariablesQuery,
-  useUpdateApplicationMutation,
+  GetEnvironmentVariablesDocument,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
@@ -39,14 +39,7 @@ export interface EditJwtSecretFormProps {
   onCancel?: VoidFunction;
 }
 
-export interface EditJwtSecretFormValues {
-  /**
-   * JWT secret.
-   */
-  jwtSecret: string;
-}
-
-const validationSchema = Yup.object().shape({
+const validationSchema = Yup.object({
   jwtSecret: Yup.string()
     .nullable()
     .required('This field is required.')
@@ -60,6 +53,8 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
+export type EditJwtSecretFormValues = Yup.InferType<typeof validationSchema>;
+
 export default function EditJwtSecretForm({
   disabled,
   jwtSecret,
@@ -68,10 +63,8 @@ export default function EditJwtSecretForm({
   submitButtonText = 'Save',
 }: EditJwtSecretFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApplication] = useUpdateApplicationMutation({
-    refetchQueries: [
-      refetchGetAppInjectedVariablesQuery({ id: currentApplication?.id }),
-    ],
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   const { onDirtyStateChange } = useDialog();
@@ -93,26 +86,38 @@ export default function EditJwtSecretForm({
   }, [isDirty, onDirtyStateChange]);
 
   async function handleSubmit(values: EditJwtSecretFormValues) {
-    const updateAppPromise = updateApplication({
+    const parsedJwtSecret = JSON.parse(values.jwtSecret);
+    const isArray = Array.isArray(parsedJwtSecret);
+
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication?.id,
-        app: {
-          hasuraGraphqlJwtSecret: values.jwtSecret,
+        config: {
+          hasura: {
+            jwtSecrets: isArray ? parsedJwtSecret : [parsedJwtSecret],
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppPromise,
-      {
-        loading: 'Updating JWT secret...',
-        success: 'JWT secret has been updated successfully.',
-        error: 'An error occurred while updating the JWT secret.',
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Updating JWT secret...',
+          success: 'JWT secret has been updated successfully.',
+          error: (arg: Error) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : 'An error occurred while updating the JWT secret.',
+        },
+        getToastStyleProps(),
+      );
 
-    onSubmit?.();
+      onSubmit?.();
+    } catch {
+      // Note: error is handled above
+    }
   }
 
   return (
@@ -121,7 +126,7 @@ export default function EditJwtSecretForm({
         onSubmit={handleSubmit}
         className="flex flex-auto flex-col content-between overflow-hidden pb-4"
       >
-        <div className="px-6 overflow-y-auto flex-auto">
+        <div className="flex-auto overflow-y-auto px-6">
           <Input
             {...register('jwtSecret')}
             error={Boolean(errors.jwtSecret?.message)}

@@ -35,6 +35,7 @@ export default function EnvironmentVariableSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
   const availableEnvironmentVariables = [
