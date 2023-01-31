@@ -1,0 +1,10 @@
+{
+  "infiniteLoopProtection": true,
+  "hardReloadOnChange": false,
+  "view": "terminal",
+  "template": "node",
+  "container": {
+    "node": 16,
+    "startScript": "play"
+  }
+}
