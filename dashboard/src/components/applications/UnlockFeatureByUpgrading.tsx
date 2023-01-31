@@ -1,10 +1,9 @@
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Alert } from '@/ui/Alert';
-import { Modal } from '@/ui/Modal';
-import { Text } from '@/ui/Text';
 import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface UnlockFeatureByUpgradingProps
@@ -20,27 +19,32 @@ export function UnlockFeatureByUpgrading({
   className,
   ...props
 }: UnlockFeatureByUpgradingProps) {
-  const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
+  const { openAlertDialog } = useDialog();
+
   return (
-    <>
-      <Modal
-        showModal={isChangePlanModalOpen}
-        close={() => setIsChangePlanModalOpen(false)}
-        Component={ChangePlanModal}
-      />
+    <div className={twMerge('flex', className)} {...props}>
+      <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
+        <Text className="text-left">{message}</Text>
 
-      <div className={twMerge('flex', className)} {...props}>
-        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
-          <Text className="text-left">{message}</Text>
-
-          <Button
-            variant="borderless"
-            onClick={() => setIsChangePlanModalOpen(true)}
-          >
-            Upgrade
-          </Button>
-        </Alert>
-      </div>
-    </>
+        <Button
+          variant="borderless"
+          onClick={() => {
+            openAlertDialog({
+              title: 'Upgrade your plan.',
+              payload: <ChangePlanModal />,
+              props: {
+                PaperProps: { className: 'p-0' },
+                hidePrimaryAction: true,
+                hideSecondaryAction: true,
+                hideTitle: true,
+                maxWidth: 'lg',
+              },
+            });
+          }}
+        >
+          Upgrade
+        </Button>
+      </Alert>
+    </div>
   );
 }

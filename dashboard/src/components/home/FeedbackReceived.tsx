@@ -32,10 +32,12 @@ export function FeedbackReceived({ setFeedbackSent, close }: any) {
       </div>
 
       <Button
-        className="text-grayscaleDark mt-2 text-sm+ font-normal"
+        variant="outlined"
+        color="secondary"
+        className="mt-2 text-sm+ font-normal"
         onClick={handleSubmit}
       >
-        Continue
+        Go Back
       </Button>
     </div>
   );

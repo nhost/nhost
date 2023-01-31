@@ -46,13 +46,16 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
     cursor: 'not-allowed',
 
     [`& .${switchUnstyledClasses.track}`]: {
-      background: theme.palette.grey[200],
+      backgroundColor: theme.palette.grey[200],
       color: theme.palette.grey[200],
     },
   },
 
   [`& .${switchUnstyledClasses.track}`]: {
-    background: theme.palette.grey[600],
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[500]
+        : theme.palette.grey[600],
     borderRadius: '16px',
     display: 'block',
     height: '100%',
@@ -87,13 +90,16 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
     },
 
     [`.${switchUnstyledClasses.track}`]: {
-      background: theme.palette.primary.main,
+      backgroundColor: theme.palette.primary.main,
     },
 
     [`&.${switchUnstyledClasses.disabled}`]: {
       [`.${switchUnstyledClasses.track}`]: {
         opacity: 0.5,
-        backgroundColor: theme.palette.grey[600],
+        backgroundColor:
+          theme.palette.mode === 'dark'
+            ? theme.palette.grey[500]
+            : theme.palette.grey[600],
       },
     },
   },

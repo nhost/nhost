@@ -71,20 +71,18 @@ export function AppLoader({
       </div>
 
       {timeElapsed <= 5 && (
-        <Text className="!text-greyscaleGrey">Setting up authentication</Text>
+        <Text color="disabled">Setting up authentication</Text>
       )}
       {timeElapsed > 5 && timeElapsed <= 10 && (
-        <Text className="!text-greyscaleGrey">Setting up file storage</Text>
+        <Text color="disabled">Setting up file storage</Text>
       )}
       {timeElapsed > 10 && timeElapsed <= 15 && (
-        <Text className="!text-greyscaleGrey">Setting up database</Text>
+        <Text color="disabled">Setting up database</Text>
       )}
       {timeElapsed > 15 && timeElapsed <= 20 && (
-        <Text className="!text-greyscaleGrey">Setting up Hasura</Text>
+        <Text color="disabled">Setting up Hasura</Text>
       )}
-      {timeElapsed > 20 && (
-        <Text className="!text-greyscaleGrey">Doing final cleanup</Text>
-      )}
+      {timeElapsed > 20 && <Text color="disabled">Doing final cleanup</Text>}
       <ActivityIndicator className="mx-auto" />
 
       {timeElapsed > 180 && (

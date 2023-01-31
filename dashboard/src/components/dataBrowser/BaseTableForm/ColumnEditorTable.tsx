@@ -2,6 +2,7 @@ import Button from '@/ui/v2/Button';
 import HelperText from '@/ui/v2/HelperText';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import InputLabel from '@/ui/v2/InputLabel';
+import Text from '@/ui/v2/Text';
 import { useFieldArray, useFormState } from 'react-hook-form';
 import ColumnEditorRow from './ColumnEditorRow';
 
@@ -25,18 +26,22 @@ export default function ColumnEditorTable() {
   return (
     <>
       <div role="table" className="col-span-8">
-        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 bg-white pt-1 pb-2">
+        <div className="sticky top-0 z-10 grid w-full grid-cols-12 gap-1 pt-1 pb-2">
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Name
-              <span className="text-red">*</span>
+              <Text component="span" color="error">
+                *
+              </Text>
             </InputLabel>
           </div>
 
           <div role="columnheader" className="col-span-3">
             <InputLabel as="span">
               Type
-              <span className="text-red">*</span>
+              <Text component="span" color="error">
+                *
+              </Text>
             </InputLabel>
           </div>
 

@@ -5,7 +5,10 @@ import MaterialBackdrop from '@mui/material/Backdrop';
 export interface BackdropProps extends MaterialBackdropProps {}
 
 const Backdrop = styled(MaterialBackdrop)(({ theme }) => ({
-  backgroundColor: alpha(theme.palette.grey[800], 0.25),
+  backgroundColor:
+    theme.palette.mode === 'dark'
+      ? alpha(theme.palette.common.black, 0.5)
+      : alpha(theme.palette.grey[400], 0.3),
 }));
 
 Backdrop.displayName = 'NhostBackdrop';

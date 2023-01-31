@@ -1,12 +1,10 @@
 import type { CommonDataGridCellProps } from '@/components/common/DataGridCell';
 import { useDataGridCell } from '@/components/common/DataGridCell';
+import Input, { inputClasses } from '@/ui/v2/Input';
+import type { TextProps } from '@/ui/v2/Text';
+import Text from '@/ui/v2/Text';
 import { getDateComponents } from '@/utils/formatDate';
-import type {
-  ChangeEvent,
-  DetailedHTMLProps,
-  HTMLProps,
-  KeyboardEvent,
-} from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface DataGridDateCellProps<TData extends object>
@@ -14,11 +12,11 @@ export interface DataGridDateCellProps<TData extends object>
   /**
    * Props to be passed to date display.
    */
-  dateProps?: DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>;
+  dateProps?: TextProps;
   /**
    * Props to be passed to time display.
    */
-  timeProps?: DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>;
+  timeProps?: TextProps;
 }
 
 export default function DataGridDateCell<TData extends object>({
@@ -90,50 +88,78 @@ export default function DataGridDateCell<TData extends object>({
 
   if (isEditing) {
     return (
-      <input
-        defaultValue={optimisticValue || ''}
+      <Input
         ref={inputRef}
+        value={
+          temporaryValue !== null && typeof temporaryValue !== 'undefined'
+            ? temporaryValue
+            : ''
+        }
         onKeyDown={handleKeyDown}
         onChange={handleChange}
-        className="h-full w-full border-none px-1.5 text-xs text-greyscaleDark focus:outline-none focus:ring-0"
+        fullWidth
+        className="absolute top-0 z-10 -mx-0.5 h-full place-content-stretch"
+        sx={{
+          [`&.${inputClasses.focused}`]: {
+            boxShadow: `inset 0 0 0 1.5px rgba(0, 82, 205, 1)`,
+            borderColor: 'transparent !important',
+            borderRadius: 0,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? `${theme.palette.secondary[100]} !important`
+                : `${theme.palette.common.white} !important`,
+          },
+          [`& .${inputClasses.input}`]: {
+            backgroundColor: 'transparent',
+          },
+        }}
+        slotProps={{
+          inputWrapper: { className: 'h-full' },
+          input: { className: 'h-full' },
+          inputRoot: {
+            className:
+              'resize-none outline-none focus:outline-none !text-xs focus:ring-0',
+          },
+        }}
       />
     );
   }
 
   if (!optimisticValue) {
-    return <span className="truncate text-greyscaleGrey">null</span>;
+    return (
+      <Text className="truncate text-xs" color="secondary">
+        null
+      </Text>
+    );
   }
 
   if (specificType === 'interval') {
-    return (
-      <span className="truncate text-greyscaleDark">{optimisticValue}</span>
-    );
+    return <Text className="truncate text-xs">{optimisticValue}</Text>;
   }
 
   return (
     <div className={twMerge('grid grid-flow-row', className)}>
       {specificType !== 'time' && specificType !== 'timetz' && (
-        <span
-          className={twMerge('truncate text-greyscaleDark', dateClassName)}
+        <Text
+          className={twMerge('truncate text-xs', dateClassName)}
           {...restDateProps}
         >
           {[year, month, day].filter(Boolean).join('-')}
-        </span>
+        </Text>
       )}
 
       {specificType !== 'date' && (
-        <span
-          className={twMerge(
-            'truncate',
+        <Text
+          className={twMerge('truncate text-xs', timeClassName)}
+          color={
             specificType === 'time' || specificType === 'timetz'
-              ? 'text-greyscaleDark'
-              : 'text-greyscaleGrey',
-            timeClassName,
-          )}
+              ? 'primary'
+              : 'secondary'
+          }
           {...restTimeProps}
         >
           {[hour, minute, second].filter(Boolean).join(':')}
-        </span>
+        </Text>
       )}
     </div>
   );

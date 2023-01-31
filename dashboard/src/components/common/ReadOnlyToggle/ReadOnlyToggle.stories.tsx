@@ -39,7 +39,7 @@ False.args = {
 export const CustomClasses = Template.bind({});
 CustomClasses.args = {
   checked: true,
-  className: '!bg-red',
+  className: '!bg-red-500',
   slotProps: {
     label: {
       className: '!text-sm !text-white',

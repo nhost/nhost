@@ -6,16 +6,20 @@ import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
-import { Text } from '@/ui/Text';
+import Divider from '@/ui/v2/Divider';
+import Link from '@/ui/v2/Link';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { formatDistance } from 'date-fns';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ContainerAllWorkspacesApplications } from './ContainerAllWorkspacesApplications';
+import NavLink from 'next/link';
+import { Fragment } from 'react';
 
 function ApplicationCreatedAt({ createdAt }: any) {
   return (
-    <Text color="dark" className="cursor-pointer self-center text-sm">
+    <Text component="span" className="text-sm">
       created{' '}
       {formatDistance(new Date(createdAt), new Date(), {
         addSuffix: true,
@@ -24,36 +28,38 @@ function ApplicationCreatedAt({ createdAt }: any) {
   );
 }
 
-function LastSuccesfulDeployment({ deployment }: any) {
+function LastSuccessfulDeployment({ deployment }: any) {
   return (
-    <div className="flex flex-row">
+    <span className="flex flex-row">
       <Avatar
+        component="span"
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="cursor-pointer self-center text-sm">
+      <Text component="span" className="self-center text-sm">
         {deployment.commitUserName} deployed{' '}
         {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
           addSuffix: true,
         })}
       </Text>
-    </div>
+    </span>
   );
 }
 
 function CurrentDeployment({ deployment }: any) {
   return (
-    <div className="flex flex-row">
+    <span className="flex flex-row">
       <Avatar
+        component="span"
         name={deployment.commitUserName}
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text color="dark" className="cursor-pointer self-center text-sm">
+      <Text className="self-center text-sm">
         {deployment.commitUserName} updated just now
       </Text>
-    </div>
+    </span>
   );
 }
 
@@ -96,131 +102,128 @@ export function RenderWorkspacesWithApps({
             return null;
           }
 
+          const workspaceProjects = workspace.applications
+            .filter((app: Application) =>
+              app.name.toLowerCase().includes(query.toLowerCase()),
+            )
+            .sort((appA, appB) => {
+              // sort apps based on either:
+              // 1. When the app was recently deployed, if there is any deployments available
+              // 2. When the app was created
+
+              const appASort =
+                appA.deployments.length > 0
+                  ? new Date(appA.deployments[0].deploymentEndedAt)
+                  : new Date(appA.createdAt);
+
+              const appBSort =
+                appB.deployments.length > 0
+                  ? new Date(appB.deployments[0].deploymentEndedAt)
+                  : new Date(appB.createdAt);
+
+              if (appASort > appBSort) {
+                return -1;
+              }
+              return 1;
+            });
+
           return (
             <div key={workspace.slug} className="my-8">
-              <Link href={`/${workspace.slug}`}>
-                <Text
-                  variant="a"
-                  color="greyscaleGrey"
-                  size="normal"
-                  className="mb-3 cursor-pointer font-medium"
+              <NavLink href={`/${workspace.slug}`} passHref>
+                <Link
+                  href={`${workspace.slug}`}
+                  className="mb-1.5 block font-medium"
+                  underline="none"
+                  sx={{ color: 'text.primary' }}
                 >
                   {workspace.name}
-                </Text>
-              </Link>
-              <ContainerAllWorkspacesApplications>
-                {workspace.applications
-                  .filter((app: Application) =>
-                    app.name.toLowerCase().includes(query.toLowerCase()),
-                  )
-                  .sort((appA, appB) => {
-                    // sort apps based on either:
-                    // 1. When the app was recently deployed, if there is any deployments available
-                    // 2. When the app was created
+                </Link>
+              </NavLink>
+              <List className="grid grid-flow-row border-y">
+                {workspaceProjects.map((app, index) => {
+                  const isDeployingToProduction = app.deployments[0]
+                    ? app.deployments[0].deploymentStatus === 'DEPLOYING'
+                    : false;
 
-                    const appASort =
-                      appA.deployments.length > 0
-                        ? new Date(appA.deployments[0].deploymentEndedAt)
-                        : new Date(appA.createdAt);
-
-                    const appBSort =
-                      appB.deployments.length > 0
-                        ? new Date(appB.deployments[0].deploymentEndedAt)
-                        : new Date(appB.createdAt);
-
-                    if (appASort > appBSort) {
-                      return -1;
-                    }
-                    return 1;
-                  })
-                  .map((app) => {
-                    const isDeployingToProduction = app.deployments[0]
-                      ? app.deployments[0].deploymentStatus === 'DEPLOYING'
-                      : false;
-                    return (
-                      <div key={app.slug} className="cursor-pointer py-4">
-                        <Link href={`${workspace?.slug}/${app.slug}`} passHref>
-                          <a
-                            href={`${workspace?.slug}/${app.slug}`}
-                            className="flex place-content-between rounded-sm border-divide bg-white px-2"
-                          >
-                            <div className="flex w-full flex-col self-center">
-                              <div className="flex w-full flex-row place-content-between">
-                                <div className="flex flex-row items-center self-center">
-                                  <div className="h-10 w-10 overflow-hidden rounded-lg">
-                                    <Image
-                                      src="/logos/new.svg"
-                                      alt="Nhost Logo"
-                                      width={40}
-                                      height={40}
-                                    />
-                                  </div>
-                                  <div className="ml-2 flex flex-col text-left">
-                                    <div>
-                                      <Text
-                                        color="dark"
-                                        size="normal"
-                                        className="cursor-pointer self-center text-left font-medium capitalize"
-                                      >
-                                        {app.name}
-                                      </Text>
-                                    </div>
-                                    <div>
-                                      {isDeployingToProduction && (
-                                        <CurrentDeployment
-                                          deployment={app.deployments[0]}
-                                        />
-                                      )}
-
-                                      {!isDeployingToProduction &&
-                                        app.deployments[0] && (
-                                          <LastSuccesfulDeployment
-                                            deployment={app.deployments[0]}
-                                          />
-                                        )}
-
-                                      {!isDeployingToProduction &&
-                                        !app.deployments[0] && (
-                                          <ApplicationCreatedAt
-                                            createdAt={app.createdAt}
-                                          />
-                                        )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-row">
-                                  <div className="flex self-center align-middle">
-                                    {app.deployments[0] && (
-                                      <div className="mr-2 flex self-center align-middle">
-                                        <StatusCircle
-                                          status={
-                                            app.deployments[0]
-                                              .deploymentStatus as DeploymentStatus
-                                          }
-                                        />
-                                      </div>
-                                    )}
-                                    <StateBadge
-                                      status={checkStatusOfTheApplication(
-                                        app.appStates,
-                                      )}
-                                      title={getApplicationStatusString(
-                                        checkStatusOfTheApplication(
-                                          app.appStates,
-                                        ),
-                                      )}
-                                    />
-                                  </div>
-                                </div>
+                  return (
+                    <Fragment key={app.slug}>
+                      <ListItem.Root
+                        secondaryAction={
+                          <div className="grid grid-flow-col gap-px">
+                            {app.deployments[0] && (
+                              <div className="mr-2 flex self-center align-middle">
+                                <StatusCircle
+                                  status={
+                                    app.deployments[0]
+                                      .deploymentStatus as DeploymentStatus
+                                  }
+                                />
                               </div>
-                            </div>
-                          </a>
-                        </Link>
-                      </div>
-                    );
-                  })}
-              </ContainerAllWorkspacesApplications>
+                            )}
+                            <StateBadge
+                              status={checkStatusOfTheApplication(
+                                app.appStates,
+                              )}
+                              title={getApplicationStatusString(
+                                checkStatusOfTheApplication(app.appStates),
+                              )}
+                            />
+                          </div>
+                        }
+                      >
+                        <NavLink
+                          href={`${workspace?.slug}/${app.slug}`}
+                          passHref
+                        >
+                          <ListItem.Button className="rounded-none">
+                            <ListItem.Avatar>
+                              <div className="h-10 w-10 overflow-hidden rounded-lg">
+                                <Image
+                                  src="/logos/new.svg"
+                                  alt="Nhost Logo"
+                                  width={40}
+                                  height={40}
+                                />
+                              </div>
+                            </ListItem.Avatar>
+
+                            <ListItem.Text
+                              primary={app.name}
+                              secondary={
+                                <>
+                                  {isDeployingToProduction && (
+                                    <CurrentDeployment
+                                      deployment={app.deployments[0]}
+                                    />
+                                  )}
+
+                                  {!isDeployingToProduction &&
+                                    app.deployments[0] && (
+                                      <LastSuccessfulDeployment
+                                        deployment={app.deployments[0]}
+                                      />
+                                    )}
+
+                                  {!isDeployingToProduction &&
+                                    !app.deployments[0] && (
+                                      <ApplicationCreatedAt
+                                        createdAt={app.createdAt}
+                                      />
+                                    )}
+                                </>
+                              }
+                            />
+                          </ListItem.Button>
+                        </NavLink>
+                      </ListItem.Root>
+
+                      {index < workspaceProjects.length - 1 && (
+                        <Divider component="li" />
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </List>
             </div>
           );
         })}

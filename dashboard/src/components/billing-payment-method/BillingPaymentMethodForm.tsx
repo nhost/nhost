@@ -6,11 +6,13 @@ import {
   useUpdateWorkspaceMutation,
 } from '@/generated/graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import { Text } from '@/ui/Text';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
+import { useTheme } from '@mui/material';
 import {
   CardElement,
   Elements,
@@ -33,6 +35,7 @@ function AddPaymentMethodForm({
   onPaymentMethodAdded,
   workspaceId,
 }: AddPaymentMethodFormProps) {
+  const theme = useTheme();
   const stripe = useStripe();
   const elements = useElements();
   const user = nhost.auth.getUser();
@@ -146,26 +149,16 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <div className="w-modal2 px-6 pt-6 pb-6 text-left">
+    <Box className="w-modal2 px-6 pt-6 pb-6 text-left rounded-lg">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
-          <Text
-            variant="subHeading"
-            color="greyscaleDark"
-            size="large"
-            className="text-center"
-          >
+          <Text className="text-center text-lg font-medium">
             Add Payment Details
           </Text>
-          <Text
-            variant="body"
-            color="greyscaleDark"
-            size="small"
-            className="text-center font-normal"
-          >
+          <Text className="text-center font-normal">
             We&apos;ll store these in your workspace for future use.
           </Text>
-          <div className="my-2 mt-6 w-full rounded-lg border-1 px-2 py-2">
+          <Box className="my-2 mt-6 w-full rounded-lg border-1 px-2 py-2">
             <CardElement
               onReady={(element) => element.focus()}
               options={{
@@ -174,18 +167,19 @@ function AddPaymentMethodForm({
                 style: {
                   base: {
                     fontSize: '16px',
-                    color: '#424770',
+                    iconColor: theme.palette.text.secondary,
+                    color: theme.palette.text.primary,
                     '::placeholder': {
-                      color: '#aab7c4',
+                      color: theme.palette.text.disabled,
                     },
                   },
                   invalid: {
-                    color: '#9e2146',
+                    color: theme.palette.error.main,
                   },
                 },
               }}
             />
-          </div>
+          </Box>
           <div className="mb-4 space-x-2">
             <CountrySelector value={countryCode} onChange={setCountryCode} />
           </div>
@@ -201,7 +195,7 @@ function AddPaymentMethodForm({
           </div>
         </form>
       </div>
-    </div>
+    </Box>
   );
 }
 

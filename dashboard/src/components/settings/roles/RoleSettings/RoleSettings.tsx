@@ -3,6 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
@@ -15,7 +16,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateAppMutation,
@@ -72,7 +73,7 @@ export default function RoleSettings() {
         success: 'Default role has been updated successfully.',
         error: 'An error occurred while trying to update the default role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
@@ -102,7 +103,7 @@ export default function RoleSettings() {
         success: 'Allowed Role has been deleted successfully.',
         error: 'An error occurred while trying to delete the allowed role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
@@ -154,12 +155,12 @@ export default function RoleSettings() {
       description="Allowed roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="px-4 py-3 border-gray-200 border-b-1">
+      <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         <List>
@@ -172,7 +173,7 @@ export default function RoleSettings() {
                     <Dropdown.Trigger
                       asChild
                       hideChevron
-                      className="absolute -translate-y-1/2 right-4 top-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       <IconButton variant="borderless" color="secondary">
                         <DotsVerticalIcon />
@@ -210,12 +211,7 @@ export default function RoleSettings() {
                         disabled={role.isSystemRole}
                         onClick={() => handleConfirmDelete(role)}
                       >
-                        <Text
-                          className="font-medium"
-                          sx={{
-                            color: (theme) => theme.palette.error.main,
-                          }}
-                        >
+                        <Text className="font-medium" color="error">
                           Delete
                         </Text>
                       </Dropdown.Item>
@@ -232,7 +228,7 @@ export default function RoleSettings() {
                     <>
                       {role.name}
 
-                      {role.isSystemRole && <LockIcon className="w-4 h-4" />}
+                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
                       {data?.app?.authUserDefaultRole === role.name && (
                         <Chip

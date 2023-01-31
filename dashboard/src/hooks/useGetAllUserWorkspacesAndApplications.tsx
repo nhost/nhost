@@ -57,7 +57,7 @@ export function useGetAllUserWorkspacesAndApplications(
 
     if (
       data?.user?.workspaceMembers &&
-      data.user.workspaceMembers.length !== 0
+      data?.user?.workspaceMembers.length !== 0
     ) {
       const workspaces = data.user.workspaceMembers.map(({ workspace }) => {
         // note: this could be rather defined by the infrastructure when

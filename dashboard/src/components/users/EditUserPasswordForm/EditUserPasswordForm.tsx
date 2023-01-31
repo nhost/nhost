@@ -4,9 +4,9 @@ import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLCl
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useUpdateRemoteAppUserMutation } from '@/utils/__generated__/graphql';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
 import { useState } from 'react';
@@ -88,7 +88,7 @@ export default function EditUserPasswordForm({
           success: 'User password updated successfully.',
           error: 'Failed to update user password.',
         },
-        toastStyleProps,
+        getToastStyleProps(),
       );
     } catch (error) {
       setEditUserPasswordFormError(

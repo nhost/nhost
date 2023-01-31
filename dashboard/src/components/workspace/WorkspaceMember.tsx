@@ -1,7 +1,8 @@
 import { WorkspaceMemberManageMenu } from '@/components/workspace/WorkspaceMemberManageMenu';
 import { Avatar } from '@/ui/Avatar';
-import { Badge } from '@/ui/Badge';
-import { Text } from '@/ui/Text';
+import Chip from '@/ui/v2/Chip';
+import Text from '@/ui/v2/Text';
+import { capitalize } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 
@@ -26,36 +27,38 @@ export default function WorkspaceMember({
           avatarUrl={workspaceMember.user.avatarUrl}
         />
         <div className="ml-3 self-center">
-          <div className="flex flex-row">
-            <Text
-              variant="body"
-              size="normal"
-              color="greyscaleDark"
-              className="font-medium"
-            >
+          <div className="grid grid-flow-col items-center justify-start gap-2">
+            <Text className="font-medium">
               {workspaceMember.user.displayName}
             </Text>
-            {isSelf && <Badge>Me</Badge>}
+            {isSelf && <Chip size="small" color="info" label="Me" />}
           </div>
-          <Text
-            variant="body"
-            size="normal"
-            color="greyscaleGrey"
-            className="font-medium"
-          >
+          <Text className="font-medium" color="disabled">
             {workspaceMember.user.email}
           </Text>
         </div>
       </div>
       <div className="flex flex-row self-center">
         {/* @TODO: Don't allow owner to remove themselves if there are no other owners on workspace. */}
-        {isOwner && isSelf && <Badge>{workspaceMember.type}</Badge>}
+        {isOwner && isSelf && (
+          <Chip
+            size="small"
+            color="info"
+            label={capitalize(workspaceMember.type)}
+          />
+        )}
 
         {isOwner && !isSelf && (
           <WorkspaceMemberManageMenu workspaceMember={workspaceMember} />
         )}
 
-        {!isOwner && !isSelf && <Badge>{workspaceMember.type}</Badge>}
+        {!isOwner && !isSelf && (
+          <Chip
+            size="small"
+            color="info"
+            label={capitalize(workspaceMember.type)}
+          />
+        )}
       </div>
     </div>
   );

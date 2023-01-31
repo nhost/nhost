@@ -3,6 +3,7 @@ import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Avatar from '@/ui/v2/Avatar';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -13,8 +14,9 @@ import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getReadableProviderName from '@/utils/common/getReadableProviderName';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
@@ -24,8 +26,9 @@ import {
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
 import type { ApolloQueryResult } from '@apollo/client';
-import { Avatar } from '@mui/material';
+import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
+import kebabCase from 'just-kebab-case';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
@@ -50,6 +53,7 @@ export default function UsersBody({
   users,
   onSuccessfulAction,
 }: UsersBodyProps<ApolloQueryResult<RemoteAppGetUsersQuery>>) {
+  const theme = useTheme();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
@@ -145,7 +149,7 @@ export default function UsersBody({
         success: 'User settings updated successfully.',
         error: `An error occurred while trying to update this user's settings.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
     await onSuccessfulAction?.();
 
@@ -174,7 +178,7 @@ export default function UsersBody({
               success: 'User deleted successfully.',
               error: 'An error occurred while trying to delete this user.',
             },
-            toastStyleProps,
+            getToastStyleProps(),
           );
 
           await onSuccessfulAction();
@@ -204,172 +208,159 @@ export default function UsersBody({
     });
   }
 
-  return (
-    <>
-      {!users && (
-        <div className="w-screen h-screen overflow-hidden">
-          <div className="absolute top-0 left-0 z-50 block w-full h-full">
-            <span className="relative block mx-auto my-0 top50percent top-1/2">
-              <ActivityIndicator
-                label="Loading users..."
-                className="flex items-center justify-center my-auto"
-              />
-            </span>
-          </div>
+  if (!users) {
+    return (
+      <div className="h-screen w-screen overflow-hidden">
+        <div className="absolute top-0 left-0 z-50 block h-full w-full">
+          <span className="top50percent relative top-1/2 mx-auto my-0 block">
+            <ActivityIndicator
+              label="Loading users..."
+              className="my-auto flex items-center justify-center"
+            />
+          </span>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <List>
-        {users.map((user) => (
-          <Fragment key={user.id}>
-            <ListItem.Root
-              className="w-full h-[64px]"
-              secondaryAction={
-                <Dropdown.Root>
-                  <Dropdown.Trigger asChild hideChevron>
-                    <IconButton variant="borderless" color="secondary">
-                      <DotsHorizontalIcon />
-                    </IconButton>
-                  </Dropdown.Trigger>
+  return (
+    <List>
+      {users.map((user) => (
+        <Fragment key={user.id}>
+          <ListItem.Root
+            className="h-[64px] w-full"
+            secondaryAction={
+              <Dropdown.Root>
+                <Dropdown.Trigger asChild hideChevron>
+                  <IconButton variant="borderless" color="secondary">
+                    <DotsHorizontalIcon />
+                  </IconButton>
+                </Dropdown.Trigger>
 
-                  <Dropdown.Content
-                    menu
-                    PaperProps={{ className: 'w-32' }}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
+                <Dropdown.Content
+                  menu
+                  PaperProps={{ className: 'w-52' }}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                >
+                  <Dropdown.Item
+                    onClick={() => {
+                      handleViewUser(user);
                     }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
+                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
-                    <Dropdown.Item
-                      onClick={() => {
-                        handleViewUser(user);
-                      }}
-                      className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                    >
-                      <UserIcon className="w-4 h-4" />
-                      <Text className="font-medium">View User</Text>
-                    </Dropdown.Item>
+                    <UserIcon className="h-4 w-4" />
+                    <Text className="font-medium">View User</Text>
+                  </Dropdown.Item>
 
-                    <Divider component="li" />
+                  <Divider component="li" />
 
-                    <Dropdown.Item
-                      className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
-                      onClick={() => handleDeleteUser(user)}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                      <Text className="font-medium text-red">Delete</Text>
-                    </Dropdown.Item>
-                  </Dropdown.Content>
-                </Dropdown.Root>
-              }
-            >
-              <ListItem.Button
-                className="grid lg:grid-cols-6 grid-cols-1 cursor-pointer py-2.5 h-full w-full hover:bg-gray-100 focus:bg-gray-100 focus:outline-none motion-safe:transition-colors"
-                onClick={() => handleViewUser(user)}
-              >
-                <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
-                  <Avatar
-                    src={user.avatarUrl}
-                    className="border"
-                    alt="User's Avatar"
-                  />
-                  <div className="grid items-center grid-flow-row">
-                    <div className="grid items-center grid-flow-col gap-2">
-                      <Text className="font-medium leading-5 truncate">
-                        {user.displayName}
-                      </Text>
-                      {user.disabled && (
-                        <Chip
-                          component="span"
-                          color="error"
-                          size="small"
-                          label="Banned"
-                          className="self-center align-middle"
-                        />
-                      )}
-                    </div>
-
-                    <Text className="font-normal truncate text-greyscaleGreyDark">
-                      {user.email}
+                  <Dropdown.Item
+                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                    sx={{ color: 'error.main' }}
+                    onClick={() => handleDeleteUser(user)}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                    <Text className="font-medium" color="error">
+                      Delete User
                     </Text>
+                  </Dropdown.Item>
+                </Dropdown.Content>
+              </Dropdown.Root>
+            }
+          >
+            <ListItem.Button
+              className="grid h-full w-full grid-cols-1 py-2.5 lg:grid-cols-6"
+              onClick={() => handleViewUser(user)}
+            >
+              <div className="col-span-2 grid grid-flow-col place-content-start gap-4">
+                <Avatar
+                  src={user.avatarUrl}
+                  alt={`Avatar of ${user.displayName}`}
+                />
+                <div className="grid grid-flow-row items-center">
+                  <div className="grid grid-flow-col items-center gap-2">
+                    <Text className="truncate font-medium leading-5">
+                      {user.displayName}
+                    </Text>
+                    {user.disabled && (
+                      <Chip
+                        component="span"
+                        color="error"
+                        size="small"
+                        label="Banned"
+                      />
+                    )}
                   </div>
+
+                  <Text className="truncate font-normal" color="secondary">
+                    {user.email}
+                  </Text>
                 </div>
+              </div>
 
-                <Text
-                  color="greyscaleDark"
-                  className="hidden px-2 font-normal md:block"
-                  size="normal"
-                >
-                  {user.createdAt
-                    ? `${formatDistance(
-                        new Date(user.createdAt),
-                        new Date(),
-                      )} ago`
-                    : '-'}
-                </Text>
-                <Text
-                  color="greyscaleDark"
-                  className="hidden px-4 font-normal md:block"
-                  size="normal"
-                >
-                  {user.lastSeen
-                    ? `${formatDistance(
-                        new Date(user.lastSeen),
-                        new Date(),
-                      )} ago`
-                    : '-'}
-                </Text>
+              <Text className="hidden px-2 font-normal md:block">
+                {user.createdAt
+                  ? `${formatDistance(
+                      new Date(user.createdAt),
+                      new Date(),
+                    )} ago`
+                  : '-'}
+              </Text>
+              <Text className="hidden px-4 font-normal md:block">
+                {user.lastSeen
+                  ? `${formatDistance(new Date(user.lastSeen), new Date())} ago`
+                  : '-'}
+              </Text>
 
-                <div className="hidden grid-flow-col col-span-2 gap-3 px-4 lg:grid place-content-start">
-                  {user.userProviders.length === 0 && (
-                    <Text className="col-span-3 font-medium">-</Text>
-                  )}
+              <div className="col-span-2 hidden grid-flow-col place-content-start gap-3 px-4 lg:grid">
+                {user.userProviders.length === 0 && (
+                  <Text className="col-span-3 font-medium">-</Text>
+                )}
 
-                  {user.userProviders.slice(0, 4).map((provider) => (
-                    <Chip
-                      component="span"
-                      color="default"
-                      size="small"
-                      key={provider.id}
-                      label={
-                        provider.providerId === 'github'
-                          ? 'GitHub'
-                          : provider.providerId
-                      }
-                      className="capitalize"
-                      sx={{
-                        paddingLeft: '0.55rem',
-                      }}
-                      icon={
-                        <Image
-                          src={`/logos/${provider.providerId}.svg`}
-                          width={16}
-                          height={16}
-                        />
-                      }
-                    />
-                  ))}
+                {user.userProviders.slice(0, 4).map((provider) => (
+                  <Chip
+                    component="span"
+                    color="default"
+                    size="small"
+                    key={provider.id}
+                    label={getReadableProviderName(provider.providerId)}
+                    sx={{
+                      paddingLeft: '0.55rem',
+                    }}
+                    icon={
+                      <Image
+                        src={
+                          theme.palette.mode === 'dark'
+                            ? `/assets/brands/light/${kebabCase(
+                                provider.providerId,
+                              )}.svg`
+                            : `/assets/brands/${kebabCase(
+                                provider.providerId,
+                              )}.svg`
+                        }
+                        width={16}
+                        height={16}
+                      />
+                    }
+                  />
+                ))}
 
-                  {user.userProviders.length > 3 && (
-                    <Chip
-                      component="span"
-                      color="default"
-                      size="small"
-                      label={`+${user.userProviders.length - 3}`}
-                      className="font-medium"
-                    />
-                  )}
-                </div>
-              </ListItem.Button>
-            </ListItem.Root>
-            <Divider component="li" />
-          </Fragment>
-        ))}
-      </List>
-    </>
+                {user.userProviders.length > 3 && (
+                  <Chip
+                    component="span"
+                    color="default"
+                    size="small"
+                    label={`+${user.userProviders.length - 3}`}
+                    className="font-medium"
+                  />
+                )}
+              </div>
+            </ListItem.Button>
+          </ListItem.Root>
+          <Divider component="li" />
+        </Fragment>
+      ))}
+    </List>
   );
 }

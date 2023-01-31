@@ -8,6 +8,7 @@ import type { UseDataGridOptions } from '@/hooks/useDataGrid';
 import useDataGrid from '@/hooks/useDataGrid';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import mergeRefs from 'react-merge-refs';
@@ -146,10 +147,11 @@ function DataGrid<TColumnData extends object>(
         )}
 
         {columns.length > 0 && (
-          <div
+          <Box
             ref={mergeRefs([ref, tableRef])}
+            sx={{ backgroundColor: 'background.default' }}
             className={twMerge(
-              'overflow-x-auto bg-gray-50',
+              'overflow-x-auto',
               !loading && 'h-full',
               className,
             )}
@@ -169,7 +171,7 @@ function DataGrid<TColumnData extends object>(
                 allowInsertColumn={Boolean(onRemoveColumn)}
               />
             </DataGridFrame>
-          </div>
+          </Box>
         )}
 
         {loading && <ActivityIndicator delay={1000} className="my-4" />}

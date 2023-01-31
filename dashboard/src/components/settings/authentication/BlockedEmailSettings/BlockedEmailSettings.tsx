@@ -4,7 +4,7 @@ import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -100,7 +100,7 @@ export default function BlockedEmailSettings() {
         success: `Blocked email and domain settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's blocked email and domain settings.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     form.reset(values);

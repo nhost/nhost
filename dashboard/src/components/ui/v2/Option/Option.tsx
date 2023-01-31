@@ -11,24 +11,32 @@ export interface OptionProps<TValue extends {}>
   extends OptionUnstyledProps<TValue> {}
 
 const StyledOption = styled(OptionUnstyled)(({ theme }) => ({
-  [`&.${optionUnstyledClasses.disabled}:not(.${optionUnstyledClasses.highlighted}):hover`]:
-    {
-      backgroundColor: 'transparent',
-    },
-  [`&.${optionUnstyledClasses.highlighted}`]: {
-    backgroundColor: darken(theme.palette.action.active, 0.025),
+  transition: theme.transitions.create(['background-color']),
+  [`&.${optionUnstyledClasses.selected}`]: {
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? `${darken(theme.palette.action.hover, 0.1)} !important`
+        : `${darken(theme.palette.action.hover, 0.05)} !important`,
   },
-  [`&.${optionUnstyledClasses.highlighted}:not(.${optionUnstyledClasses.disabled}):hover`]:
+  [`&.${optionUnstyledClasses.selected}:hover, &.${optionUnstyledClasses.selected}.${optionUnstyledClasses.highlighted}`]:
     {
-      backgroundColor: darken(theme.palette.action.hover, 0.1),
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? `${darken(theme.palette.action.hover, 0.25)} !important`
+          : `${darken(theme.palette.action.hover, 0.075)} !important`,
     },
+  [`&.${optionUnstyledClasses.highlighted}, &:hover`]: {
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? `${darken(theme.palette.action.hover, 0.15)} !important`
+        : `${theme.palette.action.hover} !important`,
+  },
   [`&.${optionUnstyledClasses.disabled}`]: {
     color: theme.palette.text.disabled,
   },
-  [`&:not(.${optionUnstyledClasses.disabled}):not(.${optionUnstyledClasses.highlighted}):hover`]:
-    {
-      backgroundColor: theme.palette.action.hover,
-    },
+  [`&.${optionUnstyledClasses.disabled}:hover`]: {
+    backgroundColor: 'transparent !important',
+  },
 }));
 
 function Option<TValue>(

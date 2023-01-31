@@ -1,18 +1,19 @@
 import InlineCode from '@/components/common/InlineCode';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import KeyIcon from '@/ui/v2/icons/KeyIcon';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
+import Text from '@/ui/v2/Text';
 import { getInputType } from '@/utils/dataBrowser/inputHelpers';
 import normalizeDefaultValue from '@/utils/dataBrowser/normalizeDefaultValue';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
-export interface DatabaseRecordInputGroupProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface DatabaseRecordInputGroupProps extends BoxProps {
   /**
    * List of columns for which input fields should be generated.
    */
@@ -79,15 +80,17 @@ export default function DatabaseRecordInputGroup({
   } = useFormContext();
 
   return (
-    <section className={twMerge('py-3', className)} {...props}>
+    <Box component="section" className={twMerge('py-3', className)} {...props}>
       {title && (
-        <h2 className="mt-3 mb-1.5 text-sm+ font-bold text-greyscaleDark">
+        <Text variant="h2" className="mt-3 mb-1.5 text-sm+ font-bold">
           {title}
-        </h2>
+        </Text>
       )}
 
       {description && (
-        <p className="mb-3 text-xs text-gray-600">{description}</p>
+        <Text className="mb-3 text-xs" color="secondary">
+          {description}
+        </Text>
       )}
 
       <div>
@@ -213,6 +216,6 @@ export default function DatabaseRecordInputGroup({
           },
         )}
       </div>
-    </section>
+    </Box>
   );
 }

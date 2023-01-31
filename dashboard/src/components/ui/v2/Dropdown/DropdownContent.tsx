@@ -3,7 +3,9 @@ import MaterialMenu, {
   menuClasses as materialMenuClasses,
 } from '@mui/material/Menu';
 import type { PopoverProps as MaterialPopoverProps } from '@mui/material/Popover';
-import MaterialPopover from '@mui/material/Popover';
+import MaterialPopover, {
+  popoverClasses as materialPopoverClasses,
+} from '@mui/material/Popover';
 import { useEffect } from 'react';
 import useDropdown from './useDropdown';
 
@@ -28,14 +30,52 @@ export interface DropdownContentProps
   menu?: boolean;
 }
 
-const StyledMenu = styled(MaterialMenu)({
+const StyledMenu = styled(MaterialMenu)(({ theme }) => ({
   [`& .${materialMenuClasses.list}`]: {
     padding: 0,
   },
   [`& .${materialMenuClasses.paper}`]: {
-    boxShadow: '0px 4px 10px rgba(33, 50, 75, 0.25)',
+    backgroundColor: theme.palette.background.paper,
+    borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
+    borderColor:
+      theme.palette.mode === 'dark'
+        ? `${theme.palette.grey[400]} !important`
+        : 'none',
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0px 4px 10px rgba(33, 50, 75, 0.25)'
+        : 'none',
+    border:
+      theme.palette.mode === 'dark'
+        ? `1px solid ${theme.palette.grey[200]}`
+        : 'none',
   },
-});
+  [`& .${materialMenuClasses.list}`]: {
+    padding: 0,
+    backgroundColor: theme.palette.background.paper,
+  },
+}));
+
+const StyledPopover = styled(MaterialPopover)(({ theme }) => ({
+  [`& .${materialPopoverClasses.paper}`]: {
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.paper,
+    backgroundImage: 'none',
+    borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
+    borderColor:
+      theme.palette.mode === 'dark'
+        ? `${theme.palette.grey[400]} !important`
+        : 'none',
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0px 4px 10px rgba(33, 50, 75, 0.25)'
+        : 'none',
+    border:
+      theme.palette.mode === 'dark'
+        ? `1px solid ${theme.palette.grey[200]}`
+        : 'none',
+  },
+}));
 
 function DropdownContent({
   children,
@@ -44,7 +84,7 @@ function DropdownContent({
   ...props
 }: DropdownContentProps) {
   const { id, open, anchorEl, handleClose } = useDropdown();
-  const BaseComponent = menu ? StyledMenu : MaterialPopover;
+  const BaseComponent = menu ? StyledMenu : StyledPopover;
 
   useEffect(() => {
     if (onOpen && open) {

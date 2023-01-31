@@ -1,13 +1,13 @@
 import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import { slugifyString } from '@/utils/helpers';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   refetchGetOneUserQuery,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
-import { slugifyString } from '@/utils/helpers';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -135,7 +135,7 @@ export default function EditWorkspaceName({
             success: 'Workspace name has been updated successfully.',
             error: 'An error occurred while updating the workspace name.',
           },
-          toastStyleProps,
+          getToastStyleProps(),
         );
       } else {
         await toast.promise(
@@ -162,7 +162,7 @@ export default function EditWorkspaceName({
             success: 'The new workspace has been created successfully.',
             error: 'An error occurred while creating the new workspace.',
           },
-          toastStyleProps,
+          getToastStyleProps(),
         );
       }
     } catch (error) {

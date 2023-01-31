@@ -1,3 +1,3 @@
-import type { SvgIconProps } from '@mui/material/SvgIcon';
+import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
 
 export interface IconProps extends SvgIconProps {}

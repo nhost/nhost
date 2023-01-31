@@ -4,7 +4,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
 import { WorkspaceProvider } from '@/context/workspace-context';
 import { UserDataProvider } from '@/context/workspace1-context';
-import defaultTheme from '@/theme/default';
+import createTheme from '@/ui/v2/createTheme';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { NhostProvider } from '@nhost/nextjs';
@@ -57,6 +57,8 @@ const mockRouter: NextRouter = {
 };
 
 function Providers({ children }: PropsWithChildren<{}>) {
+  const theme = createTheme('light');
+
   return (
     <RouterContext.Provider value={mockRouter}>
       <RetryableErrorBoundary>
@@ -68,7 +70,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
                   <UserDataProvider>
                     <ManagedUIContext>
                       <Toaster position="bottom-center" />
-                      <ThemeProvider theme={defaultTheme}>
+                      <ThemeProvider theme={theme}>
                         <DialogProvider>{children}</DialogProvider>
                       </ThemeProvider>
                     </ManagedUIContext>

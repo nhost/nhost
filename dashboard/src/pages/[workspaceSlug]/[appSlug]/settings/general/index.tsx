@@ -10,9 +10,9 @@ import {
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Input from '@/ui/v2/Input';
-import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,18 +32,6 @@ const projectNameValidationSchema = Yup.object({
 export type ProjectNameValidationSchema = Yup.InferType<
   typeof projectNameValidationSchema
 >;
-
-export const toastStyleProps = {
-  style: {
-    minWidth: '250px',
-    backgroundColor: 'rgb(33 50 75)',
-    color: '#fff',
-  },
-  success: {
-    duration: 5000,
-    icon: <CheckIcon className="h-4 w-4 bg-transparent" />,
-  },
-};
 
 export default function SettingsGeneralPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -106,7 +94,7 @@ export default function SettingsGeneralPage() {
         success: `Project name has been updated successfully.`,
         error: `An error occurred while trying to update project name.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
     try {
       await client.refetchQueries({
@@ -131,7 +119,7 @@ export default function SettingsGeneralPage() {
         success: `${currentApplication.name} deleted`,
         error: `Error while trying to ${currentApplication.name} project name`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
     await router.push('/');
     await updateOwnCache(client);

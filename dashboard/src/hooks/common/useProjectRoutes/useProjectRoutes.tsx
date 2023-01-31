@@ -8,8 +8,9 @@ import HasuraIcon from '@/ui/v2/icons/HasuraIcon';
 import HomeIcon from '@/ui/v2/icons/HomeIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import StorageIcon from '@/ui/v2/icons/StorageIcon';
+import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 
 export interface ProjectRoute {
   /**
@@ -42,7 +43,7 @@ export interface ProjectRoute {
   /**
    * Icon to display for the route.
    */
-  icon?: ReactNode;
+  icon?: ReactElement<SvgIconProps>;
   /**
    * Determines whether the route should be disabled.
    */

@@ -1,9 +1,9 @@
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
 import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import Input from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -71,21 +71,23 @@ export default function Pagination({
       className={twMerge('grid grid-flow-col items-center gap-2', className)}
       {...props}
     >
-      <div className="grid justify-start grid-flow-col gap-2">
+      <div className="grid grid-flow-col justify-start gap-2">
         <Button
           variant="outlined"
           color="secondary"
-          className="block text-xs"
+          className="text-xs"
           disabled={currentPageNumber === 1}
           aria-label="Previous page"
           onClick={onPrevPageClick}
+          startIcon={<ChevronLeftIcon className="h-4 w-4" />}
         >
-          <ChevronLeftIcon className="w-4 h-4" />
           Back
         </Button>
 
-        <div className="grid items-center grid-cols-3 gap-1 text-center grid-col !text-greyscaleGreyDark">
-          <Text className="text-xs align-middle ">Page</Text>
+        <div className="grid-col grid grid-cols-3 items-center gap-1 text-center">
+          <Text className="align-middle text-xs" color="secondary">
+            Page
+          </Text>
           <Input
             value={currentPageNumber}
             onChange={(e) => {
@@ -102,7 +104,7 @@ export default function Pagination({
               },
             }}
           />
-          <Text className="self-center text-xs align-middle text-greyscaleGreyDark">
+          <Text className="self-center align-middle text-xs" color="secondary">
             of {totalNrOfPages}
           </Text>
         </div>
@@ -114,14 +116,14 @@ export default function Pagination({
           aria-label="Next page"
           disabled={currentPageNumber === totalNrOfPages}
           onClick={onNextPageClick}
+          endIcon={<ChevronRightIcon className="h-4 w-4" />}
           {...slotProps?.nextButton}
         >
           Next
-          <ChevronRightIcon className="w-4 h-4" />
         </Button>
       </div>
-      <div className="flex flex-row items-center justify-end text-center gap-x-1">
-        <Text className="text-xs text-greyscaleGreyDark">
+      <div className="flex flex-row items-center justify-end gap-x-1 text-center">
+        <Text className="text-xs" color="secondary">
           {currentPageNumber === 1 && currentPageNumber}
           {currentPageNumber === 2 && elementsPerPage + currentPageNumber - 1}
           {currentPageNumber > 2 &&

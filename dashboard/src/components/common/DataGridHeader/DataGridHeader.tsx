@@ -1,6 +1,7 @@
 import type { DataGridProps } from '@/components/common/DataGrid';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -70,9 +71,17 @@ export default function DataGridHeader<T extends object>({
 
         return (
           <Dropdown.Root
+            sx={{
+              backgroundColor: (theme) =>
+                column.isDisabled
+                  ? theme.palette.background.default
+                  : theme.palette.background.paper,
+              color: 'text.primary',
+              borderColor: 'grey.300',
+            }}
             className={twMerge(
-              'group relative inline-flex self-stretch overflow-hidden bg-white font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none',
-              'border-b-1 border-r-1 border-gray-200',
+              'group relative inline-flex self-stretch overflow-hidden font-display text-xs font-bold focus:outline-none focus-visible:outline-none',
+              'border-b-1 border-r-1',
               column.id === 'selection' && 'sticky left-0 max-w-2',
             )}
             style={{
@@ -89,8 +98,7 @@ export default function DataGridHeader<T extends object>({
           >
             <Dropdown.Trigger
               className={twMerge(
-                'focus:outline-none enabled:hover:bg-gray-100 enabled:focus:bg-gray-100 motion-safe:transition-colors',
-                column.isDisabled && 'bg-gray-100',
+                'focus:outline-none motion-safe:transition-colors',
               )}
               disabled={
                 column.isDisabled ||
@@ -106,7 +114,7 @@ export default function DataGridHeader<T extends object>({
                 {column.render('Header')}
 
                 {allowSort && (
-                  <span className="text-greyscaleDark">
+                  <Box component="span" sx={{ color: 'text.primary' }}>
                     {column.isSorted && !column.isSortedDesc && (
                       <ArrowUpIcon className="h-3 w-3" />
                     )}
@@ -114,7 +122,7 @@ export default function DataGridHeader<T extends object>({
                     {column.isSorted && column.isSortedDesc && (
                       <ArrowDownIcon className="h-3 w-3" />
                     )}
-                  </span>
+                  </Box>
                 )}
               </span>
 
@@ -139,7 +147,10 @@ export default function DataGridHeader<T extends object>({
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   disabled={componentsProps?.editActionProps?.disabled}
                 >
-                  <PencilIcon className="h-4 w-4 text-gray-700" />
+                  <PencilIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Edit Column</span>
                 </Dropdown.Item>
@@ -152,7 +163,10 @@ export default function DataGridHeader<T extends object>({
                   onClick={() => column.toggleSortBy(false)}
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 >
-                  <ArrowUpIcon className="h-4 w-4 text-gray-700" />
+                  <ArrowUpIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Sort Ascending</span>
                 </Dropdown.Item>
@@ -163,7 +177,10 @@ export default function DataGridHeader<T extends object>({
                   onClick={() => column.toggleSortBy(true)}
                   className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 >
-                  <ArrowDownIcon className="h-4 w-4 text-gray-700" />
+                  <ArrowDownIcon
+                    className="h-4 w-4"
+                    sx={{ color: 'text.secondary' }}
+                  />
 
                   <span>Sort Descending</span>
                 </Dropdown.Item>
@@ -176,10 +193,11 @@ export default function DataGridHeader<T extends object>({
               {onRemoveColumn && !column.isPrimary && (
                 <Dropdown.Item
                   onClick={() => onRemoveColumn(column)}
-                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium text-red"
+                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   disabled={componentsProps?.deleteActionProps?.disabled}
+                  sx={{ color: 'error.main' }}
                 >
-                  <TrashIcon className="h-4 w-4 text-red" />
+                  <TrashIcon className="h-4 w-4" sx={{ color: 'error.main' }} />
 
                   <span>Delete Column</span>
                 </Dropdown.Item>
@@ -190,7 +208,7 @@ export default function DataGridHeader<T extends object>({
       })}
 
       {onInsertColumn && (
-        <div className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 border-gray-200 bg-white font-display text-xs font-bold text-greyscaleDark focus:outline-none focus-visible:outline-none">
+        <Box className="group relative inline-flex w-25 self-stretch overflow-hidden border-b-1 border-r-1 font-display text-xs font-bold focus:outline-none focus-visible:outline-none">
           <Button
             onClick={onInsertColumn}
             variant="borderless"
@@ -199,9 +217,9 @@ export default function DataGridHeader<T extends object>({
             aria-label="Insert New Column"
             disabled={componentsProps?.insertActionProps?.disabled}
           >
-            <PlusIcon className="h-4 w-4 text-greyscaleGrey" />
+            <PlusIcon className="h-4 w-4" sx={{ color: 'text.disabled' }} />
           </Button>
-        </div>
+        </Box>
       )}
     </div>
   );

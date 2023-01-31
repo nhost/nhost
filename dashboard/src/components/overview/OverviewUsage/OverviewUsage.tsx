@@ -43,13 +43,9 @@ export function UsageProgress({ service, used, total }: UsageProgressProps) {
           {service}
         </Text>
 
-        <Text className="text-xs !font-medium text-greyscaleDark">
+        <Text className="text-xs !font-medium">
           {prettyUsed}{' '}
-          {total && (
-            <span className="text-greyscaleDark text-opacity-80">
-              of {prettyTotal}
-            </span>
-          )}
+          {total && <span className="opacity-80">of {prettyTotal}</span>}
         </Text>
       </div>
       <LinearProgress
@@ -151,9 +147,7 @@ export function OverviewUsageMetrics() {
 export default function OverviewUsage() {
   return (
     <div className="grid grid-flow-row content-start gap-6">
-      <Text variant="h3" className="lg:!font-bold">
-        Usage
-      </Text>
+      <Text variant="h3">Usage</Text>
       <RetryableErrorBoundary>
         <OverviewUsageMetrics />
       </RetryableErrorBoundary>

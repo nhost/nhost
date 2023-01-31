@@ -1,12 +1,14 @@
 import { useGetWorkspaceMemberInvitesToManageQuery } from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useSubmitState } from '@/hooks/useSubmitState';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
+import { alpha } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -88,17 +90,21 @@ export function InviteAnnounce() {
       error: null,
     });
 
-    const res = await nhost.functions.call('/accept-workspace-invite', {
-      workspaceMemberInviteId: inviteId,
-      isAccepted: false,
-    });
+    const res = await nhost.functions.call(
+      '/accept-workspace-invite',
+      {
+        workspaceMemberInviteId: inviteId,
+        isAccepted: false,
+      },
+      { useAxios: false },
+    );
 
     if (res?.error) {
       triggerToast('An error occurred when trying to ignore the invitation.');
 
       setIgnoreState({
         loading: false,
-        error: res.error,
+        error: new Error(res.error.message),
       });
 
       return;
@@ -116,15 +122,24 @@ export function InviteAnnounce() {
   }
 
   return (
-    <div className="absolute right-10 z-50 mt-14 w-workspaceSidebar rounded-lg bg-greyscaleDark px-6 py-6 text-left">
-      {data.workspaceMemberInvites.map(
+    <Box
+      className="absolute right-10 z-50 mt-14 w-workspaceSidebar rounded-lg px-6 py-6 text-left"
+      sx={{
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark' ? 'grey.200' : 'grey.700',
+        borderWidth: (theme) => (theme.palette.mode === 'dark' ? 1 : 0),
+        borderColor: (theme) =>
+          theme.palette.mode === 'dark' ? theme.palette.grey[400] : 'none',
+      }}
+    >
+      {data?.workspaceMemberInvites?.map(
         (invite: typeof data.workspaceMemberInvites[number]) => (
           <div key={invite.id} className="grid grid-flow-row gap-4 text-center">
             <div className="grid grid-flow-row gap-1">
-              <Text variant="h3" component="h2" className="text-white">
+              <Text variant="h3" component="h2" sx={{ color: 'common.white' }}>
                 You have been invited to
               </Text>
-              <Text variant="h3" component="p" className="text-white">
+              <Text variant="h3" component="p" sx={{ color: 'common.white' }}>
                 {invite.workspace.name}
               </Text>
             </div>
@@ -142,7 +157,17 @@ export function InviteAnnounce() {
               <Button
                 variant="outlined"
                 color="secondary"
-                className="text-white hover:bg-white hover:bg-opacity-5 focus:bg-white focus:bg-opacity-10"
+                sx={{
+                  color: 'common.white',
+                  '&:hover': {
+                    backgroundColor: (theme) =>
+                      alpha(theme.palette.common.white, 0.05),
+                  },
+                  '&:focus': {
+                    backgroundColor: (theme) =>
+                      alpha(theme.palette.common.white, 0.1),
+                  },
+                }}
                 onClick={() => handleIgnoreInvitation(invite.id)}
                 loading={ignoreState.loading}
               >
@@ -152,7 +177,7 @@ export function InviteAnnounce() {
           </div>
         ),
       )}
-    </div>
+    </Box>
   );
 }
 

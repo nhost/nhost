@@ -4,15 +4,11 @@ import type {
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/types/dataBrowser';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Tooltip, { useTooltip } from '@/ui/v2/Tooltip';
 import { triggerToast } from '@/utils/toast';
-import type {
-  DetailedHTMLProps,
-  FocusEvent,
-  HTMLProps,
-  KeyboardEvent,
-  MouseEvent,
-} from 'react';
+import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import {
   Children,
   cloneElement,
@@ -51,7 +47,7 @@ export interface CommonDataGridCellProps<TData extends object, TValue = any>
 }
 
 export interface DataGridCellProps<TData extends object, TValue = unknown>
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+  extends BoxProps {
   /**
    * Current cell's props.
    */
@@ -305,10 +301,10 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
   }
 
   const content = (
-    <div
+    <Box
       ref={cellRef}
       className={twMerge(
-        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1 border-transparent bg-white',
+        'relative grid h-full w-full cursor-default grid-flow-col items-center gap-1',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
@@ -321,6 +317,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
       tabIndex={isEditable ? 0 : undefined}
       onClick={handleClick}
       role="textbox"
+      sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
       {Children.map(children, (child) => {
@@ -337,7 +334,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
           onTemporaryValueChange: setTemporaryValue,
         });
       })}
-    </div>
+    </Box>
   );
 
   if (isEditable) {

@@ -1,5 +1,5 @@
 import { ApplicationStatus } from '@/types/application';
-import clsx from 'clsx';
+import Chip from './v2/Chip';
 
 export interface StateBadgeProps {
   /**
@@ -12,38 +12,34 @@ export interface StateBadgeProps {
   title: string;
 }
 
-function classSwitcherByStatus(status: ApplicationStatus) {
-  switch (status) {
-    case ApplicationStatus.Empty:
-      return 'bg-lightOrange text-orange';
-    case ApplicationStatus.Provisioning:
-      return 'bg-lightOrange text-orange';
-    case ApplicationStatus.Live:
-      return 'bg-live text-greenDark';
-    case ApplicationStatus.Errored:
-      return 'bg-live text-greenDark';
-    case ApplicationStatus.Paused:
-      return 'bg-greyscaleGrey text-greyscaleDark';
-    case ApplicationStatus.Unpausing:
-      return 'bg-lightOrange text-orange';
-    default:
-      return 'bg-greyscaleGrey text-greyscaleDark';
+function getNormalizedTitle(title: string) {
+  if (title === 'Errored') {
+    return 'Live';
   }
+
+  if (title === 'Empty') {
+    return 'Setting up';
+  }
+
+  return title;
 }
 
 export default function StateBadge({ title, status }: StateBadgeProps) {
-  return (
-    <div
-      className={clsx(
-        'badge flex self-center bg-opacity-20 text-xs font-medium',
-        classSwitcherByStatus(status),
-      )}
-    >
-      <span className="font-display text-xs font-medium">
-        {title === 'Empty' && 'Setting up'}
-        {title === 'Errored' && 'Live'}
-        {title !== 'Empty' && title !== 'Errored' && title}
-      </span>
-    </div>
-  );
+  const normalizedTitle = getNormalizedTitle(title);
+
+  if (
+    status === ApplicationStatus.Empty ||
+    status === ApplicationStatus.Unpausing
+  ) {
+    return <Chip size="small" label={normalizedTitle} color="warning" />;
+  }
+
+  if (
+    status === ApplicationStatus.Errored ||
+    status === ApplicationStatus.Live
+  ) {
+    return <Chip size="small" label={normalizedTitle} color="success" />;
+  }
+
+  return <Chip size="small" color="default" label={normalizedTitle} />;
 }

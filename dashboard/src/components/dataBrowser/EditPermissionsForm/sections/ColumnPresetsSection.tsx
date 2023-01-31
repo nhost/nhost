@@ -14,6 +14,7 @@ import Text from '@/ui/v2/Text';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
+import clsx from 'clsx';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
@@ -144,6 +145,13 @@ export default function ColumnPresetsSection({
                   error={Boolean(
                     errors?.columnPresets?.at(index).value?.message,
                   )}
+                  slotProps={{
+                    paper: {
+                      className: clsx(
+                        permissionVariableOptions.length === 0 && 'hidden',
+                      ),
+                    },
+                  }}
                   isOptionEqualToValue={(option, value) => {
                     if (typeof value === 'string') {
                       return (

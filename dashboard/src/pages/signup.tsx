@@ -1,13 +1,17 @@
 import Form from '@/components/common/Form';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
+import { useTheme } from '@mui/material';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
+import kebabCase from 'just-kebab-case';
 import Image from 'next/image';
-import Link from 'next/link';
+import NavLink from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
@@ -46,18 +50,20 @@ function SignUpWithGithub({ setSignUpMethod }: any) {
           nhost.auth.signIn({ provider: 'github' });
         }}
       >
-        <GithubIcon className="h-6 w-6 text-white " />
+        <GithubIcon className="h-6 w-6 text-white" />
         <div>Sign Up with GitHub</div>
       </button>
-      <div className="mt-2 text-greyscaleMedium">
-        or{' '}
-        <button
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
+        <span>or</span>
+        <Button
+          variant="borderless"
           type="button"
+          size="small"
           onClick={() => setSignUpMethod('email')}
-          className="cursor-pointer text-btn hover:underline"
+          className="hover:bg-transparent hover:underline"
         >
           sign up with email
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -166,18 +172,22 @@ function SignUpWithEmail({ setSignUpMethod }: any) {
       </FormProvider>
 
       {isError && (
-        <Text className="font-medium text-red">Error: {error.message}</Text>
+        <Text className="font-medium" color="error">
+          Error: {error.message}
+        </Text>
       )}
 
-      <div className="text-greyscaleMedium">
-        or{' '}
-        <button
+      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
+        <span>or</span>
+        <Button
+          variant="borderless"
           type="button"
+          size="small"
           onClick={() => setSignUpMethod('github')}
-          className="cursor-pointer text-btn hover:underline"
+          className="hover:bg-transparent hover:underline"
         >
           sign up with GitHub
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -197,6 +207,8 @@ function SignUpController() {
 }
 
 export default function SignUpPage() {
+  const theme = useTheme();
+
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="grid max-w-6xl grid-cols-1 gap-x-20 gap-y-14 px-5 md:grid-cols-2">
@@ -205,7 +217,11 @@ export default function SignUpPage() {
             <div className="block md:hidden">
               <div className="mb-5">
                 <Image
-                  src="/assets/Logo.svg"
+                  src={
+                    theme.palette.mode === 'dark'
+                      ? '/assets/brands/light/nhost-with-text.svg'
+                      : '/assets/brands/nhost-with-text.svg'
+                  }
                   alt="Nhost Logo"
                   width={185}
                   height={64}
@@ -215,40 +231,41 @@ export default function SignUpPage() {
                 Build the App of Your Dreams
               </div>
             </div>
-            <div className="rounded-lg border border-gray-300 bg-white px-12 py-4">
+            <Box className="rounded-lg border px-12 py-4">
               <div className="my-4">
                 <SignUpController />
               </div>
-              <div className="mt-4 text-center text-xs text-gray-500">
+              <Text className="mt-4 text-center text-xs" color="secondary">
                 By signing up, you agree to our{' '}
-                <a
+                <Link
                   href="https://nhost.io/legal/terms-of-service"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-btn hover:underline"
+                  underline="hover"
                 >
                   Terms of Service
-                </a>{' '}
+                </Link>{' '}
                 and{' '}
-                <a
+                <Link
                   href="https://nhost.io/legal/privacy-policy"
                   target="_blank"
                   rel="noreferrer"
-                  className="text-btn hover:underline"
+                  underline="hover"
                 >
                   Privacy Policy
-                </a>
-                .
-              </div>
-            </div>
-            <div className="mt-3 flex justify-center">
-              <div className=" text-sm text-gray-700">
-                Already have an account?{' '}
-                <Link href="/signin" passHref>
-                  <a href="signin" className="text-btn hover:underline">
-                    Sign in
-                  </a>
                 </Link>
+                .
+              </Text>
+            </Box>
+            <div className="mt-3 flex justify-center">
+              <div className="grid grid-flow-col items-center justify-center gap-1">
+                <Text className="text-sm">Already have an account?</Text>
+
+                <NavLink href="/signin" passHref>
+                  <Link href="signin" underline="hover">
+                    Sign in
+                  </Link>
+                </NavLink>
               </div>
             </div>
           </div>
@@ -266,7 +283,11 @@ export default function SignUpPage() {
           <div className="hidden md:block">
             <div className="mb-10">
               <Image
-                src="/assets/Logo.svg"
+                src={
+                  theme.palette.mode === 'dark'
+                    ? '/assets/brands/light/nhost-with-text.svg'
+                    : '/assets/brands/nhost-with-text.svg'
+                }
                 alt="Nhost Logo"
                 width={185}
                 height={64}
@@ -286,16 +307,25 @@ export default function SignUpPage() {
                   height={24}
                 />
 
-                <div className="text-xl text-gray-600">{sellingPoint}</div>
+                <Text className="!text-xl" color="secondary">
+                  {sellingPoint}
+                </Text>
               </div>
             ))}
           </div>
-          <div className="my-14 h-2 bg-blue opacity-20" />
+          <Box
+            className="my-14 h-2 opacity-20"
+            sx={{ backgroundColor: 'primary.main' }}
+          />
           <div className="my-4 grid grid-cols-3 items-center gap-x-6 gap-y-6 opacity-40">
             {companies.map((company) => (
               <div key={company} className="h-[25px] w-[150px]">
                 <Image
-                  src={`/assets/signup/${company}.svg`}
+                  src={
+                    theme.palette.mode === 'dark'
+                      ? `/assets/brands/light/${kebabCase(company)}.svg`
+                      : `/assets/brands/${kebabCase(company)}.svg`
+                  }
                   alt={`Logo of ${company}`}
                   width={150}
                   height={25}
