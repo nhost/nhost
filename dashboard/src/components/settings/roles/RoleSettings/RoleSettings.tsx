@@ -8,18 +8,18 @@ import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
 import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
 import LockIcon from '@/ui/v2/icons/LockIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import {
-  useGetRolesQuery,
-  useUpdateAppMutation
-} from '@/utils/__generated__/graphql';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import {
+  useGetRolesQuery,
+  useUpdateAppMutation,
+} from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -98,9 +98,9 @@ export default function RoleSettings() {
     await toast.promise(
       updateAppPromise,
       {
-        loading: 'Deleting role...',
-        success: 'Role has been deleted successfully.',
-        error: 'An error occurred while trying to delete the role.',
+        loading: 'Deleting allowed role...',
+        success: 'Allowed Role has been deleted successfully.',
+        error: 'An error occurred while trying to delete the allowed role.',
       },
       toastStyleProps,
     );
@@ -108,7 +108,7 @@ export default function RoleSettings() {
 
   function handleOpenCreator() {
     openDialog('CREATE_ROLE', {
-      title: 'Create Role',
+      title: 'Create Allowed Role',
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -118,7 +118,7 @@ export default function RoleSettings() {
 
   function handleOpenEditor(originalRole: Role) {
     openDialog('EDIT_ROLE', {
-      title: 'Edit Role',
+      title: 'Edit Allowed Role',
       payload: { originalRole },
       props: {
         titleProps: { className: '!pb-0' },
@@ -129,12 +129,11 @@ export default function RoleSettings() {
 
   function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
-      title: 'Delete Role',
+      title: 'Delete Allowed Role',
       payload: (
         <Text>
-          Are you sure you want to delete the &quot;
-          <strong>{originalRole.name}</strong>&quot; role? This cannot be
-          undone.
+          Are you sure you want to delete the allowed role &quot;
+          <strong>{originalRole.name}</strong>&quot;?.
         </Text>
       ),
       props: {
@@ -145,13 +144,15 @@ export default function RoleSettings() {
     });
   }
 
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableAllowedRoles = getUserRoles(
+    data?.app?.authUserDefaultAllowedRoles,
+  );
 
   return (
     <SettingsContainer
-      title="Roles"
-      description="Roles are used to control access to your application."
-      docsLink="https://docs.nhost.io/authentication/users#roles"
+      title="Allowed Roles"
+      description="Allowed roles are roles users get automatically when they sign up."
+      docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
       className="px-0 my-2"
       slotProps={{ submitButton: { className: 'invisible' } }}
@@ -162,7 +163,7 @@ export default function RoleSettings() {
 
       <div className="grid grid-flow-row gap-2">
         <List>
-          {availableRoles.map((role, index) => (
+          {availableAllowedRoles.map((role, index) => (
             <Fragment key={role.name}>
               <ListItem.Root
                 className="px-4"
@@ -249,7 +250,9 @@ export default function RoleSettings() {
               <Divider
                 component="li"
                 className={twMerge(
-                  index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
+                  index === availableAllowedRoles.length - 1
+                    ? '!mt-4'
+                    : '!my-4',
                 )}
               />
             </Fragment>
@@ -262,7 +265,7 @@ export default function RoleSettings() {
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
         >
-          Create Role
+          Create Allowed Role
         </Button>
       </div>
     </SettingsContainer>

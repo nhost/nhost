@@ -1,0 +1,252 @@
+---
+title: Stripe GraphQL API
+sidebar_label: Stripe
+sidebar_position: 2
+image: /img/og/graphql.png
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+This package creates a Stripe GraphQL API, allowing for interaction with data at Stripe.
+
+Here's an example of how to use the Stripe GraphQL API to get a list of invoices for a specific Stripe customer:
+
+<Tabs >
+  <TabItem value="request" label="Request" default>
+
+```graphql
+query {
+  stripe {
+    customer(id: "cus_xxx") {
+      id
+      name
+      invoices {
+        data {
+          id
+          created
+          paid
+          hostedInvoiceUrl
+        }
+      }
+    }
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
+{
+  "data": {
+    "stripe": {
+      "customer": {
+        "id": "cus_xxx",
+        "name": "joe@example.com",
+        "invoices": {
+          "data": [
+            {
+              "id": "in_1MUmwnCCF9wuB4xxxxxxxx",
+              "created": 1674806769,
+              "paid": true,
+              "hostedInvoiceUrl": "https://invoice.stripe.com/i/acct_xxxxxxx/test_YWNjdF8xS25xV1lDQ0Y5d3VCNGZYLF9ORkhWxxxxxxxxxxxx?s=ap"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+It's recommended to add the Stripe GraphQL API as a [Remote Schema in Hasura](https://hasura.io/docs/latest/remote-schemas/index/) and connect data from your database with data in Stripe. By doing so, it's possible to request data from your database and Stripe in a single GraphQL query.
+
+Here's an example of how to use the Stripe GraphQL API to get a list of invoices for a specific Stripe customer. Note that the user data is fetched from your database and the Stripe customer data is fetched from Stripe:
+
+```graphql
+query {
+  users {
+    # User in your database
+    id
+    displayName
+    userData {
+      stripeCustomerId # Customer's Stripe Customer Id
+      stripeCustomer {
+        # Data from Stripe
+        id
+        name
+        paymentMethods {
+          id
+          card {
+            brand
+            last4
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Get Started
+
+Install the package:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install @nhost/stripe-graphql-js
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn install @nhost/stripe-graphql-js
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add @nhost/stripe-graphql-js
+```
+
+  </TabItem>
+</Tabs>
+
+## Serverless Function
+
+Create a new [Serverless Function](/serverless-functions): `functions/graphql/stripe.ts`:
+
+```ts
+import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'
+
+const server = createStripeGraphQLServer()
+
+export default server
+```
+
+> You can run the Stripe GraphQL API in any Node.js environment because it's built using [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga).
+
+## Stripe Secret Key
+
+Add `STRIPE_SECRET_KEY` as an environment variable.
+
+If you're using Nhost, add `STRIPE_SECRET_KEY` to `.env.development` like this:
+
+```
+STRIPE_SECRET_KEY=sk_test_***
+```
+
+And add the production key (`sk_live_***`) to [environment variables](/platform/environment-variables) in the Nhost dashboard.
+
+Learn more about [Stripe API keys](https://stripe.com/docs/keys#obtain-api-keys).
+
+## Start Nhost
+
+```
+nhost up
+```
+
+Learn more about the [Nhost CLI](/cli).
+
+## Test
+
+Test the Stripe GraphQL API in the browser:
+
+[http://localhost:1337/v1/functions/graphql/stripe](http://localhost:1337/v1/functions/graphql/stripe)
+
+## Remote Schema
+
+Add the Stripe GraphQL API as a Remote Schema in Hasura.
+
+**URL**
+
+```
+{{NHOST_FUNCTIONS_URL}}/graphql/stripe
+```
+
+**Headers**
+
+```
+x-nhost-webhook-secret: NHOST_WEBHOOK_SECRET (From env var)
+```
+
+> The `NHOST_WEBHOOK_SECRET` is used to verify that the request is coming from Nhost. The environment variable is a [system environment variable](/platform/environment-variables#system-environment-variables) and is always available.
+
+![Hasura Remote Schema](/img/graphql/remote-schemas/stripe/remote-schema.png)
+
+## Permissions
+
+Here's a minimal example without any custom permissions. Only requests using the `x-hasura-admin-secret` header will work:
+
+```js
+const server = createStripeGraphQLServer()
+```
+
+For more granular permissions, you can pass an `isAllowed` function to the `createStripeGraphQLServer`. The `isAllowed` function takes a `stripeCustomerId` and [`context`](#context) as parameters and runs every time the GraphQL server makes a request to Stripe to get or modify data for a specific Stripe customer.
+
+Here is an example of an `isAllowed` function:
+
+```ts
+import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'
+
+const isAllowed = (stripeCustomerId: string, context: Context) => {
+  const { isAdmin, userClaims } = context
+
+  // allow all requests if they have a valid `x-hasura-admin-secret`
+  if (isAdmin) {
+    return true
+  }
+
+  // get user id
+  const userId = userClaims['x-hasura-user-id']
+
+  // check if the user is signed in
+  if (!userId) {
+    return false
+  }
+
+  // get more user information from the database
+  const { user } = await gqlSDK.getUser({
+    id: userId
+  })
+
+  if (!user) {
+    return false
+  }
+
+  // check if the user is part of a workspace with the `stripeCustomerId`
+  return user.workspaceMembers.some((workspaceMember) => {
+    return workspaceMember.workspace.stripeCustomerId === stripeCustomerId
+  })
+}
+
+const server = createStripeGraphQLServer({ isAllowed })
+
+export default server
+```
+
+### Context
+
+The `context` object contains:
+
+- `userClaims` - verified JWT claims from the user's access token.
+- `isAdmin` - `true` if the request was made using a valid `x-hasura-admin-secret` header.
+- `request` - [Fetch API Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request) that represents the incoming HTTP request in platform-independent way. It can be useful for accessing headers to authenticate a user
+- `query` - the DocumentNode that was parsed from the GraphQL query string
+- `operationName` - the operation name selected from the incoming query
+- `variables` - the variables that were defined in the query
+- `extensions` - the extensions that were received from the client
+
+Read more about the [default context from GraphQL Yoga](https://www.the-guild.dev/graphql/yoga-server/docs/features/context#default-context).
+
+## Source Code
+
+The source code is available on [GitHub](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js).

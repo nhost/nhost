@@ -1,11 +1,6 @@
-import type {
-  FinalFunction,
-  Func,
-} from '@/components/applications/functions/normalizeFunctionMetadata';
 import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
 import { getLocalBackendUrl } from '@/utils/env';
-import type { NextRouter } from 'next/router';
 import slugify from 'slugify';
 import type { DeploymentRowFragment } from './__generated__/graphql';
 
@@ -87,26 +82,6 @@ export function emptyWorkspace() {
     repository: '',
     provisioning: false,
   };
-}
-
-export function yieldFunction(
-  functionsToSearch: FinalFunction[],
-  router: NextRouter,
-): Func {
-  let functionToReturn: Func = null;
-
-  functionsToSearch.forEach((currentFolder) => {
-    currentFolder.funcs.forEach((currentFunction) => {
-      if (
-        !functionToReturn &&
-        currentFunction.functionName === router.query.functionId
-      ) {
-        functionToReturn = currentFunction;
-      }
-    });
-  });
-
-  return functionToReturn;
 }
 
 /**

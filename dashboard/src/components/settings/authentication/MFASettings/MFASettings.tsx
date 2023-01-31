@@ -99,7 +99,7 @@ export default function MFASettings() {
             disabled: !formState.isValid || !formState.isDirty,
             loading: formState.isSubmitting,
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
+          docsLink="https://docs.nhost.io/authentication#multi-factor-authentication"
           switchId="authMfaEnabled"
           enabled={authMfaEnabled}
           showSwitch

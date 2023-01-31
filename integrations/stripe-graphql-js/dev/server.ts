@@ -15,4 +15,6 @@ const server = createStripeGraphQLServer({
   graphiql: true
 })
 
-server.start()
+server.listen(4000, () => {
+  console.info('Stripe GraphQL API server is running on http://localhost:4000')
+})
