@@ -25,7 +25,7 @@ export default function LogsPage() {
     AvailableLogsServices.ALL,
   );
 
-  // create a client that sends http requests to Hausra but websocket requests to Bragi
+  // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
