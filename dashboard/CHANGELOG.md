@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.11.0
+
+### Minor Changes
+
+- 1ebaf429: feat(dashboard): introduce Dark Mode 🌚
+
+### Patch Changes
+
+- 63b445c4: fixed duplicated logs bug and made to date count during live mode
+
 ## 0.10.1
 
 ### Patch Changes
