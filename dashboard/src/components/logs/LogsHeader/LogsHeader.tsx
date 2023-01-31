@@ -78,7 +78,7 @@ function LogsToDatePickerLiveButton({
   }, [isLive, onToDateChange]);
 
   return (
-    <div className="grid grid-flow-col text-greyscaleMedium">
+    <div className="text-greyscaleMedium grid grid-flow-col">
       <LogsDatePicker
         label="To"
         value={!isLive ? toDate : currentTime}
@@ -100,11 +100,14 @@ function LogsToDatePickerLiveButton({
       <Button
         variant="outlined"
         color={isLive ? 'primary' : 'secondary'}
+        sx={{
+          backgroundColor: (theme) =>
+            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
+          color: !isLive ? 'text.secondary' : undefined,
+        }}
         className={twMerge(
           'min-w-[77px] rounded-l-none',
-          !isLive
-            ? 'z-0 border-l-0 bg-gray-100 text-greyscaleMedium hover:border-l-0'
-            : 'z-10',
+          !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
         )}
         startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
         onClick={handleLiveButtonClick}
