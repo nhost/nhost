@@ -7,7 +7,9 @@ client.query.todos()
 client.query.todos({
   select: {
     userId: true,
-    // @ts-expect-error
-    unexistingProperty: true
+    category: true,
+
+    // TODO: this should not be allowed
+    unexistingProperty: 43
   }
 })

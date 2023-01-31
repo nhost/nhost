@@ -46,6 +46,7 @@ type ParametersOf<
       : FieldArgs<Schema, OperationType, FieldTypeRef['name']>
     : never,
   Fields = {
+    // TODO use rather "key in FieldType['fields'][number]" instead of "key in keyof Element"
     [key in keyof Element]?: UnwrapNullableArray<Element[key]> extends object
       ? // * Accept either a list of fields or `true` to select all the fields
         | ParametersOf<
