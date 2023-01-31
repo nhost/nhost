@@ -236,19 +236,19 @@ export const getFieldType = (
   if (objectType.kind === 'OBJECT' || objectType.kind === 'INTERFACE') {
     const type = objectType.fields?.find((f) => f.name === fieldName)
     if (!type) {
-      throw new Error(`Object type not found ${fieldName}`)
+      return null
     }
     return type
   }
   if (objectType.kind === 'INPUT_OBJECT') {
     const type = objectType?.inputFields?.find((f) => f.name === fieldName)
     if (!type) {
-      throw new Error(`Input object type not found ${fieldName}`)
+      return null
     }
     return type
   }
 
-  throw new Error(`Type not found ${fieldName}`)
+  return null
 }
 
 export const getRootOperationNode = (

@@ -104,6 +104,18 @@ describe('Hasura', () => {
     `)
   })
 
+  it('should ignore an invalid property', async () => {
+    const todos = await client.query.todos({
+      select: { id: true, unexistingProperty: true }
+    })
+
+    expect(Object.keys(todos[0])).toMatchInlineSnapshot(`
+      [
+        "id",
+      ]
+    `)
+  })
+
   it('should work with a nested wildcard', async () => {
     const todos = await client.query.todos({
       select: { id: true, user: true }

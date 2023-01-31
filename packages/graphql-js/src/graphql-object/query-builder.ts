@@ -13,8 +13,6 @@ import {
   TypeRef
 } from '../graphql-object/schema'
 
-const reservedKeys = ['__typename']
-
 const toJson = (
   schema: GenericSchema,
   parameters: Record<string, any> | true = true,
@@ -57,7 +55,7 @@ const toJson = (
   }
   if ('type' in definition) {
     Object.keys(inputArguments).forEach((key) => {
-      // TODO camel case the variable names?
+      // ? camel case the variable names?
       const uniqueVariableName = variablesPrefix ? `${variablesPrefix}_${key}` : key
       variables[uniqueVariableName] = getGraphQLType(schema, getArgumentType(key, definition))
       args[key] = new VariableType(uniqueVariableName)
@@ -77,41 +75,17 @@ const toJson = (
     }
   } else {
     Object.entries(values).forEach(([key, value]: [string, any]) => {
-      if (reservedKeys.includes(key)) {
-        select[key] = value
-      } else {
-        // * implement custom variables later
-        // if (value instanceof ModifiedVariableType) {
-        //   select[key] = new VariableType(key)
-        // } else if...
-        const childVariablePrefix = variablesPrefix ? `${variablesPrefix}_${key}` : key
-        if (typeof value === 'object') {
-          const {
-            query,
-            variables: newVariables,
-            variablesValues: newVariablesValues
-          } = toJson(
-            schema,
-            value,
-            getFieldType(schema, key, definition),
-            variables,
-            variablesValues,
-            childVariablePrefix
-          )
-          select[key] = query
-          variables = { ...variables, ...newVariables }
-          variablesValues = { ...variablesValues, ...newVariablesValues }
-        } else {
-          const fieldType = getConcreteType(schema, getFieldType(schema, key, definition))
-          const {
-            query,
-            variables: newVariables,
-            variablesValues: newVariablesValues
-          } = toJson(schema, value, fieldType, variables, variablesValues, childVariablePrefix)
-          select[key] = query
-          variables = { ...variables, ...newVariables }
-          variablesValues = { ...variablesValues, ...newVariablesValues }
-        }
+      const childVariablePrefix = variablesPrefix ? `${variablesPrefix}_${key}` : key
+      const fieldType = getFieldType(schema, key, definition)
+      if (fieldType) {
+        const {
+          query,
+          variables: newVariables,
+          variablesValues: newVariablesValues
+        } = toJson(schema, value, fieldType, variables, variablesValues, childVariablePrefix)
+        select[key] = query
+        variables = { ...variables, ...newVariables }
+        variablesValues = { ...variablesValues, ...newVariablesValues }
       }
     })
   }
