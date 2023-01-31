@@ -1,8 +1,10 @@
 query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     provider {
+      id: __typename
+      __typename
       sms {
         accountSid
         authToken
@@ -11,6 +13,8 @@ query GetSignInMethods($appId: uuid!) {
       }
     }
     auth {
+      id: __typename
+      __typename
       method {
         emailPassword {
           emailVerificationRequired

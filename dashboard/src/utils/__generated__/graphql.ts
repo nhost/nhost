@@ -18637,7 +18637,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
@@ -18648,7 +18648,7 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 }>;
 
 
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename?: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -18697,14 +18697,14 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename?: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null, scope?: Array<string> | null } | null } | null } | null } | null } };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null, scope?: Array<string> | null } | null } | null } | null } | null } };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename?: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
 
 export type UpdateConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -20234,10 +20234,12 @@ export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariab
     }
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     auth {
+      id: __typename
+      __typename
       redirections {
         clientUrl
         allowedUrls
@@ -20301,7 +20303,9 @@ export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticati
     }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
     global {
       environment {
         ...EnvironmentVariable
@@ -20351,7 +20355,7 @@ export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVar
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     auth {
@@ -20545,10 +20549,12 @@ export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutat
 export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     provider {
+      id: __typename
+      __typename
       sms {
         accountSid
         authToken
@@ -20557,6 +20563,8 @@ export const GetSignInMethodsDocument = gql`
       }
     }
     auth {
+      id: __typename
+      __typename
       method {
         emailPassword {
           emailVerificationRequired
@@ -20682,10 +20690,12 @@ export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVar
     }
 export const GetSmtpSettingsDocument = gql`
     query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     provider {
+      id: __typename
+      __typename
       smtp {
         host
         method
