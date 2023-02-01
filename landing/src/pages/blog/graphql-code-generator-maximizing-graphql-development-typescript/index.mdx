@@ -2,22 +2,116 @@ import Image from 'next/image'
 
 import { BlogLayout } from '@/blog-components/BlogLayout'
 
+import npmTrends from './npm-trend-for-typescript.png'
+
 export const article = {
-  title: 'test 1-2',
-  description: 'testing yolo!!',
-  image: 'og-dark-mode.png',
-  date: '2023-01-02',
+  title: 'GraphQL Code Generator: Maximizing GraphQL Development in TypeScript',
+  description:
+    "GraphQL is a great way to build apps faster. But, if you're only using GraphQL without a GraphQL Code Generator you're missing out on the full potential of GraphQL.",
+  image:
+    'og-graphql-code-generator-maximizing-graphql-development-typescript.png',
+  date: '2023-01-16',
   authors: [
     {
       name: 'Johan Eliasson',
       title: 'CEO',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/331818?v=4',
+      avatarUrl: '/images/avatars/johan.png',
       url: 'https://twitter.com/elitasson',
     },
   ],
-  tags: ['Company'],
+  tags: ['Guides'],
 }
 
 export default (props) => <BlogLayout article={article} {...props} />
 
-OMGOMGOGMOG
+GraphQL is a great way to build apps faster. But, if you're only using GraphQL without a [GraphQL Code Generator](https://www.graphql-code-generator.com/) you're missing out on the full potential of GraphQL.
+
+In this blog post, you'll learn how to use the missing piece (GraphQL Code Generator) to unleash the full potential of GraphQL in TypeScript.
+
+To understand how to use the full potential of GraphQL we need to understand the concept of **data types** and why they are important.
+
+**What is a data type?**
+
+If you're a developer I'm sure you've come across data types before.
+
+Some common data types:
+
+- Boolean
+- Integer
+- String
+
+A data type, or simply type, is metadata about the data itself. A developer and programming language use this metadata to understand what the data can be used for.
+
+**Why is type safety important?**
+
+Type-safe languages prevent type errors and are generally more robust and have fewer bugs.
+
+Type safety prevents you from accidentally using a data type that doesn't match the type you're expecting.
+
+Like multiplying an integer and a string.
+
+```js
+const a = 4
+const b = 'Joe'
+const c = a * b
+```
+
+Or trying to loop over a variable that is not an array.
+
+```js
+const a = true
+a.map((b) => {
+  console.log(b)
+})
+```
+
+It's a huge win if you can catch these errors during development, instead of them leading to bugs in your application.
+
+**Every GraphQL API is type-safe.** And if you're using [Nhost](https://nhost.io/) with [Hasura](https://hasura.io/) your GraphQL API is generated from tables and columns in Postgres, which is also type-safe.
+
+This means you have a type-safe _chain_ from your database to your GraphQL API. This is great news, as your database and API are now safe from type errors.
+
+Ideally, this type-safe chain should not stop at the GraphQL API. It should continue to your frontend application where you run [TypeScript](https://www.typescriptlang.org/).
+
+**TypeScript is a type-safe language** that is a superset of JavaScript. It's a great language to prevent type errors, which leads to fewer bugs and more robust applications.
+
+It's, therefore, no surprise that TypeScript is one of the most popular languages in the world!
+
+<Image src={npmTrends} alt="npm trends for TypeScript" />
+
+If you're not familiar with TypeScript, and don't want to re-write your whole application from JavaScript to TypeScript, you can gradually adopt TypeScript in your JavaScript application. There are some good resources online on how to [gradually adopt TypeScript](https://www.google.com/search?q=typescript+gradually+adoption).
+
+Ok. So let's say you're using Postgres and GraphQL for your backend and TypeScript for your frontend. You have type safety both on your backend and on your frontend.
+
+The only problem is, that you don't have type safety _between_ the GraphQL API and TypeScript.
+
+TypeScript cannot automatically understand what types are in your GraphQL API. So when you're fetching data via GraphQL, TypeScript does not know what types the data in your GraphQL API is.
+
+That's why you need GraphQL Code Generator.
+
+**GraphQL Code Generator is the glue between your GraphQL API and TypeScript.** It will automatically generate TypeScript code based on your GraphQL API.
+
+Once you have that, you have end-to-end type safety, from your database, via your GraphQL API, to your frontend code with TypeScript.
+
+{/* <TwitterTweetEmbed tweetId={'1415203770766610433'} /> */}
+
+Let's unleash the full power of GraphQL and type safety in your app.
+
+Below are some examples of how to use GraphQL Code Generator with React and Apollo Client, React Query, and URQL. Read the guides or check out the code directly on GitHub.
+
+## Guides
+
+- [How to use GraphQL Code Generator with React and Apollo Client](/blog/how-to-use-graphql-code-generator-with-react-and-apollo)
+- [How to use GraphQL Code Generator with React and React Query](/blog/how-to-use-graphql-code-generator-with-react-query)
+
+## Code Examples using GraphQL Code Generator
+
+- [React and GraphQL Code Generator with URQL](https://github.com/nhost/nhost/tree/main/examples/codegen-react-urql)
+- [React and GraphQL Code Generator with Apollo Client](https://github.com/nhost/nhost/tree/main/examples/codegen-react-apollo)
+- [React and GraphQL Code Generator with React Query](https://github.com/nhost/nhost/tree/main/examples/codegen-react-query)
+
+## What's next?
+
+Did you enjoy this blog post?
+
+⭐ Show your support and [star us on GitHub](https://github.com/nhost/nhost)!

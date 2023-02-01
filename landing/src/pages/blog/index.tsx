@@ -4,7 +4,8 @@ import { Layout } from '@/components/Layout'
 import glob from 'fast-glob'
 import Link from 'next/link'
 import * as path from 'path'
-import { format, parse, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
+import { Container } from '@/components/Container'
 
 interface Author {
   name: string
@@ -38,7 +39,7 @@ export default function Page({ articles }: PageProps) {
   console.log(otherArticles)
 
   return (
-    <div>
+    <Container>
       <h1>Blog</h1>
       <p>Read the latest news about Nhost.</p>
 
@@ -76,14 +77,14 @@ export default function Page({ articles }: PageProps) {
         </div>
       </div>
 
-      <div>
+      <div className="grid grid-cols-2">
         {otherArticles.map((article) => {
           return (
             <div key={article.slug}>
               <Image
-                src={`/images/blog/og-dark-mode.png`}
-                width={800}
-                height={450}
+                src={`/images/blog/${article.image}`}
+                width={400}
+                height={225}
                 alt=""
                 blurDataURL={`/images/blog/${article.image}`}
                 placeholder="blur"
@@ -115,7 +116,7 @@ export default function Page({ articles }: PageProps) {
           )
         })}
       </div>
-    </div>
+    </Container>
   )
 }
 
