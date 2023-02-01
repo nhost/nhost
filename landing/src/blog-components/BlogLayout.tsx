@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { format, parseISO } from 'date-fns'
 import { Container } from '@/components/Container'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -63,6 +64,9 @@ export function BlogLayout({
     <Layout>
       <Container>
         <article>
+          <div>
+            <Link href="/blog">Back to blog</Link>
+          </div>
           <div>
             <div>
               {article.tags.map((tag: any) => {
