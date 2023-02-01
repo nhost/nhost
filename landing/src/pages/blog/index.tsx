@@ -56,7 +56,7 @@ export default function Page({ articles }: PageProps) {
             return <span key={tag}>{tag}</span>
           })}
         </div>
-        <div>{firstArticle.title}</div>
+        <Link href={`/blog/${firstArticle.slug}`}>{firstArticle.title}</Link>
         <div>{firstArticle.description}</div>
         <div>
           <div>
@@ -93,7 +93,7 @@ export default function Page({ articles }: PageProps) {
                   return <span key={tag}>{tag}</span>
                 })}
               </div>
-              <div>{article.title}</div>
+              <Link href={`/blog/${article.slug}`}>{article.title}</Link>
               <div>{article.description}</div>
               <div>
                 <div>

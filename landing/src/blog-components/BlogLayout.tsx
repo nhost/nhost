@@ -1,5 +1,6 @@
 import { Layout } from '@/components/Layout'
 import Head from 'next/head'
+import { format, parseISO } from 'date-fns'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -27,19 +28,47 @@ export function BlogLayout({
         <meta name="description" content={article.description} />
       </Head>
       <article>
-        <header className="flex flex-col">
-          <h1 className="mt-6 text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl">
-            {article.title}
-          </h1>
-          <time
-            dateTime={article.date}
-            className="order-first flex items-center text-base text-zinc-400 dark:text-zinc-500"
-          >
-            <span className="h-4 w-0.5 rounded-full bg-zinc-200 dark:bg-zinc-500" />
-            <span className="ml-3">{formatDate(article.date)}</span>
-          </time>
-        </header>
-        <div className="mt-8">{children}</div>
+        <div>
+          <div>
+            {article.tags.map((tag: any) => {
+              return <span key={tag}>{tag}</span>
+            })}
+          </div>
+          <div>{format(parseISO(article.date), 'd MMMM yyyy')}</div>
+        </div>
+        <h1>{article.title}</h1>
+        <div>
+          {article.authors.map((author: any) => {
+            // TODO: Link to author's `url`
+            return (
+              <div key={author.name}>
+                <div>
+                  {' '}
+                  <img
+                    key={author.avatarUrl}
+                    src={`${author.avatarUrl}`}
+                    width={50}
+                    height={50}
+                    alt={author.name}
+                  />
+                </div>
+                <div>
+                  <div>{author.name}</div>
+                  <div>{author.title}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <div>
+          <img src={`/images/blog/${article.image}`} width={800} alt="" />
+        </div>
+        <div>{children}</div>
+        <div>share this post</div>
+        <div>
+          <div>top related posts</div>
+          <div>... TODO</div>
+        </div>
       </article>
     </Layout>
   )
