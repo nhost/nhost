@@ -5,3 +5,53 @@
 html {
   color-scheme: dark;
 }
+
+.gradient-background {
+  background: radial-gradient(
+    131.31% 131.31% at 50% -1.06%,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+
+  border: 1px solid;
+
+  border-image-source: radial-gradient(
+    131.31% 131.31% at 50% -1.06%,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+}
+
+.radial-outer {
+  background: linear-gradient(
+      151.7deg,
+      rgba(0, 0, 0, 0.5) -1.06%,
+      rgba(0, 0, 0, 0) 33.72%
+    ),
+    linear-gradient(
+      137.7deg,
+      rgba(0, 12, 31, 0.16) 0%,
+      rgba(0, 12, 61, 0.2) 17.94%,
+      rgba(0, 12, 61, 0.24) 42.8%,
+      #808080 62.45%,
+      rgba(0, 6, 31, 0.56) 81.52%,
+      rgba(0, 6, 31, 0.56) 110.86%
+    ),
+    linear-gradient(0deg, #080808, #080808);
+  border: 1px solid;
+
+  border-image-source: linear-gradient(
+      137.7deg,
+      rgba(0, 12, 31, 0.16) 0%,
+      rgba(0, 12, 61, 0.2) 17.94%,
+      rgba(0, 12, 61, 0.24) 42.8%,
+      #808080 62.45%,
+      rgba(0, 6, 31, 0.56) 81.52%,
+      rgba(0, 6, 31, 0.56) 110.86%
+    ),
+    linear-gradient(
+      151.7deg,
+      rgba(0, 0, 0, 0.5) -1.06%,
+      rgba(0, 0, 0, 0) 33.72%
+    );
+}

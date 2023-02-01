@@ -26,7 +26,7 @@ export default function Footer() {
       <div className="col-span-12 grid grid-flow-col place-content-between lg:col-span-4 lg:grid-flow-row">
         <Image src="/logo.svg" width={71} height={24} alt="Nhost Logo" />
 
-        <div className="grid grid-flow-col items-center justify-start gap-6 opacity-60">
+        <div className="grid grid-flow-col items-center justify-start gap-6 opacity-65">
           <Link
             href="https://github.com/nhost/nhost"
             target="_blank"
@@ -84,7 +84,7 @@ export default function Footer() {
       <List title="Features">
         <li>Database</li>
         <li>GraphQL API</li>
-        <li>Auth</li>
+        <li>Authentication</li>
         <li>Storage</li>
         <li>Serverless Functions</li>
       </List>

@@ -15,7 +15,7 @@ export default function Link({ className, ...props }: LinkProps) {
   return (
     <NextLink
       className={twMerge(
-        'text-white text-opacity-60 hover:underline',
+        'inline-grid grid-flow-col items-center justify-start gap-2 text-white text-opacity-65 hover:underline',
         className,
       )}
       {...props}

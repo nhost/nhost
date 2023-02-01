@@ -25,7 +25,7 @@ export default function NotFoundPage() {
       <div className="mx-auto -mt-[100px] grid grid-flow-row gap-4 text-center sm:-mt-[200px] lg:-mt-[350px]">
         <h1 className="font-mona text-4xl font-semibold">Page Not Found</h1>
 
-        <p className="text-xl text-white text-opacity-60">
+        <p className="text-xl text-white text-opacity-65">
           This page does not exist.
         </p>
 

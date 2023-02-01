@@ -5,12 +5,19 @@ module.exports = {
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      opacity: {
+        65: '0.65',
+      },
       colors: {
+        divider: '#262626',
+        paper: '#111111',
         'brand-light': '#8cc1f2',
         'brand-main': '#0066ff',
         'brand-dark': '#00398e',
       },
       spacing: {
+        1.5: '0.375rem',
+        4.5: '1.125rem',
         25: '6.25rem',
       },
       fontFamily: {
