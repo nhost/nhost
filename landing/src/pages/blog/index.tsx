@@ -4,6 +4,7 @@ import { Layout } from '@/components/Layout'
 import glob from 'fast-glob'
 import Link from 'next/link'
 import * as path from 'path'
+import { format, parse, parseISO } from 'date-fns'
 
 interface Author {
   name: string
@@ -18,6 +19,7 @@ interface Article {
   image: string
   date: string
   authors: Author[]
+  tags: string[]
   slug: string
 }
 
@@ -28,33 +30,91 @@ interface PageProps {
 export default function Page({ articles }: PageProps) {
   console.log(articles)
 
+  const firstArticle = articles[0]
+  console.log(firstArticle)
+
+  // get all other articles except the first one
+  const otherArticles = articles.slice(1)
+  console.log(otherArticles)
+
   return (
     <div>
-      {articles.map((article) => {
-        return (
-          <div key={article.slug}>
-            <div>
-              {article.image && (
-                <Image
-                  src={`/images/blog/og-dark-mode.png`}
-                  width={800}
-                  height={450}
-                  alt=""
-                  blurDataURL={`/images/blog/${article.image}`}
-                  placeholder="blur"
+      <h1>Blog</h1>
+      <p>Read the latest news about Nhost.</p>
+
+      <div>
+        <Image
+          src={`/images/blog/og-dark-mode.png`}
+          width={800}
+          height={450}
+          alt=""
+          blurDataURL={`/images/blog/${firstArticle.image}`}
+          placeholder="blur"
+        />
+        <div>
+          {firstArticle.tags.map((tag) => {
+            return <span key={tag}>{tag}</span>
+          })}
+        </div>
+        <div>{firstArticle.title}</div>
+        <div>{firstArticle.description}</div>
+        <div>
+          <div>
+            {firstArticle.authors.map((author) => {
+              return (
+                <img
+                  key={author.avatarUrl}
+                  src={`${author.avatarUrl}`}
+                  width={50}
+                  height={50}
+                  alt={author.name}
                 />
-              )}
-            </div>
-            <h2>{article.title}</h2>
-            <div>{article.description}</div>
-            <div>{article.date}</div>
-            <div>Authors: {article.authors.map((author) => author.name)}</div>
-            <div>
-              <Link href={`/blog/${article.slug}`}>Read more</Link>
-            </div>
+              )
+            })}
           </div>
-        )
-      })}
+          <div>{format(parseISO(firstArticle.date), 'd MMMM yyyy')}</div>
+        </div>
+      </div>
+
+      <div>
+        {otherArticles.map((article) => {
+          return (
+            <div key={article.slug}>
+              <Image
+                src={`/images/blog/og-dark-mode.png`}
+                width={800}
+                height={450}
+                alt=""
+                blurDataURL={`/images/blog/${article.image}`}
+                placeholder="blur"
+              />
+              <div>
+                {article.tags.map((tag) => {
+                  return <span key={tag}>{tag}</span>
+                })}
+              </div>
+              <div>{article.title}</div>
+              <div>{article.description}</div>
+              <div>
+                <div>
+                  {article.authors.map((author) => {
+                    return (
+                      <img
+                        key={author.avatarUrl}
+                        src={`${author.avatarUrl}`}
+                        width={50}
+                        height={50}
+                        alt={author.name}
+                      />
+                    )
+                  })}
+                </div>
+                <div>{format(parseISO(article.date), 'd MMMM yyyy')}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
