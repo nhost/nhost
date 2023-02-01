@@ -1,10 +1,19 @@
-import { Html, Head, Main, NextScript } from 'next/document'
+import { Head, Html, Main, NextScript } from 'next/document'
 
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
-      <body>
+      <Head>
+        <link
+          rel="preload"
+          href="/fonts/Mona-Sans.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+      </Head>
+      <body className="bg-black">
         <Main />
         <NextScript />
       </body>
