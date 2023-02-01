@@ -1,0 +1,22 @@
+import Image from 'next/image'
+
+import { BlogLayout } from '@/blog-components/BlogLayout'
+
+export const article = {
+  title: 'test 1-2',
+  description: 'testing yolo!!',
+  image: 'og-dark-mode.png',
+  date: '2023-01-02',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/13378059?v=4',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+}
+
+export default (props) => <BlogLayout article={article} {...props} />
+
+OMGOMGOGMOG
