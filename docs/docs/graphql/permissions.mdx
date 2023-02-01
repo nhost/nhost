@@ -12,7 +12,7 @@ For each **role**, you create **rules** for the **select**, **insert**, **update
 
 ![Permission Variables](/img/graphql/permissions/permission-example.png)
 
-The permission above make sure users can only select their own posts, because the value of `user_id` must be equal (`_eq`) to the authenticated user's ID (`x-hasura-user-id`).
+The permission above makes sure users can only select their own posts, because the value of `user_id` must be equal (`_eq`) to the authenticated user's ID (`x-hasura-user-id`).
 
 ## What is `x-hasura-user-id`?
 
