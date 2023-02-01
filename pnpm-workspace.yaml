@@ -4,5 +4,6 @@ packages:
   - 'dashboard'
   - 'docs'
   - '!**/test/**'
+  - '!out/**'
   - 'examples/**'
   - '!**/functions'
