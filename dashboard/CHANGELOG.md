@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.1
+
+### Patch Changes
+
+- c2b5a41a: chore(dashboard): select system colors by default
+
 ## 0.11.0
 
 ### Minor Changes
