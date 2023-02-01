@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.2
+
+### Patch Changes
+
+- f143e51d: chore(dashboard): pin Turborepo to 1.6.3
+
 ## 0.11.1
 
 ### Patch Changes
