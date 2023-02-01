@@ -1,17 +1,54 @@
+import Image from 'next/image'
 import { ReactElement } from 'react'
 import { Layout } from '@/components/Layout'
 import glob from 'fast-glob'
 import Link from 'next/link'
 import * as path from 'path'
 
-export default function Page({ articles }: { articles: any }) {
+interface Author {
+  name: string
+  title: string
+  avatarUrl: string
+  url: string
+}
+
+interface Article {
+  title: string
+  description: string
+  image: string
+  date: string
+  authors: Author[]
+  slug: string
+}
+
+interface PageProps {
+  articles: Article[]
+}
+
+export default function Page({ articles }: PageProps) {
+  console.log(articles)
+
   return (
     <div>
-      {articles.map((article: any) => {
+      {articles.map((article) => {
         return (
           <div key={article.slug}>
+            <div>
+              {article.image && (
+                <Image
+                  src={`/images/blog/og-dark-mode.png`}
+                  width={800}
+                  height={450}
+                  alt=""
+                  blurDataURL={`/images/blog/${article.image}`}
+                  placeholder="blur"
+                />
+              )}
+            </div>
             <h2>{article.title}</h2>
+            <div>{article.description}</div>
             <div>{article.date}</div>
+            <div>Authors: {article.authors.map((author) => author.name)}</div>
             <div>
               <Link href={`/blog/${article.slug}`}>Read more</Link>
             </div>
@@ -31,10 +68,10 @@ export async function getStaticProps() {
   // TODO: Move this function to a separate file
   const importArticle = async (articleFilename: any) => {
     // if we change the location of this folder, make sure the path is correct!
-    let { meta, default: component } = await import(`./${articleFilename}`)
+    let { article, default: component } = await import(`./${articleFilename}`)
     return {
       slug: articleFilename.replace(/(\/index)?\.mdx$/, ''),
-      ...meta,
+      ...article,
       component,
     }
   }
@@ -59,7 +96,9 @@ export async function getStaticProps() {
 
   return {
     props: {
-      articles: (await getAllArticles()).map(({ component, ...meta }) => meta),
+      articles: (await getAllArticles()).map(
+        ({ component, ...article }) => article,
+      ),
     },
   }
 }

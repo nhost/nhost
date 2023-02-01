@@ -3,15 +3,23 @@ import Image from 'next/image'
 import { BlogLayout } from '@/blog-components/BlogLayout'
 import engineer from './engineer.png'
 
-export const meta = {
-  author: 'Johan Eliasson',
+export const article = {
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/13378059?v=4',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  image: '',
   date: '2022-12-10',
   title: 'Hello World',
   description:
     'Hello world is a common phrase used in programming to test the functionality of a new code or application.',
 }
 
-export default (props) => <BlogLayout meta={meta} {...props} />
+export default (props) => <BlogLayout article={article} {...props} />
 
 Hello world is a common phrase used in programming to test the functionality of a new code or application.
 
