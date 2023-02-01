@@ -126,6 +126,8 @@ jobs:
   publish-vercel:
     name: Publish to Vercel
     runs-on: ubuntu-latest
+    needs:
+      - publish-docker
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
