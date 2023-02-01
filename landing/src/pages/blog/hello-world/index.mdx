@@ -1,0 +1,15 @@
+import Image from "next/image";
+
+import { BlogLayout } from "@/blog-components/BlogLayout";
+
+export const meta = {
+  author: "Johan Eliasson",
+  date: "2022-12-10",
+  title: "Hello World",
+  description:
+    "Hello world is a common phrase used in programming to test the functionality of a new code or application.",
+};
+
+export default (props) => <BlogLayout meta={meta} {...props} />;
+
+Hello world is a common phrase used in programming to test the functionality of a new code or application.
