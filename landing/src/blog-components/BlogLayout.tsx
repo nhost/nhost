@@ -2,6 +2,7 @@ import { Layout } from '@/components/Layout'
 import Head from 'next/head'
 import { format, parseISO } from 'date-fns'
 import { Container } from '@/components/Container'
+import { useEffect, useState } from 'react'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
@@ -10,6 +11,40 @@ export function formatDate(dateString: string) {
     year: 'numeric',
     timeZone: 'UTC',
   })
+}
+
+function Share({ title }: { title: string }) {
+  const [url, setUrl] = useState('')
+
+  // will do this client side to correctly get the url
+  useEffect(() => {
+    setUrl(window.location.href)
+  }, [])
+
+  const urlEncoded = encodeURI(url)
+  const titleEncoded = encodeURI(title)
+  const twitterUrl = `https://twitter.com/intent/tweet?url=${urlEncoded}&text=${titleEncoded}`
+  const linkedInUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${urlEncoded}&title=${titleEncoded}`
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${urlEncoded}`
+
+  if (!url) return null
+
+  return (
+    <div>
+      <div>Share this post</div>
+      <div>
+        <a href={twitterUrl} target="_blank" rel="noopener noreferrer">
+          Twitter
+        </a>
+        <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">
+          LinkedIn
+        </a>
+        <a href={facebookUrl} target="_blank" rel="noopener noreferrer">
+          Facebook
+        </a>
+      </div>
+    </div>
+  )
 }
 
 // TODO: import same Article interface from blog/index.tsx
@@ -22,12 +57,10 @@ export function BlogLayout({
 }) {
   console.log(article)
 
+  useEffect(() => {})
+
   return (
     <Layout>
-      <Head>
-        <title>{`${article.title}`}</title>
-        <meta name="description" content={article.description} />
-      </Head>
       <Container>
         <article>
           <div>
@@ -65,9 +98,8 @@ export function BlogLayout({
           <div>
             <img src={`/images/blog/${article.image}`} width={800} alt="" />
           </div>
-          {/* https://tailwindcss.com/docs/typography-plugin#basic-usage */}
           <div className="prose prose-invert">{children}</div>
-          <div>share this post</div>
+          <Share title={article.title} />
           <div>
             <div>top related posts</div>
             <div>... TODO</div>
