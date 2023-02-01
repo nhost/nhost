@@ -12,6 +12,7 @@ export default function Document() {
           crossOrigin="anonymous"
         />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </Head>
       <body className="bg-black text-sm">
         <Main />

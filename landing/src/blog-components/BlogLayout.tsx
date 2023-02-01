@@ -56,10 +56,6 @@ export function BlogLayout({
   children: any
   article: any
 }) {
-  console.log(article)
-
-  useEffect(() => {})
-
   return (
     <Layout>
       <Container>
@@ -104,10 +100,6 @@ export function BlogLayout({
           </div>
           <div className="prose prose-invert">{children}</div>
           <Share title={article.title} />
-          <div>
-            <div>top related posts</div>
-            <div>... TODO</div>
-          </div>
         </article>
       </Container>
     </Layout>
