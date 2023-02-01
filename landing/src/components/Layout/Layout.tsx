@@ -18,7 +18,7 @@ export interface LayoutProps
 
 export default function Layout({ children, slotProps, ...props }: LayoutProps) {
   return (
-    <div className="pt-20" {...props}>
+    <div className="pt-16" {...props}>
       <Header
         slotProps={{
           root: {

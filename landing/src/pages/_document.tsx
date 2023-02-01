@@ -13,7 +13,7 @@ export default function Document() {
         />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
-      <body className="bg-black">
+      <body className="bg-black text-sm">
         <Main />
         <NextScript />
       </body>

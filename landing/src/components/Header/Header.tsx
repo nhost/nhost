@@ -1,8 +1,8 @@
+import { Button } from '@/components/Button'
+import { Container, ContainerProps } from '@/components/Container'
+import { Link } from '@/components/Link'
 import Image from 'next/image'
-import Link from 'next/link'
 import { twMerge } from 'tailwind-merge'
-import { Button } from '../Button'
-import { Container, ContainerProps } from '../Container'
 
 export interface HeaderProps extends ContainerProps {}
 
@@ -11,7 +11,7 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Container
       component="header"
       className={twMerge(
-        'grid grid-flow-col items-center justify-between border-b border-white border-opacity-10 py-5',
+        'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-5',
         className,
       )}
       {...props}
@@ -26,14 +26,24 @@ export default function Header({ className, ...props }: HeaderProps) {
         />
       </Link>
 
-      <nav>
-        <ul className="grid grid-flow-col gap-6 text-sm font-medium">
+      <nav aria-label="Main navigation">
+        <ul className="grid grid-flow-col gap-6 font-medium">
           <li>Product</li>
-          <li>Pricing</li>
-          <li>Blog</li>
-          <li>About</li>
-          <li>Changelog</li>
-          <li>Customers</li>
+          <li>
+            <Link href="/pricing">Pricing</Link>
+          </li>
+          <li>
+            <Link href="/blog">Blog</Link>
+          </li>
+          <li>
+            <Link href="/about">About</Link>
+          </li>
+          <li>
+            <Link href="/changelog">Changelog</Link>
+          </li>
+          <li>
+            <Link href="/customers">Customers</Link>
+          </li>
         </ul>
       </nav>
 

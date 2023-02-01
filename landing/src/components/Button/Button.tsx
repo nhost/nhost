@@ -38,11 +38,11 @@ export default function Button({
     props.href ? 'a' : 'button',
     {
       className: twMerge(
-        'inline-block text-sm font-medium rounded-md motion-safe:transition-all',
+        'inline-block font-medium rounded-md motion-safe:transition-all',
         variant === 'contained' && 'bg-white text-black hover:ring-2',
         variant === 'borderless' &&
           'bg-transparent text-white hover:bg-white hover:bg-opacity-10',
-        size === 'small' && 'px-4 py-1',
+        size === 'small' && 'px-4 py-2',
         size === 'large' && 'px-6 py-3',
         className,
       ),
