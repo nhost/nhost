@@ -1,5 +1,6 @@
 import { createElement, DetailedHTMLProps, HTMLProps } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { Link } from '../Link'
 
 export interface ButtonProps
   extends Omit<
@@ -35,18 +36,19 @@ export default function Button({
   ...props
 }: ButtonProps) {
   return createElement(
-    props.href ? 'a' : 'button',
+    props.href ? Link : 'button',
     {
       className: twMerge(
-        'inline-block font-medium rounded-md motion-safe:transition-all',
-        variant === 'contained' && 'bg-white text-black hover:ring-2',
+        'inline-grid grid-flow-col gap-2 items-center font-medium rounded-md motion-safe:transition-all hover:no-underline',
+        variant === 'contained' &&
+          'bg-white text-black text-opacity-100 hover:ring-2',
         variant === 'borderless' &&
-          'bg-transparent text-white hover:bg-white hover:bg-opacity-10',
+          'bg-transparent text-white text-opacity-100 hover:bg-white hover:bg-opacity-10',
         size === 'small' && 'px-4 py-2',
         size === 'large' && 'px-6 py-3',
         className,
       ),
-      ...props,
+      ...(props as any),
     },
     children,
   )

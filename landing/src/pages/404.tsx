@@ -1,30 +1,39 @@
 import { Button } from '@/components/Button'
+import { Container } from '@/components/Container'
+import ArrowLeftIcon from '@/components/icons/ArrowLeftIcon'
 import { Layout } from '@/components/Layout'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 
 export default function NotFoundPage() {
   return (
-    <div className="relative">
-      <Image
-        src="/404.png"
-        width={1440}
-        height={529}
-        alt="The number 404 with some overlay"
-        priority
-        className="mx-auto h-auto w-full"
-      />
+    <Container
+      className="relative grid h-full max-w-full grid-flow-row items-center justify-center pt-25 pb-4"
+      slotProps={{ root: { className: 'h-full' } }}
+    >
+      <div className="mx-auto max-w-[1440px] lg:w-full">
+        <Image
+          src="/404.svg"
+          width={1504}
+          height={666}
+          alt="The number 404 with some overlay"
+          priority
+          className="h-auto w-full"
+        />
+      </div>
 
-      <div className="absolute top-80 left-0 right-0 mx-auto grid grid-flow-row gap-4 text-center">
+      <div className="mx-auto -mt-[100px] grid grid-flow-row gap-4 text-center sm:-mt-[200px] lg:-mt-[350px]">
         <h1 className="font-mona text-4xl font-semibold">Page Not Found</h1>
 
         <p className="text-xl text-white text-opacity-60">
           This page does not exist.
         </p>
 
-        <Button className="justify-self-center">Go back home</Button>
+        <Button className="mt-2 justify-self-center" href="/">
+          <ArrowLeftIcon /> Go back home
+        </Button>
       </div>
-    </div>
+    </Container>
   )
 }
 

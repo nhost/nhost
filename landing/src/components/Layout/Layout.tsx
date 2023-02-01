@@ -1,5 +1,6 @@
 import { NextSeo, NextSeoProps } from 'next-seo'
 import { DetailedHTMLProps, HTMLProps } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { Footer } from '../Footer'
 import { Header } from '../Header'
 
@@ -16,9 +17,14 @@ export interface LayoutProps
   }
 }
 
-export default function Layout({ children, slotProps, ...props }: LayoutProps) {
+export default function Layout({
+  className,
+  children,
+  slotProps,
+  ...props
+}: LayoutProps) {
   return (
-    <div className="pt-16" {...props}>
+    <div className="flex min-h-screen flex-col pt-16">
       <Header
         slotProps={{
           root: {
@@ -28,7 +34,9 @@ export default function Layout({ children, slotProps, ...props }: LayoutProps) {
         }}
       />
 
-      <main>{children}</main>
+      <main className={twMerge('flex-auto', className)} {...props}>
+        {children}
+      </main>
 
       <Footer />
       <NextSeo {...(slotProps?.nextSeo || {})} />

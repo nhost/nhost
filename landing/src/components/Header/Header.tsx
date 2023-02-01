@@ -6,10 +6,20 @@ import { twMerge } from 'tailwind-merge'
 
 export interface HeaderProps extends ContainerProps {}
 
-export default function Header({ className, ...props }: HeaderProps) {
+export default function Header({
+  className,
+  slotProps,
+  ...props
+}: HeaderProps) {
   return (
     <Container
       component="header"
+      slotProps={{
+        ...(slotProps || {}),
+        root: {
+          className: twMerge('z-50', slotProps?.root?.className),
+        },
+      }}
       className={twMerge(
         'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-5',
         className,
