@@ -10,6 +10,7 @@ specifiers:
   '@types/react': 18.0.27
   '@types/react-dom': 18.0.10
   autoprefixer: ^10.4.13
+  date-fns: ^2.29.3
   eslint: 8.33.0
   eslint-config-next: 13.1.6
   fast-glob: ^3.2.12
@@ -34,6 +35,7 @@ dependencies:
   '@next/mdx': 13.1.6_vvg67iglxhejglpl7nsv3pjzui
   '@types/react': 18.0.27
   '@types/react-dom': 18.0.10
+  date-fns: 2.29.3
   eslint: 8.33.0
   eslint-config-next: 13.1.6_4vsywjlpuriuw3tl5oq6zy5a64
   fast-glob: 3.2.12
@@ -1079,6 +1081,11 @@ packages:
 
   /damerau-levenshtein/1.0.8:
     resolution: {integrity: sha512-sdQSFB7+llfUcQHUQO3+B8ERRj0Oa4w9POWMI/puGtuf7gFywGmkaLCElnudfTiKZV+NvHqL0ifzdrI8Ro7ESA==}
+    dev: false
+
+  /date-fns/2.29.3:
+    resolution: {integrity: sha512-dDCnyH2WnnKusqvZZ6+jA1O51Ibt8ZMRNkDZdyAyK4YfbDwa/cEmuztzG5pk6hqlp9aSBPYcjOlktquahGwGeA==}
+    engines: {node: '>=0.11'}
     dev: false
 
   /debug/3.2.7:

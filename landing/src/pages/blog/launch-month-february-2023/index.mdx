@@ -4,19 +4,20 @@ import { BlogLayout } from '@/blog-components/BlogLayout'
 import engineer from './engineer.png'
 
 export const article = {
+  title: 'Hello World',
+  description:
+    'Hello world is a common phrase used in programming to test the functionality of a new code or application.',
+  image: 'og-dark-mode.png',
+  date: '2022-12-10',
   authors: [
     {
       name: 'Johan Eliasson',
       title: 'CEO',
-      avatarUrl: 'https://avatars.githubusercontent.com/u/13378059?v=4',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/331818?v=4',
       url: 'https://twitter.com/elitasson',
     },
   ],
-  image: '',
-  date: '2022-12-10',
-  title: 'Hello World',
-  description:
-    'Hello world is a common phrase used in programming to test the functionality of a new code or application.',
+  tags: ['Product', 'Engineering'],
 }
 
 export default (props) => <BlogLayout article={article} {...props} />
