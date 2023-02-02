@@ -22,6 +22,11 @@ html {
   );
 }
 
+.bg-black-to-transparent {
+  background: linear-gradient(180deg, #000000 16.65%, rgba(0, 0, 0, 0) 44.24%);
+  transform: rotate(-180deg);
+}
+
 .radial-outer {
   background: linear-gradient(
       151.7deg,

@@ -6,13 +6,14 @@ import { ServiceCard } from '@/components/common/ServiceCard'
 import WorkflowSection from '@/components/home/WorkflowSection'
 import Image from 'next/image'
 import { ReactElement } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 export default function IndexPage() {
   return (
     <>
-      <Container component="section">
+      <Container component="section" className="relative pb-5 lg:pb-11">
         <div className="grid grid-flow-row justify-center gap-10 pt-25">
-          <div className="grid max-w-2xl grid-flow-row gap-4 text-center">
+          <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
             <h1 className="font-mona text-5xl font-bold">
               Build apps users{' '}
               <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
@@ -36,11 +37,33 @@ export default function IndexPage() {
             Start building <ArrowRightIcon />
           </Button>
         </div>
+
+        <div
+          className={twMerge(
+            'relative mt-14',
+            'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
+            'after:z-0 after:mx-auto after:h-full after:w-full after:max-w-5xl after:rounded-full',
+            'after:bg-brand-main after:bg-opacity-40 after:blur-[156px]',
+          )}
+        >
+          <div className="bg-black-to-transparent absolute top-0 z-20 h-full w-full" />
+          <Image
+            src="/overview.png"
+            alt="The Nhost Dashboard's overview page"
+            width={1442}
+            height={902}
+            quality={100}
+            className="relative z-10 mx-auto w-full max-w-5xl"
+            priority
+          />
+        </div>
+
+        <div className="absolute -bottom-24 z-30 h-36 w-full bg-black"></div>
       </Container>
 
       <Container
         component="section"
-        slotProps={{ root: { className: 'mt-14' } }}
+        slotProps={{ root: { className: 'mt-14 z-40 relative' } }}
         className="grid grid-flow-row justify-center gap-12 text-center"
       >
         <h2 className="text-base text-white text-opacity-65">
