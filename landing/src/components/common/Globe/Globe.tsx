@@ -1,12 +1,19 @@
 import createGlobe from 'cobe'
 import { useEffect, useRef, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 
 export default function Globe() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState<number>()
+  const { ref, inView } = useInView()
 
   useEffect(() => {
-    if (!canvasRef.current || typeof window === 'undefined' || !size) {
+    if (
+      !canvasRef.current ||
+      typeof window === 'undefined' ||
+      !size ||
+      !inView
+    ) {
       return
     }
 
@@ -39,10 +46,9 @@ export default function Globe() {
     })
 
     return () => {
-      setSize(undefined)
       globe.destroy()
     }
-  }, [size])
+  }, [inView, size])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -66,19 +72,20 @@ export default function Globe() {
     }
   }, [])
 
-  if (!size) {
-    return null
-  }
-
   return (
-    <div className="relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80">
-      <canvas
-        className="globe-canvas bg-black fill-black md:-ml-10"
-        ref={canvasRef}
-        width={size * 2}
-        height={size * 2}
-        style={{ width: size, height: size }}
-      />
+    <div
+      ref={ref}
+      className="relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80"
+    >
+      {size && (
+        <canvas
+          className="globe-canvas bg-black fill-black md:-ml-10"
+          ref={canvasRef}
+          width={size * 2}
+          height={size * 2}
+          style={{ width: size, height: size }}
+        />
+      )}
     </div>
   )
 }

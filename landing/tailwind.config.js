@@ -5,6 +5,9 @@ module.exports = {
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontSize: {
+        '4.5xl': ['2.5rem', '2.5rem'],
+      },
       opacity: {
         65: '0.65',
       },

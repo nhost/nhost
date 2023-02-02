@@ -2,6 +2,7 @@ import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
+import { SectionHeading } from '@/components/common/SectionHeading'
 import { ServiceCard } from '@/components/common/ServiceCard'
 import WorkflowSection from '@/components/home/WorkflowSection'
 import Image from 'next/image'
@@ -13,20 +14,30 @@ export default function IndexPage() {
     <>
       <Container component="section" className="relative pb-5 lg:pb-11">
         <div className="grid grid-flow-row justify-center gap-10 pt-25">
-          <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
-            <h1 className="font-mona text-5xl font-bold">
-              Build apps users{' '}
-              <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
-                love
-              </span>
-            </h1>
-
-            <p className="text-xl text-white text-opacity-65">
-              Nhost is a backend as an open-source backend development platform
-              enables <strong>developers</strong> to <strong>build</strong> and{' '}
-              <strong>scale</strong> their web and mobile <strong>apps</strong>.
-            </p>
-          </div>
+          <SectionHeading
+            title={
+              <>
+                Build apps users{' '}
+                <span className="bg-gradient-to-br from-brand-light via-brand-main to-brand-dark bg-clip-text text-transparent">
+                  love
+                </span>
+              </>
+            }
+            subtitle={
+              <>
+                Nhost is a backend as an open-source backend development
+                platform enables <strong>developers</strong> to{' '}
+                <strong>build</strong> and <strong>scale</strong> their web and
+                mobile <strong>apps</strong>.
+              </>
+            }
+            slotProps={{
+              title: {
+                component: 'h1',
+                className: 'text-5xl',
+              },
+            }}
+          />
 
           <Button
             className="justify-self-center text-base"
@@ -135,16 +146,11 @@ export default function IndexPage() {
             </p>
           </div>
 
-          <div className="grid max-w-2xl grid-flow-row gap-4 text-center">
-            <h2 className="font-mona text-5xl font-bold">
-              Backend without limits
-            </h2>
-
-            <p className="text-xl font-normal text-white text-opacity-65">
-              Get a database and backend configure and ready in minutes so you
-              can focus on your app and your users.
-            </p>
-          </div>
+          <SectionHeading
+            title="Backend without limits"
+            subtitle="Get a database and backend configure and ready in minutes so you
+              can focus on your app and your users."
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -240,16 +246,10 @@ export default function IndexPage() {
         className="grid grid-flow-row gap-14"
       >
         <div className="grid grid-flow-row justify-center gap-10 pt-25">
-          <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
-            <h2 className="font-mona text-5xl font-bold">
-              What you can build with Nhost
-            </h2>
-
-            <p className="text-xl font-normal text-white text-opacity-65">
-              Get a database and backend configure and ready in minutes so you
-              can focus on your app and your users.
-            </p>
-          </div>
+          <SectionHeading
+            title="What you can build with Nhost"
+            subtitle="What used to take months, now takes minutes."
+          />
 
           <Button
             className="justify-self-center text-base"
@@ -263,6 +263,21 @@ export default function IndexPage() {
       </Container>
 
       <WorkflowSection />
+
+      <Container component="section" className="grid grid-flow-row gap-14">
+        <div className="grid grid-flow-row justify-center gap-10 pt-25">
+          <SectionHeading
+            title={
+              <>
+                Built by developers,
+                <br />
+                for developers
+              </>
+            }
+            subtitle="What used to take months, now takes minutes."
+          />
+        </div>
+      </Container>
     </>
   )
 }

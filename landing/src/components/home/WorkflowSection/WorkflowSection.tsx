@@ -1,5 +1,6 @@
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
+import { SectionHeading } from '@/components/common/SectionHeading'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { DetailedHTMLProps, HTMLProps, useEffect, useState } from 'react'
@@ -173,15 +174,10 @@ export default function WorkflowSection() {
       slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
       className="grid grid-flow-row gap-14 overflow-hidden"
     >
-      <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
-        <h2 className="font-mona text-5xl font-bold">
-          Develop locally. Ship globally.
-        </h2>
-
-        <p className="text-xl font-normal text-white text-opacity-65">
-          Launch something amazing without painful devops.
-        </p>
-      </div>
+      <SectionHeading
+        title="Develop locally. Ship globally."
+        subtitle="Launch something amazing without painful devops."
+      />
 
       <div className="grid grid-cols-1 items-center gap-8 py-14 lg:grid-cols-12 lg:py-40">
         <div className="relative z-20 lg:col-span-5">
@@ -198,7 +194,7 @@ export default function WorkflowSection() {
             <li
               className={twMerge(
                 'grid cursor-default grid-cols-[1fr] gap-4 motion-safe:transition-all',
-                activeStep !== 0 && 'text-white text-opacity-65',
+                activeStep !== 0 && 'text-white lg:text-opacity-65',
               )}
             >
               <div
@@ -220,15 +216,13 @@ export default function WorkflowSection() {
                 </span>
               </div>
 
-              {activeStep === 0 && (
-                <CLIWorkflow className="col-span-2 block max-w-full lg:hidden" />
-              )}
+              <CLIWorkflow className="col-span-2 block max-w-full lg:hidden" />
             </li>
 
             <li
               className={twMerge(
                 'grid gap-4 motion-safe:transition-all',
-                activeStep !== 1 && 'text-white text-opacity-65',
+                activeStep !== 1 && 'text-white lg:text-opacity-65',
               )}
             >
               <div
@@ -249,13 +243,13 @@ export default function WorkflowSection() {
                 </span>
               </div>
 
-              {activeStep === 1 && <GitWorkflow className="grid lg:hidden" />}
+              <GitWorkflow className="grid lg:hidden" />
             </li>
 
             <li
               className={twMerge(
                 'grid grid-flow-row items-start gap-4 motion-safe:transition-all',
-                activeStep !== 2 && 'text-white text-opacity-65',
+                activeStep !== 2 && 'text-white lg:text-opacity-65',
               )}
             >
               <div
@@ -277,20 +271,18 @@ export default function WorkflowSection() {
                 </span>
               </div>
 
-              {activeStep === 2 && (
-                <div className="relative z-0 overflow-hidden lg:hidden">
-                  <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
-                    <Image
-                      src="/line-grid.svg"
-                      width={1177}
-                      height={930}
-                      alt="Transparent lines"
-                    />
-                  </div>
-
-                  <CloudWorkflow className="grid lg:hidden" />
+              <div className="relative z-0 overflow-hidden lg:hidden">
+                <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
+                  <Image
+                    src="/line-grid.svg"
+                    width={1177}
+                    height={930}
+                    alt="Transparent lines"
+                  />
                 </div>
-              )}
+
+                <CloudWorkflow className="grid lg:hidden" />
+              </div>
             </li>
           </ul>
         </div>
