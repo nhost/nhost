@@ -13,7 +13,7 @@ export default function IndexPage() {
   return (
     <>
       <Container component="section" className="relative pb-5 lg:pb-11">
-        <div className="grid grid-flow-row justify-center gap-10 pt-25">
+        <div className="grid grid-flow-row justify-center gap-10 pt-8 md:pt-25">
           <SectionHeading
             title={
               <>
@@ -34,7 +34,7 @@ export default function IndexPage() {
             slotProps={{
               title: {
                 component: 'h1',
-                className: 'text-5xl',
+                className: 'text-3.5xl md:text-5xl',
               },
             }}
           />
