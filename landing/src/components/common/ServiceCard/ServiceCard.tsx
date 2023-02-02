@@ -5,9 +5,21 @@ import { ArrowRightIcon } from '../icons/ArrowRightIcon'
 import { Link } from '../Link'
 
 export interface ServiceCardProps extends CardProps {
+  /**
+   * The icon to display in the card.
+   */
   icon: ReactNode
+  /**
+   * The title of the card.
+   */
   title: string
+  /**
+   * The description of the card.
+   */
   description: string
+  /**
+   * The href of the card.
+   */
   href: string
 }
 
@@ -34,7 +46,7 @@ export default function ServiceCard({
       </div>
 
       <div className="grid grid-flow-row gap-2">
-        <p className="text-base font-medium text-white">{title}</p>
+        <p className="font-mona text-base font-bold text-white">{title}</p>
         <p className="text-base text-white text-opacity-65">{description}</p>
       </div>
 

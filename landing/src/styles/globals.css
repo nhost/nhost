@@ -6,6 +6,14 @@ html {
   color-scheme: dark;
 }
 
+.bg-glow-gradient {
+  background: radial-gradient(
+    326.47% 100% at 50% 0%,
+    rgba(0, 102, 255, 0.88) 0%,
+    #000000 100%
+  );
+}
+
 .border-gradient {
   background: linear-gradient(
     90deg,

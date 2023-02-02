@@ -1,5 +1,6 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
+import { CustomerCard } from '@/components/common/CustomerCard'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
@@ -136,7 +137,7 @@ export default function IndexPage() {
 
       <Container
         component="section"
-        slotProps={{ root: { className: 'mt-40' } }}
+        slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         className="grid grid-flow-row gap-14"
       >
         <div className="grid grid-flow-row items-center justify-items-center gap-4">
@@ -245,27 +246,69 @@ export default function IndexPage() {
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         className="grid grid-flow-row gap-14"
       >
-        <div className="grid grid-flow-row justify-center gap-10 pt-25">
+        <div className="grid grid-flow-row justify-center gap-10">
           <SectionHeading
             title="What you can build with Nhost"
             subtitle="What used to take months, now takes minutes."
           />
 
-          <Button
-            className="justify-self-center text-base"
-            href="https://app.nhost.io/sign-up"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Button className="justify-self-center text-base" href="/customers">
             Learn more <ArrowRightIcon />
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <CustomerCard
+            image={
+              <Image
+                src="/customers/slides-with-friends.svg"
+                alt="Logo of Slides with friends"
+                width={142}
+                height={64}
+              />
+            }
+            title="Slides with friends"
+            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
+            href="/customers/slides-with-friends"
+          />
+
+          <CustomerCard
+            image={
+              <Image
+                src="/customers/celsia.svg"
+                alt="Logo of Celsia"
+                width={140}
+                height={40}
+              />
+            }
+            title="Celsia"
+            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
+            href="/customers/celsia"
+          />
+
+          <CustomerCard
+            image={
+              <Image
+                src="/customers/revtron.svg"
+                alt="Logo of Revtron"
+                width={163}
+                height={24}
+              />
+            }
+            title="Revtron"
+            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
+            href="/customers/revtron"
+          />
         </div>
       </Container>
 
       <WorkflowSection />
 
-      <Container component="section" className="grid grid-flow-row gap-14">
-        <div className="grid grid-flow-row justify-center gap-10 pt-25">
+      <Container
+        component="section"
+        className="mt-24 grid grid-flow-row gap-14 lg:mt-40"
+      >
+        <div className="grid grid-flow-row justify-center gap-10">
           <SectionHeading
             title={
               <>
