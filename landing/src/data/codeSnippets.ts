@@ -58,6 +58,22 @@ const CUSTOMERS = gql\`
 \`
 
 const { data, error } = await nhost.graphql.request(CUSTOMERS)`,
+    mutation: `import { useNhostClient } from '@nhost/vue'
+
+const { nhost } = useNhostClient()
+
+const INSERT_CUSTOMER = gql\`
+  mutation InsertCustomer($name: String!) {
+    insertCustomer(object: { name: $name }) {
+      id
+      name
+    }
+  }
+\`
+
+const { data, error } = await nhost.graphql.request(INSERT_CUSTOMER, {
+  variables: { name: "John Doe" }
+})`,
     signUp: `import { useSignUpEmailPassword } from '@nhost/vue'
 
 const {
@@ -184,6 +200,22 @@ const CUSTOMERS = gql\`
 \`
 
 const { data, error } = await nhost.graphql.request(CUSTOMERS)`,
+    mutation: `import { useNhostClient } from '@nhost/nextjs'
+
+const nhost = useNhostClient()
+
+const INSERT_CUSTOMER = gql\`
+  mutation InsertCustomer($name: String!) {
+    insertCustomer(object: { name: $name }) {
+      id
+      name
+    }
+  }
+\`
+
+const { data, error } = await nhost.graphql.request(INSERT_CUSTOMER, {
+  variables: { name: "John Doe" }
+})`,
     signUp: `import { useSignUpEmailPassword } from '@nhost/nextjs'
 
 const {

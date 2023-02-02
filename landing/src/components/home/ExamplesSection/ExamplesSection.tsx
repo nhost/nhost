@@ -47,10 +47,7 @@ export default function ExamplesSection() {
 
       <div className="grid items-center gap-6 xl:grid-cols-2">
         <div className="order-2 col-span-1 xl:order-1">
-          <CodeSnippet
-            language={codeSnippetLanguageMap[activeTechnology]}
-            customStyle={{ minHeight: 633 }}
-          >
+          <CodeSnippet language={codeSnippetLanguageMap[activeTechnology]}>
             {activeSnippet}
           </CodeSnippet>
         </div>
