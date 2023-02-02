@@ -3,6 +3,7 @@ import { Container } from '@/components/common/Container'
 import ArrowRightIcon from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { ServiceCard } from '@/components/common/ServiceCard'
+import WorkflowSection from '@/components/home/WorkflowSection'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 
@@ -39,6 +40,7 @@ export default function IndexPage() {
 
       <Container
         component="section"
+        slotProps={{ root: { className: 'mt-14' } }}
         className="grid grid-flow-row justify-center gap-12 text-center"
       >
         <h2 className="text-base text-white text-opacity-65">
@@ -64,7 +66,7 @@ export default function IndexPage() {
             src="/brands/brand-wattpad.svg"
             alt="Wattpad Logo"
             width={117}
-            height={32}
+            height={26}
           />
 
           <Image
@@ -97,7 +99,11 @@ export default function IndexPage() {
         </div>
       </Container>
 
-      <Container component="section" className="grid grid-flow-row gap-14">
+      <Container
+        component="section"
+        slotProps={{ root: { className: 'mt-40' } }}
+        className="grid grid-flow-row gap-14"
+      >
         <div className="grid grid-flow-row items-center justify-items-center gap-4">
           <div className="gradient-background rounded-full p-px">
             <p className="rounded-full bg-paper px-4.5 py-1.5">
@@ -203,14 +209,40 @@ export default function IndexPage() {
           />
         </div>
       </Container>
+
+      <Container
+        component="section"
+        slotProps={{ root: { className: 'mt-40' } }}
+        className="grid grid-flow-row gap-14"
+      >
+        <div className="grid grid-flow-row justify-center gap-10 pt-25">
+          <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
+            <h2 className="font-mona text-5xl font-bold">
+              What you can build with Nhost
+            </h2>
+
+            <p className="text-xl font-normal text-white text-opacity-65">
+              Get a database and backend configure and ready in minutes so you
+              can focus on your app and your users.
+            </p>
+          </div>
+
+          <Button
+            className="justify-self-center text-base"
+            href="https://app.nhost.io/sign-up"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn more <ArrowRightIcon />
+          </Button>
+        </div>
+      </Container>
+
+      <WorkflowSection />
     </>
   )
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <Layout className="grid grid-flow-row content-start justify-center gap-14">
-      {page}
-    </Layout>
-  )
+  return <Layout>{page}</Layout>
 }
