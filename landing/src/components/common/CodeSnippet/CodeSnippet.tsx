@@ -1,6 +1,6 @@
 import type { SyntaxHighlighterProps } from 'react-syntax-highlighter'
 import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { twilight } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { twMerge } from 'tailwind-merge'
 
 export interface CodeSnippetProps extends SyntaxHighlighterProps {}
@@ -22,7 +22,7 @@ export default function CodeSnippet({
     >
       <SyntaxHighlighter
         language={language}
-        style={twilight}
+        style={nightOwl}
         wrapLongLines
         customStyle={{
           ...customStyle,
@@ -30,7 +30,8 @@ export default function CodeSnippet({
           margin: 0,
           border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: 'none',
-          backgroundColor: '#080808',
+          backgroundColor: '#080808 !important',
+          borderRadius: 6,
           padding: 32,
           zIndex: 1,
         }}

@@ -13,7 +13,7 @@ export default function NotFoundPage() {
     >
       <div className="mx-auto max-w-[1440px] lg:w-full">
         <Image
-          src="/404.svg"
+          src="/common/404.svg"
           width={1504}
           height={666}
           alt="The number 404 with some overlay"

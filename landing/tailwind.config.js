@@ -14,6 +14,7 @@ module.exports = {
       },
       colors: {
         divider: '#262626',
+        default: '#080808',
         paper: '#111111',
         'brand-light': '#8cc1f2',
         'brand-main': '#0066ff',

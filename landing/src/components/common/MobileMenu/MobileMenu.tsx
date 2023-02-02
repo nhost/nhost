@@ -31,7 +31,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               onClick={() => setProductExpanded((current) => !current)}
               variant="borderless"
               className="w-full justify-between text-xl font-normal"
-              size="small"
+              size="sm"
             >
               Product{' '}
               {productExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
@@ -41,7 +41,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
             <ul className="grid grid-flow-row gap-6">
               <li>
                 <Button
-                  size="small"
+                  size="sm"
                   variant="borderless"
                   href="/product/database"
                   className="w-full text-base text-opacity-65"
@@ -52,7 +52,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               </li>
               <li>
                 <Button
-                  size="small"
+                  size="sm"
                   variant="borderless"
                   href="/product/graphql"
                   className="w-full text-base text-opacity-65"
@@ -63,7 +63,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               </li>
               <li>
                 <Button
-                  size="small"
+                  size="sm"
                   variant="borderless"
                   href="/product/auth"
                   className="w-full text-base text-opacity-65"
@@ -74,7 +74,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               </li>
               <li>
                 <Button
-                  size="small"
+                  size="sm"
                   variant="borderless"
                   href="/product/storage"
                   className="w-full text-base text-opacity-65"
@@ -85,7 +85,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               </li>
               <li>
                 <Button
-                  size="small"
+                  size="sm"
                   variant="borderless"
                   href="/product/functions"
                   className="w-full text-base text-opacity-65"
@@ -98,7 +98,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
           )}
           <li>
             <Button
-              size="small"
+              size="sm"
               variant="borderless"
               href="/pricing"
               className="w-full text-xl font-normal"
@@ -109,7 +109,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
           </li>
           <li>
             <Button
-              size="small"
+              size="sm"
               variant="borderless"
               href="/blog"
               className="w-full text-xl font-normal"
@@ -120,7 +120,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
           </li>
           <li>
             <Button
-              size="small"
+              size="sm"
               variant="borderless"
               href="/about"
               className="w-full text-xl font-normal"
@@ -131,7 +131,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
           </li>
           <li>
             <Button
-              size="small"
+              size="sm"
               variant="borderless"
               href="/changelog"
               className="w-full text-xl font-normal"
@@ -142,7 +142,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
           </li>
           <li>
             <Button
-              size="small"
+              size="sm"
               variant="borderless"
               href="/customers"
               className="w-full text-xl font-normal"

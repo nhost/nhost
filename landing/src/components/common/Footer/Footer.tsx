@@ -24,7 +24,7 @@ export default function Footer() {
       }}
     >
       <div className="col-span-12 grid grid-flow-col place-content-between lg:col-span-4 lg:grid-flow-row">
-        <Image src="/logo.svg" width={71} height={24} alt="Nhost Logo" />
+        <Image src="/common/logo.svg" width={71} height={24} alt="Nhost Logo" />
 
         <div className="grid grid-flow-col items-center justify-start gap-6 opacity-65">
           <Link

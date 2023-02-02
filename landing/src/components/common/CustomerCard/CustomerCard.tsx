@@ -39,7 +39,7 @@ export default function CustomerCard({
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
         <div className="absolute top-0 left-0 right-0 bottom-0 z-10 h-full w-full">
           <Image
-            src="/line-grid.svg"
+            src="/common/line-grid.svg"
             width={1003}
             height={644}
             alt="Transparent lines"

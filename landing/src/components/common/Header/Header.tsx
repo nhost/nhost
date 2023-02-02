@@ -51,7 +51,7 @@ export default function Header({
       >
         <Link href="/" onClick={() => setMobileMenuVisible(false)}>
           <Image
-            src="/logo.svg"
+            src="/common/logo.svg"
             width={71}
             height={24}
             alt="Nhost Logo"
@@ -85,7 +85,7 @@ export default function Header({
             href="https://app.nhost.io/sign-in"
             target="_blank"
             rel="noopener noreferrer"
-            size="small"
+            size="sm"
             variant="borderless"
           >
             Sign in
@@ -95,7 +95,7 @@ export default function Header({
             href="https://app.nhost.io/sign-up"
             target="_blank"
             rel="noopener noreferrer"
-            size="small"
+            size="sm"
           >
             Sign up
           </Button>

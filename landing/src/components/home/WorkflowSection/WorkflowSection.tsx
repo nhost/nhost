@@ -116,7 +116,7 @@ git push origin`
         )}
       >
         <Image
-          src="/deployments.png"
+          src="/images/deployments.png"
           alt="A list of deployments in the Nhost Dashboard"
           width={846}
           height={242}
@@ -179,11 +179,11 @@ export default function WorkflowSection() {
         subtitle="Launch something amazing without painful devops."
       />
 
-      <div className="mt-14 grid grid-cols-1 items-center gap-8 lg:mt-24 lg:grid-cols-12">
+      <div className="mt-14 grid grid-cols-1 items-center gap-6 lg:mt-24 lg:grid-cols-12">
         <div className="relative z-20 lg:col-span-5">
           <div className="absolute left-[3px] top-1/2 hidden -translate-y-1/2 lg:block">
             <Image
-              src="/dashed-line.svg"
+              src="/common/dashed-line.svg"
               width={1}
               height={386}
               alt="A dashed line"
@@ -274,7 +274,7 @@ export default function WorkflowSection() {
               <div className="relative z-0 overflow-hidden lg:hidden">
                 <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
                   <Image
-                    src="/line-grid.svg"
+                    src="/common/line-grid.svg"
                     width={1177}
                     height={930}
                     alt="Transparent lines"
@@ -290,7 +290,7 @@ export default function WorkflowSection() {
         <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
           <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
             <Image
-              src="/line-grid.svg"
+              src="/common/line-grid.svg"
               width={1177}
               height={930}
               alt="Transparent lines"

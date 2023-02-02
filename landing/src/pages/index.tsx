@@ -5,6 +5,7 @@ import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { ServiceCard } from '@/components/common/ServiceCard'
+import { ExamplesSection } from '@/components/home/ExamplesSection'
 import WorkflowSection from '@/components/home/WorkflowSection'
 import Image from 'next/image'
 import { ReactElement } from 'react'
@@ -62,7 +63,7 @@ export default function IndexPage() {
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
 
         <Image
-          src="/overview.png"
+          src="/images/overview.png"
           alt="The Nhost Dashboard's overview page"
           width={1442}
           height={902}
@@ -303,24 +304,7 @@ export default function IndexPage() {
       </Container>
 
       <WorkflowSection />
-
-      <Container
-        component="section"
-        className="mt-24 grid grid-flow-row gap-14 lg:mt-40"
-      >
-        <div className="grid grid-flow-row justify-center gap-10">
-          <SectionHeading
-            title={
-              <>
-                Built by developers,
-                <br />
-                for developers
-              </>
-            }
-            subtitle="What used to take months, now takes minutes."
-          />
-        </div>
-      </Container>
+      <ExamplesSection />
     </>
   )
 }
