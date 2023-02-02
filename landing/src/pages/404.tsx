@@ -1,6 +1,6 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
-import ArrowLeftIcon from '@/components/common/icons/ArrowLeftIcon'
+import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
 import { Layout } from '@/components/common/Layout'
 import Image from 'next/image'
 import { ReactElement } from 'react'

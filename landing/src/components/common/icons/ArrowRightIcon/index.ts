@@ -1,2 +1,2 @@
 export * from './ArrowRightIcon'
-export { default } from './ArrowRightIcon'
+export { default as ArrowRightIcon } from './ArrowRightIcon'

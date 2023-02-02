@@ -28,8 +28,7 @@ export default function Layout({
       <Header
         slotProps={{
           root: {
-            className:
-              'fixed top-0 left-0 right-0 bg-black bg-opacity-[1%] backdrop-blur',
+            className: 'fixed top-0 left-0 right-0',
           },
         }}
       />

@@ -1,6 +1,6 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
-import ArrowRightIcon from '@/components/common/icons/ArrowRightIcon'
+import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { ServiceCard } from '@/components/common/ServiceCard'
 import WorkflowSection from '@/components/home/WorkflowSection'

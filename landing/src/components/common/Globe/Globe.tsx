@@ -39,6 +39,7 @@ export default function Globe() {
     })
 
     return () => {
+      setSize(undefined)
       globe.destroy()
     }
   }, [size])
