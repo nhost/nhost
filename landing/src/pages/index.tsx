@@ -1,8 +1,8 @@
-import { Button } from '@/components/Button'
-import { Container } from '@/components/Container'
-import ArrowRightIcon from '@/components/icons/ArrowRightIcon'
-import { Layout } from '@/components/Layout'
-import { ServiceCard } from '@/components/ServiceCard'
+import { Button } from '@/components/common/Button'
+import { Container } from '@/components/common/Container'
+import ArrowRightIcon from '@/components/common/icons/ArrowRightIcon'
+import { Layout } from '@/components/common/Layout'
+import { ServiceCard } from '@/components/common/ServiceCard'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 
@@ -119,42 +119,84 @@ export default function IndexPage() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/postgres.svg"
+                width={24}
+                height={24}
+                alt="Logo of Postgres"
+              />
+            }
             title="Postgres Database"
             description="The world's most advanced relational database."
             href="/product/postgres"
           />
 
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/graphql.svg"
+                width={24}
+                height={24}
+                alt="Logo of GraphQL"
+              />
+            }
             title="GraphQL API"
             description="Instant Realtime GraphQL API based on your tables and columns in the database."
             href="/product/graphql"
           />
 
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/hasura.svg"
+                width={24}
+                height={24}
+                alt="Logo of Hasura"
+              />
+            }
             title="Hasura"
             description="GraphQL API, Role-Based Permissions, Web Console, Event Triggers, Cron Jobs, and more."
             href="/product/hasura"
           />
 
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/authentication.svg"
+                width={24}
+                height={24}
+                alt="A user icon"
+              />
+            }
             title="Authentication"
             description="Sign in users with email, magic links, SMS, Google, Facebook, etc."
             href="/product/auth"
           />
 
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/storage.svg"
+                width={24}
+                height={24}
+                alt="A file icon"
+              />
+            }
             title="Storage (with CDN)"
             description="Let users upload and download images, documents and other files."
             href="/product/storage"
           />
 
           <ServiceCard
-            icon={<></>}
+            icon={
+              <Image
+                src="/products/functions.svg"
+                width={24}
+                height={24}
+                alt="Lambda icon"
+              />
+            }
             title="Serverless Functions"
             description="Run custom code using JavaScript and Typescript with infinite scale."
             href="/product/functions"

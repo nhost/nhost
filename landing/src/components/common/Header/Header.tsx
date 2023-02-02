@@ -1,8 +1,8 @@
-import { Button } from '@/components/Button'
-import { Container, ContainerProps } from '@/components/Container'
-import { Link } from '@/components/Link'
 import Image from 'next/image'
 import { twMerge } from 'tailwind-merge'
+import { Button } from '../Button'
+import { Container, ContainerProps } from '../Container'
+import { Link } from '../Link'
 
 export interface HeaderProps extends ContainerProps {}
 

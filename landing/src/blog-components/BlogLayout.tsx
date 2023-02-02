@@ -1,9 +1,8 @@
-import { Layout } from '@/components/Layout'
-import Head from 'next/head'
+import { Container } from '@/components/common/Container'
+import { Layout } from '@/components/common/Layout'
 import { format, parseISO } from 'date-fns'
-import { Container } from '@/components/Container'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 export function formatDate(dateString: string) {
   return new Date(`${dateString}T00:00:00Z`).toLocaleDateString('en-US', {
