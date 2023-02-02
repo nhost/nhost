@@ -53,13 +53,18 @@ export default function ExamplesSection() {
         </div>
 
         <div className="order-1 col-span-1 grid grid-flow-row content-start gap-24 xl:order-2 xl:pt-16">
-          <div className="relative z-10 flex w-full flex-row justify-center gap-6">
+          <div className="relative z-10 flex w-full flex-row justify-between lg:justify-center lg:gap-6">
             <Button
               variant={activeExample === 'signUp' ? 'outlined' : 'borderless'}
               size="sm"
               className={twMerge(
-                'bg-default',
-                activeExample !== 'signUp' && 'text-opacity-65',
+                'border-0 hover:bg-transparent lg:border',
+                'px-0 lg:px-2',
+                'text-xs lg:text-sm',
+                'rounded-none lg:rounded-md',
+                activeExample !== 'signUp'
+                  ? 'text-opacity-65'
+                  : 'border-b border-b-white lg:border-b-divider',
               )}
               onClick={() => setActiveExample('signUp')}
             >
@@ -70,8 +75,13 @@ export default function ExamplesSection() {
               variant={activeExample === 'query' ? 'outlined' : 'borderless'}
               size="sm"
               className={twMerge(
-                'bg-default',
-                activeExample !== 'query' && 'text-opacity-65',
+                'border-0 hover:bg-transparent lg:border',
+                'px-0 lg:px-2',
+                'text-xs lg:text-sm',
+                'rounded-none lg:rounded-md',
+                activeExample !== 'query'
+                  ? 'text-opacity-65'
+                  : 'border-b border-b-white lg:border-b-divider',
               )}
               onClick={() => setActiveExample('query')}
             >
@@ -82,8 +92,13 @@ export default function ExamplesSection() {
               variant={activeExample === 'mutation' ? 'outlined' : 'borderless'}
               size="sm"
               className={twMerge(
-                'bg-default',
-                activeExample !== 'mutation' && 'text-opacity-65',
+                'border-0 hover:bg-transparent lg:border',
+                'px-0 lg:px-2',
+                'text-xs lg:text-sm',
+                'rounded-none lg:rounded-md',
+                activeExample !== 'mutation'
+                  ? 'text-opacity-65'
+                  : 'border-b border-b-white lg:border-b-divider',
               )}
               onClick={() => setActiveExample('mutation')}
             >
@@ -96,8 +111,13 @@ export default function ExamplesSection() {
               }
               size="sm"
               className={twMerge(
-                'bg-default',
-                activeExample !== 'fileUpload' && 'text-opacity-65',
+                'border-0 hover:bg-transparent lg:border',
+                'px-0 lg:px-2',
+                'text-xs lg:text-sm',
+                'rounded-none lg:rounded-md',
+                activeExample !== 'fileUpload'
+                  ? 'text-opacity-65'
+                  : 'border-b border-b-white lg:border-b-divider',
               )}
               onClick={() => setActiveExample('fileUpload')}
             >
@@ -105,14 +125,18 @@ export default function ExamplesSection() {
             </Button>
           </div>
 
-          <div className="z-10 flex w-full flex-row justify-center gap-6">
+          <div className="z-10 flex w-full flex-row justify-between lg:justify-center lg:gap-6">
             <Button
               variant={
                 activeTechnology === 'javascript' ? 'outlined' : 'borderless'
               }
               size="sm"
               className={twMerge(
-                'bg-default',
+                'justify-items-center hover:bg-transparent',
+                'grid-flow-row lg:grid-flow-col',
+                'border-0 lg:border',
+                'px-0 py-0 lg:px-4 lg:py-2',
+                'text-xs lg:text-sm',
                 activeTechnology !== 'javascript' && 'text-opacity-65',
               )}
               onClick={() => setActiveTechnology('javascript')}
@@ -124,7 +148,11 @@ export default function ExamplesSection() {
               variant={activeTechnology === 'vue' ? 'outlined' : 'borderless'}
               size="sm"
               className={twMerge(
-                'bg-default',
+                'justify-items-center hover:bg-transparent',
+                'grid-flow-row lg:grid-flow-col',
+                'border-0 lg:border',
+                'px-0 py-0 lg:px-4 lg:py-2',
+                'text-xs lg:text-sm',
                 activeTechnology !== 'vue' && 'text-opacity-65',
               )}
               onClick={() => setActiveTechnology('vue')}
@@ -136,7 +164,11 @@ export default function ExamplesSection() {
               variant={activeTechnology === 'react' ? 'outlined' : 'borderless'}
               size="sm"
               className={twMerge(
-                'bg-default',
+                'justify-items-center hover:bg-transparent',
+                'grid-flow-row lg:grid-flow-col',
+                'border-0 lg:border',
+                'px-0 py-0 lg:px-4 lg:py-2',
+                'text-xs lg:text-sm',
                 activeTechnology !== 'react' && 'text-opacity-65',
               )}
               onClick={() => setActiveTechnology('react')}
@@ -150,7 +182,11 @@ export default function ExamplesSection() {
               }
               size="sm"
               className={twMerge(
-                'bg-default',
+                'justify-items-center hover:bg-transparent',
+                'grid-flow-row lg:grid-flow-col',
+                'border-0 lg:border',
+                'px-0 py-0 lg:px-4 lg:py-2',
+                'text-xs lg:text-sm',
                 activeTechnology !== 'nextjs' && 'text-opacity-65',
               )}
               onClick={() => setActiveTechnology('nextjs')}
@@ -164,7 +200,11 @@ export default function ExamplesSection() {
               }
               size="sm"
               className={twMerge(
-                'bg-default',
+                'justify-items-center hover:bg-transparent',
+                'grid-flow-row lg:grid-flow-col',
+                'border-0 lg:border',
+                'px-0 py-0 lg:px-4 lg:py-2',
+                'text-xs lg:text-sm',
                 activeTechnology !== 'flutter' && 'text-opacity-65',
               )}
               onClick={() => setActiveTechnology('flutter')}

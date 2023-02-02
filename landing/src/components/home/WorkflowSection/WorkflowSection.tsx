@@ -38,18 +38,18 @@ function CLIWorkflow({
   const { ref, inView } = useInView()
   const codeString = `$ nhost up
 
-  - Postgres:         postgres://postgres:postgres@localhost:5432/postgres
-  - GraphQL:          http://localhost:1337/v1/graphql
-  - Auth:             http://localhost:1337/v1/auth
-  - Storage:          http://localhost:1337/v1/storage
-  - Functions:        http://localhost:1337/v1/functions
-  
-  - Hasura console:  http://localhost:9695
-  
-  - Mailhog:         http://localhost:8025
-  
-  - subdomain:       localhost
-  - region:          (empty)`
+- Postgres:         postgres://postgres:postgres@localhost:5432/postgres
+- GraphQL:          http://localhost:1337/v1/graphql
+- Auth:             http://localhost:1337/v1/auth
+- Storage:          http://localhost:1337/v1/storage
+- Functions:        http://localhost:1337/v1/functions
+
+- Hasura console:  http://localhost:9695
+
+- Mailhog:         http://localhost:8025
+
+- subdomain:       localhost
+- region:          (empty)`
 
   const [code, setCode] = useState(`$`)
 
