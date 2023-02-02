@@ -146,8 +146,18 @@ describe('Hasura', () => {
   it('should work with unions', async () => {
     const result = await client.query.everyone({
       on: {
-        Human: true,
-        Dog: { select: { name: true, barks: true } },
+        Human: { select: { pets: { select: { diet: true } } } },
+        Dog: {
+          select: {
+            name: true,
+            barks: true,
+            owner: {
+              select: {
+                pets: { on: { Hamster: { select: { squeaks: true } } }, select: { name: true } }
+              }
+            }
+          }
+        },
         Hamster: { select: { name: true, diet: true } }
       }
     })
@@ -156,18 +166,61 @@ describe('Hasura', () => {
       [
         {
           "__typename": "Human",
-          "firstName": "John",
-          "phoneNumber": "123-456-7890",
+          "pets": [
+            {
+              "diet": "CARNIVOROUS",
+            },
+            {
+              "diet": "CARNIVOROUS",
+            },
+            {
+              "diet": "HERBIVOROUS",
+            },
+          ],
         },
         {
           "__typename": "Dog",
           "barks": false,
           "name": "Fido",
+          "owner": {
+            "pets": [
+              {
+                "__typename": "Dog",
+                "name": "Fido",
+              },
+              {
+                "__typename": "Dog",
+                "name": "Rover",
+              },
+              {
+                "__typename": "Hamster",
+                "name": "Hammy",
+                "squeaks": true,
+              },
+            ],
+          },
         },
         {
           "__typename": "Dog",
           "barks": true,
           "name": "Rover",
+          "owner": {
+            "pets": [
+              {
+                "__typename": "Dog",
+                "name": "Fido",
+              },
+              {
+                "__typename": "Dog",
+                "name": "Rover",
+              },
+              {
+                "__typename": "Hamster",
+                "name": "Hammy",
+                "squeaks": true,
+              },
+            ],
+          },
         },
         {
           "__typename": "Hamster",

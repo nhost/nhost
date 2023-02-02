@@ -27,9 +27,11 @@ type ParametersOf<
   OperationType extends OperationTypes,
   Element extends Record<string, any>,
   Definition,
-  FieldName extends string,
+  FieldName extends string | undefined,
   FieldTypeRef extends FieldDefinition = Definition extends { fields: readonly any[] }
     ? PickFirstTupleItemThatExtends<Definition['fields'], { name: FieldName }>
+    : Definition extends FieldDefinition
+    ? Definition
     : never,
   FieldType extends ObjectType | InterfaceType | UnionType = ConcreteTypeOf<
     Schema,
@@ -74,8 +76,8 @@ type ParametersOf<
               Schema,
               OperationType,
               Schema['types'][key['name']],
-              ConcreteTypeOf<Schema, key>,
-              string & keyof Schema['types'][key['name']]
+              { name: key['name']; type: ConcreteTypeOf<Schema, key> },
+              undefined
             >
           | true
       }
@@ -161,7 +163,9 @@ export type OperationFactory<
         >
       >(
         // * Parameters are required when variables are required
-        ...parameters: ExactParams extends { variables: any } ? [ExactParams] : [ExactParams?]
+        ...parameters: ExactParams extends { variables: any } | { on: any }
+          ? [ExactParams]
+          : [ExactParams?]
       ) => Promise<Result>
     }>
   : {}
