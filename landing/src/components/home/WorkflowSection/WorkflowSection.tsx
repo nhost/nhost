@@ -6,7 +6,9 @@ import { DetailedHTMLProps, HTMLProps, useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
-const Globe = dynamic(() => import('@/components/common/Globe/Globe'))
+const Globe = dynamic(() => import('@/components/common/Globe/Globe'), {
+  loading: () => <div className="h-80 w-full" />,
+})
 
 function Dot({ active }: { active: boolean }) {
   return (
@@ -136,7 +138,7 @@ function CloudWorkflow({
       )}
       {...props}
     >
-      <div className="relative z-0">
+      <div className="relative z-0 h-60 md:h-80">
         <Globe />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
@@ -144,7 +146,7 @@ function CloudWorkflow({
         <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-[98px]" />
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-0">
+      <div className="relative z-10 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">
         <div className="grid grid-flow-row gap-2 text-center">
           <p className="font-mona text-5xl font-bold">6</p>
           <p className="text-base">Regions</p>
@@ -194,79 +196,100 @@ export default function WorkflowSection() {
 
           <ul className="grid grid-flow-row gap-16 text-base">
             <li
-              role="button"
-              tabIndex={0}
-              aria-label="CLI"
-              onClick={() => setActiveStep(0)}
-              onKeyDown={() => setActiveStep(0)}
               className={twMerge(
-                'grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4 motion-safe:transition-all',
+                'grid cursor-default grid-cols-[1fr] gap-4 motion-safe:transition-all',
                 activeStep !== 0 && 'text-white text-opacity-65',
               )}
             >
-              <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Dot active={activeStep === 0} />
+              <div
+                className="col-span-2 grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4"
+                role="button"
+                tabIndex={0}
+                aria-label="CLI"
+                onClick={() => setActiveStep(0)}
+                onKeyDown={() => setActiveStep(0)}
+              >
+                <div className="grid grid-flow-col items-center justify-start gap-4">
+                  <Dot active={activeStep === 0} />
 
-                <span>CLI</span>
+                  <span>CLI</span>
+                </div>
+
+                <span>
+                  Run the entire Nhost platform, right from the terminal.
+                </span>
               </div>
 
-              <span>
-                Run the entire Nhost platform, right from the terminal.
-              </span>
-
               {activeStep === 0 && (
-                <CLIWorkflow className="col-span-2 block lg:hidden" />
+                <CLIWorkflow className="col-span-2 block max-w-full lg:hidden" />
               )}
             </li>
 
             <li
-              role="button"
-              tabIndex={0}
-              aria-label="Git"
-              onClick={() => setActiveStep(1)}
-              onKeyDown={() => setActiveStep(1)}
               className={twMerge(
-                'grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4 motion-safe:transition-all',
+                'grid gap-4 motion-safe:transition-all',
                 activeStep !== 1 && 'text-white text-opacity-65',
               )}
             >
-              <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Dot active={activeStep === 1} />
-                <span>Git</span>
+              <div
+                className="grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4"
+                role="button"
+                tabIndex={0}
+                aria-label="Git"
+                onClick={() => setActiveStep(1)}
+                onKeyDown={() => setActiveStep(1)}
+              >
+                <div className="grid grid-flow-col items-center justify-start gap-4">
+                  <Dot active={activeStep === 1} />
+                  <span>Git</span>
+                </div>
+
+                <span>
+                  Use Git to push and deploy your backend with effortless CI/CD.
+                </span>
               </div>
 
-              <span>
-                Use Git to push and deploy your backend with effortless CI/CD.
-              </span>
-
-              {activeStep === 1 && (
-                <GitWorkflow className="col-span-2 grid lg:hidden" />
-              )}
+              {activeStep === 1 && <GitWorkflow className="grid lg:hidden" />}
             </li>
 
             <li
-              role="button"
-              tabIndex={0}
-              aria-label="Cloud"
-              onClick={() => setActiveStep(2)}
-              onKeyDown={() => setActiveStep(2)}
               className={twMerge(
-                'grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4 motion-safe:transition-all',
+                'grid grid-flow-row items-start gap-4 motion-safe:transition-all',
                 activeStep !== 2 && 'text-white text-opacity-65',
               )}
             >
-              <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Dot active={activeStep === 2} />
-                <span>Cloud</span>
+              <div
+                className="grid cursor-pointer grid-cols-[72px_1fr] items-start gap-4"
+                role="button"
+                tabIndex={0}
+                aria-label="Cloud"
+                onClick={() => setActiveStep(2)}
+                onKeyDown={() => setActiveStep(2)}
+              >
+                <div className="grid grid-flow-col items-center justify-start gap-4">
+                  <Dot active={activeStep === 2} />
+                  <span>Cloud</span>
+                </div>
+
+                <span>
+                  Your project is deployed on infrastructure configured for
+                  maximum scalability and security.
+                </span>
               </div>
 
-              <span>
-                Your project is deployed on infrastructure configured for
-                maximum scalability and security.
-              </span>
-
               {activeStep === 2 && (
-                <CloudWorkflow className="col-span-2 grid lg:hidden" />
+                <div className="relative z-0 overflow-hidden lg:hidden">
+                  <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
+                    <Image
+                      src="/line-grid.svg"
+                      width={1177}
+                      height={930}
+                      alt="Transparent lines"
+                    />
+                  </div>
+
+                  <CloudWorkflow className="grid lg:hidden" />
+                </div>
               )}
             </li>
           </ul>

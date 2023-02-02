@@ -18,6 +18,7 @@ export default function App({ Component, pageProps }: LandingPageProps) {
   return (
     <>
       <DefaultSeo
+        defaultTitle="Nhost: The Open Source Firebase Alternative with GraphQL"
         title="Nhost: The Open Source Firebase Alternative with GraphQL"
         titleTemplate="%s | Nhost"
         description="Nhost is an open source Firebase alternative with GraphQL, built with the following things in mind: Open Source, GraphQL, SQL, Great Developer Experience"
