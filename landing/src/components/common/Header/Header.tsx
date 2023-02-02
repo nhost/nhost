@@ -49,7 +49,7 @@ export default function Header({
         )}
         {...props}
       >
-        <Link href="/">
+        <Link href="/" onClick={() => setMobileMenuVisible(false)}>
           <Image
             src="/logo.svg"
             width={71}
