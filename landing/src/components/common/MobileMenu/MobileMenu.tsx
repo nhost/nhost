@@ -44,7 +44,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   size="small"
                   variant="borderless"
                   href="/product/database"
-                  className="text-base text-opacity-65"
+                  className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
                   Database
@@ -55,7 +55,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   size="small"
                   variant="borderless"
                   href="/product/graphql"
-                  className="text-base text-opacity-65"
+                  className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
                   GraphQL
@@ -66,7 +66,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   size="small"
                   variant="borderless"
                   href="/product/auth"
-                  className="text-base text-opacity-65"
+                  className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
                   Auth
@@ -77,7 +77,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   size="small"
                   variant="borderless"
                   href="/product/storage"
-                  className="text-base text-opacity-65"
+                  className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
                   Storage
@@ -88,7 +88,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   size="small"
                   variant="borderless"
                   href="/product/functions"
-                  className="text-base text-opacity-65"
+                  className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
                   Functions
@@ -101,7 +101,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               size="small"
               variant="borderless"
               href="/pricing"
-              className="text-xl font-normal"
+              className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
               Pricing
@@ -112,7 +112,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               size="small"
               variant="borderless"
               href="/blog"
-              className="text-xl font-normal"
+              className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
               Blog
@@ -123,7 +123,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               size="small"
               variant="borderless"
               href="/about"
-              className="text-xl font-normal"
+              className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
               About
@@ -134,7 +134,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               size="small"
               variant="borderless"
               href="/changelog"
-              className="text-xl font-normal"
+              className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
               Changelog
@@ -145,7 +145,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               size="small"
               variant="borderless"
               href="/customers"
-              className="text-xl font-normal"
+              className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
               Customers
