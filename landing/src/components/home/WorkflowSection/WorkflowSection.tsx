@@ -151,7 +151,7 @@ export default function WorkflowSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
-      className="grid grid-flow-row gap-14"
+      className="grid grid-flow-row gap-14 overflow-hidden"
     >
       <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
         <h2 className="font-mona text-5xl font-bold">
@@ -163,8 +163,8 @@ export default function WorkflowSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-        <div className="relative lg:col-span-5">
+      <div className="grid grid-cols-1 items-center gap-8 py-14 lg:grid-cols-12 lg:py-40">
+        <div className="relative z-20 lg:col-span-5">
           <div className="absolute left-[3px] top-1/2 hidden -translate-y-1/2 lg:block">
             <Image
               src="/dashed-line.svg"
@@ -251,7 +251,7 @@ export default function WorkflowSection() {
         </div>
 
         <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
-          <div className="absolute h-full w-full scale-[225%]">
+          <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
             <Image
               src="/line-grid.svg"
               width={1177}
@@ -260,9 +260,11 @@ export default function WorkflowSection() {
             />
           </div>
 
-          {activeStep === 0 && <CLIWorkflow className="z-10" />}
-          {activeStep === 1 && <GitWorkflow className="z-10" />}
-          {activeStep === 2 && <CloudWorkflow />}
+          <div className="relative z-10">
+            {activeStep === 0 && <CLIWorkflow className="z-10" />}
+            {activeStep === 1 && <GitWorkflow className="z-10" />}
+            {activeStep === 2 && <CloudWorkflow />}
+          </div>
         </div>
       </div>
     </Container>

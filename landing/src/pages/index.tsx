@@ -37,29 +37,30 @@ export default function IndexPage() {
             Start building <ArrowRightIcon />
           </Button>
         </div>
-
-        <div
-          className={twMerge(
-            'relative mt-14',
-            'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
-            'after:z-0 after:mx-auto after:h-full after:w-full after:max-w-5xl after:rounded-full',
-            'after:bg-brand-main after:bg-opacity-40 after:blur-[156px]',
-          )}
-        >
-          <div className="bg-black-to-transparent absolute top-0 z-20 h-full w-full" />
-          <Image
-            src="/overview.png"
-            alt="The Nhost Dashboard's overview page"
-            width={1442}
-            height={902}
-            quality={100}
-            className="relative z-10 mx-auto w-full max-w-5xl"
-            priority
-          />
-        </div>
-
-        <div className="absolute -bottom-24 z-30 h-36 w-full bg-black"></div>
       </Container>
+
+      <section
+        className={twMerge(
+          'relative mx-auto mt-14 px-5',
+          'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
+          'after:z-0 after:mx-auto after:h-full after:w-full after:max-w-5xl after:rounded-full',
+          'after:bg-brand-main after:bg-opacity-40 after:blur-[156px]',
+        )}
+      >
+        <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
+
+        <Image
+          src="/overview.png"
+          alt="The Nhost Dashboard's overview page"
+          width={1442}
+          height={902}
+          quality={100}
+          className="relative z-10 mx-auto w-full max-w-5xl"
+          priority
+        />
+
+        <div className="absolute -bottom-32 left-0 right-0 z-30 h-36 w-full bg-black"></div>
+      </section>
 
       <Container
         component="section"
