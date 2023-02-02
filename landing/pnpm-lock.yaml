@@ -12,6 +12,7 @@ specifiers:
   '@types/react-dom': 18.0.10
   '@types/react-syntax-highlighter': ^15.5.6
   autoprefixer: ^10.4.13
+  cobe: ^0.6.3
   date-fns: ^2.29.3
   eslint: 8.33.0
   eslint-config-next: 13.1.6
@@ -39,6 +40,7 @@ dependencies:
   '@next/mdx': 13.1.6_vvg67iglxhejglpl7nsv3pjzui
   '@types/react': 18.0.27
   '@types/react-dom': 18.0.10
+  cobe: 0.6.3
   date-fns: 2.29.3
   eslint: 8.33.0
   eslint-config-next: 13.1.6_4vsywjlpuriuw3tl5oq6zy5a64
@@ -982,6 +984,12 @@ packages:
     resolution: {integrity: sha512-ROoL94jJH2dUVML2Y/5PEDNaSHgeOdSDicUyS7izcF63G6sTc/FTjLub4b8Il9S8S0beOfYt0TaA5qvFK+w0wA==}
     dependencies:
       mimic-response: 1.0.1
+    dev: false
+
+  /cobe/0.6.3:
+    resolution: {integrity: sha512-WHr7X4o1ym94GZ96h7b1pNemZJacbOzd02dZtnVwuC4oWBaLg96PBmp2rIS1SAhUDhhC/QyS9WEqkpZIs/ZBTg==}
+    dependencies:
+      phenomenon: 1.6.0
     dev: false
 
   /color-convert/1.9.3:
@@ -3866,6 +3874,10 @@ packages:
       '@types/estree': 1.0.0
       estree-walker: 3.0.3
       is-reference: 3.0.1
+    dev: false
+
+  /phenomenon/1.6.0:
+    resolution: {integrity: sha512-7h9/fjPD3qNlgggzm88cY58l9sudZ6Ey+UmZsizfhtawO6E3srZQXywaNm2lBwT72TbpHYRPy7ytIHeBUD/G0A==}
     dev: false
 
   /picocolors/1.0.0:

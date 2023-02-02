@@ -1,9 +1,12 @@
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { DetailedHTMLProps, HTMLProps, useEffect, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
+
+const Globe = dynamic(() => import('@/components/common/Globe/Globe'))
 
 function Dot({ active }: { active: boolean }) {
   return (
@@ -121,12 +124,27 @@ git push origin`
   )
 }
 
-function CloudWorkflow() {
+function CloudWorkflow({
+  className,
+  ...props
+}: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
   return (
-    <div className="grid grid-flow-row">
-      {/* Globe */}
+    <div
+      className={twMerge(
+        'grid grid-flow-row justify-center gap-6 lg:-mt-16',
+        className,
+      )}
+      {...props}
+    >
+      <div className="relative z-0">
+        <Globe />
+        <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
+        <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
+        <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
+        <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-[98px]" />
+      </div>
 
-      <div className="grid grid-cols-3">
+      <div className="relative z-10 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-0">
         <div className="grid grid-flow-row gap-2 text-center">
           <p className="font-mona text-5xl font-bold">6</p>
           <p className="text-base">Regions</p>
@@ -246,6 +264,10 @@ export default function WorkflowSection() {
                 Your project is deployed on infrastructure configured for
                 maximum scalability and security.
               </span>
+
+              {activeStep === 2 && (
+                <CloudWorkflow className="col-span-2 grid lg:hidden" />
+              )}
             </li>
           </ul>
         </div>

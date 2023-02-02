@@ -6,6 +6,30 @@ html {
   color-scheme: dark;
 }
 
+.border-gradient {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    #0066ff 15.56%,
+    #0066ff 84.62%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.bg-brand-main-to-transparent {
+  background: linear-gradient(180deg, #0066ff 0%, rgba(0, 0, 0, 0) 84.56%);
+}
+
+.globe-canvas {
+  max-width: 600px;
+}
+
+@media screen and (max-width: 600px) {
+  .globe-canvas {
+    max-width: 374px;
+  }
+}
+
 .gradient-background {
   background: radial-gradient(
     131.31% 131.31% at 50% -1.06%,
