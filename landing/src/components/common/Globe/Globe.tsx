@@ -26,7 +26,10 @@ export default function Globe() {
       markerColor: [0, 0.4, 1],
       glowColor: [0, 0, 0],
       markers: [
-        { location: [37.7595, -122.4367], size: 0.05 },
+        { location: [37.7595, -122.4367], size: 0.02 },
+        { location: [20.7128, -74.006], size: 0.05 },
+        { location: [5.7128, -74.006], size: 0.05 },
+        { location: [140.7128, -74.006], size: 0.05 },
         { location: [40.7128, -74.006], size: 0.05 },
       ],
       onRender: (state) => {
@@ -69,7 +72,7 @@ export default function Globe() {
   return (
     <div className="relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80">
       <canvas
-        className="globe-canvas bg-black fill-black"
+        className="globe-canvas bg-black fill-black md:-ml-10"
         ref={canvasRef}
         width={size * 2}
         height={size * 2}
