@@ -10,14 +10,14 @@ function Dot({ active }: { active: boolean }) {
     <div className="relative h-2 w-2">
       <div
         className={twMerge(
-          'absolute h-full w-full rounded-full',
+          'absolute h-full w-full rounded-full motion-safe:transition-all',
           active && 'animate-ping bg-brand-main',
         )}
       />
 
       <div
         className={twMerge(
-          'absolute h-full w-full rounded-full bg-white',
+          'absolute h-full w-full rounded-full bg-white motion-safe:transition-all',
           !active && 'bg-opacity-65',
         )}
       />
@@ -69,12 +69,14 @@ function CLIWorkflow({
   }, [code, codeString, inView])
 
   return (
-    <div
-      ref={ref}
-      className={twMerge('relative min-h-[381px]', className)}
-      {...props}
-    >
-      <CodeSnippet customStyle={{ minHeight: 381 }}>{code}</CodeSnippet>
+    <div ref={ref} className={twMerge(className, 'relative')} {...props}>
+      <div className="hidden w-full sm:block sm:min-h-[381px]">
+        <CodeSnippet customStyle={{ minHeight: 381 }}>{code}</CodeSnippet>
+      </div>
+
+      <div className="min-h-[570px] w-full sm:hidden">
+        <CodeSnippet customStyle={{ minHeight: 570 }}>{code}</CodeSnippet>
+      </div>
     </div>
   )
 }
@@ -84,20 +86,60 @@ function GitWorkflow({
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
   const { ref, inView } = useInView()
-  const code = `git add -A
-git commit -m "update"
-git push`
+  const code = `git add .
+git commit -m "add permissions"
+git push origin`
 
   return (
     <div
       ref={ref}
       className={twMerge(
-        'relative grid min-h-[381px] grid-flow-row content-start gap-6',
+        'relative grid grid-flow-row content-start gap-6 sm:min-h-[381px]',
         className,
       )}
       {...props}
     >
       <CodeSnippet>{code}</CodeSnippet>
+
+      <div
+        className={twMerge(
+          'relative',
+          'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
+          'after:z-0 after:h-full after:w-full after:rounded-full',
+          'after:skew-x-6 after:skew-y-3 after:bg-brand-main after:bg-opacity-20 after:blur-[32px]',
+        )}
+      >
+        <Image
+          src="/deployments.png"
+          alt="A list of deployments in the Nhost Dashboard"
+          width={846}
+          height={242}
+          className="relative z-10"
+        />
+      </div>
+    </div>
+  )
+}
+
+function CloudWorkflow() {
+  return (
+    <div className="grid grid-flow-row">
+      {/* Globe */}
+
+      <div className="grid grid-cols-3">
+        <div className="grid grid-flow-row gap-2 text-center">
+          <p className="font-mona text-5xl font-bold">6</p>
+          <p className="text-base">Regions</p>
+        </div>
+        <div className="grid grid-flow-row gap-2 text-center">
+          <p className="font-mona text-5xl font-bold">99.99%</p>
+          <p className="text-base">Guaranteed Uptime</p>
+        </div>
+        <div className="grid grid-flow-row gap-2 text-center">
+          <p className="font-mona text-5xl font-bold">185</p>
+          <p className="text-base">Edge Locations</p>
+        </div>
+      </div>
     </div>
   )
 }
@@ -108,7 +150,7 @@ export default function WorkflowSection() {
   return (
     <Container
       component="section"
-      slotProps={{ root: { className: 'mt-40' } }}
+      slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
       className="grid grid-flow-row gap-14"
     >
       <div className="mx-auto grid max-w-2xl grid-flow-row gap-4 text-center">
@@ -180,7 +222,7 @@ export default function WorkflowSection() {
               </span>
 
               {activeStep === 1 && (
-                <GitWorkflow className="col-span-2 block lg:hidden" />
+                <GitWorkflow className="col-span-2 grid lg:hidden" />
               )}
             </li>
 
@@ -220,6 +262,7 @@ export default function WorkflowSection() {
 
           {activeStep === 0 && <CLIWorkflow className="z-10" />}
           {activeStep === 1 && <GitWorkflow className="z-10" />}
+          {activeStep === 2 && <CloudWorkflow />}
         </div>
       </div>
     </Container>

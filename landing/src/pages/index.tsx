@@ -212,7 +212,7 @@ export default function IndexPage() {
 
       <Container
         component="section"
-        slotProps={{ root: { className: 'mt-40' } }}
+        slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         className="grid grid-flow-row gap-14"
       >
         <div className="grid grid-flow-row justify-center gap-10 pt-25">

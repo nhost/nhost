@@ -17,7 +17,7 @@ export default function CodeSnippet({
         'relative',
         'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
         'after:z-0 after:h-full after:w-full after:rounded-full',
-        'after:skew-x-6 after:skew-y-3 after:scale-[102%] after:bg-brand-main after:bg-opacity-30 after:blur-[32px]',
+        'after:skew-x-6 after:skew-y-3 after:bg-brand-main after:bg-opacity-30 after:blur-[32px]',
       )}
     >
       <SyntaxHighlighter
