@@ -3,8 +3,13 @@ import type { SyntaxHighlighterProps } from 'react-syntax-highlighter'
 import { PrismAsyncLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 import { twMerge } from 'tailwind-merge'
+import { LineGrid } from '../LineGrid'
 
 export interface CodeSnippetProps extends SyntaxHighlighterProps {
+  /**
+   * Whether to disable the line grid in the background.
+   */
+  disableLineGrid?: boolean
   /**
    * Props passed to component slots.
    */
@@ -17,6 +22,7 @@ export interface CodeSnippetProps extends SyntaxHighlighterProps {
 }
 
 export default function CodeSnippet({
+  disableLineGrid,
   language = 'bash',
   children,
   customStyle,
@@ -26,15 +32,17 @@ export default function CodeSnippet({
   return (
     <div
       className={twMerge(
-        'relative w-full',
-        'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
-        'after:bg-brand-main after:bg-opacity-30',
-        'after:z-0 after:h-full after:w-full after:rounded-full',
-        'after:skew-x-12 after:skew-y-3 after:blur-[32px]',
+        'relative z-0 w-full',
+        'before:absolute before:left-0 before:right-0 before:bottom-0 before:top-0',
+        'before:bg-brand-main before:bg-opacity-30',
+        'before:z-0 before:h-full before:w-full before:rounded-full',
+        'before:skew-x-12 before:skew-y-3 before:blur-[32px]',
         slotProps?.root?.className,
       )}
       {...(slotProps?.root || {})}
     >
+      {!disableLineGrid && <LineGrid className="overflow-hidden" />}
+
       <SyntaxHighlighter
         language={language}
         style={nightOwl}

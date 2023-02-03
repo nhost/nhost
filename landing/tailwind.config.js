@@ -27,6 +27,10 @@ module.exports = {
         18: '4.5rem',
         25: '6.25rem',
       },
+      scale: {
+        200: '2',
+        275: '2.75',
+      },
       fontFamily: {
         sans: ['Inter var', ...defaultTheme.fontFamily.sans],
         mona: ['"Mona Sans"', ...defaultTheme.fontFamily.sans],

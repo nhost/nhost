@@ -26,20 +26,28 @@ function ExampleSelectorButton({
   ...props
 }: ButtonProps & { active?: boolean }) {
   return (
-    <Button
-      variant={active ? 'outlined' : 'borderless'}
-      size="sm"
+    <div
       className={twMerge(
-        'border-0 hover:bg-transparent md:border',
-        'px-0 md:px-2 xl:px-4',
-        'text-xs md:text-sm',
-        'rounded-none md:rounded-md',
-        !active
-          ? 'text-opacity-65'
-          : 'border-b border-b-white md:border-b-divider',
+        'relative',
+        active &&
+          'before:absolute before:bottom-0 before:left-0 before:right-0 before:top-0 before:z-0 before:skew-y-3 before:rounded-md before:bg-brand-main before:bg-opacity-50 before:blur-xl before:motion-safe:transition-all',
       )}
-      {...props}
-    />
+    >
+      <Button
+        variant={active ? 'outlined' : 'borderless'}
+        size="sm"
+        className={twMerge(
+          'relative z-10 border-0 hover:bg-black hover:bg-opacity-100 md:border',
+          'px-0 md:px-2 xl:px-4',
+          'text-xs md:text-sm',
+          'rounded-none md:rounded-md',
+          !active
+            ? 'text-opacity-65'
+            : 'border-b border-b-white md:border-b-divider',
+        )}
+        {...props}
+      />
+    </div>
   )
 }
 
@@ -75,9 +83,9 @@ export default function ExamplesSection() {
   return (
     <Container
       component="section"
-      className="mt-24 grid grid-flow-row gap-14 overflow-hidden pb-4 lg:mt-40"
+      className="mt-24 grid grid-flow-row gap-14 overflow-hidden pb-8 lg:mt-32 xl:overflow-visible"
     >
-      <div className="grid grid-flow-row justify-center gap-10">
+      <div className="z-10 grid grid-flow-row justify-center gap-10">
         <SectionHeading
           title={
             <>
@@ -90,7 +98,7 @@ export default function ExamplesSection() {
         />
       </div>
 
-      <div className="grid items-center gap-6 xl:grid-cols-2">
+      <div className="z-0 grid items-center gap-6 xl:grid-cols-2">
         <div className="col-span-1 hidden xl:order-1 xl:block">
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}

@@ -1,5 +1,6 @@
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
+import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -77,11 +78,15 @@ function CLIWorkflow({
   return (
     <div ref={ref} className={twMerge(className, 'relative')} {...props}>
       <div className="hidden w-full sm:block sm:min-h-[381px]">
-        <CodeSnippet customStyle={{ minHeight: 381 }}>{code}</CodeSnippet>
+        <CodeSnippet disableLineGrid customStyle={{ minHeight: 381 }}>
+          {code}
+        </CodeSnippet>
       </div>
 
       <div className="min-h-[570px] w-full sm:hidden">
-        <CodeSnippet customStyle={{ minHeight: 570 }}>{code}</CodeSnippet>
+        <CodeSnippet disableLineGrid customStyle={{ minHeight: 570 }}>
+          {code}
+        </CodeSnippet>
       </div>
     </div>
   )
@@ -105,7 +110,7 @@ git push origin`
       )}
       {...props}
     >
-      <CodeSnippet>{code}</CodeSnippet>
+      <CodeSnippet disableLineGrid>{code}</CodeSnippet>
 
       <div
         className={twMerge(
@@ -172,7 +177,7 @@ export default function WorkflowSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
-      className="grid grid-flow-row gap-14 overflow-hidden"
+      className="grid grid-flow-row gap-14 overflow-hidden pb-8"
     >
       <SectionHeading
         title="Develop locally. Ship globally."
@@ -288,14 +293,7 @@ export default function WorkflowSection() {
         </div>
 
         <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
-          <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
-            <Image
-              src="/common/line-grid.svg"
-              width={1177}
-              height={930}
-              alt="Transparent lines"
-            />
-          </div>
+          <LineGrid />
 
           <div className="relative z-10">
             {activeStep === 0 && <CLIWorkflow className="z-10" />}

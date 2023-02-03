@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Card, { CardProps } from '../Card'
 import { ArrowRightIcon } from '../icons/ArrowRightIcon'
+import { LineGrid } from '../LineGrid'
 import { Link } from '../Link'
 
 export interface CustomerCardProps extends CardProps {
@@ -37,15 +37,7 @@ export default function CustomerCard({
       <div className="relative z-0 h-52 overflow-hidden px-12 pt-12">
         <div className="bg-glow-gradient absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
-        <div className="absolute top-0 left-0 right-0 bottom-0 z-10 h-full w-full">
-          <Image
-            src="/common/line-grid.svg"
-            width={1003}
-            height={644}
-            alt="Transparent lines"
-            className="h-full w-full scale-[275%]"
-          />
-        </div>
+        <LineGrid className="left-0 right-0 bottom-0 top-0 z-10 scale-275" />
         <div className="relative z-20 flex h-full w-full items-center justify-center rounded-t-[4px] bg-black bg-opacity-80">
           {image}
 

@@ -43,7 +43,7 @@ export default function Button({
         variant === 'contained' &&
           'bg-white text-black text-opacity-100 hover:ring-2 ring-white ring-opacity-50',
         variant === 'borderless' &&
-          'bg-transparent text-white text-opacity-100 hover:bg-white hover:bg-opacity-10',
+          'bg-default text-white text-opacity-100 hover:bg-white hover:bg-opacity-10',
         variant === 'outlined' &&
           'bg-default text-white text-opacity-100 hover:bg-white hover:bg-opacity-10 border border-divider',
         size === 'xs' && 'px-2 py-1 gap-1 leading-[18px]',
