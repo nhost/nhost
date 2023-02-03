@@ -1,4 +1,4 @@
-import { Button } from '@/components/common/Button'
+import { Button, ButtonProps } from '@/components/common/Button'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { FlutterIcon } from '@/components/common/icons/FlutterIcon'
@@ -18,6 +18,51 @@ const codeSnippetLanguageMap: Record<keyof TechSnippets, string> = {
   nextjs: 'tsx',
   vue: 'tsx',
   flutter: 'dart',
+}
+
+function ExampleSelectorButton({
+  active,
+  className,
+  ...props
+}: ButtonProps & { active?: boolean }) {
+  return (
+    <Button
+      variant={active ? 'outlined' : 'borderless'}
+      size="sm"
+      className={twMerge(
+        'border-0 hover:bg-transparent md:border',
+        'px-0 md:px-2 xl:px-4',
+        'text-xs md:text-sm',
+        'rounded-none md:rounded-md',
+        !active
+          ? 'text-opacity-65'
+          : 'border-b border-b-white md:border-b-divider',
+      )}
+      {...props}
+    />
+  )
+}
+
+function TechnologySelectorButton({
+  active,
+  className,
+  ...props
+}: ButtonProps & { active?: boolean }) {
+  return (
+    <Button
+      variant={active ? 'outlined' : 'borderless'}
+      size="sm"
+      className={twMerge(
+        'justify-items-center hover:bg-transparent',
+        'grid-flow-row md:grid-flow-col',
+        'border-0 md:border',
+        'px-0 py-0 md:px-4 md:py-2',
+        'text-xs md:text-sm',
+        !active && 'text-opacity-65',
+      )}
+      {...props}
+    />
+  )
 }
 
 export default function ExamplesSection() {
@@ -77,163 +122,70 @@ export default function ExamplesSection() {
 
         <div className="order-1 col-span-1 grid grid-flow-row content-start gap-18 lg:gap-24 xl:order-2 xl:pt-16">
           <div className="relative z-10 flex w-full flex-row justify-between md:justify-center md:gap-6">
-            <Button
-              variant={activeExample === 'signUp' ? 'outlined' : 'borderless'}
-              size="sm"
-              className={twMerge(
-                'border-0 hover:bg-transparent md:border',
-                'px-0 md:px-2',
-                'text-xs md:text-sm',
-                'rounded-none md:rounded-md',
-                activeExample !== 'signUp'
-                  ? 'text-opacity-65'
-                  : 'border-b border-b-white md:border-b-divider',
-              )}
+            <ExampleSelectorButton
+              active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
             >
               Sign Up
-            </Button>
+            </ExampleSelectorButton>
 
-            <Button
-              variant={activeExample === 'query' ? 'outlined' : 'borderless'}
-              size="sm"
-              className={twMerge(
-                'border-0 hover:bg-transparent md:border',
-                'px-0 md:px-2',
-                'text-xs md:text-sm',
-                'rounded-none md:rounded-md',
-                activeExample !== 'query'
-                  ? 'text-opacity-65'
-                  : 'border-b border-b-white md:border-b-divider',
-              )}
+            <ExampleSelectorButton
+              active={activeExample === 'query'}
               onClick={() => setActiveExample('query')}
             >
               GraphQL Query
-            </Button>
+            </ExampleSelectorButton>
 
-            <Button
-              variant={activeExample === 'mutation' ? 'outlined' : 'borderless'}
-              size="sm"
-              className={twMerge(
-                'border-0 hover:bg-transparent md:border',
-                'px-0 md:px-2',
-                'text-xs md:text-sm',
-                'rounded-none md:rounded-md',
-                activeExample !== 'mutation'
-                  ? 'text-opacity-65'
-                  : 'border-b border-b-white md:border-b-divider',
-              )}
+            <ExampleSelectorButton
+              active={activeExample === 'mutation'}
               onClick={() => setActiveExample('mutation')}
             >
               GraphQL Mutation
-            </Button>
+            </ExampleSelectorButton>
 
-            <Button
-              variant={
-                activeExample === 'fileUpload' ? 'outlined' : 'borderless'
-              }
-              size="sm"
-              className={twMerge(
-                'border-0 hover:bg-transparent md:border',
-                'px-0 md:px-2',
-                'text-xs md:text-sm',
-                'rounded-none md:rounded-md',
-                activeExample !== 'fileUpload'
-                  ? 'text-opacity-65'
-                  : 'border-b border-b-white md:border-b-divider',
-              )}
+            <ExampleSelectorButton
+              active={activeExample === 'fileUpload'}
               onClick={() => setActiveExample('fileUpload')}
             >
               File Upload
-            </Button>
+            </ExampleSelectorButton>
           </div>
 
           <div className="z-10 flex w-full flex-row justify-between md:justify-center md:gap-6">
-            <Button
-              variant={
-                activeTechnology === 'javascript' ? 'outlined' : 'borderless'
-              }
-              size="sm"
-              className={twMerge(
-                'justify-items-center hover:bg-transparent',
-                'grid-flow-row md:grid-flow-col',
-                'border-0 md:border',
-                'px-0 py-0 md:px-4 md:py-2',
-                'text-xs md:text-sm',
-                activeTechnology !== 'javascript' && 'text-opacity-65',
-              )}
+            <TechnologySelectorButton
+              active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
             >
               <JavaScriptIcon /> JavaScript
-            </Button>
+            </TechnologySelectorButton>
 
-            <Button
-              variant={activeTechnology === 'vue' ? 'outlined' : 'borderless'}
-              size="sm"
-              className={twMerge(
-                'justify-items-center hover:bg-transparent',
-                'grid-flow-row md:grid-flow-col',
-                'border-0 md:border',
-                'px-0 py-0 md:px-4 md:py-2',
-                'text-xs md:text-sm',
-                activeTechnology !== 'vue' && 'text-opacity-65',
-              )}
-              onClick={() => setActiveTechnology('vue')}
-            >
-              <VueIcon /> Vue
-            </Button>
-
-            <Button
-              variant={activeTechnology === 'react' ? 'outlined' : 'borderless'}
-              size="sm"
-              className={twMerge(
-                'justify-items-center hover:bg-transparent',
-                'grid-flow-row md:grid-flow-col',
-                'border-0 md:border',
-                'px-0 py-0 md:px-4 md:py-2',
-                'text-xs md:text-sm',
-                activeTechnology !== 'react' && 'text-opacity-65',
-              )}
+            <TechnologySelectorButton
+              active={activeTechnology === 'react'}
               onClick={() => setActiveTechnology('react')}
             >
               <ReactIcon /> React
-            </Button>
+            </TechnologySelectorButton>
 
-            <Button
-              variant={
-                activeTechnology === 'nextjs' ? 'outlined' : 'borderless'
-              }
-              size="sm"
-              className={twMerge(
-                'justify-items-center hover:bg-transparent',
-                'grid-flow-row md:grid-flow-col',
-                'border-0 md:border',
-                'px-0 py-0 md:px-4 md:py-2',
-                'text-xs md:text-sm',
-                activeTechnology !== 'nextjs' && 'text-opacity-65',
-              )}
+            <TechnologySelectorButton
+              active={activeTechnology === 'nextjs'}
               onClick={() => setActiveTechnology('nextjs')}
             >
               <NextjsIcon /> Next.js
-            </Button>
+            </TechnologySelectorButton>
 
-            <Button
-              variant={
-                activeTechnology === 'flutter' ? 'outlined' : 'borderless'
-              }
-              size="sm"
-              className={twMerge(
-                'justify-items-center hover:bg-transparent',
-                'grid-flow-row md:grid-flow-col',
-                'border-0 md:border',
-                'px-0 py-0 md:px-4 md:py-2',
-                'text-xs md:text-sm',
-                activeTechnology !== 'flutter' && 'text-opacity-65',
-              )}
+            <TechnologySelectorButton
+              active={activeTechnology === 'vue'}
+              onClick={() => setActiveTechnology('vue')}
+            >
+              <VueIcon /> Vue
+            </TechnologySelectorButton>
+
+            <TechnologySelectorButton
+              active={activeTechnology === 'flutter'}
               onClick={() => setActiveTechnology('flutter')}
             >
               <FlutterIcon /> Flutter
-            </Button>
+            </TechnologySelectorButton>
           </div>
 
           <div className="z-0 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
