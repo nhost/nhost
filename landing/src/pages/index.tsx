@@ -1,5 +1,6 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
+import { CTASection } from '@/components/common/CTASection'
 import { CustomerCard } from '@/components/common/CustomerCard'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
@@ -70,6 +71,7 @@ export default function IndexPage() {
           quality={90}
           className="relative z-10 mx-auto w-full max-w-5xl"
           priority
+          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 1024px, 1024px"
         />
 
         <div className="absolute -bottom-32 left-0 right-0 z-30 h-36 w-full bg-black"></div>
@@ -305,6 +307,7 @@ export default function IndexPage() {
 
       <WorkflowSection />
       <ExamplesSection />
+      <CTASection />
     </>
   )
 }
