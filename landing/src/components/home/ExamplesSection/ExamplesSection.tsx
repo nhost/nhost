@@ -55,7 +55,17 @@ export default function ExamplesSection() {
           </CodeSnippet>
         </div>
 
-        <div className="order-2 col-span-1 block xl:hidden">
+        <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:hidden">
+          <CodeSnippet
+            language={codeSnippetLanguageMap[activeTechnology]}
+            wrapLongLines={false}
+            customStyle={{ padding: 24 }}
+          >
+            {activeSnippet}
+          </CodeSnippet>
+        </div>
+
+        <div className="order-2 col-span-1 block md:hidden">
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
             wrapLongLines={false}
