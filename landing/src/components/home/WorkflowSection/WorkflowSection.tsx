@@ -125,6 +125,7 @@ git push origin`
           alt="A list of deployments in the Nhost Dashboard"
           width={846}
           height={242}
+          quality={100}
           className="relative z-10"
         />
       </div>
@@ -267,7 +268,10 @@ export default function WorkflowSection() {
                 </span>
               </div>
 
-              <GitWorkflow className="grid lg:hidden" />
+              <div className="relative block lg:hidden">
+                <LineGrid className="-translate-x-[10%] scale-125" />
+                <GitWorkflow />
+              </div>
             </li>
 
             <li
