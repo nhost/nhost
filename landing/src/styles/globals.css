@@ -6,6 +6,22 @@ html {
   color-scheme: dark;
 }
 
+.code-snippet pre {
+  padding: 16px !important;
+}
+
+@media screen and (min-width: 768px) {
+  .code-snippet pre {
+    padding: 24px !important;
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .code-snippet pre {
+    padding: 32px !important;
+  }
+}
+
 .bg-glow-gradient {
   background: radial-gradient(
     326.47% 100% at 50% 0%,

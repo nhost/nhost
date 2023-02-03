@@ -189,10 +189,10 @@ export default function WorkflowSection() {
             />
           </div>
 
-          <ul className="grid grid-flow-row gap-16 text-base">
+          <ul className="grid grid-flow-row gap-20 text-base lg:gap-16">
             <li
               className={twMerge(
-                'grid cursor-default grid-cols-[1fr] gap-4 motion-safe:transition-all',
+                'grid cursor-default grid-cols-[1fr] gap-10 motion-safe:transition-all lg:gap-4',
                 activeStep !== 0 && 'text-white lg:text-opacity-65',
               )}
             >
@@ -204,8 +204,16 @@ export default function WorkflowSection() {
                 onClick={() => setActiveStep(0)}
                 onKeyDown={() => setActiveStep(0)}
               >
-                <div className="grid grid-flow-col items-center justify-start gap-4">
+                <div className="relative grid grid-flow-col items-center justify-start gap-4">
                   <Dot active={activeStep === 0} />
+
+                  <Image
+                    src="/common/dashed-line-gradient.svg"
+                    width={1}
+                    height={86}
+                    alt="A dashed line with a gradient background"
+                    className="absolute left-1 top-0 lg:hidden"
+                  />
 
                   <span>CLI</span>
                 </div>
@@ -220,7 +228,7 @@ export default function WorkflowSection() {
 
             <li
               className={twMerge(
-                'grid gap-4 motion-safe:transition-all',
+                'grid grid-cols-[1fr] gap-10 motion-safe:transition-all lg:gap-4',
                 activeStep !== 1 && 'text-white lg:text-opacity-65',
               )}
             >
@@ -232,8 +240,25 @@ export default function WorkflowSection() {
                 onClick={() => setActiveStep(1)}
                 onKeyDown={() => setActiveStep(1)}
               >
-                <div className="grid grid-flow-col items-center justify-start gap-4">
+                <div className="relative grid grid-flow-col items-center justify-start gap-4">
+                  <Image
+                    src="/common/dashed-line-gradient.svg"
+                    width={1}
+                    height={86}
+                    alt="A dashed line with a gradient background"
+                    className="absolute left-1 top-0 -translate-y-full lg:hidden"
+                  />
+
                   <Dot active={activeStep === 1} />
+
+                  <Image
+                    src="/common/dashed-line-gradient.svg"
+                    width={1}
+                    height={86}
+                    alt="A dashed line with a gradient background"
+                    className="absolute left-1 top-0 lg:hidden"
+                  />
+
                   <span>Git</span>
                 </div>
 
@@ -247,7 +272,7 @@ export default function WorkflowSection() {
 
             <li
               className={twMerge(
-                'grid grid-flow-row items-start gap-4 motion-safe:transition-all',
+                'grid items-start gap-10 motion-safe:transition-all lg:gap-4',
                 activeStep !== 2 && 'text-white lg:text-opacity-65',
               )}
             >
@@ -259,8 +284,17 @@ export default function WorkflowSection() {
                 onClick={() => setActiveStep(2)}
                 onKeyDown={() => setActiveStep(2)}
               >
-                <div className="grid grid-flow-col items-center justify-start gap-4">
+                <div className="relative grid grid-flow-col items-center justify-start gap-4">
+                  <Image
+                    src="/common/dashed-line-gradient.svg"
+                    width={1}
+                    height={86}
+                    alt="A dashed line with a gradient background"
+                    className="absolute left-1 top-0 -translate-y-full lg:hidden"
+                  />
+
                   <Dot active={activeStep === 2} />
+
                   <span>Cloud</span>
                 </div>
 

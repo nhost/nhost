@@ -99,20 +99,10 @@ export default function ExamplesSection() {
       </div>
 
       <div className="z-0 grid items-center gap-6 xl:grid-cols-2">
-        <div className="col-span-1 hidden xl:order-1 xl:block">
+        <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:order-1 xl:max-w-none">
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
             wrapLongLines={false}
-          >
-            {activeSnippet}
-          </CodeSnippet>
-        </div>
-
-        <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:hidden">
-          <CodeSnippet
-            language={codeSnippetLanguageMap[activeTechnology]}
-            wrapLongLines={false}
-            customStyle={{ padding: 24 }}
           >
             {activeSnippet}
           </CodeSnippet>

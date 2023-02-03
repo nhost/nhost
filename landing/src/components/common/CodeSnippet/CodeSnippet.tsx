@@ -32,7 +32,7 @@ export default function CodeSnippet({
   return (
     <div
       className={twMerge(
-        'relative z-0 w-full',
+        'code-snippet relative z-0 w-full',
         'before:absolute before:left-0 before:right-0 before:bottom-0 before:top-0',
         'before:bg-brand-main before:bg-opacity-30',
         'before:z-0 before:h-full before:w-full before:rounded-full',
@@ -54,7 +54,6 @@ export default function CodeSnippet({
           boxShadow: 'none',
           backgroundColor: '#080808 !important',
           borderRadius: 6,
-          padding: 32,
           zIndex: 1,
           ...customStyle,
         }}
