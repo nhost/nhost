@@ -13,7 +13,7 @@ export default function JavaScriptIcon(props: JavaScriptIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_210_13827)">
+      <g clipPath="url(#clip0_210_13827)">
         <path
           d="M15.3002 2.9248H2.7002V15.5248H15.3002V2.9248Z"
           fill="currentColor"

@@ -13,7 +13,7 @@ export default function VueIcon(props: VueIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_210_13833)">
+      <g clipPath="url(#clip0_210_13833)">
         <path
           d="M10.4549 3.59995L9.00004 6.11989L7.54516 3.59995H2.7002L9.00004 14.5117L15.2999 3.59995H10.4549Z"
           fill="currentColor"
