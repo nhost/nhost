@@ -1,48 +1,27 @@
+import { BlogPostCard } from '@/components/common/BlogPostCard'
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { format, parseISO } from 'date-fns'
+import { Article } from '@/utils/types'
 import glob from 'fast-glob'
 import Image from 'next/image'
-import Link from 'next/link'
 import * as path from 'path'
 import { ReactElement } from 'react'
 
-interface Author {
-  name: string
-  title: string
-  avatarUrl: string
-  url: string
-}
-
-interface Article {
-  title: string
-  description: string
-  image: string
-  date: string
-  authors: Author[]
-  tags: string[]
-  slug: string
-}
-
-interface BlogPageProps {
+export interface BlogPageProps {
   articles: Article[]
 }
 
 export default function BlogPage({ articles }: BlogPageProps) {
-  console.log(articles)
-
-  const firstArticle = articles[0]
-  console.log(firstArticle)
-
-  // get all other articles except the first one
-  const otherArticles = articles.slice(1)
-  console.log(otherArticles)
+  const [firstArticle, ...otherArticles] = articles
 
   return (
     <>
-      <Container component="section" className="relative py-28">
+      <Container
+        component="section"
+        className="relative max-w-5xl py-14 lg:py-28"
+      >
         <LineGrid
           className="top-5 left-0 right-0 mx-auto h-40 w-40 translate-x-0 scale-100"
           slotProps={{ image: { className: 'mx-auto' } }}
@@ -61,79 +40,56 @@ export default function BlogPage({ articles }: BlogPageProps) {
         />
       </Container>
 
-      <div>
-        <Image
-          src={`/images/blog/og-dark-mode.png`}
-          width={800}
-          height={450}
-          alt=""
-          blurDataURL={`/images/blog/${firstArticle.image}`}
-          placeholder="blur"
+      <Container
+        component="section"
+        className="grid max-w-5xl grid-flow-row gap-6"
+      >
+        <BlogPostCard
+          image={
+            <Image
+              src={`/images/blog/${firstArticle.image}`}
+              width={1920}
+              height={1080}
+              alt={`Cover of ${firstArticle.title}`}
+              blurDataURL={`/images/blog/${firstArticle.image}`}
+              placeholder="blur"
+              className="object-cover"
+            />
+          }
+          title={firstArticle.title}
+          description={firstArticle.description}
+          href={`/blog/${firstArticle.slug}`}
+          tags={firstArticle.tags}
+          authors={firstArticle.authors}
+          date={firstArticle.date}
+          className="col-span-2"
+          highlighted
         />
-        <div>
-          {firstArticle.tags.map((tag) => {
-            return <span key={tag}>{tag}</span>
-          })}
-        </div>
-        <Link href={`/blog/${firstArticle.slug}`}>{firstArticle.title}</Link>
-        <div>{firstArticle.description}</div>
-        <div>
-          <div>
-            {firstArticle.authors.map((author) => {
-              return (
-                <img
-                  key={author.avatarUrl}
-                  src={`${author.avatarUrl}`}
-                  width={50}
-                  height={50}
-                  alt={author.name}
-                />
-              )
-            })}
-          </div>
-          <div>{format(parseISO(firstArticle.date), 'd MMMM yyyy')}</div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2">
-        {otherArticles.map((article) => {
-          return (
-            <div key={article.slug}>
-              <Image
-                src={`/images/blog/${article.image}`}
-                width={400}
-                height={225}
-                alt=""
-                blurDataURL={`/images/blog/${article.image}`}
-                placeholder="blur"
-              />
-              <div>
-                {article.tags.map((tag) => {
-                  return <span key={tag}>{tag}</span>
-                })}
-              </div>
-              <Link href={`/blog/${article.slug}`}>{article.title}</Link>
-              <div>{article.description}</div>
-              <div>
-                <div>
-                  {article.authors.map((author) => {
-                    return (
-                      <img
-                        key={author.avatarUrl}
-                        src={`${author.avatarUrl}`}
-                        width={50}
-                        height={50}
-                        alt={author.name}
-                      />
-                    )
-                  })}
-                </div>
-                <div>{format(parseISO(article.date), 'd MMMM yyyy')}</div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {otherArticles.map((article) => (
+            <BlogPostCard
+              key={article.slug}
+              image={
+                <Image
+                  src={`/images/blog/${article.image}`}
+                  width={400}
+                  height={225}
+                  alt={`Cover of ${article.title}`}
+                  blurDataURL={`/images/blog/${article.image}`}
+                  placeholder="blur"
+                />
+              }
+              title={article.title}
+              description={article.description}
+              href={`/blog/${article.slug}`}
+              tags={article.tags}
+              authors={article.authors}
+              date={article.date}
+            />
+          ))}
+        </div>
+      </Container>
     </>
   )
 }
@@ -142,7 +98,6 @@ BlogPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }
 
-// SSR
 export async function getStaticProps() {
   // TODO: Move this function to a separate file
   const importArticle = async (articleFilename: any) => {
@@ -157,20 +112,15 @@ export async function getStaticProps() {
 
   // TODO: move this function to a separate file
   const getAllArticles = async () => {
-    let articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
+    const articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
       cwd: path.join(process.cwd(), 'src/pages/blog'),
     })
 
-    let articles = await Promise.all(articleFilenames.map(importArticle))
+    const articles = await Promise.all(articleFilenames.map(importArticle))
 
-    console.log(articles)
-
-    return articles
-
-    // TODO: fix this sort
-    // return articles.sort((a: any, z: any) => {
-    //   return !!(new Date(z.date) > new Date(a.date));
-    // }
+    return articles.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    )
   }
 
   return {

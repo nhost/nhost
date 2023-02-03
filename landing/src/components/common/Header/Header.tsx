@@ -62,7 +62,7 @@ export default function Header({
           />
         </Link>
 
-        <nav aria-label="Main navigation" className="hidden md:block">
+        <nav aria-label="Main navigation" className="hidden lg:block">
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
               <Popover>
@@ -178,7 +178,7 @@ export default function Header({
           </ul>
         </nav>
 
-        <div className="hidden grid-flow-col gap-4 md:grid">
+        <div className="hidden grid-flow-col gap-4 lg:grid">
           <Button
             href="https://app.nhost.io/sign-in"
             target="_blank"
@@ -199,7 +199,7 @@ export default function Header({
           </Button>
         </div>
 
-        <div className="block md:hidden">
+        <div className="block lg:hidden">
           <Button
             variant="borderless"
             className="bg-transparent p-2"

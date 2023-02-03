@@ -32,6 +32,10 @@ module.exports = {
         200: '2',
         275: '2.75',
       },
+      boxShadow: {
+        cover:
+          '0px 0px 32px -10px rgba(0, 0, 0, 0.24), 0px 0px 32px 10px rgba(0, 0, 0, 0.25)',
+      },
       fontFamily: {
         sans: ['Inter var', ...defaultTheme.fontFamily.sans],
         mona: ['"Mona Sans"', ...defaultTheme.fontFamily.sans],
