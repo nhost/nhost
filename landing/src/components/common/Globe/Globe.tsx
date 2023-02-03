@@ -77,7 +77,7 @@ export default function Globe() {
     >
       {size && (
         <canvas
-          className="globe-canvas bg-black fill-black md:-ml-10"
+          className="globe-canvas mx-auto bg-black fill-black md:-translate-x-10"
           ref={canvasRef}
           width={size * 2}
           height={size * 2}
