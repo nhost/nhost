@@ -8,16 +8,11 @@ export default function Globe() {
   const { ref, inView } = useInView()
 
   useEffect(() => {
-    if (
-      !canvasRef.current ||
-      typeof window === 'undefined' ||
-      !size ||
-      !inView
-    ) {
+    if (!canvasRef.current || typeof window === 'undefined' || !size) {
       return
     }
 
-    let phi = 5.35
+    let phi = 0
 
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
@@ -41,7 +36,10 @@ export default function Globe() {
       ],
       onRender: (state) => {
         state.phi = phi
-        phi += 0.003
+
+        if (inView) {
+          phi += 0.003
+        }
       },
     })
 

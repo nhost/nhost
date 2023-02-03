@@ -137,14 +137,8 @@ function CloudWorkflow({
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
   return (
-    <div
-      className={twMerge(
-        'grid grid-flow-row justify-center gap-6 lg:-mt-16',
-        className,
-      )}
-      {...props}
-    >
-      <div className="relative z-0 h-60 md:h-80">
+    <div className={twMerge('lg:-mt-16', className)} {...props}>
+      <div className="relative z-0 h-60 w-full md:h-80">
         <Globe />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
@@ -152,7 +146,7 @@ function CloudWorkflow({
         <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-[98px]" />
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">
+      <div className="relative z-10 mt-6 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">
         <div className="grid grid-flow-row gap-2 text-center">
           <p className="font-mona text-5xl font-bold">6</p>
           <p className="text-base">Regions</p>
@@ -277,14 +271,7 @@ export default function WorkflowSection() {
               </div>
 
               <div className="relative z-0 overflow-hidden lg:hidden">
-                <div className="absolute z-0 h-full w-full -translate-x-1/4 scale-[200%]">
-                  <Image
-                    src="/common/line-grid.svg"
-                    width={1177}
-                    height={930}
-                    alt="Transparent lines"
-                  />
-                </div>
+                <LineGrid className="translate-x-0 scale-105" />
 
                 <CloudWorkflow className="grid lg:hidden" />
               </div>

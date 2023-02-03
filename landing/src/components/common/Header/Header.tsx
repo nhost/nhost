@@ -104,7 +104,7 @@ export default function Header({
         <div className="block md:hidden">
           <Button
             variant="borderless"
-            className="p-2"
+            className="bg-transparent p-2"
             aria-label={mobileMenuVisible ? 'Close Menu' : 'Open Menu'}
             onClick={() => setMobileMenuVisible((current) => !current)}
           >
