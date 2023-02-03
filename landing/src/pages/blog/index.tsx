@@ -20,13 +20,13 @@ export default function BlogPage({ articles }: BlogPageProps) {
     <>
       <Container
         component="section"
-        className="relative max-w-5xl py-14 lg:py-28"
+        className="relative flex max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
       >
         <LineGrid
-          className="top-5 left-0 right-0 mx-auto h-40 w-40 translate-x-0 scale-100"
+          className="left-0 right-0 mx-auto h-40 w-40 translate-x-0 scale-100 lg:top-5"
           slotProps={{ image: { className: 'mx-auto' } }}
         />
-        <div className="absolute top-24 left-0 right-0 z-0 mx-auto h-20 w-20 rounded-full bg-brand-main blur-[56px]"></div>
+        <div className="absolute left-0 right-0 z-0 mx-auto h-20 w-20 rounded-full bg-brand-main blur-[56px] lg:top-24"></div>
         <SectionHeading
           title="Blog"
           subtitle="Read the latest news about Nhost."
@@ -54,6 +54,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
               blurDataURL={`/images/blog/${firstArticle.image}`}
               placeholder="blur"
               className="object-cover"
+              priority
             />
           }
           title={firstArticle.title}
