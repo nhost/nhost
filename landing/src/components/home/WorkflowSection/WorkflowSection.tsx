@@ -144,7 +144,7 @@ function CloudWorkflow({
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
         <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
-        <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-[98px]" />
+        <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-full rounded-full bg-brand-main blur-3xl md:w-2/3" />
       </div>
 
       <div className="relative z-10 mt-6 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">
@@ -269,7 +269,7 @@ export default function WorkflowSection() {
               </div>
 
               <div className="relative block lg:hidden">
-                <LineGrid className="-translate-x-[10%] scale-125" />
+                <LineGrid className="-translate-x-[10%]" />
                 <GitWorkflow />
               </div>
             </li>
@@ -309,7 +309,7 @@ export default function WorkflowSection() {
               </div>
 
               <div className="relative z-0 overflow-hidden lg:hidden">
-                <LineGrid className="translate-x-0 scale-105" />
+                <LineGrid className="translate-x-0" />
 
                 <CloudWorkflow className="grid lg:hidden" />
               </div>

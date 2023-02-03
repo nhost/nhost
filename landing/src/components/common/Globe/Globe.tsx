@@ -6,9 +6,10 @@ export default function Globe() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState<number>()
   const { ref, inView } = useInView()
+  const currentSize = Math.min(size || 0, 600)
 
   useEffect(() => {
-    if (!canvasRef.current || typeof window === 'undefined' || !size) {
+    if (!canvasRef.current || typeof window === 'undefined' || !currentSize) {
       return
     }
 
@@ -16,8 +17,8 @@ export default function Globe() {
 
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
-      width: size * 2,
-      height: size * 2,
+      width: currentSize * 2,
+      height: currentSize * 2,
       phi: 0,
       theta: 0,
       dark: 1,
@@ -46,21 +47,21 @@ export default function Globe() {
     return () => {
       globe.destroy()
     }
-  }, [inView, size])
+  }, [inView, currentSize])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return
     }
 
-    setSize(Math.min(window.innerWidth - 40, 640))
+    setSize(window.innerWidth - 40)
 
     function handleResize(event: UIEvent) {
       if (!(event.target instanceof Window)) {
         return
       }
 
-      setSize(Math.min(event.target.innerWidth - 40, 640))
+      setSize(event.target.innerWidth - 40)
     }
 
     window.addEventListener('resize', handleResize, { passive: true })
@@ -77,11 +78,11 @@ export default function Globe() {
     >
       {size && (
         <canvas
-          className="globe-canvas mx-auto bg-black fill-black md:-translate-x-10"
+          className="globe-canvas mx-auto bg-black fill-black md:-translate-x-5 lg:-translate-x-16 xl:translate-x-0"
           ref={canvasRef}
-          width={size * 2}
-          height={size * 2}
-          style={{ width: size, height: size }}
+          width={currentSize * 2}
+          height={currentSize * 2}
+          style={{ width: currentSize, height: currentSize }}
         />
       )}
     </div>

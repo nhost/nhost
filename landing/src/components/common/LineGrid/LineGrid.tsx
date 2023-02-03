@@ -9,7 +9,7 @@ export default function LineGrid({ className, ...props }: LineGridProps) {
   return (
     <div
       className={twMerge(
-        'absolute z-0 h-full w-full -translate-x-1/4 scale-150',
+        'absolute z-0 h-full w-full -translate-x-1/4 scale-[1.4]',
         className,
       )}
       {...props}
