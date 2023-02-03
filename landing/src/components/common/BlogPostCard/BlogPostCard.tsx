@@ -99,11 +99,11 @@ export default function BlogPostCard({
 
         {authors && (
           <div className="mt-4 grid grid-flow-col items-center justify-start gap-3 text-sm font-medium text-white text-opacity-65">
-            {authors.map((author, index) => (
+            {authors.slice(0, 3).map((author, index) => (
               <div
                 className={twMerge(
                   'grid grid-flow-col items-center gap-2',
-                  authors.length > 0 && index > 0 && '-ml-6',
+                  authors.length > 1 && index > 0 && '-ml-6',
                 )}
                 key={author.name}
               >
@@ -121,7 +121,12 @@ export default function BlogPostCard({
                   </span>
                 )}
               </div>
-            ))}{' '}
+            ))}
+            {authors.length > 3 && (
+              <span className="-ml-1 text-sm text-white text-opacity-100">
+                + {authors.length - 3}
+              </span>
+            )}{' '}
             | <span>{format(parseISO(date), 'd MMMM yyyy')}</span>
           </div>
         )}
