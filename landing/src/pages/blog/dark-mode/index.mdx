@@ -1,9 +1,13 @@
 import Image from 'next/image'
-
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
-
-import contrastRatio from './contrast-ratio.jpg'
-import dashboardDatabase from './dashboard-database.png'
+import contrastRatioImage from './contrast-ratio.jpg'
+import elevationImage from './elevation.jpg'
+import themeSelectorImage from './theme-selector.jpg'
+import dashboardOverviewImage from './dashboard-overview.png'
+import dashboardDatabaseImage from './dashboard-database.png'
+import dashboardGraphqlImage from './dashboard-graphql.png'
+import dashboardSettingsImage from './dashboard-settings.png'
+import simplifiedColorsImage from './simplified-colors.jpg'
 
 export const article = {
   title: 'Dark Mode',
@@ -48,7 +52,12 @@ Another important point is saturated colors. Some of the colors in our light mod
 
 As you can see in the image below, the new palette increased the contrast and made our Dashboard more accessible.
 
-<Image src={contrastRatio} alt="" />
+<Image
+  src={contrastRatioImage}
+  alt="Bad contrast ratio vs. Good contrast ratio"
+  width={1500}
+  height={844}
+/>
 
 ### 2. Creating a Visual Hierarchy
 
@@ -58,7 +67,12 @@ To create a visual hierarchy of elements on the screen, we applied brighter colo
 
 By elevating an element closer to an implied light source, you can create a sense of depth. The higher the elevation, the brighter the surface appears.
 
-![The surface closer to the light source is brighter](/blog/2023-02-01-dark-mode/elevation.jpg)
+<Image
+  src={elevationImage}
+  alt="The surface closer to the light source is brighter"
+  width={1500}
+  height={844}
+/>
 
 ### 3. Letting You Choose
 
@@ -66,7 +80,12 @@ To accommodate different user preferences, we wanted to give our users the abili
 
 This extra level of customization helps ensure that Nhost is accessible and usable for all users.
 
-![A theme selector with three options: Light, Dark, and System](/blog/2023-02-01-dark-mode/theme-selector.jpg)
+<Image
+  src={themeSelectorImage}
+  alt="A theme selector with three options: Light, Dark, and System"
+  width={1500}
+  height={844}
+/>
 
 In summary, the development of the dark mode for Nhost was a collaborative effort between our design and development teams. By balancing aesthetics and accessibility, we were able to create a user-friendly and visually appealing dark mode that meets the needs of all our users.
 
@@ -88,7 +107,12 @@ Let's see an example:
 
 `border-gray-200` and `border-greyscaleGrey` (a custom color) were only slightly different, and we could have just used the former everywhere, so we felt this was an inconsistency we needed to fix. Especially since different colors are used in dark mode and light mode. The fewer colors we have to manage, the easier it will be to adjust them in the future.
 
-![Simplified color palette](/blog/2023-02-01-dark-mode/simplified-colors.jpg)
+<Image
+  src={simplifiedColorsImage}
+  alt="Simplified color palette"
+  width={1500}
+  height={844}
+/>
 
 We have applied this logic to our components so that every time we want to define a border for them, we get the right colors for dark mode and light mode:
 
@@ -120,10 +144,34 @@ Finally, we have fewer things to worry about, and it's easier to understand and 
 
 ## Showcase
 
-![Overview section of the Nhost Dashboard](/blog/2023-02-01-dark-mode/dashboard-overview.png)
-![Database section of the Nhost Dashboard](/blog/2023-02-01-dark-mode/dashboard-database.png)
-![GraphQL section of the Nhost Dashboard](/blog/2023-02-01-dark-mode/dashboard-graphql.png)
-![Settings section of the Nhost Dashboard](/blog/2023-02-01-dark-mode/dashboard-settings.png)
+<Image
+  src={dashboardOverviewImage}
+  alt="Overview section of the Nhost Dashboard"
+  width={1440}
+  height={942}
+  quality={90}
+/>
+<Image
+  src={dashboardDatabaseImage}
+  alt="Database section of the Nhost Dashboard"
+  width={1440}
+  height={942}
+  quality={90}
+/>
+<Image
+  src={dashboardGraphqlImage}
+  alt="GraphQL section of the Nhost Dashboard"
+  width={1440}
+  height={942}
+  quality={90}
+/>
+<Image
+  src={dashboardSettingsImage}
+  alt="Settings section of the Nhost Dashboard"
+  width={1440}
+  height={942}
+  quality={90}
+/>
 
 ## Conclusion
 
