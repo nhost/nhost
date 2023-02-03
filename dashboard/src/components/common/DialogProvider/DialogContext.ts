@@ -15,6 +15,7 @@ export type DialogType =
   | 'EDIT_PERMISSIONS'
   | 'CREATE_FOREIGN_KEY'
   | 'EDIT_FOREIGN_KEY'
+  | 'ADD_DEFAULT_ALLOWED_ROLE'
   | 'CREATE_ROLE'
   | 'EDIT_ROLE'
   | 'CREATE_USER'

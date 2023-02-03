@@ -5,13 +5,11 @@ import type {
 import BaseRoleForm, {
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getUserRoles from '@/utils/settings/getUserRoles';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
-  useUpdateAppMutation,
+  refetchGetRemoteAppRolesQuery,
+  useInsertRemoteAppRoleMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -29,49 +27,29 @@ export default function CreateRoleForm({
   onSubmit,
   ...props
 }: CreateRoleFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
-    fetchPolicy: 'cache-only',
-  });
-
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['getRoles'] });
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading roles..." />;
-  }
-
-  if (error) {
-    throw error;
-  }
-
-  const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const client = useRemoteApplicationGQLClient();
+  const [insertRole] = useInsertRemoteAppRoleMutation({
+    client,
+    refetchQueries: [refetchGetRemoteAppRolesQuery()],
+  });
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
-    if (availableRoles.some((role) => role.name === name)) {
-      setError('name', { message: 'This role already exists.' });
-
-      return;
-    }
-
-    const updateAppPromise = updateApp({
+    const insertRolePromise = insertRole({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultAllowedRoles: `${data?.app?.authUserDefaultAllowedRoles},${name}`,
+        object: {
+          role: name,
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      insertRolePromise,
       {
         loading: 'Creating role...',
         success: 'Role has been created successfully.',

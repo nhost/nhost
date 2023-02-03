@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
@@ -15,11 +15,11 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useDeleteRemoteAppRoleMutation,
-  useGetRemoteAppRolesQuery,
-  useGetRolesQuery
+  useGetRolesQuery,
+  useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -36,80 +36,81 @@ export interface RoleSettingsFormValues {
   authUserDefaultAllowedRoles: Role[];
 }
 
-export default function RoleSettings() {
+export default function DefailtAllowedRoleSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const client = useRemoteApplicationGQLClient();
-  const {
-    data: rolesData,
-    loading: rolesLoading,
-    error: rolesError,
-  } = useGetRemoteAppRolesQuery({ client });
-  const [deleteRemoteAppRole] = useDeleteRemoteAppRoleMutation({
-    client,
-    refetchQueries: ['getRemoteAppRoles'],
+  const { data, loading, error } = useGetRolesQuery({
+    variables: { id: currentApplication?.id },
   });
 
-  // get roles settings (default role and default allowed roles) from the apps table
-  const {
-    data: appData,
-    loading: appLoading,
-    error: appError,
-  } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
+  const [updateApp] = useUpdateAppMutation({
+    refetchQueries: ['getRoles'],
   });
 
-  if (rolesLoading || appLoading) {
+  if (loading) {
     return <ActivityIndicator delay={1000} label="Loading user roles..." />;
   }
 
-  if (rolesError || appError) {
-    throw rolesError;
+  if (error) {
+    throw error;
   }
 
-  async function handleDeleteRole({ name }: Role) {
-    if (name === appData.app.authUserDefaultRole) {
-      alert('You cannot delete the default role.');
-      return;
-    }
-
-    if (appData.app.authUserDefaultAllowedRoles.includes(name)) {
-      alert('You cannot delete a role that is a default allowed role.');
-      return;
-    }
-
-    const deleteRemoteAppRolePromise = deleteRemoteAppRole({
+  async function handleSetAsDefault({ name }: Role) {
+    const updateAppPromise = updateApp({
       variables: {
-        role: name,
+        id: currentApplication?.id,
+        app: {
+          authUserDefaultRole: name,
+        },
       },
     });
 
     await toast.promise(
-      deleteRemoteAppRolePromise,
+      updateAppPromise,
       {
-        loading: 'Deleting role...',
-        success: 'The role has been deleted successfully.',
-        error: 'An error occurred while trying to delete the role.',
+        loading: 'Updating default role...',
+        success: 'Default role has been updated successfully.',
+        error: 'An error occurred while trying to update the default role.',
+      },
+      getToastStyleProps(),
+    );
+  }
+
+  async function handleDeleteRole({ name }: Role) {
+    const filteredRoles = data?.app?.authUserDefaultAllowedRoles
+      .split(',')
+      .filter((role) => role !== name)
+      .join(',');
+
+    const updateAppPromise = updateApp({
+      variables: {
+        id: currentApplication?.id,
+        app: {
+          authUserDefaultAllowedRoles: filteredRoles,
+          authUserDefaultRole:
+            name === data?.app?.authUserDefaultRole
+              ? 'user'
+              : data?.app?.authUserDefaultRole,
+        },
+      },
+    });
+
+    await toast.promise(
+      updateAppPromise,
+      {
+        loading: 'Removing allowed role...',
+        success: 'Default allowed role has been removed successfully.',
+        error:
+          'An error occurred while trying to remove the default allowed role.',
       },
       getToastStyleProps(),
     );
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_ROLE', {
-      title: 'Create Role',
-      props: {
-        titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'max-w-sm' },
-      },
-    });
-  }
-
-  function handleOpenEditor(originalRole: Role) {
-    openDialog('EDIT_ROLE', {
-      title: 'Edit Role',
-      payload: { originalRole },
+    openDialog('ADD_DEFAULT_ALLOWED_ROLE', {
+      title: 'Add Default Allowed Role',
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -119,34 +120,30 @@ export default function RoleSettings() {
 
   function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
-      title: 'Delete Role',
+      title: 'Remove Allowed Role',
       payload: (
         <Text>
-          Are you sure you want to delete the role &quot;
+          Are you sure you want to remove the default allowed role &quot;
           <strong>{originalRole.name}</strong>&quot;?.
         </Text>
       ),
       props: {
         onPrimaryAction: () => handleDeleteRole(originalRole),
         primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
+        primaryButtonText: 'Remove',
       },
     });
   }
 
-  // todo, always put `user` and `me` at the top
-  const roles = rolesData.authRoles
-    .map((authRole) => ({
-      name: authRole.role,
-      isSystemRole: authRole.role === 'user' || authRole.role === 'me',
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const availableAllowedRoles = getUserRoles(
+    data?.app?.authUserDefaultAllowedRoles,
+  );
 
   return (
     <SettingsContainer
-      title="Roles"
-      description="Roles are associated with users and is used to manage permissions."
-      docsLink="https://docs.nhost.io/authentication/users#roles"
+      title="Default Allowed Roles"
+      description="Default allowed roles are roles users get automatically when they sign up."
+      docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
       className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
@@ -157,7 +154,7 @@ export default function RoleSettings() {
 
       <div className="grid grid-flow-row gap-2">
         <List>
-          {roles.map((role, index) => (
+          {availableAllowedRoles.map((role, index) => (
             <Fragment key={role.name}>
               <ListItem.Root
                 className="px-4"
@@ -185,11 +182,8 @@ export default function RoleSettings() {
                         horizontal: 'right',
                       }}
                     >
-                      <Dropdown.Item
-                        disabled={role.isSystemRole}
-                        onClick={() => handleOpenEditor(role)}
-                      >
-                        <Text className="font-medium">Edit</Text>
+                      <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
+                        <Text className="font-medium">Set as Default</Text>
                       </Dropdown.Item>
 
                       <Divider component="li" />
@@ -199,7 +193,7 @@ export default function RoleSettings() {
                         onClick={() => handleConfirmDelete(role)}
                       >
                         <Text className="font-medium" color="error">
-                          Delete
+                          Remove
                         </Text>
                       </Dropdown.Item>
                     </Dropdown.Content>
@@ -216,6 +210,15 @@ export default function RoleSettings() {
                       {role.name}
 
                       {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+
+                      {data?.app?.authUserDefaultRole === role.name && (
+                        <Chip
+                          component="span"
+                          color="info"
+                          size="small"
+                          label="Default"
+                        />
+                      )}
                     </>
                   }
                 />
@@ -224,7 +227,9 @@ export default function RoleSettings() {
               <Divider
                 component="li"
                 className={twMerge(
-                  index === roles.length - 1 ? '!mt-4' : '!my-4',
+                  index === availableAllowedRoles.length - 1
+                    ? '!mt-4'
+                    : '!my-4',
                 )}
               />
             </Fragment>
@@ -237,7 +242,7 @@ export default function RoleSettings() {
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
         >
-          Create Role
+          Add Default Allowed Role
         </Button>
       </div>
     </SettingsContainer>

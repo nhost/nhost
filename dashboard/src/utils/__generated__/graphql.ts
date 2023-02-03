@@ -855,6 +855,7 @@ export type Apps = {
   /** An object relationship */
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion: Scalars['String'];
   hasuraGraphqlAdminSecret: Scalars['String'];
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
@@ -863,6 +864,8 @@ export type Apps = {
   hasuraGraphqlEnabledApis: Scalars['String'];
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret: Scalars['String'];
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion: Scalars['String'];
   hasuraVersion: Scalars['String'];
   id: Scalars['uuid'];
@@ -1237,6 +1240,7 @@ export type Apps_Bool_Exp = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlAdminSecret?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<String_Comparison_Exp>;
@@ -1245,6 +1249,8 @@ export type Apps_Bool_Exp = {
   hasuraGraphqlEnabledApis?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlJwtSecret?: InputMaybe<String_Comparison_Exp>;
+  hasuraPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraStorageVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraVersion?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
@@ -1427,6 +1433,7 @@ export type Apps_Insert_Input = {
   featureFlags?: InputMaybe<FeatureFlags_Arr_Rel_Insert_Input>;
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -1435,6 +1442,8 @@ export type Apps_Insert_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -1549,12 +1558,15 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1659,12 +1671,15 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -1770,12 +1785,15 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1880,12 +1898,15 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2047,6 +2068,7 @@ export type Apps_Order_By = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Order_By>;
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
@@ -2055,6 +2077,8 @@ export type Apps_Order_By = {
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2308,6 +2332,8 @@ export enum Apps_Select_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -2323,6 +2349,10 @@ export enum Apps_Select_Column {
   HasuraGraphqlGraphqlUrl = 'hasuraGraphqlGraphqlUrl',
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
+  /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
   /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
@@ -2615,6 +2645,7 @@ export type Apps_Set_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2623,6 +2654,8 @@ export type Apps_Set_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -2824,6 +2857,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2832,6 +2866,8 @@ export type Apps_Stream_Cursor_Value_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -3092,6 +3128,8 @@ export enum Apps_Update_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -3107,6 +3145,10 @@ export enum Apps_Update_Column {
   HasuraGraphqlGraphqlUrl = 'hasuraGraphqlGraphqlUrl',
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
+  /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
   /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
@@ -17143,6 +17185,28 @@ export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
+export type InsertRemoteAppRoleMutationVariables = Exact<{
+  object: AuthRoles_Insert_Input;
+}>;
+
+
+export type InsertRemoteAppRoleMutation = { __typename?: 'mutation_root', insertAuthRole?: { __typename?: 'authRoles', role: string } | null };
+
+export type UpdateRemoteAppRoleMutationVariables = Exact<{
+  role: Scalars['String'];
+  roleSetInput: AuthRoles_Set_Input;
+}>;
+
+
+export type UpdateRemoteAppRoleMutation = { __typename?: 'mutation_root', updateAuthRole?: { __typename?: 'authRoles', role: string } | null };
+
+export type DeleteRemoteAppRoleMutationVariables = Exact<{
+  role: Scalars['String'];
+}>;
+
+
+export type DeleteRemoteAppRoleMutation = { __typename?: 'mutation_root', deleteAuthRole?: { __typename?: 'authRoles', role: string } | null };
+
 export type GetSmsSettingsQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -18811,6 +18875,106 @@ export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQ
 export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
       return { query: GetRemoteAppRolesDocument, variables: variables }
     }
+export const InsertRemoteAppRoleDocument = gql`
+    mutation insertRemoteAppRole($object: authRoles_insert_input!) {
+  insertAuthRole(object: $object) {
+    role
+  }
+}
+    `;
+export type InsertRemoteAppRoleMutationFn = Apollo.MutationFunction<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
+
+/**
+ * __useInsertRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useInsertRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRemoteAppRoleMutation, { data, loading, error }] = useInsertRemoteAppRoleMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>(InsertRemoteAppRoleDocument, options);
+      }
+export type InsertRemoteAppRoleMutationHookResult = ReturnType<typeof useInsertRemoteAppRoleMutation>;
+export type InsertRemoteAppRoleMutationResult = Apollo.MutationResult<InsertRemoteAppRoleMutation>;
+export type InsertRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
+export const UpdateRemoteAppRoleDocument = gql`
+    mutation updateRemoteAppRole($role: String!, $roleSetInput: authRoles_set_input!) {
+  updateAuthRole(pk_columns: {role: $role}, _set: $roleSetInput) {
+    role
+  }
+}
+    `;
+export type UpdateRemoteAppRoleMutationFn = Apollo.MutationFunction<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
+
+/**
+ * __useUpdateRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useUpdateRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRemoteAppRoleMutation, { data, loading, error }] = useUpdateRemoteAppRoleMutation({
+ *   variables: {
+ *      role: // value for 'role'
+ *      roleSetInput: // value for 'roleSetInput'
+ *   },
+ * });
+ */
+export function useUpdateRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>(UpdateRemoteAppRoleDocument, options);
+      }
+export type UpdateRemoteAppRoleMutationHookResult = ReturnType<typeof useUpdateRemoteAppRoleMutation>;
+export type UpdateRemoteAppRoleMutationResult = Apollo.MutationResult<UpdateRemoteAppRoleMutation>;
+export type UpdateRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
+export const DeleteRemoteAppRoleDocument = gql`
+    mutation deleteRemoteAppRole($role: String!) {
+  deleteAuthRole(role: $role) {
+    role
+  }
+}
+    `;
+export type DeleteRemoteAppRoleMutationFn = Apollo.MutationFunction<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
+
+/**
+ * __useDeleteRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useDeleteRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRemoteAppRoleMutation, { data, loading, error }] = useDeleteRemoteAppRoleMutation({
+ *   variables: {
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useDeleteRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>(DeleteRemoteAppRoleDocument, options);
+      }
+export type DeleteRemoteAppRoleMutationHookResult = ReturnType<typeof useDeleteRemoteAppRoleMutation>;
+export type DeleteRemoteAppRoleMutationResult = Apollo.MutationResult<DeleteRemoteAppRoleMutation>;
+export type DeleteRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
 export const GetSmsSettingsDocument = gql`
     query getSMSSettings($id: uuid!) {
   app(id: $id) {
@@ -19171,7 +19335,7 @@ export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariabl
 export const ScheduledOrPendingDeploymentsSubDocument = gql`
     subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
-    where: {deploymentStatus: {_in: ["PENDING", "SCHEDULED"]}, appId: {_eq: $appId}}
+    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
   ) {
     ...DeploymentRow
   }

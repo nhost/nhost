@@ -2,6 +2,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
 import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
+import AddDefaultAllowedRoleForm from '@/components/settings/defaultAllowedRoles/AddDefaultAllowedRoleForm';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
@@ -377,6 +378,10 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
           {activeDialogType === 'EDIT_FOREIGN_KEY' && (
             <EditForeignKeyForm {...sharedDialogProps} />
+          )}
+
+          {activeDialogType === 'ADD_DEFAULT_ALLOWED_ROLE' && (
+            <AddDefaultAllowedRoleForm {...sharedDialogProps} />
           )}
 
           {activeDialogType === 'CREATE_ROLE' && (
