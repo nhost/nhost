@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { BlogLayout } from '@/blog-components/BlogLayout'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 import npmTrends from './npm-trend-for-typescript.png'
 
@@ -22,7 +22,7 @@ export const article = {
   tags: ['Guides'],
 }
 
-export default (props) => <BlogLayout article={article} {...props} />
+export default (props) => <BlogPostLayout article={article} {...props} />
 
 GraphQL is a great way to build apps faster. But, if you're only using GraphQL without a [GraphQL Code Generator](https://www.graphql-code-generator.com/) you're missing out on the full potential of GraphQL.
 

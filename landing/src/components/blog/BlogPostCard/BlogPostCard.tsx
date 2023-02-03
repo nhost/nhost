@@ -4,8 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
-import Card, { CardProps } from '../Card'
-import { LineGrid } from '../LineGrid'
+import Card, { CardProps } from '../../common/Card'
+import { LineGrid } from '../../common/LineGrid'
 
 export interface BlogPostCardProps extends CardProps {
   /**
@@ -60,22 +60,22 @@ export default function BlogPostCard({
       href={href}
     >
       <Card className={twMerge('border-none p-0', className)} {...props}>
-        <div className="relative z-0 overflow-hidden rounded-xl border border-divider px-12 pt-12">
+        <div className="relative z-0 overflow-hidden rounded-xl border border-divider px-12 pt-12 sm:min-h-[200px] lg:min-h-[300px]">
           <div className="bg-glow-gradient absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
           <LineGrid
             className={twMerge(
               'left-0 right-0 bottom-0 top-0 z-10',
-              highlighted && 'md:-translate-x-14 md:scale-125',
+              highlighted && 'md:scale-150',
             )}
             slotProps={{
               image: {
                 priority: true,
-                className: 'opacity-100 object-right-bottom',
+                className: 'opacity-100',
               },
             }}
           />
-          <div className="relative z-20 flex h-full items-center justify-center overflow-hidden rounded-t-[4px] border-divider border-opacity-50 bg-black bg-opacity-80 shadow-cover">
+          <div className="relative z-20 flex h-full items-center justify-center overflow-hidden rounded-t-[4px] border-divider border-opacity-50 shadow-cover">
             {image}
 
             <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-30 h-full w-full" />

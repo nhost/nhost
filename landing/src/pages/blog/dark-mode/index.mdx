@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { BlogLayout } from '@/blog-components/BlogLayout'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 import contrastRatio from './contrast-ratio.jpg'
 import dashboardDatabase from './dashboard-database.png'
@@ -27,7 +27,7 @@ export const article = {
   tags: ['Product', 'Design', 'Engineering'],
 }
 
-export default (props) => <BlogLayout article={article} {...props} />
+export default (props) => <BlogPostLayout article={article} {...props} />
 
 You can put away your sunglasses, because today we are bringing Dark Mode to the Nhost Dashboard.
 
@@ -82,7 +82,7 @@ Let's see an example:
 
 ```tsx
 <div className="border border-gray-200">
-  <div className="border border-greyscaleGrey">Content</div>
+  <div className="border-greyscaleGrey border">Content</div>
 </div>
 ```
 

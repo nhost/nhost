@@ -8,6 +8,23 @@
   }
 }
 
+.no-scroll-bar {
+  overflow: scroll;
+  width: 100%;
+  -ms-overflow-style: none; /* For Internet Explorer */
+  scrollbar-width: none; /* For Firefox */
+}
+
+.no-scroll-bar::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+@media screen and (min-width: 640px) {
+  .no-scroll-bar {
+    overflow: initial;
+  }
+}
+
 html {
   color-scheme: dark;
 }

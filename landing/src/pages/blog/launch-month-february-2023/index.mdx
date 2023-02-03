@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { BlogLayout } from '@/blog-components/BlogLayout'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Nhost Launch Month - February 2023',
@@ -19,7 +19,7 @@ export const article = {
   tags: ['Product'],
 }
 
-export default (props) => <BlogLayout article={article} {...props} />
+export default (props) => <BlogPostLayout article={article} {...props} />
 
 Hello ~~World~~ Developers!
 

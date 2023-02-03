@@ -1,4 +1,4 @@
-import { BlogPostCard } from '@/components/common/BlogPostCard'
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
@@ -79,6 +79,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
                   alt={`Cover of ${article.title}`}
                   blurDataURL={`/images/blog/${article.image}`}
                   placeholder="blur"
+                  className="h-full w-full object-contain"
                 />
               }
               title={article.title}
