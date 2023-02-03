@@ -23,7 +23,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
         className="relative flex max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
       >
         <LineGrid
-          className="left-0 right-0 mx-auto h-40 w-40 translate-x-0 scale-100 lg:top-5"
+          className="-top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-5 lg:h-40 lg:w-40"
           slotProps={{ image: { className: 'mx-auto' } }}
         />
         <div className="absolute left-0 right-0 z-0 mx-auto h-20 w-20 rounded-full bg-brand-main blur-[56px] lg:top-24"></div>
@@ -42,7 +42,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
 
       <Container
         component="section"
-        className="grid max-w-5xl grid-flow-row gap-6"
+        className="grid max-w-5xl grid-flow-row gap-6 pb-16 lg:pb-28"
       >
         <BlogPostCard
           image={
