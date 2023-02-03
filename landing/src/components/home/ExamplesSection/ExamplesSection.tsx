@@ -37,7 +37,9 @@ function ExampleSelectorButton({
         variant={active ? 'outlined' : 'borderless'}
         size="sm"
         className={twMerge(
-          'relative z-10 border-0 hover:bg-black hover:bg-opacity-100 md:border',
+          'relative z-10',
+          'border-0 md:border',
+          'bg-transparent hover:bg-transparent hover:bg-opacity-100 md:bg-black md:hover:bg-black',
           'px-0 md:px-2 xl:px-4',
           'text-xs md:text-sm',
           'rounded-none md:rounded-md',
