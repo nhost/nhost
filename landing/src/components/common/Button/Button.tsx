@@ -39,7 +39,7 @@ export default function Button({
     props.href ? Link : 'button',
     {
       className: twMerge(
-        'inline-grid grid-flow-col gap-2 items-center font-medium rounded-md motion-safe:transition-highlight hover:no-underline border border-transparent',
+        'inline-grid grid-flow-col gap-2 items-center font-medium rounded-md motion-safe:transition-highlight hover:no-underline border border-transparent px-6 py-3',
         variant === 'contained' &&
           'bg-white text-black text-opacity-100 hover:ring-2 ring-white ring-opacity-50',
         variant === 'borderless' &&
@@ -48,7 +48,6 @@ export default function Button({
           'bg-default text-white text-opacity-100 hover:bg-white hover:bg-opacity-10 border border-divider',
         size === 'xs' && 'px-2 py-1 gap-1 leading-[18px]',
         size === 'sm' && 'px-4 py-2 gap-1 leading-[18px]',
-        size === 'lg' && 'px-6 py-3',
         className,
       ),
       ...(props as any),
