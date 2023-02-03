@@ -71,7 +71,7 @@ export default function IndexPage() {
           quality={90}
           className="relative z-10 mx-auto w-full max-w-5xl"
           priority
-          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 1024px, 1024px"
+          sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
         <div className="absolute -bottom-32 left-0 right-0 z-30 h-36 w-full bg-black"></div>
