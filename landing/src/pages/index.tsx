@@ -169,7 +169,7 @@ export default function IndexPage() {
             }
             title="Postgres Database"
             description="The world's most advanced relational database."
-            href="/product/postgres"
+            href="/product/database"
           />
 
           <ServiceCard
@@ -209,7 +209,7 @@ export default function IndexPage() {
                 alt="A user icon"
               />
             }
-            title="Authentication"
+            title="Auth"
             description="Sign in users with email, magic links, SMS, Google, Facebook, etc."
             href="/product/auth"
           />

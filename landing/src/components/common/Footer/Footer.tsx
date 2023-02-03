@@ -82,11 +82,21 @@ export default function Footer() {
       </div>
 
       <List title="Features">
-        <li>Database</li>
-        <li>GraphQL API</li>
-        <li>Authentication</li>
-        <li>Storage</li>
-        <li>Serverless Functions</li>
+        <li>
+          <Link href="/product/database">Database</Link>
+        </li>
+        <li>
+          <Link href="/product/graphql">GraphQL</Link>
+        </li>
+        <li>
+          <Link href="/product/auth">Auth</Link>
+        </li>
+        <li>
+          <Link href="/product/storage">Storage</Link>
+        </li>
+        <li>
+          <Link href="/product/functions">Functions</Link>
+        </li>
       </List>
 
       <List title="Product">
