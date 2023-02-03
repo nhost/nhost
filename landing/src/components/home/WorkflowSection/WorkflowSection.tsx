@@ -269,7 +269,7 @@ export default function WorkflowSection() {
               </div>
 
               <div className="relative block lg:hidden">
-                <LineGrid className="-translate-x-[10%]" />
+                <LineGrid className="scale-110" />
                 <GitWorkflow />
               </div>
             </li>
@@ -309,8 +309,7 @@ export default function WorkflowSection() {
               </div>
 
               <div className="relative z-0 overflow-hidden lg:hidden">
-                <LineGrid className="translate-x-0" />
-
+                <LineGrid />
                 <CloudWorkflow className="grid lg:hidden" />
               </div>
             </li>
@@ -318,7 +317,7 @@ export default function WorkflowSection() {
         </div>
 
         <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
-          <LineGrid />
+          <LineGrid className="scale-110" />
 
           <div className="relative z-10">
             {activeStep === 0 && <CLIWorkflow className="z-10" />}

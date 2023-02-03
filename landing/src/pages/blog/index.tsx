@@ -1,5 +1,7 @@
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
+import { LineGrid } from '@/components/common/LineGrid'
+import { SectionHeading } from '@/components/common/SectionHeading'
 import { format, parseISO } from 'date-fns'
 import glob from 'fast-glob'
 import Image from 'next/image'
@@ -24,11 +26,11 @@ interface Article {
   slug: string
 }
 
-interface PageProps {
+interface BlogPageProps {
   articles: Article[]
 }
 
-export default function Page({ articles }: PageProps) {
+export default function BlogPage({ articles }: BlogPageProps) {
   console.log(articles)
 
   const firstArticle = articles[0]
@@ -39,9 +41,25 @@ export default function Page({ articles }: PageProps) {
   console.log(otherArticles)
 
   return (
-    <Container>
-      <h1>Blog</h1>
-      <p>Read the latest news about Nhost.</p>
+    <>
+      <Container component="section" className="relative py-28">
+        <LineGrid
+          className="top-5 left-0 right-0 mx-auto h-40 w-40 translate-x-0 scale-100"
+          slotProps={{ image: { className: 'mx-auto' } }}
+        />
+        <div className="absolute top-24 left-0 right-0 z-0 mx-auto h-20 w-20 rounded-full bg-brand-main blur-[56px]"></div>
+        <SectionHeading
+          title="Blog"
+          subtitle="Read the latest news about Nhost."
+          slotProps={{
+            title: {
+              component: 'h1',
+              className: 'text-3.5xl md:text-5xl',
+            },
+          }}
+          className="relative z-10"
+        />
+      </Container>
 
       <div>
         <Image
@@ -116,11 +134,11 @@ export default function Page({ articles }: PageProps) {
           )
         })}
       </div>
-    </Container>
+    </>
   )
 }
 
-Page.getLayout = function getLayout(page: ReactElement) {
+BlogPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }
 

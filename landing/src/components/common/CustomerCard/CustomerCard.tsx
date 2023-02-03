@@ -37,7 +37,7 @@ export default function CustomerCard({
       <div className="relative z-0 h-52 overflow-hidden px-12 pt-12">
         <div className="bg-glow-gradient absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
-        <LineGrid className="left-0 right-0 bottom-0 top-0 z-10 scale-275" />
+        <LineGrid className="left-0 right-0 bottom-0 top-0 z-10 translate-x-0 scale-100" />
         <div className="relative z-20 flex h-full w-full items-center justify-center rounded-t-[4px] bg-black bg-opacity-80">
           {image}
 

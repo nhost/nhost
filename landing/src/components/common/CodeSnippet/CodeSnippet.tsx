@@ -41,7 +41,9 @@ export default function CodeSnippet({
       )}
       {...(slotProps?.root || {})}
     >
-      {!disableLineGrid && <LineGrid className="overflow-hidden" />}
+      {!disableLineGrid && (
+        <LineGrid className="translate-x-0 scale-y-125 overflow-hidden" />
+      )}
 
       <SyntaxHighlighter
         language={language}
