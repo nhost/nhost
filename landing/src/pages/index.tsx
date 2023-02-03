@@ -67,7 +67,7 @@ export default function IndexPage() {
           alt="The Nhost Dashboard's overview page"
           width={1442}
           height={902}
-          quality={100}
+          quality={90}
           className="relative z-10 mx-auto w-full max-w-5xl"
           priority
         />
