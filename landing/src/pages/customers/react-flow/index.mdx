@@ -1,15 +1,25 @@
 import Image from 'next/image'
-import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
 
-export const article = {
+export const customer = {
   name: 'React Flow',
-  description: '12312313',
-  image: 'og-dark-mode.png',
-  date: '2023-02-01',
+  description:
+    'React Flow successfully launched its SaaS platform with the help of Nhost and attracted customers such as Stripe, OneSignal, and LinkedIn.',
+  logo: '/customers/react-flow/react-flow.png',
+  ogImage: '/images/customers/react-flow-og.png',
+  industry: 'Dev tools',
+  location: 'Berlin, Germany',
+  timeToProduction: '8 weeks',
+  problem:
+    'React Flow needed a backend solution to support their SaaS platform and handle increased customer demands efficiently.',
+  solution:
+    'React Flow chose Nhost as their backend solution, which allowed them to build and ship their product effectively, leading to the successful acquisition of high-profile customers such as Stripe, OneSignal, and LinkedIn.',
 }
 
-export default (props) => <BlogPostLayout article={article} {...props} />
+export default (props) => <CustomerLayout customer={customer} {...props} />
 
-test 123
+this is the story!
 
-321
+1-2-
+
+A highly customizable React component for building node-based editors and interactive diagrams

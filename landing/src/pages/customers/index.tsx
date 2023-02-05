@@ -1,15 +1,13 @@
 import { Container } from '@/components/common/Container'
 import { Layout } from '@/components/common/Layout'
+import { Customer } from '@/utils/types'
 import glob from 'fast-glob'
+import Link from 'next/link'
 import * as path from 'path'
 import { ReactElement } from 'react'
 
-interface Customers {
-  name: string
-}
-
 export interface CustomersPageProps {
-  customers: Customers[]
+  customers: Customer[]
 }
 
 export default function BlogPage({ customers }: CustomersPageProps) {
@@ -18,9 +16,22 @@ export default function BlogPage({ customers }: CustomersPageProps) {
     <>
       <Container
         component="section"
-        className="relative flex max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
+        className="relative max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
       >
-        <div>123</div>
+        <div>
+          <h1>Companies building with Nhost</h1>
+          <div>Learn why companies are using Nhost to build.</div>
+        </div>
+        {customers.map((customer) => {
+          return (
+            <div key={customer.name}>
+              <div>{customer.name}</div>
+              <div>{customer.description}</div>
+              <Link href={`/customers/${customer.slug}`}>Read more</Link>
+            </div>
+          )
+        })}
+        <div>Ready to try Nhost?</div>
       </Container>
     </>
   )
@@ -32,23 +43,23 @@ BlogPage.getLayout = function getLayout(page: ReactElement) {
 
 export async function getStaticProps() {
   // TODO: Move this function to a separate file
-  const importArticle = async (articleFilename: any) => {
+  const importPage = async (fileName: any) => {
     // if we change the location of this folder, make sure the path is correct!
-    let { article, default: component } = await import(`./${articleFilename}`)
+    let { customer, default: component } = await import(`./${fileName}`)
     return {
-      slug: articleFilename.replace(/(\/index)?\.mdx$/, ''),
-      ...article,
+      slug: fileName.replace(/(\/index)?\.mdx$/, ''),
+      ...customer,
       component,
     }
   }
 
   // TODO: move this function to a separate file
-  const getAllArticles = async () => {
-    const articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
+  const getAllPages = async () => {
+    const fileNames = await glob(['*.mdx', '*/index.mdx'], {
       cwd: path.join(process.cwd(), 'src/pages/customers'),
     })
 
-    const customers = await Promise.all(articleFilenames.map(importArticle))
+    const customers = await Promise.all(fileNames.map(importPage))
 
     return customers.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
@@ -57,7 +68,7 @@ export async function getStaticProps() {
 
   return {
     props: {
-      customers: (await getAllArticles()).map(
+      customers: (await getAllPages()).map(
         ({ component, ...article }) => article,
       ),
     },
