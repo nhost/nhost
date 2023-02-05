@@ -121,7 +121,7 @@ export default function ExamplesSection() {
           </div>
 
           <Image
-            src="/common/example-top-connector-lines.svg"
+            src="/common/connectors/top-connectors.svg"
             width={587}
             height={96}
             alt="Dashed lines"
@@ -173,7 +173,7 @@ export default function ExamplesSection() {
             )}
 
             <Image
-              src="/common/example-bottom-connector-lines.svg"
+              src="/common/connectors/bottom-connectors.svg"
               width={587}
               height={65}
               alt="Dashed lines"

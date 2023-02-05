@@ -50,7 +50,10 @@ export default function ServiceCard({
       </div>
 
       {!disableLink ? (
-        <Link className="text-base font-bold text-opacity-100" href={href}>
+        <Link
+          className="justify-self-start text-base font-bold text-opacity-100"
+          href={href}
+        >
           Learn more <ArrowRightIcon />
         </Link>
       ) : (

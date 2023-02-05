@@ -4,7 +4,7 @@
 
 .bottom-connector-first-active {
   width: 100%;
-  mask-image: url('/common/bottom-connector-lines-first-active.svg');
+  mask-image: url('/common/connectors/bottom-connectors-first-active.svg');
   mask-repeat: no-repeat;
 }
 

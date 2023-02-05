@@ -15,9 +15,6 @@ export default function ProductIcon({ children }: PropsWithChildren<unknown>) {
         className="absolute h-full w-full"
         alt="A gradient border"
       />
-
-      {/* <div className="radial-inner absolute top-0 bottom-0 right-0 left-0 z-0 rounded-full opacity-10"></div>
-      <div className="radial-outer absolute top-0 bottom-0 right-0 left-0 z-10 rounded-full opacity-50"></div> */}
     </div>
   )
 }
