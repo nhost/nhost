@@ -185,7 +185,7 @@ export default function Header({
 
         <div className="hidden grid-flow-col gap-4 lg:grid">
           <Button
-            href="https://app.nhost.io/sign-in"
+            href="https://app.nhost.io/signin"
             target="_blank"
             rel="noopener noreferrer"
             size="sm"
@@ -195,7 +195,7 @@ export default function Header({
           </Button>
 
           <Button
-            href="https://app.nhost.io/sign-up"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
             size="sm"

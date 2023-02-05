@@ -30,7 +30,7 @@ export default function CTASection() {
         <div className="grid grid-flow-row items-center gap-4 pt-2 md:grid-flow-col md:gap-6">
           <Button
             className="text-base"
-            href="https://app.nhost.io/sign-up"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >

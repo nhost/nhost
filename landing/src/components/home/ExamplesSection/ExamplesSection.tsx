@@ -191,7 +191,7 @@ export default function ExamplesSection() {
           <div className="z-0 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
             <div className="absolute max-w-[470px]">
               <Image
-                src="/common/logo-badge.svg"
+                src="/common/logo-glow.svg"
                 width={1220}
                 height={1220}
                 alt="Nhost Logo in a dark circle"

@@ -44,7 +44,7 @@ export default function IndexPage() {
 
           <Button
             className="justify-self-center text-center text-base"
-            href="https://app.nhost.io/sign-up"
+            href="https://app.nhost.io/signup"
             target="_blank"
             rel="noopener noreferrer"
           >
