@@ -99,8 +99,9 @@ export default function AboutPage() {
           slotProps={{ title: { className: 'font-semibold' } }}
         />
 
-        <div className="mx-auto grid max-w-3xl grid-cols-1 justify-around gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="mx-auto flex max-w-3xl flex-row flex-wrap justify-center gap-6">
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/guillem-sague.jpg"
@@ -123,6 +124,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/anders-hammarbaeck.jpg"
@@ -164,6 +166,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/tom-werner.jpg"
@@ -178,6 +181,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/mathias-biilmann-christensen.jpg"
@@ -192,6 +196,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/chris-bach.jpg"
@@ -206,6 +211,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/michael-grinich.jpg"
@@ -220,6 +226,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
+            className="flex-auto"
             avatar={
               <Image
                 src="/investors/avatars/marcus-bostroem.jpg"
