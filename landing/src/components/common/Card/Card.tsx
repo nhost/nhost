@@ -7,7 +7,10 @@ export interface CardProps
 export default function Card({ className, children, ...props }: CardProps) {
   return (
     <div
-      className={twMerge('rounded-md border border-divider p-8', className)}
+      className={twMerge(
+        'overflow-hidden rounded-md border border-divider p-8',
+        className,
+      )}
       {...props}
     >
       {children}
