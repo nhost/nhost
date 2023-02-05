@@ -105,6 +105,7 @@ export default function ExamplesSection() {
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
             wrapLongLines={false}
+            slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
           >
             {activeSnippet}
           </CodeSnippet>

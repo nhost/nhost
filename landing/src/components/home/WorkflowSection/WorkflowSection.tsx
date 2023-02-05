@@ -78,7 +78,11 @@ function CLIWorkflow({
   return (
     <div ref={ref} className={twMerge(className, 'relative')} {...props}>
       <div className="hidden w-full sm:block sm:min-h-[381px]">
-        <CodeSnippet disableLineGrid customStyle={{ minHeight: 381 }}>
+        <CodeSnippet
+          disableLineGrid
+          customStyle={{ minHeight: 381 }}
+          slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
+        >
           {code}
         </CodeSnippet>
       </div>
