@@ -68,7 +68,7 @@ export default function AboutPage() {
           <div className="absolute -top-4 left-0 right-0 mx-auto h-16 w-[60%] rounded-full bg-brand-main blur-3xl" />
         </div>
 
-        <div className="relative z-10 mx-auto -mt-64 flex w-full max-w-5xl flex-row flex-wrap justify-around gap-6">
+        <div className="relative z-10 mx-auto -mt-64 flex w-full max-w-5xl flex-row flex-wrap justify-evenly gap-6 md:justify-around">
           <div className="grid grid-flow-row gap-2 text-center">
             <p className="font-mona text-3.5xl font-bold lg:text-5xl">9</p>
             <p className="text-base">Nationalities</p>
@@ -101,7 +101,7 @@ export default function AboutPage() {
 
         <div className="mx-auto flex max-w-3xl flex-row flex-wrap justify-center gap-6">
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/guillem-sague.jpg"
@@ -124,7 +124,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/anders-hammarbaeck.jpg"
@@ -166,7 +166,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/tom-werner.jpg"
@@ -181,7 +181,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/mathias-biilmann-christensen.jpg"
@@ -196,7 +196,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/chris-bach.jpg"
@@ -211,7 +211,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/michael-grinich.jpg"
@@ -226,7 +226,7 @@ export default function AboutPage() {
           />
 
           <InvestorCard
-            className="flex-auto"
+            className="w-full flex-auto shrink-0"
             avatar={
               <Image
                 src="/investors/avatars/marcus-bostroem.jpg"
