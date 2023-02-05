@@ -63,7 +63,7 @@ export default function SectionHeading({
         {
           ...titleSlotProps,
           className: twMerge(
-            'font-mona text-3.5xl md:text-4.5xl font-bold',
+            'font-mona text-3.5xl md:text-4.5xl font-semibold',
             titleSlotProps.className,
           ),
         },

@@ -37,7 +37,7 @@ export default function IndexPage() {
             slotProps={{
               title: {
                 component: 'h1',
-                className: 'text-3.5xl md:text-5xl',
+                className: 'text-3.5xl md:text-5xl font-bold',
               },
             }}
           />

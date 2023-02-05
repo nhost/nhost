@@ -28,7 +28,7 @@ export default function AboutPage() {
       <SectionHeading
         title="We enable developers to build apps users love"
         subtitle="To the builders of the world. We admire and support you!"
-        className="mt-12"
+        className="mt-12 max-w-xl"
         slotProps={{
           title: {
             component: 'h1',

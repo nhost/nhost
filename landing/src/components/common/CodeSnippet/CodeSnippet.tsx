@@ -31,6 +31,7 @@ export default function CodeSnippet({
 }: CodeSnippetProps) {
   return (
     <div
+      {...(slotProps?.root || {})}
       className={twMerge(
         'code-snippet relative z-0 w-full',
         'before:absolute before:left-0 before:right-0 before:bottom-0 before:top-0',
@@ -39,7 +40,6 @@ export default function CodeSnippet({
         'before:skew-x-12 before:skew-y-3 before:blur-[32px]',
         slotProps?.root?.className,
       )}
-      {...(slotProps?.root || {})}
     >
       {!disableLineGrid && (
         <LineGrid className="translate-x-0 scale-y-125 overflow-hidden" />
