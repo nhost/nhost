@@ -1,0 +1,35 @@
+import { MdxLayout } from '@/components/common/MdxLayout'
+
+export default (props) => <MdxLayout {...props} />
+
+### Urgent (P1)
+
+Any incident which causes a full production outage. Operations are halted, and there is no way to
+overcome the impact.
+
+### High (P2)
+
+Any incident which causes high impact to production software or severe impact to non-critical
+business operations. Usually operations are functional but operating in a degraded state and there is
+no known way to overcome the impact.
+
+### Normal (P3)
+
+Any incident which causes moderate impact to business operations. Usually operations are only
+minimally degraded or fully functional.
+
+### Low (P4)
+
+Any incident which causes low or no impact to business operations. Includes general inquiries,
+questions, or recommendations for product enhancements.
+
+## Target response time
+
+|             | Premium               | Standard              |
+| ----------- | --------------------- | --------------------- |
+| Urgent (P1) | < 2 hours             | < 4 hours             |
+| High (P2)   | < 4 business hours\*  | < 8 business hours\*  |
+| Normal (P3) | < 8 business hours\*  | < 16 business hours\* |
+| Low (P4)    | < 16 business hours\* | < 24 business hours\* |
+
+\*Business hours are from 08:00 to 17:00 Central European Time, except where otherwise stated.

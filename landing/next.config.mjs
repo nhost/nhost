@@ -9,6 +9,25 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/blog/how-we-raised-3m-without-leaving-the-house',
+        destination: '/blog/how-we-raised-3m-dollars-without-leaving-the-house',
+        permanent: true,
+      },
+      {
+        source: '/discord',
+        destination: 'https://discord.gg/9V7Qb2U',
+        permanent: true,
+      },
+      {
+        source: '/blog/upload-files-with-hasura-and-hasura-and-hasura-storage',
+        destination: '/blog/upload-files-with-hasura-and-hasura-storage',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 const withMDX = nextMDX({

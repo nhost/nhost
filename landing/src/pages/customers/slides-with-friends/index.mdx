@@ -1,0 +1,25 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'Slides With Friends',
+  description:
+    'React Flow successfully launched its SaaS platform with the help of Nhost and attracted customers such as Stripe, OneSignal, and LinkedIn.',
+  logo: '/customers/slides-with-friends.svg',
+  ogImage: '/images/customers/og-todo.png',
+  industry: 'Online Events',
+  location: 'Philadelphia, United States',
+  timeToProduction: '7 weeks',
+  problem:
+    'Slides with Friends needed a scalable and reliable backend solution to support their growing user base and increasing demand for interactive presentations.',
+  solution:
+    "Slides with Friends chose Nhost as their backend solution, allowing them to provide a seamless experience for their users and handle increased traffic efficiently. Nhost's robust infrastructure and scalable architecture ensured that Slides with Friends could focus on delivering their core product without worrying about backend management.",
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+this is the story!
+
+1-2-
+
+A highly customizable React component for building node-based editors and interactive diagrams

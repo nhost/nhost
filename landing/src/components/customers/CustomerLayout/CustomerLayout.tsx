@@ -17,9 +17,6 @@ export default function CustomerLayout({
   children,
   customer,
 }: PropsWithChildren<CustomerLayout>) {
-  console.log('customer layout render')
-  console.log(customer)
-
   return (
     <Layout
       slotProps={{

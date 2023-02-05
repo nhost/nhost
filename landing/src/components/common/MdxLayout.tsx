@@ -1,9 +1,9 @@
 import { NextSeo, NextSeoProps } from 'next-seo'
 import { DetailedHTMLProps, HTMLProps } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { Container } from '../Container'
-import { Footer } from '../Footer'
-import { Header } from '../Header'
+import { Header } from '@/components/common/Header'
+import { Footer } from '@/components/common/Footer'
+import { Container } from '@/components/common/Container'
 
 export interface LayoutProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
@@ -18,7 +18,7 @@ export interface LayoutProps
   }
 }
 
-export default function Layout({
+export function MdxLayout({
   className,
   children,
   slotProps,
@@ -33,7 +33,7 @@ export default function Layout({
       />
 
       <main className={twMerge('flex-auto', className)} {...props}>
-        {children}
+        <Container className="prose prose-invert py-20">{children}</Container>
       </main>
 
       <Footer />
