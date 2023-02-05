@@ -37,6 +37,17 @@ module.exports = {
         200: '2',
         275: '2.75',
       },
+      animation: {
+        'translate-top-bottom-infinite':
+          'translate-top-bottom-infinite 1.5s ease-in-out forwards',
+      },
+      keyframes: {
+        'translate-top-bottom-infinite': {
+          '0%': { transform: 'translateX(-75%)', opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { transform: 'translateX(0%)' },
+        },
+      },
       boxShadow: {
         cover:
           '0px 0px 32px -10px rgba(0, 0, 0, 0.24), 0px 0px 32px 10px rgba(0, 0, 0, 0.25)',

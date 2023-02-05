@@ -128,7 +128,7 @@ export default function ExamplesSection() {
             className="mx-auto h-auto w-full"
           />
 
-          <div className="z-10 flex w-full flex-row justify-around md:justify-center md:gap-6">
+          <div className="z-20 flex w-full flex-row justify-around md:justify-center md:gap-6">
             <TechnologySelectorButton
               active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
@@ -165,15 +165,23 @@ export default function ExamplesSection() {
             </TechnologySelectorButton>
           </div>
 
-          <Image
-            src="/common/example-bottom-connector-lines.svg"
-            width={587}
-            height={65}
-            alt="Dashed lines"
-            className="mx-auto hidden h-auto w-full xl:block"
-          />
+          <div className="relative z-0">
+            {activeTechnology === 'javascript' && (
+              <div className="bottom-connector-first-active absolute z-10 h-full w-full">
+                <div className="bg-pipe-gradient absolute h-full w-full rotate-45 transform animate-translate-top-bottom-infinite"></div>
+              </div>
+            )}
 
-          <div className="z-0 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
+            <Image
+              src="/common/example-bottom-connector-lines.svg"
+              width={587}
+              height={65}
+              alt="Dashed lines"
+              className="mx-auto hidden h-auto w-full xl:block"
+            />
+          </div>
+
+          <div className="z-10 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
             <div className="absolute max-w-[470px]">
               <Image
                 src="/common/logo-glow.svg"

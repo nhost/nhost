@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+.bottom-connector-first-active {
+  width: 100%;
+  mask-image: url('/common/bottom-connector-lines-first-active.svg');
+  mask-repeat: no-repeat;
+}
+
+.bg-pipe-gradient {
+  background: linear-gradient(
+      120.18deg,
+      rgba(0, 0, 0, 0) 0%,
+      #8cc1f2 9.6%,
+      #00398e 50.09%,
+      #8cc1f2 91.34%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    linear-gradient(0deg, #262626, #262626);
+}
+
 @supports (font: -apple-system-body) and (-webkit-appearance: none) {
   img[loading='lazy'] {
     clip-path: inset(0.6px);
