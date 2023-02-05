@@ -3,6 +3,7 @@ import Card from '@/components/common/Card'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { CTASection } from '@/components/common/CTASection'
+import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
@@ -25,11 +26,11 @@ const standaloneSnippet = `$ psql -h subdomain.db.eu-central-1.nhost\\
 > -U postgres\\
 > -d database`
 
-type DatabaseSnippets = typeof codeSnippets
+type DatabaseExamples = typeof codeSnippets
 
 export default function DatabasePage() {
-  const [selectedSnippet, setSelectedSnippet] =
-    useState<keyof DatabaseSnippets>('insertData')
+  const [selectedExample, setSelectedExample] =
+    useState<keyof DatabaseExamples>('insertData')
 
   return (
     <>
@@ -44,6 +45,7 @@ export default function DatabasePage() {
               width={24}
               height={24}
               alt="Logo of Postgres"
+              priority
             />
           </ProductIcon>
 
@@ -96,17 +98,71 @@ export default function DatabasePage() {
           subtitle="Control your database like a spreadsheet."
         />
 
-        <div className="grid grid-flow-col gap-6">
-          <div>
+        <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+          <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               className="min-h-[330px]"
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
-              {codeSnippets[selectedSnippet]}
+              {codeSnippets[selectedExample]}
             </CodeSnippet>
           </div>
 
-          <div>B</div>
+          <div className="relative order-1 w-full max-w-3xl xl:order-2">
+            <div className="relative z-10 grid grid-flow-col justify-around xl:max-w-none">
+              <ExampleSelectorButton
+                active={selectedExample === 'insertData'}
+                onClick={() => setSelectedExample('insertData')}
+              >
+                Insert Data
+              </ExampleSelectorButton>
+
+              <ExampleSelectorButton
+                active={selectedExample === 'editData'}
+                onClick={() => setSelectedExample('editData')}
+              >
+                Edit Data
+              </ExampleSelectorButton>
+
+              <ExampleSelectorButton
+                active={selectedExample === 'createTable'}
+                onClick={() => setSelectedExample('createTable')}
+              >
+                Create Table
+              </ExampleSelectorButton>
+
+              <ExampleSelectorButton
+                active={selectedExample === 'editTable'}
+                onClick={() => setSelectedExample('editTable')}
+              >
+                Edit Table
+              </ExampleSelectorButton>
+            </div>
+
+            <Image
+              src="/products/connector-lines.svg"
+              alt="Dashed lines"
+              width={506}
+              height={97}
+              className="h-auto w-full"
+            />
+
+            <Image
+              src="/common/logo-glow.svg"
+              width={1220}
+              height={1220}
+              alt="Nhost Logo in a dark circle"
+              className="relative z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] xl:block"
+            />
+
+            <Image
+              src="/common/logo-glow.svg"
+              width={1220}
+              height={1220}
+              alt="Nhost Logo in a dark circle"
+              className="absolute bottom-0 left-0 right-0 z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] animate-pulse xl:block"
+            />
+          </div>
         </div>
       </Container>
 

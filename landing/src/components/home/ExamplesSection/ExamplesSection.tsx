@@ -1,6 +1,7 @@
 import { Button, ButtonProps } from '@/components/common/Button'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
+import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
 import { FlutterIcon } from '@/components/common/icons/FlutterIcon'
 import { JavaScriptIcon } from '@/components/common/icons/JavaScriptIcon'
 import { NextjsIcon } from '@/components/common/icons/NextjsIcon'
@@ -18,39 +19,6 @@ const codeSnippetLanguageMap: Record<keyof TechSnippets, string> = {
   nextjs: 'tsx',
   vue: 'tsx',
   flutter: 'dart',
-}
-
-function ExampleSelectorButton({
-  active,
-  className,
-  ...props
-}: ButtonProps & { active?: boolean }) {
-  return (
-    <div
-      className={twMerge(
-        'relative',
-        active &&
-          'before:absolute before:bottom-0 before:left-0 before:right-0 before:top-0 before:z-0 before:skew-y-3 before:rounded-md before:bg-brand-main before:bg-opacity-50 before:blur-xl before:motion-safe:transition-all',
-      )}
-    >
-      <Button
-        variant={active ? 'outlined' : 'borderless'}
-        size="sm"
-        className={twMerge(
-          'relative z-10',
-          'border-0 md:border',
-          'bg-transparent hover:bg-transparent hover:bg-opacity-100 md:bg-black md:hover:bg-black',
-          'px-0 md:px-2 xl:px-4',
-          'text-xs md:text-sm',
-          'rounded-none md:rounded-md',
-          !active
-            ? 'text-opacity-65'
-            : 'border-b border-b-white md:border-b-divider',
-        )}
-        {...props}
-      />
-    </div>
-  )
 }
 
 function TechnologySelectorButton({
@@ -100,7 +68,7 @@ export default function ExamplesSection() {
         />
       </div>
 
-      <div className="z-0 grid items-center gap-6 xl:grid-cols-2">
+      <div className="z-0 grid items-center gap-14 xl:grid-cols-2 xl:gap-6">
         <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:order-1 xl:max-w-none">
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
@@ -121,8 +89,8 @@ export default function ExamplesSection() {
           </CodeSnippet>
         </div>
 
-        <div className="order-1 col-span-1 grid grid-flow-row content-start gap-18 lg:gap-24 xl:order-2 xl:pt-16">
-          <div className="relative z-10 flex w-full flex-row justify-between md:justify-center md:gap-6">
+        <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none xl:pt-16">
+          <div className="relative z-10 flex w-full flex-row justify-evenly gap-2 md:justify-center md:gap-6">
             <ExampleSelectorButton
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
@@ -152,12 +120,27 @@ export default function ExamplesSection() {
             </ExampleSelectorButton>
           </div>
 
-          <div className="z-10 flex w-full flex-row justify-between md:justify-center md:gap-6">
+          <Image
+            src="/common/example-top-connector-lines.svg"
+            width={587}
+            height={96}
+            alt="Dashed lines"
+            className="mx-auto h-auto w-full"
+          />
+
+          <div className="z-10 flex w-full flex-row justify-around md:justify-center md:gap-6">
             <TechnologySelectorButton
               active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
             >
               <JavaScriptIcon /> JavaScript
+            </TechnologySelectorButton>
+
+            <TechnologySelectorButton
+              active={activeTechnology === 'vue'}
+              onClick={() => setActiveTechnology('vue')}
+            >
+              <VueIcon /> Vue
             </TechnologySelectorButton>
 
             <TechnologySelectorButton
@@ -175,19 +158,20 @@ export default function ExamplesSection() {
             </TechnologySelectorButton>
 
             <TechnologySelectorButton
-              active={activeTechnology === 'vue'}
-              onClick={() => setActiveTechnology('vue')}
-            >
-              <VueIcon /> Vue
-            </TechnologySelectorButton>
-
-            <TechnologySelectorButton
               active={activeTechnology === 'flutter'}
               onClick={() => setActiveTechnology('flutter')}
             >
               <FlutterIcon /> Flutter
             </TechnologySelectorButton>
           </div>
+
+          <Image
+            src="/common/example-bottom-connector-lines.svg"
+            width={587}
+            height={65}
+            alt="Dashed lines"
+            className="mx-auto hidden h-auto w-full xl:block"
+          />
 
           <div className="z-0 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
             <div className="absolute max-w-[470px]">

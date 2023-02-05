@@ -81,7 +81,7 @@ function CLIWorkflow({
         <CodeSnippet
           disableLineGrid
           customStyle={{ minHeight: 381 }}
-          slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
+          slotProps={{ root: { className: 'mx-auto lg:max-w-xl' } }}
         >
           {code}
         </CodeSnippet>
