@@ -5,6 +5,10 @@ import { twMerge } from 'tailwind-merge'
 export interface LineGridProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
   /**
+   * Whether to use the priority loading strategy for the image.
+   */
+  priority?: boolean
+  /**
    * Props passed to component slots.
    */
   slotProps?: {
@@ -18,6 +22,7 @@ export interface LineGridProps
 export default function LineGrid({
   className,
   slotProps,
+  priority,
   ...props
 }: LineGridProps) {
   return (
@@ -27,6 +32,7 @@ export default function LineGrid({
     >
       <Image
         {...(slotProps?.image || {})}
+        priority={priority || slotProps?.image?.priority}
         src="/common/line-grid.svg"
         width={1003}
         height={644}

@@ -66,7 +66,7 @@ export default function Header({
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
               <Popover>
-                {({ open }) => (
+                {({ open, close }) => (
                   <>
                     <Popover.Button className="grid grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 hover:underline">
                       Product{' '}
@@ -94,6 +94,7 @@ export default function Header({
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"
+                                onClick={close}
                               >
                                 Database
                               </Button>
@@ -105,6 +106,7 @@ export default function Header({
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"
+                                onClick={close}
                               >
                                 GraphQL
                               </Button>
@@ -116,6 +118,7 @@ export default function Header({
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"
+                                onClick={close}
                               >
                                 Auth
                               </Button>
@@ -127,6 +130,7 @@ export default function Header({
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"
+                                onClick={close}
                               >
                                 Storage
                               </Button>
@@ -138,6 +142,7 @@ export default function Header({
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"
+                                onClick={close}
                               >
                                 Functions
                               </Button>
