@@ -20,8 +20,8 @@ const codeSnippets = {
 }
 
 const standaloneSnippet = `$ psql -h subdomain.db.eu-central-1.nhost\\
-> -p 5432 \\
-> -U postgres \\
+> -p 5432\\
+> -U postgres\\
 > -d database`
 
 type DatabaseSnippets = typeof codeSnippets
@@ -130,8 +130,8 @@ export default function DatabasePage() {
           className="max-w-lg"
         />
 
-        <div className="mx-auto mt-8 grid max-w-5xl grid-cols-3 grid-rows-6 content-start justify-start gap-6">
-          <Card className="relative row-span-6 grid grid-flow-row place-content-center items-center justify-center justify-items-center gap-4">
+        <div className="mx-auto mt-8 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
+          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
             <div className="relative">
               <LineGrid />
               <Glow />
@@ -140,7 +140,7 @@ export default function DatabasePage() {
                 width={100}
                 height={100}
                 alt="Nhost Logo in a dark circle"
-                className="relative z-10"
+                className="w-26 h-26 relative z-10"
               />
             </div>
 
@@ -150,11 +150,11 @@ export default function DatabasePage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io/signup">
+            <Button href="https://app.nhost.io/signup" className="mt-6">
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          <Card className="row-span-4 grid grid-flow-row place-content-center place-items-center gap-4 text-center">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
               src="/products/postgres.svg"
               width={24}
@@ -172,7 +172,7 @@ export default function DatabasePage() {
               </p>
             </div>
           </Card>
-          <Card className="row-span-2 grid grid-flow-row place-content-center place-items-center gap-4 text-center">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
               src="/products/backups.svg"
               width={24}
@@ -189,25 +189,7 @@ export default function DatabasePage() {
               </p>
             </div>
           </Card>
-          <Card className="col-start-2 row-span-2 grid grid-flow-row place-content-center place-items-center gap-4 text-center">
-            <Image
-              src="/products/logs.svg"
-              width={24}
-              height={24}
-              alt="A paper"
-              className="mx-auto"
-            />
-
-            <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Logs</h3>
-
-              <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
-              </p>
-            </div>
-          </Card>
-          <Card className="col-start-3 row-span-4 row-start-3 grid grid-flow-row place-content-center place-items-center gap-4 text-center">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
               src="/products/secure.svg"
               width={24}
@@ -218,6 +200,24 @@ export default function DatabasePage() {
 
             <div className="grid grid-flow-row gap-2.5">
               <h3 className="text-base font-bold">Secure</h3>
+
+              <p className="text-base text-white text-opacity-65">
+                Choose from a huge collection of Postgres extensions, enabled
+                with a single click.
+              </p>
+            </div>
+          </Card>
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
+            <Image
+              src="/products/logs.svg"
+              width={24}
+              height={24}
+              alt="A paper"
+              className="mx-auto"
+            />
+
+            <div className="grid grid-flow-row gap-2.5">
+              <h3 className="text-base font-bold">Logs</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Choose from a huge collection of Postgres extensions, enabled

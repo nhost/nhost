@@ -12,6 +12,11 @@ module.exports = {
       opacity: {
         65: '0.65',
       },
+      gridRow: {
+        'span-7': 'span 7 / span 7',
+        'span-8': 'span 8 / span 8',
+        'span-15': 'span 15 / span 15',
+      },
       colors: {
         divider: '#262626',
         default: '#080808',
