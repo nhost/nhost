@@ -10,7 +10,7 @@ export default function CTASection() {
       className="grid grid-flow-row pt-8 pb-24 lg:pt-12 lg:pb-40"
     >
       <Image
-        src="/common/glowing-logo.png"
+        src="/images/glowing-logo.png"
         width={588}
         height={420}
         alt="Glowing logo of Nhost"

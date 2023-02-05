@@ -144,20 +144,20 @@ function CloudWorkflow({
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
         <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
-        <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-full rounded-full bg-brand-main blur-3xl md:w-2/3" />
+        <div className="absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-3xl" />
       </div>
 
       <div className="relative z-10 mt-6 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">
         <div className="grid grid-flow-row gap-2 text-center">
-          <p className="font-mona text-5xl font-bold">6</p>
+          <p className="font-mona text-3.5xl font-bold lg:text-5xl">6</p>
           <p className="text-base">Regions</p>
         </div>
         <div className="grid grid-flow-row gap-2 text-center">
-          <p className="font-mona text-5xl font-bold">99.99%</p>
+          <p className="font-mona text-3.5xl font-bold lg:text-5xl">99.99%</p>
           <p className="text-base">Guaranteed Uptime</p>
         </div>
         <div className="grid grid-flow-row gap-2 text-center">
-          <p className="font-mona text-5xl font-bold">185</p>
+          <p className="font-mona text-3.5xl font-bold lg:text-5xl">185</p>
           <p className="text-base">Edge Locations</p>
         </div>
       </div>

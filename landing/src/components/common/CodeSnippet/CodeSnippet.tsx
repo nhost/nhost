@@ -54,7 +54,6 @@ export default function CodeSnippet({
           margin: 0,
           border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: 'none',
-          backgroundColor: '#080808 !important',
           borderRadius: 6,
           zIndex: 1,
           ...customStyle,

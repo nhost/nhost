@@ -41,13 +41,13 @@ export default function Header({
           root: {
             className: twMerge(
               'z-50 bg-black',
-              !mobileMenuVisible && 'backdrop-blur bg-opacity-[1%]',
+              !mobileMenuVisible && 'backdrop-blur-md bg-opacity-[1%]',
               slotProps?.root?.className,
             ),
           },
         }}
         className={twMerge(
-          'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-5',
+          'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-5 backdrop-blur',
           className,
         )}
         {...props}
