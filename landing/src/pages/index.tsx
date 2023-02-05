@@ -5,9 +5,9 @@ import { CustomerCard } from '@/components/common/CustomerCard'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { ServiceCard } from '@/components/common/ServiceCard'
 import { ExamplesSection } from '@/components/home/ExamplesSection'
 import WorkflowSection from '@/components/home/WorkflowSection'
+import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -138,111 +138,23 @@ export default function IndexPage() {
         </div>
       </Container>
 
-      <Container
-        component="section"
+      <ProductSection
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
-        className="grid grid-flow-row gap-14"
-      >
-        <div className="grid grid-flow-row items-center justify-items-center gap-4">
-          <div className="gradient-background rounded-full p-px">
-            <p className="rounded-full bg-paper px-4.5 py-1.5">
-              100% Open Source
-            </p>
+        heading={
+          <div className="grid grid-flow-row items-center justify-items-center gap-4">
+            <div className="gradient-background rounded-full p-px">
+              <p className="rounded-full bg-paper px-4.5 py-1.5">
+                100% Open Source
+              </p>
+            </div>
+
+            <SectionHeading
+              title="Backend without limits"
+              subtitle="Get a database and backend configure and ready in minutes so you can focus on your app and your users."
+            />
           </div>
-
-          <SectionHeading
-            title="Backend without limits"
-            subtitle="Get a database and backend configure and ready in minutes so you
-              can focus on your app and your users."
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/postgres.svg"
-                width={24}
-                height={24}
-                alt="Logo of Postgres"
-              />
-            }
-            title="Postgres Database"
-            description="The world's most advanced relational database."
-            href="/product/database"
-          />
-
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/graphql.svg"
-                width={24}
-                height={24}
-                alt="Logo of GraphQL"
-              />
-            }
-            title="GraphQL API"
-            description="Instant Realtime GraphQL API based on your tables and columns in the database."
-            href="/product/graphql"
-          />
-
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/hasura.svg"
-                width={24}
-                height={24}
-                alt="Logo of Hasura"
-              />
-            }
-            title="Hasura"
-            description="GraphQL API, Role-Based Permissions, Web Console, Event Triggers, Cron Jobs, and more."
-            href="/product/hasura"
-          />
-
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/authentication.svg"
-                width={24}
-                height={24}
-                alt="A user icon"
-              />
-            }
-            title="Auth"
-            description="Sign in users with email, magic links, SMS, Google, Facebook, etc."
-            href="/product/auth"
-          />
-
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/storage.svg"
-                width={24}
-                height={24}
-                alt="A file icon"
-              />
-            }
-            title="Storage (with CDN)"
-            description="Let users upload and download images, documents and other files."
-            href="/product/storage"
-          />
-
-          <ServiceCard
-            icon={
-              <Image
-                src="/products/functions.svg"
-                width={24}
-                height={24}
-                alt="Lambda icon"
-              />
-            }
-            title="Serverless Functions"
-            description="Run custom code using JavaScript and Typescript with infinite scale."
-            href="/product/functions"
-          />
-        </div>
-      </Container>
+        }
+      />
 
       <Container
         component="section"

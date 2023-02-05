@@ -95,7 +95,6 @@ export default function AboutPage() {
       <section className="relative z-10 mt-25 grid grid-flow-row gap-8 lg:mt-40 lg:gap-16">
         <SectionHeading
           title="Investors"
-          subtitle=""
           slotProps={{ title: { className: 'font-semibold' } }}
         />
 

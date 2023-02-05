@@ -22,6 +22,10 @@ export interface ServiceCardProps extends CardProps {
    * The href of the card.
    */
   href: string
+  /**
+   * Determines whether the link should be disabled.
+   */
+  disableLink?: boolean
 }
 
 export default function ServiceCard({
@@ -30,6 +34,7 @@ export default function ServiceCard({
   description,
   href,
   className,
+  disableLink,
   ...props
 }: ServiceCardProps) {
   return (
@@ -44,9 +49,13 @@ export default function ServiceCard({
         <p className="text-base text-white text-opacity-65">{description}</p>
       </div>
 
-      <Link className="text-base font-bold text-opacity-100" href={href}>
-        Learn more <ArrowRightIcon />
-      </Link>
+      {!disableLink ? (
+        <Link className="text-base font-bold text-opacity-100" href={href}>
+          Learn more <ArrowRightIcon />
+        </Link>
+      ) : (
+        <span className="text-base font-bold">You are here</span>
+      )}
     </Card>
   )
 }

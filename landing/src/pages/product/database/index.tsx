@@ -9,6 +9,7 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
@@ -133,7 +134,7 @@ export default function DatabasePage() {
         <div className="mx-auto mt-8 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
           <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
             <div className="relative">
-              <LineGrid />
+              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
               <Glow />
               <Image
                 src="/common/logo-circle.svg"
@@ -227,6 +228,22 @@ export default function DatabasePage() {
           </Card>
         </div>
       </Container>
+
+      <ProductSection
+        slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
+        heading={
+          <div className="grid grid-flow-row items-center justify-items-center gap-4">
+            <div className="gradient-background rounded-full p-px">
+              <p className="rounded-full bg-paper px-4.5 py-1.5">
+                There is more
+              </p>
+            </div>
+
+            <SectionHeading title="Other features" />
+          </div>
+        }
+        disabledLink="database"
+      />
 
       <CTASection />
     </>

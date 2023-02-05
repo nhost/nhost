@@ -19,7 +19,7 @@ export interface SectionHeadingProps
   /**
    * The subtitle of the section.
    */
-  subtitle: ReactNode
+  subtitle?: ReactNode
   /**
    * Props passed to component slots.
    */
@@ -70,15 +70,17 @@ export default function SectionHeading({
         title,
       )}
 
-      <p
-        {...(slotProps?.subtitle || {})}
-        className={twMerge(
-          'text-xl font-normal text-white text-opacity-65',
-          slotProps?.subtitle?.className,
-        )}
-      >
-        {subtitle}
-      </p>
+      {subtitle && (
+        <p
+          {...(slotProps?.subtitle || {})}
+          className={twMerge(
+            'text-xl font-normal text-white text-opacity-65',
+            slotProps?.subtitle?.className,
+          )}
+        >
+          {subtitle}
+        </p>
+      )}
     </div>
   )
 }
