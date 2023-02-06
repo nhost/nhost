@@ -90,7 +90,7 @@ export default function ExamplesSection() {
         </div>
 
         <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none xl:pt-16">
-          <div className="relative z-10 flex w-full flex-row justify-evenly gap-2 md:justify-center md:gap-6">
+          <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 md:justify-center md:gap-6">
             <ExampleSelectorButton
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
@@ -125,7 +125,7 @@ export default function ExamplesSection() {
             width={587}
             height={96}
             alt="Dashed lines"
-            className="mx-auto h-auto w-full"
+            className="z-0 mx-auto h-auto w-full"
           />
 
           <div className="z-20 flex w-full flex-row justify-around md:justify-center md:gap-6">

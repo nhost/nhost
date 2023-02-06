@@ -13,6 +13,7 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
   insertData: `const todos = await nhost.graphql.mutation.insertTodo({
@@ -52,15 +53,35 @@ const todos = await nhost.graphql.query.todos({
 
 type GraphqlExamples = typeof codeSnippets
 
+const realtimeCodeSnippets = {
+  avatars: `subscription GetAvatars {
+  code
+}`,
+  cursors: `subscription GetCursors {
+  code
+}`,
+  location: `subscription GetLocation {
+  code
+}`,
+  charts: `subscription GetCharts {
+  code
+}`,
+}
+
+type RealtimeGraphqlExamples = typeof realtimeCodeSnippets
+
 export default function GraphqlPage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof GraphqlExamples>('insertData')
+
+  const [selectedRealtimeExample, setSelectedRealtimeExample] =
+    useState<keyof RealtimeGraphqlExamples>('avatars')
 
   return (
     <>
       <Container
         component="section"
-        className="relative grid grid-cols-1 gap-14 py-8 sm:gap-6 md:grid-cols-2 md:py-52"
+        className="relative grid grid-cols-1 gap-14 py-8 sm:gap-6 md:grid-cols-2 md:py-24"
       >
         <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
           <ProductIcon>
@@ -102,12 +123,16 @@ export default function GraphqlPage() {
           width={608}
           height={608}
           alt="GraphQL logo"
-          className="z-0 mx-auto md:absolute md:-right-11 md:top-1/2 md:-translate-y-1/2 md:object-none lg:right-11"
+          className="mx-auto h-auto !w-full max-w-md object-none sm:object-none"
           priority
         />
       </Container>
 
-      <Container component="section" className="grid grid-flow-row gap-24">
+      <Container
+        component="section"
+        className="grid grid-flow-row gap-24"
+        slotProps={{ root: { className: 'hidden' } }}
+      >
         <div className="grid grid-flow-row justify-items-center gap-8">
           <SectionHeading
             title="Type-safe GraphQL API"
@@ -192,7 +217,7 @@ export default function GraphqlPage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container component="section">
         <SectionHeading
           title="Powerful and simple permissions"
           subtitle="Row and column level permissions to safely expose your GraphQL API to the world"
@@ -210,18 +235,28 @@ export default function GraphqlPage() {
           subtitle="Build collaborative apps with ease."
         />
 
-        <div className="mx-auto mt-16 grid items-center gap-6 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
-          <ul className="grid grid-flow-row gap-6">
-            <li className="grid grid-flow-row items-start justify-start">
+        <div className="mx-auto mt-16 grid items-center gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
+          <ul className="grid max-w-sm grid-flow-row gap-6">
+            <li
+              className={twMerge(
+                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample !== 'avatars' && 'text-opacity-65',
+              )}
+              role="button"
+              tabIndex={0}
+              aria-label="Live avatars"
+              onClick={() => setSelectedRealtimeExample('avatars')}
+              onKeyDown={() => setSelectedRealtimeExample('avatars')}
+            >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
-                  src="/products/search.svg"
+                  src="/products/user.svg"
                   width={24}
                   height={24}
-                  alt="Magnifying glass"
+                  alt="A user"
                   className="mx-auto h-4 w-4"
                 />
-                <h3 className="text-base font-bold">Live avatars</h3>
+                <h3 className="font-mona text-base font-bold">Live avatars</h3>
               </div>
 
               <p className="ml-8">
@@ -229,16 +264,26 @@ export default function GraphqlPage() {
               </p>
             </li>
 
-            <li className="grid grid-flow-row items-start justify-start">
+            <li
+              className={twMerge(
+                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample !== 'cursors' && 'text-opacity-65',
+              )}
+              role="button"
+              tabIndex={0}
+              aria-label="Live cursors"
+              onClick={() => setSelectedRealtimeExample('cursors')}
+              onKeyDown={() => setSelectedRealtimeExample('cursors')}
+            >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
-                  src="/products/search.svg"
+                  src="/products/cursor.svg"
                   width={24}
                   height={24}
-                  alt="Magnifying glass"
+                  alt="Default cursor"
                   className="mx-auto h-4 w-4"
                 />
-                <h3 className="text-base font-bold">Live cursors</h3>
+                <h3 className="font-mona text-base font-bold">Live cursors</h3>
               </div>
 
               <p className="ml-8">
@@ -247,16 +292,26 @@ export default function GraphqlPage() {
               </p>
             </li>
 
-            <li className="grid grid-flow-row items-start justify-start">
+            <li
+              className={twMerge(
+                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample !== 'location' && 'text-opacity-65',
+              )}
+              role="button"
+              tabIndex={0}
+              aria-label="Location"
+              onClick={() => setSelectedRealtimeExample('location')}
+              onKeyDown={() => setSelectedRealtimeExample('location')}
+            >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
-                  src="/products/search.svg"
+                  src="/products/location.svg"
                   width={24}
                   height={24}
-                  alt="Magnifying glass"
+                  alt="A location marker"
                   className="mx-auto h-4 w-4"
                 />
-                <h3 className="text-base font-bold">Location</h3>
+                <h3 className="font-mona text-base font-bold">Location</h3>
               </div>
 
               <p className="ml-8">
@@ -265,16 +320,26 @@ export default function GraphqlPage() {
               </p>
             </li>
 
-            <li className="grid grid-flow-row items-start justify-start">
+            <li
+              className={twMerge(
+                'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors',
+                selectedRealtimeExample !== 'charts' && 'text-opacity-65',
+              )}
+              role="button"
+              tabIndex={0}
+              aria-label="Live charts"
+              onClick={() => setSelectedRealtimeExample('charts')}
+              onKeyDown={() => setSelectedRealtimeExample('charts')}
+            >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
-                  src="/products/search.svg"
+                  src="/products/bar-charts.svg"
                   width={24}
                   height={24}
-                  alt="Magnifying glass"
+                  alt="Three horizontal bars"
                   className="mx-auto h-4 w-4"
                 />
-                <h3 className="text-base font-bold">Live charts</h3>
+                <h3 className="font-mona text-base font-bold">Live charts</h3>
               </div>
 
               <p className="ml-8">
@@ -284,9 +349,9 @@ export default function GraphqlPage() {
             </li>
           </ul>
 
-          <div>
-            <CodeSnippet customStyle={{ minHeight: 300 }}> </CodeSnippet>
-          </div>
+          <CodeSnippet language="graphql" customStyle={{ minHeight: 300 }}>
+            {realtimeCodeSnippets[selectedRealtimeExample]}
+          </CodeSnippet>
         </div>
       </Container>
 
