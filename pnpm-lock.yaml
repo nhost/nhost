@@ -717,7 +717,7 @@ importers:
       graphql-tag: ^2.12.6
       roboto-fontface: '*'
       sass: 1.32.0
-      typescript: ^4.8.4
+      typescript: 4.9.4
       vite: ^4.0.2
       vite-plugin-vuetify: ^1.0.1
       vue: ^3.2.41
@@ -730,7 +730,7 @@ importers:
       '@mdi/font': 5.9.55
       '@nhost/apollo': link:../../integrations/apollo
       '@nhost/vue': link:../../packages/vue
-      '@vue/apollo-composable': 4.0.0-alpha.18_mln2xengjo5swtqqzvcb3ow7xm
+      '@vue/apollo-composable': 4.0.0-alpha.18_rt3iks2wstp6hbmfigflqqjq2u
       graphql: 16.6.0
       graphql-tag: 2.12.6_graphql@16.6.0
       roboto-fontface: 0.10.0
@@ -745,9 +745,9 @@ importers:
       '@vitejs/plugin-vue': 4.0.0_vite@4.0.2+vue@3.2.41
       '@xstate/inspect': 0.6.5
       sass: 1.32.0
-      typescript: 4.8.4
+      typescript: 4.9.4
       vite: 4.0.2_sass@1.32.0
-      vue-tsc: 0.38.9_typescript@4.8.4
+      vue-tsc: 0.38.9_typescript@4.9.4
 
   examples/vue-quickstart:
     specifiers:
@@ -12847,7 +12847,7 @@ packages:
       - typescript
     dev: false
 
-  /@vue/apollo-composable/4.0.0-alpha.18_mln2xengjo5swtqqzvcb3ow7xm:
+  /@vue/apollo-composable/4.0.0-alpha.18_rt3iks2wstp6hbmfigflqqjq2u:
     resolution: {integrity: sha512-AasMZnAOG9fH+vcnQu6C3eyBMWXCsjdF0Njh7gGzQYBdo/CG9g9OKtrmHizq5AbgR2KJe/0RHE9yLBj7SZrcdQ==}
     peerDependencies:
       '@apollo/client': ^3.4.13
@@ -12861,7 +12861,7 @@ packages:
       '@apollo/client': 3.7.1_graphql@16.6.0
       graphql: 16.6.0
       throttle-debounce: 3.0.1
-      ts-essentials: 9.2.0_typescript@4.8.4
+      ts-essentials: 9.2.0_typescript@4.9.4
       vue: 3.2.41
       vue-demi: 0.13.4_vue@3.2.41
     transitivePeerDependencies:
@@ -29357,12 +29357,12 @@ packages:
       typescript: 4.8.3
     dev: false
 
-  /ts-essentials/9.2.0_typescript@4.8.4:
+  /ts-essentials/9.2.0_typescript@4.9.4:
     resolution: {integrity: sha512-HLl+am6q+ulOWcjUFghpIQXXyaH0hVTnFTVWNqwz1iDxyN+t+lwDfqPB5FmPUTFw3J+y26UR3hNGmK/1jehokA==}
     peerDependencies:
       typescript: '>=4.1.0'
     dependencies:
-      typescript: 4.8.4
+      typescript: 4.9.4
     dev: false
 
   /ts-invariant/0.10.3:
@@ -29924,7 +29924,6 @@ packages:
     resolution: {integrity: sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   /ua-parser-js/0.7.31:
     resolution: {integrity: sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==}
@@ -31264,14 +31263,14 @@ packages:
       typescript: 4.8.3
     dev: true
 
-  /vue-tsc/0.38.9_typescript@4.8.4:
+  /vue-tsc/0.38.9_typescript@4.9.4:
     resolution: {integrity: sha512-Yoy5phgvGqyF98Fb4mYqboR4Q149jrdcGv5kSmufXJUq++RZJ2iMVG0g6zl+v3t4ORVWkQmRpsV4x2szufZ0LQ==}
     hasBin: true
     peerDependencies:
       typescript: '*'
     dependencies:
       '@volar/vue-typescript': 0.38.9
-      typescript: 4.8.4
+      typescript: 4.9.4
     dev: true
 
   /vue/3.2.40:
