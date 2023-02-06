@@ -2,14 +2,12 @@ import Image from 'next/image'
 
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
-import npmTrends from './npm-trend-for-typescript.png'
-
 export const article = {
   title: 'GraphQL Code Generator: Maximizing GraphQL Development in TypeScript',
   description:
     "GraphQL is a great way to build apps faster. But, if you're only using GraphQL without a GraphQL Code Generator you're missing out on the full potential of GraphQL.",
   image:
-    'og-graphql-code-generator-maximizing-graphql-development-typescript.png',
+    '/images/blog/graphql-code-generator-maximizing-graphql-development-typescript/banner.png',
   date: '2023-01-16',
   authors: [
     {
@@ -77,7 +75,14 @@ Ideally, this type-safe chain should not stop at the GraphQL API. It should cont
 
 It's, therefore, no surprise that TypeScript is one of the most popular languages in the world!
 
-<Image src={npmTrends} alt="npm trends for TypeScript" />
+<Image
+  src={
+    '/images/blog/graphql-code-generator-maximizing-graphql-development-typescript/npm-trend-for-typescript.png'
+  }
+  alt="npm trends for TypeScript"
+  width={1500}
+  height={844}
+/>
 
 If you're not familiar with TypeScript, and don't want to re-write your whole application from JavaScript to TypeScript, you can gradually adopt TypeScript in your JavaScript application. There are some good resources online on how to [gradually adopt TypeScript](https://www.google.com/search?q=typescript+gradually+adoption).
 

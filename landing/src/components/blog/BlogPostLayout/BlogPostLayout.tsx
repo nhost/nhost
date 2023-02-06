@@ -79,7 +79,7 @@ export default function BlogPostLayout({
           openGraph: {
             images: [
               {
-                url: `https://nhost.io/images/blog/${article.image}`,
+                url: `https://nhost.io/${article.image}`,
                 alt: `Cover image for ${article.title}`,
                 width: 1920,
                 height: 1080,
@@ -180,7 +180,7 @@ export default function BlogPostLayout({
           />
           <div className="relative z-20 flex h-full items-center justify-center overflow-hidden rounded-t-[4px] border-divider border-opacity-50 shadow-cover">
             <Image
-              src={`/images/blog/${article.image}`}
+              src={article.image}
               width={1920}
               height={1080}
               alt={`Banner of ${article.title}`}

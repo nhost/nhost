@@ -48,11 +48,11 @@ export default function BlogPage({ articles }: BlogPageProps) {
         <BlogPostCard
           image={
             <Image
-              src={`/images/blog/${firstArticle.image}`}
+              src={firstArticle.image}
               width={1920}
               height={1080}
               alt={`Cover of ${firstArticle.title}`}
-              blurDataURL={`/images/blog/${firstArticle.image}`}
+              blurDataURL={firstArticle.image}
               placeholder="blur"
               className="max-w-full object-cover"
               priority
@@ -74,11 +74,11 @@ export default function BlogPage({ articles }: BlogPageProps) {
               key={article.slug}
               image={
                 <Image
-                  src={`/images/blog/${article.image}`}
+                  src={article.image}
                   width={400}
                   height={225}
                   alt={`Cover of ${article.title}`}
-                  blurDataURL={`/images/blog/${article.image}`}
+                  blurDataURL={article.image}
                   placeholder="blur"
                   className="h-full w-full object-contain"
                 />
