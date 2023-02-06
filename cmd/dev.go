@@ -254,17 +254,17 @@ func checkHostnames() error {
 	hostnames := []string{compose.HostLocalDashboardNhostRun, compose.HostLocalGraphqlNhostRun, compose.HostLocalAuthNhostRun, compose.HostLocalStorageNhostRun, compose.HostLocalFunctionsNhostRun, compose.HostLocalMailNhostRun}
 
 	for _, hostname := range hostnames {
-		_, err := net.LookupIP(compose.HostLocalDashboardNhostRun)
+		_, err := net.LookupIP(hostname)
 		if err != nil {
 			logger.DEBUG = false
 			fmt.Println(fmt.Sprintf(`Failed to resolve '%s' hostname
 
-Make sure that you have internet connection.
+Please make sure you have an internet connection and try again.
 
-If you want to use CLI offline, make sure to add the following lines in /etc/hosts:
+If you don't have an internet connection, you can add the following lines to /etc/hosts:
 
 %s
-`, hostname, offlineConfigForSslHostnames(hostnames)))
+`, hostname, offlineConfigForSSLHostnames(hostnames)))
 			return fmt.Errorf("failed to resolve '%s' hostname: %v", hostname, err)
 		}
 	}
@@ -272,7 +272,7 @@ If you want to use CLI offline, make sure to add the following lines in /etc/hos
 	return nil
 }
 
-func offlineConfigForSslHostnames(hostnames []string) string {
+func offlineConfigForSSLHostnames(hostnames []string) string {
 	lines := []string{}
 	for _, hostname := range hostnames {
 		lines = append(lines, fmt.Sprintf("127.0.0.1	%s", hostname))
@@ -281,8 +281,10 @@ func offlineConfigForSslHostnames(hostnames []string) string {
 }
 
 func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
-	var proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port uint32
-	var err error
+	var (
+		proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port uint32
+		err                                                                                                   error
+	)
 
 	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
 		return nil, err
@@ -304,7 +306,7 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
-	if hasuraConsoleApiPort, err = fs.GetUint32(ports.FlagPortHasuraConsoleAPI); err != nil {
+	if hasuraAPIPort, err = fs.GetUint32(ports.FlagPortHasuraConsoleAPI); err != nil {
 		return nil, err
 	}
 
@@ -316,7 +318,7 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
-	return ports.NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port), nil
+	return ports.NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port), nil
 }
 
 type Printer struct {
