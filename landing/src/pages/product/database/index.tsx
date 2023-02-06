@@ -92,7 +92,11 @@ export default function DatabasePage() {
         </div>
       </Container>
 
-      <Container component="section" className="grid grid-flow-row gap-24">
+      <Container
+        component="section"
+        className="grid grid-flow-row gap-24"
+        slotProps={{ root: { className: 'overflow-hidden' } }}
+      >
         <SectionHeading
           title="Database admin, simplified"
           subtitle="Control your database like a spreadsheet."
@@ -166,7 +170,11 @@ export default function DatabasePage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container
+        component="section"
+        className="mt-24 lg:mt-40"
+        slotProps={{ root: { className: 'overflow-hidden' } }}
+      >
         <SectionHeading
           title="Postgres, with root access"
           subtitle="Do you prefer to write raw SQL and have full control of your database? No problem."

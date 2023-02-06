@@ -229,14 +229,18 @@ export default function GraphqlPage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container
+        component="section"
+        className="mt-24 lg:mt-40"
+        slotProps={{ root: { className: 'overflow-hidden' } }}
+      >
         <SectionHeading
           title="Realtime Subscriptions"
           subtitle="Build collaborative apps with ease."
         />
 
         <div className="mx-auto mt-8 grid items-center gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
-          <ul className="grid max-w-sm grid-flow-row gap-6">
+          <ul className="grid grid-flow-row gap-6 md:max-w-sm">
             <li
               className={twMerge(
                 'grid grid-flow-row items-start justify-start text-white text-opacity-100 motion-safe:transition-colors',
@@ -355,7 +359,11 @@ export default function GraphqlPage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container
+        component="section"
+        className="mt-24 lg:mt-40"
+        slotProps={{ root: { className: 'overflow-hidden' } }}
+      >
         <SectionHeading
           title="Data federation"
           subtitle="Nhost federates data from multiple sources into a single GraphQL API for any client to consume."
