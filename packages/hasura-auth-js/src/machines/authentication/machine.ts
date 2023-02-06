@@ -638,7 +638,7 @@ export const createAuthMachine = ({
             }
             const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
             // * Exponential backoff
-            return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 1_000
+            return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 5_000
           }
           if (refreshIntervalTime) {
             // * If a refreshIntervalTime has been passed on as an option, it will notify
@@ -920,7 +920,7 @@ export const createAuthMachine = ({
       delays: {
         RETRY_IMPORT_TOKEN_DELAY: ({ importTokenAttempts }) => {
           // * Exponential backoff
-          return Math.pow(2, importTokenAttempts - 1) * 1000
+          return Math.pow(2, importTokenAttempts - 1) * 5_000
         }
       }
     }
