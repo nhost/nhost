@@ -144,7 +144,7 @@ export default function GraphqlPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid grid-cols-1 items-center justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
@@ -227,7 +227,7 @@ export default function GraphqlPage() {
 
       <Container
         component="section"
-        className="mt-24 lg:mt-40"
+        className="mt-24 pb-12 lg:mt-40"
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <SectionHeading
@@ -357,7 +357,7 @@ export default function GraphqlPage() {
 
       <Container
         component="section"
-        className="mt-24 lg:mt-40"
+        className="mt-12 lg:mt-28"
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <SectionHeading

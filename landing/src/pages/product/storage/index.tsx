@@ -55,7 +55,7 @@ const heroExample = `await nhost.auth.signUp({
   password: 'secret-password'
 })`
 
-export default function AuthPage() {
+export default function StoragePage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('signUp')
 
@@ -68,7 +68,7 @@ export default function AuthPage() {
         <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
           <ProductIcon>
             <Image
-              src="/products/authentication.svg"
+              src="/products/storage.svg"
               width={24}
               height={24}
               alt="A user"
@@ -77,8 +77,8 @@ export default function AuthPage() {
           </ProductIcon>
 
           <SectionHeading
-            title="Auth"
-            subtitle="Everything you need to sign in and manage users."
+            title="Storage"
+            subtitle="Store, transform, optimize, and deliver any file for your users at a blazing fast speed."
             className="text-left"
             slotProps={{
               title: {
@@ -107,7 +107,7 @@ export default function AuthPage() {
 
       <Container component="section" className="grid grid-flow-row gap-24">
         <SectionHeading
-          title="Add authentication in minutes"
+          title="Add storage in minutes"
           subtitle="Rapidly build production-ready authentication for web and mobile apps."
           className="max-w-xl"
           slotProps={{
@@ -343,6 +343,6 @@ export default function AuthPage() {
   )
 }
 
-AuthPage.getLayout = function getLayout(page: ReactElement) {
+StoragePage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }
