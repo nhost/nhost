@@ -100,8 +100,22 @@ export default function StoragePage() {
           </Button>
         </div>
 
-        <div>
-          <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
+        <div className="relative">
+          <LineGrid
+            className="md:-translate-x-11 md:-translate-y-11"
+            priority
+          />
+
+          <Glow className="h-3/5 w-3/5 opacity-40 blur-3xl md:-translate-x-11" />
+
+          <Image
+            src="/common/storage-hero.svg"
+            width={612}
+            height={312}
+            alt="The Nhost Dashboard's storage page"
+            className="relative z-10"
+            priority
+          />
         </div>
       </Container>
 
