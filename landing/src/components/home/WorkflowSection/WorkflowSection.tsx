@@ -191,6 +191,7 @@ export default function WorkflowSection() {
               width={1}
               height={386}
               alt="A dashed line"
+              loading="eager"
             />
           </div>
 
@@ -218,6 +219,7 @@ export default function WorkflowSection() {
                     height={86}
                     alt="A dashed line with a gradient background"
                     className="absolute left-1 top-0 lg:hidden"
+                    loading="eager"
                   />
 
                   <span>CLI</span>
@@ -252,6 +254,7 @@ export default function WorkflowSection() {
                     height={86}
                     alt="A dashed line with a gradient background"
                     className="absolute left-1 top-0 -translate-y-full lg:hidden"
+                    loading="eager"
                   />
 
                   <Dot active={activeStep === 1} />
@@ -262,6 +265,7 @@ export default function WorkflowSection() {
                     height={86}
                     alt="A dashed line with a gradient background"
                     className="absolute left-1 top-0 lg:hidden"
+                    loading="eager"
                   />
 
                   <span>Git</span>
@@ -299,6 +303,7 @@ export default function WorkflowSection() {
                     height={86}
                     alt="A dashed line with a gradient background"
                     className="absolute left-1 top-0 -translate-y-full lg:hidden"
+                    loading="eager"
                   />
 
                   <Dot active={activeStep === 2} />
