@@ -165,11 +165,20 @@ export default function Page() {
         <PostDay
           date={new Date('2023-02-01T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/dark-mode/og-dark-mode.png',
+            image: '/images/blog/dark-mode/banner.png',
             title: 'Dark Mode',
             description:
               'You can put away your sunglasses, because today we are bringing Dark Mode to the Nhost Dashboard.',
             link: '/blog/dark-mode',
+          }}
+        />
+        <PostDay
+          date={new Date('2023-02-08T16:00:00.000+02:00')}
+          post={{
+            image: '/images/blog/new-branding-and-website/banner.png',
+            title: 'New Branding and Website',
+            description: 'Description goes here',
+            link: '/blog/new-branding-and-website',
           }}
         />
         <TbaDay date={new Date('2023-02-08T16:00:00.000+02:00')} />

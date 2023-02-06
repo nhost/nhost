@@ -1,0 +1,182 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'New Branding and Website',
+  description: 'insert description here',
+  image: '/images/blog/new-branding-and-website/banner.png',
+  date: '2023-02-08',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Design'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+As developers, we enjoy writing code in our IDE and running commands in our terminals. if you think about it, both IDEs and terminals are usually dark mode by default.
+
+Here are default screenshots from VS code and iTerm illustrating this.
+
+### VS Code
+
+<Image
+  src={'/images/blog/new-branding-and-website/vs-code.png'}
+  alt="VS Code"
+  width={1479}
+  height={957}
+/>
+
+### Terminal
+
+<Image
+  src={'/images/blog/new-branding-and-website/iterm.png'}
+  alt="iTerm"
+  width={1479}
+  height={957}
+/>
+
+It's no surprise that as developers, we enjoy dark mode and if you look at all the cool companies building tools for developers, they understand this.
+
+Here's a few example:
+
+### GitHub
+
+<Image
+  src={'/images/blog/new-branding-and-website/github.png'}
+  alt="GitHub"
+  width={1479}
+  height={957}
+/>
+
+### Vercel
+
+<Image
+  src={'/images/blog/new-branding-and-website/vercel.png'}
+  alt="Vercel"
+  width={1479}
+  height={957}
+/>
+
+### Linear
+
+<Image
+  src={'/images/blog/new-branding-and-website/linear.png'}
+  alt="Linear"
+  width={1479}
+  height={957}
+/>
+
+This made us think.
+
+We're a cool company.
+
+We're building tools for developers.
+
+Why was our website so light?
+
+<Image
+  src={'/images/blog/new-branding-and-website/old-website.png'}
+  alt="Our old website"
+  width={1479}
+  height={957}
+/>
+
+The reason our website looked like this was simple. We are competing with some of the largest corporations and well-funded startups in the world. With a team of only ten people, we decided to stay focused on our core product, which meant our website was neglected.
+
+But us neglecting our website changes today.
+
+In this post, I'll take you through the process of us designing and building this website and like many interesting things in life, it started with a Twitter DM:
+
+<Image
+  src={'/images/blog/new-branding-and-website/twitter-dm.png'}
+  alt="Twitter DM"
+  width={1479}
+  height={957}
+/>
+
+[Facu](https://twitter.com/facumontanaro_) agreed to take on the challenge and collaborate with us on our new website design. And we went to work right away.
+
+## Design Process
+
+For the design process, we had 3 phases:
+
+### Phase 1: Wireframe
+
+In the wireframe phase we went through the home page. The home page was the most important part of our website and it would contain the most components of all pages. To get the home page right was crucial as it would set the tone for all other pages for our new website.
+
+<Image
+  src={'/images/blog/new-branding-and-website/wireframe.png'}
+  alt="Wireframe"
+  width={1479}
+  height={957}
+/>
+
+### Phase 2: Exploration
+
+Once we completed the wireframe, we moved to the exploration phase. The purpose of the exploration phase is to find the style, brand, color direction.
+
+Our vision was clear — dark mode with a touch of gradient elements. Personally, I think most darkmode websites are not dark enough. I wanted really dark. Like `#000000` dark. But, part of the exploration phase is also to explore other design directions.
+
+So we did four design proposals. Ranging from only black and white, to dark blue and white.
+
+<Image
+  src={'/images/blog/new-branding-and-website/exploration.png'}
+  alt="Exploration"
+  width={1479}
+  height={957}
+/>
+
+This is how we reasoned around the four proposals when discussing them:
+
+- Proposal 1 was too anonymous. Only using black, gray and white didn't give the design any personallity.
+- Proposal 2 was very close to what we had in mind.
+- Proposal 3 had too much blue colors. We wanted the blue color to be more subtle.
+- Proposal 4 wasn't dark enough.
+
+You'll also notice that not only do the four proposals have different colors, but there is also a design variation for each section. For example, the way we present the main features of Nhost in boxes under the Hero section varies among all designs.
+
+This allowed us to do two things:
+
+1. Decide on a color palette and design style.
+2. Decide what design for each section we wanted.
+
+At the end of the exploration phase, we chose Proposal #2 for its color and brand direction. However, we incorporated sections from the other proposals into Proposal #2.
+
+Before we move on to phase 3, it became apparent during the exploration phase that the light-mode dashboard didn't look good on the new website. To ensure the website would look excellent, dark mode had to be implemented for the dashboard. You can read more about how we built dark mode for our dashboard in [link to the previous launch].
+
+### Phase 3: Delivery
+
+Kicking off the third and last phase, the delivery phase, we knew what colors, styles, and overall design we wanted to use. Now it was time to nail all sections with that overall design for our home page.
+
+We used Figjam to communicate how we wanted each section on the landing page to look and work. Here's an example of the SDKs and CLI, Git, and Cloud sections:
+
+<Image
+  src={'/images/blog/new-branding-and-website/delivery.png'}
+  alt="Delivery"
+  width={1479}
+  height={957}
+/>
+
+Once we had the home page completed, we could use that as a refereces when designin all other pages.
+
+Most of the pages were straightforward. Pricing, Customers, Blog, Changelog didn't need a lot of iterations. Instead, most of the time here was spent on the product pages (Database, GraphQL, Auth, Storage, Functions) which are like mini-landing pages. After a few more iterations back and forth we had our website completed.
+
+At this point, the whole team was hyped. We could see the end result and it was looking stunning!
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/a6a013eb-cd3d-43d8-8afe-1a6d12e9755a/Untitled.png)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/af9ed5db-8800-4cf2-a6c7-398deec244e6/Untitled.png)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/4bb30b89-fdfb-4b3e-b1eb-888982f9a3f4/Untitled.png)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/095e1b8d-372a-43f5-8957-29f6f5c72624/Untitled.png)
+
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/4e1e787f-1af0-4a01-86fa-811f8963818a/Untitled.png)
+
+The design was ready. It was time for implementation!
