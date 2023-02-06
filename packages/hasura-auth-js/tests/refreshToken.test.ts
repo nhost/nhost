@@ -488,7 +488,7 @@ describe(`Auto sign-in`, () => {
     expect(state.context.importTokenAttempts).toEqual(2)
   })
 
-  test.only(`should wait for the server to be online when starting offline`, async () => {
+  test(`should wait for the server to be online when starting offline`, async () => {
     server.use(authTokenInternalErrorHandler)
 
     vi.stubGlobal('location', {
