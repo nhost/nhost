@@ -156,8 +156,8 @@ export default function Header({
               </Popover>
             </li>
             <li>
-              <Link href="/pricing" className="p-1.5">
-                Pricing
+              <Link href="https://docs.nhost.io" className="p-1.5">
+                Docs
               </Link>
             </li>
             <li>
@@ -178,6 +178,11 @@ export default function Header({
             <li>
               <Link href="/customers" className="p-1.5">
                 Customers
+              </Link>
+            </li>
+            <li>
+              <Link href="/pricing" className="p-1.5">
+                Pricing
               </Link>
             </li>
           </ul>

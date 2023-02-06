@@ -105,11 +105,11 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
             <Button
               size="sm"
               variant="borderless"
-              href="/pricing"
+              href="https://docs.nhost.io"
               className="w-full text-xl font-normal"
               onClick={onLinkClick}
             >
-              Pricing
+              Docs
             </Button>
           </li>
           <li>
@@ -154,6 +154,17 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
               onClick={onLinkClick}
             >
               Customers
+            </Button>
+          </li>
+          <li>
+            <Button
+              size="sm"
+              variant="borderless"
+              href="/pricing"
+              className="w-full text-xl font-normal"
+              onClick={onLinkClick}
+            >
+              Pricing
             </Button>
           </li>
         </ul>
