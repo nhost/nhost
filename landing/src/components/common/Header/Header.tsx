@@ -126,7 +126,7 @@ export default function Header({
                             <li className="h-px w-full bg-white bg-opacity-10" />
                             <li>
                               <Button
-                                href="/product/Storage"
+                                href="/product/storage"
                                 variant="borderless"
                                 size="xs"
                                 className="w-full text-opacity-65"

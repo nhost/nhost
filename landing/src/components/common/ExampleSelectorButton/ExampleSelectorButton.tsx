@@ -27,13 +27,13 @@ export default function ExampleSelectorButton({
         className={twMerge(
           'relative z-10',
           'border-0 md:border',
-          'bg-transparent hover:bg-transparent hover:bg-opacity-100 md:bg-black md:hover:bg-black',
+          'bg-transparent hover:bg-transparent hover:bg-opacity-100 md:hover:bg-black',
           'px-0 md:px-2 xl:px-4',
           'text-xs md:text-sm',
           'rounded-none md:rounded-md',
           !active
             ? 'text-opacity-65'
-            : 'border-b border-b-white md:border-b-divider',
+            : 'border-b border-b-white md:border-b-divider md:bg-black',
         )}
         {...props}
       />

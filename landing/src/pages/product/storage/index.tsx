@@ -15,7 +15,7 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  signUp: `const todos = await nhost.graphql.mutation.insertTodo({
+  uploadFile: `const todos = await nhost.graphql.mutation.insertTodo({
   variables: {
     object: {
       title: 'My first todo',
@@ -25,7 +25,7 @@ const codeSnippets = {
     id: true,
   }
 })`,
-  signIn: `const todos = await nhost.graphql.query.todos()
+  getPublicUrl: `const todos = await nhost.graphql.query.todos()
 
 // or select individual fields
 
@@ -35,7 +35,7 @@ const todos = await nhost.graphql.query.todos({
     title: true,
   }
 })`,
-  resetPassword: `const todos = await nhost.graphql.mutation.updateTodo({
+  getPresignedUrl: `const todos = await nhost.graphql.mutation.updateTodo({
   variables: {
     id: todo.id,
     set: {
@@ -43,21 +43,21 @@ const todos = await nhost.graphql.query.todos({
     },
   }
 })`,
-  oauthSignIn: `const todos = await nhost.graphql.mutation.deleteTodo({
+  transformImage: `const todos = await nhost.graphql.mutation.deleteTodo({
   variables: {
     id: todo.id,
   }
 })`,
 }
 
-const heroExample = `await nhost.auth.signUp({
+const heroExample = `await nhost.auth.uploadFile({
   email: 'joe@example.com',
   password: 'secret-password'
 })`
 
 export default function StoragePage() {
   const [selectedExample, setSelectedExample] =
-    useState<keyof typeof codeSnippets>('signUp')
+    useState<keyof typeof codeSnippets>('uploadFile')
 
   return (
     <>
@@ -92,7 +92,7 @@ export default function StoragePage() {
           />
 
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io/uploadFile"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -131,38 +131,38 @@ export default function StoragePage() {
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
             <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
-                active={selectedExample === 'signUp'}
-                onClick={() => setSelectedExample('signUp')}
+                active={selectedExample === 'uploadFile'}
+                onClick={() => setSelectedExample('uploadFile')}
               >
-                Sign Up
+                Upload File
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'signIn'}
-                onClick={() => setSelectedExample('signIn')}
+                active={selectedExample === 'getPublicUrl'}
+                onClick={() => setSelectedExample('getPublicUrl')}
               >
-                Sign In
+                Get Public URL
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'resetPassword'}
-                onClick={() => setSelectedExample('resetPassword')}
+                active={selectedExample === 'getPresignedUrl'}
+                onClick={() => setSelectedExample('getPresignedUrl')}
               >
-                Reset Password
+                Get Presigned URL
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'oauthSignIn'}
-                onClick={() => setSelectedExample('oauthSignIn')}
+                active={selectedExample === 'transformImage'}
+                onClick={() => setSelectedExample('transformImage')}
               >
-                OAuth Sign In
+                Transform Image
               </ExampleSelectorButton>
             </div>
 
             <Image
-              src="/common/connectors/auth-example-connectors.svg"
+              src="/common/connectors/storage-example-connectors.svg"
               alt="Dashed lines"
-              width={506}
+              width={608}
               height={97}
               className="h-auto w-full"
             />
@@ -183,23 +183,6 @@ export default function StoragePage() {
               className="absolute bottom-0 left-0 right-0 z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] animate-pulse xl:block"
             />
           </div>
-        </div>
-      </Container>
-
-      <Container component="section" className="mt-24 lg:mt-40">
-        <SectionHeading
-          title="Your users, your data"
-          subtitle="Users are stored in your database and are fully integrated with the GraphQL API"
-          className="max-w-xl"
-          slotProps={{
-            subtitle: {
-              className: 'max-w-lg mx-auto',
-            },
-          }}
-        />
-
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
         </div>
       </Container>
 
@@ -243,23 +226,21 @@ export default function StoragePage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io/signup" className="mt-6">
+            <Button href="https://app.nhost.io/uploadFile" className="mt-6">
               Start building <ArrowRightIcon />
             </Button>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/key.svg"
+              src="/products/user-check.svg"
               width={24}
               height={24}
-              alt="A key"
+              alt="User with a checkmark"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">
-                Multi-Factor Authentication
-              </h3>
+              <h3 className="text-base font-bold">CDN</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Improve security by letting enabling Multi-Factor
@@ -269,53 +250,54 @@ export default function StoragePage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
-              src="/products/search.svg"
+              src="/products/resize.svg"
               width={24}
               height={24}
-              alt="Magnifying glass"
+              alt="Resize icon"
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Social Providers</h3>
+              <h3 className="text-base font-bold">Image Transformation</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Enable social logins with the click of a button.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/secure.svg"
+              src="/products/maximize.svg"
               width={24}
               height={24}
-              alt="A shield"
+              alt="Full screen icon"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">WebAuthn Integration</h3>
+              <h3 className="text-base font-bold">High Scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Use FIDO security keys or device biometrics for passwordless or
-                multi-factor authentication.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
             <Image
-              src="/products/bulls-eye.svg"
+              src="/products/box.svg"
               width={24}
               height={24}
-              alt="Three circles"
+              alt="A box"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Enterprise SSO</h3>
+              <h3 className="text-base font-bold">Buckets</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Thanks to WorkOS, you&apos;re able to provide enterprise SSO in
-                your app via Nhost Auth.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
@@ -335,7 +317,7 @@ export default function StoragePage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="auth"
+        disabledLink="storage"
       />
 
       <CTASection />

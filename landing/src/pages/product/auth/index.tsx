@@ -162,7 +162,7 @@ export default function AuthPage() {
             <Image
               src="/common/connectors/auth-example-connectors.svg"
               alt="Dashed lines"
-              width={506}
+              width={608}
               height={97}
               className="h-auto w-full"
             />
@@ -269,10 +269,10 @@ export default function AuthPage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
-              src="/products/search.svg"
-              width={24}
-              height={24}
-              alt="Magnifying glass"
+              src="/products/social-providers.svg"
+              width={116}
+              height={40}
+              alt="Twitter, GitHub, Discord, Google and Facebook logo"
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
