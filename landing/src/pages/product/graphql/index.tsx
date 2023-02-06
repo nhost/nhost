@@ -235,7 +235,7 @@ export default function GraphqlPage() {
           subtitle="Build collaborative apps with ease."
         />
 
-        <div className="mx-auto mt-16 grid items-center gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
+        <div className="mx-auto mt-8 grid items-center gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
           <ul className="grid max-w-sm grid-flow-row gap-6">
             <li
               className={twMerge(
@@ -356,6 +356,21 @@ export default function GraphqlPage() {
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
+        <SectionHeading
+          title="Data federation"
+          subtitle="Nhost federates data from multiple sources into a single GraphQL API for any client to consume."
+        />
+
+        <Image
+          src="/products/data-federation.svg"
+          alt="Nhost being connected to data sources"
+          width={1110}
+          height={1110}
+          className="mx-auto h-auto w-full max-w-lg scale-150 sm:scale-100 sm:object-none"
+        />
+      </Container>
+
+      <Container component="section" className="mt-24">
         <SectionHeading title="And more..." className="max-w-lg" />
 
         <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">

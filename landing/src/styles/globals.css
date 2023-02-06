@@ -47,6 +47,10 @@ html {
   color-scheme: dark;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 .code-snippet pre {
   padding: 16px !important;
   background-color: #080808 !important;
