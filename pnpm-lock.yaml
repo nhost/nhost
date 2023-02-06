@@ -935,6 +935,7 @@ importers:
   packages/graphql-js:
     specifiers:
       '@faker-js/faker': ^7.6.0
+      '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       cross-fetch: ^3.1.5
@@ -945,6 +946,7 @@ importers:
       start-server-and-test: ^1.14.0
       type-fest: ^3.5.3
     dependencies:
+      '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       cross-fetch: 3.1.5
       json-to-graphql-query: 2.2.4
       type-fest: 3.5.4
