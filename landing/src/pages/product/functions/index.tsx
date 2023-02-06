@@ -14,46 +14,41 @@ import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
-// TODO: Database will not contain any code snippets as examples, but videos
-// instead
 const codeSnippets = {
-  insertData: ``,
-  editData: ``,
-  createTable: ``,
-  editTable: ``,
+  sendEmail: `// todo: create example`,
+  query: `// todo: create example`,
+  stripe: `// todo: create example`,
+  helloWorld: `// todo: create example`,
 }
 
-const standaloneSnippet = `$ psql -h subdomain.db.eu-central-1.nhost\\
-> -p 5432\\
-> -U postgres\\
-> -d database`
+const heroExample = `export default (req: Request, res: Response) => {
+  res.status(200).send('Hello world')
+}`
 
-type DatabaseExamples = typeof codeSnippets
-
-export default function DatabasePage() {
+export default function FunctionsPage() {
   const [selectedExample, setSelectedExample] =
-    useState<keyof DatabaseExamples>('insertData')
+    useState<keyof typeof codeSnippets>('sendEmail')
 
   return (
     <>
       <Container
         component="section"
-        className="grid grid-cols-1 gap-14 py-8 sm:grid-cols-2 sm:gap-6 sm:py-24"
+        className="relative grid grid-cols-1 items-center gap-14 py-8 sm:gap-6 md:grid-cols-2 md:py-40"
       >
-        <div className="grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
+        <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
           <ProductIcon>
             <Image
-              src="/products/postgres.svg"
+              src="/products/functions.svg"
               width={24}
               height={24}
-              alt="Logo of Postgres"
+              alt="A user"
               priority
             />
           </ProductIcon>
 
           <SectionHeading
-            title="Postgres Database"
-            subtitle="Control your database like a spreadsheet. Or connect directly to Postgres via 'psql' as a root user."
+            title="Functions"
+            subtitle="Server-side code that works as API endpoints with global scale."
             className="text-left"
             slotProps={{
               title: {
@@ -67,7 +62,7 @@ export default function DatabasePage() {
           />
 
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io/sendEmail"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -75,38 +70,40 @@ export default function DatabasePage() {
           </Button>
         </div>
 
-        <div className="relative">
-          <LineGrid
-            className="md:-translate-x-11 md:-translate-y-11"
-            priority
-          />
-
-          <Glow className="h-3/5 w-3/5 opacity-40 blur-3xl md:-translate-x-11" />
-
-          <Image
-            src="/common/database-hero.svg"
-            width={619}
-            height={464}
-            alt="A table with three columns"
-            className="relative z-10"
-            priority
-          />
+        <div>
+          <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
         </div>
       </Container>
 
-      <Container
-        component="section"
-        className="grid grid-flow-row gap-24"
-        slotProps={{ root: { className: 'overflow-hidden' } }}
-      >
-        <SectionHeading
-          title="Database admin, simplified"
-          subtitle="Control your database like a spreadsheet."
-        />
+      <Container component="section" className="grid grid-flow-row gap-24">
+        <div className="grid grid-flow-row justify-items-center gap-8">
+          <SectionHeading
+            title="Functions that scale automatically"
+            subtitle="DigitalOcean Functions is a serverless computing solution that runs on-demand, enabling you to focus on your code, scale instantly with confidence, and save costs by eliminating the need to maintain servers."
+            className="max-w-2xl"
+            slotProps={{
+              subtitle: {
+                className: 'max-w-xl mx-auto',
+              },
+            }}
+          />
 
-        <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+          <Button
+            variant="borderless"
+            className="text-base font-bold"
+            size="sm"
+            href="https://docs.nhost.io/serverless-functions"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Explore the docs <ArrowRightIcon />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 items-center justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
+              language="typescript"
               className="min-h-[330px]"
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
@@ -115,40 +112,40 @@ export default function DatabasePage() {
           </div>
 
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:max-w-none">
+            <div className="relative z-10 grid grid-flow-col justify-evenly xl:justify-center">
               <ExampleSelectorButton
-                active={selectedExample === 'insertData'}
-                onClick={() => setSelectedExample('insertData')}
+                active={selectedExample === 'sendEmail'}
+                onClick={() => setSelectedExample('sendEmail')}
               >
-                Insert Data
+                Send Email
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'editData'}
-                onClick={() => setSelectedExample('editData')}
+                active={selectedExample === 'query'}
+                onClick={() => setSelectedExample('query')}
               >
-                Edit Data
+                Query GraphQL
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'createTable'}
-                onClick={() => setSelectedExample('createTable')}
+                active={selectedExample === 'stripe'}
+                onClick={() => setSelectedExample('stripe')}
               >
-                Create Table
+                Receive Stripe Webhooks
               </ExampleSelectorButton>
 
               <ExampleSelectorButton
-                active={selectedExample === 'editTable'}
-                onClick={() => setSelectedExample('editTable')}
+                active={selectedExample === 'helloWorld'}
+                onClick={() => setSelectedExample('helloWorld')}
               >
-                Edit Table
+                Hello World
               </ExampleSelectorButton>
             </div>
 
             <Image
-              src="/products/connector-lines.svg"
+              src="/common/connectors/functions-example-connectors.svg"
               alt="Dashed lines"
-              width={506}
+              width={608}
               height={97}
               className="h-auto w-full"
             />
@@ -172,32 +169,10 @@ export default function DatabasePage() {
         </div>
       </Container>
 
-      <Container
-        component="section"
-        className="mt-24 lg:mt-40"
-        slotProps={{ root: { className: 'overflow-hidden' } }}
-      >
-        <SectionHeading
-          title="Postgres, with root access"
-          subtitle="Do you prefer to write raw SQL and have full control of your database? No problem."
-          className="max-w-lg"
-        />
+      <Container component="section" className="mt-24">
+        <SectionHeading title="And more..." className="max-w-lg" />
 
-        <CodeSnippet
-          slotProps={{ root: { className: 'mx-auto md:max-w-xl mt-28' } }}
-        >
-          {standaloneSnippet}
-        </CodeSnippet>
-      </Container>
-
-      <Container component="section" className="mt-24 lg:mt-40">
-        <SectionHeading
-          title="Everything you need"
-          subtitle="Worry free database hosting with everything you need to be successful."
-          className="max-w-lg"
-        />
-
-        <div className="mx-auto mt-8 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
+        <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
           <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
             <div className="relative">
               <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-y-1/2 -translate-x-1/2" />
@@ -217,78 +192,78 @@ export default function DatabasePage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io/signup" className="mt-6">
+            <Button href="https://app.nhost.io/sendEmail" className="mt-6">
               Start building <ArrowRightIcon />
             </Button>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/postgres.svg"
+              src="/products/user-check.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="User with a checkmark"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Postgres Extensions</h3>
+              <h3 className="text-base font-bold">CDN</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
-              src="/products/backups.svg"
+              src="/products/resize.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="Resize icon"
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Automatic Backups</h3>
+              <h3 className="text-base font-bold">Image Transformation</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/secure.svg"
+              src="/products/maximize.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="Full screen icon"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Secure</h3>
+              <h3 className="text-base font-bold">High Scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
             <Image
-              src="/products/logs.svg"
+              src="/products/box.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="A box"
               className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Logs</h3>
+              <h3 className="text-base font-bold">Buckets</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Improve security by letting enabling Multi-Factor
+                Authentication.
               </p>
             </div>
           </Card>
@@ -308,7 +283,7 @@ export default function DatabasePage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="database"
+        disabledLink="storage"
       />
 
       <CTASection />
@@ -316,6 +291,6 @@ export default function DatabasePage() {
   )
 }
 
-DatabasePage.getLayout = function getLayout(page: ReactElement) {
+FunctionsPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }

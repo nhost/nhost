@@ -15,45 +15,11 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  uploadFile: `const todos = await nhost.graphql.mutation.insertTodo({
-  variables: {
-    object: {
-      title: 'My first todo',
-    }
-  },
-  select: {
-    id: true,
-  }
-})`,
-  getPublicUrl: `const todos = await nhost.graphql.query.todos()
-
-// or select individual fields
-
-const todos = await nhost.graphql.query.todos({
-  select: {
-    id: true,
-    title: true,
-  }
-})`,
-  getPresignedUrl: `const todos = await nhost.graphql.mutation.updateTodo({
-  variables: {
-    id: todo.id,
-    set: {
-      done: true,
-    },
-  }
-})`,
-  transformImage: `const todos = await nhost.graphql.mutation.deleteTodo({
-  variables: {
-    id: todo.id,
-  }
-})`,
+  uploadFile: `// todo: create example`,
+  getPublicUrl: `// todo: create example`,
+  getPresignedUrl: `// todo: create example`,
+  transformImage: `// todo: create example`,
 }
-
-const heroExample = `await nhost.auth.uploadFile({
-  email: 'joe@example.com',
-  password: 'secret-password'
-})`
 
 export default function StoragePage() {
   const [selectedExample, setSelectedExample] =

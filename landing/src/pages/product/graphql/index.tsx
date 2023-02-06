@@ -16,54 +16,17 @@ import { ReactElement, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 const codeSnippets = {
-  insertData: `const todos = await nhost.graphql.mutation.insertTodo({
-  variables: {
-    object: {
-      title: 'My first todo',
-    }
-  },
-  select: {
-    id: true,
-  }
-})`,
-  readData: `const todos = await nhost.graphql.query.todos()
-
-// or select individual fields
-
-const todos = await nhost.graphql.query.todos({
-  select: {
-    id: true,
-    title: true,
-  }
-})`,
-  updateData: `const todos = await nhost.graphql.mutation.updateTodo({
-  variables: {
-    id: todo.id,
-    set: {
-      done: true,
-    },
-  }
-})`,
-  deleteData: `const todos = await nhost.graphql.mutation.deleteTodo({
-  variables: {
-    id: todo.id,
-  }
-})`,
+  insertData: `// todo: create example`,
+  readData: `// todo: create example`,
+  updateData: `// todo: create example`,
+  deleteData: `// todo: create example`,
 }
 
 const realtimeCodeSnippets = {
-  avatars: `subscription GetAvatars {
-  code
-}`,
-  cursors: `subscription GetCursors {
-  code
-}`,
-  location: `subscription GetLocation {
-  code
-}`,
-  charts: `subscription GetCharts {
-  code
-}`,
+  avatars: `// todo: create example`,
+  cursors: `// todo: create example`,
+  location: `// todo: create example`,
+  charts: `// todo: create example`,
 }
 
 export default function GraphqlPage() {

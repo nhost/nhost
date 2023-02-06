@@ -15,39 +15,10 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  signUp: `const todos = await nhost.graphql.mutation.insertTodo({
-  variables: {
-    object: {
-      title: 'My first todo',
-    }
-  },
-  select: {
-    id: true,
-  }
-})`,
-  signIn: `const todos = await nhost.graphql.query.todos()
-
-// or select individual fields
-
-const todos = await nhost.graphql.query.todos({
-  select: {
-    id: true,
-    title: true,
-  }
-})`,
-  resetPassword: `const todos = await nhost.graphql.mutation.updateTodo({
-  variables: {
-    id: todo.id,
-    set: {
-      done: true,
-    },
-  }
-})`,
-  oauthSignIn: `const todos = await nhost.graphql.mutation.deleteTodo({
-  variables: {
-    id: todo.id,
-  }
-})`,
+  signUp: `// todo: create example`,
+  signIn: `// todo: create example`,
+  resetPassword: `// todo: create example`,
+  oauthSignIn: `// todo: create example`,
 }
 
 const heroExample = `await nhost.auth.signUp({
