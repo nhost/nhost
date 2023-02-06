@@ -511,7 +511,7 @@ describe(`Auto sign-in`, () => {
       state.matches('authentication.signedIn')
     )
     expect(signedInState.context.user).not.toBeNull()
-  })
+  }, 5000)
 
   test(`should automatically sign in if "refreshToken" was in the URL`, async () => {
     vi.stubGlobal('location', {
