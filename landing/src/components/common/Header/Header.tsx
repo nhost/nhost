@@ -10,6 +10,7 @@ import { MenuIcon } from '../icons/MenuIcon'
 import { XIcon } from '../icons/XIcon'
 import { Link } from '../Link'
 import { MobileMenu } from '../MobileMenu'
+import Top from '@/components/common/Top'
 
 export interface HeaderProps extends ContainerProps {}
 
@@ -33,6 +34,10 @@ export default function Header({
       {mobileMenuVisible && (
         <MobileMenu onLinkClick={() => setMobileMenuVisible(false)} />
       )}
+
+      <Container className="fixed top-0">
+        <Top />
+      </Container>
 
       <Container
         component="header"

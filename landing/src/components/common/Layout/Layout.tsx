@@ -28,7 +28,7 @@ export default function Layout({
     <div className="flex min-h-screen flex-col pt-16">
       <Header
         slotProps={{
-          root: { className: 'fixed top-0 left-0 right-0 transform-cpu' },
+          root: { className: 'fixed top-8 left-0 right-0 transform-cpu' },
         }}
       />
 
