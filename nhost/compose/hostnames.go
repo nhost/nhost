@@ -33,10 +33,6 @@ func HasuraConsoleHostname(port uint32) string {
 	return httpHostnameWithPort(hostHasuraConsole, port)
 }
 
-func HasuraAPIHostname(port uint32) string {
-	return httpHostnameWithPort(hostHasuraConsole, port)
-}
-
 func HasuraMigrationsAPIHostname(port uint32) string {
 	return httpHostnameWithPort(hostHasuraConsole, port)
 }

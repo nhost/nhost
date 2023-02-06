@@ -150,7 +150,7 @@ var devCmd = &cobra.Command{
 
 		debug := logger.DEBUG
 
-		hc, err := hasura.InitClient(compose.HasuraAPIHostname(ports.GraphQL()), util.ADMIN_SECRET, viper.GetString(userDefinedHasuraCliFlag), nil)
+		hc, err := hasura.InitClient(compose.HasuraConsoleHostname(ports.GraphQL()), util.ADMIN_SECRET, viper.GetString(userDefinedHasuraCliFlag), nil)
 		if err != nil {
 			return fmt.Errorf("failed to init hasura client: %v", err)
 		}

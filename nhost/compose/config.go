@@ -222,7 +222,7 @@ func (c Config) envValueNhostHasuraURL() string {
 }
 
 func (c Config) hasuraApiURL() string {
-	return HasuraAPIHostname(c.ports.GraphQL())
+	return HasuraConsoleHostname(c.ports.GraphQL())
 }
 
 func (c Config) hasuraMigrationsApiURL() string {
