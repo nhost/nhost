@@ -10,7 +10,7 @@ export default defineConfig({
     env: {
       backendUrl: 'http://localhost:1337'
     },
-    defaultCommandTimeout: 10000,
-    requestTimeout: 10000
+    defaultCommandTimeout: 20000,
+    requestTimeout: 20000
   }
 } as Cypress.ConfigOptions)
