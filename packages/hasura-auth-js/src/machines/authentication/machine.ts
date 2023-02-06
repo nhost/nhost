@@ -10,7 +10,7 @@ import { assign, createMachine, InterpreterFrom, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
-  REFRESH_TOKEN_RETRY_INTERVAL,
+  REFRESH_TOKEN_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
 } from '../../constants'
 import {
@@ -331,19 +331,7 @@ export const createAuthMachine = ({
                               actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
                               target: 'pending'
                             },
-                            onError: [
-                              { actions: 'saveRefreshAttempt', target: 'pending' }
-                              // ? stop trying after x attempts?
-                              // {
-                              //   actions: 'retry',
-                              //   cond: 'canRetry',
-                              //   target: 'pending'
-                              // },
-                              // {
-                              //   actions: ['sendError', 'resetToken'],
-                              //   target: '#timer.stopped'
-                              // }
-                            ]
+                            onError: [{ actions: 'saveRefreshAttempt', target: 'pending' }]
                           }
                         }
                       }
@@ -644,9 +632,13 @@ export const createAuthMachine = ({
             return false
           }
           if (ctx.refreshTimer.lastAttempt) {
-            // * If a refesh previously failed, only try to refresh every `REFRESH_TOKEN_RETRY_INTERVAL` seconds
+            // * If the refresh timer reached the maximum number of attempts, we should not try again
+            if (ctx.refreshTimer.attempts > REFRESH_TOKEN_MAX_ATTEMPTS) {
+              return false
+            }
             const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
-            return elapsed > REFRESH_TOKEN_RETRY_INTERVAL * 1_000
+            // * Exponential backoff
+            return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 5_000
           }
           if (refreshIntervalTime) {
             // * If a refreshIntervalTime has been passed on as an option, it will notify
@@ -663,9 +655,12 @@ export const createAuthMachine = ({
           return remaining <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
-        /** Shoud retry to import the token on network error or any internal server error */
-        shouldRetryImportToken: (_, e: any) =>
-          e.data.error.status === NETWORK_ERROR_CODE || e.data.error.status >= 500,
+        /** Shoud retry to import the token on network error or any internal server error.
+         * Don't retry more than REFRESH_TOKEN_MAX_ATTEMPTS times.
+         */
+        shouldRetryImportToken: (ctx, e: any) =>
+          ctx.importTokenAttempts < REFRESH_TOKEN_MAX_ATTEMPTS &&
+          (e.data.error.status === NETWORK_ERROR_CODE || e.data.error.status >= 500),
         // * Authentication errors
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         unverified: (_, { data: { error } }: any) =>
@@ -924,10 +919,8 @@ export const createAuthMachine = ({
       },
       delays: {
         RETRY_IMPORT_TOKEN_DELAY: ({ importTokenAttempts }) => {
-          if (importTokenAttempts < 5) {
-            return 1000
-          }
-          return 5000
+          // * Exponential backoff
+          return Math.pow(2, importTokenAttempts - 1) * 5_000
         }
       }
     }
