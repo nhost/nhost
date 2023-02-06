@@ -2,6 +2,8 @@ import type { DataGridProps } from '@/components/common/DataGrid';
 import DataGridCell from '@/components/common/DataGridCell';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
@@ -21,8 +23,7 @@ export interface DataGridBodyProps<T extends object>
   allowInsertColumn?: boolean;
 }
 
-interface InsertPlaceholderTableRowProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+interface InsertPlaceholderTableRowProps extends BoxProps {
   /**
    * Function to be called when the user wants to insert a new row.
    */
@@ -34,20 +35,19 @@ function InsertPlaceholderTableRow({
   ...props
 }: InsertPlaceholderTableRowProps) {
   return (
-    <div
-      className="h-12 bg-white border-gray-200 border-r-1 border-b-1"
-      {...props}
-    >
+    <Box className="h-12 border-r-1 border-b-1" {...props}>
       <Button
         onClick={onInsertRow}
         variant="borderless"
         color="secondary"
-        className="justify-start w-full h-full px-2 py-3 text-xs font-normal rounded-none hover:shadow-none focus:shadow-none focus:outline-none"
-        startIcon={<PlusIcon className="w-4 h-4 text-greyscaleGrey" />}
+        className="h-full w-full justify-start rounded-none px-2 py-3 text-xs font-normal hover:shadow-none focus:shadow-none focus:outline-none"
+        startIcon={
+          <PlusIcon className="h-4 w-4" sx={{ color: 'text.secondary' }} />
+        }
       >
         Insert New Row
       </Button>
-    </div>
+    </Box>
   );
 }
 
@@ -181,7 +181,7 @@ export default function DataGridBody<T extends object>({
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
-        <div className="flex pr-5 flex-nowrap">
+        <div className="flex flex-nowrap pr-5">
           {onInsertRow ? (
             <InsertPlaceholderTableRow
               style={{
@@ -192,8 +192,9 @@ export default function DataGridBody<T extends object>({
               onInsertRow={onInsertRow}
             />
           ) : (
-            <div
-              className="inline-flex h-12 items-center border-b-1 border-r-1 border-gray-200 bg-white py-1.5 px-2 text-xs text-greyscaleGrey"
+            <Box
+              className="inline-flex h-12 items-center border-b-1 border-r-1 py-1.5 px-2 text-xs"
+              sx={{ color: 'text.secondary' }}
               style={{
                 width: allowInsertColumn
                   ? totalColumnsWidth + ADD_COLUMN_CELL_WIDTH
@@ -201,7 +202,7 @@ export default function DataGridBody<T extends object>({
               }}
             >
               {emptyStateMessage}
-            </div>
+            </Box>
           )}
         </div>
       )}
@@ -258,16 +259,18 @@ export default function DataGridBody<T extends object>({
                       },
                     })}
                     cell={cell}
+                    sx={{
+                      backgroundColor: column.isDisabled
+                        ? 'grey.100'
+                        : 'background.paper',
+                      color: isCellDisabled ? 'text.secondary' : 'text.primary',
+                    }}
                     className={twMerge(
                       'h-12 font-display text-xs motion-safe:transition-colors',
-                      'border-r-1 border-b-1 border-gray-200',
+                      'border-r-1 border-b-1',
                       'scroll-mt-[57px] scroll-ml-8',
                       column.id === 'selection' &&
-                        'sticky left-0 z-20 justify-center bg-white px-0',
-                      isCellDisabled
-                        ? 'text-greyscaleGrey'
-                        : 'text-greyscaleDark',
-                      column.isDisabled && 'bg-gray-100',
+                        'sticky left-0 z-20 justify-center px-0',
                     )}
                     isEditable={!column.isDisabled && column.isEditable}
                     id={cellIndex.toString()}
@@ -279,7 +282,7 @@ export default function DataGridBody<T extends object>({
               })}
 
               {allowInsertColumn && (
-                <div className="h-12 bg-white border-gray-200 w-25 border-r-1 border-b-1" />
+                <Box className="h-12 w-25 border-r-1 border-b-1" />
               )}
             </div>
 

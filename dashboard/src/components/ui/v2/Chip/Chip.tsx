@@ -32,6 +32,17 @@ const Chip = styled(MaterialChip)<ChipProps>(({ theme }) => ({
     backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.main,
   },
+  [`&.${chipClasses.colorWarning}`]: {
+    backgroundColor: theme.palette.warning.light,
+    color: theme.palette.warning.main,
+  },
+  [`&.${chipClasses.colorSuccess}`]: {
+    backgroundColor: theme.palette.success.light,
+    color:
+      theme.palette.mode === 'dark'
+        ? theme.palette.success.main
+        : theme.palette.success.dark,
+  },
   [`& .${getChipUtilityClass('deleteIconColorDefault')}`]: {
     color: theme.palette.text.primary,
   },

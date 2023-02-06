@@ -1,10 +1,10 @@
 import { Resource } from '@/components/home/Resource';
-import { SidebarTitle } from '@/components/home/SidebarTitle';
+import Text from '@/ui/v2/Text';
 
 export default function Resources() {
   return (
     <div>
-      <SidebarTitle text="Resources" under />
+      <Text color="disabled">Resources</Text>
       <div className="mt-4 flex flex-col space-y-1">
         <Resource
           text="Documentation"

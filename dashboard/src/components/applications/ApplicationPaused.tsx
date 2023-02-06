@@ -1,6 +1,7 @@
 import ApplicationInfo from '@/components/applications/ApplicationInfo';
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { StagingMetadata } from '@/components/applications/StagingMetadata';
+import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -17,6 +18,7 @@ import { useState } from 'react';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
+  const { openAlertDialog } = useDialog();
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
@@ -26,7 +28,6 @@ export default function ApplicationPaused() {
   const isOwner = currentWorkspace.members.some(
     ({ userId, type }) => userId === id && type === 'owner',
   );
-  const [isChangePlanModalOpen, setIsChangePlanModalOpen] = useState(false);
   const isPro = currentApplication.plan.name === 'Pro';
   const [showDeletingModal, setShowDeletingModal] = useState(false);
 
@@ -52,11 +53,6 @@ export default function ApplicationPaused() {
   }
   return (
     <>
-      <Modal
-        showModal={isChangePlanModalOpen}
-        close={() => setIsChangePlanModalOpen(false)}
-        Component={ChangePlanModal}
-      />
       <Modal
         showModal={showDeletingModal}
         close={() => setShowDeletingModal(false)}
@@ -91,7 +87,19 @@ export default function ApplicationPaused() {
         {!isPro && (
           <Button
             className="mx-auto w-full max-w-[280px]"
-            onClick={() => setIsChangePlanModalOpen(true)}
+            onClick={() => {
+              openAlertDialog({
+                title: 'Upgrade your plan.',
+                payload: <ChangePlanModal />,
+                props: {
+                  PaperProps: { className: 'p-0' },
+                  hidePrimaryAction: true,
+                  hideSecondaryAction: true,
+                  hideTitle: true,
+                  maxWidth: 'lg',
+                },
+              });
+            }}
           >
             Upgrade to Pro to avoid autosleep
           </Button>

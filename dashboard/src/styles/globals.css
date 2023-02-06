@@ -1,6 +1,18 @@
 @tailwind base;
 @tailwind components;
 
+@media (prefers-color-scheme: dark) {
+  #__next {
+    background-color: #151a22;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #__next {
+    background-color: #fafafa;
+  }
+}
+
 .sb-show-main {
   overflow: auto;
 }
@@ -37,6 +49,17 @@ body {
 
 /* GraphiQL overrides */
 
+#__next .dark .graphiql-container {
+  --color-primary: 349, 87%, 57%;
+  --color-secondary: 263, 63%, 66%;
+  --color-tertiary: 172, 66%, 50%;
+  --color-info: 216, 100%, 61%;
+  --color-neutral: 210, 17%, 93%;
+  --color-base: 216, 25%, 12%;
+  --color-warning: 32, 100%, 57%;
+  --color-success: 149, 55%, 60%;
+}
+
 .graphiql-container {
   @apply h-auto flex-1 !important;
 }
@@ -49,12 +72,8 @@ body {
   @apply hidden !important;
 }
 
-.graphiql-container .graphiql-main {
-  @apply bg-gray-100 !important;
-}
-
 .graphiql-container .graphiql-sessions {
-  @apply m-0 rounded-none bg-gray-100 !important;
+  @apply m-0 rounded-none !important;
 }
 
 .graphiql-container .graphiql-plugin-visible .graphiql-session {
@@ -62,7 +81,7 @@ body {
 }
 
 .graphiql-container .graphiql-doc-explorer {
-  @apply h-full overflow-y-auto border-l-0 bg-white py-3 px-3 !important;
+  @apply h-full overflow-y-auto border-l-0 py-3 px-3 !important;
 }
 
 .graphiql-container .graphiql-plugin {
@@ -83,10 +102,6 @@ body {
 
 .graphiql-container .graphiql-editors {
   @apply rounded-none shadow-none !important;
-}
-
-[data-reach-dialog-overlay] {
-  @apply z-[100] bg-greyscaleDark bg-opacity-25 !important;
 }
 
 /* Layout bugs on codemirror */

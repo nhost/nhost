@@ -10,7 +10,7 @@ import type { StyledComponent } from '@emotion/styled';
 import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
 import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
-import { darken, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
   autocompleteClasses as materialAutocompleteClasses,
@@ -140,7 +140,13 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   [`& .${materialAutocompleteClasses.paper}`]: {
     borderRadius: theme.shape.borderRadius,
     overflow: 'hidden',
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.secondary[100]
+        : theme.palette.common.white,
+    borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
+    borderColor:
+      theme.palette.mode === 'dark' ? theme.palette.grey[400] : 'none',
     boxShadow: `0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)`,
   },
   [`& .${materialAutocompleteClasses.listbox}`]: {
@@ -149,20 +155,16 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
     maxWidth: 600,
     maxHeight: 400,
     margin: 0,
-    backgroundColor: theme.palette.common.white,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.secondary[100]
+        : theme.palette.common.white,
     padding: 0,
     [`& .${materialAutocompleteClasses.option}`]: {
       padding: theme.spacing(1, 1.5),
       cursor: 'default',
       minHeight: 'initial',
     },
-    [`& .${materialAutocompleteClasses.option}[aria-selected="true"]`]: {
-      backgroundColor: darken(theme.palette.action.hover, 0.025),
-    },
-    [`& .${materialAutocompleteClasses.option}[aria-selected="true"].Mui-focused`]:
-      {
-        backgroundColor: darken(theme.palette.action.hover, 0.1),
-      },
   },
   [`& .${materialAutocompleteClasses.noOptions}`]: {
     padding: theme.spacing(1, 1.5),

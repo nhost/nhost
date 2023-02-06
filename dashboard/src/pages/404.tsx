@@ -1,19 +1,25 @@
-import NavLink from '@/components/common/NavLink';
 import BaseLayout from '@/components/layout/BaseLayout';
 import Container from '@/components/layout/Container';
+import Link from '@/ui/v2/Link';
+import Text from '@/ui/v2/Text';
+import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 
 export default function NotFoundPage() {
   return (
-    <Container className="absolute top-1/2 left-0 right-0 grid max-w-2xl -translate-y-1/2 grid-flow-row gap-2 text-center">
-      <h1 className="text-6xl font-semibold text-dark">404</h1>
+    <Container className="grid max-w-2xl h-screen grid-flow-row gap-2 text-center place-items-center place-content-center">
+      <Text variant="h1" className="text-6xl font-semibold">
+        404
+      </Text>
 
-      <p className="font-display text-lg font-normal leading-6 text-dark">
+      <Text className="font-display text-lg font-normal leading-6">
         Page Not Found
-      </p>
+      </Text>
 
-      <NavLink href="/" className="text-sm text-blue hover:underline">
-        Go back to home page
+      <NavLink href="/" passHref>
+        <Link href="/" underline="hover">
+          Go back to home page
+        </Link>
       </NavLink>
     </Container>
   );

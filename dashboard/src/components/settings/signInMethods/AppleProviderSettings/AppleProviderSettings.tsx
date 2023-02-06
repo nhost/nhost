@@ -12,7 +12,8 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -26,6 +27,7 @@ export interface AppleProviderFormValues {
 }
 
 export default function AppleProviderSettings() {
+  const theme = useTheme();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
 
@@ -91,7 +93,7 @@ export default function AppleProviderSettings() {
         success: `Apple settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's Apple settings.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -111,7 +113,11 @@ export default function AppleProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-apple"
           docsTitle="how to sign in users with Apple"
-          icon="/logos/Apple.svg"
+          icon={
+            theme.palette.mode === 'dark'
+              ? '/assets/brands/light/apple.svg'
+              : '/assets/brands/apple.svg'
+          }
           switchId="authAppleEnabled"
           showSwitch
           enabled={authEnabled}

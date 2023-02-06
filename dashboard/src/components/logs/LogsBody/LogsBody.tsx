@@ -46,7 +46,12 @@ export function LogsBodyCustomMessage({
       <Table stickyHeader aria-label="sticky table">
         <TableBody>
           <TableRow>
-            <TableCell className="bg-white p-2.5" align="left" padding="none">
+            <TableCell
+              className="p-2.5"
+              align="left"
+              padding="none"
+              sx={{ backgroundColor: 'background.paper' }}
+            >
               {children}
             </TableCell>
           </TableRow>
@@ -58,16 +63,14 @@ export function LogsBodyCustomMessage({
 
 function DateCell({ getValue }: { getValue: () => string }) {
   return (
-    <Text className="font-mono text-xs- text-greyscaleDark">
+    <Text className="font-mono text-xs-">
       {format(new Date(getValue()), 'yyyy-MM-dd HH:mm:ss')}
     </Text>
   );
 }
 
 function TextCell({ getValue }: { getValue: () => string }) {
-  return (
-    <Text className="font-mono text-xs- text-greyscaleDark">{getValue()}</Text>
-  );
+  return <Text className="font-mono text-xs-">{getValue()}</Text>;
 }
 
 export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
@@ -133,7 +136,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
 
   if (loading && !error) {
     return (
-      <TableContainer className="h-full w-full bg-transparent px-4 py-2">
+      <TableContainer className="h-full w-full px-4 py-2">
         <ActivityIndicator
           delay={500}
           className="mx-auto"
@@ -146,7 +149,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
   if (error) {
     return (
       <LogsBodyCustomMessage>
-        <Text color="red" className="truncate font-mono text-xs- font-normal">
+        <Text color="error" className="truncate font-mono text-xs- font-normal">
           {error?.message.includes('the query time range exceeds the limit')
             ? 'The query time range exceeds the limit, please select a shorter range.'
             : error?.message}
@@ -158,7 +161,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
   if (!logsData || logsData.logs?.length === 0) {
     return (
       <LogsBodyCustomMessage>
-        <Text className="truncate font-mono text-xs- font-normal text-verydark">
+        <Text className="truncate font-mono text-xs- font-normal">
           There are no logs for the selected period.
         </Text>
       </LogsBodyCustomMessage>
@@ -174,7 +177,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
               {headerGroup.headers.map((header) => (
                 <TableCell
                   scope="col"
-                  className="min-h-[38px] flex-auto border-gray-200 bg-white p-2 text-left font-display text-xs- font-semibold text-gray-900"
+                  className="min-h-[38px] flex-auto p-2 text-left font-display text-xs- font-semibold"
                   key={header.id}
                   align="left"
                   padding="none"
@@ -182,6 +185,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
                     width: header.getSize() || 'auto',
                     minWidth: !header.getSize() ? 300 : 'initial',
                   }}
+                  sx={{ backgroundColor: 'background.paper' }}
                 >
                   {header.isPlaceholder
                     ? null
@@ -210,11 +214,12 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
                   <TableCell
                     key={cell.id}
                     component="td"
-                    className="break-words border-gray-200 bg-white py-2.5 px-2 align-top text-xs- font-normal tracking-tight text-greyscaleDark"
+                    className="break-words py-2.5 px-2 align-top text-xs- font-normal tracking-tight"
                     style={{
                       width: cell.column.getSize() || 'auto',
                       minWidth: !cell.column.getSize() ? 300 : 'initial',
                     }}
+                    sx={{ backgroundColor: 'background.paper' }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

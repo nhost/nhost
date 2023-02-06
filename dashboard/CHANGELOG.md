@@ -1,5 +1,34 @@
 # @nhost/dashboard
 
+## 0.11.3
+
+### Patch Changes
+
+- @nhost/react-apollo@4.13.3
+- @nhost/nextjs@1.13.3
+
+## 0.11.2
+
+### Patch Changes
+
+- f143e51d: chore(dashboard): pin Turborepo to 1.6.3
+
+## 0.11.1
+
+### Patch Changes
+
+- c2b5a41a: chore(dashboard): select system colors by default
+
+## 0.11.0
+
+### Minor Changes
+
+- 1ebaf429: feat(dashboard): introduce Dark Mode 🌚
+
+### Patch Changes
+
+- 63b445c4: fixed duplicated logs bug and made to date count during live mode
+
 ## 0.10.1
 
 ### Patch Changes

@@ -1,16 +1,15 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { SidebarTitle } from '@/components/home/SidebarTitle';
 import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
+import Text from '@/ui/v2/Text';
 import SidebarWorkspaces from './SidebarWorkspaces';
 
 export function WorkspaceSection() {
   const { openDialog } = useDialog();
 
   return (
-    <>
-      <SidebarTitle text="My Workspaces" under={false} />
+    <div>
+      <Text color="disabled">My Workspaces</Text>
       <SidebarWorkspaces />
 
       <Button
@@ -33,7 +32,7 @@ export function WorkspaceSection() {
       >
         New Workspace
       </Button>
-    </>
+    </div>
   );
 }
 

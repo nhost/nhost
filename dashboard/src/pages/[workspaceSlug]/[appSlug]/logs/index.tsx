@@ -25,6 +25,7 @@ export default function LogsPage() {
     AvailableLogsServices.ALL,
   );
 
+  // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
@@ -56,33 +57,39 @@ export default function LogsPage() {
           from: fromDate,
         },
         updateQuery: (prev, { subscriptionData }) => {
+          // if there is no new data, just return the previous data
           if (!subscriptionData.data) {
             return prev;
           }
 
+          const prevLogs = prev.logs;
+
           // if there are no previous logs just return the new ones
-          if (!prev.logs || prev.logs.length === 0) {
-            return subscriptionData.data;
-          }
-
-          const previousLogsLength = prev.logs.length;
-          const newLogsLength = subscriptionData.data.logs.length;
-          const timestampOfFirstPreviousLog = prev.logs[0].timestamp;
-          const timestampOfFirstSubscriptionLog =
-            subscriptionData.data.logs[newLogsLength - 1].timestamp;
-          const sameLogs =
-            previousLogsLength === newLogsLength &&
-            timestampOfFirstPreviousLog === timestampOfFirstSubscriptionLog;
-
-          if (sameLogs) {
+          if (!prevLogs || prevLogs.length === 0) {
             return subscriptionData.data;
           }
 
           const newLogs = subscriptionData.data.logs;
 
+          // Next, we need to understand if the new logs are the same as the previous ones.
+          // We'll then pick the first log from `prev` and see if we can find it in `subscriptionData.data`.
+          // If it exists, we'll assume that the logs are the same and we'll return `prev`.
+          // NOTE: We can't compare elements in the array because they are sent out of order.
+          // The logs are sorted by timestamp in the LogsBody component.
+
+          const prevAndNewLogsAreTheSame = newLogs.some(
+            (log) =>
+              log.timestamp === prevLogs[0].timestamp &&
+              log.service === prevLogs[0].service,
+          );
+
+          if (prevAndNewLogsAreTheSame) {
+            return prev;
+          }
+
+          // if the logs are not the same, it means we've got new logs. We'll merge the new logs with the existing logs.
           return {
-            ...prev,
-            logs: [...newLogs, ...prev.logs],
+            logs: [...prevLogs, ...newLogs],
           };
         },
       }),
@@ -109,7 +116,7 @@ export default function LogsPage() {
   }, [subscribeToMoreLogs, toDate, client]);
 
   return (
-    <div className="flex flex-col w-full h-full">
+    <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
           fromDate={fromDate}

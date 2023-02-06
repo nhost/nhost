@@ -14,7 +14,7 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -77,7 +77,7 @@ export default function WindowsLiveProviderSettings() {
         success: `Windows Live settings have been updated successfully.`,
         error: `An error occurred while trying to update the project's Windows Live settings.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -94,7 +94,7 @@ export default function WindowsLiveProviderSettings() {
             loading: formState.isSubmitting,
           }}
           docsTitle="how to sign in users with Windows Live"
-          icon="/logos/WindowsLive.svg"
+          icon="/assets/brands/windowslive.svg"
           switchId="authEnabled"
           showSwitch
           enabled={authEnabled}

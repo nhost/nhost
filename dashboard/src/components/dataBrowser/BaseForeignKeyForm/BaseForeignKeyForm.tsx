@@ -3,6 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import useDatabaseQuery from '@/hooks/dataBrowser/useDatabaseQuery';
 import type { DatabaseColumn, ForeignKeyRelation } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import Option from '@/ui/v2/Option';
@@ -103,8 +104,8 @@ export function BaseForeignKeyForm({
       }}
       className="flex flex-auto flex-col content-between overflow-hidden pb-4"
     >
-      <div className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 border-t-gray-200 px-6 py-4">
-        <section className="grid grid-flow-row gap-4">
+      <Box className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
+        <Box component="section" className="grid grid-flow-row gap-4 px-6">
           <Text variant="h3">From</Text>
 
           <ControlledSelect
@@ -125,11 +126,11 @@ export function BaseForeignKeyForm({
               </Option>
             ))}
           </ControlledSelect>
+        </Box>
 
-          <Divider />
-        </section>
+        <Divider />
 
-        <section className="grid grid-flow-row gap-4">
+        <Box component="section" className="grid grid-flow-row gap-4 px-6">
           <Text variant="h3">To</Text>
 
           <ReferencedSchemaSelect
@@ -138,11 +139,11 @@ export function BaseForeignKeyForm({
           />
           <ReferencedTableSelect options={tables} />
           <ReferencedColumnSelect />
+        </Box>
 
-          <Divider />
-        </section>
+        <Divider />
 
-        <section className="grid grid-cols-2 gap-4">
+        <Box component="section" className="grid grid-cols-2 gap-4 px-6">
           <ControlledSelect
             id="updateAction"
             name="updateAction"
@@ -176,10 +177,10 @@ export function BaseForeignKeyForm({
             <Option value="SET DEFAULT">SET DEFAULT</Option>
             <Option value="NO ACTION">NO ACTION</Option>
           </ControlledSelect>
-        </section>
-      </div>
+        </Box>
+      </Box>
 
-      <div className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 border-t-gray-200 px-6 pt-4">
+      <Box className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
         <Button loading={isSubmitting} disabled={isSubmitting} type="submit">
           {submitButtonText}
         </Button>
@@ -192,7 +193,7 @@ export function BaseForeignKeyForm({
         >
           Cancel
         </Button>
-      </div>
+      </Box>
     </Form>
   );
 }

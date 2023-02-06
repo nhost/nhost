@@ -13,6 +13,7 @@ import {
   postgresFunctions,
   postgresTypeGroups,
 } from '@/utils/dataBrowser/postgresqlConstants';
+import clsx from 'clsx';
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';
 import type { FieldError } from 'react-hook-form';
@@ -164,6 +165,9 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
         filteredOptions.length === 0 && inputValue.length > 0
       }
       freeSolo
+      slotProps={{
+        paper: { className: clsx(availableFunctions.length === 0 && 'hidden') },
+      }}
       disabled={isIdentity}
       noOptionsText="Enter a custom default value"
       placeholder="NULL"

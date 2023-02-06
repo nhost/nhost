@@ -7,7 +7,8 @@ import {
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import Text from '@/ui/v2/Text';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 
@@ -36,9 +37,9 @@ export default function EmailAndPasswordSettings() {
   const form = useForm<EmailAndPasswordFormValues>({
     reValidateMode: 'onChange',
     defaultValues: {
-      authPasswordHibpEnabled: data.app.authPasswordHibpEnabled || false,
+      authPasswordHibpEnabled: data?.app?.authPasswordHibpEnabled || false,
       authEmailSigninEmailVerifiedRequired:
-        data.app.authEmailSigninEmailVerifiedRequired || false,
+        data?.app?.authEmailSigninEmailVerifiedRequired || false,
     },
   });
 
@@ -79,7 +80,7 @@ export default function EmailAndPasswordSettings() {
         success: `Email and password sign-in settings have been updated successfully.`,
         error: `An error occurred while trying to update email sign-in settings.`,
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -111,10 +112,10 @@ export default function EmailAndPasswordSettings() {
             id="authEmailSigninEmailVerifiedRequired"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
-                <span className="font-medium">Require Verified Emails</span>
-                <span className="font-normal text-greyscaleMedium">
+                <Text component="span">Require Verified Emails</Text>
+                <Text component="span" color="secondary">
                   Users must verify their email to be able to sign in.
-                </span>
+                </Text>
               </span>
             }
           />
@@ -124,10 +125,10 @@ export default function EmailAndPasswordSettings() {
             id="authPasswordHibpEnabled"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
-                <span className="font-medium">Password Protection</span>
-                <span className="font-normal text-greyscaleMedium">
+                <Text component="span">Password Protection</Text>
+                <Text component="span" color="secondary">
                   Passwords must pass haveibeenpwned.com during sign-up.
-                </span>
+                </Text>
               </span>
             }
           />

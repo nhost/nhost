@@ -4,9 +4,9 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
-import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -18,18 +18,6 @@ export interface BaseDirectoryFormValues {
    */
   nhostBaseFolder: string;
 }
-
-export const toastStyleProps = {
-  style: {
-    minWidth: '300px',
-    backgroundColor: 'rgb(33 50 75)',
-    color: '#fff',
-  },
-  success: {
-    duration: 5000,
-    icon: <CheckIcon className="h-4 w-4 bg-transparent" />,
-  },
-};
 
 export default function BaseDirectorySettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -68,7 +56,7 @@ export default function BaseDirectorySettings() {
         success: `The base directory has been updated successfully.`,
         error: `An error occurred while trying to update the project's base directory.`,
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);

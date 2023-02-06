@@ -1,6 +1,7 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
 import FeedbackForm from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
+import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';
 import { useUserDataContext } from '@/context/workspace1-context';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -9,16 +10,19 @@ import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import { Modal } from '@/ui/Modal';
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
 import Drawer from '@/ui/v2/Drawer';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import MenuIcon from '@/ui/v2/icons/MenuIcon';
 import XIcon from '@/ui/v2/icons/XIcon';
+import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
 import { useSignOut } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
-import { cloneElement, isValidElement, useState } from 'react';
+import { cloneElement, Fragment, isValidElement, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface MobileNavProps extends ButtonProps {}
@@ -55,7 +59,9 @@ function MobileNavLink({
     : router.asPath.startsWith(finalUrl);
 
   return (
-    <ListItem.Root className={twMerge('grid grid-flow-row gap-2', className)}>
+    <ListItem.Root
+      className={twMerge('grid grid-flow-row gap-2 py-2', className)}
+    >
       <ListItem.Button
         className="w-full"
         component={NavLink}
@@ -124,21 +130,28 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
               aria-label="Mobile navigation"
               listProps={{ className: 'gap-2' }}
             >
-              {allRoutes.map(
-                ({ relativePath, label, icon, exact, disabled }) => (
-                  <MobileNavLink
-                    href={relativePath}
-                    key={relativePath}
-                    className="w-full after:block after:h-px after:w-full after:bg-gray-200 last-of-type:after:hidden"
-                    exact={exact}
-                    icon={icon}
-                    onClick={() => setMenuOpen(false)}
-                    disabled={disabled}
-                  >
-                    {label}
-                  </MobileNavLink>
-                ),
-              )}
+              <List>
+                {allRoutes.map(
+                  ({ relativePath, label, icon, exact, disabled }, index) => (
+                    <Fragment key={relativePath}>
+                      <MobileNavLink
+                        href={relativePath}
+                        className="w-full"
+                        exact={exact}
+                        icon={icon}
+                        onClick={() => setMenuOpen(false)}
+                        disabled={disabled}
+                      >
+                        {label}
+                      </MobileNavLink>
+
+                      {index < allRoutes.length - 1 && (
+                        <Divider component="li" />
+                      )}
+                    </Fragment>
+                  ),
+                )}
+              </List>
             </Nav>
           </section>
         )}
@@ -149,24 +162,27 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             !shouldDisplayNav && 'mt-2',
           )}
         >
-          <h2 className="text-xl font-semibold text-greyscaleDark">
+          <Text variant="h2" className="text-xl font-semibold">
             Resources
-          </h2>
+          </Text>
 
-          <div className="grid grid-flow-row gap-2">
+          <List className="grid grid-flow-row gap-2">
             {isPlatform && (
-              <Dropdown.Root className="after:mt-2 after:block after:h-px after:w-full after:bg-gray-200">
+              <Dropdown.Root>
                 <Dropdown.Trigger
                   className="justify-initial w-full"
                   hideChevron
+                  asChild
                 >
-                  <ListItem.Button
-                    component="span"
-                    className="w-full"
-                    role={undefined}
-                  >
-                    <ListItem.Text>Feedback</ListItem.Text>
-                  </ListItem.Button>
+                  <ListItem.Root>
+                    <ListItem.Button
+                      component="span"
+                      className="w-full"
+                      role={undefined}
+                    >
+                      <ListItem.Text>Feedback</ListItem.Text>
+                    </ListItem.Button>
+                  </ListItem.Root>
                 </Dropdown.Trigger>
 
                 <Dropdown.Content
@@ -178,26 +194,38 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
               </Dropdown.Root>
             )}
 
-            <ListItem.Button
-              component={NavLink}
-              href="https://docs.nhost.io"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <ListItem.Text>Docs</ListItem.Text>
-            </ListItem.Button>
-          </div>
+            <Divider component="li" />
+
+            <ListItem.Root>
+              <ListItem.Button
+                component={NavLink}
+                href="https://docs.nhost.io"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ListItem.Text>Docs</ListItem.Text>
+              </ListItem.Button>
+            </ListItem.Root>
+          </List>
+        </section>
+
+        <section className={twMerge('grid grid-flow-row gap-3')}>
+          <Text variant="h2" className="text-xl font-semibold">
+            Theme
+          </Text>
+
+          <ThemeSwitcher aria-label="Theme" />
         </section>
 
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
-            <h2 className="text-xl font-semibold text-greyscaleDark">
+            <Text variant="h2" className="text-xl font-semibold">
               Account
-            </h2>
+            </Text>
 
-            <div className="grid grid-flow-row gap-2">
-              <div className="after:mt-2 after:block after:h-px after:w-full after:bg-gray-200">
-                <Button
+            <List className="grid grid-flow-row gap-2">
+              <ListItem.Root>
+                <ListItem.Button
                   variant="borderless"
                   color="secondary"
                   className="w-full justify-start border-none px-2 py-2.5 text-[16px]"
@@ -207,23 +235,27 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   }}
                 >
                   Change password
-                </Button>
-              </div>
+                </ListItem.Button>
+              </ListItem.Root>
 
-              <Button
-                variant="borderless"
-                color="secondary"
-                className="justify-start border-none px-2 py-2.5 text-[16px]"
-                onClick={async () => {
-                  setUserContext({ workspaces: [] });
-                  setMenuOpen(false);
-                  await signOut();
-                  await router.push('/signin');
-                }}
-              >
-                Sign out
-              </Button>
-            </div>
+              <Divider component="li" />
+
+              <ListItem.Root>
+                <ListItem.Button
+                  variant="borderless"
+                  color="secondary"
+                  className="justify-start border-none px-2 py-2.5 text-[16px]"
+                  onClick={async () => {
+                    setUserContext({ workspaces: [] });
+                    setMenuOpen(false);
+                    await signOut();
+                    await router.push('/signin');
+                  }}
+                >
+                  Sign out
+                </ListItem.Button>
+              </ListItem.Root>
+            </List>
           </section>
         )}
       </Drawer>

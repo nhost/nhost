@@ -4,10 +4,11 @@ import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { AutocompletePopper } from '@/ui/v2/Autocomplete';
+import Box from '@/ui/v2/Box';
 import IconButton from '@/ui/v2/IconButton';
 import ArrowLeftIcon from '@/ui/v2/icons/ArrowLeftIcon';
 import type { InputProps } from '@/ui/v2/Input';
-import Input from '@/ui/v2/Input';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import List from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
@@ -84,10 +85,10 @@ function renderOption(
       {...optionProps}
       className="grid grid-flow-col items-baseline justify-start justify-items-start gap-1.5"
     >
-      <span>{option.label}</span>
+      <Text component="span">{option.label}</Text>
 
       {option.group === 'columns' && (
-        <InlineCode>{option.metadata?.type || option.value}</InlineCode>
+        <InlineCode>{option.metadata?.udt_name || option.value}</InlineCode>
       )}
     </OptionBase>
   );
@@ -250,7 +251,20 @@ function ColumnAutocomplete(
           slotProps={{
             ...(props.slotProps || {}),
             label: getInputLabelProps(),
-            input: { ...(props.slotProps?.input || {}), ref: setAnchorEl },
+            input: {
+              ...(props.slotProps?.input || {}),
+              ref: setAnchorEl,
+              sx: [
+                ...(Array.isArray(props.slotProps?.input?.sx)
+                  ? props.slotProps.input.sx
+                  : [props.slotProps?.input?.sx || {}]),
+                {
+                  [`& .${inputClasses.input}`]: {
+                    backgroundColor: 'transparent',
+                  },
+                },
+              ],
+            },
             inputRoot: {
               ...getInputProps(),
               className: twMerge(
@@ -284,12 +298,16 @@ function ColumnAutocomplete(
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
               <Text
-                className={twMerge(
-                  '!ml-2 lg:max-w-[200px] flex-shrink-0 truncate',
-                  props.disabled && 'text-greyscaleGrey',
-                )}
+                component="span"
+                sx={{
+                  color: props.disabled ? 'text.disabled' : 'text.primary',
+                }}
+                className="!ml-2 flex-shrink-0 truncate lg:max-w-[200px]"
               >
-                <span className="text-greyscaleGrey">{defaultTable}</span>.
+                <Text component="span" color="disabled">
+                  {defaultTable}
+                </Text>
+                .
                 {relationshipDotNotation && (
                   <>
                     <span className="hidden lg:inline">
@@ -322,8 +340,18 @@ function ColumnAutocomplete(
         anchorEl={anchorEl}
         style={{ width: anchorEl?.parentElement?.clientWidth }}
       >
-        <div className={autocompleteClasses.paper}>
-          <div className="px-3 py-2.5 border-b-1 border-greyscale-100 grid grid-flow-col gap-2 justify-start items-center">
+        <Box
+          className={autocompleteClasses.paper}
+          sx={{
+            borderWidth: (theme) => (theme.palette.mode === 'dark' ? 1 : 0),
+            borderColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'grey.400' : 'none',
+          }}
+        >
+          <Box
+            className="grid grid-flow-col items-center justify-start gap-2 border-b-1 px-3 py-2.5"
+            sx={{ backgroundColor: 'transparent' }}
+          >
             {selectedRelationships.length > 0 && (
               <IconButton
                 variant="borderless"
@@ -338,12 +366,14 @@ function ColumnAutocomplete(
                   );
                 }}
               >
-                <ArrowLeftIcon className="w-4 h-4" />
+                <ArrowLeftIcon className="h-4 w-4" />
               </IconButton>
             )}
 
-            <Text className="truncate direction-rtl text-left">
-              <span className="!text-greyscaleMedium">{defaultTable}</span>
+            <Text className="direction-rtl truncate text-left">
+              <Text component="span" color="disabled">
+                {defaultTable}
+              </Text>
 
               {relationshipDotNotation && (
                 <>
@@ -357,7 +387,7 @@ function ColumnAutocomplete(
                 </>
               )}
             </Text>
-          </div>
+          </Box>
 
           {(tableStatus === 'loading' ||
             metadataStatus === 'loading' ||
@@ -397,7 +427,7 @@ function ColumnAutocomplete(
           {groupedOptions.length === 0 && Boolean(anchorEl) && (
             <Text className={autocompleteClasses.noOptions}>No options</Text>
           )}
-        </div>
+        </Box>
       </AutocompletePopper>
     </>
   );

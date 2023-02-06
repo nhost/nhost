@@ -1,6 +1,6 @@
 import { Avatar } from '@/ui/Avatar';
-import { Badge } from '@/ui/Badge';
-import { Text } from '@/ui/Text';
+import Chip from '@/ui/v2/Chip';
+import Text from '@/ui/v2/Text';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/utils/__generated__/graphql';
 import { WorkspaceMemberInviteManageMenu } from './WorkspaceMemberInviteManageMenu';
 
@@ -12,27 +12,15 @@ export default function WorkspaceMemberInvite({
   isOwner: boolean;
 }) {
   return (
-    <div className="mt-14 flex flex-row place-content-between">
+    <div className="flex flex-row place-content-between">
       <div className=" flex flex-row">
         <Avatar className="h-12 w-12" name={workspaceMemberInvite.email} />
         <div className="ml-3 self-center">
-          <div className="flex flex-row">
-            <Text
-              variant="body"
-              size="normal"
-              color="greyscaleDark"
-              className="font-medium"
-            >
-              {workspaceMemberInvite.email}
-            </Text>
-            <Badge>Pending Invitation</Badge>
+          <div className="grid grid-flow-col justify-start gap-2">
+            <Text className="font-medium">{workspaceMemberInvite.email}</Text>
+            <Chip size="small" color="info" label="Pending Invitation" />
           </div>
-          <Text
-            variant="body"
-            size="normal"
-            color="greyscaleGrey"
-            className="font-medium"
-          >
+          <Text className="font-medium" color="disabled">
             {workspaceMemberInvite.email}
           </Text>
         </div>
@@ -43,9 +31,12 @@ export default function WorkspaceMemberInvite({
             workspaceMemberInvite={workspaceMemberInvite}
           />
         ) : (
-          <div className="self-center font-display text-sm font-medium capitalize text-blue">
+          <Text
+            className="self-center font-display text-sm font-medium capitalize"
+            sx={{ color: 'primary.main' }}
+          >
             {workspaceMemberInvite.memberType}
-          </div>
+          </Text>
         )}
       </div>
     </div>

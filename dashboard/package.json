@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.10.1",
+  "version": "0.11.3",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -55,6 +55,7 @@
     "graphql-request": "^4.3.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.11.2",
+    "just-kebab-case": "^4.1.1",
     "lodash.debounce": "^4.0.8",
     "next": "^12.3.1",
     "next-seo": "^5.14.1",
@@ -104,7 +105,7 @@
     "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^16.11.7",
     "@types/pluralize": "^0.0.29",
-    "@types/react": "18.0.27",
+    "@types/react": "18.0.25",
     "@types/react-dom": "18.0.10",
     "@types/react-table": "^7.7.12",
     "@types/testing-library__jest-dom": "^5.14.5",

@@ -2,10 +2,10 @@ import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
 import FormControlLabel, {
   formControlLabelClasses,
 } from '@/ui/v2/FormControlLabel';
+import SvgIcon from '@/ui/v2/icons/SvgIcon';
 import { styled } from '@mui/material';
 import type { RadioProps as MaterialRadioProps } from '@mui/material/Radio';
 import MaterialRadio from '@mui/material/Radio';
-import SvgIcon from '@mui/material/SvgIcon';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 

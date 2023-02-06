@@ -9,7 +9,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateAppMutation,
@@ -111,7 +111,7 @@ export default function EditRoleForm({
         success: 'Role has been updated successfully.',
         error: 'An error occurred while trying to update the role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     await onSubmit?.();

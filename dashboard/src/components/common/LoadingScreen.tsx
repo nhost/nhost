@@ -1,12 +1,11 @@
-import Loading from '@/ui/Loading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 
 export function LoadingScreen() {
   return (
-    <div className="absolute top-0 left-0 z-50 block h-full w-full bg-white">
-      <span className="top50percent relative top-1/2 mx-auto my-0 block h-0 w-0">
-        <Loading />
-      </span>
-    </div>
+    <Box className="absolute top-0 left-0 bottom-0 right-0 flex items-center justify-center z-50 h-full w-full">
+      <ActivityIndicator circularProgressProps={{ className: 'w-5 h-5' }} />
+    </Box>
   );
 }
 
