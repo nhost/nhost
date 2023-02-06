@@ -205,6 +205,92 @@ export default function GraphqlPage() {
       </Container>
 
       <Container component="section" className="mt-24 lg:mt-40">
+        <SectionHeading
+          title="Realtime Subscriptions"
+          subtitle="Build collaborative apps with ease."
+        />
+
+        <div className="mx-auto mt-16 grid items-center gap-6 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
+          <ul className="grid grid-flow-row gap-6">
+            <li className="grid grid-flow-row items-start justify-start">
+              <div className="grid grid-flow-col items-center justify-start gap-4">
+                <Image
+                  src="/products/search.svg"
+                  width={24}
+                  height={24}
+                  alt="Magnifying glass"
+                  className="mx-auto h-4 w-4"
+                />
+                <h3 className="text-base font-bold">Live avatars</h3>
+              </div>
+
+              <p className="ml-8">
+                Share the status of users across multiple clients.
+              </p>
+            </li>
+
+            <li className="grid grid-flow-row items-start justify-start">
+              <div className="grid grid-flow-col items-center justify-start gap-4">
+                <Image
+                  src="/products/search.svg"
+                  width={24}
+                  height={24}
+                  alt="Magnifying glass"
+                  className="mx-auto h-4 w-4"
+                />
+                <h3 className="text-base font-bold">Live cursors</h3>
+              </div>
+
+              <p className="ml-8">
+                Share the position and status of multiple cursors across
+                multiple clients.
+              </p>
+            </li>
+
+            <li className="grid grid-flow-row items-start justify-start">
+              <div className="grid grid-flow-col items-center justify-start gap-4">
+                <Image
+                  src="/products/search.svg"
+                  width={24}
+                  height={24}
+                  alt="Magnifying glass"
+                  className="mx-auto h-4 w-4"
+                />
+                <h3 className="text-base font-bold">Location</h3>
+              </div>
+
+              <p className="ml-8">
+                Listen to changes in the database regarding the position of a
+                moving coordinate.
+              </p>
+            </li>
+
+            <li className="grid grid-flow-row items-start justify-start">
+              <div className="grid grid-flow-col items-center justify-start gap-4">
+                <Image
+                  src="/products/search.svg"
+                  width={24}
+                  height={24}
+                  alt="Magnifying glass"
+                  className="mx-auto h-4 w-4"
+                />
+                <h3 className="text-base font-bold">Live charts</h3>
+              </div>
+
+              <p className="ml-8">
+                Keep charts updated in Realtime by listening to changes in the
+                database rather than polling at intervals.
+              </p>
+            </li>
+          </ul>
+
+          <div>
+            <CodeSnippet customStyle={{ minHeight: 300 }}> </CodeSnippet>
+          </div>
+        </div>
+      </Container>
+
+      <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading title="And more..." className="max-w-lg" />
 
         <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
