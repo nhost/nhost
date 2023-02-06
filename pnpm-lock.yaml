@@ -944,12 +944,10 @@ importers:
       json-to-graphql-query: ^2.2.4
       npm-run-all: ^4.1.5
       start-server-and-test: ^1.14.0
-      type-fest: ^3.5.3
     dependencies:
       '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       cross-fetch: 3.1.5
       json-to-graphql-query: 2.2.4
-      type-fest: 3.5.4
     devDependencies:
       '@faker-js/faker': 7.6.0
       '@nhost/docgen': link:../docgen
@@ -29855,11 +29853,6 @@ packages:
   /type-fest/2.19.0:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
-
-  /type-fest/3.5.4:
-    resolution: {integrity: sha512-/Je22Er4LPoln256pcLzj73MUmPrTWg8u4WB1RlxaDl0idJOfD1r259VtKOinp4xLJqJ9zYVMuWOun6Ssp7boA==}
-    engines: {node: '>=14.16'}
-    dev: false
 
   /type-is/1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}

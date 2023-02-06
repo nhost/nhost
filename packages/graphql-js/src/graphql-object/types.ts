@@ -1,4 +1,3 @@
-import { RequireAtLeastOne, SetRequired } from 'type-fest'
 import {
   ConcreteTypeOf,
   FieldArgs,
@@ -14,7 +13,9 @@ import {
 import {
   IsTrueOrHasOnlyOptionals,
   PickFirstTupleItemThatExtends,
+  RequireAtLeastOne,
   RequiredWhenChildrenAreRequired,
+  SetRequired,
   StripImpossibleProperties,
   ToUnion,
   UnwrapArray,

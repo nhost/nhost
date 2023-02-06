@@ -1,4 +1,6 @@
-import { Split, Join, EmptyObject } from 'type-fest'
+import { EmptyObject, Join, Split } from './type-fest'
+
+export type { RequireAtLeastOne, SetRequired } from './type-fest'
 
 export type StripImpossibleProperties<T> = Pick<
   T,
