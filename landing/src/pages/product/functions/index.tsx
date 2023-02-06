@@ -206,7 +206,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">CDN</h3>
+              <h3 className="text-base font-bold">Environment Variables</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Improve security by letting enabling Multi-Factor
@@ -223,7 +223,7 @@ export default function FunctionsPage() {
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Image Transformation</h3>
+              <h3 className="text-base font-bold">TypeScript-Ready</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Improve security by letting enabling Multi-Factor
@@ -241,7 +241,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High Scalability</h3>
+              <h3 className="text-base font-bold">Event Triggers</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Improve security by letting enabling Multi-Factor
@@ -259,7 +259,7 @@ export default function FunctionsPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Buckets</h3>
+              <h3 className="text-base font-bold">Zero Maintenance</h3>
 
               <p className="text-base text-white text-opacity-65">
                 Improve security by letting enabling Multi-Factor
@@ -283,7 +283,7 @@ export default function FunctionsPage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="storage"
+        disabledLink="functions"
       />
 
       <CTASection />
