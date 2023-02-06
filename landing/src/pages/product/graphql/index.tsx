@@ -51,8 +51,6 @@ const todos = await nhost.graphql.query.todos({
 })`,
 }
 
-type GraphqlExamples = typeof codeSnippets
-
 const realtimeCodeSnippets = {
   avatars: `subscription GetAvatars {
   code
@@ -68,14 +66,12 @@ const realtimeCodeSnippets = {
 }`,
 }
 
-type RealtimeGraphqlExamples = typeof realtimeCodeSnippets
-
 export default function GraphqlPage() {
   const [selectedExample, setSelectedExample] =
-    useState<keyof GraphqlExamples>('insertData')
+    useState<keyof typeof codeSnippets>('insertData')
 
   const [selectedRealtimeExample, setSelectedRealtimeExample] =
-    useState<keyof RealtimeGraphqlExamples>('avatars')
+    useState<keyof typeof realtimeCodeSnippets>('avatars')
 
   return (
     <>

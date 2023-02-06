@@ -40,7 +40,7 @@ export default function Header({
           ...(slotProps || {}),
           root: {
             className: twMerge(
-              'z-50 bg-black',
+              'z-50 bg-black overflow-visible',
               !mobileMenuVisible && 'backdrop-blur-md bg-opacity-[1%]',
               slotProps?.root?.className,
             ),
@@ -85,7 +85,7 @@ export default function Header({
                       leaveFrom="opacity-100 translate-y-0"
                       leaveTo="opacity-0 translate-y-1"
                     >
-                      <Popover.Panel className="absolute z-10 mt-3 w-52 transform rounded-md border border-white border-opacity-10 bg-black p-4">
+                      <Popover.Panel className="absolute z-50 mt-3 w-52 transform rounded-md border border-white border-opacity-10 bg-black p-4">
                         <nav aria-label="Secondary navigation">
                           <ul className="grid grid-flow-row gap-2">
                             <li>
