@@ -11,14 +11,14 @@ generates:
         jsonb: 'JSONValue'
         bytea: 'string'
     plugins:
-      - ./plugin/index.js
+      - typescript-nhost
       - add:
           content: 'export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;'
   ./schemas/countries.ts:
     schema: https://countries.trevorblades.com/graphql
     plugins:
-      - ./plugin/index.js
+      - typescript-nhost
   ./schemas/swapi.ts:
     schema: https://swapi-graphql.netlify.app/.netlify/functions/index
     plugins:
-      - ./plugin/index.js
+      - typescript-nhost
