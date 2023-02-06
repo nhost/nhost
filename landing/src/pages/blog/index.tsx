@@ -1,5 +1,6 @@
 import { BlogPostCard } from '@/components/blog/BlogPostCard'
 import { Container } from '@/components/common/Container'
+import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
@@ -20,13 +21,13 @@ export default function BlogPage({ articles }: BlogPageProps) {
     <>
       <Container
         component="section"
-        className="relative flex max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
+        className="relative flex max-w-5xl py-20 lg:py-28"
       >
         <LineGrid
           className="-top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-5 lg:h-40 lg:w-40"
           slotProps={{ image: { className: 'mx-auto' } }}
         />
-        <div className="absolute left-0 right-0 z-0 mx-auto h-20 w-20 rounded-full bg-brand-main blur-[56px] lg:top-24"></div>
+        <Glow className="h-10 w-32 blur-[50px] lg:top-28" />
         <SectionHeading
           title="Blog"
           subtitle="Read the latest news about Nhost."
@@ -53,7 +54,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
               alt={`Cover of ${firstArticle.title}`}
               blurDataURL={`/images/blog/${firstArticle.image}`}
               placeholder="blur"
-              className="object-cover"
+              className="max-w-full object-cover"
               priority
             />
           }
@@ -63,7 +64,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
           tags={firstArticle.tags}
           authors={firstArticle.authors}
           date={firstArticle.date}
-          className="col-span-2"
+          className="col-span-2 max-w-full"
           highlighted
         />
 

@@ -32,7 +32,7 @@ export default function Announcement({
     >
       <span />
 
-      {children}
+      <div className="self-center truncate">{children}</div>
 
       <Button
         variant="borderless"

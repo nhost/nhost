@@ -1,4 +1,6 @@
+import { useAnnouncement } from '@/hooks/useAnnouncement'
 import { useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container } from '../Container'
 import { ChevronDownIcon } from '../icons/ChevronDownIcon'
@@ -13,13 +15,16 @@ export interface MobileMenuProps {
 
 export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
   const [productExpanded, setProductExpanded] = useState(false)
+  const { showAnnouncement } = useAnnouncement()
 
   return (
     <Container
       slotProps={{
         root: {
-          className:
-            'fixed top-16 bottom-0 left-0 right-0 z-50 w-full bg-black pt-4 pb-16 overflow-auto',
+          className: twMerge(
+            'fixed bottom-0 left-0 right-0 z-50 w-full bg-black pt-4 pb-16 overflow-auto',
+            showAnnouncement ? 'top-26' : 'top-16',
+          ),
         },
       }}
       className="pt-4"

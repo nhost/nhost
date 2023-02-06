@@ -1,6 +1,6 @@
-import announcement from '@/data/announcement'
+import { useAnnouncement } from '@/hooks/useAnnouncement'
 import { NextSeo, NextSeoProps } from 'next-seo'
-import { DetailedHTMLProps, HTMLProps, useEffect, useState } from 'react'
+import { DetailedHTMLProps, HTMLProps } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Announcement } from '../Announcement'
 import { Footer } from '../Footer'
@@ -25,28 +25,12 @@ export default function Layout({
   slotProps,
   ...props
 }: LayoutProps) {
-  const [showAnnouncement, setShowAnnouncement] = useState(false)
-
-  useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      window.localStorage.getItem(announcement.id) === '1'
-    ) {
-      return
-    }
-
-    setShowAnnouncement(true)
-  }, [])
-
-  function handleAnnouncementClose() {
-    setShowAnnouncement(false)
-    window.localStorage.setItem(announcement.id, '1')
-  }
+  const { announcement, showAnnouncement, handleClose } = useAnnouncement()
 
   return (
     <div className="flex min-h-screen flex-col">
       {showAnnouncement && (
-        <Announcement onClose={handleAnnouncementClose}>
+        <Announcement onClose={handleClose}>
           {announcement.content}
         </Announcement>
       )}

@@ -56,7 +56,7 @@ export default function BlogPostCard({
 }: BlogPostCardProps) {
   return (
     <Link
-      className="text-base font-normal text-opacity-100 hover:no-underline"
+      className="max-w-full text-base font-normal text-opacity-100 hover:no-underline"
       href={href}
     >
       <Card className={twMerge('border-none p-0', className)} {...props}>

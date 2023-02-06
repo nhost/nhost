@@ -48,7 +48,7 @@ export default function CodeSnippet({
       )}
 
       {!disableLineGrid && (
-        <LineGrid className="h-[125%] w-[125%] -translate-x-1/4 -translate-y-[12.5%] overflow-hidden" />
+        <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] overflow-hidden" />
       )}
 
       <SyntaxHighlighter
