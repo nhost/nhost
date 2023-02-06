@@ -203,7 +203,7 @@ export default function StoragePage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading
           title="Powerful permissions, made simple"
-          subtitle="Control what users are allowed to do for all CRUD operations using row and column level permissions."
+          subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
           className="max-w-2xl"
           slotProps={{
             subtitle: {
