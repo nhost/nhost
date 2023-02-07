@@ -122,7 +122,7 @@ export default function IndexPage() {
               />
             }
             title="Midnight Society"
-            description="Learn how Midnight Society uses Nhost to build their app."
+            description="Successful launch of community-driven game by Midnight Society and Boom.tv with Nhost's efficient backend platform"
             href="/customers/midnight-society"
           />
 
@@ -136,7 +136,7 @@ export default function IndexPage() {
               />
             }
             title="React Flow"
-            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
+            description="React Flow streamlines auth and builds a successful subscription platform in 2 months with the help of Nhost's integrated solution."
             href="/customers/react-flow"
           />
 
@@ -150,7 +150,7 @@ export default function IndexPage() {
               />
             }
             title="Revtron"
-            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
+            description="RevTron uses Nhost for successful revenue growth and streamlined customer onboarding."
             href="/customers/revtron"
           />
         </div>
