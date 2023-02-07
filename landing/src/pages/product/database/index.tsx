@@ -268,10 +268,10 @@ export default function DatabasePage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/secure.svg"
+              src="/products/bulls-eye.svg"
               width={24}
               height={24}
-              alt="A paper"
+              alt="Three circles"
               className="mx-auto"
             />
 

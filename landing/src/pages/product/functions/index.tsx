@@ -269,10 +269,10 @@ export default function FunctionsPage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/user-check.svg"
+              src="/products/code.svg"
               width={24}
               height={24}
-              alt="User with a checkmark"
+              alt="Code"
               className="mx-auto"
             />
 
@@ -287,10 +287,10 @@ export default function FunctionsPage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
-              src="/products/resize.svg"
+              src="/products/typescript.svg"
               width={24}
               height={24}
-              alt="Resize icon"
+              alt="TypScript"
               className="mx-auto"
             />
             <div className="grid grid-flow-row gap-2.5">
@@ -303,10 +303,10 @@ export default function FunctionsPage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/maximize.svg"
+              src="/products/backups.svg"
               width={24}
               height={24}
-              alt="Full screen icon"
+              alt="A paper"
               className="mx-auto"
             />
 
@@ -320,10 +320,10 @@ export default function FunctionsPage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
             <Image
-              src="/products/box.svg"
+              src="/products/tool.svg"
               width={24}
               height={24}
-              alt="A box"
+              alt="Tool"
               className="mx-auto"
             />
 
