@@ -45,18 +45,19 @@ module.exports = {
         'slide-middle-up': 'slide-middle-up 0.5s ease-in-out forwards',
         'translate-top-bottom':
           'translate-top-bottom 1.5s ease-in-out forwards',
-        'slide-line-left-delay':
-          'slide-line-left 0.5s ease-in-out forwards 0.1s',
-        'slide-line-up-delay': 'slide-line-up 0.5s ease-in-out forwards 0.1s',
+        'slide-line-left-delay': 'slide-line-left 1s ease-in-out forwards 0.5s',
+        'slide-line-up-delay': 'slide-line-up 1s ease-in-out forwards 0.5s',
       },
       keyframes: {
         'slide-line-left': {
           '0%': { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-10%)' },
+          '50%': { transform: 'translateX(-210px)' },
+          '100%': { transform: 'translateX(-200px)' },
         },
         'slide-line-up': {
           '0%': { transform: 'translateY(0%)' },
-          '100%': { transform: 'translateY(-5%)' },
+          '50%': { transform: 'translateY(-110px)' },
+          '100%': { transform: 'translateY(-100px)' },
         },
         'slide-middle-up': {
           '0%': { transform: 'translateY(3%)', opacity: 0 },

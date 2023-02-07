@@ -99,10 +99,6 @@ body {
   );
 }
 
-.bg-brand-main-to-transparent {
-  background: linear-gradient(180deg, #0066ff 0%, rgba(0, 0, 0, 0) 84.56%);
-}
-
 .globe-canvas {
   max-width: 100%;
 }
