@@ -28,52 +28,51 @@ export default function IndexPage() {
 
         <div className="flex flex-row flex-wrap items-center justify-center gap-x-6 gap-y-6 lg:gap-x-12 lg:gap-y-8">
           <Image
-            src="/brands/brand-hearst.svg"
-            alt="Hearst Logo"
+            src="/customers/celsia.svg"
+            alt="Celsia Logo"
             width={139}
             height={18}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
-            src="/brands/brand-btg.svg"
-            alt="BTG Pactual Logo"
-            width={99}
-            height={39}
-          />
-
-          <Image
-            src="/brands/brand-wattpad.svg"
-            alt="Wattpad Logo"
-            width={117}
-            height={26}
-          />
-
-          <Image
-            src="/brands/brand-biogen.svg"
-            alt="Biogen Logo"
-            width={69}
-            height={22}
-          />
-
-          <Image
-            src="/brands/brand-hexagon.svg"
-            alt="Hexagon Logo"
+            src="/customers/react-flow.svg"
+            alt="React Flow Logo"
             width={121}
             height={20}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
-            src="/brands/brand-maze.svg"
-            alt="Maze Logo"
+            src="/customers/midnight-society.png"
+            alt="Midnight Society Logo"
+            width={117}
+            height={26}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
+          />
+
+          <Image
+            src="/customers/revtron.svg"
+            alt="RevTron Logo"
+            width={140}
+            height={30}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
+          />
+
+          <Image
+            src="/customers/slides-with-friends.svg"
+            alt="Slides with friends Logo"
+            width={99}
+            height={39}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
+          />
+
+          <Image
+            src="/customers/react-play.svg"
+            alt="React Play Logo"
             width={123}
             height={22}
-          />
-
-          <Image
-            src="/brands/brand-productboard.svg"
-            alt="Productboard Logo"
-            width={171}
-            height={22}
+            className="grayscale transition-all duration-500 hover:grayscale-0"
           />
         </div>
       </Container>
