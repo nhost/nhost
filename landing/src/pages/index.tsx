@@ -30,48 +30,48 @@ export default function IndexPage() {
           <Image
             src="/customers/celsia.svg"
             alt="Celsia Logo"
-            width={139}
-            height={18}
+            width={140}
+            height={40}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
             src="/customers/react-flow.svg"
             alt="React Flow Logo"
-            width={121}
-            height={20}
+            width={168}
+            height={41}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
             src="/customers/midnight-society.png"
             alt="Midnight Society Logo"
-            width={117}
-            height={26}
+            width={136}
+            height={42}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
             src="/customers/revtron.svg"
             alt="RevTron Logo"
-            width={140}
-            height={30}
+            width={163}
+            height={24}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
             src="/customers/slides-with-friends.svg"
             alt="Slides with friends Logo"
-            width={99}
-            height={39}
+            width={142}
+            height={64}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
 
           <Image
             src="/customers/react-play.svg"
             alt="React Play Logo"
-            width={123}
-            height={22}
+            width={153}
+            height={55}
             className="grayscale transition-all duration-500 hover:grayscale-0"
           />
         </div>
@@ -117,8 +117,8 @@ export default function IndexPage() {
               <Image
                 src="/customers/midnight-society.png"
                 alt="Logo of Midnight Society"
-                width={142}
-                height={64}
+                width={136}
+                height={42}
               />
             }
             title="Midnight Society"
@@ -131,13 +131,13 @@ export default function IndexPage() {
               <Image
                 src="/customers/react-flow.svg"
                 alt="Logo of React Flow"
-                width={140}
-                height={40}
+                width={168}
+                height={41}
               />
             }
             title="React Flow"
             description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
-            href="/customers/celsia"
+            href="/customers/react-flow"
           />
 
           <CustomerCard
