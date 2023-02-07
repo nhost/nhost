@@ -69,7 +69,7 @@ export default function GraphqlPage() {
           />
 
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -350,7 +350,7 @@ export default function GraphqlPage() {
                 width={100}
                 height={100}
                 alt="Nhost Logo in a dark circle"
-                className="w-26 h-26 relative z-10"
+                className="relative z-10 h-26 w-26"
               />
             </div>
 
@@ -360,7 +360,7 @@ export default function GraphqlPage() {
               slotProps={{ title: { component: 'h3' } }}
             />
 
-            <Button href="https://app.nhost.io/signup" className="mt-6">
+            <Button href="https://app.nhost.io" className="mt-6">
               Start building <ArrowRightIcon />
             </Button>
           </Card>
