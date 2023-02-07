@@ -44,8 +44,10 @@ function PricingListItem({
           selectedPlan !== 'starter' && 'hidden',
         )}
       >
-        {starterIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
-        {starterIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {starterIcon === 'check' && (
+          <CheckmarkCircleIcon className="mx-auto h-5 w-5" />
+        )}
+        {starterIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!starterIcon && starterContent}
       </span>
 
@@ -57,8 +59,10 @@ function PricingListItem({
           selectedPlan !== 'pro' && 'hidden',
         )}
       >
-        {proIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
-        {proIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {proIcon === 'check' && (
+          <CheckmarkCircleIcon className="mx-auto h-5 w-5" />
+        )}
+        {proIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!proIcon && proContent}
       </span>
 
@@ -71,9 +75,9 @@ function PricingListItem({
         )}
       >
         {enterpriseIcon === 'check' && (
-          <CheckmarkCircleIcon className="h-5 w-5" />
+          <CheckmarkCircleIcon className="mx-auto h-5 w-5" />
         )}
-        {enterpriseIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {enterpriseIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!enterpriseIcon && enterpriseContent}
       </span>
     </li>
@@ -217,6 +221,10 @@ export default function PricingPage() {
               </Link>
             )}
           </>
+        )}
+
+        {!inView && (
+          <div className="absolute bottom-0 left-5 right-5 mx-auto h-px bg-divider" />
         )}
       </Container>
 
