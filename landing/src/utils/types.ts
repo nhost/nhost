@@ -23,7 +23,11 @@ export interface Customer {
     width: number
     height: number
   }
-  ogImage: string
+  ogImage: {
+    src: string
+    width: number
+    height: number
+  }
   industry: string
   location: string
   timeToProduction: string
