@@ -23,10 +23,56 @@ const codeSnippets = {
 }
 
 const realtimeCodeSnippets = {
-  avatars: `// todo: create example`,
-  cursors: `// todo: create example`,
-  location: `// todo: create example`,
-  charts: `// todo: create example`,
+  avatars: `
+subscription {
+  users {
+    id
+    displayName
+    profile {
+      id
+      isOnline
+    }
+  }
+}
+`,
+  cursors: `
+subscription ($documentId: uuid!) {
+  document (id: $docuentId) {
+    id
+    cursors {
+      id
+      color
+      position
+      user {
+        id
+        displayName
+      }
+    }
+  }
+}
+
+`,
+  location: `
+subscription ($orderId: uuid!) {
+  order (id: $orderId) {
+    id
+    location {
+      id
+      latitude
+      longitude
+    }
+  }
+}`,
+  charts: `
+subscription ($chartId: uuid!) {
+  chart (id: $chartId) {
+    id
+    data {
+      id
+      value
+    }
+  }
+}`,
 }
 
 export default function GraphqlPage() {
