@@ -109,7 +109,7 @@ export default function DatabasePage() {
           subtitle="Control your database like a spreadsheet."
         />
 
-        <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid grid-cols-1 items-start justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="relative order-2 h-0 w-full pb-[56.25%] xl:order-1">
             <video
               ref={videoRef}

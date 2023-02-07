@@ -158,7 +158,7 @@ export default function IndexPage() {
 
       <WorkflowSection />
       <ExamplesSection />
-      <CTASection />
+      <CTASection className="-mt-8" />
     </>
   )
 }

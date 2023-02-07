@@ -122,7 +122,7 @@ export default function ExamplesSection() {
             className="z-0 mx-auto h-auto w-full"
           />
 
-          <div className="z-20 flex w-full flex-row justify-around md:justify-center md:gap-6">
+          <div className="relative z-20 flex w-full flex-row justify-around md:justify-center md:gap-6">
             <TechnologySelectorButton
               active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
@@ -175,16 +175,25 @@ export default function ExamplesSection() {
             />
           </div>
 
-          <div className="z-10 hidden h-56 w-full flex-row justify-center xl:flex xl:-translate-y-full">
-            <div className="absolute max-w-[470px]">
-              <Image
-                src="/common/logo-glow.svg"
-                width={1220}
-                height={1220}
-                alt="Nhost Logo in a dark circle"
-              />
-            </div>
-          </div>
+          <Image
+            src="/common/logo-glow.svg"
+            width={1220}
+            height={1220}
+            alt="Nhost Logo in a dark circle"
+            className="relative z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] xl:block"
+          />
+
+          {/* <div className="absolute top-0 left-0 right-0 bottom-0 h-full w-full">
+            <Image
+              src="/common/logo-glow.svg"
+              width={1220}
+              height={1220}
+              alt="Nhost Logo in a dark circle"
+              className="h-full w-full object-none"
+            />
+          </div> */}
+          {/* 
+          <div className="relative z-10 hidden h-52 w-full flex-row justify-center xl:flex"></div> */}
         </div>
       </div>
     </Container>

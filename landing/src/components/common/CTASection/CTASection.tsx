@@ -1,13 +1,20 @@
 import Image from 'next/image'
+import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
-import { Container } from '../Container'
+import { Container, ContainerProps } from '../Container'
 import { ArrowRightIcon } from '../icons/ArrowRightIcon'
 
-export default function CTASection() {
+export interface CTASectionProps extends ContainerProps {}
+
+export default function CTASection({ className, ...props }: CTASectionProps) {
   return (
     <Container
       component="section"
-      className="grid grid-flow-row pt-8 pb-24 lg:pt-12 lg:pb-40"
+      className={twMerge(
+        'grid grid-flow-row pt-8 pb-24 lg:pt-12 lg:pb-40',
+        className,
+      )}
+      {...props}
     >
       <Image
         src="/images/glowing-logo.png"
