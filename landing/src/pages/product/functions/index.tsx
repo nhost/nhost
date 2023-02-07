@@ -39,7 +39,23 @@ export default async (req, res) => {
 
   res.json('Message sent')
 }`,
-  query: `// todo: create example`,
+  query: `
+export default async (req, res) => {
+
+  const CUSTOMERS = gql\`
+    query {
+      customers {
+        id
+        name
+      }
+    }
+  \`
+
+  const { data } = await nhost.graphql.request(CUSTOMERS)
+    
+  res.status(200).send({data});
+}
+`,
   stripe: `import { Request, Response } from 'express'
 
 import Stripe from 'stripe'

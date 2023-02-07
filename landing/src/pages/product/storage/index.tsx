@@ -15,10 +15,23 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  uploadFile: `// todo: create example`,
-  getPublicUrl: `// todo: create example`,
-  getPresignedUrl: `// todo: create example`,
-  transformImage: `// todo: create example`,
+  uploadFile: `
+await nhost.storage.upload({ file })
+`,
+  getPublicUrl: `
+nhost.storage.getPublicUrl({ fileId: 'file-id' })
+`,
+  getPresignedUrl: `
+const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
+  fileId: 'file-id'
+})
+`,
+  transformImage: `
+const publicUrl = nhost.storage.getPublicUrl({ 
+  fileId: 'file-id', 
+  width: 200
+})
+`,
 }
 
 export default function StoragePage() {
@@ -101,10 +114,10 @@ export default function StoragePage() {
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
-              className="min-h-[330px]"
+              className=""
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
-              {codeSnippets[selectedExample]}
+              {codeSnippets[selectedExample].trim()}
             </CodeSnippet>
           </div>
 

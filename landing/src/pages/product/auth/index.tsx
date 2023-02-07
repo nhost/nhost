@@ -15,10 +15,28 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  signUp: `// todo: create example`,
-  signIn: `// todo: create example`,
-  resetPassword: `// todo: create example`,
-  oauthSignIn: `// todo: create example`,
+  signUp: `
+await nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+`,
+  signIn: `
+await nhost.auth.signIn({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+`,
+  resetPassword: `
+await nhost.auth.resetPassword({ 
+  email: 'joe@example.com'
+})
+`,
+  oauthSignIn: `
+await nhost.auth.signIn({ 
+  provider: 'google'
+})
+`,
 }
 
 const heroExample = `await nhost.auth.signUp({
@@ -85,10 +103,9 @@ export default function AuthPage() {
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
-              className="min-h-[330px]"
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
-              {codeSnippets[selectedExample]}
+              {codeSnippets[selectedExample].trim()}
             </CodeSnippet>
           </div>
 
