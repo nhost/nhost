@@ -15,17 +15,17 @@ function PricingListItem({
   freeContent,
   proContent,
   enterpriseContent,
-  checkFree,
-  checkPro,
-  checkEnterprise,
+  freeIcon,
+  proIcon,
+  enterpriseIcon,
 }: {
   title: ReactNode
   freeContent?: ReactNode
   proContent?: ReactNode
   enterpriseContent?: ReactNode
-  checkFree?: boolean
-  checkPro?: boolean
-  checkEnterprise?: boolean
+  freeIcon?: 'check' | 'x'
+  proIcon?: 'check' | 'x'
+  enterpriseIcon?: 'check' | 'x'
 }) {
   return (
     <li className="grid auto-cols-fr grid-flow-col gap-6 py-4">
@@ -34,28 +34,36 @@ function PricingListItem({
       <span
         className={twMerge(
           'col-span-3 flex items-center justify-center text-white',
-          !checkFree && 'text-opacity-65',
+          !freeIcon && 'text-opacity-65',
         )}
       >
-        {checkFree ? <CheckmarkCircleIcon /> : freeContent}
+        {freeIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
+        {freeIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {!freeIcon && freeContent}
       </span>
 
       <span
         className={twMerge(
           'col-span-3 flex items-center justify-center text-white',
-          !checkFree && 'text-opacity-65',
+          !proIcon && 'text-opacity-65',
         )}
       >
-        {checkPro ? <CheckmarkCircleIcon /> : proContent}
+        {proIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
+        {proIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {!proIcon && proContent}
       </span>
 
       <span
         className={twMerge(
           'col-span-3 flex items-center justify-center text-white',
-          !checkFree && 'text-opacity-65',
+          !enterpriseIcon && 'text-opacity-65',
         )}
       >
-        {checkEnterprise ? <CheckmarkCircleIcon /> : enterpriseContent}
+        {enterpriseIcon === 'check' && (
+          <CheckmarkCircleIcon className="h-5 w-5" />
+        )}
+        {enterpriseIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {!enterpriseIcon && enterpriseContent}
       </span>
     </li>
   )
@@ -87,7 +95,10 @@ export default function PricingPage() {
         />
       </Container>
 
-      <div className="sticky top-16 grid auto-cols-fr grid-flow-col content-start gap-6 bg-black py-4">
+      <Container
+        slotProps={{ root: { className: 'sticky top-16 bg-black py-4' } }}
+        className="grid auto-cols-fr grid-flow-col content-start gap-6"
+      >
         <div className="col-span-5" />
 
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
@@ -137,7 +148,7 @@ export default function PricingPage() {
 
           <p className="px-6 py-3 text-center">Contact Us</p>
         </div>
-      </div>
+      </Container>
 
       <Container className="grid auto-rows-auto items-start gap-8">
         <section className="mt-4">
@@ -146,9 +157,9 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Postgres"
-              checkFree
-              checkPro
-              checkEnterprise
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
@@ -160,35 +171,178 @@ export default function PricingPage() {
 
             <PricingListItem
               title="Per extra 10 GB"
+              freeIcon="x"
               proContent="$20"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Custom API requests"
-              checkFree
-              checkPro
-              checkEnterprise
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Event triggers"
-              checkFree
-              checkPro
-              checkEnterprise
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Always available"
               freeContent="Sleep after 7 days of inactivity"
-              checkPro
-              checkEnterprise
+              proIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Backups"
-              freeContent={<XIcon className="h-5 w-5 text-white" />}
+              freeIcon="x"
               proContent="7 days"
+              enterpriseContent="Custom"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">GraphQL</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Hasura GraphQL Engine"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Role based authorization"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Realtime subscriptions"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Authentication</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Users"
+              freeContent={new Intl.NumberFormat().format(10000)}
+              proContent={new Intl.NumberFormat().format(100000)}
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Email / Password"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Magic Link"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Social OAuth providers"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Storage</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Size"
+              freeContent="1 GB"
+              proContent="25 GB"
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Per extra 10 GB"
+              freeIcon="x"
+              proContent="$1"
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Image transformation"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Global CDN"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Functions</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Execution"
+              freeContent="1 GB-hours"
+              proContent="10 GB-hours"
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Execution time"
+              freeContent="10 sec"
+              proContent="60 sec"
+              enterpriseContent="900 sec"
+            />
+
+            <PricingListItem
+              title="Max per deployment"
+              freeContent="10 functions"
+              proContent="50 functions"
+              enterpriseContent="Custom"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Network</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Transfer available"
+              freeContent="5 GB"
+              proContent="50 GB"
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Per extra 100 GB"
+              freeIcon="x"
+              proContent="$20"
               enterpriseContent="Custom"
             />
           </ul>
