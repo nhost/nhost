@@ -2,10 +2,12 @@ import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
+import { ArrowUpDownIcon } from '@/components/common/icons/ArrowUpDownIcon'
 import { CheckmarkCircleIcon } from '@/components/common/icons/CheckmarkCircleIcon'
 import { XIcon } from '@/components/common/icons/XIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
+import { Link } from '@/components/common/Link'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { ReactElement, ReactNode, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
@@ -13,6 +15,7 @@ import { twMerge } from 'tailwind-merge'
 
 function PricingListItem({
   title,
+  selectedPlan,
   starterContent,
   proContent,
   enterpriseContent,
@@ -21,6 +24,7 @@ function PricingListItem({
   enterpriseIcon,
 }: {
   title: ReactNode
+  selectedPlan?: 'starter' | 'pro' | 'enterprise'
   starterContent?: ReactNode
   proContent?: ReactNode
   enterpriseContent?: ReactNode
@@ -36,6 +40,8 @@ function PricingListItem({
         className={twMerge(
           'col-span-3 flex items-center justify-center text-center text-white',
           !starterIcon && 'text-opacity-65',
+          'lg:inline',
+          selectedPlan !== 'starter' && 'hidden',
         )}
       >
         {starterIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
@@ -47,6 +53,8 @@ function PricingListItem({
         className={twMerge(
           'col-span-3 flex items-center justify-center text-center text-white',
           !proIcon && 'text-opacity-65',
+          'lg:inline',
+          selectedPlan !== 'pro' && 'hidden',
         )}
       >
         {proIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
@@ -58,6 +66,8 @@ function PricingListItem({
         className={twMerge(
           'col-span-3 flex items-center justify-center text-center text-white',
           !enterpriseIcon && 'text-opacity-65',
+          'lg:inline',
+          selectedPlan !== 'enterprise' && 'hidden',
         )}
       >
         {enterpriseIcon === 'check' && (
@@ -180,17 +190,29 @@ export default function PricingPage() {
 
         <Button
           variant="borderless"
-          className="justify-self-end"
+          className="justify-self-end font-normal text-white text-opacity-65"
           size="xs"
           onClick={() => setPlanSelectorVisible(true)}
         >
-          Switch Plan
+          Switch Plan <ArrowUpDownIcon />
         </Button>
 
         {selectedPlan === 'starter' && (
           <Button className="col-span-2 justify-center text-center">
             Start for free <ArrowRightIcon />
           </Button>
+        )}
+
+        {selectedPlan === 'pro' && (
+          <p className="col-span-2 px-6 py-3 text-center">Buy Pro</p>
+        )}
+        {selectedPlan === 'enterprise' && (
+          <Link
+            className="col-span-2 justify-center px-6 py-3 text-opacity-100"
+            href="mailto:hello@nhost.io"
+          >
+            Contact Us
+          </Link>
         )}
       </Container>
 
@@ -249,7 +271,12 @@ export default function PricingPage() {
             }}
           />
 
-          <p className="px-6 py-3 text-center">Contact Us</p>
+          <Link
+            className="justify-center px-6 py-3 text-opacity-100"
+            href="mailto:hello@nhost.io"
+          >
+            Contact Us
+          </Link>
         </div>
 
         {!inView && (
@@ -267,6 +294,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -274,6 +302,7 @@ export default function PricingPage() {
               starterContent="500 MB"
               proContent="10 GB"
               enterpriseContent="Up to 5 TB"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -281,6 +310,7 @@ export default function PricingPage() {
               starterIcon="x"
               proContent="$20"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -288,6 +318,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -295,6 +326,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -302,6 +334,7 @@ export default function PricingPage() {
               starterContent="Sleep after 7 days of inactivity"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -309,6 +342,7 @@ export default function PricingPage() {
               starterIcon="x"
               proContent="7 days"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -322,6 +356,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -329,6 +364,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -336,6 +372,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -349,6 +386,7 @@ export default function PricingPage() {
               starterContent={new Intl.NumberFormat().format(10000)}
               proContent={new Intl.NumberFormat().format(100000)}
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -356,6 +394,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -363,6 +402,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -370,6 +410,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -383,6 +424,7 @@ export default function PricingPage() {
               starterContent="1 GB"
               proContent="25 GB"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -390,6 +432,7 @@ export default function PricingPage() {
               starterIcon="x"
               proContent="$1"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -397,6 +440,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -404,6 +448,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -417,6 +462,7 @@ export default function PricingPage() {
               starterContent="1 GB-hours"
               proContent="10 GB-hours"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -424,6 +470,7 @@ export default function PricingPage() {
               starterContent="10 sec"
               proContent="60 sec"
               enterpriseContent="900 sec"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -431,6 +478,7 @@ export default function PricingPage() {
               starterContent="10 functions"
               proContent="50 functions"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -444,6 +492,7 @@ export default function PricingPage() {
               starterContent="5 GB"
               proContent="50 GB"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -451,6 +500,7 @@ export default function PricingPage() {
               starterIcon="x"
               proContent="$20"
               enterpriseContent="Custom"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -464,6 +514,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -471,6 +522,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -484,6 +536,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -495,6 +548,7 @@ export default function PricingPage() {
               enterpriseContent={
                 <span className="text-white text-opacity-20">Coming soon</span>
               }
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -502,6 +556,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="x"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -511,6 +566,7 @@ export default function PricingPage() {
               enterpriseContent={
                 <span className="text-white text-opacity-20">Coming soon</span>
               }
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
@@ -524,6 +580,7 @@ export default function PricingPage() {
               starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -531,6 +588,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
 
             <PricingListItem
@@ -538,6 +596,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="x"
               enterpriseIcon="check"
+              selectedPlan={selectedPlan}
             />
           </ul>
         </section>
