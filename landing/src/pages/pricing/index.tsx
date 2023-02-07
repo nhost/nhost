@@ -197,22 +197,26 @@ export default function PricingPage() {
           Switch Plan <ArrowUpDownIcon />
         </Button>
 
-        {selectedPlan === 'starter' && (
-          <Button className="col-span-2 justify-center text-center">
-            Start for free <ArrowRightIcon />
-          </Button>
-        )}
+        {inView && (
+          <>
+            {selectedPlan === 'starter' && (
+              <Button className="col-span-2 justify-center text-center">
+                Start for free <ArrowRightIcon />
+              </Button>
+            )}
 
-        {selectedPlan === 'pro' && (
-          <p className="col-span-2 px-6 py-3 text-center">Buy Pro</p>
-        )}
-        {selectedPlan === 'enterprise' && (
-          <Link
-            className="col-span-2 justify-center px-6 py-3 text-opacity-100"
-            href="mailto:hello@nhost.io"
-          >
-            Contact Us
-          </Link>
+            {selectedPlan === 'pro' && (
+              <p className="col-span-2 px-6 py-3 text-center">Buy Pro</p>
+            )}
+            {selectedPlan === 'enterprise' && (
+              <Link
+                className="col-span-2 justify-center px-6 py-3 text-opacity-100"
+                href="mailto:hello@nhost.io"
+              >
+                Contact Us
+              </Link>
+            )}
+          </>
         )}
       </Container>
 
@@ -543,10 +547,10 @@ export default function PricingPage() {
               title="Custom backend domain"
               starterIcon="x"
               proContent={
-                <span className="text-white text-opacity-20">Coming soon</span>
+                <span className="text-white text-opacity-30">Coming soon</span>
               }
               enterpriseContent={
-                <span className="text-white text-opacity-20">Coming soon</span>
+                <span className="text-white text-opacity-30">Coming soon</span>
               }
               selectedPlan={selectedPlan}
             />
@@ -564,7 +568,7 @@ export default function PricingPage() {
               starterIcon="x"
               proIcon="x"
               enterpriseContent={
-                <span className="text-white text-opacity-20">Coming soon</span>
+                <span className="text-white text-opacity-30">Coming soon</span>
               }
               selectedPlan={selectedPlan}
             />
