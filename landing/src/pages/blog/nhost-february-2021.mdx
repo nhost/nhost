@@ -1,0 +1,88 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost February 2021',
+  description: '',
+  image: '/images/blog/nhost-february-2021/banner.png',
+  date: '2021-03-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+## Nuxt beta support
+
+In our continued effort to make it easy to use Nhost with any frontend framework, we've now released a dedicated module for [Nuxt](https://nuxtjs.org/). Nuxt is one of the most popular frameworks for building frontend apps and is used by many of our users.
+
+Install the Nuxt module from [npm](https://www.npmjs.com/package/@nhost/nuxt):
+
+```bash
+npm install @nhost/nuxt
+```
+
+With this release, it's easier than ever to integrate your Nuxt app with Nhost. Learn more about using the module on [GitHub](https://github.com/nhost/nhost).
+
+## Deployment logs
+
+Deployment logs are now available for every deployment via GitHub. This makes it easier to debug in case something goes wrong.
+
+![Nhsot Deployment Logs](/blog/2021-03-01-nhost-february-2021/deployment-logs.png)
+
+## New Nhost CLI commands
+
+We added four new commands to our Nhost CLI.
+
+- `nhost down` - Stops a running local Nhost backend.
+- `nhost link` - Links an existing local directory with a Nhost project
+- `nhost env:ls` - Lists environment variables
+- `nhost env:pull` - Pulls development environment variables and saves them in a local .env file.
+
+You can update the CLI to the latest version with:
+
+```bash
+npm install -g nhost@latest
+```
+
+## Added billing settings
+
+It's now possible to add additional billing settings for teams:
+
+- Company name
+- Address
+- Billing email recipient
+
+This information is added to all invoices.
+
+Go to your team -> Settings -> Billing to add these additional billing settings.
+
+## Impersonate auth
+
+[aaronhayes](https://github.com/aaronhayes) added [user impersonation](https://github.com/nhost/hasura-backend-plus/pull/421) functionallity to authentication. This enables admins to login as a specific user with the `ADMIN_SECRET` as a `x-admin-secret`` header.
+
+The `ADMIN_SECRET` and the `x-admin-secret` are already used to bypass specific permissions. Now, the password check during login can be bypassed in the same way too, which is useful during debugging and testing.
+
+## More image transformation features
+
+Round and blur images on the fly from Nhost Storage with new PRs ([#444](https://github.com/nhost/hasura-backend-plus/pull/444), [#446](https://github.com/nhost/hasura-backend-plus/pull/446)). Using these two new directives, it is as easy as adding r (round) and b (blur) as query parameters to any image stored on Nhost.
+
+Example with blur:
+
+![Image transformation with blur](/images/blog/nhost-february-2021/image-transformation-blur.jpeg)
+
+This would be available behind the following URL: https://backend-d32l5h6l.nhost.app/storage/o/public/example.jpg?b=30
+
+Read more in our [image transformation documentation](https://docs.nhost.io/storage/image-transformation).
+
+## Community updates
+
+Previously we had an Ideas section in our console. This ideas section is now deprecated in favor of [GitHub Discussions](https://github.com/nhost/nhost/discussions) at our [nhost/nhost](https://github.com/nhost/nhost) repository.
+
+We suggest using discussions for thoughtful and more complex conversations on specific topics related to Nhost.

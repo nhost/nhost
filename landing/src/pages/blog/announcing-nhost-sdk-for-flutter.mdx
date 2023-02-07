@@ -1,0 +1,87 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Announcing Nhost SDK for Flutter',
+  description:
+    'At Nhost, we’re building an open source Firebase alternative with GraphQL. Today, we are announcing beta support for Flutter.',
+  image: '/images/blog/announcing-nhost-sdk-for-flutter/banner.svg',
+  date: '2021-05-11',
+  authors: [
+    {
+      name: 'Scott Hyndman',
+      title: 'Engineer',
+      avatarUrl: '/images/avatars/scott.jpeg',
+      url: 'https://twitter.com/scotthyndman',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Finally, it's easy for flutter developers to build full-stack apps. The [Dart & Flutter SDK for Nhost](https://github.com/nhost/nhost-dart) makes it easy to handle authentication, storage and GraphQL in any Flutter application.
+
+Nhost is a Firebase alternative built on open source software. With a Nhost project you get a Postgres database. On top of the database we automatically generate a GraphQL API based on your tables and columns in your database. Nhost also handles authentication and storage.
+
+This enables developers to focus on their app and users, instead of building and managing infrastructure.
+
+Our new Flutter SDK makes it easy for Flutter developers to build rich applications.
+
+## GraphQL
+
+Our Flutter SDK integrates with [graphql](https://pub.dev/packages/graphql), currently the most popular GraphQL client for Dart, meaning users are automatically authenticated when sending GraphQL requests in the app.
+
+Our Flutter SDK also connects to [graphql_flutter](https://pub.dev/packages/graphql_flutter) to generate GraphQL widgets.
+
+See full examples [here](https://github.com/nhost/nhost-dart/blob/main/packages/nhost_flutter_graphql/example/lib/todos_quick_start_example.dart).
+
+## Authentication
+
+Register and login your users in your Flutter application:
+
+```dart
+// Setupfinal client = NhostClient(baseUrl: nhostApiUrl);
+
+// Login
+await loginOrRegister(client, email: 'user-1@nhost.io', password: 'password-1');
+
+// Print out a few details about the current userfinal currentUser = client.auth.currentUser;
+print('currentUser.id: ${currentUser.id}');
+print('currentUser.displayName: ${currentUser.displayName}');
+print('currentUser.email: ${currentUser.email}');
+
+// And logoutawait client.auth.logout();
+```
+
+See full auth examples [here](https://github.com/nhost/nhost-dart/blob/main/packages/nhost_sdk/example/lib/auth_example.dart).
+
+## Storage
+
+Let users upload and download files in your Flutter application:
+
+```dart
+final fileName = 'henry.jpg';
+final userPath = '/user/${client.auth.currentUser.id}/';
+final filePath = '$userPath$fileName';
+
+// Store a new image file...final originalImageBytes = File('./assets/henry.jpg').readAsBytesSync();
+final imageMetadata = await client.storage.uploadBytes(
+filePath: filePath,
+bytes: originalImageBytes,
+contentType: 'image/jpeg',
+);
+print('Uploaded image');
+print('Size: ${originalImageBytes.length}');
+
+// ...turn around and download its contents, scaled...final downloadedImage = await client.storage.downloadImage(
+filePath,
+fileToken: imageMetadata.nhostMetadata.token,
+imageTransformConfig: ImageTransformConfig(width: 100, quality: 50),
+);
+print('Downloaded transformed image');
+print('Size: ${downloadedImage.bodyBytes.length}');
+
+// ...then delete it.await client.storage.delete(filePath);
+```
+
+See full storage examples [here](https://github.com/nhost/nhost-dart/blob/main/packages/nhost_sdk/example/lib/storage_example.dart) and [here](https://github.com/nhost/nhost-dart/blob/main/packages/nhost_sdk/example/lib/image_storage_example.dart).

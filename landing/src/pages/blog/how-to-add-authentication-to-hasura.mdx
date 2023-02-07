@@ -1,0 +1,185 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How to Add Authentication to Hasura',
+  description:
+    'Hasura and GraphQL are amazing, but setting up authentication to work with Hasura can be difficult. ',
+  image: '/images/blog/how-to-add-authentication-to-hasura/banner.png',
+  date: '2022-02-17',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hasura and GraphQL are amazing, but setting up authentication to work with Hasura can be difficult.
+
+In this article you'll learn **how to add authentication to Hasura**, so you can sign in users and start using Hasura permissions in your GraphQL API.
+
+Before we continue, let's just set the context.
+
+Hasura has **Authorization** (which is different from authentication) built in to handle permissions and access control for your GraphQL API.
+
+But **Authentication**, which handles users, sign-in flow, tokens, etc, is not handled by Hasura. Instead, you need to have your own authentication service that handles all that.
+
+Building such a service is not easy.
+
+But we have a solution for you: [Hasura Auth](https://github.com/nhost/hasura-auth).
+
+Hasura Auth is an open-source service to handle authentication with Hasura. With Hasura Auth you can sign in users and manage roles. Hasura Auth works specifically for Hasura and its permission system.
+
+To get started quickly with authentication for Hasura we recommend creating a Nhost account and creating a Nhost app. At Nhost, we automatically provision a backend for you with Postgres, Hasura, and Hasura Auth. No need worrying about configuration or infrastructure. Instead you can focus on building your app and provide value for your users.
+
+## Hasura Auth is Open Source
+
+Hasura Auth is fully open source and is specifically created to handle authentication for Hasura. It's built with TypeScript.
+
+The code is available at https://github.com/nhost/hasura-auth.
+
+![Hasura Auth](/images/blog/nhost-v2-the-beginning-of-something-big/hasura-auth.png)
+
+## Users in Your Database
+
+Hasura Auth stores your users in your database. Hasura Auth uses its own auth schema with tables related to authentication, such as auth.users.
+Users are stored in the auth.users table. If the user signs in with an email and password the password is hashed using bcrypt. However, Hasura Auth has support for even more sign-in methods, such as:
+
+- Email and Password
+- Magic Link
+- SMS
+- Social Providers such as Facebook, Google, GitHub, and many more.
+
+## Features of Hasura Auth
+
+- 🧑‍🤝‍🧑 Users are stored in Postgres and accessed via GraphQL
+- 🔑 Multiple sign-in methods.
+- ✨ Integrates with GraphQL and Hasura Permissions
+- 🔐 JWT tokens and Refresh Tokens.
+- ✉️ Emails sent on various operations
+- ✅ Optional checking for Pwned Passwords.
+- 👨‍💻 Written 100% in TypeScript.
+
+## Easy to use JavaScript SDK
+
+Hasura Auth is part of the Nhost backend stack, and Nhost comes with an easy-to-use JavaScript SDK written in TypeScript.
+
+This is how you use the Nhost JavaScript client.
+
+First initialize the Nhost client:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  backendUrl: '<nhost-backend-url>',
+})
+```
+
+Then sign up a new user:
+
+```js
+const { session, error } = await nhost.auth.signUp({
+  email: 'elon@musk.com',
+  password: 'spacex-to-mars',
+  options: {
+    displayName: 'Elon Musk',
+  },
+})
+```
+
+That's it. It's that simple!
+
+Here's a demo with authentication with Nhost and our JavaScript client:
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/v7xRy3OXyjE"
+  frameBorder="0"
+  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen={true}
+/>
+
+Read the full JavaScript SDK documentation if you want to learn more.
+You can also use the JavaScript client together with @nhost/react-auth and @nhost/react-apollo if you plan to use React and the Apollo GraphQL client. Support for more GraphQL clients are coming soon.
+
+## Get started
+
+You have two options to get started with Hasura Auth to add authentication to Hasura:
+
+- Use Nhost (recommended)
+- Self-hosting
+
+### Get started with Nhost (recommended)
+
+Create an account and create a new Nhost app. That's it 🤯 (Yes, we try to make it easy to build apps).
+When you create a new Nhost app we manage all infrastructure and configuration so you get:
+
+- Postgres
+- Hasura
+- Hasura Auth
+- Hasura Storage
+- Serverless Functions
+
+For a more detailed guide, read our [Quick start guide](https://docs.nhost.io).
+
+### Get started with self hosting
+
+Hasura Auth is open-source and available as a Docker image (nhost/hasura-auth).
+Here's an example of how you can combine Postgres, Hasura, and Hasura Auth using Docker Compose:
+
+```yaml
+version: '3.6'
+services:
+postgres:
+image: postgres
+restart: always
+volumes: - ./docker/data/db:/var/lib/postgresql/data - ./docker/initdb.d:/docker-entrypoint-initdb.d:ro
+environment:
+POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpgpassword}
+    ports:
+      - '5432:5432'
+  graphql-engine:
+    image: hasura/graphql-engine:v2.1.1
+    depends_on:
+      - postgres
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
+HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_LOG_LEVEL: debug
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+    ports:
+      - '8080:8080'
+  hasura-auth:
+    image: nhost/hasura-auth:latest
+    depends_on:
+      - postgres
+      - graphql-engine
+    env_file:
+      - .env
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
+HASURA_GRAPHQL_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
+ports: - '4000:4000'
+volumes: - ./docker/data/mailhog:/maildir
+```
+
+For this example, please use the .env file here.
+And start everything with: `docker-compose up -d`.
+
+## Conclusion
+
+We love open source at Nhost. That's why we've open sourced Hasura Auth to make authentication easy with Hasura and make it available for everyone.
+
+Hasura Auth can be used with Nhost if you don't want to manage infrastructure and configuration your self, or as a self hosted alternative with Docker.
+
+If you want to support our open source, please give us a start on GitHub: https://github.com/nhost/nhost. It would mean a lot. Thanks!

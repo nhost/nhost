@@ -69,7 +69,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
           highlighted
         />
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 gap-y-16 md:grid-cols-2">
           {otherArticles.map((article) => (
             <BlogPostCard
               key={article.slug}

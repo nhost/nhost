@@ -1,0 +1,140 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+
+export const article = {
+  title: 'Upload Files with Hasura and Hasura Storage',
+  description:
+    'Hasura does an excellent job providing an easy way to manage data for your application. But what about uploading and downloading files?',
+  image: '/images/blog/upload-files-with-hasura-storage/banner.png',
+  date: '2022-08-13',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Product', 'Storage'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hasura does an excellent job providing an easy way to manage data for your application. But what about uploading and downloading files?
+
+This is the problem. Hasura does not have a native way of uploading and downloading files. It's not even possible to use a remote schema to upload files via Hasura ([open issue since 2019](https://github.com/hasura/graphql-engine/issues/2419)).
+
+Instead, files have to be managed alongside Hasura.
+
+At Nhost, we've open sourced [Hasura Storage](https://github.com/nhost/hasura-storage) to solve this problem.
+
+Hasura Storage is built on top of Hasura and S3 to make it easy to upload and download files along side Hasura.
+
+The concept of Hasura Storage is simple:
+
+- Files are uploaded and downloaded via Hasura Storage
+- Files are stored in S3
+- File metadata is stored in the database (via Hasura)
+- Permissions are managed by Hasura
+
+Let's expand each of the topics:
+
+### Files are uploaded and downloaded via Hasura Storage
+
+Because it's not possible to use GraphQL and Hasura to upload and download files, we need to do that alongside Hasura.
+
+Because of this limitation, Hasura Storage is a separate service and is deployed alongside Hasura. Hasura Storage is the entry point for users to upload and download files.
+
+### Files are stored in S3
+
+Since storing files in the database is inefficient, files are stored in S3. This can be [AWS S3](https://aws.amazon.com/s3/), or any other S3 compatible service like [Minio](https://github.com/minio/minio) which is open source.
+
+### File metadata is stored in the database (via Hasura)
+
+When a user uploads a file two things happen:
+
+1. Hasura Storage stores the file in S3
+2. Hasura stores the file metadata in the database
+
+The reason the file metadata is stored in the database has a few benefits:
+
+1. We can use Hasura's permission system to manage permission rules for a file (see next section).
+2. We can use GraphQL to query file metadata and show it in our application.
+3. We can create foreign keys and GraphQL relationships between files and other tables in our database.
+
+The file metadata is stored in `storage.files` table and includes:
+
+- `id` - Unique identifier for the file
+- `created_at` - When the file was uploaded
+- `updated_at` - When the file was last updated
+- `bucket_id` - The ID of the bucket the file is stored in
+- `name` - The name of the file
+- `size` - The size of the file in bytes
+- `mime_type` - The [MIME type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) of the file
+- `etag` - The [ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) of the file
+- `is_uploaded` - Whether the file has been completly uploaded or not
+- `uploaded_by_user_id` - The ID of the user who uploaded the file. This column is deprecated and will be removed in the future.
+
+### Permissions are managed by Hasura
+
+We use Hasura's permission system to manage who can upload and download files. We're able to do this because the file metadata is stored in the `storage.files` table and that table is tracked by Hasura.
+
+This way, it's easy to allow users to upload and download files based on things like application data or file metadata.
+
+**Example: Users are only allowed to download files that belong to companies the user also belongs to:**
+
+For this select permission, we're using the relationships between tables. From `storage.files` we can go to `public.company_files` to `public.companies` to `public.company_members` to make sure the user belongs to the same company the files belongs to.
+
+![Select Permission example in Hasura for Hasura Storage: Company](/images/blog/upload-files-with-hasura-storage/select-permission-company.png)
+
+**Example: Users are only allowed to upload PDFs:**
+
+For this insert permission, we're making sure the file's MIME type is of type `application/pdf`.
+
+![Insert Permission example in Hasura for Hasura Storage: PDFs only](/images/blog/upload-files-with-hasura-storage/insert-permission-pdf.png)
+
+**Example: Users are only allowed to upload files with a max file size of 5 MB:**
+
+For this insert permission, we're making sure the file size is less than (`_lt`) 5,000,000 bytes (5MB).
+
+![Insert Permission example in Hasura for Hasura Storage: Max 5 MB](/images/blog/upload-files-with-hasura-storage/insert-permission-5mb-max.png)
+
+## Technical Overview
+
+From a technical perspective, there are two main concepts Hasura Storage handles: uploading and downloading. Let's look at how requests flow between the user, Hasura Storage, Hasura's GraphQL API, and S3.
+
+### Upload
+
+This is how **uploading** a file works:
+
+![Upload a file](/images/blog/upload-files-with-hasura-storage/file-upload.png)
+
+### Download
+
+This is how **downloading** a file works:
+
+![Download a file](/images/blog/upload-files-with-hasura-storage/file-download.png)
+
+## History
+
+Hasura Storage is the result of three iterations of storage service for Hasura.
+
+First, we open sourced [Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus) (first iteration) which included both authentication and storage.
+
+Having authentication and storage in a single service wasn't the best idea so we decided to split the service into two separate services. [Hasura Auth](https://github.com/nhost/hasura-auth) and [Hasura Storage](https://github.com/nhost/hasura-storage).
+
+Having the services separated made it easier to reason, maintain and scale each service individually.
+
+Hasura Storage was first re-written in Node.js (second iteration) with an updated way of managing file permissions via Hasura. Soon after, the Node.js version was ported to Go (third iteration) for [performance reasons](/blog/hasura-storage-in-go-5x-performance-increase-and-40-percent-less-ram).
+
+## CDN
+
+If we're using Nhost to host Hasura Storage you also get a CDN for Storage out of the box. You can read the CDN announcement [here](/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast).
+
+## PS. Star us on GitHub
+
+Support our open source work:
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

@@ -1,0 +1,114 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost September 2022',
+  description:
+    'For this month, we decided to do something special. We decided to do our first-ever Nhost Launch Week!',
+  image: '/images/blog/nhost-september-2022/banner.png',
+  date: '2022-10-04',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hello Developers!
+
+For this month, we decided to do something special. We decided to do our first-ever [Nhost Launch Week](https://nhost.io/blog/launch-week-september-2022)!
+
+So, here is a summary of what we launched during our launch week and what more we shipped this month.
+
+Enjoy.
+
+## Day 1: Individual Postgres Instances
+
+![Individual Postgres Instances](/images/blog/nhost-september-2022/postgres.png)
+
+We’re excited to announce that all new projects get their own dedicated Postgres instance with root access. Connecting directly to the database with your favorite Postgres client is finally possible.
+
+Read the full blog post:
+
+[https://nhost.io/blog/individual-postgres-instances](https://nhost.io/blog/individual-postgres-instances)
+
+## Day 2: New Database UI
+
+![New Database UI](/images/blog/nhost-september-2022/database-ui.png)
+
+Say hello to our new Database UI, a great first step towards fully managing Postgres and Hasura GraphQL Engine within the Nhost Dashboard.
+
+Read the full blog post:
+
+[https://nhost.io/blog/new-database-ui](https://nhost.io/blog/new-database-ui)
+
+## Day 3: Open Source Stripe GraphQL API
+
+![Open Source Stripe GraphQL API](/images/blog/nhost-september-2022/stripe-graphql-api.png)
+
+We've launched an open source Stripe GraphQL API that enables query data from your database and Stripe account in a single GraphQL query.
+
+Read the full blog post:
+
+[https://nhost.io/blog/open-source-stripe-graphql-api](https://nhost.io/blog/open-source-stripe-graphql-api)
+
+## Day 4: WebAuthn Sign-In Method
+
+![WebAUthn Sign-In Method](/images/blog/nhost-september-2022/webauthn.png)
+
+We’re launched WebAuthn as a new sign-in method at Nhost.
+
+You’re using Face ID or fingerprint to unlock your phone every day. Why not use it as a sign-in method for your application too? Well, now you can!
+
+Read the full blog post:
+
+[https://nhost.io/blog/webauthn-sign-in-method](https://nhost.io/blog/webauthn-sign-in-method)
+
+## Day 5: Nhost Logs
+
+![Nhost Logs](/images/blog/nhost-september-2022/logs.png)
+
+For the last day of our first-ever Launch week, we released another highly requested feature that will make your lives, and ours, much easier. And that’s Nhost Logs to give you superpowers!
+
+Read the full blog post:
+
+[https://nhost.io/blog/nhost-logs](https://nhost.io/blog/nhost-logs)
+
+## GitHub Deployment Improvements
+
+We also improved the GitHub deployment. Now, as soon as you connect a repository, we’re initializing a deployment. We’re also initializing a deployment as soon as you change any repository setting like the base directory or deployment branch.
+
+We also fixed a small issue causing deployments not to trigger for projects sometimes.
+
+## WorkOS - Your App, Enterprise Ready
+
+![WorkOS](/images/blog/nhost-september-2022/workos.png)
+
+We added [WorkOS](https://workos.com/) as a sign-in provider. This is perfect if you’re building applications for enterprise customers that require advanced SSO like SAML and OIDC providers.
+
+## GraphiQL v2
+
+![GraphiQL v2](/images/blog/nhost-september-2022/graphiql.png)
+
+We upgraded the GraphQL playground with [GraphiQL v2](https://github.com/graphql/graphiql/releases/tag/graphiql%402.0.0). While upgrading the GraphiQL version, we also fixed a few issues from the previous implementation. The new GraphiQL v2 is also full-width and includes a new, improved design.
+
+## Nhost Featured at Fireship
+
+![Fireship](/images/blog/nhost-september-2022/fireship.png)
+
+Nhost was one of the five Firebase Killers that Fireship tried. Check out the video on YouTube:
+
+[https://www.youtube.com/watch?v=SXmYUalHyYk](https://www.youtube.com/watch?v=SXmYUalHyYk)
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

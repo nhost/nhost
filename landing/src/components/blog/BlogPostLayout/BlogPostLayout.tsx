@@ -9,6 +9,16 @@ import { format, parseISO } from 'date-fns'
 import Image from 'next/image'
 import { PropsWithChildren, useEffect, useState } from 'react'
 
+import { MDXProvider } from '@mdx-js/react'
+
+import 'react-medium-image-zoom/dist/styles.css'
+
+// TODO: Break out the MDXProvider in its own MDX component
+// TODO: make the image component work with Zoom so a user can zoom in on images
+const components = {
+  img: (props: any) => <img {...props} />,
+}
+
 function Share({ title }: { title: string }) {
   const [url, setUrl] = useState('')
 
@@ -190,7 +200,7 @@ export default function BlogPostLayout({
         </div>
 
         <Container className="prose prose-invert mt-12 max-w-prose text-white text-opacity-65">
-          {children}
+          <MDXProvider components={components}>{children}</MDXProvider>
         </Container>
 
         <Share title={article.title} />

@@ -1,0 +1,84 @@
+import Image from 'next/image'
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How to Set Up Hasura with Docker Compose',
+  description:
+    'In this article, we will go through the steps to get Hasura up and running on your local machine.',
+  image: '/images/blog/how-to-setup-hasura-with-docker-compose/banner.png',
+  date: '2022-12-09',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Guide', 'Hasura'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+If you are a developer looking to set up [Hasura](https://github.com/hasura/graphql-engine) with [Docker Compose](https://docs.docker.com/compose/), you have come to the right place. In this article, we will go through the steps to get Hasura up and running on your local machine.
+
+First, let's discuss what Hasura and Docker Compose are. Hasura is an open-source tool that helps developers quickly build and deploy powerful GraphQL APIs. It allows you to connect to a variety of databases and automatically generates a GraphQL schema based on the schema of your database.
+
+Docker Compose, on the other hand, is a tool that allows you to define and run multi-container Docker applications. It lets you define the services that make up your application, and then it uses those definitions to create and run the containers.
+
+Now that you know what Hasura and Docker Compose are, let's get started with the setup.
+
+First, make sure that you have Docker and Docker Compose installed on your machine. If you don't have them installed, you can follow the instructions on the [Docker website](https://docs.docker.com/compose/install/) to do so.
+
+Once you have Docker and Docker Compose installed, you need to create a Docker Compose file that defines the services for your application. This file will define Postgres, which we'll use as our database, the Hasura service.
+
+To create the Docker Compose file, create a new file called `docker-compose.yml` and add the following definitions:
+
+```yaml
+version: '3'
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
+    restart: always
+  hasura:
+    image: hasura/graphql-engine:latest
+    ports:
+      - '8080:8080'
+    depends_on:
+      - 'postgres'
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: true
+      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+```
+
+The first part defines the Postgres service, which uses the latest version of the Postgres image. It also sets the environment variables for the Postgres service, which you can use to customize the settings for your database.
+
+The second part defines the Hasura service, which uses the latest version of the [Hasura GraphQL Engine](https://github.com/hasura/graphql-engine). It also exposes the Hasura service on port `8080`, which you can access from your browser.
+
+Once you have defined all of the services for your application, you can use Docker Compose to start them up. To do this, run the following command:
+
+```bash
+docker-compose up
+```
+
+This command will start all of the services defined in your Docker Compose file. You can use the `-d` flag (`docker-compose up -d`) to run the services in the background.
+
+Once the services are started, you can access the Hasura GraphQL Engine by going to [http://localhost:8080](http://localhost:8080/) in your browser. This will bring you to the Hasura console, where you can explore your GraphQL schema, run queries and mutations, and view the data in your database.
+
+To sign in, use the admin secret that you defined in your Docker Compose file (`myadminsecret`).
+
+In conclusion, setting up Hasura and Docker Compose is a quick and easy process that allows you to quickly build and deploy powerful GraphQL APIs. By following the steps in this article, you can have Hasura and Docker Compose up and running on your local machine in no time.
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

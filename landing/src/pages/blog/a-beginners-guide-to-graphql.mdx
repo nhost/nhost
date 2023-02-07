@@ -1,0 +1,265 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'A Beginners Guide to GraphQL',
+  description: '',
+  image: '/images/blog/a-beginners-guide-to-graphql/banner.png',
+  date: '2020-07-05',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Guide'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+In the past few years, APIs have grown in popularity in giant strides. The need for different client-side applications, like mobile and web applications, to retrieve data from a single backend has been the reason behind this new-found love for APIs. For a long time, REST has been the house-hold name among the majority of API developers. But that is changing now. There's a new trend in API development, which is GraphQL.
+
+Most people have heard about GraphQL one way or another, but not many know what it exactly entails. Hence, we are bringing you this simple guide to GraphQL to understand what exactly GraphQL is.
+
+Let's start tackling the big questions.
+
+## How did GraphQL Come into Existence?
+
+GraphQL was initially developed by Facebook in 2012. They were looking for an option to load news feed data to Facebook mobile apps but were frustrated by the existing options including REST because of the “differences between the data they wanted to use in their apps and the server queries these resources required”. Out of this frustration, GraphQL was born.
+
+In 2015, Facebook open-sourced the project and the rest of the world got the chance to enjoy the benefits offered by the new query language. In 2019, GraphQL created GraphQL Foundation in collaboration with Linux foundation, which now oversees future GraphQL developments.
+
+## What is GraphQL?
+
+According to official GraphQL documents, it is a “query language for APIs and a runtime for fulfilling those queries with your existing data”. To understand what this definition means, we can break it into two parts:
+
+- GraphQL is a query language for APIs
+- GraphQL is a runtime for fulfilling queries with your existing data
+
+## GraphQL is a Query Language for APIs
+
+GraphQL provides a syntax to ask for data from an existing API. This syntax is used to load data from the backend to the client-side. But there is a difference to querying with GraphQL compared to fetching data with, say, REST. When you send a GraphQL query to your API, it sends only the data you want, nothing more and nothing less. This is, perhaps, the most important feature in GraphQL. It makes API querying using GraphQL faster and flexible. In fact, this was an objective Facebook actively sought to achieve when creating GraphQL.
+
+Let's see how we can get nothing more and nothing less than the data we want using GraphQL. To achieve this, first, we have to define a simple database schema for our backend. Consider we have two tables, users and tasks, in our database. This is how the 2 tables are structured.
+
+**Users**
+
+- id
+- firstname
+- lastname
+
+**Tasks**
+
+- id
+- title
+- user_id
+
+We can query the backend API that connects to this database using GraphQL. The GraphQL query to load all the posts stored in the database looks like this. All GraphQL queries follow a similar syntax obeying the hierarchical nature of data objects.
+
+```graphql
+query {
+  tasks {
+    id
+    title
+    user {
+      id
+      firstname
+      lastname
+    }
+  }
+}
+```
+
+In response to our query, we receive the requested data from the database in JSON format.
+
+```json
+{
+  "data": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Complete GraphQL tutorial",
+        "user": {
+          "id": 1,
+          "firstname": "Sam",
+          "lastname": "Smith"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Listen to music",
+        "user": {
+          "id": 1,
+          "firstname": "Sam",
+          "lastname": "Smith"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Create GraphQL API",
+        "user": {
+          "id": 2,
+          "firstname": "Mark",
+          "lastname": "Roy"
+        }
+      }
+    ]
+  }
+}
+```
+
+As you can see, with GraphQL, we can load all tasks in the database with a single query. Our single query is capable of aggregating data in tasks and users tables to send us nothing less than the data we want. GraphQL's ability to extract data from many resources with a single request is one of the biggest reasons for its rising popularity.
+
+What if we want to load only the task titles and nothing more? GraphQL has a solution to this! We can reduce the fields in the previous query to get only the data we want.
+
+```graphql
+query {
+  tasks {
+    title
+  }
+}
+```
+
+## GraphQL query to only fetch the title of tasks
+
+That was easy, wasn't it? We didn't have to write a brand new route endpoint to load data with different fields. We didn't have to load and process more data than absolutely necessary, hence saving the bandwidth and reducing the request and response processing times.
+
+This is how GraphQL behaves as a query language to APIs ensuring that the interactions with the backend are faster and more flexible from the client's point of view
+
+GraphQL is a runtime for fulfilling queries with your existing data For GraphQL to fulfill the client-side queries, it acts as a runtime within a server. Most programming languages support GraphQL implementation in servers. If you are interested, you can find out how to set up GraphQL in the server using a language of your choice here. Note that GraphQL can be used with any database as well.
+
+## How Popular is GraphQL?
+
+Google Trends data shows how GraphQL has grown in popularity after its open-sourced release in terms of web search.
+
+How many big companies are using GraphQL today is another testament to its success and popularity. Coursera integrated GraphQL to its system to allow clients to fetch data with only a single request. Twitter rolled out its GraphQL supported apps starting from TweetDeck and then moving on to Twitter Lite and main Twitter apps. GitHub is another tech giant who decided to integrate GraphQL in its API because of the offered flexibility.
+
+## GraphQL vs REST—The Big Debate
+
+GraphQL or REST, which one should you choose? Before answering that question, let's see which tasks REST cannot do as well as GraphQl.
+
+### What REST Can Not Do
+
+Remember how we used GraphQL to load only the data we want? When it comes to REST, you don't have this luxury.
+
+Assume you create a REST endpoint to handle requests to load all the tasks. It will look like this:
+
+```http
+GET /tasks
+```
+
+Let's say the database query at the endpoint joins tasks and users table to send exactly the same data as the GraphQL query we previously used. The client receives the following JSON data.
+
+```json
+{
+  "data": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Complete GraphQL tutorial",
+        "user": {
+          "id": 1,
+          "firstname": "Sam",
+          "lastname": "Smith"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Listen to music",
+        "user": {
+          "id": 1,
+          "firstname": "Sam",
+          "lastname": "Smith"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Create GraphQL API",
+        "user": {
+          "id": 2,
+          "firstname": "Mark",
+          "lastname": "Roy"
+        }
+      }
+    ]
+  }
+}
+```
+
+Custom REST-endpoint could return this data. So far, no problem. On the client-side, assume there is an application that requires data about the tasks with all the above fields. But what if there is another application that only requires the title of the tasks? With GraphQL, our solution was a simple change to the query. If we have to load only the titles of the tasks with REST, we have to create a separate endpoint that sends only task titles with the response, which is not simple and a highly unlikely approach to be used in real-world programming. Instead, the client-side end up loading data from the initial endpoint with all the additional and unwanted data fields and filtering the title by itself. This lack of flexibility in REST costs the bandwidth and speed of the client's application.
+
+Let's take another scenario. In this case, we want to load the data of a user with a given id. The data includes all the attributes in the users table and titles of tasks created by that user. We can easily accomplish this using GraphQL by loading data from both users and tasks tables as we did before.
+
+With REST, we create an endpoint like this to retrieve data.
+
+```http
+GET /users/:id
+```
+
+With one database query, this endpoint can only retrieve the user's data from the users table and send it to the client. The client has to send a second GET request to the following route to retrieve all the tasks created by that user.
+
+```http
+GET /users/:id/tasks
+```
+
+REST, again, loses points to GraphQL because it cannot work as well with many resources like GraphQL.
+
+## Which One is Better?
+
+GraphQL, as a recently introduced technology developed with APIs in mind, caters to modern-day technology use cases better than REST. GraphQL APIs provide faster and flexible solutions compared to REST by avoiding overfetching and underfetching.
+
+But here's the most important part. If you choose GraphQL over REST, it doesn't mean GraphQL should replace REST. In fact, GraphQL and REST can coexist in an API because GraphQL doesn't ask us to stick to particular application architecture.
+
+On the other hand, GraphQL is not without its own shortcomings. So you might want to consider them too before making a final decision.
+
+## Where does GraphQL Fall Short?
+
+### Caching
+
+Caching, this is where GraphQL falls short.
+
+Servers store data in a temporary storage so that they can be served faster to the clients without having to query the database. This is called caching. Which data are stored in the cache is decided by a combination client's previous requests and algorithms used in the application.
+
+Servers identify whether the client should be served cached data and if yes, which cached data, by the URL they are currently visiting. REST APIs have easy access to this URL stored in the HTTP request, and therefore, a way to identify similar requests. But with GraphQL, identification of similar requests becomes complex because even queries operating on the same entity can be different from each other (think of the two queries we wrote to load tasks data using GraphQL).
+
+There have been solutions developed to work around this complexity. For example, libraries like Prisma and Dataloader help with the issue. But these solutions haven't been able to completely solve the problem.
+
+### Query Performance
+
+GraphQL is loved by many for its flexibility with queries. But this flexibility can sometimes be the very thing that consumes the performance gain we achieve with GraphQL.
+
+Due to its flexibility, GraphQL lets you add as many fields as you like to a query. Even a query like this.
+
+```graphql
+query {
+  posts {
+    id
+    title
+    user {
+      id
+      firstname
+      lastname
+    }
+    comments {
+      id
+      text
+      user {
+        id
+        firstname
+        lastname
+      }
+    }
+  }
+}
+```
+
+A query like this retrieves a large amount of data with a single request. This can cause the application to slow down and affects application efficiency.
+
+It seems too much freedom is not that good after all.
+
+## Conclusion
+
+GraphQL is a technology with fast-rising popularity that serves modern-day programming needs. Ahead of older and more established technologies like REST, GraphQL is building its reputation as a better way to query APIs. With GraphQL, you can build applications with faster performance and flexibility. However, it is not without its faults. But with only about 8 years old GraphQL community, the technology is still very much evolving and improving. So, the best of GraphQL is yet to come.
+
+Whether you like GraphQL or not, it will be too hard to ignore its presence in the future with the ever-increasing GraphQL popularity.

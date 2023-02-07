@@ -1,0 +1,154 @@
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost July 2022',
+  description: '',
+  image: '/images/blog/nhost-july-2022/banner.png',
+  date: '2022-08-03',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hello ~~World~~ Developers!
+
+Here are the latest updates for July 2022. Enjoy.
+
+## New Region: India 🇮🇳
+
+![India Region](/images/blog/nhost-july-2022/india-region.png)
+
+We launched a new region in India. This is part of our ongoing effort of providing our Nhost service close to our users and our users' users.
+
+The official launch happened at an on-site event in Bangalore, organized by "the queen of events" and our developer advocate [Pratim](https://twitter.com/BhosalePratim).
+
+<TwitterTweetEmbed tweetId={'1548932425790550016'} />
+
+You can now create a Nhost project in:
+
+- 🇩🇪 Frankfurt, Germany
+- 🇬🇧 London, GB
+- 🇺🇸 N. Virginia, USA
+- 🇸🇬 Singapore
+- 🇮🇳 Mumbai, India (NEW) 🌟
+
+Expect more regions soon!
+
+## Dedicated Postgres Instances per Nhost Project (Preview)
+
+If you didn't know, we're currently hosting Postgres on AWS RDS in a shared environment. This didn't scale well so we're moving to provide dedicated Postgres instances per Nhost project. Most of the work is completed and we're now testing the new architecture.
+
+If you want to be part of the tests, feel free to reach out to us at [support@nhost.io](mailto:support@nhost.io) or via our [Discord server](/discord).
+
+We expect to have a dedicated Postgres instance per Nhost project in the next few weeks.
+
+This is the timeline:
+
+1. New Nhost projects get a dedicated Postgres instance.
+2. Existing Nhost projects can manually migrate to a dedicated Postgres instance (one-click migration)
+3. We will automatically migrate all remaining Nhost projects to a dedicated Postgres instance.
+4. We will shut down our AWS RDS instances.
+
+Providing individual Postgres instances per Nhost project is one of the [most requested features](https://github.com/nhost/nhost/issues/113). This will give you full root access to Postres and enable you to do things like installing Postgres extensions.
+
+## Data Editor: Edit and Delete Data
+
+Last week we launched the Data Editor for the database with read-only access. This month, we launched the ability to edit and delete existing data.
+
+The editor works as follows:
+
+- One-click selects a cell
+- Double click starts editing in-place (boolean columns use a drop-down). You can also hit Enter to start editing if the cell is selected.
+- To commit changes either use Enter or click outside of the cell.
+- To ignore changes use Esc.
+
+Here's a short video of how to edit data. Notice how you can edit and delete data in the same way you would in popular services like Airtable, Excel, or Notion. We're paying a lot of attention to this Data Editor to make the usability and accessibility world-class!
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/images/blog/nhost-july-2022/edit-data.mp4" type="video/mp4" />
+</video>
+
+We will continue to work on the Data Editor and the ability to insert data and create, modify and delete tables.
+
+## Apple Sign-In
+
+![Sign-In with Apple](/images/blog/nhost-july-2022/sign-in-with-apple.png)
+
+You can now sign in users with Apple. This is particularly important for users who are building apps for the Apple App Store. Once you have configured your Nhost project to use Apple Sign-In it's simple to sign in users with Apple:
+
+```js
+nhost.auth.signIn({
+  provider: 'apple',
+})
+```
+
+Check our docs: [How to sign in users with Apple](https://docs.nhost.io/platform/authentication/sign-in-with-apple).
+
+## Examples are Live
+
+Two of our examples from our GitHub repository are available as live demos. This is a great starting point to both look at code and best practices while looking at a live demo.
+
+### React Apollo Links
+
+- [Demo](https://react-apollo.example.nhost.io)
+- [Repo](https://github.com/nhost/nhost/tree/main/examples/react-apollo)
+
+### Vue Apollo
+
+- [Demo](https://vue-apollo.example.nhost.io)
+- [Repo](https://github.com/nhost/nhost/tree/main/examples/vue-apollo)
+
+## Edit JWT Secret
+
+![Edit JWT Secret](/images/blog/nhost-july-2022/edit-jwt-secret.png)
+
+It's now possible to edit the JWT secret. This enables you to use an external authentication provider.
+
+Related GitHub issue: [https://github.com/nhost/nhost/issues/329](https://github.com/nhost/nhost/issues/329).
+
+## Email Notifications
+
+We're sending you email notifications on three new events:
+
+1. When a deployment fails.
+2. When a project goes to sleep.
+3. When you receive a workspace invitation.
+
+Here's an example of an email for a failed deployment.
+
+![Example of email notification on a failed deploument](/images/blog/nhost-july-2022/email-notification-failed-deployment.png)
+
+## Terminology: App -> Project
+
+If you didn't notice already, instead of using the term **app** (old) we're now using the term **project** (new).
+
+## How to Ship Products Faster
+
+We did a Twitter space with [Kunal](https://twitter.com/kunalstwt) about how to ship products faster.
+
+![How to Ship Products Faster](/images/blog/nhost-july-2022/how-to-ship-products-faster.jpeg)
+
+Link: [https://youtu.be/9RWMNO7IMkk](https://youtu.be/9RWMNO7IMkk).
+
+## Nhost and Hasura at Google Developer Group Alps, 22 Edition
+
+![GDG Alps #22 - découvrez Hasura](/images/blog/nhost-july-2022/gdg.png)
+
+Link: [https://youtu.be/6dMGerq3ZB4](https://youtu.be/6dMGerq3ZB4)
+
+## PS. Star us on GitHub
+
+Support our open source work and show your support!
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

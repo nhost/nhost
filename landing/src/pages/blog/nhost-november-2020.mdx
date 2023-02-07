@@ -1,0 +1,83 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost November 2020',
+  description: '',
+  image: '/images/blog/nhost-november-2020/banner.png',
+  date: '2020-12-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+In summary this is what we've done in November 2020:
+
+- Custom API (serverless functions) is now in beta
+- Nhost workflow with our CLI and Github integration video. Develop locally, push to GitHub, automatic deployment of migrations, metadata and Custom API.
+- Backup support for Pro and business Plans
+- New Nhost Documentation page.
+
+## Custom API (serverless functions) is now in beta
+
+You can now run custom code with our Custom API. The Custom API is perfect to work with Hasura Event Triggers, Hasura Actions, Cronjobs etc.
+
+### How to get started
+
+Connect your Nhost project with your GitHub repository. Create an api/ folder in the root of your project and create files (ex api/test.js) with a single request/response handler like this:
+
+```js
+module.exports = (req, res) => {
+  const { name = 'World' } = req.query
+  res.status(200).send(`Hello ${name}!`)
+}
+```
+
+Since the file is named `api/test.js` the Nhost Custom API will create an endpoint at `https://api-id.nhost.app/test` that will handle the request.
+
+Read more about the Custom API in our documentation.
+
+## Nhost workflow
+
+Develop locally with a full Nhost backend using our CLI. It's as easy as nhost dev.
+
+When you're done simply push your changes to GitHub with git push.
+
+Make sure your Nhost project is connected with your GitHub repository. When it is we'll automatically deploy database migrations, metadata and the Custom API to production.
+
+![Nhost Workflow](/images/blog/nhost-november-2020/workflow.png)
+
+See more in detail on how to use the Nhost CLI with our GitHub integration in this video:
+
+## Backup support for Pro and Business plans
+
+Nhost projects on the Pro and Business plan are now automatically backed up every 6 hours and saved for 7 days.
+
+One-click automatic roll-back is on the roadmap. For now, just reach out to us via info@nhost.io or our Discord server and we'll help you manually.
+
+## New Nhost Documentation page
+
+We've updated our Nhost Documentation (https://docs.nhost.io) with a new design, more content and more details. We've also added a search feature from Algolia Docsearch.
+
+![Nhost Documentation](/images/blog/nhost-november-2020/docs.png)
+
+## Industry updates
+
+Some industry updates of November 2020.
+
+### Render releases preview environments
+
+Render released automatic review environments which is a common feature for frontend Jamstack services such as Netlify and Vercel.
+
+Preview environments creates an isolated staging environment of your application when you do a pull request. This way, you get a full replica of your production environment that you can make final manual tests and get feedback before you merge the pull request to the default branch.
+
+It's interesting to see more backend focused services also adopting the workflow of creating preview environments on pull requests.
+
+Automatic preview environments are one of our most requested feature on Nhost and it's something we got plans for in the coming months.

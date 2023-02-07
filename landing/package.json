@@ -27,7 +27,9 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-intersection-observer": "^9.4.1",
+    "react-medium-image-zoom": "^5.1.2",
     "react-syntax-highlighter": "^15.5.0",
+    "react-twitter-embed": "^4.0.4",
     "sharp": "^0.31.3",
     "tailwind-merge": "^1.9.0",
     "typescript": "4.9.5"
