@@ -347,6 +347,93 @@ export default function PricingPage() {
             />
           </ul>
         </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Email</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Custom SMTP settings"
+              freeIcon="x"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom branded templates"
+              freeIcon="x"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Platform</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="HTTPS/SSL by default"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom backend domain"
+              freeIcon="x"
+              proContent={
+                <span className="text-white text-opacity-20">Coming soon</span>
+              }
+              enterpriseContent={
+                <span className="text-white text-opacity-20">Coming soon</span>
+              }
+            />
+
+            <PricingListItem
+              title="Auto scaling"
+              freeIcon="x"
+              proIcon="x"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="99.5 uptime SLA"
+              freeIcon="x"
+              proIcon="x"
+              enterpriseContent={
+                <span className="text-white text-opacity-20">Coming soon</span>
+              }
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Support</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Community"
+              freeIcon="check"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Email"
+              freeIcon="x"
+              proIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="24x7x365 support with SLA"
+              freeIcon="x"
+              proIcon="x"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
       </Container>
     </>
   )
