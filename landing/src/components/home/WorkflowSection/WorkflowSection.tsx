@@ -179,7 +179,7 @@ export default function WorkflowSection() {
       className="grid grid-flow-row gap-14 overflow-hidden pb-8"
     >
       <SectionHeading
-        title="Develop locally. Ship globally."
+        title="Develop Locally. Ship Globally."
         subtitle="Launch something amazing without painful devops."
       />
 
@@ -226,7 +226,8 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Run the entire Nhost platform, right from the terminal.
+                  Run the entire Nhost stack directly from the terminal during
+                  development.
                 </span>
               </div>
 
