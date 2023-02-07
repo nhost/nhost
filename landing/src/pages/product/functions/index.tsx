@@ -15,10 +15,81 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  sendEmail: `// todo: create example`,
+  sendEmail: `
+import nodemailer from 'nodemailer'
+
+export default async (req, res) => {
+  let transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: true, 
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    }
+  })
+
+  let info = await transporter.sendMail({
+    from: '"Fred Foo 👻" <foo@example.com>',
+    to: 'bar@example.com, baz@example.com',
+    subject: 'Hello ✔', 
+    text: 'Hello world?', 
+    html: '<b>Hello world?</b>'
+  })
+
+  res.json('Message sent')
+}`,
   query: `// todo: create example`,
-  stripe: `// todo: create example`,
-  helloWorld: `// todo: create example`,
+  stripe: `import { Request, Response } from 'express'
+
+import Stripe from 'stripe'
+
+type NhostResponse = Response
+type NhostRequest = Request & {
+  rawBody: string
+}
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2022-08-01'
+})
+
+export default async function handler(req: NhostRequest, res: NhostResponse) {
+  const sig = req.headers['stripe-signature'] as string
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+  let event
+
+  // Match the raw body to content type application/json
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret)
+  } catch (err: any) {
+    console.log(err)
+    return res.status(400).send('Webhook Error');
+  }
+
+  if (!event) {
+    console.log('no event found')
+    return res.status(400).send('No event')
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'customer.subscription.created': {
+      const { object } = event.data as any
+      console.log('customer subscription created!')
+      console.log(object)
+      break
+    }
+    // ... handle other event types
+    default:
+      console.log('Unhandled event type', event.type)
+  }
+
+  res.json({ received: true })
+}`,
+  helloWorld: `export default (req, res) => {
+  res.status(200).send('Hello World')
+}`,
 }
 
 const heroExample = `export default (req: Request, res: Response) => {
@@ -79,7 +150,7 @@ export default function FunctionsPage() {
         <div className="grid grid-flow-row justify-items-center gap-8">
           <SectionHeading
             title="Functions that scale automatically"
-            subtitle="DigitalOcean Functions is a serverless computing solution that runs on-demand, enabling you to focus on your code, scale instantly with confidence, and save costs by eliminating the need to maintain servers."
+            subtitle="Handle custom logic, specific business requirements, and custom integrations using Nhost Functions."
             className="max-w-2xl"
             slotProps={{
               subtitle: {
