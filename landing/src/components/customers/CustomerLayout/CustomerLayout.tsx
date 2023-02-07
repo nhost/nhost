@@ -1,8 +1,10 @@
 import { Container } from '@/components/common/Container'
+import { Glow } from '@/components/common/Glow'
 import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
 import { CheckmarkCircleIcon } from '@/components/common/icons/CheckmarkCircleIcon'
 import { XCircleIcon } from '@/components/common/icons/XCircleIcon'
 import { Layout } from '@/components/common/Layout'
+import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { Customer } from '@/utils/types'
 import Image from 'next/image'
@@ -38,15 +40,15 @@ export default function CustomerLayout({
     >
       <Container
         component="section"
-        className="grid grid-cols-5 gap-6 gap-y-10 py-10"
+        className="grid grid-cols-6 gap-6 gap-y-10 py-10"
       >
-        <div className="col-span-5">
+        <div className="col-span-6">
           <Link href="/customers" className="text-opacity-100">
             <ArrowLeftIcon /> Back to Customers
           </Link>
         </div>
 
-        <div className="order-2 col-span-5 grid grid-flow-row gap-8 md:order-1 md:col-span-3">
+        <div className="order-2 col-span-6 grid grid-flow-row gap-8 md:order-1 md:col-span-4">
           <h1 className="text-4.5xl font-bold">{customer.name}</h1>
 
           <div className="relative grid grid-flow-row gap-6">
@@ -87,16 +89,20 @@ export default function CustomerLayout({
           </div>
         </div>
 
-        <div className="order-1 col-span-5 grid grid-flow-row gap-6 md:order-2 md:col-span-2">
-          <div className="relative flex w-full items-center justify-center rounded-xl border border-divider bg-black px-18 py-14">
-            <Image
-              src={customer.logo.src}
-              width={customer.logo.width}
-              height={customer.logo.height}
-              alt={customer.name}
-              className="h-auto w-full max-w-[140px]"
-              priority
-            />
+        <div className="order-1 col-span-6 grid grid-flow-row gap-6 md:order-2 md:col-span-2">
+          <div className="relative">
+            <Glow className="top-1/2 h-full w-full -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-30 blur-[32px]" />
+            <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] overflow-hidden" />
+            <div className="relative flex w-full items-center justify-center overflow-hidden rounded-xl border border-divider bg-black px-18 py-14">
+              <Image
+                src={customer.logo.src}
+                width={customer.logo.width}
+                height={customer.logo.height}
+                alt={customer.name}
+                className="h-auto w-full max-w-[140px]"
+                priority
+              />
+            </div>
           </div>
 
           <div className="grid grid-flow-row divide-y divide-divider rounded-xl border border-divider px-6 text-base">
