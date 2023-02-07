@@ -12,6 +12,7 @@ import { PropsWithChildren, useEffect, useState } from 'react'
 import { MDXProvider } from '@mdx-js/react'
 
 import 'react-medium-image-zoom/dist/styles.css'
+import { baseUrl } from '@/utils/utils'
 
 // TODO: Break out the MDXProvider in its own MDX component
 // TODO: make the image component work with Zoom so a user can zoom in on images
@@ -89,7 +90,7 @@ export default function BlogPostLayout({
           openGraph: {
             images: [
               {
-                url: `https://nhost.io/${article.image}`,
+                url: `https://${baseUrl()}/${article.image}`,
                 alt: `Cover image for ${article.title}`,
                 width: 1920,
                 height: 1080,
