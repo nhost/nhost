@@ -34,8 +34,6 @@ export default function DatabasePage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof DatabaseExamples>('insertData')
 
-  console.log({ selectedExample })
-
   return (
     <>
       <Container

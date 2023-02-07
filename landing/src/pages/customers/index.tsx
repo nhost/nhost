@@ -16,7 +16,6 @@ export interface CustomersPageProps {
 }
 
 export default function BlogPage({ customers }: CustomersPageProps) {
-  console.log(customers)
   return (
     <>
       <Container
