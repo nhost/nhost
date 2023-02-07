@@ -44,7 +44,7 @@ export default function IndexPage() {
 
           <Button
             className="justify-self-center text-center text-base"
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -163,7 +163,7 @@ export default function IndexPage() {
       >
         <div className="grid grid-flow-row justify-center gap-10">
           <SectionHeading
-            title="What you can build with Nhost"
+            title="Ship faster with Nhost"
             subtitle="What used to take months, now takes minutes."
           />
 

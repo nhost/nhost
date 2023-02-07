@@ -90,7 +90,7 @@ export default function ProductSection({
             />
           }
           title="Auth"
-          description="Sign in users with email, magic links, SMS, Google, Facebook, etc."
+          description="Sign in users with Email, Magic Link, SMS, Google, Facebook, etc."
           href="/product/auth"
           disableLink={disabledLink === 'auth'}
         />
@@ -104,7 +104,7 @@ export default function ProductSection({
               alt="A file icon"
             />
           }
-          title="Storage (with CDN)"
+          title="Storage"
           description="Let users upload and download images, documents and other files."
           href="/product/storage"
           disableLink={disabledLink === 'storage'}

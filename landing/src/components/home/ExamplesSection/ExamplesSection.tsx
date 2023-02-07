@@ -57,14 +57,8 @@ export default function ExamplesSection() {
     >
       <div className="z-10 grid grid-flow-row justify-center gap-10">
         <SectionHeading
-          title={
-            <>
-              Built by developers,
-              <br />
-              for developers
-            </>
-          }
-          subtitle="What used to take months, now takes minutes."
+          title={<>For Developers - By Developers</>}
+          subtitle="Build products faster using our SDKs"
         />
       </div>
 
@@ -168,7 +162,7 @@ export default function ExamplesSection() {
           <div className="relative z-0">
             {activeTechnology === 'javascript' && (
               <div className="bottom-connector-first-active absolute z-10 h-full w-full">
-                <div className="bg-pipe-gradient animate-translate-top-bottom absolute h-full w-full rotate-45 transform"></div>
+                <div className="bg-pipe-gradient absolute h-full w-full rotate-45 transform animate-translate-top-bottom"></div>
               </div>
             )}
 
