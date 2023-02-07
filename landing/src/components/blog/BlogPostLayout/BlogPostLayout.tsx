@@ -183,9 +183,10 @@ export default function BlogPostLayout({
             slotProps={{
               image: {
                 priority: true,
-                className: 'opacity-100',
+                className: 'h-auto w-full opacity-100',
               },
             }}
+            priority
           />
           <div className="relative z-20 flex h-full items-center justify-center overflow-hidden rounded-t-[4px] border-divider border-opacity-50 shadow-cover">
             <Image

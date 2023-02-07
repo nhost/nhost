@@ -1,8 +1,13 @@
 import { Container } from '@/components/common/Container'
+import { CTASection } from '@/components/common/CTASection'
+import { CustomerCard } from '@/components/common/CustomerCard'
+import { Glow } from '@/components/common/Glow'
 import { Layout } from '@/components/common/Layout'
+import { LineGrid } from '@/components/common/LineGrid'
+import { SectionHeading } from '@/components/common/SectionHeading'
 import { Customer } from '@/utils/types'
 import glob from 'fast-glob'
-import Link from 'next/link'
+import Image from 'next/image'
 import * as path from 'path'
 import { ReactElement } from 'react'
 
@@ -16,23 +21,50 @@ export default function BlogPage({ customers }: CustomersPageProps) {
     <>
       <Container
         component="section"
-        className="relative max-w-5xl pt-8 pb-16 lg:pt-28 lg:pb-28"
+        className="relative flex max-w-5xl py-20 lg:py-28"
       >
-        <div>
-          <h1>Companies building with Nhost</h1>
-          <div>Learn why companies are using Nhost to build.</div>
-        </div>
-        {customers.map((customer) => {
-          return (
-            <div key={customer.name}>
-              <div>{customer.name}</div>
-              <div>{customer.description}</div>
-              <Link href={`/customers/${customer.slug}`}>Read more</Link>
-            </div>
-          )
-        })}
-        <div>Ready to try Nhost?</div>
+        <LineGrid
+          className="-top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-5 lg:h-40 lg:w-40"
+          slotProps={{ image: { className: 'mx-auto' } }}
+          priority
+        />
+        <Glow className="h-10 w-32 blur-[50px] lg:top-28" />
+        <SectionHeading
+          title="Companies building with Nhost"
+          subtitle="Read why companies are using Nhost to build."
+          slotProps={{
+            title: {
+              component: 'h1',
+              className: 'text-3.5xl md:text-5xl md:leading-normal max-w-lg',
+            },
+          }}
+          className="relative z-10"
+        />
       </Container>
+
+      <Container
+        component="section"
+        className="relative grid max-w-lg grid-cols-1 gap-6 pt-2 pb-16 sm:grid-cols-1 lg:max-w-7xl lg:grid-cols-3 lg:pt-12 lg:pb-28"
+      >
+        {customers.map((customer) => (
+          <CustomerCard
+            key={customer.name}
+            title={customer.name}
+            description={customer.description}
+            image={
+              <Image
+                src={customer.logo.src}
+                width={customer.logo.width}
+                height={customer.logo.height}
+                alt={`Logo of ${customer.name}`}
+              />
+            }
+            href={`/customers/${customer.slug}`}
+          />
+        ))}
+      </Container>
+
+      <CTASection />
     </>
   )
 }

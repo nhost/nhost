@@ -18,7 +18,11 @@ export interface Article {
 export interface Customer {
   name: string
   description: string
-  logo: string
+  logo: {
+    src: string
+    width: number
+    height: number
+  }
   ogImage: string
   industry: string
   location: string

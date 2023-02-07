@@ -38,7 +38,7 @@ export default function CustomerCard({
         <div className="bg-glow-gradient absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
         <LineGrid className="left-0 right-0 bottom-0 top-0 z-10 translate-x-0 scale-100" />
-        <div className="relative z-20 flex h-full w-full items-center justify-center rounded-t-[4px] bg-black bg-opacity-80 shadow-cover">
+        <div className="relative z-20 flex h-full w-full items-center justify-center rounded-t-md bg-black bg-opacity-80 px-4 shadow-cover">
           {image}
 
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-30 h-full w-full" />
@@ -52,7 +52,7 @@ export default function CustomerCard({
         </div>
 
         <Link
-          className="text-base font-bold text-opacity-100 hover:underline"
+          className="justify-self-start text-base font-bold text-opacity-100 hover:underline"
           href={href}
         >
           Read the story <ArrowRightIcon />
