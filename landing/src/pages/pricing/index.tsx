@@ -7,7 +7,8 @@ import { XIcon } from '@/components/common/icons/XIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { ReactElement, ReactNode } from 'react'
+import { ReactElement, ReactNode, useRef } from 'react'
+import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
 function PricingListItem({
@@ -33,7 +34,7 @@ function PricingListItem({
 
       <span
         className={twMerge(
-          'col-span-3 flex items-center justify-center text-white',
+          'col-span-3 flex items-center justify-center text-center text-white',
           !freeIcon && 'text-opacity-65',
         )}
       >
@@ -44,7 +45,7 @@ function PricingListItem({
 
       <span
         className={twMerge(
-          'col-span-3 flex items-center justify-center text-white',
+          'col-span-3 flex items-center justify-center text-center text-white',
           !proIcon && 'text-opacity-65',
         )}
       >
@@ -55,7 +56,7 @@ function PricingListItem({
 
       <span
         className={twMerge(
-          'col-span-3 flex items-center justify-center text-white',
+          'col-span-3 flex items-center justify-center text-center text-white',
           !enterpriseIcon && 'text-opacity-65',
         )}
       >
@@ -70,11 +71,14 @@ function PricingListItem({
 }
 
 export default function PricingPage() {
+  const headerRef = useRef<HTMLDivElement>(null)
+  const { ref, inView } = useInView({ threshold: 0.5 })
+
   return (
     <>
       <Container
         component="section"
-        className="relative flex max-w-5xl py-20 lg:py-28"
+        className="relative flex max-w-5xl pt-20 pb-4 lg:pt-28 lg:pb-12"
       >
         <LineGrid
           className="-top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-5 lg:h-40 lg:w-40"
@@ -95,16 +99,22 @@ export default function PricingPage() {
         />
       </Container>
 
+      <div className="sticky-anchor relative h-5 w-full" ref={ref} />
+
       <Container
-        slotProps={{ root: { className: 'sticky top-16 bg-black py-4' } }}
-        className="grid auto-cols-fr grid-flow-col content-start gap-6"
+        ref={headerRef}
+        slotProps={{ root: { className: 'sticky top-0 bg-black' } }}
+        className={twMerge(
+          'grid auto-cols-fr grid-flow-col content-start gap-6 border-b pt-20 pb-4',
+          inView ? 'border-transparent' : 'border-b-divider',
+        )}
       >
         <div className="col-span-5" />
 
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Starter"
-            subtitle="Free forever"
+            subtitle={inView && 'Free forever'}
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
@@ -124,7 +134,7 @@ export default function PricingPage() {
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Pro"
-            subtitle="$25/mo"
+            subtitle={inView && '$25/mo'}
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
@@ -138,7 +148,7 @@ export default function PricingPage() {
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Enterprise"
-            subtitle="Custom plan"
+            subtitle={inView && 'Custom plan'}
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
