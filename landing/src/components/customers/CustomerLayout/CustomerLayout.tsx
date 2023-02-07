@@ -48,8 +48,10 @@ export default function CustomerLayout({
           </Link>
         </div>
 
-        <div className="order-2 col-span-6 grid grid-flow-row gap-8 md:order-1 md:col-span-4">
-          <h1 className="text-4.5xl font-bold">{customer.name}</h1>
+        <div className="order-2 col-span-6 grid grid-flow-row content-start gap-8 md:order-1 md:col-span-4">
+          <h1 className="hidden text-4.5xl font-bold md:block">
+            {customer.name}
+          </h1>
 
           <div className="relative grid grid-flow-row gap-6">
             <div className="relative grid grid-flow-row gap-6">
@@ -90,6 +92,10 @@ export default function CustomerLayout({
         </div>
 
         <div className="order-1 col-span-6 grid grid-flow-row gap-6 md:order-2 md:col-span-2">
+          <h1 className="block text-3.5xl font-bold md:hidden">
+            {customer.name}
+          </h1>
+
           <div className="relative">
             <Glow className="top-1/2 h-full w-full -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-30 blur-[32px]" />
             <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] overflow-hidden" />
