@@ -76,7 +76,7 @@ function CLIWorkflow({
   }, [code, codeString, inView])
 
   return (
-    <div ref={ref} className={twMerge(className, 'relative')} {...props}>
+    <div ref={ref} className={twMerge(className, 'relative pb-2')} {...props}>
       <div className="hidden w-full sm:block sm:min-h-[381px]">
         <CodeSnippet
           disableLineGrid
@@ -100,7 +100,7 @@ function GitWorkflow({
   className,
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
-  const { ref, inView } = useInView()
+  const { ref } = useInView()
   const code = `git add .
 git commit -m "add permissions"
 git push origin`
@@ -208,7 +208,15 @@ export default function WorkflowSection() {
                 tabIndex={0}
                 aria-label="CLI"
                 onClick={() => setActiveStep(0)}
-                onKeyDown={() => setActiveStep(0)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') {
+                    return
+                  }
+
+                  event.preventDefault()
+
+                  setActiveStep(0)
+                }}
               >
                 <div className="relative grid grid-flow-col items-center justify-start gap-4">
                   <Dot active={activeStep === 0} />
@@ -246,7 +254,15 @@ export default function WorkflowSection() {
                 tabIndex={0}
                 aria-label="Git"
                 onClick={() => setActiveStep(1)}
-                onKeyDown={() => setActiveStep(1)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') {
+                    return
+                  }
+
+                  event.preventDefault()
+
+                  setActiveStep(1)
+                }}
               >
                 <div className="relative grid grid-flow-col items-center justify-start gap-4">
                   <Image
@@ -295,7 +311,15 @@ export default function WorkflowSection() {
                 tabIndex={0}
                 aria-label="Cloud"
                 onClick={() => setActiveStep(2)}
-                onKeyDown={() => setActiveStep(2)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') {
+                    return
+                  }
+
+                  event.preventDefault()
+
+                  setActiveStep(2)
+                }}
               >
                 <div className="relative grid grid-flow-col items-center justify-start gap-4">
                   <Image

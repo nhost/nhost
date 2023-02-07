@@ -86,7 +86,7 @@ export default function DatabasePage() {
             priority
           />
 
-          <Glow className="h-3/5 w-3/5 opacity-40 blur-3xl md:-translate-x-11" />
+          <Glow className="h-3/5 w-4/5 opacity-40 blur-3xl md:-translate-x-18" />
 
           <Image
             src="/common/database-hero.svg"
@@ -186,7 +186,7 @@ export default function DatabasePage() {
 
       <Container
         component="section"
-        className="mt-24 lg:mt-40"
+        className="mt-24 pb-8 lg:mt-40"
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <SectionHeading
@@ -202,7 +202,7 @@ export default function DatabasePage() {
         </CodeSnippet>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container component="section" className="mt-16 lg:mt-32">
         <SectionHeading
           title="Everything you need"
           subtitle="Worry free database hosting with everything you need to be successful."

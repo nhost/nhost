@@ -201,7 +201,15 @@ export default function GraphqlPage() {
               tabIndex={0}
               aria-label="Live avatars"
               onClick={() => setSelectedRealtimeExample('avatars')}
-              onKeyDown={() => setSelectedRealtimeExample('avatars')}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                  return
+                }
+
+                event.preventDefault()
+
+                setSelectedRealtimeExample('avatars')
+              }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
@@ -228,7 +236,15 @@ export default function GraphqlPage() {
               tabIndex={0}
               aria-label="Live cursors"
               onClick={() => setSelectedRealtimeExample('cursors')}
-              onKeyDown={() => setSelectedRealtimeExample('cursors')}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                  return
+                }
+
+                event.preventDefault()
+
+                setSelectedRealtimeExample('cursors')
+              }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
@@ -256,7 +272,15 @@ export default function GraphqlPage() {
               tabIndex={0}
               aria-label="Location"
               onClick={() => setSelectedRealtimeExample('location')}
-              onKeyDown={() => setSelectedRealtimeExample('location')}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                  return
+                }
+
+                event.preventDefault()
+
+                setSelectedRealtimeExample('location')
+              }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image
@@ -284,7 +308,15 @@ export default function GraphqlPage() {
               tabIndex={0}
               aria-label="Live charts"
               onClick={() => setSelectedRealtimeExample('charts')}
-              onKeyDown={() => setSelectedRealtimeExample('charts')}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                  return
+                }
+
+                event.preventDefault()
+
+                setSelectedRealtimeExample('charts')
+              }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
                 <Image

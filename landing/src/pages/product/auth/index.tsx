@@ -61,22 +61,15 @@ export default function AuthPage() {
               },
             }}
           />
-
-          <Button
-            href="https://app.nhost.io"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Start building <ArrowRightIcon />
-          </Button>
         </div>
 
-        <div>
-          <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
-        </div>
+        <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
       </Container>
 
-      <Container component="section" className="grid grid-flow-row gap-24">
+      <Container
+        component="section"
+        className="mt-16 grid grid-flow-row gap-24 lg:mt-28"
+      >
         <SectionHeading
           title="Add authentication in minutes"
           subtitle="Rapidly build production-ready authentication for web and mobile apps."

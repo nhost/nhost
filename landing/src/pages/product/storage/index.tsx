@@ -72,7 +72,7 @@ export default function StoragePage() {
             priority
           />
 
-          <Glow className="h-3/5 w-3/5 opacity-40 blur-3xl md:-translate-x-11" />
+          <Glow className="h-4/5 w-[68%] translate-y-3 skew-x-6 skew-y-3 bg-opacity-65 blur-[32px] md:-translate-x-11" />
 
           <Image
             src="/common/storage-hero.svg"
@@ -196,7 +196,7 @@ export default function StoragePage() {
                 width={100}
                 height={100}
                 alt="Nhost Logo in a dark circle"
-                className="w-26 h-26 relative z-10"
+                className="relative z-10 h-26 w-26"
               />
             </div>
 

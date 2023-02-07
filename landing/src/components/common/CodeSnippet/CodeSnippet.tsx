@@ -44,11 +44,11 @@ export default function CodeSnippet({
       )}
     >
       {!disableGlow && (
-        <Glow className="top-1/2 h-full w-full -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-50 blur-[32px]" />
+        <Glow className="top-1/2 h-[92%] w-[97%] -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-50 blur-[32px]" />
       )}
 
       {!disableLineGrid && (
-        <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] overflow-hidden" />
+        <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] transform-cpu overflow-hidden" />
       )}
 
       <SyntaxHighlighter
