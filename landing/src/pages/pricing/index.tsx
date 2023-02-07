@@ -298,7 +298,7 @@ export default function PricingPage() {
         )}
       </Container>
 
-      <Container className="grid auto-rows-auto items-start gap-8">
+      <Container className="grid auto-rows-auto items-start gap-8 pb-28">
         <section className="mt-4">
           <h3 className="py-4 text-xl">Database</h3>
 
@@ -615,7 +615,7 @@ export default function PricingPage() {
           </ul>
         </section>
 
-        <section className="mt-16 lg:mt-24">
+        <section className="mx-auto mt-16 grid max-w-5xl grid-flow-row gap-16 lg:mt-24">
           <SectionHeading
             title="FAQ"
             subtitle={
@@ -631,6 +631,62 @@ export default function PricingPage() {
               </>
             }
           />
+
+          <ul className="divide-y divide-divider">
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Do I pick one plan per app?</h3>
+
+              <p className="text-base">
+                Yes. When creating an app, you will be asked about which plan
+                you want for your backend.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Can I switch between plans later?</h3>
+
+              <p className="text-base">
+                Yes, you can upgrade plans at any time. To downgrade, please
+                contact us at{' '}
+                <Link
+                  href="mailto:support@nhost.io"
+                  className="text-opacity-100 underline"
+                >
+                  support@nhost.io
+                </Link>
+                .
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Can I export my data?</h3>
+
+              <p className="text-base">
+                Yes. You have full access to your database and the storage. If
+                you decide to leave and want to export all your data, we will
+                help you. Nhost has no vendor lock-in.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">What happens if I exceed the limits?</h3>
+
+              <p className="text-base">
+                We never shut down service without warning. Your app will
+                continue to work, and we will contact you and resolve the
+                situation.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">
+                How does payment get made for the Nhost paid plans?
+              </h3>
+
+              <p className="text-base">
+                For Starter plan, payment is made by Stripe on a monthly basis.
+                For Enterprise plan, payment is made by Stripe on a monthly
+                basis, however, this can also be discussed to accommodate
+                procurement processes.
+              </p>
+            </li>
+          </ul>
         </section>
       </Container>
     </>

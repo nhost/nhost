@@ -5,14 +5,12 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { Article } from '@/utils/types'
+import { baseUrl } from '@/utils/utils'
+import { MDXProvider } from '@mdx-js/react'
 import { format, parseISO } from 'date-fns'
 import Image from 'next/image'
 import { PropsWithChildren, useEffect, useState } from 'react'
-
-import { MDXProvider } from '@mdx-js/react'
-
 import 'react-medium-image-zoom/dist/styles.css'
-import { baseUrl } from '@/utils/utils'
 
 // TODO: Break out the MDXProvider in its own MDX component
 // TODO: make the image component work with Zoom so a user can zoom in on images
