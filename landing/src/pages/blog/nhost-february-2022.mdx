@@ -1,0 +1,127 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost February 2022',
+  description: '',
+  image: '/images/blog/nhost-february-2022/banner.png',
+  date: '2022-03-09',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hey all product builders!
+
+After releasing Nhost v2 in January we've spent February improving Nhost. And we have a lot of updates. So let's get started!
+
+## Function Logs
+
+Finally!
+
+You can now see logs for your serverless functions in production. They are available, in real-time, in the Nhost console.
+
+This makes debugging easier and increases overall visibility for your function logs.
+
+Not only can you see logs. You can also see metadata about all your Nhost functions and send test requests from the console (see the top-right button in the image below).
+
+![Nhost Function Logs](/images/blog/nhost-february-2022/function-logs.png)
+
+## Custom Permission Variables
+
+Up until now, you could only use `x-hasura-user-id` as a permission variable for your GraphQL API in Hasura.
+
+Not anymore.
+
+You can now set custom permission variables (custom JWT claims) for all your users.
+
+We want to thank our community who contributed with valuable insights during the development of this feature ([GitHub Issue link](https://github.com/nhost/hasura-auth/issues/49)). Thanks!
+
+Want to learn more? Check out our docs for [permission variables](https://docs.nhost.io/platform/database/permissions#add-permission-variables).
+
+![Permission Variables](/images/blog/nhost-february-2022/custom-claims.png)
+
+## User Metadata
+
+Want to add custom metadata for a user during signup? It's now possible!
+
+Custom metadata can be added to any user who signs up. The metadata can be any JSON object and is saved under auth.users.metadata column as a JSONB in PostgreSQL.
+
+Tips: It's perfect to combine the user's metadata during sign-up with an event trigger.
+
+Also, look how easy it is to use with our [JavaScript client](https://docs.nhost.io/reference/sdk). 👇
+
+![Set user metadata during signup](/images/blog/nhost-february-2022/metadata.png)
+
+## Custom email templates
+
+Up until this point, it was only possible to use our standard email templates for Nhost Auth.
+
+To be fair, they are not very good-looking (we have to fix that..).
+
+But you no longer have to rely on us for your email templates. You can set your own!
+
+These are the available templates you can modify:
+
+- Verify email
+- Confirm email change
+- Reset password
+- Passwordless Sign-in (Magic Link)
+
+Learn more about custom email templates and how to configure them in our GitHub repository.
+
+![Custom email templates](/images/blog/nhost-february-2022/custom-email-templates.png)
+
+## Spotify as New Social Sign-In Provider
+
+We've added Spotify (🎵 untz 🎵 untz) as a social sign-in provider.
+
+Read our documentation on how to create a Spotify OAuth application and enable Spotify with Nhost Auth in our [docs](https://docs.nhost.io/platform/authentication/sign-in-with-spotify).
+
+Do you want another sign-in provider in Nhost? Let us know on GitHub: https://github.com/nhost/nhost.
+
+![Spotify as New Social Sign-In Provider](/images/blog/nhost-february-2022/spotify.png)
+
+## New Region: London 🇬🇧
+
+You can now create new Nhost apps located in London.
+
+Do you want us to add other regions closer to you? Let us know on GitHub: https://github.com/nhost/nhost.
+
+![New Region: London 🇬🇧](/images/blog/nhost-february-2022/region-london.png)
+
+## Community Updates
+
+- Kurt Kemple ([@theworstdev](https://twitter.com/theworstdev)) gave feedback on the Nhost and our v2 launch [twitter](https://twitter.com/theworstdev/status/1486039257710055427).
+- refine adds support for Nhost as a data provider (with live example) [[twitter](https://twitter.com/refine_dev/status/1498311843613483015)].
+- Hasura raised $100M in Series C funding [[blog](https://hasura.io/blog/seriesc-100m-graphql-for-everyone/)].
+
+## Content
+
+- How to Add Authentication to Hasura [[blog](https://nhost.io/blog/how-to-add-authentication-to-hasura)]
+- Nhost CLI: From Zero to Production [[docs](https://docs.nhost.io/get-started/cli-workflow)]
+- Added docs for:
+  - How to sign-in with Google [[docs](https://docs.nhost.io/platform/authentication/sign-in-with-google)]
+  - How to sign-in with GitHub [[docs](https://docs.nhost.io/platform/authentication/sign-in-with-github)]
+  - How to sign-in with Facebook [[docs](https://docs.nhost.io/platform/authentication/sign-in-with-facebook)]
+  - How to sign-in with LinkedIn [[docs](https://docs.nhost.io/platform/authentication/sign-in-with-linkedin)]
+  - How to sign-in with Spotify [[docs](https://docs.nhost.io/platform/authentication/sign-in-with-spotify)]
+
+## Get started
+
+Create a Nhost App for free and start building: https://app.nhost.io/
+
+## PS. Support us on GitHub
+
+It would mean the world to us if you gave us a star on GitHub. This way, we can increase the visibility of Nhost and our open source and GraphQL contributions.
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you

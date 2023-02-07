@@ -1,0 +1,403 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How to use GraphQL Code Generator with Apollo',
+  description:
+    "GraphQL is great, but if you're use GraphQL without a GraphQL Code Generator (codegen) you're missing out on the full potential of GraphQL.",
+  image:
+    '/images/blog/how-to-use-graphql-code-generator-with-react-and-apollo/banner.png',
+  date: '2022-07-04',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Guide', 'GraphQL', 'Codegen', 'Apollo'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+GraphQL can improve app development speed, but to fully leverage its potential, a [GraphQL Code Generator (codegen)](https://www.graphql-code-generator.com/) is necessary. In this blog post, discover how to use GraphQL Code Generator to enhance GraphQL development with [React](https://reactjs.org/), [Apollo Client](https://www.apollographql.com/docs/react/), and [TypeScript](https://www.typescriptlang.org/). By generating **Typed Queries, Mutations, and Subscriptions**, GraphQL Code Generator ensures accurate typings and autocompletion for all queries, mutations, and subscription variables and results in your code. Let's begin.
+
+## Setup
+
+Setting up GraphQL Code Generator only takes three easy steps:
+
+1. Install the necessary npm packages.
+2. Create a configuration file for the GraphQL Code Generator.
+3. Include a script for the Code Generator in `package.json`.
+
+### Install NPM packages
+
+Install the following npm packages required to run GraphQL Code Generator.
+
+```bash
+npm install graphql
+npm install -D typescript @graphql-codegen/cli @graphql-codegen/client-preset @graphql-typed-document-node/core
+# or yarn
+yarn add graphql
+yarn add -D typescript @graphql-codegen/cli @graphql-codegen/client-preset @graphql-typed-document-node/core
+# or pnpm
+pnpm add graphql
+pnpm add -D typescript @graphql-codegen/cli @graphql-codegen/client-preset @graphql-typed-document-node/core
+```
+
+### Create a Config File for GraphQL Code Generator
+
+Next, create a `codegen.ts` configuration file next to your `package.json` file.
+
+This configuration file contains information about:
+
+- GraphQL API URL.
+- GraphQL API headers.
+- Where GraphQL queries and mutations exist in your code.
+
+Update the file with your GraphQL endpoint and headers. Here's an example:
+
+```js
+import { CodegenConfig } from '@graphql-codegen/cli'
+
+const config: CodegenConfig = {
+  schema: [
+    {
+      'http://localhost:1337/v1/graphql': {
+        headers: {
+          'x-hasura-admin-secret': 'nhost-admin-secret',
+        },
+      },
+    },
+  ],
+  ignoreNoDocuments: true,
+  generates: {
+    './src/gql/': {
+      documents: ['src/**/*.tsx'],
+      preset: 'client',
+      plugins: [],
+    },
+  },
+}
+
+export default config
+```
+
+This example configuration file is for a Nhost project using Hasura. We've set the GraphQL endpoint to `http://localhost:1337/v1/graphql` and added the `x-hasura-admin-secret` header so the GraphQL Code Generator can introspect the GraphQL API as an admin to get all queries and mutations available.
+
+### GraphQL autocomplete in VS Code
+
+This step is optional but highly recommended.
+
+You can get autocomplete when writing GraphQL queries and mutations in VS Code. This is another great way to improve your development workflow and reduce errors caused by typos.
+
+![GraphQL inline autocomplete](/images/blog/how-to-use-graphql-code-generator-with-react-query/inline-autocomplete.png)
+
+To get inline autocomplete when you're writing GraphQL in VS Code, install the [GraphQL for VSCode](https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql) extension and add the following configuration (`graphql.config.yaml`) file next to your `package.json` file:
+
+```yaml
+schema:
+  - http://localhost:1337/v1/graphql:
+      headers:
+        x-hasura-admin-secret: nhost-admin-secret
+```
+
+### Add a Codegen Script to package.json
+
+As the last step, add a script to the `package.json` to run the GraphQL Code Generator.
+
+```json
+{
+  /*...*/
+  "scripts": {
+    /*...*/
+    "codegen": "graphql-codegen"
+  }
+  /*...*/
+}
+```
+
+You'll run this script (`npm run codegen`) every time you've changed anything in your GraphQL API or in your GraphQL files to get the most up-to-date types generated. You can also run the script in watch mode to automatically generate new types when you change your code using `npm run codegen -w`.
+
+You've now completed the three configuration steps. It's time to start using the GraphQL Code Generator and unleash its power!
+
+## Workflow
+
+As a mental model, this is how you will use the GraphQL Code Generator in your development workflow:
+
+1. Run `npm run codegen -w` in watch mode to automatically generate types for queries, mutations, and subscriptions.
+2. Write GraphQL queries and mutations and wrap the GraphQL code with the `graphql()` function.
+3. Use the generated types to get autocompletion and type safety.
+
+The `graphql()` function is generated by the GraphQL Code Generator and located at `src/gql/gql`.
+
+Here's an example of how to write a GraphQL query and wrap it with the `graphql()` function:
+
+```tsx
+import { graphql } from '../gql/gql'
+
+const GET_TASKS = graphql(`
+  query GetTasks {
+    tasks(order_by: { createdAt: desc }) {
+      id
+      name
+      done
+    }
+  }
+`)
+```
+
+## Example: Todo App
+
+We'll now go through two examples of how to use the GraphQL Code Generator setup with Apollo Client in a Todo App. The first example is by using a query to fetch data and the other example is to use a mutation to modify data.
+
+The full source code can be found on [GitHub - GraphQL Code Generator Example with Apollo Client](https://github.com/nhost/nhost/tree/main/examples/codegen-react-apollo). This blog post contains a subset of the code to give you a basic understanding of how to use GraphQL Code Generator with Apollo Client.
+
+For the two examples, we're using a table `tasks` in Hasura with three columns:
+
+- id - UUID
+- name - Text
+- done - Boolean
+
+## App Setup
+
+Install [Apollo Client (`@apollo/client`)](https://www.apollographql.com/docs/react/). We'll also install `@nhost/react` and `@nhost/react-apollo` to get a pre-configured Apollo client and the `NhostApolloProvider` component to wrap our app as well as some helper functions for Nhost and React. If you're not using Nhost, you can configure your own Apollo client and Apollo Provider following [Apollo's getting started guide](https://www.apollographql.com/docs/react/get-started).
+
+```bash
+npm install @apollo/client @nhost/react @nhost/react-apollo
+# or yarn
+yarn add @apollo/client @nhost/react @nhost/react-apollo
+# or pnpm
+pnpm add @apollo/client @nhost/react @nhost/react-apollo
+```
+
+Let's continue by first setting up the Apollo client in our app.
+
+## App
+
+In `App.tsx`, we'll set up the Apollo client and wrap our app with the `NhostApolloProvider` component. Again, if you're not using Nhost, you can [set up your own Apollo client and Apollo Provider](https://www.apollographql.com/docs/react/get-started).
+
+```tsx
+import { NhostApolloProvider } from '@nhost/react-apollo'
+import { NhostClient, NhostProvider } from '@nhost/react'
+
+import { Tasks } from './components/Tasks'
+
+const nhost = new NhostClient({
+  subdomain: '<app-subdomain>',
+  region: '<app-region>',
+})
+
+function App() {
+  return (
+    <NhostProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
+        <div>
+          <div>Todo App</div>
+          <Tasks />
+        </div>
+      </NhostApolloProvider>
+    </NhostProvider>
+  )
+}
+
+export default App
+```
+
+### Get Tasks (GraphQL Query)
+
+As we mentioned under the Workflow section above, we use the three-step process when using GraphQL Code Generator.
+
+Just to repeat, these are the three steps:
+
+1. Run `npm run codegen -w` in watch mode to automatically generate types for GraphQL queries, mutations, and subscriptions.
+2. Write GraphQL queries and mutations and wrap the GraphQL code with the `graphql()` function.
+3. Use the generated types to get autocompletion and type safety.
+
+Let's get going.
+
+Run the codegen to automatically generate types:
+
+```text
+npm run codegen -w
+```
+
+Next, we'll combine the `graphql()` function with the `useQuery()` and GraphQL Request hook to fetch the data.
+
+```tsx
+import { useMutation, useQuery } from '@apollo/client'
+
+import { graphql } from '../gql/gql'
+
+const GET_TASKS = graphql(`
+  query GetTasks {
+    tasks(order_by: { createdAt: desc }) {
+      id
+      name
+      done
+    }
+  }
+`)
+
+export function Tasks() {
+  const { data, loading, error } = useQuery(GET_TASKS)
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    console.error(error)
+    return <div>Error</div>
+  }
+
+  if (!data) {
+    return <div>No data</div>
+  }
+
+  const { tasks } = data
+
+  return (
+    <div>
+      <h2>Todos</h2>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id}>{task.name}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+```
+
+That's it. In this scenario, using Nhost, you now have type-safety from Postgres, to GraphQL to TypeScript. From your database to your frontend. Good job!
+
+Now, let's see some benefits of this setup!
+
+If you're trying to access a property on `tasks` that does not exist, TypeScript will throw an error. E.g. if you're trying to access `task.age`.
+
+```text
+src/components/Tasks.tsx:160:44 - error TS2339: Property 'age' does not exist on type '{ __typename?: "tasks" | undefined; id: any; name: string; done: boolean; }'.
+
+160               <div className={style}>{task.age}</div>
+                                               ~~~
+
+
+Found 1 error in src/components/Tasks.tsx:160
+```
+
+> **NOTE:** If you're using [Vite](https://vitejs.dev/) remember that [Vite does not perform type checking](https://vitejs.dev/guide/features.html#typescript). You need to run `tsc -noEmit` to see any TypeScript errors.
+
+If you're using VS Code you also see the TypeScript error while you're coding:
+
+![VS Code shows TypeScript errors](/images/blog/how-to-use-graphql-code-generator-with-react-query/ts-error-tasks-age.png)
+
+TypeScript also knows that `task.name` is of type `string`, which it has inferred from Postgres ( the `task.name` column is of type `text`) and GraphQL (`task.name` is of type `String`). This means you can't use `task.name` to perform arithmetic operations.
+
+![VS Code shows another TypeScript error.](/images/blog/how-to-use-graphql-code-generator-with-react-query/ts-error-task-name-arithmetic.png)
+
+As you see, with the GraphQL Code Generator (and Postgres, GraphQL, and TypeScript) you're less likely to run into type errors. Overall, your application becomes more robust with fewer bugs.
+
+Let's continue and see how to use GraphQL Code Generator with GraphQL mutations.
+
+### Insert Task (Mutation)
+
+Specify the GraphQL mutation and wrap it around the `graphql()` function.
+
+Next, specify the mutation in the `useMutation` hook. The `mutationFn` is the function that will be called when the mutation is triggered. If the mutation is successful, the `onSuccess` function will be called where we invalidate the `tasks` query to refetch the data.
+
+Now you can use the `insertTask` function to trigger the mutation.
+
+```jsx
+import { useState } from 'react'
+import { useMutation, useQuery } from '@apollo/client'
+
+import { graphql } from '../gql/gql'
+
+const INSERT_TASK = graphql(`
+  mutation InsertTask($task: tasks_insert_input!) {
+    insertTasks(objects: [$task]) {
+      affected_rows
+      returning {
+        id
+        name
+      }
+    }
+  }
+`)
+
+export function NewTask() {
+  const [name, setName] = useState('')
+
+  const [insertTask, { loading, error }] = useMutation(INSERT_TASK)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!name) {
+      return
+    }
+
+    try {
+      await insertTask({
+        variables: {
+          task: {
+            name,
+          },
+        },
+        refetchQueries: ['GetTasks'],
+      })
+      setName('')
+      alert('Task added!')
+    } catch (error) {
+      return console.error(error)
+    }
+  }
+
+  return (
+    <div>
+      <h2>New Task</h2>
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Todo
+            </label>
+            <div className="mt-1">
+              <input
+                type="text"
+                placeholder="Todo"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+          </div>
+          {error && <div>Error: {JSON.stringify(error, null, 2)}</div>}
+          <div>
+            <button type="submit" disabled={loading}>
+              Add
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+```
+
+## GitHub Repository
+
+The example code for this blog post is on [GitHub - GraphQL Code Generator Example with Apollo Client](https://github.com/nhost/nhost/tree/main/examples/codegen-react-apollo).
+
+## Summary
+
+That's it. You've now a basic understanding of how to set up and use GraphQL Code Generator with Apollo Client. This will help you build robust applications with fewer bugs. Good luck!
+
+## What's next?
+
+Did you enjoy this blog post?
+
+⭐ [Give us a star on GitHub](https://github.com/nhost/nhost)!

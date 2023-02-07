@@ -1,0 +1,308 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'WeAUthn Sign-In Method',
+  description: 'Use Face ID or fingerprint to sign-in in users with Nhost Auth',
+  image: '/images/blog/webauthn-sign-in-method/banner.png',
+  date: '2022-09-29',
+  authors: [
+    {
+      name: 'Pierre-Louis Mercereau',
+      title: 'Engineering',
+      avatarUrl: '/images/avatars/pilou.jpeg',
+      url: 'https://twitter.com/plmercereau',
+    },
+  ],
+  tags: ['Product', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today we’re launching WebAuthn as a new sign-in method at Nhost.
+
+You’re using Face ID or fingerprint to unlock your phone every day. Why not use it as a sign-in method for your application too? Well, now you can!
+
+Live Demo: [https://react-apollo.example.nhost.io/sign-up/security-key](https://react-apollo.example.nhost.io/sign-up/security-key)
+
+# Background
+
+Most applications that require authentication still rely on passwords. However, passwords are becoming more and more notorious as poorly secured authentication methods.
+
+Users face a dilemma:
+
+- Should I use a long, complicated, "secure" password that I can barely remember?
+- Should I use the name of my favourite pet followed by the year of my Mom's birthday?
+
+Less security-conscious users will not even ask themselves such questions. They will go straight for their usual password to be sure not to forget it. We won't even talk about changing or resetting passwords… Long story short: securing passwords is hard and painful.
+
+Other authentication methods address this tension between security and user experience and are already available at Nhost: OAuth (passing the password hot potato on to a third party service), or passwordless authentication by sending a Magic Link via email or a one-time password via SMS.
+
+Still, it can be tedious for users to constantly check their email for a Magic Link or to look it up on their phone and manually enter a four-digit code. In terms of security, these methods are still vulnerable to phishing and other man-in-the-middle attacks.
+
+### WebAuthn
+
+Security fanatics and UX advocates finally met at the FIDO Alliance and the W3C, and developed the FIDO2 project to solve this problem: the WebAuthn standard was born.
+
+![WebAuthn](/images/blog/webauthn-sign-in-method/webauthn.png)
+
+With WebAuthn, you can verify users with a specific device and something they **_know_** (a PIN, a swipe pattern) or something they **_are_** (fingerprint, face, or voice recognition…).
+
+Since its release as a W3C recommendation in 2019, WebAuthn has been widely adopted by all the leading web browsers, including Apple (Touch ID, FaceID), Yubico, and others. It is backed by big names like Google, Mozilla, and Microsoft. Big companies are already using it in their applications, e.g. [GitHub](https://github.blog/2019-08-21-github-supports-webauthn-for-security-keys/), [Google](https://support.google.com/accounts/answer/6103523), Microsoft, Facebook, Tesla, ProtonMail, Bitwarden, etc.
+
+WebAuthn is often used as a second-factor authenticator, although it is considered secure as a single factor. We did the latter at Nhost.
+
+## How it works
+
+### Enable security keys in your project
+
+To enable the use of security keys from the Nhost cloud.
+
+1. Go to your **project settings**.
+2. **Enable** Security Keys.
+3. Click **Save**.
+
+Don't forget to check your Client URL setting is pointing to your frontend, as WebAuthn will check it and fail if the request is sent from another domain.
+
+<video width="99%" autoPlay loop muted controls>
+  <source
+    src="/images/blog/webauthn-sign-in-method/enable-security-keys.mp4"
+    type="video/mp4"
+  />
+</video>
+
+When using the Nhost CLI, you can activate the feature locally by adding the following parameters to their `config.yaml` file:
+
+```yaml
+auth:
+  webauthn:
+    enabled: true
+    rp_name: My application
+```
+
+You have to make sure you are using the latest version of the CLI in running `sudo nhost upgrade`.
+
+## Signing up
+
+Signing up with a security key uses the same method as signing up with an email and a password. Instead of a `password` parameter, you need to set the `securityKey` parameter to `true`:
+
+```tsx
+const { error, session } = await nhost.auth.signUp({
+  email: 'joe@example.com',
+  securityKey: true,
+})
+
+if (error) {
+  // Something unexpected happened, for instance, the user canceled their registration
+  console.log(error)
+} else if (session) {
+  // Sign up is complete!
+  console.log(session.user)
+} else {
+  console.log(
+    'You need to verify your email address by clicking the link in the email we sent you.',
+  )
+}
+```
+
+In our [React-Apollo example](https://react-apollo.example.nhost.io/sign-up), it looks like this:
+
+<video width="99%" autoPlay loop muted controls>
+  <source
+    src="/images/blog/webauthn-sign-in-method/sign-up.mp4"
+    type="video/mp4"
+  />
+</video>
+
+## Signing in
+
+Once a user added a security key, they can use it to sign in:
+
+```tsx
+const { error, session } = await nhost.auth.signIn({
+  email,
+  securityKey: true,
+})
+if (session) {
+  // User is signed in
+} else {
+  // Something unexpected happened
+  console.log(error)
+}
+```
+
+Here is how it goes in our [React-Apollo example](https://react-apollo.example.nhost.io/sign-in):
+
+<video width="99%" autoPlay loop muted controls>
+  <source
+    src="/images/blog/webauthn-sign-in-method/sign-in.mp4"
+    type="video/mp4"
+  />
+</video>
+
+## Adding a security key
+
+Any signed-in user with a valid email can add a security key when the feature is enabled. For instance, someone who signed up with an email and a password can add a security key and thus use it for their later sign-in!
+
+Users can use multiple devices to sign in to their account. They can add as many security keys as they like.
+
+```tsx
+const { key, error } = await nhost.auth.addSecurityKey()
+if (key) {
+  // Successfully added a new security key
+  console.log(key.id)
+} else {
+  // Somethine unexpected happened
+  console.log(error)
+}
+```
+
+A nickname can be added for each security key to make them easy to identify:
+
+```tsx
+await nhost.auth.addSecurityKey('my macbook')
+```
+
+Here's what it looks like in our React-Apollo example with Apple's Touch ID:
+
+<video width="99%" autoPlay loop muted controls>
+  <source
+    src="/images/blog/webauthn-sign-in-method/add-security-key.mp4"
+    type="video/mp4"
+  />
+</video>
+
+You noticed the above example lists the user's security keys and allows users to delete the ones they choose. It can be achieved over GraphQL after setting the correct permissions. You can have a look at the [source code](https://github.com/nhost/nhost/blob/main/examples/react-apollo/src/profile/security-keys.tsx) to get some inspiration. It’s recommended to allow users to list and delete their security keys.
+
+## React hooks
+
+In addition to the [JavaScript SDK](https://docs.nhost.io/reference/javascript), the security key feature is also exposed in `@nhost/react` using hooks. You can browse the [code of our React-Apollo example](https://github.com/nhost/nhost/tree/main/examples/react-apollo) to find out how we implemented it with Mantine.
+
+### Signing up
+
+```tsx
+import { useSignUpSecurityKeyEmail } from '@nhost/react'
+
+export const SecurityKeySignUp: React.FC = () => {
+  const { signUpEmailSecurityKey } = useSignUpEmailSecurityKey()
+  const [email, setEmail] = useState('')
+
+  const signIn = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const { isError, needsEmailVerification, isSuccess } =
+      await signUpSecurityKeyEmail(email)
+    if (isError) {
+      // Something unexpected happended
+    } else if (needsEmailVerification) {
+      // Email needs verification
+    } else if (isSuccess) {
+      // Signed up successfully
+    }
+  }
+
+  return <div>my component</div>
+}
+```
+
+### Signing in
+
+```tsx
+import { useSignInSecurityKeyEmail } from '@nhost/react'
+
+export const SecurityKeySignIn: React.FC = () => {
+  const { signInSecurityKeyEmail } = useSignInEmailSecurityKey()
+  const [email, setEmail] = useState('')
+
+  const signIn = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const { isError, isSuccess, needsEmailVerification, error } =
+      await signInSecurityKeyEmail(email)
+    if (isError) {
+      // Something unexpected happended
+    } else if (needsEmailVerification) {
+      // Email needs verification
+    } else if (isSuccess) {
+      // Signed in successfully
+    }
+  }
+
+  return <div>my component</div>
+}
+```
+
+### Adding a security key
+
+We implemented a `useAddSecurityKey` hook that works in a similar way as `nhost.auth.addSecurityKey`. The `add` action will execute the WebAuthn choreography to register a new security key for the currently authenticated user:
+
+```tsx
+import { useAddSecurityKey, useUserId } from '@nhost/react'
+
+export const SecurityKeys: React.FC = () => {
+  const { add } = useAddSecurityKey()
+  // Nickname of the security key
+  const [nickname, setNickname] = useState('')
+
+  const addKey = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const { key, error } = await add(nickname)
+    if (error) {
+      // Something unexpected happened
+    } else if (key) {
+      // Sucessfully added the security key
+    }
+  }
+
+  return <div>my component</div>
+}
+```
+
+The React-Apollo example also shows how users can list and remove their security keys through the GraphQL API.
+
+## How we did it
+
+### Open Source Contributions
+
+[Hasura Auth](https://github.com/nhost/hasura-auth) is the Hasura side-car authentication service. Hasura Auth is open-source, as well as all the other services in the Nhost stack. Although we are happy to share with the community, we are doing our best to encourage contributions. With WebAuthn, this is precisely what happened. We didn't initially put this feature on top of the Nhost team's priorities. Some of our users started suggesting on Discord we could integrate Nhost with WebAuthn. [Asen Lekov](https://github.com/L3K0V), one of our most active external contributors, took the initiative to work on a [comprehensive pull request](https://github.com/nhost/hasura-auth/pull/198). After some review and work with our SDK, we had a fancy new feature for the users, brought out by our users!
+
+### Database Schema
+
+First of all, the Hasura Auth database schema introduces a new `user_security_keys` table as it should be possible for users to add as many security keys as they like. Each security key stores a credential ID as well as the public key that will be required when verifying the device.
+
+![Database Schema](/images/blog/webauthn-sign-in-method/mermaid-database-schema.png)
+
+The `counter` column contains the number of times the security key reports it has been used. It is used to prevent relay attacks. We also added a `nickname` column so the user can give a human-readable name to the security key, which can be especially useful when using several security devices. It is optional and is not involved in the WebAuthn registration and authentication processes.
+
+### Backend workflows
+
+In any authentication workflow, we need a unique user identifier. In Hasura Auth, there are three: the `id`, which is an internal UUID, the `email`, that is used in most authentication methods (password, Magic Link, OAuth, etc.) and a `phone_number`, used when signing in with an OTP code sent by SMS.
+
+We haven't implemented a `username`, so we used the `email` as the WebAuthn user identifier in this first release.
+
+#### Sign up
+
+The overall WebAuthn sign-up workflow is similar to the email + password sign-up workflow. After the user completes the registration of their email and security key, it will return the session unless the email needs to be verified first. In this latter case, a verification email is sent, and the user can finally sign up once the email link is clicked and processed.
+
+![Sign Up](/images/blog/webauthn-sign-in-method/mermaid-sign-up.png)
+
+#### Sign in
+
+![Sign In](/images/blog/webauthn-sign-in-method/mermaid-sign-in.png)
+
+#### Add a new security key
+
+![Add a new security key](/images/blog/webauthn-sign-in-method/mermaid-add-security-key.png)
+
+## What's next?
+
+- WebAuthn can also be used in a “usernameless” mode: users wouldn't even need to enter their email address, but would instead suggest selecting which account to connect to from a list of accounts that registered with the same security key. Here is [a demo](https://fido2-net-lib.passwordless.dev/usernameless) that illustrates the pattern.
+- We implemented the WebAuthn feature in the VanillaJS Nhost client as well as in React hooks. We will work on Vue3 composables in the near future, which will follow the same logic as the React hooks.
+- We started the WebAuthn journey with an open-source contribution: share your ideas, suggestions, and code so we can improve this feature together!
+
+## PS. Support our Open Source work
+
+**[Star us on GitHub ⭐](https://github.com/nhost/nhost)**
+
+## External resources
+
+- [Curity's WebAuthn Overview](https://curity.io/resources/learn/webauthn-overview/)
+- [45' minutes video](https://share.vidyard.com/watch/dTw2QXrjgzchQzyoP9evRy?) by James Fang and Payal Pan from Okta in 2019 (the list of browsers that support WebAuthn dramatically increased since)
+- [Yubico WebAuthn Developer Guide](https://developers.yubico.com/WebAuthn/WebAuthn_Developer_Guide/)

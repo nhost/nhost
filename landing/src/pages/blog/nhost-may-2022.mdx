@@ -1,0 +1,132 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost May 2022',
+  description: '',
+  image: '/images/blog/nhost-may-2022/banner.png',
+  date: '2022-06-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hey all GraphQL lovers!
+
+Here are the latest updates for May 2022.
+
+Enjoy.
+
+## Quickstart Guides
+
+To kick this month off, we've written four quickstart guides. These guides are quick, to-the-point, guides in popular frontend frameworks to get started quickly (did I say quick?) with Nhost. Check them out!
+
+- [Quickstart: React](https://docs.nhost.io/platform/quickstarts/react)
+- [Quickstart: Next.js](https://docs.nhost.io/platform/quickstarts/nextjs)
+- [Quickstart: RedoowJS](https://docs.nhost.io/platform/quickstarts/redwoodjs)
+- [Quickstart: Vue](https://docs.nhost.io/platform/quickstarts/vue)
+
+## Vue SDK for Nhost
+
+Together with the quickstart guides, we've also launched a new Vue SDK for Nhost. This SDK is an addition to our existing SDKs for [JavaScript (TypeScript)](https://docs.nhost.io/reference/javascript), [React](https://docs.nhost.io/reference/react), and [Next.js](https://docs.nhost.io/reference/nextjs).
+
+The goal with all our SDKs is to make it easy to integrate Nhost with existing frontend frameworks using best practices. Our new Vue SDK is no different.
+
+To get started with Nhost and Vue, check out our [Vue quickstart](https://docs.nhost.io/platform/quickstarts/vue) and read the [Vue SDK documentation](https://docs.nhost.io/reference/vue).
+
+![Vue SDK for Nhost](/images/blog/nhost-may-2022/vue.png)
+
+## Custom Email Templates
+
+Nhost Auth manages transactional emails such as sending verification emails, password reset emails, etc.
+
+These emails can now be customizable using our GitHub Integration.
+
+To customize the emails, update the email templates located in the `nhost/emails` directory in your Nhost app locally. Commit the changes and Nhost automatically deploys the new email templates.
+
+With the GitHub integration, Nhost deploys:
+
+- Database migrations
+- Hasura metadata
+- Serverless Functions
+- Email templates (new!)
+
+Read the [Email Templates](https://docs.nhost.io/platform/authentication/email-templates) documentation to learn more about how to customize the emails.
+
+## SMTP Settings
+
+Speaking about emails. There is now the option to have custom SMTP settings, so your transactional emails from Nhost Auth are sent from your SMTP server.
+
+This enables full control over email deliverability and everything else related to the emails that are sent out to your users via Nhost Auth.
+
+## New: Sign in Users with Phone Number (SMS)
+
+It's now possible to sign in users using a phone number (SMS). All you need is a Twilio account and Nhost Auth takes care of the rest.
+
+Signing in users with their phone numbers is a two-step process.
+
+1. Send a One Time Password (OTP) to the user's phone number.
+2. Use the OTP to sign in.
+
+Just like Magic Link, and OAuth providers, if the user does not exist, it will be created automatically.
+
+Read the [Sign in with Phone Number](https://docs.nhost.io/platform/authentication/sign-in-with-phone-number-sms) documentation to learn more about how to sign in users with their phone numbers.
+
+![Sign in Users with Phone Number (SMS)](/images/blog/nhost-may-2022/phone-number-sign-in.png)
+
+## General Settings Update
+
+We've also made a bunch of small setting updates:
+
+- Manage default roles and allowed roles.
+- Redirect URLs
+- Multi-Factor Authentication
+- Gravatar settings
+
+You find these new settings under **Users** and **Login settings** and **Roles and Permissions**.
+
+## Base Directory for GitHub Integration
+
+It's now possible to specify a base directory in your GitHub repository where your Nhost app is located. This is useful if your Nhost app is not located at the root of your repository.
+
+![Change base directory for your GitHub Integration](/images/blog/nhost-may-2022/github-base-directory.png)
+
+## Improved Documentation
+
+Last month we released our new SDK documentation that is automatically generated from TypeScript and in-line documentation in the TypeScript files.
+
+This month we've gone through every file and method to make sure the documentation is up-to-date and the examples are relevant. Check out the automatically generated documentation for our SDKs:
+
+- [JavaScript](https://docs.nhost.io/reference/javascript)
+- [React](https://docs.nhost.io/reference/react)
+- [Next.js](https://docs.nhost.io/reference/nextjs)
+- [Vue](https://docs.nhost.io/reference/vue)
+
+We're also putting significant effort into our documentation as a whole to make sure it's up-to-date and relevant.
+
+If you want to help us write documentation it's all open source in our main GitHub repository [https://github.com/nhost/nhost](https://github.com/nhost/nhost/tree/main/docs) under `docs/`.
+
+## Nhost Storage: 5x faster!
+
+Last month we released a new version of Nhost Storage in Go (previous Node.js) and the benchmark are mind-blowing. In short, Nhost Storage is now 5x faster (!!!) while consuming less memory than before.
+
+Raad the full blog post: [Hasura Storage in Go: 5x performance increase and 40% less RAM](https://nhost.io/blog/hasura-storage-in-go-5x-performance-increase-and-40-percent-less-ram).
+
+## Next Steps
+
+Create a Nhost App for free and start building: [https://app.nhost.io](https://app.nhost.io).
+
+## PS. Star us on GitHub
+
+Support our open source work and show your support!
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

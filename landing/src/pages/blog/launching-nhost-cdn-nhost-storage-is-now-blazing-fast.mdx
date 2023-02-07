@@ -1,0 +1,188 @@
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Launching Nhost CDN: Nhost Storage Is Now Blazing Fast™',
+  description:
+    'The Nhost CDN can serve files up to 104x faster than before so you can deliver an amazing experience for your users.',
+  image:
+    '/images/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast/banner.png',
+  date: '2022-06-22',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'Engineering',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Product', 'Storage', 'CDN'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today we're launching Nhost CDN to make Nhost Storage blazing fast™.
+
+Nhost CDN can serve files up to **104x faster** than before so you can deliver an amazing experience for your users.
+
+To achieve this incredible speed, we're using a global network of edge computers on a tier 1 transit network with only solid-state drive (SSD) powered servers. Nhost CDN is live for all projects on Nhost, starting today.
+
+![Nhost CDN Locations](/images/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast/world-map.svg)
+
+In this blog post we'll go through:
+
+- How to start using Nhost CDN?
+- What is a CDN?
+- How we built Nhost CDN and what challenges we faced.
+- Benefits you will notice with Nhost CDN.
+
+Before we kick off, Nhost Storage is built on [Hasura Storage](http://github.com/nhost/hasura-storage) which is [impressively fast](https://nhost.io/blog/hasura-storage-in-go-5x-performance-increase-and-40-percent-less-ram) already. With today's launch of Nhost CDN, it's even faster!
+
+## How to start using Nhost CDN?
+
+Upgrade to the latest [Nhost JavaScript SDK](https://docs.nhost.io/reference/javascript) version:
+
+```bash
+npm install @nhost/nhost-js@latest
+# or yarn
+yarn add @nhost/nhost-js@latest
+```
+
+If you're using any of the [React](https://docs.nhost.io/reference/react), [Next.js](https://docs.nhost.io/reference/nextjs) or [Vue](https://docs.nhost.io/reference/vue) SDKs, make sure you update them to the latest version instead.
+
+Then, initialize the Nhost Client using `subdomain` and `region` instead of `backendUrl`.
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: '<your-subdomain>',
+  region: '<your-region>',
+})
+```
+
+You find the `subdomain` and `region` of your Nhost project in the [Nhost dashboard](https://app.nhost.io).
+
+Locally, you use `subdomain: 'localhost'`. Like this:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: 'localhost',
+})
+```
+
+That's it. Everything else works as before. You can now enjoy extreme speed with the Nhost CDN serving your files.
+
+Keep reading to learn what a CDN is, what technical challenges we faced, and the incredible performance improvements Nhost CDN brings to your users.
+
+## What is a CDN?
+
+Before we start diving into technical details and fancy numbers let's briefly talk about what CDNs are and why they are important.
+
+CDN stands for "Content Delivery Network", roughly speaking they are highly distributed caches with lots of bandwidth and located very close to where users live. They can help online services and applications serve content to users by storing copies of it where they are most needed so users don't need to reach the origin. For instance, if your origin is in Frankfurt but users are coming from India or Singapore, the CDN can store copies of your content in caches in those locations and save users the trouble of having to reach Frankfurt for that content. If done properly this has many benefits both for users and for the people responsible for the online services:
+
+1. **From a user perspective**: Users will experience less latency because they don't need to reach all the way to Frankfurt to get the content. Instead, they can fetch the content from the local cache in their region. This is even more important in regions where connectivity may not be as good and where packet losses or bottlenecks between service providers are common.
+2. **From an application developer perspective:** Each request served from a cache is a request that didn't need to reach your origin. This will lower your infrastructure costs as you have to serve fewer requests and, thus, lower your CPU, RAM, and network usage.
+
+Before dropping this topic let's see a quick example, imagine the following scenario:
+
+![CDN Explained](/images/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast/cdn-explained.png)
+
+In the example above, Pratim and Nestor are clients while Nuno is the CDN. In a faraway land, we have our origin, Johan.
+
+When Pratim first asks Nuno about the meaning of life he doesn't know it so he asks Johan about it. When Johan responds Nuno stores a copy of the response and sends it to Pratim.
+
+Later, when Nestor asks Nuno about the meaning of life he already has a copy of the response so Nuno can send it to Nestor right away, reducing latency and saving Johan the trouble of having to respond to the same query again.
+
+This is great but it comes with some challenges. As a continuation, we will talk about some of those, how we are taking care of them for you in our integration with Nhost Storage, and some performance metrics you may see thanks to this integration.
+
+## Cache invalidation
+
+As we mentioned previously, CDNs will store copies of your origin responses and serve them directly to users when available. However, things change, so you may need to tell the CDN that the copy of a response is no longer up to date and they need to remove it from their caches. This process is called “cache invalidation” or “purging”.
+
+In the case of Nhost Storage cache-invalidation is handled automatically for you. Every time a file is deleted or changed we instruct the CDN to invalidate the cache for that particular object.
+
+However, this isn't as easy as it sounds as Nhost Storage not only serves static files, it can also manipulate images (i.e. generate thumbnails from an image) and/or generate presigned-urls. This means that for a given file in Nhost Storage there may be multiple versions of the same object that are cached in the CDN. If you don't invalidate them all you may still serve files that were deleted or, worse, the wrong version of an object.
+
+To solve this issue we attach to each response a special header `Surrogate-Key` with the `fileID` of the object being served. This means that it doesn't matter if you are serving the original image, a thumbnail, or a presigned url of it, they all will share the same `Surrogate-Key`. When Nhost Storage needs to invalidate a file what it needs to do is instruct the CDN to invalidate all copies of responses with a given `Surrogate-Key`.
+
+## Security
+
+At this point, you may be considering the security implications of this. What happens if a file is private? Does this mean the CDN will serve the stored copy of it to anyone that requests it or does it mean this is only useful for public files? Well, I am glad you asked. The short answer is that you don't have to worry, you can still benefit from the CDN while keeping your files private.
+
+The longer answer is as follows:
+
+1. In the CDN we flag cached content that required some form of the authorization header
+2. When a user requests content that was flagged as private we perform a conditional request from the CDN to the origin. The conditional request will authenticate the request and return a 304 if it succeeds.
+3. The CDN will only serve the cached object to the user if the conditional request succeeded.
+
+Even though you still need a round trip to the origin to perform the authentication of the user, you can benefit from the CDN as your request to the origin is very lightweight (just a few bytes with headers going back and forth), and the file will still be served from the CDN cache. You can see below an example of two users requesting the same file:
+
+1. The cache is empty, CDN requests the file and stores it, total request time from the origin perspective is 5.15s:
+
+```bash
+time="2022-06-16T12:16:28Z" level=info client_ip=10.128.78.244 errors="[]" latency_time=5.157454279s method=GET status_code=206 url=/v1/files/1ff8ef8d-3240-4cf3-805f-fc3d61d190b2                                           │
+```
+
+1. Cache has the object already cached but flagged as private so it makes a conditional request to authenticate the user. Total request time from the origin perspective is 218.28ms (after the 304 the actual file is served directly from the CDN without origin interaction):
+
+```bash
+time="2022-06-16T12:16:41Z" level=info client_ip=10.128.78.244 errors="[]" latency_time=218.283899ms method=GET status_code=304 url=/v1/files/1ff8ef8d-3240-4cf3-805f-fc3d61d190b2
+```
+
+## Serving Large Files
+
+Serving large files pose two interesting challenges:
+
+1. How do you cache large files efficiently?
+2. How do you cache partial content if a connection drops?
+
+These two challenges are related and have a common solution. For instance, imagine you have a 1GB file in your storage and a user starts downloading it, however, the connection drops when the user has downloaded 750MB. What happens when the next user arrives? Do you have to start over? If the file is downloaded fully, do you keep the entire file in the cache?
+
+To support these use cases Nhost Storage supports the `Range` header. This header allows you to tell the origin you want to retrieve only a chunk of the file. For instance, by setting the header `Range: bytes=0-1024` you'd be instructing Nhost Storage to send you only the first 1024 bytes of a file.
+
+In the CDN we leverage this feature to download large files in chunks of 10MB. This way if a connection drops we can store these chunks and serve them later on when a user requests the same file.
+
+## Tweaking TCP Parameters
+
+Another optimization we can do in the CDN platform is to tweak the TCP parameters. For instance, we can increase the [congestion window](https://en.wikipedia.org/wiki/TCP_congestion_control#Congestion_window), which is particularly useful when the latency is high. Thanks to this we can improve download times even when the file isn't cached already.
+
+## Shielding
+
+We mentioned that caches are located close to users, which means that the cache that a user in Cape Town would utilize isn't the same as a user in Paris would. A direct implication of this is that a user in Paris can't benefit from content cached in another location.
+
+This is true up to a certain extent. We utilize a technique called “shielding” which allows us to use a location close to the origin as a sort of “global” cache. With shielding, a cache that doesn't have a copy of the file that is needed will query the shield location instead of the origin. This way you can still reduce the load of your origin and improve your users' experience.
+
+![Sheilding Explained](/images/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast/sheilding-explained.png)
+
+# Performance Metrics
+
+To showcase our CDN integration we are going to perform three simple tests:
+
+1. We are going to download a public image (~150kB)
+2. We are going to download a private image (~150kB)
+3. We are going to download a private large file (45MB)
+
+To make things more interesting we are going to deploy a Nhost app in Singapore while the client is going to be located in Stockholm, Sweden, adding to a latency of ~200ms.
+
+As you can see in the graph below even when the content isn't cached (miss), we experience a significant improvement in download times; downloading the images is done in less than half the time, and downloading the large file takes 30% less time. This is thanks to the TCP tweaks we can apply to the CDN platform
+
+Improvements are more dramatic when the object is already cached, then we see we can get the public image in just 21ms compared to the 2.19s that took to get the file directly from Nhost Storage. Downloading the private image goes down from 2.07s to 403ms, which makes sense as the latency is ~200ms and we need to go back and forth to the origin to ask it to authenticate the user and get back the response before we can serve the object.
+
+![CDN Performance Metrics](/images/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast/performance-metrics.png)
+
+# Did you build a CDN network?
+
+No, we didn't. We are leveraging [Fastly](https://fastly.com)'s expertise for that so you get to benefit from their [large infrastructure](https://www.fastly.com/network-map) while we get to enjoy their high degree of flexibility to tailor the service to your needs.
+
+# Conclusion
+
+Integrating a CDN with a service like Nhost Storage isn't an easy task but by doing so we have increased all metrics allowing you to serve content faster and giving your users a better experience when using your services no matter where your users are.

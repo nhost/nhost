@@ -1,0 +1,187 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost v2 - The beginning of something big',
+  description: '',
+  image: '/images/blog/nhost-v2-the-beginning-of-something-big/banner.png',
+  date: '2022-01-25',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today is a big day in the history of Nhost. After months of hard work, we're now launching Nhost v2 into public beta.
+
+For the last two years, we've been on a mission to build the backend for developers. It has taken us a little longer than we originally planned. This is not totally unheard of in IT projects apparently. We started out thinking we would only update a few things but as we dug deeper, the more we realized that if we wanted to be competitive we would eventually have to restructure both our offered services and our infrastructure.
+
+So, last summer, we decided to go all-in on a new version of Nhost with architecture and infrastructure that would enable us to scale our customer's apps. Both in terms of actual performance and in terms of developer productivity.
+
+Yes, we had to do some groundwork, and yes it would take some time. But it's done!
+
+We're now releasing Nhost v2 and we've never been in a better position to help developers build apps their users love.
+
+## What is Nhost?
+
+If this is the first time you're reading about Nhost, here are three descriptions of what Nhost is:
+
+Nhost is for the backend, what Netlify and Vercel is for the frontend.
+Nhost is an open-source backend to build apps users love.
+Nhost is a serverless backend for web and mobile apps.
+Let's get back to what's new with Nhost v2. But first...
+
+## What's the same with Nhost v2?
+
+All Nhost apps (previously called projects) still consist of [Postgres](https://www.postgresql.org/) and [Hasura](https://hasura.io/). Two amazing open-source projects. We remain committed to offering an open data model which has no vendor lock-in for developers.
+
+Generally, we're still pro,viding a pre-configured backend to build web and mobile apps:
+
+- 🐘 SQL Database
+- 🌐 GraphQL API
+- 🔒 Authentication
+- 🗄️ File Storage
+- ⚡ Serverless Functions
+
+But we've made some updates on pricing, design, services, and infrastructure.
+
+Let's start a new thing that many have waited for. A free tier!
+
+## What's new with Nhost v2?
+
+Rather watch me showing you what's new? Watch this video:
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/5WTetOgDGLk"
+  frameBorder="0"
+  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen={true}
+/>
+
+### Free tier
+
+Nhost now comes with a free tier which is perfect for testing, building a side project, or for your next hackathon (something we'll do more of in the future).
+
+Once you're ready to go to production we have a new Pro plan. And once your app and business scale up we got you covered with our new infrastructure (more about that further down in the post).
+
+### Design
+
+Everything at Nhost has been redesigned. Even our logo had some color adjustments. This means new designs for:
+
+Landing page (https://nhost.io)
+Documentation (https://docs.nhost.io)
+Dashboard (https://app.nhost.io)
+With the new designs, we're are better able to communicate our service and we're set up to deliver some awesome updates in the dashboard for 2022.
+
+### Hasura Backend Plus is replaced by Hasura Auth and Hasura Storage
+
+![Hasura Auth](/images/blog/nhost-v2-the-beginning-of-something-big/hasura-auth.png)
+
+Hasura Backend Plus is replaced by Hasura Auth and Hasura Storage. The new authentication service is very similar to Hasura Backend Plus with one big difference; the users table has been moved to the auth schema and merged with the accounts table. This change was necessary to more easily release new features to Hasura Auth and for customers to track migrations separately from Hasura Auth.
+
+Storage has been fundamentally redesigned and now uses Hasura Permissions instead of the previous rules engine using rules.yaml. This makes for a unified permission system across all services of the Nhost stack. We've also added two tables, files and buckets, in a new storage schema where file metadata is stored automatically. This means files and buckets can be treated just as any other datatype and all file metadata is accessible via your GraphQL API.
+
+It's not only our backend services that were updated. Our client-side SDKs are also fresh!
+
+### SDKs
+
+![Nhost JavaScript Client](/images/blog/nhost-v2-the-beginning-of-something-big/nhost-js.png)
+
+nhost-js-sdk is replaced by @nhost/nhost-js. The previous nhost-js-sdk only had support for authentication and storage, whereas the new @nhost/nhost-js has support for authentication, storage, GraphQL, and functions.
+
+We're also working on our Flutter/Dart SDKs which are to be updated soon.
+
+The SDKs use the app's domain from Nhost. Previously, we had multiple subdomains per app. Not anymore!
+
+### Domains
+
+Previously, we had 3 different subdomains per Nhost app. https://xxx-[hasura | backend | api].nhost.app . Now, there is only a single subdomain per app: https://xxx.nhost.run. Each service is then scoped under /v1/graphql, /v1/auth, /v1/storage, /v1/functions.
+
+Much simpler!
+
+Another thing that should be simple is to have a proper workflow. From local development to production. We're big fans of Netlify and Vercel and their way of deploying websites from GitHub. To do that for the backend, which we do, we needed an improved version of the CLI.
+
+### CLI
+
+![Nhost CLI](/images/blog/nhost-v2-the-beginning-of-something-big/nhost-cli.png)
+
+We have rebuilt the Nhost CLI in Go for increased stability and performance. The CLI also mimics the Nhost experience locally. We also included some productivity features in the CLI such as:
+
+Separated environment per branch - when you switch git branch, the CLI automatically creates a separate local environment for that branch only.
+Serverless functions are automatically rebuilt on every incoming request using ESbuild. Rebuilding usually takes less than 200 ms.
+System environment variables are automatically populated with the correct values based on your environment.
+The CLI is perfect for serious apps with a proper workflow:
+
+Use CLI and develop locally
+The CLI will automatically track database migrations and Hasura metadata
+Push your code to GitHub
+Nhost will automatically deploy database migrations, Hasura metadata, and serverless functions.
+Now you understand why Nhost is for the backend, what Netlify and Vercel are for the frontend.
+
+Speaking of serverless functions...
+
+### Serverless functions
+
+Previously, we had a “custom API” which was a type of serverless function hosted on Google cloud run, using a mix of Docker and express. This worked OK but had some drawbacks.
+
+Our new serverless functions are built for and deployed on, AWS Lambda (just like Netlify and Vercel) and deployed physically close to your backend in the same AWS region. The new serverless functions also enable simple code, types, and package sharing between the front and backend. Perfect if you want to use JavaScript or TypeScript for both your frontend and backend.
+
+### Infrastructure
+
+Previously, we used Digital Ocean to host Nhost projects. We did this with a combination of virtual machines (Droplets), RabbitMQ, and custom scripts to manage docker-compose.yaml files. This was error-prone and we were not able to easily scale a customer's backend.
+
+It was time to level up!
+
+#### From DigitalOcean to AWS
+
+From now on we're using AWS, and we rebuilt our infrastructure from the ground up with a single focus in mind: Scale!
+
+We're now able to scale any Nhost app horizontally in terms of GraphQL, Authentication, Storage, and serverless functions.
+
+The database is still a bottleneck when it comes to scaling, however, we're using AWS RDS for all our client's databases which enables us to deliver:
+
+Automatic software patching
+Automatic fail-over
+High-availability
+Vertically scaling up to 32 vCPUs and 244 GiB of RAM
+Read replicas
+... and much more!
+AWS also has 26 regions around the world, which will help us deliver backends close to our customers. Something that is particularly important with new national data protection laws.
+
+We'll continue building out our infrastructure in 2022 to support all types of customers, from students, indie hackers, agencies, startups, SMB to enterprise customers.
+
+In summary, Nhost is ready for scale and our new infrastructure will help us ship new features faster.
+
+This is the beginning of something big!
+
+## FAQ for customers using Nhost v1
+
+**How should I get started with Nhost v2?**
+
+If you are brand new to Nhost, we recommend reading our Get Started guide in our documentation.
+
+If you are already hosting your apps on Nhost please read our Migration Guide on how to migrate your old app to Nhost v2.
+
+**Do I need to sign up for a new account for Nhost v2?**
+
+If you are new to Nhost just sign up for a new account.
+
+If you are an existing customer, just log in with your existing account details. We have ported your login details over.
+
+**How do I access my old apps that I created in the previous version of Nhost?**
+
+You can still access your old apps at https://console.nhost.io. However, we urge you to migrate your apps to Nhost v2 as we're planning on shuting down the old platform later this year. More information will follow.
+
+**How do I get support with Nhost?**
+
+For in-depth technical questions, we recommend raising a [Github Discussion](https://github.com/nhost/nhost/discussions) this keeps it public and searchable for the community.
+
+For quick questions, please join us on [Discord](/discord). We have an #ask-anything channel where you can get help from us and the community.

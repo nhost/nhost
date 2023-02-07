@@ -1,0 +1,142 @@
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost October 2022',
+  description: '',
+  image: '/images/blog/nhost-october-2022/banner.png',
+  date: '2022-11-08',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hello World!
+
+After a successful [Launch Week](https://nhost.io/launch-week) in September, we’re back for updates related to Postgres, Serverless Functions, Database UI, and more.
+
+Enjoy.
+
+## Postgres Extensions
+
+It’s now possible to install Postgres extensions for your database. We’ve added support for PostGIS, and we plan to add support for more Postgres extensions soon.
+
+Here’s how you can activate PostGIS. First, connect to your database.
+
+```
+psql postgres://postgres:[YOUR-PASSWORD]@goiqxsyjxufxlprgiprm.db.eu-central-1.nhost.run:5432/goiqxsyjxufxlprgiprm
+```
+
+Then, run the following command to activate PostGIS.
+
+```
+create extension postgis;
+```
+
+Done!
+
+Do you want a particular extension added to Nhost? Please let us know in this [GitHub discussion](https://github.com/nhost/nhost/discussions/1020).
+
+## Serverless Functions on Node v16
+
+All Serverless Functions are now running Node v16 (prev v14). This will take effect next time you make a deployment. This now means that Serverless Functions are deployed with the following options:
+
+- Node v16
+- 1024 MB memory (can be upgraded)
+- 10 seconds timeout (can be upgraded)
+- 6 MB request and response payload size limit
+
+Learn more about [Serverless Functions](https://docs.nhost.io/platform/serverless-functions).
+
+## Database UI Locked When Repo is Connected
+
+![Database UI](/images/blog/nhost-october-2022/database-ui.png)
+
+We've pushed a UI update making it impossible to change your production database schema IF your project is connected to a GitHub repository. This way, you will avoid accidentally changing the database schema in production and potentially messing up your migrations. We think this will help you sleep better at night.
+
+## Better Auth logs
+
+We’ve improved the logs for Auth. The previous logs for Auth were very verbose and not very useful. The new log format is denser, showing only the most valuable information.
+
+## Community
+
+### HACK-R-PLAY Hackathon
+
+![HACK-R-PLAY winners](/images/blog/nhost-october-2022/hackrplay-winners.png)
+
+[ReactPlay](https://reactplay.io/) held a hackathon, [HACK-R-PLAY Hackathon](https://hustles.reactplay.io/hackrplay/2022/home), together with Nhost, with some amazing submissions. Here are the top 3:
+
+1. [Classroom](https://learnwithclassroom.vercel.app/) ([GitHub repo](https://github.com/GeekyChakri/Classroom)) by [Chakri](https://twitter.com/geekyChakri).
+2. [Papercode](https://papercode.netlify.app/home) ([GitHub repo](https://github.com/Angryman18/papercode)) by [Shyam Mahanta](https://twitter.com/ShyamMahanta2)
+3. [Mailsbe](https://mailsbe.netlify.app/app) ([GitHub repo](https://github.com/aashishpanthi/mailsbe)) by [Aashish Panthi](https://twitter.com/aashishpanthi11).
+
+Find all submissions for the HACK-R-PLAY hackathon [here](https://hustles.reactplay.io/hackrplay/2022/ideas).
+
+Make sure to follow [ReactPlay](https://reactplay.io/) - an open source platform for React developers to learn, create and share ReactJS projects.
+
+### Knowing Nhost
+
+[@tapasadhikary](https://twitter.com/tapasadhikary) and [@koustov](https://twitter.com/koustov), the team behind ReactPlay, also did a video explaining what Nhost is and how it works.
+
+It's a great introduction to Nhost, and we highly recommend you watch it.
+
+![Knowing Nhost](/images/blog/nhost-october-2022/knowing-nhost.png)
+
+Link: [https://www.youtube.com/watch?v=1qfDkmtuWqg](https://www.youtube.com/watch?v=1qfDkmtuWqg)
+
+### Les News développement web pour octobre 2022
+
+Double Shash Dev, by [@xlanex6](https://twitter.com/xlanex6) and [@PatrickFaramaz](https://twitter.com/PatrickFaramaz), speaks about Nhost and our launch week on their podcast for our French audience.
+
+![Les News développement web pour octobre 2022](/images/blog/nhost-october-2022/double-slash-dev.png)
+
+Link: [https://www.youtube.com/watch?v=jJT14P0u5E8](https://www.youtube.com/watch?v=jJT14P0u5E8)
+
+## Next.js and Nhost Template
+
+[@usagizmo](https://twitter.com/usagizmo) has created a full stack starter template with Nhost using best practices and other modern tools:
+
+- TypeScript
+- Next.js
+- TailwindCSS
+- Nhost
+- Turborepo
+- pnpm
+
+GitHub repo: [https://github.com/usagizmo/nextjs-template](https://github.com/usagizmo/nextjs-template)
+
+## Onsplash
+
+![Onsplash](/images/blog/nhost-october-2022/onsplash.png)
+
+[@MartinP460](https://github.com/MartinP460), one of our community members, has created an open source alternative to unsplash using Nhost. The source code is available on GitHub, and Martin has also written a detailed blog post about his process when developing Onsplash.
+
+Link: [https://onsplash.vercel.app/](https://onsplash.vercel.app/)
+
+GitHub repo: [https://github.com/MartinP460/onsplash](https://github.com/MartinP460/onsplash)
+
+Blog Post: [https://www.martpol.dev/projects/onsplash](https://www.martpol.dev/projects/onsplash)
+
+## Write Better “where” Queries with Hasura
+
+![Write Better "where" queries with Hasura](/images/blog/nhost-october-2022/write-better-graphql-where-queries-with-hasura.png)
+
+There is a smart trick when writing GraphQL where-queries with Hasura that some developers get wrong. Learn how in this short blog post.
+
+Link: [https://nhost.io/blog/write-better-graphql-where-queries-with-hasura](/blog/write-better-graphql-where-queries-with-hasura)
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

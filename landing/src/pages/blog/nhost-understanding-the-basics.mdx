@@ -1,0 +1,389 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost: Understanding the basics',
+  description: '',
+  image: '/images/blog/nhost-understanding-the-basics/banner.png',
+  date: '2022-05-20',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Guides'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Let's create a simple todo-app using Nhost. With this app, a user will be able to create and list its own todos and not have anyone else see them.
+
+To implement this behavior with Nhost, we'll briefly cover the following topics:
+
+- Creating a new app on Nhost
+- Defining a database schema
+- Inserting data
+- Setting permissions
+- Querying data via the GraphQL API
+
+By the end of this tutorial, you will better understand what Nhost is and what it does for you.
+
+## Log in to Nhost
+
+Go to [app.nhost.io](https://app.nhost.io) and sign up for a new account if you don't have one already.
+
+## Create app
+
+Press the **New App** button on the console's home page. Choose a name and pick the region closest to your users.
+
+You'll be all set with the Default Workspace and the Free plan for now.
+
+![New App](/images/blog/nhost-understanding-the-basics/new-app.png)
+
+Creating a new app takes around 20 seconds or so. During this time, Nhost sets up your app's entire backend and infrastructure.
+
+Once the setup completes, you'll automatically see the app dashboard, and you're ready to define your app's database schema.
+
+Now, you will write a small JavaScript client to interact and retrieve todos from your Nhost app.
+
+### Frontend frameworks
+
+Nhost is framework-agnostic and works with any frontend you might build. You can also connect to Nhost from your server-side if you wish.
+
+In this guide, we'll keep the example simple. We're not using a frontend framework. In a real-life scenario, you'd probably build a frontend client with a framework such as React, Vue, Svelte, or React Native.
+
+## Setup
+
+Make sure you have [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/getting-started) or [Yarn](https://classic.yarnpkg.com/lang/en/docs/install) installed.
+
+Create a new folder called `nhost-todos`, initialize a new JavaScript app there, and install the Nhost JavaScript SDK:
+
+```bash
+npm init -y
+npm install @nhost/nhost-js graphql
+```
+
+or with Yarn
+
+```bash
+yarn init -y
+yarn add @nhost/nhost-js graphql
+```
+
+You might have to edit the `package.json` file and add/change the `type` object to `module` (`"type": "module"`).
+
+## Initialize Nhost
+
+In the new directory, create a file called `index.js`.
+
+Enter the following code into this file. It will initialize a new [JavaScript client](https://docs.nhost.io/reference/javascript) that will interact with your backend:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://[app-subdomain].nhost.run', // replace this with the backend URL of your app
+})
+
+console.log(nhost.graphql.getUrl())
+```
+
+Run the code in your terminal. You should see your app's GraphQL endpoint URL:
+
+```bash
+➜ node index.js
+
+https://[app-subdomain].nhost.run/v1/graphql
+```
+
+### Query todos
+
+If you now add the following GraphQL query to the client, let's see what happens when you run the updated version:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://[app-subdomain].nhost.run',
+})(async () => {
+  // nhost.graphql.request returns a promise, so we use await here
+  const todos = await nhost.graphql.request(`
+    query {
+      todos {
+        id
+        created_at
+        name
+        is_completed
+      }
+    }
+  `)
+
+  // Print todos to console
+  console.log(JSON.stringify(todos.data, null, 2))
+})()
+```
+
+```bash
+➜ node index.js
+
+null
+```
+
+`null` is printed. Why is that? Let's find out.
+
+While using the Hasura Console, you could fetch the todos because the **admin** role is enabled by default but when building your applications with a client, you want to define permissions using **roles** that your users can assume when making requests.
+
+Hasura supports role-based access control. You create rules for each role, table, and operation (select, insert, update and delete) that can check dynamic session variables, like user ID.
+
+## Unauthenticated users
+
+Use the `public` role in permissions when you want some data to be accessed by anyone without being signed in. The `public` role is the default role in all unauthenticated requests.
+
+Generally speaking, the `public` role should not have permission to insert, update or delete data.
+
+### Setting `public` permissions
+
+In Hasura Console, go to the **Data** tab, click on the **todos** table, then click **Permissions**. Add a new role called `public` and click on **select**. The permission options for the select operation show up below.
+
+Add the following permissions:
+
+![Public role](/images/blog/nhost-understanding-the-basics/permissions-public-select.png)
+
+Rerun the program. Now you see all todos.
+
+```bash
+➜ node index.js
+
+{
+  "todos": [
+    {
+      "id": "558b9754-bb18-4abd-83d9-e9056934e812",
+      "created_at": "2021-12-01T17:05:09.311362+00:00",
+      "name": "write docs",
+      "is_completed": false
+    },
+    {
+      "id": "480369c8-6f57-4061-bfdf-9ead647e10d3",
+      "created_at": "2021-12-01T17:05:20.5693+00:00",
+      "name": "cook dinner",
+      "is_completed": true
+    }
+  ]
+}
+```
+
+There are two reasons why the request succeeded:
+
+1. Nhost sets the `public` role for every unauthenticated GraphQL request.
+2. You explicitly defined permissions for the `public` role.
+
+It is essential to understand that Hasura has an **allow nothing by default** policy to ensure that only roles and permissions you define explicitly have access to the GraphQL API.
+
+To implement an app for managing a todo list, let's ensure we have database tables for storing todos and users.
+
+## Open Hasura Console
+
+Hasura generates real-time GraphQL APIs, but it also provides a web console for manipulating the schema and data of your database.
+
+Go to the **Data** tab on your app's dashboard and select **Open Hasura**. Remember to copy the admin secret.
+
+The Hasura Console of your app's dedicated Hasura instance will open in a new tab. You can use Hasura Console to manage your app's schema, data, permissions, and event triggers.
+
+![Data -> Open Hasura](/images/blog/nhost-understanding-the-basics/data-tab.png)
+
+## Users table
+
+You should see all your database tables on the left-hand side of the screen. You should see multiple different **schemas** displayed as folders:
+
+- `public` schema for your app's custom tables
+- `auth` and `storage` schemas for Nhost's user management and file storage
+
+If you open the `auth` schema, you'll see that your app already has a `users` table, so you don't have to create one.
+
+![To store the users, we already have a users table from the auth schema](/images/blog/nhost-understanding-the-basics/list-of-schemas.png)
+
+## Create todos table
+
+In Hasura Console, go to the **data** tab, then click **Create Table**. Name this table `todos`.
+
+### Add frequently used columns
+
+`id` and `created_at` columns are standard and can be added with two clicks. Click **Frequently used columns** and create them:
+
+- `id` (UUID)
+- `created_at` (timestamp)
+
+Using frequently used columns ensures the columns get the right name, type, and default value.
+
+![Frequently used columns in the Hasura console](/images/blog/nhost-understanding-the-basics/frequently-used-columns.png)
+
+### Add custom columns
+
+Add two more columns manually:
+
+- `name` (text)
+- `is_completed` (boolean)
+
+Make sure to set the default value of `is_completed` to `false`.
+
+![Create a table in the Hasura console](/images/blog/nhost-understanding-the-basics/create-table.png)
+
+This is all we need! A new table will be created when you click **Add Table**.
+
+## Insert data
+
+Go to the **Insert Row** tab to add some data to your database.
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source
+    src="/images/blog/nhost-understanding-the-basics/insert-todos.mp4"
+    type="video/mp4"
+  />
+</video>
+
+## Query data
+
+Now that we have data in our database, we can retrieve it via a GraphQL API. Go to the **API** tab in the main menu. You can use this view to make GraphQL requests that query or mutate data in your database.
+
+Paste the following GraphQL query into the form and press the **Play** button:
+
+```graphql
+query {
+  todos {
+    id
+    created_at
+    name
+    is_completed
+  }
+}
+```
+
+You should see the todos you just inserted show up as output on the right-hand side.
+
+### Admin role
+
+All requests in the Hasura Console use the `admin` role by default. This role has access to all tables and permissions.
+
+## Authentication
+
+In the previous section, you defined `select` permissions for the `public` role. You will now add `insert` and `select` permissions for authenticated users to secure your app's GraphQL API with authentication.
+
+> Nhost's authentication service lets you deliver frictionless registration and login experiences to your users. We support most social providers and different methods such as email & password and passwordless (magic link).
+
+## Insert a test user
+
+Manually create a user by going to your app's **Users** tab (top menu) and clicking on **Add User**.
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source
+    src="/images/blog/nhost-understanding-the-basics/add-user.mp4"
+    type="video/mp4"
+  />
+</video>
+
+You will now use that newly created user. We'll use this newly created user to make authenticated requests to the GraphQL API.
+
+## Sign in and query data
+
+Add the following code to sign in the new user and request the list of todos again:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://[app-subdomain].nhost.run',
+})(async () => {
+  // Sign in user
+  const signInResponse = await nhost.auth.signIn({
+    email: 'joe@example.com',
+    password: 'securepassword',
+  })
+
+  // Handle sign-in error
+  if (signInResponse.error) {
+    throw signInResponse.error
+  }
+
+  // Get todos
+  const todos = await nhost.graphql.request(`
+    query {
+      todos {
+        id
+        created_at
+        name
+        is_completed
+      }
+    }
+  `)
+
+  console.log(JSON.stringify(todos.data, null, 2))
+})()
+```
+
+Why is the return value `null`? Because when making GraphQL requests as an authenticated user, the `user` role is assumed.
+
+> For authenticated requests, there is always the option to override the default `user` role with any other valid role.
+
+To prepare our database and GraphQL API to work for signed-in users we need to do two things:
+
+1. Add a `user_id` column to the `todos` table, so we know what todo belongs to which user.
+2. Use the `user` role instead of the `public` role for permissions.
+
+## Add `user_id` column
+
+Before adding the `user_id` column, let's delete all existing todos.
+
+Then add the `user_id` column as a `UUID` type. Make sure that `nullable` is **not** checked. This will ensure that all todos must have a `user_id` value.
+
+At last, we'll create a connection between the `todos` table and the `users` table. For that, we need to do yet another two things:
+
+1. Create a Foreign Key (FK) between `todos` and `auth.users.id`.
+2. Let Hasura track the relationship between the two tables.
+
+<video width="99%" loop="" muted="" playsInline="" controls="true">
+  <source src="/videos/user-id-column.mp4" type="video/mp4" />
+</video>
+
+### Create FK
+
+Create a FK between the `auth.users.id` column and the `public.todos.user_id` column. See video above.
+
+### Track relationship
+
+Click on the `public` schema and track the untracked foreign key relationship. Then click on the `auth` schema and track the relationship again. See video above.
+
+We track these relationships to create the GrpahQL relationships between the `todos` table to the `users` table and the `users` table to the `todos` table.
+
+Ok, our `user_id` column is added and connected correctly. Let's continue with setting permissions for signed-in users.
+
+## Permissions for signed-in users
+
+Let us organize the permissions so it works for signed in users too.
+
+### Remove permissions for the public role
+
+We won't use the `public` role anymore, so let's remove all permission for that role.
+
+![Remove public permissions from Hasura](/images/blog/nhost-understanding-the-basics/remove-public-permissions.png)
+
+Now we'll add permissions for the `user` role.
+
+> Signed-in users use the `user` role by default
+
+### Insert permission
+
+First, we'll set the **Insert permission**.
+
+A user can only insert `name` because all other columns will be set automatically. More specifically, `user_id` is set to the user's id making the request (`x-hasura-user-id`) and is configured in the `Column presets` section. See the image below.
+
+![User insert permission](/images/blog/nhost-understanding-the-basics/user-insert-permission.png)
+
+### Select permission
+
+For **Select permission**, set a **custom check** so users can only select todos where `user_id` is the same as their user id. In other words: users are only allowed to select their todos. See the image below.
+
+![User select permission](/images/blog/nhost-understanding-the-basics/user-select-permission.png)
+
+Now rerun the app. New todos are inserted, and only todos for the user are fetched and displayed. Your backend is successfully secured!

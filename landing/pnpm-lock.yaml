@@ -27,7 +27,9 @@ specifiers:
   react: 18.2.0
   react-dom: 18.2.0
   react-intersection-observer: ^9.4.1
+  react-medium-image-zoom: ^5.1.2
   react-syntax-highlighter: ^15.5.0
+  react-twitter-embed: ^4.0.4
   remark-gfm: ^3.0.1
   sharp: ^0.31.3
   tailwind-merge: ^1.9.0
@@ -53,7 +55,9 @@ dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-intersection-observer: 9.4.1_react@18.2.0
+  react-medium-image-zoom: 5.1.2_biqbaboplfbrettd7655fr4n2y
   react-syntax-highlighter: 15.5.0_react@18.2.0
+  react-twitter-embed: 4.0.4_biqbaboplfbrettd7655fr4n2y
   sharp: 0.31.3
   tailwind-merge: 1.9.0
   typescript: 4.9.5
@@ -4297,6 +4301,16 @@ packages:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: false
 
+  /react-medium-image-zoom/5.1.2_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-Lk9TDqd+vUpQVP77p45jXgh1LGjClLfyLJnTemCfpI+5Zp3X7MX7iGP5VmSdLGXy9mhdlZiByHOyp4Irf4N8vg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /react-syntax-highlighter/15.5.0_react@18.2.0:
     resolution: {integrity: sha512-+zq2myprEnQmH5yw6Gqc8lD55QHnpKaU8TOcFeC/Lg/MQSs8UknEA0JC4nTZGFAXC2J2Hyj/ijJ7NlabyPi2gg==}
     peerDependencies:
@@ -4308,6 +4322,18 @@ packages:
       prismjs: 1.27.0
       react: 18.2.0
       refractor: 3.6.0
+    dev: false
+
+  /react-twitter-embed/4.0.4_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-2JIL7qF+U62zRzpsh6SZDXNI3hRNVYf5vOZ1WRcMvwKouw+xC00PuFaD0aEp2wlyGaZ+f4x2VvX+uDadFQ3HVA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: ^16.0.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      scriptjs: 2.5.9
     dev: false
 
   /react/18.2.0:
@@ -4556,6 +4582,10 @@ packages:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
       loose-envify: 1.4.0
+    dev: false
+
+  /scriptjs/2.5.9:
+    resolution: {integrity: sha512-qGVDoreyYiP1pkQnbnFAUIS5AjenNwwQBdl7zeos9etl+hYKWahjRTfzAZZYBv5xNHx7vNKCmaLDQZ6Fr2AEXg==}
     dev: false
 
   /semver-diff/2.1.0:

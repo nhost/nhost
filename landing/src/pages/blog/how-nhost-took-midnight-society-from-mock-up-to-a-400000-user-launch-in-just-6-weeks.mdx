@@ -1,0 +1,85 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title:
+    'How Nhost took Midnight Society from Mock-up to a 400,000-User Launch in just 6 Weeks',
+  description: '',
+  image:
+    '/images/blog/how-nhost-took-midnight-society-from-mock-up-to-a-400000-user-launch-in-just-6-weeks/banner.png',
+  date: '2022-04-14',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['User Story'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+[Gary Fung](https://twitter.com/garyfung) is the Vice President of Engineering at [Boom.tv](http://Boom.tv) who are collaborating with [Midnight Society](https://midnightsociety.com/), a AAA game studio that makes their community part of the game-building process. Since they act on feedback and build in iterations, their goal was to attract a large enough audience to influence how the game would unfold.
+
+![Gary Fung, VP of Engineering, Boom.tv](/images/blog/how-nhost-took-midnight-society-from-mock-up-to-a-400000-user-launch-in-just-6-weeks/gary-fung.png)
+
+By early February of 2022, they had already amassed 120,000 followers on [Twitter](https://twitter.com/12am) and another 80,000 on [Discord](https://discord.com/invite/midnight-society). What they needed to do was funnel those users to their website and get them to sign up for early access to their new game and other benefits.
+
+Midnight Society knew that their launch was going to be big because one of their founders is Dr DisRespect, a video-game streamer with millions of followers on both [Twitter](https://twitter.com/drdisrespect) and [YouTube](https://www.youtube.com/channel/UCcJL2ld6kxy_nuV1u7PVQ0g). This meant that their backend and infrastructure had to be able to handle hundreds of thousands of users from day one.
+
+"By February, the Midnight Society team had established a comprehensive plan of how and what they wanted to deliver to their growing community. Our job was to facilitate the sign-up and account creation required to allow those fans to obtain in while meeting a very close deadline. It would not have been possible without Nhost," Fung explained.
+
+![Midnight Society](/images/blog/how-nhost-took-midnight-society-from-mock-up-to-a-400000-user-launch-in-just-6-weeks/ms-bg.png)
+
+## Choosing Nhost for the Backend
+
+[Boom.TV](http://boom.tv/), one of Midnight Society's collaborators, had been using Laravel to build custom web apps but found it challenging to work with when it came to standardizing CI/CD pipelines and the tightly coupled backend and frontend.
+
+They needed a more modern stack and developer experience that would separate the backend and frontend processes. Since the team already had experience with GraphQL, they had their sights set on Hasura. But they also needed a "batteries included" solution that would stand the test of time.
+
+### Authentication for Hasura
+
+While researching the best way to handle authentication with Hasura, Fung's team evaluated Auth0 and Firebase. In the end, the former was too expensive and the latter was too inflexible. Another downside was that they were both closed-source.
+
+That was when they came across Nhost's open-source [authentication service for Hasura](https://github.com/nhost/hasura-auth). From that, they found Nhost's full offering with managed Postgres, Hasura, Auth, Storage and Serverless Functions.
+
+For Fung, "Nhost filled a hole in Hasura's ecosystem."
+
+Just as Hasura automatically generates the GraphQL API, Nhost automatically takes care of the infrastructure, configurations and deployments.
+
+## Nhost feels like Vercel, but for the backend
+
+Nhost felt highly familiar and intuitive to Fung:
+
+"I was spoiled by Vercel's CI/CD and was positively surprised that I was able to experience the same thing with Nhost. It allowed us to focus on our actual business, instead of having to build infrastructure, CI/CD pipelines, CRUD APIs, or authentication."
+
+## The benefits of Pairing Nhost with Hasura
+
+Because Fung leads a team of three frontend engineers, he spends half of his time managing their tasks and the other half working on the backend.
+
+Yet, despite their small size, commitments, and a looming deadline, the team was able to ship Midnight Society to their users in a matter of 6 weeks.
+
+"There is no way in hell we would have been able to move from mock-up to launch in 6 weeks if it weren't for Nhost," Fung maintains.
+
+Since the GraphQL API was automatically generated, the frontend team never experienced a bottleneck with the backend, and this accelerated their work by 10x.
+
+Instead of having to deal with "boring" CRUD and infrastructure, Fung could work on custom logic and business-specific code that created value for their customers:
+
+"Before Nhost I didn't use serverless, but now I'm fully on board because it's so easy. It's easier than any traditional approach and enables me to protect my time for higher-value activities."
+
+![Nhost: The Open-Source GraphQL Backend](/images/blog/how-nhost-took-midnight-society-from-mock-up-to-a-400000-user-launch-in-just-6-weeks/nhost-bg.png)
+
+## The Launch
+
+Within weeks of launching Midnight Society, the team had over 400,000 people using their platform.
+
+Users could sign up through emailed magic links, Discord, Google, or Twitch. Once they made it onto the platform, they could connect through other accounts to increase their chances of being selected for early access to the game.
+
+## Summary
+
+By using a serverless architecture with Nhost for the backend and Vercel for the frontend, Midnight Society had an incredibly successful launch.
+
+This holy union enabled them to avoid having to think about things like CI/CD, servers, infrastructure, configuration, and scaling.
+
+Giving Fung the last word: "Why would I reinvent the wheel when Nhost already solved it? Serverless and Hasura was a new approach for us, and after the launch with Midnight Society, it is our go-to stack for any future projects, and the stack I recommend to my friends."

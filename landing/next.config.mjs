@@ -33,6 +33,7 @@ const nextConfig = {
 const withMDX = nextMDX({
   extension: /\.mdx?$/,
   options: {
+    providerImportSource: '@mdx-js/react',
     remarkPlugins: [remarkGfm],
     rehypePlugins: [rehypePrism],
   },

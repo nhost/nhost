@@ -1,0 +1,138 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost April 2022',
+  description: '',
+  image: '/images/blog/nhost-april-2022/banner.png',
+  date: '2022-05-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+[Yo](<https://en.wikipedia.org/wiki/Yo_(app)>),
+
+Here are the latest updates for April 2022 for Nhost.
+
+Enjoy.
+
+## Nhost: Among the Fastest Growing Startup on GitHub
+
+Every quarter Runa Capital features the fastest growing startups by GitHub star growth. Nhost was the 12th fastest growing startup together with other notable open source startups like Remix and SuperTokens.
+
+If you haven't already, give us a star: [https://github.com/nhost/nhost](https://github.com/nhost/nhost)
+
+And check the full report here: [https://runacap.com/ross-index/q1-2022/](https://runacap.com/ross-index/q1-2022/)
+
+![ROSS Index: Nhost among the fastest frowing startups on GitHub](/images/blog/nhost-april-2022/ross.png)
+
+## Pro Plan
+
+Since we launched the new version of Nhost two months ago we've only had the free plan available.
+
+Now we're launching our Pro plan ($25/mo). The Pro plan comes with generous resources and the ability to pay extra for extra resources such as database, storage, and network traffic.
+
+Here are some benefits of the Pro plan:
+
+- Apps never go to sleep
+- Daily database backups
+- 10 GB database
+- 25 GB file storage
+- 50 GB network traffic
+
+See the full pricing and comparison on our [pricing page](https://nhost.io/pricing).
+
+Btw, we're also working on providing enterprise plans which will include dedicated databases, premium support, SLA, horizontal scaling, and more. If you're interested in learning more please reach out to me at [johan@nhost.io](mailto:johan@nhost.io).
+
+## Auto-generated documentation for our SDKs
+
+Since our launch of React and Next.js SDKs last month we found it hard to keep our reference documentation in sync with the code. To spread out the same information in multiple locations is something we really don't like.
+
+Luckily, all our SDKs are written in TypeScript so we could use a tool like TypeDoc to automatically generate all documentation. The problem with TypeDoc is that the output is technically correct but not very useful nor practical.
+
+So we built a tool on top of TypeDoc that can understand the output of TypeDoc and converts it to useful and nice-looking markdown files for our documentation.
+
+From now on, we only have to update our code and inline documentation in our code. The documentation will then be generated based on the code.
+
+Here's an example of the method to change email in our JavaScript Client. This is the code:
+
+![Code from our JavaScript SDK](/images/blog/nhost-april-2022/code.png)
+
+And here's the automatically generated documentation:
+
+![Auto-generated documentation](/images/blog/nhost-april-2022/docs.png)
+
+If you want to help us keep our documentation and clients up to date, everything is open source at [https://github.com/nhost/nhost](https://github.com/nhost/nhost).
+
+## Docusaurus
+
+We've also moved our whole documentation to use Docusauris. Docusaurus is an open-source framework to ship beautiful documentation websites with a focus on markdown files. It's built using React so it's easy to customize if needed. Also, the logo is cute!
+
+![Docusaruss](/images/blog/nhost-april-2022/docusaurus.png)
+
+## Nhost Auth Updates
+
+We've rolled out updates to Nhost Auth. Here's a short summary:
+
+- Error redirects to the client if there is an error during the OAuth sign-in flow [[link](https://github.com/nhost/hasura-auth/releases/tag/v0.4.0)].
+- Consistent error messages across all endpoints [[link](https://github.com/nhost/hasura-auth/releases/tag/v0.5.0)]
+- Consistent error redirects [[link](https://github.com/nhost/hasura-auth/releases/tag/v0.5.0)]
+- Validate emails against allowing and block lists for OAuth sign in flow [[link](https://github.com/nhost/hasura-auth/releases/tag/v0.5.0)]
+
+You can check out all releases here: https://github.com/nhost/hasura-auth
+
+## Nhost Storage in Go
+
+Nhost Storage was previously written in Node but has now been ported to Go. Going from Node to Go lowered our infrastructure footprint significantly (less CPU and RAM consumed) while also speeding up the performance.
+
+We will have a comparison blog post between the Node and Go versions coming out soon.
+
+Check out the repository here: [https://github.com/nhost/hasura-storage](https://github.com/nhost/hasura-storage)
+
+## Nhost Contributors in our GitHub Readme
+
+All contributors who're helping us on GitHub now get automatically added to our README file at [https://github.com/nhost/nhost](https://github.com/nhost/nhost). Thank you all fantastic contributors! ❤️
+
+![Nhost Contributors](/images/blog/nhost-april-2022/contributors.png)
+
+## Nhost is Hiring
+
+We're looking for a senior product designer to join our fully remote team. Does it sound interesting to you or do you know someone who could be interested?
+
+Here's the job post: [https://crocus-aries-dba.notion.site/Senior-Product-Designer-2e5e855a4ee2400a823d1cb306b66c75](https://www.notion.so/Senior-Product-Designer-2e5e855a4ee2400a823d1cb306b66c75)
+
+## Community
+
+- Maybe include images from their youtube thumbnails??
+- Vadim, at notJust.dev, built a Pinterest clone with React Native and Nhost: [[YouTube Link](https://www.youtube.com/watch?v=4gX2V1IN6Ro)]
+- Ekene Eze built an example full-stack web app with Nhost and Nextjs [[YouTube Link](https://www.youtube.com/watch?v=s8DDLDrAkZk)]
+- Nhost + SvelteKit: Hasura Auth Implemented Simply [[YouTube Link](https://www.youtube.com/watch?v=U8WNqdsjjk4)]
+- Flutter workshop with Nhost [[Twitter Link](https://twitter.com/nhost/status/1519290706149490690)]
+
+## News
+
+![Hasura’s biggest open source strength is its greatest commercial weakness](/images/blog/nhost-april-2022/the-ken-hasura.png)
+
+Nhost was mentioned in The Ken's article about the success of Hausra and its open-source strategy.
+
+Check out the full article: [Hasura’s biggest open source strength is its greatest commercial weakness](https://the-ken.com/story/hasura-open-source-strength-commercial-weakness/?ref_sharecode=MTA4MDAxMy0zMTAxNTEtMjIwODAwNTQ%3D)
+
+## Get started
+
+Create a Nhost App for free and start building: https://app.nhost.io/
+
+## PS. Support us on GitHub
+
+It would mean the world to us if you gave us a star on GitHub. This way, we can increase the visibility of Nhost and our open source and GraphQL contributions.
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you

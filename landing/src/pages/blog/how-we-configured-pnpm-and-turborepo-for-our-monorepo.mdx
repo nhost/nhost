@@ -1,0 +1,217 @@
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How we configured pnpm and Turborepo for our monorepo',
+  description: '',
+  image:
+    '/images/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo/banner.png',
+  date: '2022-11-09',
+  authors: [
+    {
+      name: 'Pierre-Louis Mercereau',
+      title: 'Engineering',
+      avatarUrl: '/images/avatars/pilou.jpeg',
+      url: 'https://twitter.com/plmercereau',
+    },
+  ],
+  tags: ['pnpm', 'Turborepo', 'Monorepo'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+# Intro
+
+12 months ago, we had 10+ npm packages in individual repositories. Things started to get inconsistent and out of hand. Development started to get slower and slower, and we were not able to move fast anymore.
+
+We decided to move to a monorepo to solve these issues. We chose [pnpm](https://pnpm.io/) as our package manager and [Turborepo](https://turbo.build/repo) as our build system. In this article, we will explain how we configured them to work well together.
+
+## Problem
+
+To understand why we wanted to move to a monorepo it's important to understand what problems we had before the move.
+
+- **Dependency management:** Dependencies had to be manually managed between packages. As an example, if `package-a` depended on `package-b`, and `package-b` was updated we had to manually update `package-a` with the new version for `package-b`. Ideally, this would ba automated.
+
+- **CI/CD:** With the packages spread out in separate repositoris, we had multiple ways to test, build, version, and release our packages. It was inefficient and difficult to maintain, and we could hardly ensure the same level of quality and ensure the npm packages were structured in the same way. Instead, we wanted a standardized CI/CD setup for all packages, without having to repeat our selves.
+
+- **Refactoring:** The packages usually depended on each other, making it hard to synchronize them during development. We found ourselves creating sym-links and copying code between folders which slowed down our development process significantly. Instead, we wanted a single process that would watch all packages to rebuild and link them automatically during development.
+
+- **Consistency:** Each package and repository had a separate eslint and vite configuration. If we did one change in one package, we had to manually change the other packages to have the same configuration. This type of manual work was not always done correctly, which led to configuration mismatches between repositories. Again, slowing down our development process. Since almost all packages required the same configuration it was important to centralize it to have a single source of truth.
+
+- **Siloed:** Little collaboration and knowledge sharing occurred among team members. Every engineer tended to “own” their repository in a siloed way. We felt there was an opportunity to share each other expertise by working in the same repository.
+
+- **Reusability:** Our packages often needed the same helpers or generally used the same patterns. Having packages in separate repositories meant we were duplicating code or solving similar problems in a slightly different way from one repository to another. It ended up lowering the code quality and increasing engineering overhead. It would be better if shared code and patterns would be accessible for all packages.
+
+- **Visibility:** Having 10+ repositories made it hard for the Nhost community to find the right package if they wanted to explore, contribute, or create an issue. It was also hard for our community to get a good overview of the different packages we maintained. We wanted to make it easier for developers to find and contribute to our code in a single entry point.
+
+These were the problems we had before moving to a monorepo.
+
+Let's see how we solved them.
+
+## Package manager: pnpm
+
+When we were deciding what package manager to use, it needed to have support for workspaces. In the past, only Yarn supported workspaces out of the box, which made it a great candidate for monorepos, assisted by Lerna to handle package versioning.
+
+However, managing multiple packages in a workspace is a challenge regarding performance. A contributor can lose patience very quickly if they have to wait for several minutes before installing the package's dependencies, and CI jobs will suffer, too, given some are executed on each GitHub push and pull request.
+
+Pnpm stood out as considerably faster when evaluating npm, Yarn, and npm. This was especially obvious in a monrepo setup where pnpm showed impressive results.
+
+Here is a recap of the time it took to install all the packages dependencies in our monorepo:
+
+![Installation time, in seconds.](/images/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo/package-manager-installation-time.png)
+
+![Installation time, in seconds.](/images/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo/package-manager-installation-time-single-package.png)
+
+![Size of `node_module`, in MB.](/images/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo/package-manager-size-of-node-modules.png)
+
+As you see, pnpm is faster and better on all metrics:
+
+- Install all packages.
+- Install a new package.
+- The total size of `node_modules/`.
+
+### Workspaces with pnpm
+
+To setup pnpm workspaces is straightforward. Pnpm only needs to have a root `package.json` file, and a `pnpm-workspace.yaml` that describes where the child packages are located. This is our `pnpm-workspace.yaml` file:
+
+```yaml
+packages:
+  - 'packages/**'
+  - 'docs'
+  - '!**/test/**'
+  - 'examples/**'
+```
+
+### Enforce `pnpm`
+
+Some of our contributors are using `npm` or `Yarn`. To make sure developers use `pnpm` with our monorepo we configured [`only-allow`](https://www.npmjs.com/package/only-allow) as a [`preinstall`](https://docs.npmjs.com/cli/v9/using-npm/scripts#life-cycle-operation-order) script:
+
+```json
+"preinstall": "npx only-allow pnpm"
+```
+
+### Who is using pnpm?
+
+Nhost is a happy user of pnpm along with these projects and companies:
+
+- [Next.js](https://github.com/vercel/next.js)
+- [Vite](https://github.com/vitejs/vite)
+- [Prisma](https://github.com/prisma/prisma)
+- [Astro](https://github.com/withastro/astro)
+- [SvelteKit](https://github.com/sveltejs/kit)
+- [Turborepo](https://github.com/vercel/turbo)
+
+Source: [https://pnpm.io/workspaces#usage-examples](https://pnpm.io/workspaces#usage-examples).
+
+### Sponsoring pnpm
+
+Nhost is also a proud sponsor of pnpm!
+
+<TwitterTweetEmbed tweetId={'1539261896531976199'} />
+
+So, pnpm is a solid tool as a package and workspace manager for our monorepo. Next, we'll look at Turborepo as a build system for our monorepo.
+
+## Build System: Turborepo
+
+Numerous great monorepo tools are available in the Javascript landscape: [Nx](https://nx.dev/), [Lerna](https://github.com/lerna/lerna), and the three main package managers ([npm](https://www.npmjs.com/), [Yarn](https://yarnpkg.com/), and [pnpm](https://pnpm.io/)) now support workspaces.
+
+We had mixed feelings about using Lerna as a build system beacuse of experiences in the past and we had [concerns about its maintenance](https://github.com/lerna/lerna/issues/3062) (Nx did not step up yet to rebirth it). During testing, Lerna was also significantly slower than both Nx and Turborepo.
+
+That left us with two options: Nx and Turborepo.
+
+Setting up the perfect monorepo is hard. We knew we would need to build packages and examples for a considerable amount of targets in JavaScript and Typescript:
+
+- ES modules
+- CommonJs
+- UMD
+
+On top of that, we had to make sure our setup was working with frameworks like React, Vue, Svelte, and other future frameworks.
+
+After some exploration and testing, we felt the learning curve of Nx was too steep for our team. We also felt that Nx was too opinionated and that it would be hard to customize it to our needs.
+
+Turborepo was a better fit for us. It is a build system that is easy to configure and customize. Although it is not as mature as Nx and Learna, we saw the potential for Turborepo to become a great tool for monorepos. It is also very (very!) fast and has a great community and support from [Vercel](https://vercel.com/docs/concepts/monorepos/turborepo).
+
+Another reason we chose Turborepo is because its model was more agnostic than Nx, allowing us to move away from it if needed and fall back to barebone npm, Yarn, or pnpm workspaces, supplemented by Lerna.
+
+Lastly, a decisive aspect was the integration of Turborepo with other tools, in particular pnpm and [changesets](https://github.com/changesets/changesets). We'll dig deeper into changesets in a follow-up blog post.
+
+### Turborepo Configuration
+
+To set a basic Turborepo configuration is quite easy: first, you need to describe dependencies between [development tasks](https://turbo.build/repo/docs/handbook/dev) and add some information about how artifacts should be cached. Let's have a look at how we defined the `build` pipeline in our `turbo.json` file:
+
+```json
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "baseBranch": "origin/main",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "umd/**", "build/**", ".next"]
+    }
+  }
+}
+```
+
+In the configuration above, we told Turborepo that when building a package, it needed to build the package dependencies first (`"dependsOn": "^build"]`). We also determined the `outputs` of the pipeline so everything in `dist`, `umd`, `build` or `.next` is cached.
+
+We then defined the most common build tasks in our root `package.json` file with some filtering options:
+
+```json
+"scripts": {
+    "build": "pnpm run build:all --filter=!@nhost/docs --filter=!@nhost-examples/*",
+    "build:docs": "pnpm run build:all --filter=@nhost/docs",
+    "build:all": "turbo run build  --include-dependencies"
+}
+```
+
+The `build` script builds everything except the examples and the documentation, whereas `build:docs` only builds the documentation, and `build:all` (you guessed it!) builds everything.
+
+Retrospectively, the Turborepo cache worked amazingly. When the initial build of our library packages (`pnpm run build`) takes 30 seconds, running the same task takes 0.2 seconds from the cache. This is a huge time saver for our team.
+
+### Who is using Turborepo?
+
+Nhost is a happy user of Turborepo along with these projects and companies:
+
+- [Vercel](https://vercel.com/)
+- [AWS](https://aws.amazon.com/)
+- [Microsoft](https://www.microsoft.com/)
+- [Netflix](https://www.netflix.com/)
+- [Disney](https://www.disney.com/)
+
+Source: [https://turbo.build/showcase](https://turbo.build/showcase)
+
+## Resolve package builds in both Javascript and Typescript
+
+One of the recurrent challenges in a monorepo is linking packages together so they can be reused as dependencies. Using workspaces makes things straightforward with Javascript, but Typescript doesn't get along very well in a monorepo, as it resolves internal dependencies differently.
+
+Node uses the traditional way of resolving Node modules, which is [brilliantly implemented](https://pnpm.io/motivation) in pnpm workspaces. Still, Typescript expects to be given information about where to find each of its dependencies in each `tsconfig.json`.
+
+Moreover, the development environment and the built environment may differ. We found almost as many approaches to solve the problem as they were monorepos in GitHub.
+
+We decided to go for the simplest approach. During development, we would build each package and use the resolution as per its definition in the `main`, `module`, `types`, and `exports` fields of every `package.json` file. In doing so, we use the same package configuration in both development and production and don't end up in an overcomplicated Typescript setup. Moreover, as the IDE uses the built typings of each package, it significantly alleviated the Typescript engine while developing.
+
+Of course, it came with some tradeoffs:
+
+- Packages needed to be built before being used as dependencies in another package in our monorepo. Fortunately, this turned out to not be such a big issue because of how performent Turborepo and its cache were. Together with Vite, the rebuilding of packages was very fast.
+
+- The IDE sometimes doesn't catch up with a recent change in the package typings, as they are processed by the IDE as any other dependency would be i.e., they are not expected to change. When using VS Code, we sometimes need to restart the Typescript server.
+
+## Building and Bundling
+
+As already mentioned, our requirements in terms of bundling were quite broad. We wanted to produce typed packages that would work as ES modules in CommonJS and UMD. We also wanted to be able to bundle React or Vue components. On the other hand, it is quite easy to be lost in the numerous bundling tools and transpilers. We went for Vite, as it was fast, easy to configure, and agnostic enough. We'll write more about Vite in a follow up blog post.
+
+## Configuration
+
+We also foresaw a significant number of configuration files and wanted to keep the root folder as simple as possible, so contributors would focus on the packages rather than the way they are glued together. We, therefore, put these files in the [`config/`](https://github.com/nhost/nhost/tree/main/config) directory in the root of the monorepo whenever possible.
+
+## Our Monorepo
+
+Here's the link to our monorepo: [https://github.com/nhost/nhost](https://github.com/nhost/nhost)
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

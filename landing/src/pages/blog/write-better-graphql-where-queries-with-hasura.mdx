@@ -1,0 +1,97 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Write Better GraphQL "where" Queries with Hasura',
+  description:
+    'There is a smart trick when writing GraphQL where-queries with Hasura that some developers get wrong. Instead of making the query generic and flexible, they make it specific and unflexible.',
+  image:
+    '/images/blog/write-better-graphql-where-queries-with-hasura/banner.png',
+  date: '2022-10-12',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+There is a smart trick when writing GraphQL where-queries with Hasura that some developers get wrong.
+
+Instead of making the query generic and flexible, they make it specific and unflexible.
+
+Let me show you an example.
+
+Here’s a query to get a list of people. With the query, you can define `age` and `nameLike` as variables.
+
+```graphql
+query getPeople($age: Int!, $nameLike: String!) {
+  people(
+    where: { _and: [{ age: { _eq: $age } }, { name: { _like: $nameLike } }] }
+  ) {
+    id
+    name
+  }
+}
+```
+
+With the following variables:
+
+```json
+{
+  "age": 33,
+  "nameLike": "%Jo%"
+}
+```
+
+The problem with this approach is that it’s inflexible and you can only use the query for one specific task. If you want to filter on something other than `age` and `nameLike` you need to write new GraphQL queries.
+
+That’s not optimal.
+
+It’s better to write a **generic** and **flexible** `where`.
+
+Like this:
+
+```graphql
+query getPeople($where: people_bool_exp!) {
+  people(where: $where) {
+    id
+    name
+  }
+}
+```
+
+With the following variables:
+
+```json
+{
+  "where": {
+    "_and": [
+      {
+        "age": {
+          "_eq": 33
+        }
+      },
+      {
+        "name": {
+          "_like": "%Jo%"
+        }
+      }
+    ]
+  }
+}
+```
+
+This way, you can re-use the same query for different boolean expressions by changing the `where` expression using the GraphQL variable.
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

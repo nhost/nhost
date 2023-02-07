@@ -1,0 +1,213 @@
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost June 2022',
+  description: '',
+  image: '/images/blog/nhost-june-2022/banner.png',
+  date: '2022-07-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hello ~~World~~ Developers!
+
+Here are the latest updates for June 2022. Enjoy.
+
+## Launching Nhost CDN to make Nhost Storage Blazing Fast™
+
+![Nhost CDN Locations](/images/blog/nhost-june-2022/cdn-locations.png)
+
+All files served by Nhost Storage are now cached, at the edge, with our latest release of Nhost CDN. The Nhost CDN caches files from Nhost Storage at the edge in order to serve data to your users as fast as possible.
+
+We did some benchmarks and saw speed increases up to 104x! Or as tj said on our [Discord](https://nhost.io/discord): "Nhost CDN is no joke".
+
+![Nhost CDN Testimonial](/images/blog/nhost-june-2022/cdn-testimonial.png)
+
+Read the full announcement: [Launching Nhost CDN: Nhost Storage Is Now Blazing Fast™](https://nhost.io/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast)
+
+## New App Domain Structure
+
+To make the Nhost CDN work we had to add extra domains with region information included for each service. All new and existing Nhost apps can use the new domain structure today.
+
+### New Domain Structure
+
+The new domain structure has support for the Nhost CDN and is the recommended way of interacting with your Nhost app.
+
+New Domain Structure: `https://<subdomain>.<service>.<region>.nhost.run/`
+
+Example: `https://lrgotyvqfsbxxnjmdgne.storage.eu-central-1.nhost.run/`
+
+### Old Domain Structure
+
+The old domain structure still works for now but will be deprecated in the future. The old domain structure also lacks support for Nhost CDN.
+
+Old domain structure `https://<subdomain>.nhost.run/<v>/<service>`
+
+## SDK Support for New Domain Structure
+
+If you’re using the Nhost JavaScript SDK it’s simple to start using the new domain structure and use the Nhost CDN.
+
+Use `subdomain` and `region` instead of `backendUrl` when initializing the Nhost client:
+
+```jsx
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: 'subdomain>',
+  region: '<region>',
+})
+
+export { nhost }
+```
+
+Also, make sure to update the Nhost npm package to have the new `NhostClient` parameters available.
+
+## Preview: Database UI
+
+![Database UI](/images/blog/nhost-june-2022/database-ui.png)
+
+We’ve released a preview of a data browser. Currently, you are only able to read and sort data from the database. We'll continue working on the data browser and allow you to manipulate the data and the schema directly in our dashboard.
+
+## Preview: GraphQL Playground
+
+![GraphQL Playground](/images/blog/nhost-june-2022/graphql-playground.png)
+
+We’ve also released a GraphQL Playground where you can test GraphQL queries and mutations directly from our dashboard. You can also select if you want to make the GraphQL request as an admin or as a specific user and role. This way, it’s easy to test permissions and make sure users have the correct access for various GraphQL queries and mutations.
+
+## New React Hooks for File Upload
+
+You can now use `useFileUpload`, `useMultipleFilesUpload`, and `useFileUploadFromItem` with `@nhost/react` and `@nhost/nextjs` to upload files using React Hooks.
+
+By using these hooks you have more granular control of the upload life-cycle because you can:
+
+- Monitor upload progress
+- Cancel upload
+- Get error messages
+- Upload multiple files at the same time
+
+See the PR: [https://github.com/nhost/nhost/pull/624](https://github.com/nhost/nhost/pull/624)
+
+Learn more about each React hook:
+
+- [https://docs.nhost.io/reference/react/use-file-upload](https://docs.nhost.io/reference/react/use-file-upload)
+- [https://docs.nhost.io/reference/react/use-file-upload-item](https://docs.nhost.io/reference/react/use-file-upload-item)
+- [https://docs.nhost.io/reference/react/use-multiple-files-upload](https://docs.nhost.io/reference/react/use-multiple-files-upload)
+
+These React hooks are used in our [React Apollo example on GitHub](https://github.com/nhost/nhost/blob/main/examples/react-apollo/src/Storage.tsx).
+
+## Use Nhost Serverless Functions in Docker
+
+Finally, Serverless Functions are available with Docker, which means you can now run the full Nhost stack anywhere you can run Docker. We've provided a full Docker Compose file with all the Nhost services:
+
+- Postgres
+- Hasura
+- Hasura Auth
+- Hasura Storage
+- Serverless Functions
+- Minio
+- Mailhog
+- Traefik
+
+Check out the full Docker Compose example on GitHub: [https://github.com/nhost/nhost/tree/main/examples/docker-compose](https://github.com/nhost/nhost/tree/main/examples/docker-compose)
+
+## Nhost is Sponsoring pnpm
+
+![Nhost is sponsoring pnpm](/images/blog/nhost-june-2022/pnpm-sponsor.png)
+
+Nhost is now sponsoring pnpm, a fast, disk space-efficient package manager, via GitHub. Our [Nhost monorepo](https://github.com/nhost/nhost) is all built around pnpm. It's a pleasure to support such a great project and build great open source software together.
+
+Check out pnpm: [https://pnpm.io/](https://pnpm.io/)
+
+## Stripe Integration - RFC
+
+We're working on a Stripe integration for Nhost which we have an open RFC for.
+
+Some topics we're covering are:
+
+- Query data from Stripe via a GraphQL remote schema.
+- Mutate data in Stripe with their SDK
+- Sync data using a Stripe webhook and Nhost Serverless Functions
+
+We'd love to get your input on the RFC and learn how you're currently using Stripe and Nhost.
+
+Link to Stripe Integration - RFC: https://github.com/nhost/nhost/discussions/772
+
+## UML Diagram for Authentication
+
+We've added Authentification workflows documented as UML diagram sequences for:
+
+- Anonymous users
+- Change email
+- Change password
+- Reset password
+- Sign in with email and password
+- Sign in with an OAuth provider
+- Sign in with Magic Link
+- Sign in with SMS
+- Refresh token
+
+Here's an example of the UML diagram for changing password:
+
+![Change Password UML Diagram](/images/blog/nhost-june-2022/change-password-diagram.png)
+
+Link: https://github.com/nhost/hasura-auth/tree/main/docs/workflows
+
+## Community
+
+There has been a bunch of activity from the Nhost Community. Interesting discussions are happening every day on both [GitHub](https://github.com/nhost/nhost) and [Discord](https://nhost.io/discord).
+
+Here are some YouTube videos about Nhost, or where Nhost was mentioned, that were published in June:
+
+### How to build an Open Source Project - Johan Eliasson - Nhost
+
+![How to build an Open Source Project - Johan Eliasson - Nhost](/images/blog/nhost-june-2022/video-1.png)
+
+Link: [https://youtu.be/4f8QgvV7Lr4](https://youtu.be/4f8QgvV7Lr4)
+
+### Let's Build a Full Stack App with React & Nhost in 20 Minutes
+
+![Let's Build a Full Stack App with React & Nhost in 20 Minutes](/images/blog/nhost-june-2022/video-2.png)
+
+Link: [https://youtu.be/LLZFouVZPrw](https://youtu.be/LLZFouVZPrw)
+
+### Build a NOTES APP with Vue JS and Nhost using GraphQL & Tailwind CSS
+
+![Build a NOTES APP with Vue JS and Nhost using GraphQL & Tailwind CSS](/images/blog/nhost-june-2022/video-3.png)
+
+Link: [https://youtu.be/Y5iWYEo_rzI](https://youtu.be/Y5iWYEo_rzI)
+
+### How to Add authentication to your React app with Nhost
+
+![How to Add authentication to your React app with Nhost](/images/blog/nhost-june-2022/video-4.png)
+
+Link: [https://youtu.be/q4PJz9PWD94](https://youtu.be/q4PJz9PWD94)
+
+### My Bleeding Edge Tech Stack for 2025
+
+![My Bleeding Edge Tech Stack for 2025](/images/blog/nhost-june-2022/the-fkit-stack.jpeg)
+
+Link: [https://youtu.be/rFP7rUYtOOg](https://youtu.be/rFP7rUYtOOg)
+
+### 3 Alternativas Open Source para ABANDONAR o FIREBASE em 2022 (Portuguese)
+
+![3 Alternativas Open Source para ABANDONAR o FIREBASE em 2022 (Portuguese)](/images/blog/nhost-june-2022/video-5.png)
+
+Link: [https://youtu.be/TxF19osZsFc](https://youtu.be/TxF19osZsFc)
+
+## PS. Star us on GitHub
+
+Support our open source work and show your support!
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

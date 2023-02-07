@@ -1,0 +1,95 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'How we Raised $3M without Leaving the House',
+  description: '',
+  image:
+    '/images/blog/how-we-raised-3m-dollars-without-leaving-the-house/banner.png',
+  date: '2021-06-11',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+In March of 2020, Nhost had just [raised $110,000 in a pre-seed round](/blog/nhost-secures-pre-seed-investment) from the accelerator Antler, and had 12 months' worth of runway to attract funders. The only problem was that we had to do it during a global pandemic - when every country was in lockdown, travel was restricted, and the global economy was on the verge of collapse.
+
+This is the story of how me and my co-founder, Nuno, managed to raise $3M over Zoom during the worst pandemic in modern history.
+
+It was spring in Stockholm, and we had just received $110,000 from Antler's start-up program. Within days, COVID-19 had begun to spread across the globe and Europe was hit particularly hard. Once the World Health Organization declared it an official pandemic, countries started to close their borders to contain the spread. Just one week before every country in Europe closed its borders, Nuno boarded a flight home to the Azores.
+
+Since we were both used to working remotely, it was an easy transition: We spoke over Discord each day and used a combination of Trello and GitHub to manage our project. Our plan was to release features and a new console design while we improved our key performance indicators (KPIs) so that we could show the value of an open source Firebase alternative with GraphQL to potential investors during our seed round.
+
+From start to finish, we knew that it would take us approximately three months to raise a seed round, so we targeted mid-January 2021 as our cut-off for intro calls with investors and sending out monthly progress updates.
+
+During the summer and fall of 2020, we received ~5 cold emails per week from potential investors, requesting an intro call.
+
+## Investor intro call
+
+All of our calls followed the same format and averaged 30 minutes:
+
+- Why did you start Nhost?
+- Who are your competitors and what sets you apart?
+- What's your hook?
+- What do you plan to achieve in the next 6-12 months?
+
+With a bit of practice, I started to come up with very good answers and learned how to position our business based on who I was talking to. To be honest, it began to feel almost automatic.
+
+Near the end of each call, I asked a bit about the funder - their average number of deals and whether they had comparable companies in their portfolio. Just before we wrapped up the call, I asked each person if they wanted to be included on our internal investor email list for monthly updates. All of them said a resounding "Yes, please".
+
+## Monthly investor updates
+
+Our monthly emails were brief and focused exclusively on what investors would want to know, i.e., updates on KPIs, trends, and highlights (like releases and new features). Here's an example of our August 2020 update.
+
+![Investor Update](/images/blog/how-we-raised-3m-dollars-without-leaving-the-house/investor-update.png)
+
+By December of 2020, we had talked with 75 potential investors, felt that we had made strong connections, and were finally ready to send out the email that would “open the gates” by announcing our seed round.
+
+But before we had the chance to do that, [SCNE](https://scne.io/) - a start-up accelerator that was backed by a GitHub co-founder - decided to invest in Nhost. Soon after, [Nauta Capital](https://nautacapital.com/) became increasingly interested in working with us. Nuno and I both had a good feeling about the latter. They not only understood what stage we were in (unstructured, early start-up), they liked our open source approach and knew what we had to offer ([Markus Düttmann, one of their principals, had even built an app on Nhost](https://nautacapital.com/build-apps-faster-or-why-we-invested-in-nhost/)).
+
+After a few more meetings, we ended up getting a term sheet.
+
+With our lead investor in place, we agreed to a $3M seed round - $600k of which would be earmarked for angel investors.
+
+## Angel investors
+
+### Co-founders of GitHub
+
+Since SCNE had already agreed to invest in us, they connected us with [Tom Preston-Warner](https://twitter.com/mojombo) (GitHub's co-founder and former CEO). It turned out to be a natural fit and Tom became one of our angel investors. We are big fans of the work he is doing at RedwoodJS, which [works well with Nhost](https://redwoodjs.com/docs/authentication.html#nhost).
+
+### Co-founders of Netlify
+
+An hour after I posted a summary of Nhost on Twitter, Mathias Biilmann, the CEO and co-founder of Netlify, sent me a direct message to schedule a call. After discussing how we could help developers and each other to provide better products, I mentioned that we had some room for angels. Both Mathias, and his co-founder, Christian, were eager to support us.
+
+### Founder of WorkOS
+
+Beyond promoting and sharing updates, I used Twitter to look for people in the dev tool space who might be interested in joining as angel investors. Taking a targeted approach, I ended up sending five direct messages, one of which went out to [Michael Grinich](https://twitter.com/grinich).
+
+![DM with Michael Grinich](/images/blog/how-we-raised-3m-dollars-without-leaving-the-house/michael-dm.png)
+
+A few days later, when we met for a video conference, I was blown away by Michael's knowledge of the space we operated within. Outside of the big picture questions, we delved into the nuances of our product. I knew I had to get him on board. As it turns out, the feeling was mutual; he signed on to be an angel investor.
+
+BTW, here's the link to GitHub from the DM: https://github.com/sw-yx/devtools-angels
+
+### Antler coach
+
+Throughout the past year, we were coached by [Markus](https://www.linkedin.com/in/marcusbostrom/) (from Antler), who helped us with strategy, product and pricing aspects of our business and agreed to come on board too.
+
+### Antler
+
+It was especially meaningful when Antler, the first investor to believe in us, also joined in the seed-round.
+
+In the end, we didn't see the need to reach out to the other 70+ investors on our email list because we were happy with the founder-investor fit we had with Nauta and all of our amazing angels.
+
+## Summary
+
+Irrespective of your geographical location, there is much that can be accomplished with a good idea and the passion to connect with people who see the value in what you're doing.
+
+From our lockdown locations of Stockholm and the Azores, Nuno and I managed to raise millions of dollars and started a successful business without any in-person meetings. If there is one thing I learned from the COVID-19 pandemic, it's that you can not only work remotely; you can raise millions of dollars and build a successful company.

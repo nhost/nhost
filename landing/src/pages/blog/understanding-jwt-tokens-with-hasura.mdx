@@ -1,0 +1,118 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Understanding JWT tokens with Hasura',
+  description: '',
+  image: '/images/blog/understanding-jwt-tokens-with-hasura/banner.png',
+  date: '2020-07-09',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Guide', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+A JWT token is used to authorize GraphQL requests to Hasura.
+
+But what is a JWT token, and how does it work?
+
+## What is a JWT token?
+
+A JWT token is a string that contains information about a user, such as a user id and user role. When the user makes a GraphQL request to Hasura, the user also sends the JWT token and the GraphQL request. Hasura can then understand who the user is by looking at the JWT token when receiving the GraphQL request.
+
+### Encoded JWT token
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3
+QvY2xhaW1zIjp7IngtaGFzdXJhLXVzZXItaWQiOiJjOGVlODM1M
+y1iODg2LTQ1MzAtOTA4OS02MzFlYTdmZDRjOGEiLCJ4LWhhc3Vy
+YS1hbGxvd2VkLXJvbGVzIjpbIm1lIiwidXNlciJdLCJ4LWhhc3V
+yYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIn0sInN1YiI6ImM4ZWU4Mz
+UzLWI4ODYtNDUzMC05MDg5LTYzMWVhN2ZkNGM4YSIsImlzcyI6I
+m5ob3N0IiwiaWF0IjoxNjI1NjkxMzU1LCJleHAiOjE2MjU2OTIy
+NTV9.NYUEzJs0CS8GiVcXbemZOIiEhMN-FJb0qcQdKLq2BIc
+```
+
+### **Decoded JWT token (payload)**
+
+```json
+{
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-user-id": "c8ee8353-b886-4530-9089-631ea7fd4c8a",
+    "x-hasura-allowed-roles": ["me", "user"],
+    "x-hasura-default-role": "user"
+  },
+  "sub": "c8ee8353-b886-4530-9089-631ea7fd4c8a",
+  "iss": "nhost",
+  "iat": 1625691355,
+  "exp": 1625692255
+}
+```
+
+The JWT token above includes information about the user id, user default role, and allowed roles.
+
+The key-value pairs starting with `x-hasura-` are called session variables. The following session variables exist in the JWT token above:
+
+- `x-hasura-user-id`
+- `x-hasura-allowed-roles`
+- `x-hasura-default-role`
+
+The session variables are used to resolve Hasura permission to make sure the user only has access to the data it should have access to.
+
+## What claims must be in the JWT token?
+
+At a minimum, the two session variables `x-hasura-default-role` and `x-hasura-allowed-roles` must be part of the JWT token.
+
+### What claims can exist in the JWT token?
+
+Any claim prefixed with `x-hasura-` can exist as a claim in the JWT token.
+
+A popular session variable is `x-hasura-user-id`.
+
+## How is the JWT token sent to Hasura?
+
+The JWT token is sent in the `Authorization` header together with a GraphQL request. The token is prepended with `Bearer ` in the header.
+
+Here's an example:
+
+`Authorization: Bearer ${jwtToken}`
+
+## How is a JWT token created?
+
+A JWT token is created by an authentication server. A common use case is that a client sends an email and password to the authentication server. The authentication server makes sure that the email and password are correct and send back a JWT token to the client.
+
+[Hasura Backend Plus](http://github.com/nhost/hasura-backend-plus) is an authentication server that works out of the box with Hasura to generate JWT tokens.
+
+## How can Hasura trust the information in the JWT token?
+
+The JWT token is cryptographically signed with a secret key. That means that anyone with the same secret key can mathematically verify that the JWT token has not been modified since it was created.
+
+The authentication server and Hasura share the same secret key. The authentication server uses the secret key when generating the JWT token, and Hasura verifies the JWT token when receiving it together with GraphQL requests.
+
+If Hasura is unable to verify the JWT token, the GraphQL request fails.
+
+## How to store JWT token on the client?
+
+The client's browser should save the JWT token in memory.
+
+Tokens are stored automatically in memory using [`nhost-js-sdk`](https://github.com/nhost/nhost-js-sdk).
+
+## Revoke JWT token
+
+No one can not manually revoke JWT tokens. Instead, each JWT token has an `exp` field which indicates when the JWT token expires. Usually, JWT tokens expire after a few minutes after being created. The client can use a refresh token to request a new JWT token.
+
+### Refresh token
+
+A refresh token's only purpose is to get a new JWT token and a new refresh token. Each refresh token is associated with a user in the database. And before the authentication return, new tokens refresh tokens are stored in the database, and the authentication server always checks the database before
+
+Tokens (both JWT tokens and refresh tokens) are refreshed automatically with [`nhost-js-sdk`](https://github.com/nhost/nhost-js-sdk).
+
+## Conclusion
+
+Now you have a basic understanding of what a JWT token is and how it's used together with Hasura.

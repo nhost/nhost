@@ -1,0 +1,222 @@
+import Image from 'next/image'
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost November 2022',
+  description: 'This is the history of Nhost',
+  image: '/images/blog/nhost-november-2022/banner.png',
+  date: '2022-12-02',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Product'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Hello World!
+
+November was a super productive month for us. We have many updates for you, so let's get started!
+
+## Product Updates
+
+### The Nhost Dashboard is Now Open Source
+
+The Nhost Dashboard is now available on GitHub and is fully open source. We're excited to have open-sourced the Dashboard and have already received our first contribution from the community. If you're interested in helping out, you're welcome to do so. The Dashboard uses modern technologies like Next.js and React, React Query, and Tailwind CSS.
+
+Read the full source code and learn how to contribute: [https://github.com/nhost/nhost/tree/main/dashboard](https://github.com/nhost/nhost/tree/main/dashboard)
+
+### Nhost Dashboard + CLI = 💙
+
+The Nhost Dashboard is not only open-sourced, it's also available in the Nhost CLI. This means that you can enjoy the same user experience whether you're using Nhost Cloud or developing locally with the Nhost CLI.
+
+While the Hasura Console is still the default UI for local development, the Nhost Dashboard is available at `http://localhost:3030`.
+
+![Nhost Dashboard and the CLI](/images/blog/nhost-november-2022/dashboard-open-source.png)
+
+We're planning on making the Nhost Dashboard the default UI in the CLI as soon as we've added a few more core features. Some of the things we're currently working on in the Dashboard include permissions, event triggers, and remote schemas.
+
+### Product Hunt Launch
+
+At the beginning of November, we launched Nhost 2.0 on Product Hunt. Nhost 2.0 is most probably what you know as simply “Nhost”. We launched a new infrastructure platform in January this year (2022), which we called “Nhost 2.0”, but we didn't launch it on Product Hunt yet. Well, this month, we did.
+
+You can still support and see our launch post at Product Hunt: [https://www.producthunt.com/products/nhost#nhost-3](https://www.producthunt.com/products/nhost#nhost-3)
+
+![Nhost 2.0 Product Hunt Launch](/images/blog/nhost-november-2022/product-hunt-launch.jpeg)
+
+### Raw Body support for Serverless Functions
+
+The raw body of a request is now available in Serverless Functions through the `req.rawBody` property. This makes it possible to use Serverless Functions to receive webhooks from Stripe and other services that requires the raw body of a request.
+
+Learn more here: [https://github.com/nhost/nhost/discussions/770](https://github.com/nhost/nhost/discussions/770)
+
+![Use Nhost Serverless Functions to receive webhooks from stripe](/images/blog/nhost-november-2022/stripe-webhooks.png)
+
+### Integration: Google Translation GraphQL API
+
+In September, we launched our Open Source Stripe GraphQL API integration. We're now back with a new integration: Google Translation GraphQL API.
+
+The Google Translation GraphQL API enables you to translate anything in your database. On the fly. This is perfect for messaging boards or multi-lingual platforms where users want to translate user-generated text, like posts or comments, to their native language.
+
+The package and code are available here: [https://github.com/nhost/nhost/tree/main/integrations/google-translation](https://github.com/nhost/nhost/tree/main/integrations/google-translation)
+
+And available at npm at `@nhost/google-translation`.
+
+Here's a short example of how the Google Translation GraphQL API can be used:
+
+**GraphQL Query**
+
+```graphql
+query {
+  books {
+    title # a text column in the books table
+    translatedTitle # title translated into the user's default locale
+    italianTitle: translatedTitle(to: "it") # title translated into Italian
+  }
+}
+```
+
+**Response**
+
+```json
+{
+  "data": {
+    "books": [
+      {
+        "title": "Guerre et Paix",
+        "translatedTitle": "War and peace",
+        "italianTitle": "Guerra e Pace"
+      },
+      {
+        "title": "Le Bruit et la Fureur",
+        "translatedTitle": "The Sound and the Fury",
+        "italianTitle": "Il suono e la furia"
+      }
+    ]
+  }
+}
+```
+
+We'll do a follow-up blog post explaining how the package works and how you can use it. Stay tuned!
+
+### Project Settings
+
+We've updated the UI in the dashboard with everything related to project settings. Every setting is now nicely scoped with links to its documentation.
+
+![Project Settings](/images/blog/nhost-november-2022/project-settings.png)
+
+### Two new sign-in methods: Twitter and WorkOS
+
+We've added support for two new sign-in methods: Twitter and WorkOS. I don't think Twitter needs an introduction, but WorkOS might be a new name for some people. With WorkOS, you can make your app enterprise-ready by allowing your enterprise customers to sign in with enterprise SSO (Single Sign-On). WorkOS supports SAML and OpenID Connect with 20+ identity providers such as Okta, Azure, Google, SAML, Onelogin, and more.
+
+While adding these two new sign-in methods, we also changed our underlying structure in Auth of how we manage OAuth providers. We're now using [Grant](https://github.com/simov/grant), which will enable us to add new sign-in providers in the future quickly. Do you have a sign-in provider you want us to prioritize? Let us know on GitHub: [https://github.com/nhost/hasura-auth](https://github.com/nhost/hasura-auth/issues)
+
+![Twitter and WorkOS as new sign-in providers for Nhost](/images/blog/nhost-november-2022/twitter-workos.png)
+
+### Wildcard for allowed URLs
+
+It's now possible to use wildcards when configuring allowed redirect URLs. This makes it easy to allow URLs like `https://*.netlify.app` or `https://*.vercel.app`.
+
+![Wildcard URLs](/images/blog/nhost-november-2022/wildcard.png)
+
+### Nhost React Components
+
+We've started experimenting with Nhost React Components, making it easier and faster for you to build with Nhost and React. The first two components we're releasing are `<SignedIn />` and `<SignedOut />`.
+
+This is how you can use them:
+
+```tsx
+import { SignedIn, SignedOut } from '@nhost/react'
+
+export function Page() {
+  return (
+    <div>
+      <SignedIn>Only rendered if the user is authenticated</SignedIn>
+      <SignedOut>Only rendered if the user is NOT authenticated</SignedOut>
+    </div>
+  )
+}
+```
+
+Read more about them in our docs:
+
+- [https://docs.nhost.io/reference/react/signed-in](https://docs.nhost.io/reference/react/signed-in)
+- [https://docs.nhost.io/reference/react/signed-out](https://docs.nhost.io/reference/react/signed-out)
+
+### Blog Post: How we configured pnpm and Turborepo for our monorepo
+
+We're doing a blog post series about our monorepo. The first post is about how we configured pnpm and Turborepo to solve previous issues related to dependency management, CI/CD, refactoring, consistency, and more.
+
+![How we configured pnpm and Turborepo for our monorepo](/images/blog/nhost-november-2022/pnpm-turborepo.png)
+
+Link: [https://nhost.io/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo](https://nhost.io/blog/how-we-configured-pnpm-and-turborepo-for-our-monorepo).
+
+## Security
+
+Hasura announced a critical security vulnerability. The vulnerability was discovered by one of our customers at Nhost, and we were in contact with Hasura during the process..
+
+All projects on Nhost are were secured and patched against vulnerability as soon as hasura released their security patch.
+
+As a good practice, if you find any security vulnerability, please report them to security@nhost.io or read more at: [https://nhost.io/security](https://nhost.io/security)
+
+## Community
+
+### Next.js Starter Template with Netlify and Nhost
+
+We did a great collaborated with our friends at Netlify. Together, we built a Conference Platform that used Nhost as the backend and Netlify to host the frontend with a Next.js application.
+
+Blog post: [https://www.netlify.com/blog/deploy-your-next-nhost-app-today/](https://www.netlify.com/blog/deploy-your-next-nhost-app-today/)
+
+YouTube: [https://www.youtube.com/watch?v=g0GhMXecC90](https://www.youtube.com/watch?v=g0GhMXecC90)
+
+GitHub: [https://github.com/nhost/nhost-netlify-starter-nextjs-reactquery](https://github.com/nhost/nhost-netlify-starter-nextjs-reactquery)
+
+![Next.js Starter Template with Netlify and Nhost](/images/blog/nhost-november-2022/netlify-nhost.png)
+
+### NotJust Hack
+
+In November, the NotJust.dev team hosted a hackathon called NotJust Hack. Participants had 3 days to build a mobile application and received support through workshops, including a [2-hour stream on building a React Native app with Nhost](https://youtu.be/INLnagMFShw). All projects and winners can be found on the NotJust.dev blog. Check out the stream on YouTube to learn more!
+
+Link: [https://www.notjust.dev/blog/2022-11-28-notJust-Hack-Demo-Day](https://www.notjust.dev/blog/2022-11-28-notJust-Hack-Demo-Day)
+
+![NostJust Hack](/images/blog/nhost-november-2022/not-just-hack.png)
+
+### Companies using Nhost
+
+Do you use Nhost at your company or for your project? If so, you can share a link and description to your application in our GitHub Discussion here: [https://github.com/nhost/nhost/discussions/1133](https://github.com/nhost/nhost/discussions/1133)
+
+There, you can also see what other developers are building with Nhost.
+
+### Debugging Devrel and Upskilling Devs using Nhost
+
+This month, Nhost hosted multiple workshops with colleges from India. The workshops helped students understand Nhost and how they could start. A similar session was conducted with the students of Guru Tegh Bahadur Institute of Technology, Delhi.
+
+Make sure you follow us on [Twitter](https://twitter.com/nhost) to know which city and college we are next visiting.
+
+YouTube Link: [https://www.youtube.com/watch?v=i7EP9i_cji8](https://www.youtube.com/watch?v=i7EP9i_cji8)
+
+### Swag
+
+We have also sent swag packs to community members who are helping out by creating content, building features, reporting issues, and generally playing a positive role in the Nhost community. Generally, these packs are a way to thank and reward those who are contributing to the community.
+
+@azlekov has helped us in the Hasura Auth repository with valuable contributions.
+
+<TwitterTweetEmbed tweetId={'1595448815972409345'} />
+
+@usagizmo has built a starter template with Nhost: [https://github.com/usagizmo/nextjs-template](https://github.com/usagizmo/nextjs-template)
+
+<TwitterTweetEmbed tweetId={'1597471292156153857'} />
+
+## PS. Star us on GitHub
+
+Do you like what we're building?
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you.

@@ -1,0 +1,86 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Product Update: Team Support and More Regions',
+  description: '',
+  image: '/images/blog/product-update-teams-and-regions/banner.png',
+  date: '2020-05-01',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Product'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Last month was the first month that Nuno and I worked together and this is what we have accomplished during the previous month.
+
+## Two new locations
+
+We launched New York and London as two new locations. You can now start your Nhost project in: San Francisco, New York, London, Amsterdam, and Bangalore.
+
+![New York and London](/images/blog/product-update-teams-and-regions/ny-and-london.png)
+
+## Teams for better collaboration
+
+Create your team and invite your team members to collaborate on an Nhost project. Teams can be found in the context dropdown on the top-right corner.
+
+![Teams](/images/blog/product-update-teams-and-regions/nhost-teams.png)
+
+## Nhost CLI for local development
+
+We are inspired by Netlify's and Vercel's workflow for developers. As Vercel's tagline: Develop, Preview, Ship. It is our goal to have that ease of use on the backend.
+
+With the Nhost CLI you can get a complete local environment for your Nhost project. Simple as that.
+
+## GitHub integration
+
+Connect your GitHub repository to a Nhost project. Develop locally and push your code to master. Nhost will automatically deploy it to production including Hasura metadata and schema changes.
+
+So that's "Develop" and "Ship". What about the "Preview" part?
+
+We will introduce Preview in 3 months!
+
+Here is a video where we show your how our Nhost CLI and Github integration works:
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/6AaxRGKCqzc"
+  frameBorder="0"
+  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen={true}
+/>
+
+## Version 2 of Hasura Backend Plus
+
+It's coming this week. We are adding some final improvements to our new version of Hasura Backend Plus. Here are a subset of the new things introduced:
+
+- Two factor authentication
+- Internal e-mail support
+- Rate limits
+- Optional weak password check agains Pwnd
+- More external providers (GitHub, Facebook, Twitter, Google, Apple, LinkedIn)
+- Better support for storage rules
+- JWKS endpoint
+- Greater customisability
+- Good test coverage
+- 100% TypeScript
+
+## Coming up on Nhost
+
+Our focus for the next month is going to be general platform and tool stability and new design. After that we got a ton of interesting features in our backlog including:
+
+- Better documentation
+- Preview environments on Pull Requests
+- Custom HTTP API (to handle Hasura Event triggers and Actions)
+- More starter examples for Nhost together with Next.js, NuxtJS, React, React Native etc.
+- Database backups
+- Monitoring and analytics
+
+If you have more ideas for us, please join our Nhost Discord server or send us a e-mail at hello@nhost.io.

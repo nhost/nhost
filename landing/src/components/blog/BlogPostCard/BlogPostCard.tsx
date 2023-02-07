@@ -103,7 +103,7 @@ export default function BlogPostCard({
               <div
                 className={twMerge(
                   'grid grid-flow-col items-center gap-2',
-                  authors.length > 1 && index > 0 && '-ml-6',
+                  authors.length > 1 && index > 0 && '-ml-5',
                 )}
                 key={author.name}
               >
@@ -112,7 +112,7 @@ export default function BlogPostCard({
                   alt={`Avatar of ${author.name}`}
                   width={24}
                   height={24}
-                  className="rounded-full"
+                  className={twMerge('rounded-full', `z-${50 - index * 10}`)}
                 />
 
                 {authors.length === 1 && (

@@ -1,0 +1,114 @@
+import Image from 'next/image'
+import { TwitterTweetEmbed } from 'react-twitter-embed'
+
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'From PHP and MySQL to Hasura',
+  description: 'This is the history of Nhost',
+  image: '/images/blog/from-php-and-mysql-to-hasura/banner.png',
+  date: '2019-09-04',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+This is the history of Nhost.
+
+Ever since 2007, I have been into programming and web development. Back then it was all PHP and MySQL websites and everything was great fun!
+
+Around 2013 SPA (Single Page Applications) started to emerge. Instead of letting your web server render the whole page, the backend just provided data (from JSON, for example) to your frontend. Your front end then had to take care of rendering your website with the data from the backend.
+
+And I wanted to learn more!
+
+I went through multiple frameworks, like MeteorJS and Firebase. I did not feel comfortable with the NoSQL databases that these projects were based on. In retrospect, I am really happy I did not jump on the hype train of noSQL.
+
+I also built a large enterprise project using React & Redux with a regular REST backend. The developer experience was somewhat OK. You could still use a SQL database and provide a REST API or a GraphQL API to your frontend.
+
+That is an OK approach. No NoSQL, which is good. But no real-time, which is bad.
+
+By November 2018 I was about to rebuild a CRM/Business system from PHP/MySQL to a modern SPA web app. At this time, I decided I would do it with React & Redux with a MySQL database and a REST API. This was pretty much standard at the time.
+
+Then something happened.
+
+I was about to create a VPS from DigitalOcean for my new database and REST API. For no obvious reason clicked on the "marketplace"-tab where something drew my attention.
+
+![Hasura as a One-Click app in Digital Ocean](/images/blog/from-php-and-mysql-to-hasura/do-marketplace.png)
+
+GraphQL? A lambda sign? This looks interesting. Let's start a Hasura Droplet and see what it is!
+
+60 minutes later my jaw was on the floor.
+
+This is amazing!
+
+This is it!
+
+Hasura comes with:
+
+1. PostgreSQL (relational database)
+2. GraphQL
+3. Real-Time
+4. Access control
+5. Blazing Fast™
+
+I could not ask for more!
+
+I was so enthusiastic about Hasura I called up an emergency meeting for all developers in my co-working office (DoSpace CoWorking).
+
+<div className="mx-auto"></div>
+
+<TwitterTweetEmbed tweetId={'1068145251267895300'} />
+
+Now, Hasura is great and everything but...
+
+What about Auth and Storage for your app?
+
+## Auth and Storage
+
+![Digital Ocean Marketplace](/images/blog/from-php-and-mysql-to-hasura/hasura-auth-storage.png)
+
+Hasura is great at handling your data and your API. But Hasura does not care how you handle authentication or storage.
+
+### Auth and Storage for Hasura
+
+With Hasura, you need to handle Auth and Storage yourself.
+
+#### Auth
+
+When it comes to authentication Hasura recommends that you use some other auth services like Auth0 or Firebase Auth.
+
+I do not like any of those solutions 100%. I like to have full control over my users and not rely on third-party services.
+
+#### Storage
+
+For Storage, there is no recommended solution from Hasura.
+
+So... I decided to build my own Auth and Storage backend for Hasura.
+
+## Hasura-Backend-Plus
+
+I built Hasura Backend Plus (HBP). Hasura Backend Plus provides auth and storage for any Hasura project.
+
+My involvement in the Hasura community got me invited to GraphQL Asia in 2019, where I visited the whole Hasura team in Bangalore, India.
+
+### Back to nhost.io
+
+Nhost helps every developer with quick deployment of Hasura and Hasura-Backend-Plus.
+
+Get your next web project going with the world's most modern web stack.
+
+- PostgreSQL
+- GraphQL
+- Real-Time Subscriptions (just like Firebase)
+- Authentication
+- Storage
+
+Get started with nhost.io!

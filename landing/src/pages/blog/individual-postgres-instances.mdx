@@ -1,0 +1,86 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Individual PostgreSQL instances to everyone',
+  description: 'Dedicated PostgreSQL instances with root access.',
+  image: '/images/blog/individual-postgres-instances/banner.png',
+  date: '2022-09-26',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'Engineering',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+    {
+      name: 'Nestor Manrique',
+      title: 'Engineering',
+      avatarUrl: '/images/avatars/nestor.jpeg',
+      url: 'https://twitter.com/nesmanrique',
+    },
+    {
+      name: 'Nuno Pato',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Database'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Welcome to Nhost’s **first-ever** launch week!
+
+Today we’re excited to announce that all new projects get their own dedicated Postgres instance with root access. It's finally possible to connect directly to the database with your favorite Postgres client.
+
+## Background
+
+When we launched Nhost v2, all databases were hosted and managed on Amazon RDS. The reason why we started with RDS was twofold:
+
+1. having the most crucial component of all infrastructure managed and scaled by an experienced team on a mature product seemed to be an excellent idea. We wouldn’t have to manage and operate it ourselves.
+2. with v2, all services (e.g., GraphQL, Authentication, and Storage) were moved to Kubernetes because of its flexibility and extensibility. Running a stateful component like Postgres on Kubernetes comes with a complete set of challenges of their own and we wanted to focus on running the stateless components well.
+
+> Kubernetes is a complex piece of technology to master but once you do it, it gives infrastructure teams superpowers. All projects running on Nhost have the option to scale vertically (adding resources to existing instances) and horizontally (adding new instances/replicas) on each service individually (GraphQL, Auth, Storage, and now Postgres, but here only vertically). This means your projects can cope with the load of your application, whether sustained or due to spikes in demand while also providing high availability of your products if the underlying infrastructure is misbehaving or faulty. If a node goes down, your services are almost instantly moved to a healthy one. This is the reason why we were able to easily cope with 2M+ requests in less than 24h when [Midnight Society](https://nhost.io/blog/how-nhost-took-midnight-society-from-mock-up-to-a-400000-user-launch-in-just-6-weeks) launched - it just worked without any manual work from us.
+
+The RDS setup comprised a big, database-optimized instance in every region we operate. One instance would hold multiple databases for multiple projects.
+
+We quickly realized that running a multi-tenant database offering on RDS would be problematic because of resource contention and the noisy neighbor effect. The noisy neighbor issue occurs when an application uses the majority of available resources and causes network performance issues for others on the shared infrastructure. A complex query and the absence of an index could decrease the performance on the entire instance and affect not only the offending application but others on the same instance as well.
+
+Although we were able to mitigate this issue by scaling the instances vertically (CPU, memory) and horizontally (scale out / more instances per region), it became painfully clear it wasn’t a definitive solution and that we were not fixing the fundamental problem.
+
+Other, smaller but relevant issues that made us switch were:
+
+- RDS for PostgreSQL is not really raw PostgreSQL and it misses some of its flexibility (e.g., `postgres` is not a superuser)
+- The set of extensions available is very limited and one cannot change it
+- No easy way to give users direct access to their databases with the `postgres` user (this was a highly requested feature)
+
+## PostgreSQL running on Kubernetes
+
+After discussing the topic of running stateful workloads on Kubernetes with a couple of industry experts and hearing about some awesome database companies (PlanetScale and Crunchy Data) already doing so, we finally dove in and took the time to research and experiment.
+
+This was a considerable amount of work that required involving the entire team; researching existing solutions to deploy Postgres in Kubernetes, ensuring we could scale the database according to our user's needs and, of course, adapting our internal systems to provision, operate, and scale our users' databases. In addition, we built a one-click process that will be added to the dashboard soon so you can migrate your existing projects from RDS to a dedicated Postgres at your own convenience.
+
+After testing the new setup internally for a few months we launched a private beta with 20 users a couple of months ago. During that period we gathered useful feedback, fixed a couple of issues, and, most notably, heard from most of the users that they were seeing performance improvements.
+
+All in all, we are extremely happy with the result. It is a top priority for us to provide a stable, performant, scalable, and resilient platform so you can build your projects with us and forget about the infrastructure and its operational needs.
+
+> It is important to mention that we have the ability to use external PostgreSQL providers if required. If your application has special requirements due to compliance, multi-region needs, or you just happen to like any of those cool database companies out there we can accommodate and connect your application to the database of your choosing.
+
+## What does this mean to you?
+
+As mentioned, the overall stability and performance gains are the most important reasons why we are now giving individual instances to everyone, but there are a few other points I would like to mention:
+
+- You now own the full PostgreSQL instance. When creating a project, you will be asked for a password for the `postgres` superuser - you can use any Postgres client to connect directly to your database using the connection string. Be careful, with great power comes great responsibility.
+- You are now able to install the extensions you need as long as we support them. We will be continuously adding new extensions and will make sure to listen to you on which ones we should prioritize.
+- You will soon be able to scale up your database and give it as many resources as needed (CPU and memory).
+- The Hasura GraphQL engine runs alongside your Postgres database, meaning there is little latency to your requests.
+
+![Connection String](/images/blog/individual-postgres-instances/connection-string.png)
+
+## What's next?
+
+We are really excited not only about the stability we are able to provide but also about the world of possibilities brought by moving our PostgreSQL offering to Kubernetes. We now have the right foundation in place to look into other features like read replicas or multi-region deployments. Building robust and highly scalable applications should be **fun**, **fast**, and **easy** for everyone. Let us take care of the hard and boring stuff!
+
+P.S: If you like what we are doing, please support our work by giving us a star on [GitHub](https://github.com/nhost/nhost).

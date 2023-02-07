@@ -1,0 +1,160 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost March 2022',
+  description: '',
+  image: '/images/blog/nhost-march-2022/banner.png',
+  date: '2022-04-07',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Company'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+To all hackers,
+
+Here are our product updates for March 2022.
+
+## React and Next.js SDK
+
+This month we're releasing two SDKs for the most popular libraries and frameworks to build modern web apps: React and Next.js.
+
+These two SDKs are specific to React (`@nhost/react`) and Next.js (`@nhost/nextjs`) and are built to take full advantage of the power of React and Next.js.
+
+Both SDKs are built on top of the existing JavaScript SDK (`@nhost/nhost-js`). This means they work well together if you want to gradually adopt any of the new SDKs in your existing web app.
+
+Let's take a close look at each respective SDK, starting with React.
+
+### React SDK for Nhost
+
+The React SDK for Nhost is available at @nhost/react and provides React hooks to directly interact with Nhost.
+
+This is how you initialize it:
+
+```jsx
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+import { NhostClient, NhostReactProvider } from '@nhost/react'
+
+import App from './App'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://xxx.nhost.run',
+})
+
+ReactDOM.render(
+  <React.StrictMode>
+    <NhostReactProvider nhost={nhost}>
+      <App />
+    </NhostReactProvider>
+  </React.StrictMode>,
+  document.getElementById('root'),
+)
+```
+
+Once you've wrapped your app with the `NhostReactProvider` you can start using Nhost React hooks anywhere in your app.
+
+As an example this is how you can sign up users using the `useSignUpEmailPassword` hook:
+
+```jsx
+const { signUpEmailPassword, isLoading, isSuccess, isError, error } =
+  useSignUpEmailPassword()
+```
+
+Or check authentication status:
+
+```jsx
+const { isLoading, isAuthenticated } = useAuthenticationStatus()
+
+if (isLoading) {
+  return <div>Loading Nhost authentication status...</div>
+} else if (isAuthenticated) {
+  return <div>User is authenticated</div>
+} else {
+  return <div>Public section</div>
+}
+```
+
+Check out the full documentation in our docs: https://docs.nhost.io/reference/react
+
+### Next.js SDK for Nhost
+
+In addition to the React SDK, we're also releasing a Next.js SDK, available at `@nhost/nextjs`. Our Next.js SDK builds on top of the React SDK but has extra support for Server-Side Rendering (SSR).
+
+This is how you would add it to Next.js:
+
+```jsx
+// pages/_app.tsx
+import type { AppProps } from 'next/app'
+
+import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
+
+import Header from '../components/Header'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://xxx.nhost.run',
+})
+
+function MyApp({ Component, pageProps }: AppProps) {
+  return (
+    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+      <div>
+        <Header />
+        <Component {...pageProps} />
+      </div>
+    </NhostNextProvider>
+  )
+}
+
+export default MyApp
+```
+
+Read more about how we solved authentication with SSR [here](https://docs.nhost.io/reference/nextjs) and how you can protect routes from non-authenticated users [here](https://docs.nhost.io/reference/nextjs/protecting-routes).
+
+Full documentation for our Next.js SDK: https://docs.nhost.io/reference/nextjs
+
+## Sleeping Inactive Free Apps
+
+For us to be able to keep offering free apps at Nhost we need to take some measures to lower our infrastructure bill (I hope Jeff can [fly to the moon](https://www.theguardian.com/science/2021/jul/26/jeff-bezos-nasa-blue-origin-space) regardless).
+This means we will sleep apps that are inactive (no incoming network request) for more than 7 days. You can always wake a sleeping app from the Nhost dashboard.
+To avoid having your app sleeping (plus extra features and resources) you can upgrade to the Pro plan which we'll release in the coming weeks. Stay tuned!
+
+## Storage UI
+
+The new Nhost Storage we released with Nhost v2 works a bit differently compared to Nhost v1. The new Nhost Storage stores file metadata in the database to be able to take full advantage of Hasura's Permission system.
+This is great because all the permissions are now inside Hasura, but we could not use our Nhost v1 storage UI.
+That's why we're releasing a new Nhost Storage UI! It's available under the “Files” menu in your Nhost app.
+
+![Nhost Storage UI](/images/blog/nhost-march-2022/storage-ui.png)
+
+## Discord and Twitch
+
+Building a gaming community? Great news! We've added support to sign-in users with both Discord and Twitch, two of the most popular platforms for Gaming.
+We're thinking of adding Apple and Twitter next. What do you think? Let us know what OAuth providers you would like to see next by creating a GitHub issue here: https://github.com/nhost/nhost/issues
+Nhost now has support to sign in with the following providers:
+
+![Nhost OAuth Providers](/images/blog/nhost-march-2022/oauth-providers.png)
+
+## Nhost on Redwood JS
+
+RedwoodJS is releasing their [v1.0.0 this week](https://v1launchweek.redwoodjs.com/) and Nhost is one of the [supported auth](https://redwoodjs.com/docs/authentication#nhost).
+
+## Get started
+
+Create a Nhost App for free and start building: https://app.nhost.io/
+
+## PS. Support us on GitHub
+
+It would mean the world to us if you gave us a star on GitHub. This way, we can increase the visibility of Nhost and our open source and GraphQL contributions.
+
+[Star us on GitHub ⭐](https://github.com/nhost/nhost)
+
+Thank you
