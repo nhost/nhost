@@ -37,7 +37,9 @@ export default function AboutPage() {
         }}
       />
 
-      <section className="relative z-0 mt-25 lg:mt-40">
+      <div className="mt-10 h-px w-full bg-white bg-opacity-7 lg:mt-20" />
+
+      <section className="relative z-0 mt-16 lg:mt-24">
         <SectionHeading
           title="Team"
           subtitle="Nhost has been remote and global first from day 0"

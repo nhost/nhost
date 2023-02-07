@@ -47,7 +47,7 @@ export default function Header({
           },
         }}
         className={twMerge(
-          'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-5 backdrop-blur',
+          'grid h-16 grid-flow-col items-center justify-between border-b border-white border-opacity-7 backdrop-blur',
           className,
         )}
         {...props}

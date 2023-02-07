@@ -10,6 +10,7 @@ module.exports = {
         '4.5xl': ['2.5rem', '2.5rem'],
       },
       opacity: {
+        7: '0.07',
         65: '0.65',
       },
       gridRow: {

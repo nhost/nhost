@@ -19,7 +19,7 @@ export default function Footer() {
       className="grid grid-cols-12 gap-y-12 gap-x-2"
       slotProps={{
         root: {
-          className: 'py-14 border-t border-white border-opacity-5',
+          className: 'py-14 border-t border-white border-opacity-7',
         },
       }}
     >
