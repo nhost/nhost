@@ -386,8 +386,8 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">Search</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Hac habitasse platea dictumst quisque sagittis purus sit amet
-                volutpat consequiat mauris.
+                Full text search via GraphQL is supported out of the box with
+                Postgres.
               </p>
             </div>
           </Card>
@@ -405,7 +405,7 @@ export default function GraphqlPage() {
 
               <p className="text-base text-white text-opacity-65">
                 The GraphQL API is powered by the Hasura GraphQL Engine which
-                has support for even triggers, actions, and more.
+                has support for Even Triggers, Actions, and more.
               </p>
             </div>
           </Card>
@@ -422,8 +422,8 @@ export default function GraphqlPage() {
               <h3 className="text-base font-bold">N+1 problem, solved</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Hac habitasse platea dictumst quisque sagittis purus sit amet
-                volutpat consequiat mauris.
+                All your GraphQL queries are compiled to a single SQL query,
+                thereby improving performance.
               </p>
             </div>
           </Card>

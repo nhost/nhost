@@ -233,8 +233,8 @@ export default function AuthPage() {
               </h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Improve security by enabling Multi-Factor Authentication for
+                users.
               </p>
             </div>
           </Card>
@@ -250,7 +250,8 @@ export default function AuthPage() {
               <h3 className="text-base font-bold">Social Providers</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Enable social logins with the click of a button.
+                Let users sign-in with popular social providers like Google,
+                GitHub, Twitter and Facebook.
               </p>
             </div>
           </Card>
@@ -285,8 +286,8 @@ export default function AuthPage() {
               <h3 className="text-base font-bold">Enterprise SSO</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Thanks to WorkOS, you&apos;re able to provide enterprise SSO in
-                your app via Nhost Auth.
+                Enable Enterprise SSO for your app using our integration with
+                WorkOS.
               </p>
             </div>
           </Card>

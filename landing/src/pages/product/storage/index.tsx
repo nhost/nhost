@@ -196,7 +196,7 @@ export default function StoragePage() {
                 width={100}
                 height={100}
                 alt="Nhost Logo in a dark circle"
-                className="w-26 h-26 relative z-10"
+                className="relative z-10 h-26 w-26"
               />
             </div>
 
@@ -212,19 +212,19 @@ export default function StoragePage() {
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
-              src="/products/user-check.svg"
+              src="/products/globe.svg"
               width={24}
               height={24}
-              alt="User with a checkmark"
-              className="mx-auto"
+              alt="Globe"
+              className="mx-auto "
             />
 
             <div className="grid grid-flow-row gap-2.5">
               <h3 className="text-base font-bold">CDN</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Files are served from a global CDN, caching your files at the
+                edge.
               </p>
             </div>
           </Card>
@@ -240,8 +240,7 @@ export default function StoragePage() {
               <h3 className="text-base font-bold">Image Transformation</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Transform images, on the fly, with query parameters.
               </p>
             </div>
           </Card>
@@ -258,8 +257,7 @@ export default function StoragePage() {
               <h3 className="text-base font-bold">High Scalability</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Upload and download files at scale.
               </p>
             </div>
           </Card>
@@ -276,8 +274,7 @@ export default function StoragePage() {
               <h3 className="text-base font-bold">Buckets</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Segment files into buckets, and control access with permissions.
               </p>
             </div>
           </Card>

@@ -182,7 +182,7 @@ export default function FunctionsPage() {
                 width={100}
                 height={100}
                 alt="Nhost Logo in a dark circle"
-                className="w-26 h-26 relative z-10"
+                className="relative z-10 h-26 w-26"
               />
             </div>
 
@@ -209,8 +209,8 @@ export default function FunctionsPage() {
               <h3 className="text-base font-bold">Environment Variables</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Full aaccess to system and manually defined environment
+                variables.
               </p>
             </div>
           </Card>
@@ -226,8 +226,7 @@ export default function FunctionsPage() {
               <h3 className="text-base font-bold">TypeScript-Ready</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Deploy your TypeScript functions with ease.
               </p>
             </div>
           </Card>
@@ -244,8 +243,7 @@ export default function FunctionsPage() {
               <h3 className="text-base font-bold">Event Triggers</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Use Functions to consume event triggers.
               </p>
             </div>
           </Card>
@@ -262,8 +260,7 @@ export default function FunctionsPage() {
               <h3 className="text-base font-bold">Zero Maintenance</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Improve security by letting enabling Multi-Factor
-                Authentication.
+                Functions are automatically scaled and maintained.
               </p>
             </div>
           </Card>
