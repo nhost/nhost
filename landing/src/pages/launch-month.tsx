@@ -1,11 +1,10 @@
-import { format, intervalToDuration } from 'date-fns'
-import { NextSeo } from 'next-seo'
-
-import { baseUrl } from '@/utils/utils'
-import Link from 'next/link'
-import { ReactNode, useEffect, useState } from 'react'
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { baseUrl } from '@/utils/utils'
+import { format, intervalToDuration } from 'date-fns'
+import { NextSeo } from 'next-seo'
+import Link from 'next/link'
+import { ReactNode, useEffect, useState } from 'react'
 
 function Unit({ value, unit }: { value: ReactNode; unit: string }) {
   return (
@@ -80,8 +79,9 @@ function PostDay({ date, post }: { date: Date; post: Post }) {
         className="col-span-2 h-80 bg-gray-400 "
         style={{
           background: `url(${image})`,
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
         {/* <img src={image} className="h-full" alt={title} /> */}
