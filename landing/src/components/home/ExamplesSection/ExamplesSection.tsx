@@ -168,7 +168,7 @@ export default function ExamplesSection() {
           <div className="relative z-0">
             {activeTechnology === 'javascript' && (
               <div className="bottom-connector-first-active absolute z-10 h-full w-full">
-                <div className="bg-pipe-gradient absolute h-full w-full rotate-45 transform animate-translate-top-bottom-infinite"></div>
+                <div className="bg-pipe-gradient animate-translate-top-bottom absolute h-full w-full rotate-45 transform"></div>
               </div>
             )}
 

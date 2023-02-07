@@ -7,24 +7,24 @@ import { XIcon } from '@/components/common/icons/XIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { ReactElement, ReactNode, useRef } from 'react'
+import { ReactElement, ReactNode, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
 function PricingListItem({
   title,
-  freeContent,
+  starterContent,
   proContent,
   enterpriseContent,
-  freeIcon,
+  starterIcon,
   proIcon,
   enterpriseIcon,
 }: {
   title: ReactNode
-  freeContent?: ReactNode
+  starterContent?: ReactNode
   proContent?: ReactNode
   enterpriseContent?: ReactNode
-  freeIcon?: 'check' | 'x'
+  starterIcon?: 'check' | 'x'
   proIcon?: 'check' | 'x'
   enterpriseIcon?: 'check' | 'x'
 }) {
@@ -35,12 +35,12 @@ function PricingListItem({
       <span
         className={twMerge(
           'col-span-3 flex items-center justify-center text-center text-white',
-          !freeIcon && 'text-opacity-65',
+          !starterIcon && 'text-opacity-65',
         )}
       >
-        {freeIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
-        {freeIcon === 'x' && <XIcon className="h-5 w-5" />}
-        {!freeIcon && freeContent}
+        {starterIcon === 'check' && <CheckmarkCircleIcon className="h-5 w-5" />}
+        {starterIcon === 'x' && <XIcon className="h-5 w-5" />}
+        {!starterIcon && starterContent}
       </span>
 
       <span
@@ -70,12 +70,81 @@ function PricingListItem({
   )
 }
 
+function PlanSelector({
+  onSelect,
+  onClose,
+  selectedPlan,
+}: {
+  onSelect: (plan: 'starter' | 'pro' | 'enterprise') => void
+  onClose: VoidFunction
+  selectedPlan: 'starter' | 'pro' | 'enterprise'
+}) {
+  return (
+    <div
+      className="fixed top-0 bottom-0 left-0 right-0 z-50 h-full w-full bg-black bg-opacity-[1%] backdrop-blur-md lg:hidden"
+      onClick={onClose}
+    >
+      <div
+        className="absolute bottom-0 right-0 left-0 grid w-full grid-flow-row gap-2 rounded-t-lg border border-divider bg-black p-4 motion-safe:animate-slide-up"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <Button
+          variant="borderless"
+          className="justify-between font-mona text-2xl"
+          size="sm"
+          onClick={() => {
+            onSelect('starter')
+            onClose()
+          }}
+        >
+          Starter {selectedPlan === 'starter' && <CheckmarkCircleIcon />}
+        </Button>
+        <div className="h-px w-full bg-divider" />
+        <Button
+          variant="borderless"
+          className="justify-between font-mona text-2xl"
+          size="sm"
+          onClick={() => {
+            onSelect('pro')
+            onClose()
+          }}
+        >
+          Pro {selectedPlan === 'pro' && <CheckmarkCircleIcon />}
+        </Button>
+        <div className="h-px w-full bg-divider" />
+        <Button
+          variant="borderless"
+          className="justify-between font-mona text-2xl"
+          size="sm"
+          onClick={() => {
+            onSelect('enterprise')
+            onClose()
+          }}
+        >
+          Enterprise {selectedPlan === 'enterprise' && <CheckmarkCircleIcon />}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function PricingPage() {
-  const headerRef = useRef<HTMLDivElement>(null)
+  const [planSelectorVisible, setPlanSelectorVisible] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<
+    'starter' | 'pro' | 'enterprise'
+  >('starter')
   const { ref, inView } = useInView({ threshold: 0.5 })
 
   return (
     <>
+      {planSelectorVisible && (
+        <PlanSelector
+          onSelect={setSelectedPlan}
+          onClose={() => setPlanSelectorVisible(false)}
+          selectedPlan={selectedPlan}
+        />
+      )}
+
       <Container
         component="section"
         className="relative flex max-w-5xl pt-20 pb-4 lg:pt-28 lg:pb-12"
@@ -102,12 +171,36 @@ export default function PricingPage() {
       <div className="sticky-anchor relative h-5 w-full" ref={ref} />
 
       <Container
-        ref={headerRef}
-        slotProps={{ root: { className: 'sticky top-0 bg-black' } }}
-        className={twMerge(
-          'grid auto-cols-fr grid-flow-col content-start gap-6 border-b pt-20 pb-4',
-          inView ? 'border-transparent' : 'border-b-divider',
+        slotProps={{
+          root: { className: 'sticky top-0 bg-black block md:hidden' },
+        }}
+        className="grid grid-cols-2 items-center justify-between gap-4 pt-18 pb-4"
+      >
+        <h2 className="font-mona text-2xl capitalize">{selectedPlan}</h2>
+
+        <Button
+          variant="borderless"
+          className="justify-self-end"
+          size="xs"
+          onClick={() => setPlanSelectorVisible(true)}
+        >
+          Switch Plan
+        </Button>
+
+        {selectedPlan === 'starter' && (
+          <Button className="col-span-2 justify-center text-center">
+            Start for free <ArrowRightIcon />
+          </Button>
         )}
+      </Container>
+
+      <Container
+        slotProps={{
+          root: {
+            className: 'sticky top-0 bg-black hidden md:block transform-cpu',
+          },
+        }}
+        className="relative grid auto-cols-fr grid-flow-col content-start gap-6 pt-20 pb-4"
       >
         <div className="col-span-5" />
 
@@ -158,6 +251,10 @@ export default function PricingPage() {
 
           <p className="px-6 py-3 text-center">Contact Us</p>
         </div>
+
+        {!inView && (
+          <div className="absolute bottom-0 left-5 right-5 mx-auto h-px bg-divider" />
+        )}
       </Container>
 
       <Container className="grid auto-rows-auto items-start gap-8">
@@ -167,49 +264,49 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Postgres"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Size"
-              freeContent="500 MB"
+              starterContent="500 MB"
               proContent="10 GB"
               enterpriseContent="Up to 5 TB"
             />
 
             <PricingListItem
               title="Per extra 10 GB"
-              freeIcon="x"
+              starterIcon="x"
               proContent="$20"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Custom API requests"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Event triggers"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Always available"
-              freeContent="Sleep after 7 days of inactivity"
+              starterContent="Sleep after 7 days of inactivity"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Backups"
-              freeIcon="x"
+              starterIcon="x"
               proContent="7 days"
               enterpriseContent="Custom"
             />
@@ -222,21 +319,21 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Hasura GraphQL Engine"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Role based authorization"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Realtime subscriptions"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
@@ -249,28 +346,28 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Users"
-              freeContent={new Intl.NumberFormat().format(10000)}
+              starterContent={new Intl.NumberFormat().format(10000)}
               proContent={new Intl.NumberFormat().format(100000)}
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Email / Password"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Magic Link"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Social OAuth providers"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
@@ -283,28 +380,28 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Size"
-              freeContent="1 GB"
+              starterContent="1 GB"
               proContent="25 GB"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Per extra 10 GB"
-              freeIcon="x"
+              starterIcon="x"
               proContent="$1"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Image transformation"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Global CDN"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
@@ -317,21 +414,21 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Execution"
-              freeContent="1 GB-hours"
+              starterContent="1 GB-hours"
               proContent="10 GB-hours"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Execution time"
-              freeContent="10 sec"
+              starterContent="10 sec"
               proContent="60 sec"
               enterpriseContent="900 sec"
             />
 
             <PricingListItem
               title="Max per deployment"
-              freeContent="10 functions"
+              starterContent="10 functions"
               proContent="50 functions"
               enterpriseContent="Custom"
             />
@@ -344,14 +441,14 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Transfer available"
-              freeContent="5 GB"
+              starterContent="5 GB"
               proContent="50 GB"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
               title="Per extra 100 GB"
-              freeIcon="x"
+              starterIcon="x"
               proContent="$20"
               enterpriseContent="Custom"
             />
@@ -364,14 +461,14 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Custom SMTP settings"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Custom branded templates"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
             />
@@ -384,14 +481,14 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="HTTPS/SSL by default"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Custom backend domain"
-              freeIcon="x"
+              starterIcon="x"
               proContent={
                 <span className="text-white text-opacity-20">Coming soon</span>
               }
@@ -402,14 +499,14 @@ export default function PricingPage() {
 
             <PricingListItem
               title="Auto scaling"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="x"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="99.5 uptime SLA"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="x"
               enterpriseContent={
                 <span className="text-white text-opacity-20">Coming soon</span>
@@ -424,21 +521,21 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Community"
-              freeIcon="check"
+              starterIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Email"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
               title="24x7x365 support with SLA"
-              freeIcon="x"
+              starterIcon="x"
               proIcon="x"
               enterpriseIcon="check"
             />

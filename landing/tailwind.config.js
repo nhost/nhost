@@ -39,11 +39,22 @@ module.exports = {
         275: '2.75',
       },
       animation: {
-        'translate-top-bottom-infinite':
-          'translate-top-bottom-infinite 1.5s ease-in-out forwards',
+        'fade-in': 'fade-in 0.15s ease-in-out forwards',
+        'slide-up': 'slide-up 0.15s ease-in-out forwards',
+        'translate-top-bottom':
+          'translate-top-bottom 1.5s ease-in-out forwards',
       },
       keyframes: {
-        'translate-top-bottom-infinite': {
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)', opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { transform: 'translateY(0%)' },
+        },
+        'fade-in': {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 1 },
+        },
+        'translate-top-bottom': {
           '0%': { transform: 'translateX(-75%)', opacity: 0 },
           '50%': { opacity: 1 },
           '100%': { transform: 'translateX(0%)' },

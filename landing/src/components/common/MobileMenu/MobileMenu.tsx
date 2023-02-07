@@ -22,7 +22,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
       slotProps={{
         root: {
           className: twMerge(
-            'fixed bottom-0 left-0 right-0 z-50 w-full bg-black pt-4 pb-16 overflow-auto',
+            'fixed bottom-0 left-0 right-0 z-40 w-full bg-black pt-4 pb-16 overflow-auto lg:hidden',
             showAnnouncement ? 'top-26' : 'top-16',
           ),
         },

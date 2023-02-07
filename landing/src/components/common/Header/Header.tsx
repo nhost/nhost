@@ -40,7 +40,7 @@ export default function Header({
           ...(slotProps || {}),
           root: {
             className: twMerge(
-              'z-50 bg-black overflow-visible',
+              'z-40 bg-black overflow-visible',
               !mobileMenuVisible && 'backdrop-blur-md bg-opacity-[1%]',
               slotProps?.root?.className,
             ),
