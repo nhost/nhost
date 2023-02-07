@@ -17,9 +17,9 @@ import { ReactElement, useState } from 'react'
 // TODO: Database will not contain any code snippets as examples, but videos
 // instead
 const codeSnippets = {
-  insertData: ``,
+  insertData: `insert-data.mp4`,
   editData: ``,
-  createTable: ``,
+  createTable: `create-table.mp4`,
   editTable: ``,
 }
 
@@ -33,6 +33,8 @@ type DatabaseExamples = typeof codeSnippets
 export default function DatabasePage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof DatabaseExamples>('insertData')
+
+  console.log({ selectedExample })
 
   return (
     <>
@@ -106,12 +108,12 @@ export default function DatabasePage() {
 
         <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
-            <CodeSnippet
-              className="min-h-[330px]"
-              slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
-            >
-              {codeSnippets[selectedExample]}
-            </CodeSnippet>
+            <video width="99%" autoPlay loop muted controls>
+              <source
+                src={`/videos/database/${codeSnippets[selectedExample]}`}
+                type="video/mp4"
+              />
+            </video>
           </div>
 
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
@@ -234,8 +236,7 @@ export default function DatabasePage() {
               <h3 className="text-base font-bold">Postgres Extensions</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Choose from a huge collection of Postgres extensions.
               </p>
             </div>
           </Card>
@@ -251,8 +252,7 @@ export default function DatabasePage() {
               <h3 className="text-base font-bold">Automatic Backups</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Daily backups of your database.
               </p>
             </div>
           </Card>
@@ -268,10 +268,7 @@ export default function DatabasePage() {
             <div className="grid grid-flow-row gap-2.5">
               <h3 className="text-base font-bold">Secure</h3>
 
-              <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
-              </p>
+              <p className="text-base text-white text-opacity-65">[todo]</p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
@@ -287,8 +284,7 @@ export default function DatabasePage() {
               <h3 className="text-base font-bold">Logs</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Choose from a huge collection of Postgres extensions, enabled
-                with a single click.
+                Access raw database logs.
               </p>
             </div>
           </Card>

@@ -67,14 +67,6 @@ export default function GraphqlPage() {
               },
             }}
           />
-
-          <Button
-            href="https://app.nhost.io"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Learn more about GraphQL API <ArrowRightIcon />
-          </Button>
         </div>
 
         <Image
