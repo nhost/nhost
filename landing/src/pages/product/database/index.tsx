@@ -12,11 +12,9 @@ import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 
-// TODO: Database will not contain any code snippets as examples, but videos
-// instead
-const codeSnippets = {
+const videos = {
   insertData: `insert-data.mp4`,
   editData: ``,
   createTable: `create-table.mp4`,
@@ -28,11 +26,18 @@ const standaloneSnippet = `$ psql -h subdomain.db.eu-central-1.nhost\\
 > -U postgres\\
 > -d database`
 
-type DatabaseExamples = typeof codeSnippets
-
 export default function DatabasePage() {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [selectedExample, setSelectedExample] =
-    useState<keyof DatabaseExamples>('insertData')
+    useState<keyof typeof videos>('insertData')
+
+  useEffect(() => {
+    if (!videoRef.current) {
+      return
+    }
+
+    videoRef.current.load()
+  }, [selectedExample])
 
   return (
     <>
@@ -105,10 +110,17 @@ export default function DatabasePage() {
         />
 
         <div className="grid grid-cols-1 items-center justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
-          <div className="order-2 w-full xl:order-1">
-            <video width="99%" autoPlay loop muted controls>
+          <div className="relative order-2 h-0 w-full pb-[56.25%] xl:order-1">
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              controls
+              className="absolute top-0 left-0 h-full w-full rounded-lg"
+            >
               <source
-                src={`/videos/database/${codeSnippets[selectedExample]}`}
+                src={`/videos/database/${videos[selectedExample]}`}
                 type="video/mp4"
               />
             </video>
