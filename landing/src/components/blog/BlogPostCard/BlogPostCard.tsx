@@ -78,7 +78,7 @@ export default function BlogPostCard({
           <div className="relative z-20 flex h-full items-center justify-center overflow-hidden rounded-t-[4px] border-divider border-opacity-50 shadow-cover">
             {image}
 
-            <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-30 h-full w-full" />
+            <div className="bg-black-to-transparent absolute top-1 left-0 right-0 z-30 h-full w-full" />
           </div>
         </div>
 
