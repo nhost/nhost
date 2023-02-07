@@ -77,7 +77,7 @@ export default function ProductSection({
           }
           title="Hasura"
           description="GraphQL API, Role-Based Permissions, Web Console, Event Triggers, Cron Jobs, and more."
-          href="/product/hasura"
+          href="/product/graphql"
         />
 
         <ServiceCard
