@@ -119,7 +119,7 @@ export default function ProductSection({
               alt="Lambda icon"
             />
           }
-          title="Serverless Functions"
+          title="Functions"
           description="Run custom code using JavaScript and Typescript with infinite scale."
           href="/product/functions"
           disableLink={disabledLink === 'functions'}

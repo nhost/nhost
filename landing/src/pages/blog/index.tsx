@@ -65,7 +65,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
           tags={firstArticle.tags}
           authors={firstArticle.authors}
           date={firstArticle.date}
-          className="col-span-2 max-w-full"
+          className="col-span-2 mb-16 max-w-full"
           highlighted
         />
 

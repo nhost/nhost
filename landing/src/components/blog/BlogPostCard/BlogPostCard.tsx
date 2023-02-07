@@ -88,7 +88,7 @@ export default function BlogPostCard({
           </p>
         )}
 
-        <div className="relative z-10 mt-4 grid grid-flow-row gap-6">
+        <div className="relative z-10 mt-2 grid grid-flow-row gap-6">
           <div className="grid max-w-2xl grid-flow-row gap-2">
             <p className="font-mona text-xl text-white">{title}</p>
             <p className="text-base text-white text-opacity-65">
