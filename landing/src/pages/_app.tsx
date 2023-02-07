@@ -4,7 +4,6 @@ import { NextPage } from 'next'
 import { DefaultSeo } from 'next-seo'
 import type { AppProps } from 'next/app'
 import { ReactElement } from 'react'
-import { MDXProvider } from '@mdx-js/react'
 
 export type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactElement
