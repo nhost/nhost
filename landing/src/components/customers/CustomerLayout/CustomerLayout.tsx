@@ -98,7 +98,7 @@ export default function CustomerLayout({
           </div>
         </div>
 
-        <div className="order-1 col-span-6 grid grid-flow-row gap-6 md:order-2 md:col-span-2">
+        <div className="order-1 col-span-6 grid grid-flow-row content-start gap-6 md:order-2 md:col-span-2">
           <h1 className="block text-3.5xl font-bold md:hidden">
             {customer.name}
           </h1>
