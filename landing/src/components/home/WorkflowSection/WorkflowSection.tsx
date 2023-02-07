@@ -289,7 +289,7 @@ export default function WorkflowSection() {
                 </div>
 
                 <span>
-                  Use Git to push and deploy your backend with effortless CI/CD.
+                  Use Git to push and deploy your changes with effortless CI/CD.
                 </span>
               </div>
 

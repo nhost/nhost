@@ -89,7 +89,7 @@ export default function IndexPage() {
 
             <SectionHeading
               title="Backend without limits"
-              subtitle="Get a database and backend configure and ready in minutes so you can focus on your app and your users."
+              subtitle="Get a database and backend configured and ready-to-use in minutes so you can focus on your app and your users."
             />
           </div>
         }

@@ -479,11 +479,11 @@ export default function GraphqlPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Hasura GrapQL Engine</h3>
+              <h3 className="text-base font-bold">Hasura GraphQL Engine</h3>
 
               <p className="text-base text-white text-opacity-65">
                 The GraphQL API is powered by the Hasura GraphQL Engine which
-                has support for Even Triggers, Actions, and more.
+                has support for Event Triggers, Actions, and more.
               </p>
             </div>
           </Card>

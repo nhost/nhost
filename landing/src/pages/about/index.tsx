@@ -171,13 +171,13 @@ export default function AboutPage() {
             avatar={
               <Image
                 src="/investors/avatars/tom-werner.jpg"
-                alt="Avatar of Tom Werner"
+                alt="Avatar of Tom Preston-Werner"
                 width={48}
                 height={48}
                 className="h-12 w-12"
               />
             }
-            name="Tom Werner"
+            name="Tom Preston-Werner"
             position="Founder - GitHub"
           />
 

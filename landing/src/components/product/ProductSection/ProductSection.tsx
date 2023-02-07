@@ -61,7 +61,7 @@ export default function ProductSection({
             />
           }
           title="GraphQL API"
-          description="Instant Realtime GraphQL API based on your tables and columns in the database."
+          description="Instant Realtime GraphQL API based on your database schema."
           href="/product/graphql"
           disableLink={disabledLink === 'graphql'}
         />
@@ -76,7 +76,7 @@ export default function ProductSection({
             />
           }
           title="Hasura"
-          description="GraphQL API, Role-Based Permissions, Web Console, Event Triggers, Cron Jobs, and more."
+          description="Role-Based Permissions, Web Console, Event Triggers, Cron Jobs, and more."
           href="/product/graphql"
         />
 
@@ -120,7 +120,7 @@ export default function ProductSection({
             />
           }
           title="Functions"
-          description="Run custom code using JavaScript and Typescript with infinite scale."
+          description="Run custom code using JavaScript and TypeScript with infinite scale."
           href="/product/functions"
           disableLink={disabledLink === 'functions'}
         />
