@@ -276,9 +276,12 @@ export default function DatabasePage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Secure</h3>
+              <h3 className="text-base font-bold">SSD Storage</h3>
 
-              <p className="text-base text-white text-opacity-65">[todo]</p>
+              <p className="text-base text-white text-opacity-65">
+                All databases are stored on high-performing SSDs for maximum
+                speed.
+              </p>
             </div>
           </Card>
           <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
@@ -294,7 +297,8 @@ export default function DatabasePage() {
               <h3 className="text-base font-bold">Logs</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Access raw database logs.
+                Access raw database logs and get full visability to your
+                database.
               </p>
             </div>
           </Card>

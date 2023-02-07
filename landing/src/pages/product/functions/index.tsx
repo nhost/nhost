@@ -133,7 +133,7 @@ export default function FunctionsPage() {
           />
 
           <Button
-            href="https://app.nhost.io/sendEmail"
+            href="https://app.nhost.io"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -149,7 +149,7 @@ export default function FunctionsPage() {
       <Container component="section" className="grid grid-flow-row gap-24">
         <div className="grid grid-flow-row justify-items-center gap-8">
           <SectionHeading
-            title="Functions that scale automatically"
+            title="Serverless Functions at Scale"
             subtitle="Handle custom logic, specific business requirements, and custom integrations using Nhost Functions."
             className="max-w-2xl"
             slotProps={{
