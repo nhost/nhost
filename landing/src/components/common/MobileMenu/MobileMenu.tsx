@@ -63,7 +63,7 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
                   className="w-full text-base text-opacity-65"
                   onClick={onLinkClick}
                 >
-                  GraphQL
+                  GraphQL API
                 </Button>
               </li>
               <li>

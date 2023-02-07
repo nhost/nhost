@@ -108,7 +108,7 @@ export default function Header({
                                 className="w-full text-opacity-65"
                                 onClick={close}
                               >
-                                GraphQL
+                                GraphQL API
                               </Button>
                             </li>
                             <li className="h-px w-full bg-white bg-opacity-10" />
