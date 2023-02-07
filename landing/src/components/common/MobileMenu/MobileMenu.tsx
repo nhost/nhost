@@ -138,17 +138,6 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
             <Button
               size="sm"
               variant="borderless"
-              href="/changelog"
-              className="w-full text-xl font-normal"
-              onClick={onLinkClick}
-            >
-              Changelog
-            </Button>
-          </li>
-          <li>
-            <Button
-              size="sm"
-              variant="borderless"
               href="/customers"
               className="w-full text-xl font-normal"
               onClick={onLinkClick}

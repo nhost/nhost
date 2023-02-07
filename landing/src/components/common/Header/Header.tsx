@@ -171,11 +171,6 @@ export default function Header({
               </Link>
             </li>
             <li>
-              <Link href="/changelog" className="p-1.5">
-                Changelog
-              </Link>
-            </li>
-            <li>
               <Link href="/customers" className="p-1.5">
                 Customers
               </Link>

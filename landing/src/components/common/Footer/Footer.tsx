@@ -104,9 +104,6 @@ export default function Footer() {
           <Link href="/pricing">Pricing</Link>
         </li>
         <li>
-          <Link href="/changelog">Changelog</Link>
-        </li>
-        <li>
           <Link href="/blog">Blog</Link>
         </li>
       </List>
