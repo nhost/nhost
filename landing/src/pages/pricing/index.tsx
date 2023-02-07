@@ -213,12 +213,13 @@ export default function PricingPage() {
               <p className="col-span-2 px-6 py-3 text-center">Buy Pro</p>
             )}
             {selectedPlan === 'enterprise' && (
-              <Link
-                className="col-span-2 justify-center px-6 py-3 text-opacity-100"
+              <Button
+                variant="borderless"
+                className="col-span-2"
                 href="mailto:hello@nhost.io"
               >
                 Contact Us
-              </Link>
+              </Button>
             )}
           </>
         )}
@@ -283,12 +284,13 @@ export default function PricingPage() {
             }}
           />
 
-          <Link
-            className="justify-center px-6 py-3 text-opacity-100"
+          <Button
+            variant="borderless"
             href="mailto:hello@nhost.io"
+            className="justify-center"
           >
             Contact Us
-          </Link>
+          </Button>
         </div>
 
         {!inView && (
@@ -611,6 +613,24 @@ export default function PricingPage() {
               selectedPlan={selectedPlan}
             />
           </ul>
+        </section>
+
+        <section className="mt-16 lg:mt-24">
+          <SectionHeading
+            title="FAQ"
+            subtitle={
+              <>
+                Didn&apos;t find what you&apos;re looking for?{' '}
+                <Link
+                  href="mailto:hello@nhost.io"
+                  className="text-white text-opacity-100"
+                >
+                  Contact Us
+                </Link>
+                .
+              </>
+            }
+          />
         </section>
       </Container>
     </>
