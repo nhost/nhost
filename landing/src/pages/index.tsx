@@ -115,27 +115,27 @@ export default function IndexPage() {
           <CustomerCard
             image={
               <Image
-                src="/customers/slides-with-friends.svg"
-                alt="Logo of Slides with friends"
+                src="/customers/midnight-society.png"
+                alt="Logo of Midnight Society"
                 width={142}
                 height={64}
               />
             }
-            title="Slides with friends"
-            description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
-            href="/customers/slides-with-friends"
+            title="Midnight Society"
+            description="Learn how Midnight Society uses Nhost to build their app."
+            href="/customers/midnight-society"
           />
 
           <CustomerCard
             image={
               <Image
-                src="/customers/celsia.svg"
-                alt="Logo of Celsia"
+                src="/customers/react-flow.svg"
+                alt="Logo of React Flow"
                 width={140}
                 height={40}
               />
             }
-            title="Celsia"
+            title="React Flow"
             description="Interactive slides for amazing events, meetings, and lessons. Powering 10,000+ users around the globe."
             href="/customers/celsia"
           />

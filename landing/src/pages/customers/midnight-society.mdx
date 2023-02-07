@@ -1,0 +1,40 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'Midnight Society',
+  description: 'Mid',
+  logo: { src: '/customers/midnight-society.png', width: 142, height: 64 },
+  ogImage: {
+    src: '/images/customers/midnight-society/og.png',
+    width: 1920,
+    height: 1080,
+  },
+  industry: 'Gaming Studio',
+  location: 'San Mateo, United States',
+  timeToProduction: '6 weeks',
+  problem: 'Problem goes here',
+  solution: 'Solution goes here',
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+## Introduction
+
+Midnight Society is a AAA game studio that collaborates with Boom.tv to make their community part of the game-building process. The goal is to attract a large audience to influence how the game would unfold. By early February of 2022, they had already amassed 200,000 followers on Twitter and Discord, but they needed to funnel those users to their website and get them to sign up for early access to their new game.
+
+## Problem
+
+Midnight Society knew that their launch was going to be big, and their backend and infrastructure had to be able to handle hundreds of thousands of users from day one. However, the team at Boom.tv was facing challenges while working with Laravel, the framework they were using to build custom web apps. They needed a more modern stack and developer experience that would separate the backend and frontend processes.
+
+## Solution
+
+The team at Boom.tv evaluated different solutions to handle authentication with Hasura, the framework they had their sights set on. They considered Auth0 and Firebase, but both were too expensive and inflexible. Finally, they came across Nhost's open-source authentication service for Hasura and its full offering with managed Postgres, Hasura, Auth, Storage, and Serverless Functions.
+
+## Benefits of Nhost
+
+Nhost filled the gap in Hasura's ecosystem and provided the team at Boom.tv with a familiar and intuitive experience. Nhost automatically takes care of the infrastructure, configurations, and deployments, allowing the team to focus on their actual business instead of building infrastructure, CI/CD pipelines, CRUD APIs, or authentication.
+
+## Conclusion
+
+The collaboration between Midnight Society and Boom.tv to launch a community-driven game was a success. The use of Nhost provided the team with a seamless experience, and their backend was able to handle hundreds of thousands of users from day one. Nhost filled the gap in Hasura's ecosystem, providing the team with an efficient and modern solution to handle authentication.

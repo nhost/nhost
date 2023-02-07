@@ -8,7 +8,12 @@ import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { Customer } from '@/utils/types'
 import Image from 'next/image'
+import { MDXProvider } from '@mdx-js/react'
 import { PropsWithChildren } from 'react'
+
+const components = {
+  img: (props: any) => <img {...props} />,
+}
 
 export interface CustomerLayout {
   /**
@@ -87,7 +92,9 @@ export default function CustomerLayout({
               </div>
             </div>
 
-            <div className="text-white text-opacity-65">{children}</div>
+            <div className="prose prose-invert max-w-prose text-white text-opacity-65">
+              <MDXProvider components={components}>{children}</MDXProvider>
+            </div>
           </div>
         </div>
 
