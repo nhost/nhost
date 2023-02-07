@@ -236,7 +236,7 @@ export default function GraphqlPage() {
           subtitle="Build collaborative apps with ease."
         />
 
-        <div className="mx-auto mt-8 grid items-center gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
+        <div className="mx-auto mt-8 grid items-start gap-12 md:grid-cols-2 lg:mt-24 lg:max-w-5xl">
           <ul className="grid grid-flow-row gap-6 md:max-w-sm">
             <li
               className={twMerge(

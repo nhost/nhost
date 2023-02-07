@@ -62,7 +62,10 @@ export default function Header({
           />
         </Link>
 
-        <nav aria-label="Main navigation" className="hidden lg:block">
+        <nav
+          aria-label="Main navigation"
+          className="absolute left-1/2 mx-auto hidden -translate-x-1/2 lg:block"
+        >
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
               <Popover>

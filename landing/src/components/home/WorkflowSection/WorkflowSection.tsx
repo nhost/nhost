@@ -36,7 +36,7 @@ function CLIWorkflow({
   className,
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
-  const { ref, inView } = useInView()
+  const { ref, inView } = useInView({ threshold: 0.2 })
   const codeString = `$ nhost up
 
 - Postgres:         postgres://postgres:postgres@localhost:5432/postgres
@@ -183,7 +183,7 @@ export default function WorkflowSection() {
         subtitle="Launch something amazing without painful devops."
       />
 
-      <div className="mt-14 grid grid-cols-1 items-center gap-6 lg:mt-24 lg:grid-cols-12">
+      <div className="mt-14 grid grid-cols-1 items-start gap-6 lg:mt-24 lg:grid-cols-12">
         <div className="relative z-20 lg:col-span-5">
           <div className="absolute left-[3px] top-1/2 hidden -translate-y-1/2 lg:block">
             <Image

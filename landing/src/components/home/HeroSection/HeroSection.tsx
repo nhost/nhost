@@ -61,7 +61,7 @@ export default function HeroSection() {
 
         <div
           className={twMerge(
-            'absolute top-0 left-0 right-0 mx-auto h-full w-full max-w-5xl opacity-0 transition-opacity delay-[500]',
+            'absolute top-0 left-0 right-0 mx-auto h-full w-full max-w-5xl',
             imageLoaded && 'animate-fade-in-delay',
           )}
         >

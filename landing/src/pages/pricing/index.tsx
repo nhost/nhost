@@ -210,8 +210,16 @@ export default function PricingPage() {
             )}
 
             {selectedPlan === 'pro' && (
-              <p className="col-span-2 px-6 py-3 text-center">Buy Pro</p>
+              <Button
+                className="col-span-2 justify-center text-center"
+                href="https://app.nhost.io/new"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Buy Pro
+              </Button>
             )}
+
             {selectedPlan === 'enterprise' && (
               <Button
                 variant="borderless"
@@ -242,7 +250,7 @@ export default function PricingPage() {
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Starter"
-            subtitle={inView && 'Free forever'}
+            subtitle="Free forever"
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
@@ -262,7 +270,7 @@ export default function PricingPage() {
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Pro"
-            subtitle={inView && '$25/mo'}
+            subtitle="$25/mo"
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
@@ -270,13 +278,21 @@ export default function PricingPage() {
             }}
           />
 
-          <p className="px-6 py-3 text-center">Buy Pro</p>
+          <Button
+            variant="borderless"
+            className="justify-center text-center"
+            href="https://app.nhost.io/new"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Buy Pro
+          </Button>
         </div>
 
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Enterprise"
-            subtitle={inView && 'Custom plan'}
+            subtitle="Custom plan"
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },

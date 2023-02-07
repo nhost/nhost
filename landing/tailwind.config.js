@@ -45,8 +45,8 @@ module.exports = {
         'slide-middle-up': 'slide-middle-up 0.5s ease-in-out forwards',
         'translate-top-bottom':
           'translate-top-bottom 1.5s ease-in-out forwards',
-        'slide-line-left-delay': 'slide-line-left 1s ease-in-out forwards 0.5s',
-        'slide-line-up-delay': 'slide-line-up 1s ease-in-out forwards 0.5s',
+        'slide-line-left-delay': 'slide-line-left 1s ease-in-out forwards 0.3s',
+        'slide-line-up-delay': 'slide-line-up 1s ease-in-out forwards 0.3s',
       },
       keyframes: {
         'slide-line-left': {

@@ -62,7 +62,7 @@ export default function ExamplesSection() {
         />
       </div>
 
-      <div className="z-0 grid items-center gap-14 xl:grid-cols-2 xl:gap-6">
+      <div className="z-0 grid items-start gap-14 xl:grid-cols-2 xl:gap-6">
         <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:order-1 xl:max-w-none">
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
@@ -83,7 +83,7 @@ export default function ExamplesSection() {
           </CodeSnippet>
         </div>
 
-        <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none xl:pt-16">
+        <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none">
           <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 md:justify-center md:gap-6">
             <ExampleSelectorButton
               active={activeExample === 'signUp'}
@@ -161,7 +161,7 @@ export default function ExamplesSection() {
 
           <div className="relative z-0">
             {activeTechnology === 'javascript' && (
-              <div className="bottom-connector-first-active absolute z-10 h-full w-full">
+              <div className="bottom-connector-first-active absolute z-10 hidden h-full w-full">
                 <div className="bg-pipe-gradient absolute h-full w-full rotate-45 transform animate-translate-top-bottom"></div>
               </div>
             )}
