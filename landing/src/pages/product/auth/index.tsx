@@ -1,3 +1,4 @@
+import { AuthHeroSection } from '@/components/auth/AuthHeroSection'
 import { Button } from '@/components/common/Button'
 import { Card } from '@/components/common/Card'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
@@ -8,7 +9,6 @@ import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
-import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
@@ -39,80 +39,17 @@ await nhost.auth.signIn({
 `,
 }
 
-const heroExample = `await nhost.auth.signUp({
-  email: 'joe@example.com',
-  password: 'secret-password'
-})`
-
 export default function AuthPage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('signUp')
 
   return (
     <>
-      <Container
-        component="section"
-        slotProps={{ root: { className: 'overflow-visible' } }}
-        className="relative grid grid-cols-1 items-start gap-14 sm:gap-6 lg:grid-cols-2"
-      >
-        <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 lg:px-28 lg:pt-42">
-          <ProductIcon>
-            <Image
-              src="/products/authentication.svg"
-              width={24}
-              height={24}
-              alt="A user"
-              priority
-            />
-          </ProductIcon>
-
-          <SectionHeading
-            title="Auth"
-            subtitle="Everything you need to sign in and manage users."
-            className="text-left"
-            slotProps={{
-              title: {
-                component: 'h1',
-                className: 'font-semibold',
-              },
-              subtitle: {
-                className: 'text-base !leading-normal',
-              },
-            }}
-          />
-        </div>
-
-        <div className="relative sm:pt-6 lg:-translate-x-1 lg:pt-24">
-          <LineGrid
-            className="md:-translate-x-11 md:-translate-y-11"
-            priority
-          />
-
-          <Glow className="h-[75%] w-full opacity-40 blur-3xl" />
-
-          <Image
-            src="/products/auth-hero.png"
-            alt="Auth page in the Nhost Dashboard"
-            width={2880}
-            height={1800}
-            className="relative z-10 h-auto w-full"
-            priority
-          />
-
-          <CodeSnippet
-            language="typescript"
-            disableGlow
-            disableLineGrid
-            className="absolute -right-3 -bottom-6 z-20 max-w-md shadow-lg xl:-right-5 xl:-bottom-12"
-          >
-            {heroExample}
-          </CodeSnippet>
-        </div>
-      </Container>
+      <AuthHeroSection />
 
       <Container
         component="section"
-        className="mt-16 grid grid-flow-row gap-24 lg:mt-28"
+        className="mt-16 grid grid-flow-row gap-24 md:mt-32"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
