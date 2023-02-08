@@ -24,7 +24,7 @@ export function CountrySelector({ value, onChange }: CountrySelectorProps) {
       placeholder="Select Country"
     >
       {countries?.map((country) => (
-        <Option key={country.name} value={country.name}>
+        <Option key={country.name} value={country.code}>
           {country.name}
         </Option>
       ))}
