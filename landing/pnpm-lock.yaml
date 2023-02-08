@@ -19,6 +19,7 @@ specifiers:
   eslint-config-next: 13.1.6
   fast-glob: ^3.2.12
   next: 13.1.6
+  next-plausible: ^3.7.2
   next-seo: ^5.15.0
   postcss: ^8.4.21
   prettier: ^2.8.3
@@ -51,6 +52,7 @@ dependencies:
   eslint-config-next: 13.1.6_4vsywjlpuriuw3tl5oq6zy5a64
   fast-glob: 3.2.12
   next: 13.1.6_biqbaboplfbrettd7655fr4n2y
+  next-plausible: 3.7.2_3vryta7zmbcsw4rrqf4axjqggm
   next-seo: 5.15.0_3vryta7zmbcsw4rrqf4axjqggm
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
@@ -3598,6 +3600,18 @@ packages:
 
   /natural-compare/1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+    dev: false
+
+  /next-plausible/3.7.2_3vryta7zmbcsw4rrqf4axjqggm:
+    resolution: {integrity: sha512-9PqFiVtD1kZO5gHFYTcgilHhg2WhMzD6I4NK/RUh9DGavD1N11IhNAvyGLFmvB3f4FtHC9IoAsauYDtQBt+riA==}
+    peerDependencies:
+      next: ^11.1.0 || ^12.0.0 || ^13.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      next: 13.1.6_biqbaboplfbrettd7655fr4n2y
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /next-seo/5.15.0_3vryta7zmbcsw4rrqf4axjqggm:

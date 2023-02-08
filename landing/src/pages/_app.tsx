@@ -1,6 +1,7 @@
 import '@/styles/globals.css'
 import { getDefaultOgUrl } from '@/utils/utils'
 import { NextPage } from 'next'
+import PlausibleProvider from 'next-plausible'
 import { DefaultSeo } from 'next-seo'
 import type { AppProps } from 'next/app'
 import { ReactElement } from 'react'
@@ -40,7 +41,14 @@ export default function App({ Component, pageProps }: LandingPageProps) {
         }}
       />
 
-      {getLayout(<Component {...pageProps} />)}
+      {getLayout(
+        <PlausibleProvider
+          domain="nhost.io"
+          enabled={process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'}
+        >
+          <Component {...pageProps} />
+        </PlausibleProvider>,
+      )}
     </>
   )
 }

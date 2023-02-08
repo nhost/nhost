@@ -23,6 +23,7 @@
     "eslint-config-next": "13.1.6",
     "fast-glob": "^3.2.12",
     "next": "13.1.6",
+    "next-plausible": "^3.7.2",
     "next-seo": "^5.15.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
