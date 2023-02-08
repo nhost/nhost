@@ -9,7 +9,9 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { ReactElement, ReactNode, useState } from 'react'
+import { PlanSelector } from '@/components/pricing/PlanSelector'
+import { Transition } from '@headlessui/react'
+import { Fragment, ReactElement, ReactNode, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
@@ -84,64 +86,6 @@ function PricingListItem({
   )
 }
 
-function PlanSelector({
-  onSelect,
-  onClose,
-  selectedPlan,
-}: {
-  onSelect: (plan: 'starter' | 'pro' | 'enterprise') => void
-  onClose: VoidFunction
-  selectedPlan: 'starter' | 'pro' | 'enterprise'
-}) {
-  return (
-    <div
-      className="fixed top-0 bottom-0 left-0 right-0 z-50 h-full w-full bg-black bg-opacity-[1%] backdrop-blur-md lg:hidden"
-      onClick={onClose}
-    >
-      <div
-        className="absolute bottom-0 right-0 left-0 grid w-full grid-flow-row gap-2 rounded-t-lg border border-divider bg-black p-4 motion-safe:animate-slide-up"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <Button
-          variant="borderless"
-          className="justify-between font-mona text-2xl"
-          size="sm"
-          onClick={() => {
-            onSelect('starter')
-            onClose()
-          }}
-        >
-          Starter {selectedPlan === 'starter' && <CheckmarkCircleIcon />}
-        </Button>
-        <div className="h-px w-full bg-divider" />
-        <Button
-          variant="borderless"
-          className="justify-between font-mona text-2xl"
-          size="sm"
-          onClick={() => {
-            onSelect('pro')
-            onClose()
-          }}
-        >
-          Pro {selectedPlan === 'pro' && <CheckmarkCircleIcon />}
-        </Button>
-        <div className="h-px w-full bg-divider" />
-        <Button
-          variant="borderless"
-          className="justify-between font-mona text-2xl"
-          size="sm"
-          onClick={() => {
-            onSelect('enterprise')
-            onClose()
-          }}
-        >
-          Enterprise {selectedPlan === 'enterprise' && <CheckmarkCircleIcon />}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 export default function PricingPage() {
   const [planSelectorVisible, setPlanSelectorVisible] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<
@@ -151,13 +95,22 @@ export default function PricingPage() {
 
   return (
     <>
-      {planSelectorVisible && (
+      <Transition
+        show={planSelectorVisible}
+        as={Fragment}
+        enter="transition ease-out duration-200"
+        enterFrom="opacity-0 translate-y-1"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition ease-in duration-150"
+        leaveFrom="opacity-100 translate-y-0"
+        leaveTo="opacity-0 translate-y-1"
+      >
         <PlanSelector
           onSelect={setSelectedPlan}
           onClose={() => setPlanSelectorVisible(false)}
           selectedPlan={selectedPlan}
         />
-      )}
+      </Transition>
 
       <Container
         component="section"

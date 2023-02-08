@@ -1,5 +1,5 @@
 import { useAnnouncement } from '@/hooks/useAnnouncement'
-import { useState } from 'react'
+import { ForwardedRef, forwardRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container } from '../Container'
@@ -13,12 +13,16 @@ export interface MobileMenuProps {
   onLinkClick?: VoidFunction
 }
 
-export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
+function MobileMenu(
+  { onLinkClick }: MobileMenuProps,
+  ref: ForwardedRef<HTMLDivElement>,
+) {
   const [productExpanded, setProductExpanded] = useState(false)
   const { showAnnouncement } = useAnnouncement()
 
   return (
     <Container
+      ref={ref}
       slotProps={{
         root: {
           className: twMerge(
@@ -161,3 +165,5 @@ export default function MobileMenu({ onLinkClick }: MobileMenuProps) {
     </Container>
   )
 }
+
+export default forwardRef(MobileMenu)

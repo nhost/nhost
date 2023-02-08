@@ -1,5 +1,6 @@
+import { Transition } from '@headlessui/react'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
@@ -28,9 +29,18 @@ export default function Header({
 
   return (
     <>
-      {mobileMenuVisible && (
+      <Transition
+        show={mobileMenuVisible}
+        as={Fragment}
+        enter="transition ease-out duration-200"
+        enterFrom="opacity-0 translate-y-1"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition ease-in duration-150"
+        leaveFrom="opacity-100 translate-y-0"
+        leaveTo="opacity-0 translate-y-1"
+      >
         <MobileMenu onLinkClick={() => setMobileMenuVisible(false)} />
-      )}
+      </Transition>
 
       <Container
         component="header"
@@ -75,7 +85,6 @@ export default function Header({
                         variant="borderless"
                         size="xs"
                         className="w-full text-opacity-65"
-                        onClick={close}
                       >
                         Database
                       </Button>
@@ -87,7 +96,6 @@ export default function Header({
                         variant="borderless"
                         size="xs"
                         className="w-full text-opacity-65"
-                        onClick={close}
                       >
                         GraphQL API
                       </Button>
@@ -99,7 +107,6 @@ export default function Header({
                         variant="borderless"
                         size="xs"
                         className="w-full text-opacity-65"
-                        onClick={close}
                       >
                         Auth
                       </Button>
@@ -111,7 +118,6 @@ export default function Header({
                         variant="borderless"
                         size="xs"
                         className="w-full text-opacity-65"
-                        onClick={close}
                       >
                         Storage
                       </Button>
@@ -123,7 +129,6 @@ export default function Header({
                         variant="borderless"
                         size="xs"
                         className="w-full text-opacity-65"
-                        onClick={close}
                       >
                         Functions
                       </Button>
