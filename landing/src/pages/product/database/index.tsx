@@ -15,10 +15,10 @@ import Image from 'next/image'
 import { ReactElement, useEffect, useRef, useState } from 'react'
 
 const videos = {
-  insertData: `insert-data.mp4`,
-  editData: ``,
-  createTable: `create-table.mp4`,
-  editTable: ``,
+  insertData: `/videos/database/insert-data.mp4`,
+  editData: `/videos/database/edit-data.mp4`,
+  createTable: `/videos/database/create-table.mp4`,
+  editTable: `/videos/database/edit-table.mp4`,
 }
 
 const standaloneSnippet = `$ psql -h subdomain.db.eu-central-1.nhost\\
@@ -65,10 +65,7 @@ export default function DatabasePage() {
               controls
               className="absolute top-0 left-0 h-full w-full rounded-lg"
             >
-              <source
-                src={`/videos/database/${videos[selectedExample]}`}
-                type="video/mp4"
-              />
+              <source src={`${videos[selectedExample]}`} type="video/mp4" />
             </video>
           </div>
 
