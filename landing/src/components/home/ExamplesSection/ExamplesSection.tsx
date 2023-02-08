@@ -54,14 +54,12 @@ export default function ExamplesSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
-      className="mt-24 grid grid-flow-row gap-14 pb-8 lg:mt-32"
+      className="mt-24 grid grid-flow-row gap-12 pb-8 lg:mt-32 lg:gap-28"
     >
-      <div className="z-10 grid grid-flow-row justify-center gap-10">
-        <SectionHeading
-          title={<>For Developers - By Developers</>}
-          subtitle="Build products faster using our SDKs"
-        />
-      </div>
+      <SectionHeading
+        title="For Developers - By Developers"
+        subtitle="Build products faster using our SDKs"
+      />
 
       <div className="z-0 grid items-start gap-14 xl:grid-cols-2 xl:gap-6">
         <div className="order-2 col-span-1 mx-auto hidden w-full max-w-screen-sm md:block xl:order-1 xl:max-w-none">

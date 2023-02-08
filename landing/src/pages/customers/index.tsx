@@ -43,7 +43,7 @@ export default function BlogPage({ customers }: CustomersPageProps) {
 
       <Container
         component="section"
-        className="relative grid max-w-lg grid-cols-1 gap-6 pt-2 pb-16 sm:grid-cols-1 lg:max-w-7xl lg:grid-cols-3 lg:pt-12 lg:pb-28"
+        className="relative grid max-w-lg grid-cols-1 gap-6 pb-16 sm:grid-cols-1 lg:max-w-7xl lg:grid-cols-3 lg:pb-28"
       >
         {customers.map((customer) => (
           <CustomerCard

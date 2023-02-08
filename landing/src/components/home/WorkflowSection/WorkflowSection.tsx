@@ -194,14 +194,14 @@ export default function WorkflowSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
-      className="grid grid-flow-row gap-14 overflow-hidden pb-8"
+      className="grid grid-flow-row gap-12 overflow-hidden pb-8 lg:gap-28"
     >
       <SectionHeading
         title="Develop Locally. Ship Globally."
         subtitle="Launch something amazing without painful devops."
       />
 
-      <div className="mt-14 grid grid-cols-1 items-start gap-6 lg:mt-24 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="relative z-20 lg:col-span-5">
           <div className="absolute left-[3px] top-1/2 hidden -translate-y-1/2 lg:block">
             <Image

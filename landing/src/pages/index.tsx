@@ -111,7 +111,7 @@ export default function IndexPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="relative mx-auto grid max-w-lg grid-cols-1 gap-6 px-5 pb-16 sm:grid-cols-1 lg:max-w-7xl lg:grid-cols-3 lg:px-0 lg:pb-28">
           <CustomerCard
             image={
               <Image
