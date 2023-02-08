@@ -54,6 +54,7 @@ export default function StorageHeroSection() {
           alt="The Nhost Dashboard's storage page"
           className="relative z-10 mx-auto h-auto w-full object-contain"
           priority
+          sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
         <CodeSnippet

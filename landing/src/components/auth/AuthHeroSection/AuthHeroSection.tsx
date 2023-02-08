@@ -57,6 +57,7 @@ export default function AuthHeroSection() {
           height={1800}
           className="relative z-10 h-auto w-full"
           priority
+          sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
         <CodeSnippet
