@@ -8,6 +8,10 @@ import { LineGrid } from '../LineGrid'
 
 export interface CodeSnippetProps extends SyntaxHighlighterProps {
   /**
+   * Class name to be applied to the root element.
+   */
+  className?: string
+  /**
    * Whether to disable the line grid in the background.
    */
   disableLineGrid?: boolean
@@ -33,6 +37,7 @@ export default function CodeSnippet({
   children,
   customStyle,
   slotProps,
+  className,
   ...props
 }: CodeSnippetProps) {
   return (
@@ -40,6 +45,7 @@ export default function CodeSnippet({
       {...(slotProps?.root || {})}
       className={twMerge(
         'code-snippet relative z-0 w-full',
+        className,
         slotProps?.root?.className,
       )}
     >

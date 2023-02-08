@@ -80,20 +80,20 @@ export default function DatabasePage() {
           </Button>
         </div>
 
-        <div className="relative">
+        <div className="relative max-h-[400px]">
           <LineGrid
             className="md:-translate-x-11 md:-translate-y-11"
             priority
           />
 
-          <Glow className="h-3/5 w-4/5 opacity-40 blur-3xl md:-translate-x-18" />
+          <Glow className="h-3/5 w-[75%] opacity-40 blur-3xl md:-translate-x-18" />
 
           <Image
-            src="/common/database-hero.svg"
+            src="/products/database-hero.svg"
             width={619}
             height={464}
             alt="A table with three columns"
-            className="relative z-10"
+            className="relative z-10 h-full w-auto object-contain"
             priority
           />
         </div>

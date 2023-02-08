@@ -88,7 +88,7 @@ export default function StoragePage() {
           <Glow className="h-4/5 w-[68%] translate-y-3 skew-x-6 skew-y-3 bg-opacity-65 blur-[32px] md:-translate-x-11" />
 
           <Image
-            src="/common/storage-hero.svg"
+            src="/products/storage-hero.svg"
             width={612}
             height={312}
             alt="The Nhost Dashboard's storage page"

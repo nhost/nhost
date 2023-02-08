@@ -52,9 +52,10 @@ export default function AuthPage() {
     <>
       <Container
         component="section"
-        className="relative grid grid-cols-1 items-center gap-14 py-8 sm:gap-6 md:grid-cols-2 md:py-40"
+        slotProps={{ root: { className: 'overflow-visible' } }}
+        className="relative grid grid-cols-1 items-start gap-14 sm:gap-6 lg:grid-cols-2"
       >
-        <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
+        <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 lg:px-28 lg:pt-42">
           <ProductIcon>
             <Image
               src="/products/authentication.svg"
@@ -81,7 +82,32 @@ export default function AuthPage() {
           />
         </div>
 
-        <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
+        <div className="relative sm:pt-6 lg:-translate-x-1 lg:pt-24">
+          <LineGrid
+            className="md:-translate-x-11 md:-translate-y-11"
+            priority
+          />
+
+          <Glow className="h-[75%] w-full opacity-40 blur-3xl" />
+
+          <Image
+            src="/products/auth-hero.png"
+            alt="Auth page in the Nhost Dashboard"
+            width={2880}
+            height={1800}
+            className="relative z-10 h-auto w-full"
+            priority
+          />
+
+          <CodeSnippet
+            language="typescript"
+            disableGlow
+            disableLineGrid
+            className="absolute -right-3 -bottom-6 z-20 max-w-md shadow-lg xl:-right-5 xl:-bottom-12"
+          >
+            {heroExample}
+          </CodeSnippet>
+        </div>
       </Container>
 
       <Container

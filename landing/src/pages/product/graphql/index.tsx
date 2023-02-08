@@ -112,14 +112,16 @@ export default function GraphqlPage() {
           />
         </div>
 
-        <Image
-          src="/common/graphql-hero.svg"
-          width={608}
-          height={608}
-          alt="GraphQL logo"
-          className="mx-auto h-auto !w-full max-w-md object-none sm:object-none"
-          priority
-        />
+        <div className="relative max-h-[400px]">
+          <Image
+            src="/products/graphql-hero.svg"
+            width={608}
+            height={608}
+            alt="GraphQL logo"
+            className="mx-auto h-full w-auto object-none"
+            priority
+          />
+        </div>
       </Container>
 
       <Container
