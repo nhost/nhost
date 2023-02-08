@@ -174,8 +174,10 @@ export default function GraphqlPage() {
           slotProps={{ subtitle: { className: 'max-w-lg mx-auto' } }}
         />
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
+        <div className="mx-auto mt-16 flex w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
+          <video autoPlay loop muted controls className="rounded-lg">
+            <source src={`/videos/graphql/permissions.mp4`} type="video/mp4" />
+          </video>
         </div>
       </Container>
 
