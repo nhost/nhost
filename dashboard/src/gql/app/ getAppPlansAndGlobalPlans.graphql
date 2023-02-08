@@ -3,8 +3,12 @@ fragment getAppPlanAndGlobalPlansApp on apps {
   subdomain
   workspace {
     id
-    paymentMethods {
-      id
+    stripeCustomer {
+      paymentIntents {
+        data {
+          id
+        }
+      }
     }
   }
   plan {

@@ -18112,7 +18112,7 @@ export type InsertEnvironmentVariablesMutationVariables = Exact<{
 
 export type InsertEnvironmentVariablesMutation = { __typename?: 'mutation_root', insertEnvironmentVariables?: { __typename?: 'environmentVariables_mutation_response', affected_rows: number } | null };
 
-export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
+export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, stripeCustomer: { __typename?: 'StripeCustomer', paymentIntents: { __typename?: 'StripePaymentIntents', data: Array<{ __typename?: 'StripePaymentIntent', id: string }> } } }, plan: { __typename?: 'plans', id: any, name: string } };
 
 export type GetAppPlanAndGlobalPlansPlanFragment = { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number };
 
@@ -18122,7 +18122,7 @@ export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
 }>;
 
 
-export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
+export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, stripeCustomer: { __typename?: 'StripeCustomer', paymentIntents: { __typename?: 'StripePaymentIntents', data: Array<{ __typename?: 'StripePaymentIntent', id: string }> } } }, plan: { __typename?: 'plans', id: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -18799,8 +18799,12 @@ export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
   subdomain
   workspace {
     id
-    paymentMethods {
-      id
+    stripeCustomer {
+      paymentIntents {
+        data {
+          id
+        }
+      }
     }
   }
   plan {

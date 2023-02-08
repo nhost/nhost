@@ -565,18 +565,30 @@ export function NewProjectPageContent({
                 setShowPaymentModal(false);
               }}
             >
-              <StripeCustomerPortalButton workspaceId={workspace.id} />
+              <Box className="w-full max-w-sm rounded-lg p-6 ">
+                <Text variant="h3" component="h2">
+                  Not Payment Method
+                </Text>
+                <Text variant="subtitle1" className="pt-4">
+                  Add a payment method to use a paid plan.
+                </Text>
+                <Box className="mt-4">
+                  <StripeCustomerPortalButton workspaceId={workspace.id} />
+                </Box>
+              </Box>
             </Modal>
           )}
 
           <Button
             onClick={() => {
+              // TODO, refetch workspace stripeCustomer when the user clicks to check if there was any paymentMethods added since the page loaded.
+
+              // if the user is trying to create a paid app and there are no payment methods, show the payment modal
               if (
                 !plan.isFree &&
                 workspace.stripeCustomer.paymentMethods.data.length === 0
               ) {
                 setShowPaymentModal(true);
-
                 return;
               }
 
