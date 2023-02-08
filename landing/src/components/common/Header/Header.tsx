@@ -4,11 +4,11 @@ import { Fragment, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
-import HoverPopover from '../HoverPopover/HoverPopover'
 import { MenuIcon } from '../icons/MenuIcon'
 import { XIcon } from '../icons/XIcon'
 import { Link } from '../Link'
 import { MobileMenu } from '../MobileMenu'
+import { ProductPopover } from '../ProductPopover'
 
 export interface HeaderProps extends ContainerProps {}
 
@@ -76,66 +76,7 @@ export default function Header({
         >
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
-              <HoverPopover title="Product">
-                <nav aria-label="Secondary navigation">
-                  <ul className="grid grid-flow-row gap-2">
-                    <li>
-                      <Button
-                        href="/product/database"
-                        variant="borderless"
-                        size="xs"
-                        className="w-full text-opacity-65"
-                      >
-                        Database
-                      </Button>
-                    </li>
-                    <li className="h-px w-full bg-white bg-opacity-10" />
-                    <li>
-                      <Button
-                        href="/product/graphql"
-                        variant="borderless"
-                        size="xs"
-                        className="w-full text-opacity-65"
-                      >
-                        GraphQL API
-                      </Button>
-                    </li>
-                    <li className="h-px w-full bg-white bg-opacity-10" />
-                    <li>
-                      <Button
-                        href="/product/auth"
-                        variant="borderless"
-                        size="xs"
-                        className="w-full text-opacity-65"
-                      >
-                        Auth
-                      </Button>
-                    </li>
-                    <li className="h-px w-full bg-white bg-opacity-10" />
-                    <li>
-                      <Button
-                        href="/product/storage"
-                        variant="borderless"
-                        size="xs"
-                        className="w-full text-opacity-65"
-                      >
-                        Storage
-                      </Button>
-                    </li>
-                    <li className="h-px w-full bg-white bg-opacity-10" />
-                    <li>
-                      <Button
-                        href="/product/functions"
-                        variant="borderless"
-                        size="xs"
-                        className="w-full text-opacity-65"
-                      >
-                        Functions
-                      </Button>
-                    </li>
-                  </ul>
-                </nav>
-              </HoverPopover>
+              <ProductPopover />
             </li>
 
             <li>
