@@ -121,7 +121,7 @@ export default function StoragePage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 lg:mt-40">
+      <Container component="section" className="mt-24 hidden lg:mt-40">
         <SectionHeading
           title="Powerful permissions, made simple"
           subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
