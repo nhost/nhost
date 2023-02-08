@@ -69,6 +69,7 @@ export default function AuthPage() {
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
+              customStyle={{ minHeight: 220 }}
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
               {codeSnippets[selectedExample].trim()}

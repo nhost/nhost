@@ -19,7 +19,7 @@ export default function IndexPage() {
 
       <Container
         component="section"
-        slotProps={{ root: { className: 'mt-14 z-40 relative' } }}
+        slotProps={{ root: { className: 'mt-14 z-30 relative' } }}
         className="grid grid-flow-row justify-center gap-12 text-center"
       >
         <h2 className="text-base text-white text-opacity-65">

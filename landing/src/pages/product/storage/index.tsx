@@ -64,7 +64,7 @@ export default function StoragePage() {
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
-              className=""
+              customStyle={{ minHeight: 220 }}
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
               {codeSnippets[selectedExample].trim()}
@@ -171,7 +171,7 @@ export default function StoragePage() {
               width={24}
               height={24}
               alt="Globe"
-              className="mx-auto "
+              className="mx-auto"
             />
 
             <div className="grid grid-flow-row gap-2.5">

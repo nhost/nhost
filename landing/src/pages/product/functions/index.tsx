@@ -15,8 +15,7 @@ import Image from 'next/image'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
-  sendEmail: `
-import nodemailer from 'nodemailer'
+  sendEmail: `import nodemailer from 'nodemailer'
 
 export default async (req, res) => {
   let transporter = nodemailer.createTransport({
@@ -39,8 +38,7 @@ export default async (req, res) => {
 
   res.json('Message sent')
 }`,
-  query: `
-export default async (req, res) => {
+  query: `export default async (req, res) => {
 
   const CUSTOMERS = gql\`
     query {
@@ -54,8 +52,7 @@ export default async (req, res) => {
   const { data } = await nhost.graphql.request(CUSTOMERS)
     
   res.status(200).send({data});
-}
-`,
+}`,
   stripe: `import { Request, Response } from 'express'
 
 import Stripe from 'stripe'
@@ -197,7 +194,7 @@ export default function FunctionsPage() {
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language="typescript"
-              className="min-h-[330px]"
+              customStyle={{ minHeight: 330 }}
               slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
             >
               {codeSnippets[selectedExample]}

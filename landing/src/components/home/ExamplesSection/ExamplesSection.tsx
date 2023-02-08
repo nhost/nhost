@@ -68,6 +68,7 @@ export default function ExamplesSection() {
           <CodeSnippet
             language={codeSnippetLanguageMap[activeTechnology]}
             wrapLongLines={false}
+            customStyle={{ minHeight: 240 }}
             slotProps={{ root: { className: 'mx-auto md:max-w-xl' } }}
           >
             {activeSnippet}
