@@ -36,7 +36,7 @@ function CLIWorkflow({
   className,
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>) {
-  const { ref, inView } = useInView({ threshold: 0.2 })
+  const { ref, inView } = useInView({ threshold: 0.3 })
   const codeString = `$ nhost up
 
 - Postgres:         postgres://postgres:postgres@localhost:5432/postgres
@@ -52,7 +52,7 @@ function CLIWorkflow({
 - subdomain:       localhost
 - region:          (empty)`
 
-  const [code, setCode] = useState(`$`)
+  const [code, setCode] = useState(`$ `)
 
   useEffect(() => {
     if (!inView || code === codeString) {
@@ -67,10 +67,13 @@ function CLIWorkflow({
       return
     }
 
-    const interval = setInterval(() => {
-      const currentDiff = finalCommand.replace(code, '')
-      setCode((prev) => `${prev}${currentDiff[0]}`)
-    }, 50)
+    const interval = setInterval(
+      () => {
+        const currentDiff = finalCommand.replace(code, '')
+        setCode((prev) => `${prev}${currentDiff[0]}`)
+      },
+      code === '$ ' ? 1500 : 100,
+    )
 
     return () => clearInterval(interval)
   }, [code, codeString, inView])
@@ -81,14 +84,29 @@ function CLIWorkflow({
         <CodeSnippet
           disableLineGrid
           customStyle={{ minHeight: 381 }}
-          slotProps={{ root: { className: 'mx-auto lg:max-w-xl' } }}
+          slotProps={{
+            root: {
+              className: twMerge(
+                'mx-auto lg:max-w-xl',
+                code !== codeString && 'cursor',
+              ),
+            },
+          }}
         >
           {code}
         </CodeSnippet>
       </div>
 
       <div className="min-h-[570px] w-full sm:hidden">
-        <CodeSnippet disableLineGrid customStyle={{ minHeight: 570 }}>
+        <CodeSnippet
+          disableLineGrid
+          customStyle={{ minHeight: 570 }}
+          slotProps={{
+            root: {
+              className: twMerge(code !== codeString && 'cursor'),
+            },
+          }}
+        >
           {code}
         </CodeSnippet>
       </div>

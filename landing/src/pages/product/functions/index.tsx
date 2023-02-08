@@ -294,7 +294,7 @@ export default function FunctionsPage() {
               <h3 className="text-base font-bold">Environment Variables</h3>
 
               <p className="text-base text-white text-opacity-65">
-                Full aaccess to system and manually defined environment
+                Full access to system and manually defined environment
                 variables.
               </p>
             </div>

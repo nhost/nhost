@@ -56,6 +56,27 @@ body {
   background-color: #080808 !important;
 }
 
+.code-snippet.cursor pre:after {
+  content: ' ';
+  font-size: 12px;
+  line-height: 14px;
+  width: 2px;
+  margin-top: -1px;
+  background-color: white;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from,
+  to {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
 @media screen and (min-width: 768px) {
   .code-snippet pre {
     padding: 24px !important;
