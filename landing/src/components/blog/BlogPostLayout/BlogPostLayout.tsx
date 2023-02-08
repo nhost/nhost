@@ -8,6 +8,7 @@ import { Article } from '@/utils/types'
 import { baseUrl } from '@/utils/utils'
 import { MDXProvider } from '@mdx-js/react'
 import { format, parseISO } from 'date-fns'
+import { NextSeo } from 'next-seo'
 import Image from 'next/image'
 import { PropsWithChildren, useEffect, useState } from 'react'
 import 'react-medium-image-zoom/dist/styles.css'
@@ -85,10 +86,12 @@ export default function BlogPostLayout({
     <Layout
       slotProps={{
         nextSeo: {
+          title: article.title,
+          description: article.description,
           openGraph: {
             images: [
               {
-                url: `https://${baseUrl()}/${article.image}`,
+                url: `${baseUrl()}/${article.image}`,
                 alt: `Cover image for ${article.title}`,
                 width: 1920,
                 height: 1080,
