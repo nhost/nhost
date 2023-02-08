@@ -1,4 +1,4 @@
-import { BillingPaymentMethodForm } from '@/components/billing-payment-method/BillingPaymentMethodForm';
+import StripeCustomerPortalButton from '@/components/common/StripeCustomerPortalButton';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import Container from '@/components/layout/Container';
 import features from '@/data/features.json';
@@ -565,19 +565,16 @@ export function NewProjectPageContent({
                 setShowPaymentModal(false);
               }}
             >
-              <BillingPaymentMethodForm
-                close={() => {
-                  setShowPaymentModal(false);
-                }}
-                onPaymentMethodAdded={handleSubmit}
-                workspaceId={workspace.id}
-              />
+              <StripeCustomerPortalButton workspaceId={workspace.id} />
             </Modal>
           )}
 
           <Button
             onClick={() => {
-              if (!plan.isFree && workspace.paymentMethods.length === 0) {
+              if (
+                !plan.isFree &&
+                workspace.stripeCustomer.paymentMethods.data.length === 0
+              ) {
                 setShowPaymentModal(true);
 
                 return;
@@ -625,6 +622,8 @@ export default function NewProjectPage() {
     : workspaces[0];
 
   const preSelectedRegion = regions.filter((region) => region.active)[0];
+
+  console.log(workspaces);
 
   return (
     <NewProjectPageContent

@@ -13,6 +13,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  JSON: any;
   Timestamp: any;
   bigint: any;
   bpchar: any;
@@ -126,6 +127,1051 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars['String']>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['String']>;
+};
+
+export type Stripe = {
+  __typename?: 'Stripe';
+  connectedAccount: StripeConnectedAccount;
+  connectedAccounts: StripeConnectedAccounts;
+  customer: StripeCustomer;
+  customers: StripeCustomers;
+};
+
+
+export type StripeConnectedAccountArgs = {
+  id: Scalars['String'];
+};
+
+
+export type StripeCustomerArgs = {
+  id: Scalars['String'];
+};
+
+
+export type StripeCustomersArgs = {
+  email?: InputMaybe<Scalars['String']>;
+  endingBefore?: InputMaybe<Scalars['String']>;
+  limit?: InputMaybe<Scalars['Int']>;
+  startingAfter?: InputMaybe<Scalars['String']>;
+};
+
+export type StripeAddress = {
+  __typename?: 'StripeAddress';
+  /** City/Ward. */
+  city?: Maybe<Scalars['String']>;
+  /** Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)). */
+  country?: Maybe<Scalars['String']>;
+  /** Block/Building number. */
+  line1?: Maybe<Scalars['String']>;
+  /** Building details. */
+  line2?: Maybe<Scalars['String']>;
+  /** ZIP or postal code. */
+  postalCode?: Maybe<Scalars['String']>;
+  /** Prefecture. */
+  state?: Maybe<Scalars['String']>;
+};
+
+export type StripeBillingPortalSession = {
+  __typename?: 'StripeBillingPortalSession';
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** The IETF language tag of the locale Customer Portal is displayed in. If blank or auto, the customer's `preferred_locales` or browser's locale is used. */
+  locale?: Maybe<Scalars['String']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** The URL to redirect customers to when they click on the portal's link to return to your website. */
+  returnUrl?: Maybe<Scalars['String']>;
+  /** The short-lived URL of the session that gives customers access to the customer portal. */
+  url: Scalars['String'];
+};
+
+/** Stripe charge object */
+export type StripeCharge = {
+  __typename?: 'StripeCharge';
+  amount: Scalars['Int'];
+  amountCaptured: Scalars['Int'];
+  amountRefunded: Scalars['Int'];
+  application?: Maybe<StripeConnectedAccount>;
+  applicationFeeAmount?: Maybe<Scalars['Int']>;
+  billingDetails?: Maybe<Scalars['JSON']>;
+  calculatedStatementDescriptor?: Maybe<Scalars['String']>;
+  captured: Scalars['Boolean'];
+  created?: Maybe<Scalars['Int']>;
+  currency: Scalars['String'];
+  customer: Scalars['String'];
+  description?: Maybe<Scalars['String']>;
+  disputed: Scalars['Boolean'];
+  failureCode?: Maybe<Scalars['String']>;
+  fraudDetails?: Maybe<Scalars['JSON']>;
+  id: Scalars['String'];
+  invoice?: Maybe<StripeInvoice>;
+  livemode: Scalars['Boolean'];
+  metadata?: Maybe<Scalars['JSON']>;
+  outcome?: Maybe<Scalars['JSON']>;
+  paid: Scalars['Boolean'];
+  paymentIntent?: Maybe<Scalars['String']>;
+  paymentMethod?: Maybe<Scalars['String']>;
+  paymentMethodDetails?: Maybe<Scalars['JSON']>;
+  receiptEmail?: Maybe<Scalars['String']>;
+  receiptNumber?: Maybe<Scalars['String']>;
+  receiptUrl?: Maybe<Scalars['String']>;
+  refunded: Scalars['Boolean'];
+  refunds?: Maybe<Scalars['JSON']>;
+  shipping?: Maybe<Scalars['JSON']>;
+  statementDescriptor?: Maybe<Scalars['String']>;
+  statementDescriptorSuffix?: Maybe<Scalars['String']>;
+  status: Scalars['String'];
+  transferData?: Maybe<Scalars['JSON']>;
+  transferGroup?: Maybe<Scalars['String']>;
+};
+
+/** List of Stripe charge objects */
+export type StripeCharges = {
+  __typename?: 'StripeCharges';
+  data: Array<StripeCharge>;
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  url: Scalars['String'];
+};
+
+/** Stripe charge object */
+export type StripeConnectedAccount = {
+  __typename?: 'StripeConnectedAccount';
+  businessProfile: Scalars['JSON'];
+  businessType?: Maybe<Scalars['String']>;
+  capabilities: Scalars['JSON'];
+  chargesEnabled: Scalars['Boolean'];
+  company: Scalars['JSON'];
+  controller?: Maybe<Scalars['JSON']>;
+  country?: Maybe<Scalars['String']>;
+  created?: Maybe<Scalars['Int']>;
+  defaultCurrency?: Maybe<Scalars['String']>;
+  detailsSubmitted: Scalars['Boolean'];
+  email?: Maybe<Scalars['String']>;
+  externalAccounts: Scalars['JSON'];
+  futureRequirements: Scalars['JSON'];
+  id: Scalars['String'];
+  individual: Scalars['JSON'];
+  metadata: Scalars['JSON'];
+  object: Scalars['String'];
+  payoutsEnabled: Scalars['Boolean'];
+  requirements: Scalars['JSON'];
+  settings: Scalars['JSON'];
+  tosAcceptance: Scalars['JSON'];
+};
+
+/** List of Stripe Connected Account objects */
+export type StripeConnectedAccounts = {
+  __typename?: 'StripeConnectedAccounts';
+  data: Array<StripeConnectedAccount>;
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  url: Scalars['String'];
+};
+
+/** This object represents a customer of your business. It lets you create recurring charges and track payments that belong to the same customer. */
+export type StripeCustomer = {
+  __typename?: 'StripeCustomer';
+  /** The customer's address. */
+  address?: Maybe<StripeAddress>;
+  /** Current balance, if any, being stored on the customer. If negative, the customer has credit to apply to their next invoice. If positive, the customer has an amount owed that will be added to their next invoice. The balance does not refer to any unpaid invoices; it solely takes into account amounts that have yet to be successfully applied to any invoice. This balance is only taken into account as invoices are finalized. */
+  balance: Scalars['Int'];
+  charges: StripeCharges;
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Three-letter [ISO code for the currency](https://stripe.com/docs/currencies) the customer can be charged in for recurring billing purposes. */
+  currency?: Maybe<Scalars['String']>;
+  /**
+   * When the customer's latest invoice is billed by charging automatically, `delinquent` is `true` if the invoice's latest charge failed. When the customer's latest invoice is billed by sending an invoice, `delinquent` is `true` if the invoice isn't paid by its due date.
+   *
+   * If an invoice is marked uncollectible by [dunning](https://stripe.com/docs/billing/automatic-collection), `delinquent` doesn't get reset to `false`.
+   */
+  delinquent?: Maybe<Scalars['Boolean']>;
+  /** An arbitrary string attached to the object. Often useful for displaying to users. */
+  description?: Maybe<Scalars['String']>;
+  /** The customer's email address. */
+  email?: Maybe<Scalars['String']>;
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** The prefix for the customer used to generate unique invoice numbers. */
+  invoicePrefix?: Maybe<Scalars['String']>;
+  invoices: StripeInvoices;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata: Scalars['JSON'];
+  /** The customer's full name or business name. */
+  name?: Maybe<Scalars['String']>;
+  /** The suffix of the customer's next invoice number, e.g., 0001. */
+  nextInvoiceSequence?: Maybe<Scalars['Int']>;
+  /** String representing the object's type. Objects of the same type share the same value.  */
+  object: Scalars['String'];
+  paymentIntents: StripePaymentIntents;
+  paymentMethods: StripePaymentMethods;
+  /** The customer's phone number. */
+  phone?: Maybe<Scalars['String']>;
+  /** The customer's preferred locales (languages), ordered by preference. */
+  preferredLocales?: Maybe<Array<Scalars['String']>>;
+  /** Mailing and shipping address for the customer. Appears on invoices emailed to this customer. */
+  shipping?: Maybe<StripeCustomerShipping>;
+  /** The customer's current subscriptions, if any. */
+  subscriptions: StripeSubscriptions;
+  tax?: Maybe<StripeCustomerTax>;
+};
+
+
+/** This object represents a customer of your business. It lets you create recurring charges and track payments that belong to the same customer. */
+export type StripeCustomerPaymentMethodsArgs = {
+  endingBefore?: InputMaybe<Scalars['String']>;
+  limit?: InputMaybe<Scalars['Int']>;
+  startingAfter?: InputMaybe<Scalars['String']>;
+  type?: StripePaymentMethodTypes;
+};
+
+export type StripeCustomerShipping = {
+  __typename?: 'StripeCustomerShipping';
+  address?: Maybe<StripeAddress>;
+  /** The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc. */
+  carrier?: Maybe<Scalars['String']>;
+  /** Recipient name. */
+  name?: Maybe<Scalars['String']>;
+  /** Recipient phone (including extension). */
+  phone?: Maybe<Scalars['String']>;
+  /** The tracking number for a physical product, obtained from the delivery service. If multiple tracking numbers were generated for this purchase, please separate them with commas. */
+  trackingNumber?: Maybe<Scalars['String']>;
+};
+
+export type StripeCustomerTax = {
+  __typename?: 'StripeCustomerTax';
+  /** A recent IP address of the customer used for tax reporting and tax location inference. */
+  ipAddress?: Maybe<Scalars['String']>;
+  /** The customer's location as identified by Stripe Tax. */
+  location?: Maybe<StripeCustomerTaxLocation>;
+};
+
+export type StripeCustomerTaxLocation = {
+  __typename?: 'StripeCustomerTaxLocation';
+  /** The customer's country as identified by Stripe Tax. */
+  country: Scalars['String'];
+  /** The customer's state, county, province, or region as identified by Stripe Tax. */
+  state?: Maybe<Scalars['String']>;
+};
+
+export type StripeCustomers = {
+  __typename?: 'StripeCustomers';
+  data: Array<StripeCustomer>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+export type StripeInvoice = {
+  __typename?: 'StripeInvoice';
+  /** The country of the business associated with this invoice, most often the business creating the invoice. */
+  accountCountry?: Maybe<Scalars['String']>;
+  /** The public name of the business associated with this invoice, most often the business creating the invoice. */
+  accountName?: Maybe<Scalars['String']>;
+  /** Final amount due at this time for this invoice. If the invoice's total is smaller than the minimum charge amount, for example, or if there is account credit that can be applied to the invoice, the `amount_due` may be 0. If there is a positive `starting_balance` for the invoice (the customer owes money), the `amount_due` will also take that into account. The charge that gets generated for the invoice will be for the amount specified in `amount_due`. */
+  amountDue: Scalars['Int'];
+  /** The amount, in %s, that was paid. */
+  amountPaid: Scalars['Int'];
+  /** The difference between amount_due and amount_paid, in %s. */
+  amountRemaining: Scalars['Int'];
+  application?: Maybe<StripeConnectedAccount>;
+  /** The fee in %s that will be applied to the invoice and transferred to the application owner's Stripe account when the invoice is paid. */
+  applicationFeeAmount?: Maybe<Scalars['Int']>;
+  /** Number of payment attempts made for this invoice, from the perspective of the payment retry schedule. Any payment attempt counts as the first attempt, and subsequently only automatic retries increment the attempt count. In other words, manual payment attempts after the first attempt do not affect the retry schedule. */
+  attemptCount: Scalars['Int'];
+  /** Whether an attempt has been made to pay the invoice. An invoice is not attempted until 1 hour after the `invoice.created` webhook, for example, so you might not want to display that invoice as unpaid to your users. */
+  attempted: Scalars['Boolean'];
+  /** Controls whether Stripe will perform [automatic collection](https://stripe.com/docs/billing/invoices/workflow/#auto_advance) of the invoice. When `false`, the invoice's state will not automatically advance without an explicit action. */
+  autoAdvance?: Maybe<Scalars['Boolean']>;
+  automaticTax: StripeInvoiceAutomaticTax;
+  /** Indicates the reason why the invoice was created. `subscription_cycle` indicates an invoice created by a subscription advancing into a new period. `subscription_create` indicates an invoice created due to creating a subscription. `subscription_update` indicates an invoice created due to updating a subscription. `subscription` is set for all old invoices to indicate either a change to a subscription or a period advancement. `manual` is set for all invoices unrelated to a subscription (for example: created via the invoice editor). The `upcoming` value is reserved for simulated invoices per the upcoming invoice endpoint. `subscription_threshold` indicates an invoice created due to a billing threshold being reached. */
+  billingReason?: Maybe<Scalars['String']>;
+  /** Either `charge_automatically`, or `send_invoice`. When charging automatically, Stripe will attempt to pay this invoice using the default source attached to the customer. When sending an invoice, Stripe will email this invoice to the customer with payment instructions. */
+  collectionMethod?: Maybe<Scalars['String']>;
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). */
+  currency: Scalars['String'];
+  /** The ID of the customer who will be billed. */
+  customer: Scalars['String'];
+  /** The customer's address. Until the invoice is finalized, this field will equal `customer.address`. Once the invoice is finalized, this field will no longer be updated. */
+  customerAddress?: Maybe<StripeAddress>;
+  /** The customer's email. Until the invoice is finalized, this field will equal `customer.email`. Once the invoice is finalized, this field will no longer be updated. */
+  customerEmail?: Maybe<Scalars['String']>;
+  /** The customer's name. Until the invoice is finalized, this field will equal `customer.name`. Once the invoice is finalized, this field will no longer be updated. */
+  customerName?: Maybe<Scalars['String']>;
+  /** The customer's phone number. Until the invoice is finalized, this field will equal `customer.phone`. Once the invoice is finalized, this field will no longer be updated. */
+  customerPhone?: Maybe<Scalars['String']>;
+  /** The customer's shipping information. Until the invoice is finalized, this field will equal `customer.shipping`. Once the invoice is finalized, this field will no longer be updated. */
+  customerShipping?: Maybe<StripeInvoiceCustomerShipping>;
+  /** The customer's tax exempt status. Until the invoice is finalized, this field will equal `customer.tax_exempt`. Once the invoice is finalized, this field will no longer be updated. */
+  customerTaxExempt?: Maybe<Scalars['String']>;
+  /** The customer's tax IDs. Until the invoice is finalized, this field will contain the same tax IDs as `customer.tax_ids`. Once the invoice is finalized, this field will no longer be updated. */
+  customerTaxIds?: Maybe<Array<StripeInvoiceCustomerTaxId>>;
+  /** ID of the default payment method for the invoice. It must belong to the customer associated with the invoice. If not set, defaults to the subscription's default payment method, if any, or to the default payment method in the customer's invoice settings. */
+  defaultPaymentMethod?: Maybe<StripePaymentMethod>;
+  /** An arbitrary string attached to the object. Often useful for displaying to users. Referenced as 'memo' in the Dashboard. */
+  description?: Maybe<Scalars['String']>;
+  /** The date on which payment for this invoice is due. This value will be `null` for invoices where `collection_method=charge_automatically`. */
+  dueDate?: Maybe<Scalars['Int']>;
+  /** Ending customer balance after the invoice is finalized. Invoices are finalized approximately an hour after successful webhook delivery or when payment collection is attempted for the invoice. If the invoice has not been finalized yet, this will be null. */
+  endingBalance?: Maybe<Scalars['Int']>;
+  /** Footer displayed on the invoice. */
+  footer?: Maybe<Scalars['String']>;
+  /** The URL for the hosted invoice page, which allows customers to view and pay an invoice. If the invoice has not been finalized yet, this will be null. */
+  hostedInvoiceUrl?: Maybe<Scalars['String']>;
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** The link to download the PDF for the invoice. If the invoice has not been finalized yet, this will be null. */
+  invoicePdf?: Maybe<Scalars['String']>;
+  /** The individual line items that make up the invoice. `lines` is sorted as follows: invoice items in reverse chronological order, followed by the subscription, if any. */
+  lines: StripeInvoiceLineItems;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata: Scalars['JSON'];
+  /** The time at which payment will next be attempted. This value will be `null` for invoices where `collection_method=send_invoice`. */
+  nextPaymentAttempt?: Maybe<Scalars['Int']>;
+  /** A unique, identifying string that appears on emails sent to the customer for this invoice. This starts with the customer's unique invoice_prefix if it is specified. */
+  number?: Maybe<Scalars['String']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** Whether payment was successfully collected for this invoice. An invoice can be paid (most commonly) with a charge or with credit from the customer's account balance. */
+  paid: Scalars['Boolean'];
+  /** Returns true if the invoice was manually marked paid, returns false if the invoice hasn't been paid yet or was paid on Stripe. */
+  paidOutOfBand: Scalars['Boolean'];
+  /** End of the usage period during which invoice items were added to this invoice. */
+  periodEnd: Scalars['Int'];
+  /** Start of the usage period during which invoice items were added to this invoice. */
+  periodStart: Scalars['Int'];
+  /** Total amount of all post-payment credit notes issued for this invoice. */
+  postPaymentCreditNotesAmount: Scalars['Int'];
+  /** Total amount of all pre-payment credit notes issued for this invoice. */
+  prePaymentCreditNotesAmount: Scalars['Int'];
+  /** This is the transaction number that appears on email receipts sent for this invoice. */
+  receiptNumber?: Maybe<Scalars['String']>;
+  /** Options for invoice PDF rendering. */
+  renderingOptions?: Maybe<StripeInvoiceRenderingOptions>;
+  /** Starting customer balance before the invoice is finalized. If the invoice has not been finalized yet, this will be the current customer balance. For revision invoices, this also includes any customer balance that was applied to the original invoice. */
+  startingBalance: Scalars['Int'];
+  /** Extra information about an invoice for the customer's credit card statement. */
+  statementDescriptor?: Maybe<Scalars['String']>;
+  /** The status of the invoice, one of `draft`, `open`, `paid`, `uncollectible`, or `void`. [Learn more](https://stripe.com/docs/billing/invoices/workflow#workflow-overview) */
+  status?: Maybe<Scalars['String']>;
+  statusTransition?: Maybe<StripeInvoiceStatusTransitions>;
+  /** The subscription that this invoice was prepared for, if any. */
+  subscription?: Maybe<StripeSubscription>;
+  /** Only set for upcoming invoices that preview prorations. The time used to calculate prorations. */
+  subscriptionProrationDate?: Maybe<Scalars['Int']>;
+  /** Total of all subscriptions, invoice items, and prorations on the invoice before any invoice level discount or exclusive tax is applied. Item discounts are already incorporated */
+  subtotal: Scalars['Int'];
+  /** The integer amount in %s representing the subtotal of the invoice before any invoice level discount or tax is applied. Item discounts are already incorporated */
+  subtotalExcludingTax?: Maybe<Scalars['Int']>;
+  /** The amount of tax on this invoice. This is the sum of all the tax amounts on this invoice. */
+  tax?: Maybe<Scalars['Int']>;
+  /** Total after discounts and taxes. */
+  total: Scalars['Int'];
+  /** The integer amount in %s representing the total amount of the invoice including all discounts but excluding all tax. */
+  totalExcludingTax?: Maybe<Scalars['Int']>;
+  /** Invoices are automatically paid or sent 1 hour after webhooks are delivered, or until all webhook delivery attempts have [been exhausted](https://stripe.com/docs/billing/webhooks#understand). This field tracks the time when webhooks for this invoice were successfully delivered. If the invoice had no webhooks to deliver, this will be set while the invoice is being created. */
+  webhooksDeliveredAt?: Maybe<Scalars['Int']>;
+};
+
+export type StripeInvoiceAutomaticTax = {
+  __typename?: 'StripeInvoiceAutomaticTax';
+  /** Whether Stripe automatically computes tax on this invoice. Note that incompatible invoice items (invoice items with manually specified [tax rates](https://stripe.com/docs/api/tax_rates), negative amounts, or `tax_behavior=unspecified`) cannot be added to automatic tax invoices. */
+  enabled: Scalars['Boolean'];
+  /** The status of the most recent automated tax calculation for this invoice. */
+  status?: Maybe<Scalars['String']>;
+};
+
+export type StripeInvoiceCustomerShipping = {
+  __typename?: 'StripeInvoiceCustomerShipping';
+  address?: Maybe<StripeAddress>;
+  /** The delivery service that shipped a physical product, such as Fedex, UPS, USPS, etc. */
+  carrier?: Maybe<Scalars['String']>;
+  /** Recipient name. */
+  name?: Maybe<Scalars['String']>;
+  /** Recipient phone (including extension). */
+  phone?: Maybe<Scalars['String']>;
+  /** The tracking number for a physical product, obtained from the delivery service. If multiple tracking numbers were generated for this purchase, please separate them with commas. */
+  trackingNumber?: Maybe<Scalars['String']>;
+};
+
+export type StripeInvoiceCustomerTaxId = {
+  __typename?: 'StripeInvoiceCustomerTaxId';
+  /** The type of the tax ID, one of `eu_vat`, `br_cnpj`, `br_cpf`, `eu_oss_vat`, `gb_vat`, `nz_gst`, `au_abn`, `au_arn`, `in_gst`, `no_vat`, `za_vat`, `ch_vat`, `mx_rfc`, `sg_uen`, `ru_inn`, `ru_kpp`, `ca_bn`, `hk_br`, `es_cif`, `tw_vat`, `th_vat`, `jp_cn`, `jp_rn`, `li_uid`, `my_itn`, `us_ein`, `kr_brn`, `ca_qst`, `ca_gst_hst`, `ca_pst_bc`, `ca_pst_mb`, `ca_pst_sk`, `my_sst`, `sg_gst`, `ae_trn`, `cl_tin`, `sa_vat`, `id_npwp`, `my_frp`, `il_vat`, `ge_vat`, `ua_vat`, `is_vat`, `bg_uic`, `hu_tin`, `si_tin`, or `unknown` */
+  type: Scalars['String'];
+  /** The value of the tax ID. */
+  value?: Maybe<Scalars['String']>;
+};
+
+export type StripeInvoiceLineItem = {
+  __typename?: 'StripeInvoiceLineItem';
+  /** The amount, in %s. */
+  amount: Scalars['Int'];
+  /** The integer amount in %s representing the amount for this line item, excluding all tax and discounts. */
+  amountExcludingTax?: Maybe<Scalars['Int']>;
+  /** Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). */
+  currency: Scalars['String'];
+  /** An arbitrary string attached to the object. Often useful for displaying to users. */
+  description?: Maybe<Scalars['String']>;
+  /** If true, discounts will apply to this line item. Always false for prorations. */
+  discountable: Scalars['Boolean'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** The ID of the [invoice item](https://stripe.com/docs/api/invoiceitems) associated with this line item if any. */
+  invoiceItem?: Maybe<Scalars['String']>;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. Note that for line items with `type=subscription` this will reflect the metadata of the subscription that caused the line item to be created. */
+  metadata: Scalars['JSON'];
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  period: StripeInvoiceLineItemPeriod;
+  /** The plan of the subscription, if the line item is a subscription or a proration. */
+  plan?: Maybe<StripePlan>;
+  /** The price of the line item. */
+  price?: Maybe<StripePrice>;
+  /** Whether this is a proration. */
+  proration: Scalars['Boolean'];
+  /** The quantity of the subscription, if the line item is a subscription or a proration. */
+  quantity?: Maybe<Scalars['Int']>;
+  /** The amount of tax calculated per tax rate for this line item */
+  taxAmount?: Maybe<Array<StripeInvoiceLineItemTaxAmount>>;
+  /** The tax rates which apply to the line item. */
+  taxRates?: Maybe<Array<StripeTaxRate>>;
+  /** A string identifying the type of the source of this line item, either an `invoiceitem` or a `subscription`. */
+  type: Scalars['String'];
+  /** The amount in %s representing the unit amount for this line item, excluding all tax and discounts. */
+  unitAmountExcludingTax?: Maybe<Scalars['String']>;
+};
+
+export type StripeInvoiceLineItemPeriod = {
+  __typename?: 'StripeInvoiceLineItemPeriod';
+  /** The end of the period, which must be greater than or equal to the start. */
+  end: Scalars['Int'];
+  /** The start of the period. */
+  start: Scalars['Int'];
+};
+
+export type StripeInvoiceLineItemTaxAmount = {
+  __typename?: 'StripeInvoiceLineItemTaxAmount';
+  /** The amount, in %s, of the tax. */
+  amount: Scalars['Int'];
+  /** Whether this tax amount is inclusive or exclusive. */
+  inclusive: Scalars['Boolean'];
+};
+
+export type StripeInvoiceLineItems = {
+  __typename?: 'StripeInvoiceLineItems';
+  data: Array<StripeInvoiceLineItem>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+export type StripeInvoiceRenderingOptions = {
+  __typename?: 'StripeInvoiceRenderingOptions';
+  /** How line-item prices and amounts will be displayed with respect to tax on invoice PDFs. */
+  amountTaxDisplay?: Maybe<Scalars['String']>;
+};
+
+export type StripeInvoiceStatusTransitions = {
+  __typename?: 'StripeInvoiceStatusTransitions';
+  /** The time that the invoice draft was finalized. */
+  finalizedAt?: Maybe<Scalars['Int']>;
+  /** The time that the invoice was marked uncollectible. */
+  markedUncollectibleAt?: Maybe<Scalars['Int']>;
+  /** The time that the invoice was paid. */
+  paidAt?: Maybe<Scalars['Int']>;
+  /** The time that the invoice was voided. */
+  voidedAt?: Maybe<Scalars['Int']>;
+};
+
+export type StripeInvoices = {
+  __typename?: 'StripeInvoices';
+  data: Array<StripeInvoice>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+export type StripeMutations = {
+  __typename?: 'StripeMutations';
+  createBillingPortalSession: StripeBillingPortalSession;
+};
+
+
+export type StripeMutationsCreateBillingPortalSessionArgs = {
+  configuration?: InputMaybe<Scalars['String']>;
+  customer: Scalars['String'];
+  locale?: InputMaybe<Scalars['String']>;
+  returnUrl?: InputMaybe<Scalars['String']>;
+};
+
+/** Payment intents */
+export type StripePaymentIntent = {
+  __typename?: 'StripePaymentIntent';
+  amount: Scalars['Int'];
+  amountCapturable: Scalars['Int'];
+  amountDetails?: Maybe<Scalars['JSON']>;
+  amountReceived: Scalars['Int'];
+  applicationFeeAmount?: Maybe<Scalars['Int']>;
+  canceledAt?: Maybe<Scalars['Int']>;
+  cancellationReason?: Maybe<Scalars['String']>;
+  created?: Maybe<Scalars['Int']>;
+  currency: Scalars['String'];
+  customer: Scalars['String'];
+  description?: Maybe<Scalars['String']>;
+  id: Scalars['String'];
+  invoice?: Maybe<StripeInvoice>;
+  metadata?: Maybe<Scalars['JSON']>;
+  object: Scalars['String'];
+  paymentMethodTypes: Array<Scalars['String']>;
+  receiptEmail?: Maybe<Scalars['String']>;
+  statementDescriptor?: Maybe<Scalars['String']>;
+  statementDescriptorSuffix?: Maybe<Scalars['String']>;
+  status: Scalars['String'];
+  transferGroup?: Maybe<Scalars['String']>;
+};
+
+export type StripePaymentIntents = {
+  __typename?: 'StripePaymentIntents';
+  data: Array<StripePaymentIntent>;
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  url: Scalars['String'];
+};
+
+export type StripePaymentMethod = {
+  __typename?: 'StripePaymentMethod';
+  billingDetails?: Maybe<StripePaymentMethodBillingDetails>;
+  card?: Maybe<StripePaymentMethodCard>;
+  /** The ID of the Customer to which this PaymentMethod is saved. This will not be set when the PaymentMethod has not been saved to a Customer. */
+  created: Scalars['Int'];
+  customer?: Maybe<Scalars['String']>;
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata: Scalars['JSON'];
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** The type of the PaymentMethod. An additional hash is included on the PaymentMethod with a name matching this value. It contains additional information specific to the PaymentMethod type. */
+  type: StripePaymentMethodTypes;
+};
+
+export type StripePaymentMethodBillingDetails = {
+  __typename?: 'StripePaymentMethodBillingDetails';
+  /** Billing address. */
+  address?: Maybe<StripeAddress>;
+  /** Email address. */
+  email?: Maybe<Scalars['String']>;
+  /** Full name. */
+  name?: Maybe<Scalars['String']>;
+  /** Billing phone number (including extension). */
+  phone?: Maybe<Scalars['String']>;
+};
+
+export type StripePaymentMethodCard = {
+  __typename?: 'StripePaymentMethodCard';
+  /** Card brand. Can be `amex`, `diners`, `discover`, `jcb`, `mastercard`, `unionpay`, `visa`, or `unknown`. */
+  brand: Scalars['String'];
+  /** Checks on Card address and CVC if provided. */
+  check?: Maybe<StripePaymentMethodCardChecks>;
+  /** Two-letter ISO code representing the country of the card. You could use this attribute to get a sense of the international breakdown of cards you've collected. */
+  country?: Maybe<Scalars['String']>;
+  /** A high-level description of the type of cards issued in this range. (For internal use only and not typically available in standard API requests.) */
+  description?: Maybe<Scalars['String']>;
+  /** Two-digit number representing the card's expiration month. */
+  expMonth: Scalars['Int'];
+  /** Four-digit number representing the card's expiration year. */
+  expYear: Scalars['Int'];
+  /**
+   * Uniquely identifies this particular card number. You can use this attribute to check whether two customers who've signed up with you are using the same card number, for example. For payment methods that tokenize card information (Apple Pay, Google Pay), the tokenized number might be provided instead of the underlying card number.
+   *
+   * *Starting May 1, 2021, card fingerprint in India for Connect will change to allow two fingerprints for the same card --- one for India and one for the rest of the world.*
+   */
+  fingerprint?: Maybe<Scalars['String']>;
+  /** Card funding type. Can be `credit`, `debit`, `prepaid`, or `unknown`. */
+  funding: Scalars['String'];
+  /** Issuer identification number of the card. (For internal use only and not typically available in standard API requests.) */
+  iin?: Maybe<Scalars['String']>;
+  /** The name of the card's issuing bank. (For internal use only and not typically available in standard API requests.) */
+  issuer?: Maybe<Scalars['String']>;
+  /** The last four digits of the card. */
+  last4: Scalars['String'];
+  /** Contains information about card networks that can be used to process the payment. */
+  networks?: Maybe<StripePaymentMethodCardNetworks>;
+  /** Contains details on how this Card maybe be used for 3D Secure authentication. */
+  threeDSecureUsage?: Maybe<StripePaymentMethodCardThreeDSecureUsage>;
+  /** If this Card is part of a card wallet, this contains the details of the card wallet. */
+  wallet?: Maybe<StripePaymentMethodCardWallet>;
+};
+
+export type StripePaymentMethodCardChecks = {
+  __typename?: 'StripePaymentMethodCardChecks';
+  /** If a address line1 was provided, results of the check, one of `pass`, `fail`, `unavailable`, or `unchecked`. */
+  addressLine1Check?: Maybe<Scalars['String']>;
+  /** If a address postal code was provided, results of the check, one of `pass`, `fail`, `unavailable`, or `unchecked`. */
+  addressPostalCodeCheck?: Maybe<Scalars['String']>;
+  /** If a CVC was provided, results of the check, one of `pass`, `fail`, `unavailable`, or `unchecked`. */
+  cvcCheck?: Maybe<Scalars['String']>;
+};
+
+export type StripePaymentMethodCardNetworks = {
+  __typename?: 'StripePaymentMethodCardNetworks';
+  /** All available networks for the card. */
+  available: Array<Scalars['String']>;
+  /** The preferred network for the card. */
+  preferred?: Maybe<Scalars['String']>;
+};
+
+export type StripePaymentMethodCardThreeDSecureUsage = {
+  __typename?: 'StripePaymentMethodCardThreeDSecureUsage';
+  /** Whether 3D Secure is supported on this card. */
+  supported: Scalars['Boolean'];
+};
+
+export type StripePaymentMethodCardWallet = {
+  __typename?: 'StripePaymentMethodCardWallet';
+  /** (For tokenized numbers only.) The last four digits of the device account number. */
+  dynamicLast4?: Maybe<Scalars['String']>;
+  masterpass?: Maybe<StripePaymentMethodCardWalletMasterpass>;
+  /** The type of the card wallet, one of `amex_express_checkout`, `apple_pay`, `google_pay`, `masterpass`, `samsung_pay`, or `visa_checkout`. An additional hash is included on the Wallet subhash with a name matching this value. It contains additional information specific to the card wallet type. */
+  type: StripePaymentMethodCardWalletType;
+  visaCheckout?: Maybe<StripePaymentMethodCardWalletVisaCheckout>;
+};
+
+export type StripePaymentMethodCardWalletMasterpass = {
+  __typename?: 'StripePaymentMethodCardWalletMasterpass';
+  /** Owner's verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  billingAddress?: Maybe<StripeAddress>;
+  /** Owner's verified email. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  email?: Maybe<Scalars['String']>;
+  /** Owner's verified full name. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  name?: Maybe<Scalars['String']>;
+  /** Owner's verified shipping address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  shippinAddress?: Maybe<StripeAddress>;
+};
+
+export enum StripePaymentMethodCardWalletType {
+  AmexExpressCheckout = 'amex_express_checkout',
+  ApplePay = 'apple_pay',
+  GooglePay = 'google_pay',
+  Masterpass = 'masterpass',
+  SamsungPay = 'samsung_pay',
+  VisaCheckout = 'visa_checkout'
+}
+
+export type StripePaymentMethodCardWalletVisaCheckout = {
+  __typename?: 'StripePaymentMethodCardWalletVisaCheckout';
+  /** Owner's verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  billingAddress?: Maybe<StripeAddress>;
+  /** Owner's verified email. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  email?: Maybe<Scalars['String']>;
+  /** Owner's verified full name. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  name?: Maybe<Scalars['String']>;
+  /** Owner's verified shipping address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated. */
+  shippinAddress?: Maybe<StripeAddress>;
+};
+
+export enum StripePaymentMethodTypes {
+  AcssDebit = 'acss_debit',
+  Affirm = 'affirm',
+  AfterpayClearpay = 'afterpay_clearpay',
+  Alipay = 'alipay',
+  AuBecsDebit = 'au_becs_debit',
+  BacsDebit = 'bacs_debit',
+  Bancontact = 'bancontact',
+  Blik = 'blik',
+  Boleto = 'boleto',
+  Card = 'card',
+  CardPresent = 'card_present',
+  CustomerBalance = 'customer_balance',
+  Eps = 'eps',
+  Fpx = 'fpx',
+  Giropay = 'giropay',
+  Grabpay = 'grabpay',
+  Ideal = 'ideal',
+  Klarna = 'klarna',
+  Konbini = 'konbini',
+  Link = 'link',
+  Oxxo = 'oxxo',
+  P24 = 'p24',
+  Paynow = 'paynow',
+  Promptpay = 'promptpay',
+  SepaDebit = 'sepa_debit',
+  Sofort = 'sofort',
+  UsBankAccount = 'us_bank_account',
+  WechatPay = 'wechat_pay'
+}
+
+export type StripePaymentMethods = {
+  __typename?: 'StripePaymentMethods';
+  data: Array<StripePaymentMethod>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+export type StripePlan = {
+  __typename?: 'StripePlan';
+  /** Whether the plan can be used for new purchases. */
+  active: Scalars['Boolean'];
+  /** Specifies a usage aggregation strategy for plans of `usage_type=metered`. Allowed values are `sum` for summing up all usage during a period, `last_during_period` for using the last usage record reported within a period, `last_ever` for using the last usage record ever (across period bounds) or `max` which uses the usage record with the maximum reported usage during a period. Defaults to `sum`. */
+  aggregateUsage?: Maybe<Scalars['String']>;
+  /** The unit amount in %s to be charged, represented as a whole integer if possible. Only set if `billing_scheme=per_unit`. */
+  amount?: Maybe<Scalars['Int']>;
+  /** The unit amount in %s to be charged, represented as a decimal string with at most 12 decimal places. Only set if `billing_scheme=per_unit`. */
+  amountDecimal?: Maybe<Scalars['String']>;
+  /** Describes how to compute the price per period. Either `per_unit` or `tiered`. `per_unit` indicates that the fixed amount (specified in `amount`) will be charged per unit in `quantity` (for plans with `usage_type=licensed`), or per unit of total usage (for plans with `usage_type=metered`). `tiered` indicates that the unit pricing will be computed using a tiering strategy as defined using the `tiers` and `tiers_mode` attributes. */
+  billingScheme: Scalars['String'];
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). */
+  currency: Scalars['String'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** The frequency at which a subscription is billed. One of `day`, `week`, `month` or `year`. */
+  interval: Scalars['String'];
+  /** The number of intervals (specified in the `interval` attribute) between subscription billings. For example, `interval=month` and `interval_count=3` bills every 3 months. */
+  intervalCount: Scalars['Int'];
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata?: Maybe<Scalars['JSON']>;
+  /** A brief description of the plan, hidden from customers. */
+  nickname?: Maybe<Scalars['String']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** The product whose pricing this plan determines. */
+  product?: Maybe<StripeProduct>;
+  /** Defines if the tiering price should be `graduated` or `volume` based. In `volume`-based tiering, the maximum quantity within a period determines the per unit price. In `graduated` tiering, pricing can change as the quantity grows. */
+  tiersMode?: Maybe<Scalars['String']>;
+  /** Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`. */
+  transformUsage?: Maybe<StripePlanTransformUsage>;
+  /** Default number of trial days when subscribing a customer to this plan using [`trial_from_plan=true`](https://stripe.com/docs/api#create_subscription-trial_from_plan). */
+  trialPeriodDays?: Maybe<Scalars['Int']>;
+  /** Configures how the quantity per period should be determined. Can be either `metered` or `licensed`. `licensed` automatically bills the `quantity` set when adding it to a subscription. `metered` aggregates the total usage based on usage records. Defaults to `licensed`. */
+  usageType: Scalars['String'];
+};
+
+export type StripePlanTransformUsage = {
+  __typename?: 'StripePlanTransformUsage';
+  /** Divide usage by this number. */
+  divideBy: Scalars['Int'];
+  /** After division, either round the result `up` or `down`. */
+  round: Scalars['String'];
+};
+
+export type StripePrice = {
+  __typename?: 'StripePrice';
+  /** Whether the price can be used for new purchases. */
+  active: Scalars['Boolean'];
+  /** Describes how to compute the price per period. Either `per_unit` or `tiered`. `per_unit` indicates that the fixed amount (specified in `unit_amount` or `unit_amount_decimal`) will be charged per unit in `quantity` (for prices with `usage_type=licensed`), or per unit of total usage (for prices with `usage_type=metered`). `tiered` indicates that the unit pricing will be computed using a tiering strategy as defined using the `tiers` and `tiers_mode` attributes. */
+  billingScheme: Scalars['String'];
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). */
+  currency: Scalars['String'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** A lookup key used to retrieve prices dynamically from a static string. This may be up to 200 characters. */
+  lookupKey?: Maybe<Scalars['String']>;
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata?: Maybe<Scalars['JSON']>;
+  /** A brief description of the price, hidden from customers. */
+  nickname?: Maybe<Scalars['String']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** The ID of the product this price is associated with. */
+  product: StripeProduct;
+  /** Defines if the tiering price should be `graduated` or `volume` based. In `volume`-based tiering, the maximum quantity within a period determines the per unit price. In `graduated` tiering, pricing can change as the quantity grows. */
+  tiersMode?: Maybe<Scalars['String']>;
+  /** One of `one_time` or `recurring` depending on whether the price is for a one-time purchase or a recurring (subscription) purchase. */
+  type: Scalars['String'];
+  /** The unit amount in %s to be charged, represented as a whole integer if possible. Only set if `billing_scheme=per_unit`. */
+  unitAmount?: Maybe<Scalars['Int']>;
+  /** The unit amount in %s to be charged, represented as a decimal string with at most 12 decimal places. Only set if `billing_scheme=per_unit`. */
+  unitAmountDecimal?: Maybe<Scalars['String']>;
+};
+
+export type StripeProduct = {
+  __typename?: 'StripeProduct';
+  /** Whether the product is currently available for purchase. */
+  active: Scalars['Boolean'];
+  /** A list of up to 5 attributes that each SKU can provide values for (e.g., `["color", "size"]`). */
+  attributes?: Maybe<Array<Scalars['String']>>;
+  /** A short one-line description of the product, meant to be displayable to the customer. Only applicable to products of `type=good`. */
+  caption?: Maybe<Scalars['String']>;
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** An array of connect application identifiers that cannot purchase this product. Only applicable to products of `type=good`. */
+  deactivateOn?: Maybe<Array<Scalars['String']>>;
+  /** The ID of the [Price](https://stripe.com/docs/api/prices) object that is the default price for this product. */
+  defaultPrice?: Maybe<StripePrice>;
+  /** The product's description, meant to be displayable to the customer. Use this field to optionally store a long form explanation of the product being sold for your own rendering purposes. */
+  description?: Maybe<Scalars['String']>;
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** A list of up to 8 URLs of images for this product, meant to be displayable to the customer. */
+  images?: Maybe<Array<Scalars['String']>>;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata?: Maybe<Scalars['JSON']>;
+  /** The product's name, meant to be displayable to the customer. */
+  name: Scalars['String'];
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** Whether this product is shipped (i.e., physical goods). */
+  sippable?: Maybe<Scalars['Boolean']>;
+  /** Extra information about a product which will appear on your customer's credit card statement. In the case that multiple products are billed at once, the first statement descriptor will be used. */
+  statementDescriptor?: Maybe<Scalars['String']>;
+  /** The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans. */
+  type: Scalars['String'];
+  /** A label that represents units of this product in Stripe and on customers' receipts and invoices. When set, this will be included in associated invoice line item descriptions. */
+  unitLabel?: Maybe<Scalars['String']>;
+  /** Time at which the object was last updated. Measured in seconds since the Unix epoch. */
+  updated: Scalars['Int'];
+  /** A URL of a publicly-accessible webpage for this product. */
+  url?: Maybe<Scalars['String']>;
+};
+
+export type StripeSubscription = {
+  __typename?: 'StripeSubscription';
+  /** A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice subtotal that will be transferred to the application owner's Stripe account. */
+  applicationFeePercent?: Maybe<Scalars['Float']>;
+  automaticTax: StripeSubscriptionAutomaticTax;
+  /** Determines the date of the first full invoice, and, for plans with `month` or `year` intervals, the day of the month for subsequent invoices. The timestamp is in UTC format. */
+  billingCycleAnchor: Scalars['Int'];
+  /** Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period */
+  billingThresholds?: Maybe<StripeSubscriptionBillingThresholds>;
+  /** A date in the future at which the subscription will automatically get canceled */
+  cancelAt?: Maybe<Scalars['Int']>;
+  /** If the subscription has been canceled with the `at_period_end` flag set to `true`, `cancel_at_period_end` on the subscription will be true. You can use this attribute to determine whether a subscription that has a status of active is scheduled to be canceled at the end of the current period. */
+  cancelAtPeriodEnd: Scalars['Boolean'];
+  /** If the subscription has been canceled, the date of that cancellation. If the subscription was canceled with `cancel_at_period_end`, `canceled_at` will reflect the time of the most recent update request, not the end of the subscription period when the subscription is automatically moved to a canceled state. */
+  canceledAt?: Maybe<Scalars['Int']>;
+  /** Either `charge_automatically`, or `send_invoice`. When charging automatically, Stripe will attempt to pay this subscription at the end of the cycle using the default source attached to the customer. When sending an invoice, Stripe will email your customer an invoice with payment instructions and mark the subscription as `active`. */
+  collectionMethods: Scalars['String'];
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies). */
+  currency: Scalars['String'];
+  /** End of the current period that the subscription has been invoiced for. At the end of this period, a new invoice will be created. */
+  currentPeriodEnd: Scalars['Int'];
+  /** Start of the current period that the subscription has been invoiced for. */
+  currentPeriodStart: Scalars['Int'];
+  /** ID of the customer who owns the subscription. */
+  customer: Scalars['String'];
+  /** Number of days a customer has to pay invoices generated by this subscription. This value will be `null` for subscriptions where `collection_method=charge_automatically`. */
+  daysUntilDue?: Maybe<Scalars['Int']>;
+  /** ID of the default payment method for the subscription. It must belong to the customer associated with the subscription. This takes precedence over `default_source`. If neither are set, invoices will use the customer's [invoice_settings.default_payment_method](https://stripe.com/docs/api/customers/object#customer_object-invoice_settings-default_payment_method) or [default_source](https://stripe.com/docs/api/customers/object#customer_object-default_source). */
+  defaultPaymentMethod?: Maybe<StripePaymentMethod>;
+  /** The tax rates that will apply to any subscription item that does not have `tax_rates` set. Invoices created will have their `default_tax_rates` populated from the subscription. */
+  defaultTaxRates?: Maybe<Array<StripeTaxRate>>;
+  /** The subscription's description, meant to be displayable to the customer. Use this field to optionally store an explanation of the subscription for rendering in Stripe surfaces. */
+  description?: Maybe<Scalars['String']>;
+  /** If the subscription has ended, the date the subscription ended. */
+  endedAt?: Maybe<Scalars['Int']>;
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** List of subscription items, each with an attached price. */
+  items: StripeSubscriptionItems;
+  /** The most recent invoice this subscription has generated. */
+  latestInvoice?: Maybe<StripeInvoice>;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata: Scalars['JSON'];
+  /** Specifies the approximate timestamp on which any pending invoice items will be billed according to the schedule provided at `pending_invoice_item_interval`. */
+  nextPendingInvoiceItemInvoice?: Maybe<Scalars['Int']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** If specified, payment collection for this subscription will be paused. */
+  pauseCollection?: Maybe<StripeSubscriptionPauseCollection>;
+  /** Date when the subscription was first created. The date might differ from the `created` date due to backdating. */
+  startDate: Scalars['Int'];
+  /**
+   * Possible values are `incomplete`, `incomplete_expired`, `trialing`, `active`, `past_due`, `canceled`, or `unpaid`.
+   *
+   * For `collection_method=charge_automatically` a subscription moves into `incomplete` if the initial payment attempt fails. A subscription in this state can only have metadata and default_source updated. Once the first invoice is paid, the subscription moves into an `active` state. If the first invoice is not paid within 23 hours, the subscription transitions to `incomplete_expired`. This is a terminal state, the open invoice will be voided and no further invoices will be generated.
+   *
+   * A subscription that is currently in a trial period is `trialing` and moves to `active` when the trial period is over.
+   *
+   * If subscription `collection_method=charge_automatically` it becomes `past_due` when payment to renew it fails and `canceled` or `unpaid` (depending on your subscriptions settings) when Stripe has exhausted all payment retry attempts.
+   *
+   * If subscription `collection_method=send_invoice` it becomes `past_due` when its invoice is not paid by the due date, and `canceled` or `unpaid` if it is still not paid by an additional deadline after that. Note that when a subscription has a status of `unpaid`, no subsequent invoices will be attempted (invoices will be created, but then immediately automatically closed). After receiving updated payment information from a customer, you may choose to reopen and pay their closed invoices.
+   */
+  status: Scalars['String'];
+  /** ID of the test clock this subscription belongs to. */
+  testClock?: Maybe<StripeTestClock>;
+  /** If the subscription has a trial, the end of that trial. */
+  trialEnd?: Maybe<Scalars['Int']>;
+  /** If the subscription has a trial, the beginning of that trial. */
+  trialStart?: Maybe<Scalars['Int']>;
+};
+
+export type StripeSubscriptionAutomaticTax = {
+  __typename?: 'StripeSubscriptionAutomaticTax';
+  /** Whether Stripe automatically computes tax on this subscription. */
+  enabled: Scalars['Boolean'];
+};
+
+export type StripeSubscriptionBillingThresholds = {
+  __typename?: 'StripeSubscriptionBillingThresholds';
+  /** Monetary threshold that triggers the subscription to create an invoice */
+  amountGte?: Maybe<Scalars['Int']>;
+  /** Indicates if the `billing_cycle_anchor` should be reset when a threshold is reached. If true, `billing_cycle_anchor` will be updated to the date/time the threshold was last reached; otherwise, the value will remain unchanged. This value may not be `true` if the subscription contains items with plans that have `aggregate_usage=last_ever`. */
+  resetBillingCycleAnchor?: Maybe<Scalars['Boolean']>;
+};
+
+export type StripeSubscriptionItem = {
+  __typename?: 'StripeSubscriptionItem';
+  /** Define thresholds at which an invoice will be sent, and the related subscription advanced to a new billing period */
+  billingThresholds?: Maybe<StripeSubscriptionItemBillingThresholds>;
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata: Scalars['JSON'];
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /**
+   * You can now model subscriptions more flexibly using the [Prices API](https://stripe.com/docs/api#prices). It replaces the Plans API and is backwards compatible to simplify your migration.
+   *
+   * Plans define the base price, currency, and billing cycle for recurring purchases of products.
+   *
+   * [Products](https://stripe.com/docs/api#products) help you track inventory or provisioning, and plans help you track pricing. Different physical goods or levels of service should be represented by products, and pricing options should be represented by plans. This approach lets you change prices without having to change your provisioning scheme.
+   *
+   * For example, you might have a single "gold" product that has plans for $10/month, $100/year, €9/month, and €90/year.
+   *
+   * Related guides: [Set up a subscription](https://stripe.com/docs/billing/subscriptions/set-up-subscription) and more about [products and prices](https://stripe.com/docs/products-prices/overview).
+   */
+  plan: StripePlan;
+  /**
+   * Prices define the unit cost, currency, and (optional) billing cycle for both recurring and one-time purchases of products.
+   *
+   * [Products](https://stripe.com/docs/api#products) help you track inventory or provisioning, and prices help you track payment terms. Different physical goods or levels of service should be represented by products, and pricing options should be represented by prices. This approach lets you change prices without having to change your provisioning scheme.
+   *
+   * For example, you might have a single "gold" product that has prices for $10/month, $100/year, and €9 once.
+   *
+   * Related guides: [Set up a subscription](https://stripe.com/docs/billing/subscriptions/set-up-subscription), [create an invoice](https://stripe.com/docs/billing/invoices/create), and more about [products and prices](https://stripe.com/docs/products-prices/overview).
+   */
+  price: StripePrice;
+  /** The [quantity](https://stripe.com/docs/subscriptions/quantities) of the plan to which the customer should be subscribed. */
+  quantity?: Maybe<Scalars['Int']>;
+  /** The `subscription` this `subscription_item` belongs to. */
+  subscription: Scalars['String'];
+};
+
+export type StripeSubscriptionItemBillingThresholds = {
+  __typename?: 'StripeSubscriptionItemBillingThresholds';
+  /** Usage threshold that triggers the subscription to create an invoice */
+  usageGte?: Maybe<Scalars['Int']>;
+};
+
+export type StripeSubscriptionItems = {
+  __typename?: 'StripeSubscriptionItems';
+  data: Array<StripeSubscriptionItem>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+export type StripeSubscriptionPauseCollection = {
+  __typename?: 'StripeSubscriptionPauseCollection';
+  /** The payment collection behavior for this subscription while paused. One of `keep_as_draft`, `mark_uncollectible`, or `void`. */
+  behavior: Scalars['String'];
+  /** The time after which the subscription will resume collecting payments. */
+  resumesAt?: Maybe<Scalars['Int']>;
+};
+
+export type StripeSubscriptions = {
+  __typename?: 'StripeSubscriptions';
+  data: Array<StripeSubscription>;
+  /** True if this list has another page of items after this one that can be fetched. */
+  hasMore: Scalars['Boolean'];
+  object: Scalars['String'];
+  /** The URL where this list can be accessed. */
+  url: Scalars['String'];
+};
+
+/** Tax rates can be applied to [invoices](https://stripe.com/docs/billing/invoices/tax-rates), [subscriptions](https://stripe.com/docs/billing/subscriptions/taxes) and [Checkout Sessions](https://stripe.com/docs/payments/checkout/set-up-a-subscription#tax-rates) to collect tax. */
+export type StripeTaxRate = {
+  __typename?: 'StripeTaxRate';
+  /** Defaults to `true`. When set to `false`, this tax rate cannot be used with new applications or Checkout Sessions, but will still work for subscriptions and invoices that already have it set. */
+  active: Scalars['Boolean'];
+  /** Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)). */
+  country?: Maybe<Scalars['String']>;
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** An arbitrary string attached to the tax rate for your internal use only. It will not be visible to your customers. */
+  description?: Maybe<Scalars['String']>;
+  /** The display name of the tax rates as it will appear to your customer on their receipt email, PDF, and the hosted invoice page. */
+  displayName: Scalars['String'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** This specifies if the tax rate is inclusive or exclusive. */
+  inclusive: Scalars['Boolean'];
+  /** The jurisdiction for the tax rate. You can use this label field for tax reporting purposes. It also appears on your customer’s invoice. */
+  jurisdiction?: Maybe<Scalars['String']>;
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** Set of [key-value pairs](https://stripe.com/docs/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format. */
+  metadata?: Maybe<Scalars['JSON']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** This represents the tax rate percent out of 100. */
+  percentage: Scalars['Float'];
+  /** [ISO 3166-2 subdivision code](https://en.wikipedia.org/wiki/ISO_3166-2:US), without country prefix. For example, "NY" for New York, United States. */
+  state?: Maybe<Scalars['String']>;
+  /** The high-level tax type, such as `vat` or `sales_tax`. */
+  taxType?: Maybe<Scalars['String']>;
+};
+
+export type StripeTestClock = {
+  __typename?: 'StripeTestClock';
+  /** Time at which the object was created. Measured in seconds since the Unix epoch. */
+  created: Scalars['Int'];
+  /** Time at which this clock is scheduled to auto delete. */
+  deletesAfter: Scalars['Int'];
+  /** Time at which all objects belonging to this clock are frozen. */
+  frozenTime: Scalars['Int'];
+  /** Unique identifier for the object. */
+  id: Scalars['String'];
+  /** Has the value `true` if the object exists in live mode or the value `false` if the object exists in test mode. */
+  livemode: Scalars['Boolean'];
+  /** The custom name supplied at creation. */
+  name?: Maybe<Scalars['String']>;
+  /** String representing the object's type. Objects of the same type share the same value. */
+  object: Scalars['String'];
+  /** The status of the Test Clock. */
+  status: Scalars['String'];
 };
 
 /** columns and relationships of "app_state_history" */
@@ -855,6 +1901,7 @@ export type Apps = {
   /** An object relationship */
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion: Scalars['String'];
   hasuraGraphqlAdminSecret: Scalars['String'];
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
@@ -863,6 +1910,8 @@ export type Apps = {
   hasuraGraphqlEnabledApis: Scalars['String'];
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret: Scalars['String'];
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion: Scalars['String'];
   hasuraVersion: Scalars['String'];
   id: Scalars['uuid'];
@@ -1237,6 +2286,7 @@ export type Apps_Bool_Exp = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlAdminSecret?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<String_Comparison_Exp>;
@@ -1245,6 +2295,8 @@ export type Apps_Bool_Exp = {
   hasuraGraphqlEnabledApis?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlJwtSecret?: InputMaybe<String_Comparison_Exp>;
+  hasuraPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraStorageVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraVersion?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
@@ -1427,6 +2479,7 @@ export type Apps_Insert_Input = {
   featureFlags?: InputMaybe<FeatureFlags_Arr_Rel_Insert_Input>;
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -1435,6 +2488,8 @@ export type Apps_Insert_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -1549,12 +2604,15 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1659,12 +2717,15 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -1770,12 +2831,15 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1880,12 +2944,15 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2047,6 +3114,7 @@ export type Apps_Order_By = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Order_By>;
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
@@ -2055,6 +3123,8 @@ export type Apps_Order_By = {
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2308,6 +3378,8 @@ export enum Apps_Select_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -2323,6 +3395,10 @@ export enum Apps_Select_Column {
   HasuraGraphqlGraphqlUrl = 'hasuraGraphqlGraphqlUrl',
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
+  /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
   /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
@@ -2615,6 +3691,7 @@ export type Apps_Set_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2623,6 +3700,8 @@ export type Apps_Set_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -2824,6 +3903,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2832,6 +3912,8 @@ export type Apps_Stream_Cursor_Value_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -3092,6 +4174,8 @@ export enum Apps_Update_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -3107,6 +4191,10 @@ export enum Apps_Update_Column {
   HasuraGraphqlGraphqlUrl = 'hasuraGraphqlGraphqlUrl',
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
+  /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
   /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
@@ -9553,6 +10641,7 @@ export type Mutation_Root = {
    * Schedule a restore of a database backup
    */
   scheduleRestoreDatabaseBackup: Scalars['String'];
+  stripe: StripeMutations;
   syncDatabaseBackups: Scalars['Boolean'];
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
@@ -12620,6 +13709,7 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  stripe: Stripe;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -16464,6 +17554,7 @@ export type Workspaces = {
   /** An aggregate relationship */
   paymentMethods_aggregate: PaymentMethods_Aggregate;
   slug: Scalars['String'];
+  stripeCustomer: StripeCustomer;
   stripeCustomerId?: Maybe<Scalars['String']>;
   taxIdType: Scalars['String'];
   taxIdValue: Scalars['String'];
@@ -17168,12 +18259,12 @@ export type PrefetchNewAppRegionsFragment = { __typename?: 'regions', id: any, c
 
 export type PrefetchNewAppPlansFragment = { __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number };
 
-export type PrefetchNewAppWorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> };
+export type PrefetchNewAppWorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, stripeCustomer: { __typename?: 'StripeCustomer', paymentMethods: { __typename?: 'StripePaymentMethods', data: Array<{ __typename?: 'StripePaymentMethod', id: string }> } } };
 
 export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, stripeCustomer: { __typename?: 'StripeCustomer', paymentMethods: { __typename?: 'StripePaymentMethods', data: Array<{ __typename?: 'StripePaymentMethod', id: string }> } } }> };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -17852,8 +18943,12 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
   id
   name
   slug
-  paymentMethods {
-    id
+  stripeCustomer {
+    paymentMethods {
+      data {
+        id
+      }
+    }
   }
 }
     `;
@@ -19171,7 +20266,7 @@ export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariabl
 export const ScheduledOrPendingDeploymentsSubDocument = gql`
     subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
-    where: {deploymentStatus: {_in: ["PENDING", "SCHEDULED"]}, appId: {_eq: $appId}}
+    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
   ) {
     ...DeploymentRow
   }

@@ -23,8 +23,12 @@ fragment PrefetchNewAppWorkspace on workspaces {
   id
   name
   slug
-  paymentMethods {
-    id
+  stripeCustomer {
+    paymentMethods {
+      data {
+        id
+      }
+    }
   }
 }
 
