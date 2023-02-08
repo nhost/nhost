@@ -55,8 +55,8 @@ export default function DatabasePage() {
           subtitle="Control your database like a spreadsheet."
         />
 
-        <div className="grid grid-cols-1 items-start justify-items-center gap-0 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
-          <div className="relative order-2 h-0 w-full pb-[56.25%] xl:order-1">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-start justify-items-center gap-0 ">
+          <div className="relative order-2 h-0 w-full max-w-5xl pb-[56.25%] ">
             <video
               ref={videoRef}
               autoPlay
@@ -69,8 +69,8 @@ export default function DatabasePage() {
             </video>
           </div>
 
-          <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:max-w-none">
+          <div className="relative order-1 w-full max-w-3xl ">
+            <div className="relative z-10 grid grid-flow-col justify-around ">
               <ExampleSelectorButton
                 active={selectedExample === 'insertData'}
                 onClick={() => setSelectedExample('insertData')}
@@ -108,13 +108,13 @@ export default function DatabasePage() {
               className="h-auto w-full"
             />
 
-            <Image
+            {/* <Image
               src="/common/logo-glow.svg"
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
-            />
+              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none "
+            /> */}
           </div>
         </div>
       </Container>
