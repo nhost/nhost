@@ -18,7 +18,7 @@ function MobileMenu(
   ref: ForwardedRef<HTMLDivElement>,
 ) {
   const [productExpanded, setProductExpanded] = useState(false)
-  const { showAnnouncement } = useAnnouncement()
+  const { showAnnouncement, inView } = useAnnouncement()
 
   return (
     <Container
@@ -27,7 +27,7 @@ function MobileMenu(
         root: {
           className: twMerge(
             'fixed bottom-0 left-0 right-0 z-40 w-full bg-black pt-4 pb-16 overflow-auto lg:hidden',
-            showAnnouncement ? 'top-26' : 'top-16',
+            showAnnouncement && inView ? 'top-26' : 'top-16',
           ),
         },
       }}

@@ -1,3 +1,4 @@
+import { AnnouncementProvider } from '@/providers/AnnouncementProvider'
 import '@/styles/globals.css'
 import { getDefaultOgUrl } from '@/utils/utils'
 import { NextPage } from 'next'
@@ -17,7 +18,7 @@ export default function App({ Component, pageProps }: LandingPageProps) {
   const getLayout = Component.getLayout || ((page: ReactElement) => page)
 
   return (
-    <>
+    <AnnouncementProvider>
       <DefaultSeo
         defaultTitle="Nhost: The Open Source Firebase Alternative with GraphQL"
         titleTemplate="%s | Nhost"
@@ -48,6 +49,6 @@ export default function App({ Component, pageProps }: LandingPageProps) {
           <Component {...pageProps} />
         </PlausibleProvider>,
       )}
-    </>
+    </AnnouncementProvider>
   )
 }
