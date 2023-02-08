@@ -1,27 +1,26 @@
+import { Button } from '@/components/common/Button'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
+import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
 
-const heroExample = `await nhost.auth.signUp({
-  email: 'joe@example.com',
-  password: 'secret-password'
-})`
+const heroExample = `await nhost.storage.upload({ file })`
 
-export default function AuthHeroSection() {
+export default function StorageHeroSection() {
   return (
     <Container
       component="section"
       slotProps={{ root: { className: 'overflow-visible' } }}
-      className="relative grid grid-cols-1 items-start gap-14 sm:gap-6 md:grid-cols-2"
+      className="relative grid grid-cols-1 items-center gap-14 sm:gap-6 md:grid-cols-2"
     >
       <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:pt-42 lg:px-20">
         <ProductIcon>
           <Image
-            src="/products/authentication.svg"
+            src="/products/storage.svg"
             width={24}
             height={24}
             alt="A user"
@@ -30,8 +29,8 @@ export default function AuthHeroSection() {
         </ProductIcon>
 
         <SectionHeading
-          title="Auth"
-          subtitle="Everything you need to sign in and manage users."
+          title="Storage"
+          subtitle="Store, transform, optimize, and deliver any file for your users at a blazing fast speed."
           className="text-left"
           slotProps={{
             title: {
@@ -43,19 +42,27 @@ export default function AuthHeroSection() {
             },
           }}
         />
+
+        <Button
+          href="https://app.nhost.io/uploadFile"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Start building <ArrowRightIcon />
+        </Button>
       </div>
 
-      <div className="relative sm:pt-6 md:-translate-x-1 md:pt-24">
+      <div className="relative sm:pt-6 md:pt-24">
         <LineGrid className="md:-translate-x-11 md:-translate-y-11" priority />
 
-        <Glow className="h-[75%] w-full opacity-40 blur-3xl" />
+        <Glow className="mx-auto h-[75%] w-[90%] opacity-40 blur-3xl" />
 
         <Image
-          src="/products/auth-hero.png"
-          alt="Auth page in the Nhost Dashboard"
-          width={2880}
-          height={1800}
-          className="relative z-10 h-auto w-full"
+          src="/products/storage-hero.png"
+          width={1920}
+          height={991}
+          alt="The Nhost Dashboard's storage page"
+          className="relative z-10 mx-auto h-auto w-full object-contain"
           priority
         />
 
