@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
-import Card, { CardProps } from '../Card'
+import { Card, CardProps } from '../Card'
 import { ArrowRightIcon } from '../icons/ArrowRightIcon'
 import { Link } from '../Link'
 import { ProductIcon } from '../ProductIcon'

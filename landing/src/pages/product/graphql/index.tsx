@@ -1,11 +1,15 @@
 import { Button } from '@/components/common/Button'
-import Card from '@/components/common/Card'
+import { Card } from '@/components/common/Card'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { CTASection } from '@/components/common/CTASection'
 import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
+import { BarChartIcon } from '@/components/common/icons/BarChartIcon'
+import { CursorIcon } from '@/components/common/icons/CursorIcon'
+import { LocationIcon } from '@/components/common/icons/LocationIcon'
+import { UserIcon } from '@/components/common/icons/UserIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
@@ -23,8 +27,7 @@ const codeSnippets = {
 }
 
 const realtimeCodeSnippets = {
-  avatars: `
-subscription {
+  avatars: `subscription {
   users {
     id
     displayName
@@ -33,10 +36,8 @@ subscription {
       isOnline
     }
   }
-}
-`,
-  cursors: `
-subscription ($documentId: uuid!) {
+}`,
+  cursors: `subscription ($documentId: uuid!) {
   document (id: $docuentId) {
     id
     cursors {
@@ -49,11 +50,8 @@ subscription ($documentId: uuid!) {
       }
     }
   }
-}
-
-`,
-  location: `
-subscription ($orderId: uuid!) {
+}`,
+  location: `subscription ($orderId: uuid!) {
   order (id: $orderId) {
     id
     location {
@@ -63,8 +61,7 @@ subscription ($orderId: uuid!) {
     }
   }
 }`,
-  charts: `
-subscription ($chartId: uuid!) {
+  charts: `subscription ($chartId: uuid!) {
   chart (id: $chartId) {
     id
     data {
@@ -252,13 +249,7 @@ export default function GraphqlPage() {
               }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Image
-                  src="/products/user.svg"
-                  width={24}
-                  height={24}
-                  alt="A user"
-                  className="mx-auto h-4 w-4"
-                />
+                <UserIcon className="h-4 w-4" />
                 <h3 className="font-mona text-base font-bold">Live avatars</h3>
               </div>
 
@@ -287,13 +278,7 @@ export default function GraphqlPage() {
               }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Image
-                  src="/products/cursor.svg"
-                  width={24}
-                  height={24}
-                  alt="Default cursor"
-                  className="mx-auto h-4 w-4"
-                />
+                <CursorIcon className="h-4 w-4" />
                 <h3 className="font-mona text-base font-bold">Live cursors</h3>
               </div>
 
@@ -323,13 +308,7 @@ export default function GraphqlPage() {
               }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Image
-                  src="/products/location.svg"
-                  width={24}
-                  height={24}
-                  alt="A location marker"
-                  className="mx-auto h-4 w-4"
-                />
+                <LocationIcon className="h-4 w-4" />
                 <h3 className="font-mona text-base font-bold">Location</h3>
               </div>
 
@@ -359,13 +338,7 @@ export default function GraphqlPage() {
               }}
             >
               <div className="grid grid-flow-col items-center justify-start gap-4">
-                <Image
-                  src="/products/bar-charts.svg"
-                  width={24}
-                  height={24}
-                  alt="Three horizontal bars"
-                  className="mx-auto h-4 w-4"
-                />
+                <BarChartIcon className="h-4 w-4" />
                 <h3 className="font-mona text-base font-bold">Live charts</h3>
               </div>
 

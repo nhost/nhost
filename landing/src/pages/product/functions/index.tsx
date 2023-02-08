@@ -1,5 +1,5 @@
 import { Button } from '@/components/common/Button'
-import Card from '@/components/common/Card'
+import { Card } from '@/components/common/Card'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { CTASection } from '@/components/common/CTASection'
