@@ -1,11 +1,9 @@
-import { Popover, Transition } from '@headlessui/react'
 import Image from 'next/image'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
-import { ChevronDownIcon } from '../icons/ChevronDownIcon'
-import { ChevronUpIcon } from '../icons/ChevronUpIcon'
+import HoverPopover from '../HoverPopover/HoverPopover'
 import { MenuIcon } from '../icons/MenuIcon'
 import { XIcon } from '../icons/XIcon'
 import { Link } from '../Link'
@@ -68,96 +66,73 @@ export default function Header({
         >
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
-              <Popover>
-                {({ open, close }) => (
-                  <>
-                    <Popover.Button className="grid grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 hover:underline focus:outline-none focus-visible:!rounded-sm focus-visible:!outline focus-visible:!outline-2 focus-visible:outline-blue-300 active:outline-none">
-                      Product{' '}
-                      {open ? (
-                        <ChevronUpIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </Popover.Button>
-                    <Transition
-                      as={Fragment}
-                      enter="transition ease-out duration-200"
-                      enterFrom="opacity-0 translate-y-1"
-                      enterTo="opacity-100 translate-y-0"
-                      leave="transition ease-in duration-150"
-                      leaveFrom="opacity-100 translate-y-0"
-                      leaveTo="opacity-0 translate-y-1"
-                    >
-                      <Popover.Panel className="absolute z-50 mt-3 w-52 transform rounded-md border border-white border-opacity-10 bg-black p-4">
-                        <nav aria-label="Secondary navigation">
-                          <ul className="grid grid-flow-row gap-2">
-                            <li>
-                              <Button
-                                href="/product/database"
-                                variant="borderless"
-                                size="xs"
-                                className="w-full text-opacity-65"
-                                onClick={close}
-                              >
-                                Database
-                              </Button>
-                            </li>
-                            <li className="h-px w-full bg-white bg-opacity-10" />
-                            <li>
-                              <Button
-                                href="/product/graphql"
-                                variant="borderless"
-                                size="xs"
-                                className="w-full text-opacity-65"
-                                onClick={close}
-                              >
-                                GraphQL API
-                              </Button>
-                            </li>
-                            <li className="h-px w-full bg-white bg-opacity-10" />
-                            <li>
-                              <Button
-                                href="/product/auth"
-                                variant="borderless"
-                                size="xs"
-                                className="w-full text-opacity-65"
-                                onClick={close}
-                              >
-                                Auth
-                              </Button>
-                            </li>
-                            <li className="h-px w-full bg-white bg-opacity-10" />
-                            <li>
-                              <Button
-                                href="/product/storage"
-                                variant="borderless"
-                                size="xs"
-                                className="w-full text-opacity-65"
-                                onClick={close}
-                              >
-                                Storage
-                              </Button>
-                            </li>
-                            <li className="h-px w-full bg-white bg-opacity-10" />
-                            <li>
-                              <Button
-                                href="/product/functions"
-                                variant="borderless"
-                                size="xs"
-                                className="w-full text-opacity-65"
-                                onClick={close}
-                              >
-                                Functions
-                              </Button>
-                            </li>
-                          </ul>
-                        </nav>
-                      </Popover.Panel>
-                    </Transition>
-                  </>
-                )}
-              </Popover>
+              <HoverPopover title="Product">
+                <nav aria-label="Secondary navigation">
+                  <ul className="grid grid-flow-row gap-2">
+                    <li>
+                      <Button
+                        href="/product/database"
+                        variant="borderless"
+                        size="xs"
+                        className="w-full text-opacity-65"
+                        onClick={close}
+                      >
+                        Database
+                      </Button>
+                    </li>
+                    <li className="h-px w-full bg-white bg-opacity-10" />
+                    <li>
+                      <Button
+                        href="/product/graphql"
+                        variant="borderless"
+                        size="xs"
+                        className="w-full text-opacity-65"
+                        onClick={close}
+                      >
+                        GraphQL API
+                      </Button>
+                    </li>
+                    <li className="h-px w-full bg-white bg-opacity-10" />
+                    <li>
+                      <Button
+                        href="/product/auth"
+                        variant="borderless"
+                        size="xs"
+                        className="w-full text-opacity-65"
+                        onClick={close}
+                      >
+                        Auth
+                      </Button>
+                    </li>
+                    <li className="h-px w-full bg-white bg-opacity-10" />
+                    <li>
+                      <Button
+                        href="/product/storage"
+                        variant="borderless"
+                        size="xs"
+                        className="w-full text-opacity-65"
+                        onClick={close}
+                      >
+                        Storage
+                      </Button>
+                    </li>
+                    <li className="h-px w-full bg-white bg-opacity-10" />
+                    <li>
+                      <Button
+                        href="/product/functions"
+                        variant="borderless"
+                        size="xs"
+                        className="w-full text-opacity-65"
+                        onClick={close}
+                      >
+                        Functions
+                      </Button>
+                    </li>
+                  </ul>
+                </nav>
+              </HoverPopover>
             </li>
+
             <li>
               <Link href="https://docs.nhost.io" className="p-1.5">
                 Docs
