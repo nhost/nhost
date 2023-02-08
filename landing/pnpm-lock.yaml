@@ -21,6 +21,7 @@ specifiers:
   next: 13.1.6
   next-plausible: ^3.7.2
   next-seo: ^5.15.0
+  next-sitemap: ^3.1.50
   postcss: ^8.4.21
   prettier: ^2.8.3
   prettier-plugin-organize-imports: ^3.2.2
@@ -54,6 +55,7 @@ dependencies:
   next: 13.1.6_biqbaboplfbrettd7655fr4n2y
   next-plausible: 3.7.2_3vryta7zmbcsw4rrqf4axjqggm
   next-seo: 5.15.0_3vryta7zmbcsw4rrqf4axjqggm
+  next-sitemap: 3.1.50_next@13.1.6
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-intersection-observer: 9.4.1_react@18.2.0
@@ -83,6 +85,10 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.13.11
+    dev: false
+
+  /@corex/deepmerge/4.0.37:
+    resolution: {integrity: sha512-PX90bEnrLdxd5e6rSFWsghExMuSw0Uov3fWJuuaoFuUQIS/446diu/4seExK5b+43L+SOBbd2uBGwYUkG1JfCw==}
     dev: false
 
   /@eslint/eslintrc/1.4.1:
@@ -3624,6 +3630,19 @@ packages:
       next: 13.1.6_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
+    dev: false
+
+  /next-sitemap/3.1.50_next@13.1.6:
+    resolution: {integrity: sha512-BnxAbjOK1zVcYvpZ4sYfhPXcL3ajLh/AIJLR39YKrhFxrD92KkiAGuVaKhfpoQLUf+ldsGBkGpdml2N5Qdd1KA==}
+    engines: {node: '>=14.18'}
+    hasBin: true
+    peerDependencies:
+      '@next/env': '*'
+      next: '*'
+    dependencies:
+      '@corex/deepmerge': 4.0.37
+      minimist: 1.2.7
+      next: 13.1.6_biqbaboplfbrettd7655fr4n2y
     dev: false
 
   /next/13.1.6_biqbaboplfbrettd7655fr4n2y:

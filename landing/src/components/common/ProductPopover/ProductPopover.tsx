@@ -23,6 +23,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
       onMouseLeave={() => setOpen(false)}
     >
       <Popover.Button
+        aria-expanded={open}
         className="grid cursor-default grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 active:outline-none"
         onKeyDown={(event: KeyboardEvent) => {
           if (
@@ -59,7 +60,11 @@ export default function ProductPopover({ children }: PropsWithChildren) {
         leaveFrom="opacity-100 translate-y-0"
         leaveTo="opacity-0 translate-y-1"
       >
-        <Popover.Panel ref={panelRef} className="absolute z-50 mt-0">
+        <Popover.Panel
+          ref={panelRef}
+          className="absolute z-50 mt-0"
+          aria-hidden={!open}
+        >
           <div
             className="mt-3 w-52 transform rounded-md border border-white border-opacity-10 bg-black p-4"
             onKeyDown={(event: KeyboardEvent) => {
