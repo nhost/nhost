@@ -17,7 +17,7 @@ function Dot({ active }: { active: boolean }) {
     <div className="relative h-2 w-2">
       <div
         className={twMerge(
-          'absolute h-full w-full rounded-full motion-safe:transition-all',
+          'absolute h-full w-full animate-ping rounded-full bg-brand-main motion-safe:transition-all lg:animate-none lg:bg-transparent',
           active && 'animate-ping bg-brand-main',
         )}
       />
@@ -25,7 +25,7 @@ function Dot({ active }: { active: boolean }) {
       <div
         className={twMerge(
           'absolute h-full w-full rounded-full bg-white motion-safe:transition-all',
-          !active && 'bg-opacity-65',
+          !active && 'lg:bg-opacity-65',
         )}
       />
     </div>

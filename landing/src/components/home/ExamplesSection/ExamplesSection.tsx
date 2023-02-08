@@ -53,7 +53,8 @@ export default function ExamplesSection() {
   return (
     <Container
       component="section"
-      className="mt-24 grid grid-flow-row gap-14 overflow-hidden pb-8 lg:mt-32 xl:overflow-visible"
+      slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
+      className="mt-24 grid grid-flow-row gap-14 pb-8 lg:mt-32"
     >
       <div className="z-10 grid grid-flow-row justify-center gap-10">
         <SectionHeading
@@ -84,7 +85,7 @@ export default function ExamplesSection() {
         </div>
 
         <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none">
-          <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 md:justify-center md:gap-6">
+          <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 xl:justify-center xl:gap-6">
             <ExampleSelectorButton
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
@@ -173,27 +174,15 @@ export default function ExamplesSection() {
               alt="Dashed lines"
               className="mx-auto hidden h-auto w-full xl:block"
             />
-          </div>
 
-          <Image
-            src="/common/logo-glow.svg"
-            width={1220}
-            height={1220}
-            alt="Nhost Logo in a dark circle"
-            className="relative z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] xl:block"
-          />
-
-          {/* <div className="absolute top-0 left-0 right-0 bottom-0 h-full w-full">
             <Image
               src="/common/logo-glow.svg"
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="h-full w-full object-none"
+              className="absolute top-11 left-0 right-0 z-0 mx-auto -mt-28 hidden h-auto w-full max-w-[280px] object-none xl:block"
             />
-          </div> */}
-          {/* 
-          <div className="relative z-10 hidden h-52 w-full flex-row justify-center xl:flex"></div> */}
+          </div>
         </div>
       </div>
     </Container>
