@@ -6,8 +6,7 @@ import {
   WorkspaceHeader,
   WorkspaceMembers,
 } from '@/components/workspace';
-import { WorkspaceInvoices } from '@/components/workspace/WorkspaceInvoices';
-import WorkspacePaymentMethods from '@/components/workspace/WorkspacePaymentMethods';
+import { WorkspaceBilling } from '@/components/workspace/WorkspaceBilling';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
@@ -28,8 +27,7 @@ export default function WorkspaceDetailsPage() {
     <Container className="pt-14">
       <WorkspaceHeader />
       <WorkspaceApps />
-      <WorkspacePaymentMethods />
-      <WorkspaceInvoices />
+      <WorkspaceBilling />
       <WorkspaceMembers />
       <NextSeo title={currentWorkspace.name} />
     </Container>

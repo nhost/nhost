@@ -5,15 +5,15 @@ import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
-export function WorkspaceInvoices() {
+export function WorkspaceBilling() {
   const [loading, setLoading] = useState(false);
 
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
 
   return (
     <div className="mt-18">
-      <div className="mx-auto max-w-3xl font-display grid grid-flow-row gap-2 justify-start">
-        <Text className="font-medium text-lg">Invoices</Text>
+      <div className="mx-auto grid max-w-3xl grid-flow-row justify-start gap-2 font-display">
+        <Text className="text-lg font-medium">Billing</Text>
 
         <Button
           variant="outlined"
@@ -39,11 +39,11 @@ export function WorkspaceInvoices() {
           }}
           loading={loading}
         >
-          View Invoices in the Stripe Customer Portal
+          Manage Payment Methods and Billing
         </Button>
       </div>
     </div>
   );
 }
 
-export default WorkspaceInvoices;
+export default WorkspaceBilling;
