@@ -175,12 +175,12 @@ function CloudWorkflow({
           <p className="text-base">Regions</p>
         </div>
         <div className="grid grid-flow-row gap-2 text-center">
-          <p className="font-mona text-3.5xl font-bold lg:text-5xl">99.99%</p>
-          <p className="text-base">Guaranteed Uptime</p>
+          <p className="font-mona text-3.5xl font-bold lg:text-5xl">80+</p>
+          <p className="text-base">CDN Locations</p>
         </div>
         <div className="grid grid-flow-row gap-2 text-center">
-          <p className="font-mona text-3.5xl font-bold lg:text-5xl">185</p>
-          <p className="text-base">Edge Locations</p>
+          <p className="font-mona text-3.5xl font-bold lg:text-5xl">4</p>
+          <p className="text-base">Continents</p>
         </div>
       </div>
     </div>
