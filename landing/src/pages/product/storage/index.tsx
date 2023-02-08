@@ -100,7 +100,7 @@ export default function StoragePage() {
 
       <Container
         component="section"
-        className="grid grid-flow-row gap-24"
+        className="grid grid-flow-row gap-16 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}

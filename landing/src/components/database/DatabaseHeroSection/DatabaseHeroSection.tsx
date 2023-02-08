@@ -16,6 +16,7 @@ export default function DatabaseHeroSection() {
   return (
     <Container
       component="section"
+      slotProps={{ root: { className: 'overflow-visible' } }}
       className="grid grid-cols-1 items-start gap-14 sm:gap-6 md:grid-cols-2"
     >
       <div className="grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:pt-42 lg:px-20">
@@ -38,9 +39,7 @@ export default function DatabaseHeroSection() {
               component: 'h1',
               className: 'font-semibold',
             },
-            subtitle: {
-              className: 'text-base !leading-normal',
-            },
+            subtitle: { className: 'text-base !leading-normal' },
           }}
         />
 

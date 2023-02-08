@@ -49,7 +49,7 @@ export default function AuthPage() {
 
       <Container
         component="section"
-        className="mt-16 grid grid-flow-row gap-24 md:mt-32"
+        className="mt-16 grid grid-flow-row gap-16 md:mt-32 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}

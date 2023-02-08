@@ -45,7 +45,7 @@ export default function DatabasePage() {
 
       <Container
         component="section"
-        className="grid grid-flow-row gap-24"
+        className="mt-12 grid grid-flow-row gap-16 md:mt-28 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
@@ -134,7 +134,9 @@ export default function DatabasePage() {
         />
 
         <CodeSnippet
-          slotProps={{ root: { className: 'mx-auto md:max-w-xl mt-28' } }}
+          slotProps={{
+            root: { className: 'mx-auto md:max-w-xl mt-16 md:mt-28' },
+          }}
         >
           {standaloneSnippet}
         </CodeSnippet>
