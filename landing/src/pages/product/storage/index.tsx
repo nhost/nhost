@@ -51,7 +51,7 @@ export default function StoragePage() {
       >
         <SectionHeading
           title="Add storage in minutes"
-          subtitle="Rapidly build production-ready authentication for web and mobile apps."
+          subtitle="Rapidly build production-ready file management for web and mobile apps."
           className="max-w-xl"
           slotProps={{
             subtitle: {
