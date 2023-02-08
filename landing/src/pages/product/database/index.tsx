@@ -55,8 +55,8 @@ export default function DatabasePage() {
           subtitle="Control your database like a spreadsheet."
         />
 
-        <div className="mx-auto grid max-w-5xl grid-cols-1 items-start justify-items-center gap-0 ">
-          <div className="relative order-2 h-0 w-full max-w-5xl pb-[56.25%] ">
+        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-start justify-items-center gap-0">
+          <div className="relative order-2 h-0 w-full pb-[56.25%]">
             <video
               ref={videoRef}
               autoPlay
@@ -107,14 +107,6 @@ export default function DatabasePage() {
               height={97}
               className="h-auto w-full"
             />
-
-            {/* <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none "
-            /> */}
           </div>
         </div>
       </Container>
