@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
 import { ArrowRightIcon } from '../icons/ArrowRightIcon'
+import { Link } from '../Link'
 
 export interface CTASectionProps extends ContainerProps {}
 
@@ -30,10 +31,6 @@ export default function CTASection({ className, ...props }: CTASectionProps) {
           Ready to try Nhost?
         </h2>
 
-        <p className="text-center text-xl font-normal text-white text-opacity-65">
-          Get in touch.
-        </p>
-
         <div className="grid grid-flow-row items-center gap-4 pt-2 md:grid-flow-col md:gap-6">
           <Button
             className="text-base"
@@ -43,7 +40,9 @@ export default function CTASection({ className, ...props }: CTASectionProps) {
           >
             Start building <ArrowRightIcon />
           </Button>{' '}
-          <p className="text-base font-medium">Questions? Talk to us.</p>
+          <p className="text-base font-medium">
+            Questions? <Link href="mailto:hello@nhost.io">Talk to us.</Link>
+          </p>
         </div>
       </div>
     </Container>
