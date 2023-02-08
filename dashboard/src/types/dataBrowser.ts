@@ -62,6 +62,7 @@ export interface HasuraMetadataPermission {
     allow_aggregations: boolean;
     query_root_fields: string[];
     subscription_root_fields: string[];
+    computed_fields: string[];
     set: Record<string, any>;
     backend_only: boolean;
   }>;

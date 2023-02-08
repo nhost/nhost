@@ -181,6 +181,7 @@ export default function EditPermissionsForm({
 
     return (
       <RolePermissionEditorForm
+        resourceVersion={metadata?.resourceVersion}
         disabled={disabled}
         schema={schema}
         table={table}
@@ -203,7 +204,7 @@ export default function EditPermissionsForm({
       sx={{ backgroundColor: 'background.default' }}
     >
       <div className="flex-auto">
-        <Box className="grid grid-flow-row gap-6 content-start overflow-y-auto p-6 border-b-1">
+        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
           <div className="grid grid-flow-row gap-2">
             <Text component="h2" className="!font-bold">
               Roles & Actions overview
@@ -215,24 +216,24 @@ export default function EditPermissionsForm({
             </Text>
           </div>
 
-          <div className="grid grid-flow-col gap-4 items-center justify-start">
+          <div className="grid grid-flow-col items-center justify-start gap-4">
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               full access <FullPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               partial access <PartialPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               no access <NoPermissionIcon />
             </Text>
@@ -262,7 +263,7 @@ export default function EditPermissionsForm({
                 </TableRow>
               </TableHead>
 
-              <TableBody className="rounded-sm+ block border-1">
+              <TableBody className="block rounded-sm+ border-1">
                 <RolePermissionsRow
                   name="admin"
                   disabled
