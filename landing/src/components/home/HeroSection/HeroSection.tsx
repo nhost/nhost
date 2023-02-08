@@ -59,27 +59,6 @@ export default function HeroSection() {
         />
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
 
-        <div
-          className={twMerge(
-            'absolute top-0 left-0 right-0 mx-auto h-full w-full max-w-5xl',
-            imageLoaded && 'animate-fade-in-delay',
-          )}
-        >
-          <div
-            className={twMerge(
-              'absolute top-0 left-0 right-0 mx-auto h-px w-full bg-gradient-to-r from-paper via-divider to-paper',
-              imageLoaded && 'animate-slide-line-left-delay',
-            )}
-          />
-
-          <div
-            className={twMerge(
-              'absolute top-0 left-0 bottom-0 mx-auto h-full w-px origin-top-left bg-gradient-to-b from-paper via-divider to-paper',
-              imageLoaded && 'animate-slide-line-up-delay',
-            )}
-          />
-        </div>
-
         <Image
           src="/images/overview.png"
           alt="The Nhost Dashboard's overview page"

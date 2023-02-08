@@ -37,6 +37,7 @@ function TechnologySelectorButton({
         'px-0 py-0 md:px-4 md:py-2',
         'text-xs md:text-sm',
         !active && 'text-opacity-65',
+        className,
       )}
       {...props}
     />
@@ -152,6 +153,8 @@ export default function ExamplesSection() {
             </TechnologySelectorButton>
 
             <TechnologySelectorButton
+              disabled
+              className="opacity-65"
               active={activeTechnology === 'flutter'}
               onClick={() => setActiveTechnology('flutter')}
             >

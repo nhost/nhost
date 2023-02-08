@@ -23,7 +23,7 @@ export default function StorageHeroSection() {
             src="/products/storage.svg"
             width={24}
             height={24}
-            alt="A user"
+            alt="A file icon"
             priority
           />
         </ProductIcon>

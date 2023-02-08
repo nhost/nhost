@@ -8,8 +8,8 @@ import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
-import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { FunctionsHeroSection } from '@/components/functions/FunctionsHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import Image from 'next/image'
 import { ReactElement, useState } from 'react'
@@ -105,63 +105,17 @@ export default async function handler(req: NhostRequest, res: NhostResponse) {
 }`,
 }
 
-const heroExample = `export default (req: Request, res: Response) => {
-  res.status(200).send('Hello world')
-}`
-
 export default function FunctionsPage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('sendEmail')
 
   return (
     <>
-      <Container
-        component="section"
-        className="relative grid grid-cols-1 items-center gap-14 py-8 sm:gap-6 md:grid-cols-2 md:py-40"
-      >
-        <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 lg:px-28">
-          <ProductIcon>
-            <Image
-              src="/products/functions.svg"
-              width={24}
-              height={24}
-              alt="A user"
-              priority
-            />
-          </ProductIcon>
-
-          <SectionHeading
-            title="Functions"
-            subtitle="Server-side code that works as API endpoints with global scale."
-            className="text-left"
-            slotProps={{
-              title: {
-                component: 'h1',
-                className: 'font-semibold',
-              },
-              subtitle: {
-                className: 'text-base !leading-normal',
-              },
-            }}
-          />
-
-          <Button
-            href="https://app.nhost.io"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Start building <ArrowRightIcon />
-          </Button>
-        </div>
-
-        <div>
-          <CodeSnippet language="typescript">{heroExample}</CodeSnippet>
-        </div>
-      </Container>
+      <FunctionsHeroSection />
 
       <Container
         component="section"
-        className="grid grid-flow-row gap-16 md:gap-24"
+        className="mt-16 grid grid-flow-row gap-16 md:mt-32 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
