@@ -1,8 +1,6 @@
-import { Button } from '@/components/common/Button'
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
-import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
@@ -15,7 +13,7 @@ export default function StorageHeroSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'overflow-visible' } }}
-      className="relative grid grid-cols-1 items-center gap-14 sm:gap-6 md:grid-cols-2"
+      className="relative grid grid-cols-1 items-start gap-14 sm:gap-6 md:grid-cols-2"
     >
       <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:pt-42 lg:px-20">
         <ProductIcon>
@@ -42,14 +40,6 @@ export default function StorageHeroSection() {
             },
           }}
         />
-
-        <Button
-          href="https://app.nhost.io/uploadFile"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Start building <ArrowRightIcon />
-        </Button>
       </div>
 
       <div className="relative sm:pt-6 md:pt-24">

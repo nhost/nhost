@@ -1,7 +1,5 @@
-import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { Glow } from '@/components/common/Glow'
-import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
@@ -42,14 +40,6 @@ export default function DatabaseHeroSection() {
             subtitle: { className: 'text-base !leading-normal' },
           }}
         />
-
-        <Button
-          href="https://app.nhost.io"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Start building <ArrowRightIcon />
-        </Button>
       </div>
 
       <div className="relative sm:pt-6 md:pt-24">
