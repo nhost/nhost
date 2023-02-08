@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.4
+
+### Patch Changes
+
+- deb14b51: fix(dashboard): don't break billing form
+
 ## 0.11.3
 
 ### Patch Changes
