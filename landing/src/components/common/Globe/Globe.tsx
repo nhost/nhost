@@ -29,11 +29,18 @@ export default function Globe() {
       markerColor: [0, 0.4, 1],
       glowColor: [0, 0, 0],
       markers: [
-        { location: [37.7595, -122.4367], size: 0.02 },
-        { location: [20.7128, -74.006], size: 0.05 },
-        { location: [5.7128, -74.006], size: 0.05 },
-        { location: [140.7128, -74.006], size: 0.05 },
-        { location: [40.7128, -74.006], size: 0.05 },
+        // Virginia
+        { location: [37.431573, -78.656894], size: 0.05 },
+        // Frankfurt
+        { location: [50.110922, 8.682112], size: 0.05 },
+        // London
+        { location: [51.509865, -0.118092], size: 0.05 },
+        // Mumbai
+        { location: [19.075984, 72.877656], size: 0.05 },
+        //  Sao Paulo
+        { location: [-23.55052, -46.633309], size: 0.05 },
+        // Singapore
+        { location: [1.352083, 103.819836], size: 0.05 },
       ],
       onRender: (state) => {
         state.phi = phi
