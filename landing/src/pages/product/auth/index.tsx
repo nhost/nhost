@@ -137,8 +137,10 @@ export default function AuthPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
+        <div className="mx-auto mt-16 flex w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
+          <video autoPlay loop muted controls className="rounded-lg">
+            <source src={`/videos/auth/auth.mp4`} type="video/mp4" />
+          </video>
         </div>
       </Container>
 
@@ -154,8 +156,10 @@ export default function AuthPage() {
           }}
         />
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
-          Video Placeholder
+        <div className="mx-auto mt-16 flex w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
+          <video autoPlay loop muted controls className="rounded-lg">
+            <source src={`/videos/graphql/permissions.mp4`} type="video/mp4" />
+          </video>
         </div>
       </Container>
 
