@@ -13,13 +13,13 @@ export default function Globe() {
       return
     }
 
-    let phi = 0
+    let phi = 4
 
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
       width: currentSize * 2,
       height: currentSize * 2,
-      phi: 0,
+      phi: 4,
       theta: 0,
       dark: 1,
       diffuse: 0.85,
