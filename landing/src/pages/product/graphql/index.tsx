@@ -209,7 +209,8 @@ export default function GraphqlPage() {
         <SectionHeading
           title="Powerful and simple permissions"
           subtitle="Row and column level permissions to safely expose your GraphQL API to the world"
-          className="max-w-lg"
+          className="max-w-2xl"
+          slotProps={{ subtitle: { className: 'max-w-lg mx-auto' } }}
         />
 
         <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
