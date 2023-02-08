@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
-import Card, { CardProps } from '../Card'
+import { Card, CardProps } from '../Card'
 
 export interface InvestorCardProps extends CardProps {
   /**

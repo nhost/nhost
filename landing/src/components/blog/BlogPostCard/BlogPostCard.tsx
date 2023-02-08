@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
-import Card, { CardProps } from '../../common/Card'
+import { Card, CardProps } from '../../common/Card'
 import { LineGrid } from '../../common/LineGrid'
 
 export interface BlogPostCardProps extends CardProps {
