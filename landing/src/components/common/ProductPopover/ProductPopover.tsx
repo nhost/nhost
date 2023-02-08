@@ -23,9 +23,13 @@ export default function ProductPopover({ children }: PropsWithChildren) {
       onMouseLeave={() => setOpen(false)}
     >
       <Popover.Button
-        className="grid grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 hover:underline focus:outline-none focus-visible:!rounded-sm focus-visible:!outline focus-visible:!outline-2 focus-visible:outline-blue-300 active:outline-none"
+        className="grid cursor-default grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 active:outline-none"
         onKeyDown={(event: KeyboardEvent) => {
-          if (event.key !== 'Enter' && event.key !== 'Escape') {
+          if (
+            event.key !== 'Enter' &&
+            event.key !== ' ' &&
+            event.key !== 'Escape'
+          ) {
             return
           }
 
