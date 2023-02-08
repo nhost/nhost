@@ -71,7 +71,7 @@ export default function Header({
               <Popover>
                 {({ open, close }) => (
                   <>
-                    <Popover.Button className="grid grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 hover:underline focus:outline-none focus-visible:!rounded-sm focus-visible:!outline focus-visible:!outline-2 focus-visible:outline-blue-500 active:outline-none">
+                    <Popover.Button className="grid grid-flow-col items-center gap-2 p-1.5 text-white text-opacity-65 hover:underline focus:outline-none focus-visible:!rounded-sm focus-visible:!outline focus-visible:!outline-2 focus-visible:outline-blue-300 active:outline-none">
                       Product{' '}
                       {open ? (
                         <ChevronUpIcon className="h-4 w-4" />

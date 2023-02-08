@@ -128,7 +128,9 @@ export default function GraphqlPage() {
       <Container
         component="section"
         className="grid grid-flow-row gap-24"
-        slotProps={{ root: { className: 'hidden' } }}
+        slotProps={{
+          root: { className: 'overflow-hidden xl:overflow-visible hidden' },
+        }}
       >
         <div className="grid grid-flow-row justify-items-center gap-8">
           <SectionHeading
@@ -200,15 +202,7 @@ export default function GraphqlPage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="relative z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] xl:block"
-            />
-
-            <Image
-              src="/common/logo-glow.svg"
-              width={1220}
-              height={1220}
-              alt="Nhost Logo in a dark circle"
-              className="absolute bottom-0 left-0 right-0 z-0 mx-auto -mt-48 hidden h-auto max-w-[470px] animate-pulse xl:block"
+              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
             />
           </div>
         </div>
