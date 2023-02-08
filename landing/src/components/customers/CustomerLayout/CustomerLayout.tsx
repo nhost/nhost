@@ -87,7 +87,7 @@ export default function CustomerLayout({
                   <span className="text-base">Solution</span>
                 </div>
                 <p className="ml-8 text-base text-white text-opacity-65">
-                  {customer.problem}
+                  {customer.solution}
                 </p>
               </div>
             </div>
