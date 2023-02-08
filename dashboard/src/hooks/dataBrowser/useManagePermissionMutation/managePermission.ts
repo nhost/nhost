@@ -18,6 +18,10 @@ export interface ManagePermissionVariables {
    */
   action: DatabaseAction;
   /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+  /**
    * Permission to insert or update.
    */
   permission?: HasuraMetadataPermission['permission'];
@@ -45,6 +49,7 @@ export default async function managePermission({
   permission,
   role,
   action,
+  resourceVersion,
   mode = 'update',
 }: ManagePermissionOptions & ManagePermissionVariables) {
   if (mode !== 'delete' && !permission) {
@@ -87,7 +92,7 @@ export default async function managePermission({
       args,
       type: 'bulk',
       source: dataSource,
-      version: 1,
+      resource_version: resourceVersion,
     }),
   });
 

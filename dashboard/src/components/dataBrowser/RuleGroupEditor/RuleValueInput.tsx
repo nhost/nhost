@@ -11,7 +11,6 @@ import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
-import clsx from 'clsx';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -214,7 +213,7 @@ export default function RuleValueInput({
       freeSolo={!isHasuraInput}
       autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
-      filterSelectedOptions
+      open
       isOptionEqualToValue={(option, value) => {
         if (typeof value === 'string') {
           return option.value.toLowerCase() === (value as string).toLowerCase();
@@ -230,7 +229,7 @@ export default function RuleValueInput({
           sx: sharedInputSx,
         },
         formControl: { className: '!bg-transparent' },
-        paper: { className: clsx(!isHasuraInput && 'hidden') },
+        paper: { className: 'empty:border-transparent' },
       }}
       fullWidth
       loading={loading}
