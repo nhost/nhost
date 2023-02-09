@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.5
+
+### Patch Changes
+
+- 1f9720fa: fix(dashboard): apply select permissions properly
+
 ## 0.11.4
 
 ### Patch Changes
