@@ -1,6 +1,6 @@
 import { AnnouncementProvider } from '@/providers/AnnouncementProvider'
 import '@/styles/globals.css'
-import { getDefaultOgUrl } from '@/utils/utils'
+import { baseUrl } from '@/utils/utils'
 import { NextPage } from 'next'
 import PlausibleProvider from 'next-plausible'
 import { DefaultSeo } from 'next-seo'
@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: LandingPageProps) {
         openGraph={{
           images: [
             {
-              url: getDefaultOgUrl(),
+              url: `${baseUrl()}/images/og.png`,
               alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
             },
           ],
