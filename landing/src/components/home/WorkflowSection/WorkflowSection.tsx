@@ -1,5 +1,6 @@
 import { CodeSnippet } from '@/components/common/CodeSnippet'
 import { Container } from '@/components/common/Container'
+import { Glow } from '@/components/common/Glow'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import dynamic from 'next/dynamic'
@@ -139,7 +140,7 @@ git push origin`
           'relative',
           'after:absolute after:left-0 after:right-0 after:bottom-0 after:top-0',
           'after:z-0 after:h-full after:w-full after:rounded-full',
-          'after:backface-hidden after:skew-x-6 after:skew-y-3 after:bg-brand-main after:bg-opacity-20 after:blur-[32px]',
+          'after:backface-hidden after:skew-x-6 after:skew-y-3 after:transform-gpu after:bg-brand-main after:bg-opacity-20 after:blur-[32px]',
         )}
       >
         <Image
@@ -166,7 +167,7 @@ function CloudWorkflow({
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
         <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
-        <div className="backface-hidden absolute -bottom-16 left-0 right-0 mx-auto h-16 w-2/3 rounded-full bg-brand-main blur-3xl" />
+        <Glow className="absolute -bottom-16 left-0 right-0 h-16 w-2/3 blur-3xl" />
       </div>
 
       <div className="relative z-10 mt-6 grid grid-cols-1 place-items-center gap-6 lg:grid-cols-3 lg:gap-0">

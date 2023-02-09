@@ -1,4 +1,5 @@
 import { Container } from '@/components/common/Container'
+import { Glow } from '@/components/common/Glow'
 import { InvestorCard } from '@/components/common/InvestorCard'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
@@ -63,11 +64,12 @@ export default function AboutPage() {
         <div className="relative z-0 -mt-24 h-72 overflow-hidden bg-black">
           <LineGrid
             slotProps={{ image: { className: 'w-full object-left' } }}
+            className="z-10 h-[100%] w-[100%] -translate-x-1/4 -translate-y-[17.5%] transform-cpu overflow-hidden"
           />
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
           <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
           <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
-          <div className="backface-hidden absolute -top-4 left-0 right-0 mx-auto h-16 w-[60%] rounded-full bg-brand-main blur-3xl" />
+          <Glow className="absolute -top-4 left-0 right-0 z-0 mx-auto h-16 w-[60%] rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 mx-auto -mt-64 flex w-full max-w-5xl flex-row flex-wrap justify-evenly gap-6 md:justify-around">
