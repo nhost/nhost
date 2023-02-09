@@ -24,13 +24,12 @@ export default function App({ Component, pageProps }: LandingPageProps) {
         titleTemplate="%s | Nhost"
         description="Nhost is an open source Firebase alternative with GraphQL, built with the following things in mind: Open Source, GraphQL, SQL, Great Developer Experience"
         openGraph={{
-          type: 'website',
           images: [
             {
               url: getDefaultOgUrl(),
+              alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
               width: 1200,
               height: 640,
-              alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
             },
           ],
         }}
