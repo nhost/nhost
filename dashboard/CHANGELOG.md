@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.6
+
+### Patch Changes
+
+- 902f486b: fix(dashboard): re-enable Hasura on logs page
+
 ## 0.11.5
 
 ### Patch Changes
