@@ -28,8 +28,6 @@ export default function App({ Component, pageProps }: LandingPageProps) {
             {
               url: getDefaultOgUrl(),
               alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
-              width: 1200,
-              height: 640,
             },
           ],
         }}
