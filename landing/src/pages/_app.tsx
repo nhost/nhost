@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: LandingPageProps) {
         openGraph={{
           images: [
             {
-              url: `${baseUrl()}/images/og.png`,
+              url: `${baseUrl()}/images/og-new.png`,
               alt: 'Nhost: The Open Source Firebase Alternative with GraphQL',
             },
           ],
