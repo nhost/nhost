@@ -67,7 +67,7 @@ export default function AboutPage() {
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
           <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
           <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
-          <div className="absolute -top-4 left-0 right-0 mx-auto h-16 w-[60%] rounded-full bg-brand-main blur-3xl" />
+          <div className="backface-hidden absolute -top-4 left-0 right-0 mx-auto h-16 w-[60%] rounded-full bg-brand-main blur-3xl" />
         </div>
 
         <div className="relative z-10 mx-auto -mt-64 flex w-full max-w-5xl flex-row flex-wrap justify-evenly gap-6 md:justify-around">

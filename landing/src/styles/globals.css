@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.backface-hidden {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 .bottom-connector-first-active {
   width: 100%;
   mask-image: url('/common/connectors/bottom-connectors-first-active.svg');

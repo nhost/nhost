@@ -81,7 +81,7 @@ export default function Globe() {
   return (
     <div
       ref={ref}
-      className="relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80"
+      className="after:backface-hidden relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80"
     >
       {size && (
         <canvas

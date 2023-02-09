@@ -8,7 +8,6 @@ import { Article } from '@/utils/types'
 import { baseUrl } from '@/utils/utils'
 import { MDXProvider } from '@mdx-js/react'
 import { format, parseISO } from 'date-fns'
-import { NextSeo } from 'next-seo'
 import Image from 'next/image'
 import { PropsWithChildren, useEffect, useState } from 'react'
 import 'react-medium-image-zoom/dist/styles.css'
@@ -179,7 +178,7 @@ export default function BlogPostLayout({
         </div>
 
         <div className="relative z-0 mt-16 min-h-[300px] overflow-hidden rounded-xl border border-divider px-12 pt-12">
-          <div className="bg-glow-gradient absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
+          <div className="bg-glow-gradient backface-hidden absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
           <LineGrid
             className="left-0 right-0 bottom-0 top-0 z-10 md:scale-150"
