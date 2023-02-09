@@ -184,7 +184,6 @@ export default function LogsHeader({
                 key={value}
                 value={value}
                 className="text-sm+ font-medium"
-                disabled={label === 'Hasura'}
               >
                 {label}
               </Option>
