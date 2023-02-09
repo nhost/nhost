@@ -50,7 +50,7 @@ export default function HeroSection() {
         </div>
       </Container>
 
-      <section className="relative mx-auto mt-14 px-5">
+      <section className="relative mx-auto px-5 pt-14">
         <Glow
           className={twMerge(
             'z-0 mx-auto h-full w-full max-w-5xl bg-opacity-50 blur-3xl',
