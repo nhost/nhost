@@ -11,6 +11,7 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { codeSnippets, Snippets, TechSnippets } from '@/data/codeSnippets'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
 const codeSnippetLanguageMap: Record<keyof TechSnippets, string> = {
@@ -60,6 +61,7 @@ const technologyNumberMap: Record<keyof TechSnippets, number> = {
 }
 
 export default function ExamplesSection() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
   const [activeExample, setActiveExample] = useState<keyof Snippets>('signUp')
   const [activeTechnology, setActiveTechnology] =
     useState<keyof TechSnippets>('javascript')
@@ -70,6 +72,7 @@ export default function ExamplesSection() {
 
   return (
     <Container
+      ref={ref}
       component="section"
       slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
       className="mt-24 grid grid-flow-row gap-12 pb-8 lg:mt-32 lg:gap-28"
@@ -136,14 +139,16 @@ export default function ExamplesSection() {
             <div
               className={twMerge(
                 'absolute z-10 h-full w-full',
-                `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}`,
+                inView &&
+                  `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}`,
               )}
             >
               <div
                 key={`${activeExample}-${activeTechnology}`}
                 className={twMerge(
                   'bg-pipe-gradient absolute h-full w-full',
-                  `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}-animation`,
+                  inView &&
+                    `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}-animation`,
                 )}
               />
             </div>
@@ -200,14 +205,16 @@ export default function ExamplesSection() {
             <div
               className={twMerge(
                 'absolute z-0 h-full w-full',
-                `home-example-bottom-connectors-${activeTechnologyNumber}`,
+                inView &&
+                  `home-example-bottom-connectors-${activeTechnologyNumber}`,
               )}
             >
               <div
                 key={`${activeExample}-${activeTechnology}`}
                 className={twMerge(
                   'bg-pipe-gradient absolute h-full w-full',
-                  `home-example-bottom-connectors-${activeTechnologyNumber}-animation`,
+                  inView &&
+                    `home-example-bottom-connectors-${activeTechnologyNumber}-animation`,
                 )}
               />
             </div>
