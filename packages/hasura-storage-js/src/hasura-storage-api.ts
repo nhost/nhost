@@ -1,5 +1,6 @@
 import fetch from 'cross-fetch'
 
+import { fetchUpload } from './utils'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
@@ -8,7 +9,6 @@ import {
   ApiUploadParams,
   StorageUploadResponse
 } from './utils/types'
-import { fetchUpload } from './utils/upload'
 
 /**
  * @internal

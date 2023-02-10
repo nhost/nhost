@@ -1,7 +1,6 @@
 import FormData from 'form-data'
 import { assign, createMachine } from 'xstate'
-import { ErrorPayload, FileUploadConfig } from '../utils'
-import { fetchUpload } from '../utils/upload'
+import { ErrorPayload, fetchUpload, FileUploadConfig } from '../utils'
 
 export type FileUploadContext = {
   progress: number | null
