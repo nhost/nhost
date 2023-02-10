@@ -80,7 +80,7 @@ export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
    * const { data, error } = await nhost.graphql.request(CUSTOMERS)
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/request
+   * @docs https://docs.nhost.io/reference/javascript/graphql/request
    */
   request<T = any, V = Variables>(
     document: RequestDocument | TypedDocumentNode<T, V>,
@@ -171,7 +171,7 @@ export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
    * const url = nhost.graphql.httpUrl;
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-http-url
+   * @docs https://docs.nhost.io/reference/javascript/graphql/get-http-url
    */
   get httpUrl(): string {
     return this._url
@@ -184,7 +184,7 @@ export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
    * const url = nhost.graphql.wsUrl;
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-ws-url
+   * @docs https://docs.nhost.io/reference/javascript/graphql/get-ws-url
    */
   get wsUrl(): string {
     return this._url.replace(/^(http)(s?):\/\//, 'ws$2://')
@@ -214,7 +214,7 @@ export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
    * nhost.graphql.setAccessToken('some-access-token')
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/set-access-token
+   * @docs https://docs.nhost.io/reference/javascript/graphql/set-access-token
    */
   setAccessToken(accessToken: string | undefined) {
     if (!accessToken) {
