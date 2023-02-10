@@ -1,5 +1,17 @@
 # @nhost/hasura-auth-js
 
+## 1.12.2
+
+### Patch Changes
+
+- 12ff6313: Set limits to refreshing the token on error
+
+  When starting, the client was trying to refresh the token five times every second, then indefinitely every five seconds.
+  It is now limited to 5 attempts at the following intervals: 5, 10, 20, 40, and 80 seconds. If all these attempts fail, the user state is signed out.
+
+  Similarly, when refreshing the token failed, the client was attempting to refresh the token every second.
+  It is now limited to 5 attempts at the following intervals: 5, 10, 20, 40, and 80 seconds.
+
 ## 1.12.1
 
 ### Patch Changes

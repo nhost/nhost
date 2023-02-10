@@ -9,6 +9,8 @@ export default defineConfig({
     mailHogUrl: 'http://127.0.0.1:8025',
     env: {
       backendUrl: 'http://localhost:1337'
-    }
+    },
+    defaultCommandTimeout: 20000,
+    requestTimeout: 20000
   }
 } as Cypress.ConfigOptions)

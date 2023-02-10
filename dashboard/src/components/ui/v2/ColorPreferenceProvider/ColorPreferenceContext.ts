@@ -10,7 +10,7 @@ export interface ColorPreferenceContextProps {
   /**
    * The color preference.
    *
-   * @default 'light'
+   * @default 'system'
    */
   colorPreference: 'light' | 'dark' | 'system';
   /**
@@ -27,7 +27,7 @@ export interface ColorPreferenceContextProps {
 
 const ColorPreferenceContext = createContext<ColorPreferenceContextProps>({
   color: 'light',
-  colorPreference: 'light',
+  colorPreference: 'system',
   setColorPreference: () => {},
   colorPreferenceStorageKey: 'color-preference',
 });

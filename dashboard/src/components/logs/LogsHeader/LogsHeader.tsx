@@ -9,6 +9,7 @@ import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import { availableServices, logsCustomIntervals } from '@/utils/logs';
 import { subMinutes } from 'date-fns';
+import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
@@ -38,6 +39,85 @@ export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   onServiceChange: (value: AvailableLogsServices) => void;
 }
 
+type LogsToDatePickerLiveButtonProps = Pick<
+  LogsHeaderProps,
+  'fromDate' | 'toDate' | 'onToDateChange'
+>;
+
+function LogsToDatePickerLiveButton({
+  fromDate,
+  toDate,
+  onToDateChange,
+}: LogsToDatePickerLiveButtonProps) {
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const isLive = !toDate;
+
+  function handleLiveButtonClick() {
+    if (isLive) {
+      return;
+    }
+
+    onToDateChange(null);
+    setCurrentTime(new Date());
+  }
+
+  // if isLive is true, we want to update the current time every second
+  // and set the toDate to the current time.
+  useEffect(() => {
+    let interval = null;
+
+    if (!interval && isLive) {
+      interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLive, onToDateChange]);
+
+  return (
+    <div className="text-greyscaleMedium grid grid-flow-col">
+      <LogsDatePicker
+        label="To"
+        value={!isLive ? toDate : currentTime}
+        disabled={isLive}
+        onChange={onToDateChange}
+        minDate={fromDate}
+        maxDate={toDate || new Date()}
+        componentsProps={{
+          button: {
+            className: twMerge(
+              'rounded-r-none pr-3',
+              isLive ? 'border-r-0 hover:border-r-0 z-0' : 'z-10',
+            ),
+            color: toDate ? 'inherit' : 'secondary',
+          },
+        }}
+      />
+
+      <Button
+        variant="outlined"
+        color={isLive ? 'primary' : 'secondary'}
+        sx={{
+          backgroundColor: (theme) =>
+            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
+          color: !isLive ? 'text.secondary' : undefined,
+        }}
+        className={twMerge(
+          'min-w-[77px] rounded-l-none',
+          !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
+        )}
+        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
+        onClick={handleLiveButtonClick}
+      >
+        Live
+      </Button>
+    </div>
+  );
+}
+
 export default function LogsHeader({
   fromDate,
   toDate,
@@ -49,7 +129,6 @@ export default function LogsHeader({
 }: LogsHeaderProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const applicationCreationDate = new Date(currentApplication.createdAt);
-  const isLive = !toDate;
 
   /**
    * Will subtract the `customInterval` time in minutes from the current date.
@@ -59,21 +138,6 @@ export default function LogsHeader({
   }: LogsCustomInterval) {
     onFromDateChange(subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
     onToDateChange(new Date());
-  }
-
-  /**
-   * Determines how to run the interaction when the user clicks on the `Live`
-   * button.
-   * If the user is already in live mode, we don't want do do anything.
-   * If the user is not in live mode, we want to set the `toDate` to null
-   * and subscribe to new logs.
-   */
-  function handleLiveButtonClick() {
-    if (isLive) {
-      return;
-    }
-
-    onToDateChange(null);
   }
 
   return (
@@ -91,47 +155,11 @@ export default function LogsHeader({
             maxDate={toDate || new Date()}
           />
 
-          <div className="grid grid-flow-col">
-            <LogsDatePicker
-              label="To"
-              value={toDate}
-              disabled={isLive}
-              onChange={onToDateChange}
-              minDate={fromDate}
-              maxDate={toDate || new Date()}
-              componentsProps={{
-                button: {
-                  className: twMerge(
-                    'rounded-r-none pr-3',
-                    isLive ? 'border-r-0 hover:border-r-0 z-0' : 'z-10',
-                  ),
-                  color: toDate ? 'inherit' : 'secondary',
-                },
-              }}
-            />
-
-            <Button
-              variant="outlined"
-              color={isLive ? 'primary' : 'secondary'}
-              sx={{
-                backgroundColor: (theme) =>
-                  !isLive
-                    ? `${theme.palette.grey[200]} !important`
-                    : 'transparent',
-                color: !isLive ? 'text.secondary' : undefined,
-              }}
-              className={twMerge(
-                'min-w-[77px] rounded-l-none',
-                !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
-              )}
-              startIcon={
-                <ClockIcon className="h-4 w-4 self-center align-middle" />
-              }
-              onClick={handleLiveButtonClick}
-            >
-              Live
-            </Button>
-          </div>
+          <LogsToDatePickerLiveButton
+            fromDate={fromDate}
+            toDate={toDate}
+            onToDateChange={onToDateChange}
+          />
         </div>
 
         <Box className="-my-2.5 px-0 py-2.5 lg:border-l lg:px-3">
@@ -156,7 +184,6 @@ export default function LogsHeader({
                 key={value}
                 value={value}
                 className="text-sm+ font-medium"
-                disabled={label === 'Hasura'}
               >
                 {label}
               </Option>

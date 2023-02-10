@@ -19,7 +19,7 @@ function ColorPreferenceProvider({
 }: ColorPreferenceProviderProps) {
   const [colorPreference, setColorPreference] = useState<
     'light' | 'dark' | 'system'
-  >('light');
+  >('system');
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   useEffect(() => {
@@ -32,7 +32,7 @@ function ColorPreferenceProvider({
     );
 
     if (!['light', 'dark', 'system'].includes(storedColorPreference)) {
-      setColorPreference('light');
+      setColorPreference('system');
 
       return;
     }

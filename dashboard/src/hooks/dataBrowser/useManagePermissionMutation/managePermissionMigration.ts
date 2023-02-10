@@ -19,6 +19,10 @@ export interface ManagePermissionMigrationVariables {
    */
   action: DatabaseAction;
   /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+  /**
    * Permission to insert or update.
    */
   permission?: HasuraMetadataPermission['permission'];
