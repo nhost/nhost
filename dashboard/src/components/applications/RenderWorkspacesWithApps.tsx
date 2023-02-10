@@ -56,7 +56,7 @@ function CurrentDeployment({ deployment }: any) {
         avatarUrl={deployment.commitUserAvatarUrl}
         className="mr-1 h-4 w-4 self-center"
       />
-      <Text className="self-center text-sm">
+      <Text component="span" className="self-center text-sm">
         {deployment.commitUserName} updated just now
       </Text>
     </span>
@@ -142,7 +142,9 @@ export function RenderWorkspacesWithApps({
               <List className="grid grid-flow-row border-y">
                 {workspaceProjects.map((app, index) => {
                   const isDeployingToProduction = app.deployments[0]
-                    ? app.deployments[0].deploymentStatus === 'DEPLOYING'
+                    ? ['SCHEDULED', 'PENDING', 'DEPLOYING'].includes(
+                        app.deployments[0].deploymentStatus,
+                      )
                     : false;
 
                   return (
