@@ -18,7 +18,7 @@ export default function ExampleSelectorButton({
       className={twMerge(
         'relative',
         active &&
-          'before:backface-hidden before:absolute before:bottom-0 before:left-0 before:right-0 before:top-0 before:z-0 before:skew-y-3 before:rounded-md before:bg-brand-main before:bg-opacity-50 before:blur-xl before:motion-safe:transition-all',
+          'before:backface-hidden before:absolute before:bottom-0 before:left-0 before:right-0 before:top-0 before:z-0 before:skew-y-3 before:rounded-md before:bg-brand-main before:bg-opacity-50 before:blur-xl',
       )}
     >
       <Button
