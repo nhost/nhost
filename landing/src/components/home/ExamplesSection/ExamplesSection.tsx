@@ -157,7 +157,7 @@ export default function ExamplesSection() {
             />
           </div>
 
-          <div className="relative z-20 flex w-full flex-row justify-evenly gap-6 md:justify-center">
+          <div className="relative z-20 flex w-full flex-row justify-evenly gap-4 md:justify-center">
             <TechnologySelectorButton
               active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
@@ -197,18 +197,27 @@ export default function ExamplesSection() {
           </div>
 
           <div className="relative z-0">
-            {activeTechnology === 'javascript' && (
-              <div className="bottom-connector-first-active absolute z-10 hidden h-full w-full">
-                <div className="bg-pipe-gradient absolute h-full w-full rotate-45 transform animate-translate-top-bottom"></div>
-              </div>
-            )}
+            <div
+              className={twMerge(
+                'absolute z-0 h-full w-full',
+                `home-example-bottom-connectors-${activeTechnologyNumber}`,
+              )}
+            >
+              <div
+                key={`${activeExample}-${activeTechnology}`}
+                className={twMerge(
+                  'bg-pipe-gradient absolute h-full w-full',
+                  `home-example-bottom-connectors-${activeTechnologyNumber}-animation`,
+                )}
+              />
+            </div>
 
             <Image
-              src="/common/connectors/bottom-connectors.svg"
-              width={587}
+              src="/common/connectors/home-example-bottom-connectors.svg"
+              width={608}
               height={65}
               alt="Dashed lines"
-              className="mx-auto hidden h-auto w-full xl:block"
+              className="z-10 mx-auto hidden h-full w-auto xl:block"
             />
 
             <Image

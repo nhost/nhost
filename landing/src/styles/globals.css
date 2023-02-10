@@ -127,9 +127,33 @@
   mask-repeat: no-repeat;
 }
 
-.bottom-connector-first-active {
+.home-example-bottom-connectors-1 {
   width: 100%;
-  mask-image: url('/common/connectors/bottom-connectors-first-active.svg');
+  mask-image: url('/common/connectors/home-example-bottom-connectors-1.svg');
+  mask-repeat: no-repeat;
+}
+
+.home-example-bottom-connectors-2 {
+  width: 100%;
+  mask-image: url('/common/connectors/home-example-bottom-connectors-2.svg');
+  mask-repeat: no-repeat;
+}
+
+.home-example-bottom-connectors-3 {
+  width: 100%;
+  mask-image: url('/common/connectors/home-example-bottom-connectors-3.svg');
+  mask-repeat: no-repeat;
+}
+
+.home-example-bottom-connectors-4 {
+  width: 100%;
+  mask-image: url('/common/connectors/home-example-bottom-connectors-4.svg');
+  mask-repeat: no-repeat;
+}
+
+.home-example-bottom-connectors-5 {
+  width: 100%;
+  mask-image: url('/common/connectors/home-example-bottom-connectors-5.svg');
   mask-repeat: no-repeat;
 }
 
@@ -217,104 +241,191 @@
   }
 }
 
+@keyframes home-example-bottom-connectors-left-edge-animation {
+  0% {
+    transform: translateX(-85%) translateY(-100%);
+  }
+  33% {
+    transform: translateX(-85%) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes home-example-bottom-connectors-mid-left-animation {
+  0% {
+    transform: translateX(-67%) translateY(-100%);
+  }
+  33% {
+    transform: translateX(-67%) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes home-example-bottom-connectors-mid-animation {
+  0% {
+    transform: translateX(50%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes home-example-bottom-connectors-mid-right-animation {
+  0% {
+    transform: translateX(69%) translateY(-100%);
+  }
+  33% {
+    transform: translateX(69%) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes home-example-bottom-connectors-right-edge-animation {
+  0% {
+    transform: translateX(88%) translateY(-100%);
+  }
+  33% {
+    transform: translateX(88%) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
 .home-example-top-connectors-1-1-animation {
-  animation: home-example-top-connectors-left-edge-left-right-animation 1s
+  animation: home-example-top-connectors-left-edge-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-1-2-animation {
-  animation: home-example-top-connectors-left-edge-left-right-animation 1s
+  animation: home-example-top-connectors-left-edge-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-1-3-animation {
-  animation: home-example-top-connectors-left-edge-left-right-animation 1s
+  animation: home-example-top-connectors-left-edge-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-1-4-animation {
-  animation: home-example-top-connectors-left-edge-left-right-animation 1s
+  animation: home-example-top-connectors-left-edge-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-1-5-animation {
-  animation: home-example-top-connectors-left-edge-left-right-animation 1s
+  animation: home-example-top-connectors-left-edge-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-2-1-animation {
-  animation: home-example-top-connectors-left-edge-right-left-animation 1s
+  animation: home-example-top-connectors-left-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-2-2-animation {
-  animation: home-example-top-connectors-left-edge-right-left-animation 1s
+  animation: home-example-top-connectors-left-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-2-3-animation {
-  animation: home-example-top-connectors-mid-left-left-right-animation 1s
+  animation: home-example-top-connectors-mid-left-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-2-4-animation {
-  animation: home-example-top-connectors-mid-left-left-right-animation 1s
+  animation: home-example-top-connectors-mid-left-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-2-5-animation {
-  animation: home-example-top-connectors-mid-left-left-right-animation 1s
+  animation: home-example-top-connectors-mid-left-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-3-1-animation {
-  animation: home-example-top-connectors-mid-right-left-animation 1s ease-in-out
-    forwards;
+  animation: home-example-top-connectors-mid-right-left-animation 0.75s
+    ease-in-out forwards;
 }
 
 .home-example-top-connectors-3-2-animation {
-  animation: home-example-top-connectors-mid-right-left-animation 1s ease-in-out
-    forwards;
+  animation: home-example-top-connectors-mid-right-left-animation 0.75s
+    ease-in-out forwards;
 }
 
 .home-example-top-connectors-3-3-animation {
-  animation: home-example-top-connectors-mid-right-left-animation 1s ease-in-out
-    forwards;
+  animation: home-example-top-connectors-mid-right-left-animation 0.75s
+    ease-in-out forwards;
 }
 
 .home-example-top-connectors-3-4-animation {
-  animation: home-example-top-connectors-mid-right-left-right-animation 1s
+  animation: home-example-top-connectors-mid-right-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-3-5-animation {
-  animation: home-example-top-connectors-mid-right-left-right-animation 1s
+  animation: home-example-top-connectors-mid-right-left-right-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-4-1-animation {
-  animation: home-example-top-connectors-right-edge-right-left-animation 1s
+  animation: home-example-top-connectors-right-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-4-2-animation {
-  animation: home-example-top-connectors-right-edge-right-left-animation 1s
+  animation: home-example-top-connectors-right-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-4-3-animation {
-  animation: home-example-top-connectors-right-edge-right-left-animation 1s
+  animation: home-example-top-connectors-right-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-4-4-animation {
-  animation: home-example-top-connectors-right-edge-right-left-animation 1s
+  animation: home-example-top-connectors-right-edge-right-left-animation 0.75s
     ease-in-out forwards;
 }
 
 .home-example-top-connectors-4-5-animation {
-  animation: home-example-top-connectors-right-edge-left-right-animation 1s
+  animation: home-example-top-connectors-right-edge-left-right-animation 0.75s
     ease-in-out forwards;
+}
+
+.home-example-bottom-connectors-1-animation {
+  animation: home-example-bottom-connectors-left-edge-animation 0.75s
+    ease-in-out backwards;
+  animation-delay: 0.75s;
+}
+
+.home-example-bottom-connectors-2-animation {
+  animation: home-example-bottom-connectors-mid-left-animation 0.75s ease-in-out
+    backwards;
+  animation-delay: 0.75s;
+}
+
+.home-example-bottom-connectors-3-animation {
+  animation: home-example-bottom-connectors-mid-animation 0.75s ease-in-out
+    backwards;
+  animation-delay: 0.75s;
+}
+
+.home-example-bottom-connectors-4-animation {
+  animation: home-example-bottom-connectors-mid-right-animation 0.75s
+    ease-in-out backwards;
+  animation-delay: 0.75s;
+}
+
+.home-example-bottom-connectors-5-animation {
+  animation: home-example-bottom-connectors-right-edge-animation 0.75s
+    ease-in-out backwards;
+  animation-delay: 0.75s;
 }
 
 .bg-pipe-gradient {
@@ -372,7 +483,7 @@ body {
   width: 2px;
   margin-top: -1px;
   background-color: white;
-  animation: blink 1s step-end infinite;
+  animation: blink 0.75s step-end infinite;
 }
 
 @keyframes blink {
