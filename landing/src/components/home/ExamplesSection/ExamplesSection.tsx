@@ -44,12 +44,29 @@ function TechnologySelectorButton({
   )
 }
 
+const exampleNumberMap: Record<keyof Snippets, number> = {
+  signUp: 1,
+  query: 2,
+  mutation: 3,
+  fileUpload: 4,
+}
+
+const technologyNumberMap: Record<keyof TechSnippets, number> = {
+  javascript: 1,
+  vue: 2,
+  react: 3,
+  nextjs: 4,
+  flutter: 5,
+}
+
 export default function ExamplesSection() {
   const [activeExample, setActiveExample] = useState<keyof Snippets>('signUp')
   const [activeTechnology, setActiveTechnology] =
     useState<keyof TechSnippets>('javascript')
 
   const activeSnippet = codeSnippets[activeTechnology][activeExample] || ''
+  const activeExampleNumber = exampleNumberMap[activeExample]
+  const activeTechnologyNumber = technologyNumberMap[activeTechnology]
 
   return (
     <Container
@@ -85,7 +102,7 @@ export default function ExamplesSection() {
         </div>
 
         <div className="order-1 col-span-1 mx-auto grid max-w-2xl grid-flow-row content-start xl:order-2 xl:max-w-none">
-          <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 xl:justify-center xl:gap-6">
+          <div className="relative z-20 flex w-full flex-row justify-evenly gap-2 xl:justify-center xl:gap-5">
             <ExampleSelectorButton
               active={activeExample === 'signUp'}
               onClick={() => setActiveExample('signUp')}
@@ -115,15 +132,32 @@ export default function ExamplesSection() {
             </ExampleSelectorButton>
           </div>
 
-          <Image
-            src="/common/connectors/top-connectors.svg"
-            width={587}
-            height={96}
-            alt="Dashed lines"
-            className="z-0 mx-auto h-auto w-full"
-          />
+          <div className="relative">
+            <div
+              className={twMerge(
+                'absolute z-10 h-full w-full',
+                `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}`,
+              )}
+            >
+              <div
+                key={`${activeExample}-${activeTechnology}`}
+                className={twMerge(
+                  'bg-pipe-gradient absolute h-full w-full',
+                  `home-example-top-connectors-${activeExampleNumber}-${activeTechnologyNumber}-animation`,
+                )}
+              />
+            </div>
 
-          <div className="relative z-20 flex w-full flex-row justify-around md:justify-center md:gap-6">
+            <Image
+              src="/common/connectors/home-example-top-connectors.svg"
+              width={608}
+              height={97}
+              alt="Dashed lines"
+              className="z-0 mx-auto h-auto w-full"
+            />
+          </div>
+
+          <div className="relative z-20 flex w-full flex-row justify-evenly gap-6 md:justify-center">
             <TechnologySelectorButton
               active={activeTechnology === 'javascript'}
               onClick={() => setActiveTechnology('javascript')}
