@@ -123,7 +123,7 @@ export default function WindowsLiveProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="windowslive" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

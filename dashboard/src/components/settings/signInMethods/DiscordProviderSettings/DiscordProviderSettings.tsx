@@ -124,7 +124,7 @@ export default function DiscordProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="discord" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

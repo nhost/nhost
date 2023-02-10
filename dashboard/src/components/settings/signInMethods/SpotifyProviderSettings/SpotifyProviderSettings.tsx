@@ -124,7 +124,7 @@ export default function SpotifyProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="spotify" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

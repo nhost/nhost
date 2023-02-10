@@ -130,7 +130,7 @@ export default function GitHubProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="github" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

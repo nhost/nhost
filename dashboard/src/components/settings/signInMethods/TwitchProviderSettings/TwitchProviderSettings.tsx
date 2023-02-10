@@ -130,7 +130,7 @@ export default function TwitchProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="twitch" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

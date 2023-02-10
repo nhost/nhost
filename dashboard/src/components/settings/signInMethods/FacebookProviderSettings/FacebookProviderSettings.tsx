@@ -124,7 +124,7 @@ export default function FacebookProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="facebook" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

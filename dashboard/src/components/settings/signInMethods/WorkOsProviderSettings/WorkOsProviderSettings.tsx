@@ -132,7 +132,7 @@ export default function WorkOsProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="workos" />
           <Input
             {...register('organization')}
             name="organization"

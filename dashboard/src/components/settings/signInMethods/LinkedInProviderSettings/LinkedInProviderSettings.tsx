@@ -124,7 +124,7 @@ export default function LinkedInProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="linkedin" />
           <Input
             name="redirectUrl"
             id="redirectUrl"

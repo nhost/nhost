@@ -124,7 +124,7 @@ export default function GoogleProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="google" />
           <Input
             name="redirectUrl"
             id="redirectUrl"
