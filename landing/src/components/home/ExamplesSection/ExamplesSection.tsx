@@ -222,7 +222,7 @@ export default function ExamplesSection() {
             <Image
               src="/common/connectors/home-example-bottom-connectors.svg"
               width={608}
-              height={65}
+              height={66}
               alt="Dashed lines"
               className="z-10 mx-auto hidden h-full w-auto xl:block"
             />
