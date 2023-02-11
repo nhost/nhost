@@ -1,10 +1,10 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import Option from '@/components/ui/v2/Option';
-import useCurrentWorkspaceAndApplication from '@/hooks/useCurrentWorkspaceAndApplication';
-import useRemoteApplicationGQLClient from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Option from '@/ui/v2/Option';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRemoteAppRolesQuery,
