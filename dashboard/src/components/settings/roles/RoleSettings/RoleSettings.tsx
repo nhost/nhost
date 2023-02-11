@@ -15,11 +15,12 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import { SYSTEM_ROLES } from '@/utils/CONSTANTS';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteRemoteAppRoleMutation,
   useGetRemoteAppRolesQuery,
-  useGetRolesQuery
+  useGetRolesQuery,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -40,14 +41,22 @@ export default function RoleSettings() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const client = useRemoteApplicationGQLClient();
+  // get the remote app gql client
+  const remoteProjectGqlClient = useRemoteApplicationGQLClient();
+
+  // get roles from the remote app
   const {
     data: rolesData,
     loading: rolesLoading,
     error: rolesError,
-  } = useGetRemoteAppRolesQuery({ client });
+    refetch: refetchRoles,
+  } = useGetRemoteAppRolesQuery({
+    client: remoteProjectGqlClient,
+  });
+
+  // delete role mutation
   const [deleteRemoteAppRole] = useDeleteRemoteAppRoleMutation({
-    client,
+    client: remoteProjectGqlClient,
     refetchQueries: ['getRemoteAppRoles'],
   });
 
@@ -102,6 +111,10 @@ export default function RoleSettings() {
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
+        onSubmit: async () => {
+          console.log('refetch roles');
+          await refetchRoles();
+        },
       },
     });
   }
@@ -138,7 +151,7 @@ export default function RoleSettings() {
   const roles = rolesData.authRoles
     .map((authRole) => ({
       name: authRole.role,
-      isSystemRole: authRole.role === 'user' || authRole.role === 'me',
+      isSystemRole: SYSTEM_ROLES.includes(authRole.role),
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 

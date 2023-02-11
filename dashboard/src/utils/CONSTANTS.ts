@@ -22,3 +22,5 @@ export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
  * Key used to store the color preference in local storage.
  */
 export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
+
+export const SYSTEM_ROLES = ['user', 'me', 'anonymous'];
