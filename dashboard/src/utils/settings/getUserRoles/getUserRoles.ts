@@ -1,4 +1,5 @@
 import type { Role } from '@/types/application';
+import { SYSTEM_ROLES } from '@/utils/CONSTANTS';
 
 /**
  * Convert the list of user roles that is returned by the API to a list of
@@ -14,6 +15,6 @@ export default function getUserRoles(roles?: string): Role[] {
 
   return roles.split(',').map((role) => ({
     name: role.trim(),
-    isSystemRole: role === 'user' || role === 'me',
+    isSystemRole: SYSTEM_ROLES.includes(role.trim()),
   }));
 }

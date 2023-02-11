@@ -1,5 +1,6 @@
 import Container from '@/components/layout/Container';
 import DefaultAllowedRoleSettings from '@/components/settings/defaultAllowedRoles/DefaultAllowedRoleSettings';
+import DefaultRoleSettings from '@/components/settings/defaultRole/DefaultRoleSettings';
 import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
 import RolesSettings from '@/components/settings/roles/RoleSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
@@ -12,7 +13,7 @@ export default function RolesAndPermissionsPage() {
       rootClassName="bg-transparent"
     >
       <RolesSettings />
-      <div>Default Role</div>
+      <DefaultRoleSettings />
       <DefaultAllowedRoleSettings />
       <PermissionVariableSettings />
     </Container>
