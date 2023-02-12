@@ -1,3 +1,4 @@
+import BaseDefaultAllowedRoleForm from '@/components/settings/defaultAllowedRoles/BaseDefaultAllowedRoleForm';
 import type {
   BaseRoleFormProps,
   BaseRoleFormValues,
@@ -14,7 +15,6 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import BaseDefaultAllowedRoleForm from '../BaseDefaultAllowedRoleForm';
 
 export interface CreateRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel'> {

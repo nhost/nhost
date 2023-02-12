@@ -172,14 +172,6 @@ export default function RoleSettings() {
       className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <button
-        onClick={() => {
-          refetchRoles();
-        }}
-        type="button"
-      >
-        refetch
-      </button>
       <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
       </Box>
