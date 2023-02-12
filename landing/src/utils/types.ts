@@ -17,6 +17,10 @@ export interface Article {
 
 export interface Customer {
   name: string
+  website: {
+    url: string
+    display: string
+  }
   description: string
   logo: {
     src: string

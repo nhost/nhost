@@ -127,6 +127,14 @@ export default function CustomerLayout({
             </div>
 
             <div className="grid grid-cols-2 items-center gap-4 py-6">
+              <span>Time To Production</span>
+
+              <span className="text-white text-opacity-65">
+                {customer.timeToProduction}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 items-center gap-4 py-6">
               <span>Location</span>
 
               <span className="text-white text-opacity-65">
@@ -135,11 +143,16 @@ export default function CustomerLayout({
             </div>
 
             <div className="grid grid-cols-2 items-center gap-4 py-6">
-              <span>Time To Production</span>
+              <span>Website</span>
 
-              <span className="text-white text-opacity-65">
-                {customer.timeToProduction}
-              </span>
+              <a
+                href={customer.website.url}
+                className="text-white text-opacity-65"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {customer.website.display}
+              </a>
             </div>
           </div>
         </div>
