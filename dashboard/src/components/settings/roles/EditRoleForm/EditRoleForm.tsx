@@ -5,14 +5,12 @@ import type {
 import BaseRoleForm, {
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import useRemoteApplicationGQLClient from '@/hooks/useRemoteApplicationGQLClient';
 import type { Role } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
-  useUpdateAppMutation,
+  refetchGetRemoteAppRolesQuery,
+  useUpdateRemoteAppRoleMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -34,12 +32,6 @@ export default function EditRoleForm({
   onSubmit,
   ...props
 }: EditRoleFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
-    fetchPolicy: 'cache-only',
-  });
-
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {
       name: originalRole.name || '',
@@ -48,64 +40,25 @@ export default function EditRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
+  const remoteAppClient = useRemoteApplicationGQLClient();
+
+  const [updateRole] = useUpdateRemoteAppRoleMutation({
+    client: remoteAppClient,
+    refetchQueries: [refetchGetRemoteAppRolesQuery()],
   });
 
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading roles..." />;
-  }
-
-  if (error) {
-    throw error;
-  }
-
-  const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
-
   async function handleSubmit({ name }: BaseRoleFormValues) {
-    if (
-      availableRoles.some(
-        (role) => role.name === name && role.name !== originalRole.name,
-      )
-    ) {
-      setError('name', { message: 'This role already exists.' });
-
-      return;
-    }
-
-    const defaultAllowedRolesList =
-      data?.app?.authUserDefaultAllowedRoles.split(',') || [];
-
-    const originalRoleIndex = defaultAllowedRolesList.findIndex(
-      (role) => role.trim() === originalRole.name,
-    );
-
-    const updatedDefaultAllowedRoles = defaultAllowedRolesList
-      .map((role, index) => {
-        if (index === originalRoleIndex) {
-          return name;
-        }
-
-        return role;
-      })
-      .join(',');
-
-    const updateAppPromise = updateApp({
+    const updateRolePromise = updateRole({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultRole:
-            data?.app?.authUserDefaultRole === originalRole.name
-              ? name
-              : data?.app?.authUserDefaultRole,
-          authUserDefaultAllowedRoles: updatedDefaultAllowedRoles,
+        role: originalRole.name,
+        roleSetInput: {
+          role: name,
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateRolePromise,
       {
         loading: 'Updating role...',
         success: 'Role has been updated successfully.',

@@ -17,7 +17,7 @@
     "build-storybook": "build-storybook"
   },
   "dependencies": {
-    "@apollo/client": "^3.7.3",
+    "@apollo/client": "^3.7.7",
     "@codemirror/language": "^6.3.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",

@@ -20,7 +20,7 @@ import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteRemoteAppRoleMutation,
   useGetRemoteAppRolesQuery,
-  useGetRolesQuery,
+  useGetRolesLazyQuery,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -60,26 +60,28 @@ export default function RoleSettings() {
     refetchQueries: ['getRemoteAppRoles'],
   });
 
-  // get roles settings (default role and default allowed roles) from the apps table
-  const {
-    data: appData,
-    loading: appLoading,
-    error: appError,
-  } = useGetRolesQuery({
-    variables: { id: currentApplication.id },
-  });
+  const [getAppRoles] = useGetRolesLazyQuery();
 
-  if (rolesLoading || appLoading) {
+  if (rolesLoading) {
     return <ActivityIndicator delay={1000} label="Loading user roles..." />;
   }
 
-  if (rolesError || appError) {
+  if (rolesError) {
     throw rolesError;
   }
 
   async function handleDeleteRole({ name }: Role) {
+    // get project (app) roles settings to check if the role is
+    // the default role or a default allowed role.
+    // If that's the case, we cannot delete the role.
+    const { data: appData } = await getAppRoles({
+      variables: {
+        id: currentApplication.id,
+      },
+    });
+
     if (name === appData.app.authUserDefaultRole) {
-      alert('You cannot delete the default role.');
+      alert('You cannot delete a role that is the default role.');
       return;
     }
 
@@ -108,13 +110,14 @@ export default function RoleSettings() {
   function handleOpenCreator() {
     openDialog('CREATE_ROLE', {
       title: 'Create Role',
+      payload: {
+        onSubmit: async () => {
+          await refetchRoles();
+        },
+      },
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
-        onSubmit: async () => {
-          console.log('refetch roles');
-          await refetchRoles();
-        },
       },
     });
   }
@@ -122,7 +125,12 @@ export default function RoleSettings() {
   function handleOpenEditor(originalRole: Role) {
     openDialog('EDIT_ROLE', {
       title: 'Edit Role',
-      payload: { originalRole },
+      payload: {
+        originalRole,
+        onSubmit: async () => {
+          await refetchRoles();
+        },
+      },
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -164,6 +172,14 @@ export default function RoleSettings() {
       className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
+      <button
+        onClick={() => {
+          refetchRoles();
+        }}
+        type="button"
+      >
+        refetch
+      </button>
       <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
       </Box>

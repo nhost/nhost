@@ -1,0 +1,26 @@
+query getRemoteAppRoles {
+  authRoles {
+    role
+  }
+}
+
+mutation insertRemoteAppRole($object: authRoles_insert_input!) {
+  insertAuthRole(object: $object) {
+    role
+  }
+}
+
+mutation updateRemoteAppRole(
+  $role: String!
+  $roleSetInput: authRoles_set_input!
+) {
+  updateAuthRole(pk_columns: { role: $role }, _set: $roleSetInput) {
+    role
+  }
+}
+
+mutation deleteRemoteAppRole($role: String!) {
+  deleteAuthRole(role: $role) {
+    role
+  }
+}

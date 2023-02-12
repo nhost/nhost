@@ -17180,33 +17180,6 @@ export type GetRolesQueryVariables = Exact<{
 
 export type GetRolesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authUserDefaultRole: string, authUserDefaultAllowedRoles: string } | null };
 
-export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
-
-export type InsertRemoteAppRoleMutationVariables = Exact<{
-  object: AuthRoles_Insert_Input;
-}>;
-
-
-export type InsertRemoteAppRoleMutation = { __typename?: 'mutation_root', insertAuthRole?: { __typename?: 'authRoles', role: string } | null };
-
-export type UpdateRemoteAppRoleMutationVariables = Exact<{
-  role: Scalars['String'];
-  roleSetInput: AuthRoles_Set_Input;
-}>;
-
-
-export type UpdateRemoteAppRoleMutation = { __typename?: 'mutation_root', updateAuthRole?: { __typename?: 'authRoles', role: string } | null };
-
-export type DeleteRemoteAppRoleMutationVariables = Exact<{
-  role: Scalars['String'];
-}>;
-
-
-export type DeleteRemoteAppRoleMutation = { __typename?: 'mutation_root', deleteAuthRole?: { __typename?: 'authRoles', role: string } | null };
-
 export type GetSmsSettingsQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -17564,6 +17537,33 @@ export type ScheduleRestoreDatabaseBackupMutationVariables = Exact<{
 
 
 export type ScheduleRestoreDatabaseBackupMutation = { __typename?: 'mutation_root', scheduleRestoreDatabaseBackup: string };
+
+export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
+
+export type InsertRemoteAppRoleMutationVariables = Exact<{
+  object: AuthRoles_Insert_Input;
+}>;
+
+
+export type InsertRemoteAppRoleMutation = { __typename?: 'mutation_root', insertAuthRole?: { __typename?: 'authRoles', role: string } | null };
+
+export type UpdateRemoteAppRoleMutationVariables = Exact<{
+  role: Scalars['String'];
+  roleSetInput: AuthRoles_Set_Input;
+}>;
+
+
+export type UpdateRemoteAppRoleMutation = { __typename?: 'mutation_root', updateAuthRole?: { __typename?: 'authRoles', role: string } | null };
+
+export type DeleteRemoteAppRoleMutationVariables = Exact<{
+  role: Scalars['String'];
+}>;
+
+
+export type DeleteRemoteAppRoleMutation = { __typename?: 'mutation_root', deleteAuthRole?: { __typename?: 'authRoles', role: string } | null };
 
 export type UpdateRemoteAppUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -18838,143 +18838,6 @@ export type GetRolesQueryResult = Apollo.QueryResult<GetRolesQuery, GetRolesQuer
 export function refetchGetRolesQuery(variables: GetRolesQueryVariables) {
       return { query: GetRolesDocument, variables: variables }
     }
-export const GetRemoteAppRolesDocument = gql`
-    query getRemoteAppRoles {
-  authRoles {
-    role
-  }
-}
-    `;
-
-/**
- * __useGetRemoteAppRolesQuery__
- *
- * To run a query within a React component, call `useGetRemoteAppRolesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRemoteAppRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRemoteAppRolesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetRemoteAppRolesQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
-      }
-export function useGetRemoteAppRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
-        }
-export type GetRemoteAppRolesQueryHookResult = ReturnType<typeof useGetRemoteAppRolesQuery>;
-export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<typeof useGetRemoteAppRolesLazyQuery>;
-export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>;
-export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
-      return { query: GetRemoteAppRolesDocument, variables: variables }
-    }
-export const InsertRemoteAppRoleDocument = gql`
-    mutation insertRemoteAppRole($object: authRoles_insert_input!) {
-  insertAuthRole(object: $object) {
-    role
-  }
-}
-    `;
-export type InsertRemoteAppRoleMutationFn = Apollo.MutationFunction<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
-
-/**
- * __useInsertRemoteAppRoleMutation__
- *
- * To run a mutation, you first call `useInsertRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertRemoteAppRoleMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertRemoteAppRoleMutation, { data, loading, error }] = useInsertRemoteAppRoleMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>(InsertRemoteAppRoleDocument, options);
-      }
-export type InsertRemoteAppRoleMutationHookResult = ReturnType<typeof useInsertRemoteAppRoleMutation>;
-export type InsertRemoteAppRoleMutationResult = Apollo.MutationResult<InsertRemoteAppRoleMutation>;
-export type InsertRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
-export const UpdateRemoteAppRoleDocument = gql`
-    mutation updateRemoteAppRole($role: String!, $roleSetInput: authRoles_set_input!) {
-  updateAuthRole(pk_columns: {role: $role}, _set: $roleSetInput) {
-    role
-  }
-}
-    `;
-export type UpdateRemoteAppRoleMutationFn = Apollo.MutationFunction<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
-
-/**
- * __useUpdateRemoteAppRoleMutation__
- *
- * To run a mutation, you first call `useUpdateRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateRemoteAppRoleMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateRemoteAppRoleMutation, { data, loading, error }] = useUpdateRemoteAppRoleMutation({
- *   variables: {
- *      role: // value for 'role'
- *      roleSetInput: // value for 'roleSetInput'
- *   },
- * });
- */
-export function useUpdateRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>(UpdateRemoteAppRoleDocument, options);
-      }
-export type UpdateRemoteAppRoleMutationHookResult = ReturnType<typeof useUpdateRemoteAppRoleMutation>;
-export type UpdateRemoteAppRoleMutationResult = Apollo.MutationResult<UpdateRemoteAppRoleMutation>;
-export type UpdateRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
-export const DeleteRemoteAppRoleDocument = gql`
-    mutation deleteRemoteAppRole($role: String!) {
-  deleteAuthRole(role: $role) {
-    role
-  }
-}
-    `;
-export type DeleteRemoteAppRoleMutationFn = Apollo.MutationFunction<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
-
-/**
- * __useDeleteRemoteAppRoleMutation__
- *
- * To run a mutation, you first call `useDeleteRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteRemoteAppRoleMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteRemoteAppRoleMutation, { data, loading, error }] = useDeleteRemoteAppRoleMutation({
- *   variables: {
- *      role: // value for 'role'
- *   },
- * });
- */
-export function useDeleteRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>(DeleteRemoteAppRoleDocument, options);
-      }
-export type DeleteRemoteAppRoleMutationHookResult = ReturnType<typeof useDeleteRemoteAppRoleMutation>;
-export type DeleteRemoteAppRoleMutationResult = Apollo.MutationResult<DeleteRemoteAppRoleMutation>;
-export type DeleteRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
 export const GetSmsSettingsDocument = gql`
     query getSMSSettings($id: uuid!) {
   app(id: $id) {
@@ -20866,6 +20729,143 @@ export function useScheduleRestoreDatabaseBackupMutation(baseOptions?: Apollo.Mu
 export type ScheduleRestoreDatabaseBackupMutationHookResult = ReturnType<typeof useScheduleRestoreDatabaseBackupMutation>;
 export type ScheduleRestoreDatabaseBackupMutationResult = Apollo.MutationResult<ScheduleRestoreDatabaseBackupMutation>;
 export type ScheduleRestoreDatabaseBackupMutationOptions = Apollo.BaseMutationOptions<ScheduleRestoreDatabaseBackupMutation, ScheduleRestoreDatabaseBackupMutationVariables>;
+export const GetRemoteAppRolesDocument = gql`
+    query getRemoteAppRoles {
+  authRoles {
+    role
+  }
+}
+    `;
+
+/**
+ * __useGetRemoteAppRolesQuery__
+ *
+ * To run a query within a React component, call `useGetRemoteAppRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRemoteAppRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRemoteAppRolesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRemoteAppRolesQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
+      }
+export function useGetRemoteAppRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>(GetRemoteAppRolesDocument, options);
+        }
+export type GetRemoteAppRolesQueryHookResult = ReturnType<typeof useGetRemoteAppRolesQuery>;
+export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<typeof useGetRemoteAppRolesLazyQuery>;
+export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>;
+export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
+      return { query: GetRemoteAppRolesDocument, variables: variables }
+    }
+export const InsertRemoteAppRoleDocument = gql`
+    mutation insertRemoteAppRole($object: authRoles_insert_input!) {
+  insertAuthRole(object: $object) {
+    role
+  }
+}
+    `;
+export type InsertRemoteAppRoleMutationFn = Apollo.MutationFunction<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
+
+/**
+ * __useInsertRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useInsertRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRemoteAppRoleMutation, { data, loading, error }] = useInsertRemoteAppRoleMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>(InsertRemoteAppRoleDocument, options);
+      }
+export type InsertRemoteAppRoleMutationHookResult = ReturnType<typeof useInsertRemoteAppRoleMutation>;
+export type InsertRemoteAppRoleMutationResult = Apollo.MutationResult<InsertRemoteAppRoleMutation>;
+export type InsertRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<InsertRemoteAppRoleMutation, InsertRemoteAppRoleMutationVariables>;
+export const UpdateRemoteAppRoleDocument = gql`
+    mutation updateRemoteAppRole($role: String!, $roleSetInput: authRoles_set_input!) {
+  updateAuthRole(pk_columns: {role: $role}, _set: $roleSetInput) {
+    role
+  }
+}
+    `;
+export type UpdateRemoteAppRoleMutationFn = Apollo.MutationFunction<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
+
+/**
+ * __useUpdateRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useUpdateRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRemoteAppRoleMutation, { data, loading, error }] = useUpdateRemoteAppRoleMutation({
+ *   variables: {
+ *      role: // value for 'role'
+ *      roleSetInput: // value for 'roleSetInput'
+ *   },
+ * });
+ */
+export function useUpdateRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>(UpdateRemoteAppRoleDocument, options);
+      }
+export type UpdateRemoteAppRoleMutationHookResult = ReturnType<typeof useUpdateRemoteAppRoleMutation>;
+export type UpdateRemoteAppRoleMutationResult = Apollo.MutationResult<UpdateRemoteAppRoleMutation>;
+export type UpdateRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<UpdateRemoteAppRoleMutation, UpdateRemoteAppRoleMutationVariables>;
+export const DeleteRemoteAppRoleDocument = gql`
+    mutation deleteRemoteAppRole($role: String!) {
+  deleteAuthRole(role: $role) {
+    role
+  }
+}
+    `;
+export type DeleteRemoteAppRoleMutationFn = Apollo.MutationFunction<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
+
+/**
+ * __useDeleteRemoteAppRoleMutation__
+ *
+ * To run a mutation, you first call `useDeleteRemoteAppRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRemoteAppRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRemoteAppRoleMutation, { data, loading, error }] = useDeleteRemoteAppRoleMutation({
+ *   variables: {
+ *      role: // value for 'role'
+ *   },
+ * });
+ */
+export function useDeleteRemoteAppRoleMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>(DeleteRemoteAppRoleDocument, options);
+      }
+export type DeleteRemoteAppRoleMutationHookResult = ReturnType<typeof useDeleteRemoteAppRoleMutation>;
+export type DeleteRemoteAppRoleMutationResult = Apollo.MutationResult<DeleteRemoteAppRoleMutation>;
+export type DeleteRemoteAppRoleMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppRoleMutation, DeleteRemoteAppRoleMutationVariables>;
 export const UpdateRemoteAppUserDocument = gql`
     mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: {id: $id}, _set: $user) {
