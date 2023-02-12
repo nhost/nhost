@@ -62,8 +62,8 @@ func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 	return c.Client.Do(req)
 }
 
-//  Initialize the client with supplied Hasura endpoint,
-//  admin secret and a custom HTTP client.
+// Initialize the client with supplied Hasura endpoint,
+// admin secret and a custom HTTP client.
 func (c *Client) Init(endpoint, adminSecret, customBinary string, client HttpDoer) error {
 
 	log.Debug("Initializing Hasura client")
@@ -140,6 +140,16 @@ func (c *Client) ApplySeed(ctx context.Context, debug bool) error {
 
 func (c *Client) ExportMetadata(ctx context.Context, debug bool) error {
 	args := append([]string{"metadata", "export"}, c.CommonOptionsWithoutDB...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
+}
+
+func (c *Client) ReloadMetadata(ctx context.Context, debug bool) error {
+	args := append([]string{"metadata", "reload"}, c.CommonOptionsWithoutDB...)
 	cmd := exec.CommandContext(ctx, c.CLI, args...)
 	cmd.Dir = nhost.NHOST_DIR
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
