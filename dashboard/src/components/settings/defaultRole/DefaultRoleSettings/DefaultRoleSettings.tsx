@@ -100,7 +100,7 @@ export default function DefaultRoleSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Default Role"
-          description="The default role given to new users"
+          description="Default role is the default role users get when they sign up."
           docsLink="https://docs.nhost.io/authentication/users#default-role"
           rootClassName="gap-0"
           className="grid grid-flow-col grid-cols-5 py-6"

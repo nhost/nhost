@@ -6,7 +6,6 @@ import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
@@ -199,15 +198,6 @@ export default function DefailtAllowedRoleSettings() {
                       {role.name}
 
                       {role.isSystemRole && <LockIcon className="h-4 w-4" />}
-
-                      {appData.app.authUserDefaultRole === role.name && (
-                        <Chip
-                          component="span"
-                          color="info"
-                          size="small"
-                          label="Default"
-                        />
-                      )}
                     </>
                   }
                 />
