@@ -95,6 +95,9 @@ export default function DefaultRoleSettings() {
 
   const { register } = form;
 
+  // transform and sort roles
+  const roles = rolesData.authRoles.map((role) => role.role).sort();
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -120,13 +123,11 @@ export default function DefaultRoleSettings() {
             variant="normal"
             label="Default Role"
           >
-            {rolesData.authRoles
-              .map((role) => ({ value: role.role, label: role.role }))
-              .map(({ value, label }) => (
-                <Option key={value} value={value}>
-                  {label}
-                </Option>
-              ))}
+            {roles.map((role) => (
+              <Option key={role} value={role}>
+                {role}
+              </Option>
+            ))}
           </ControlledSelect>
         </SettingsContainer>
       </Form>

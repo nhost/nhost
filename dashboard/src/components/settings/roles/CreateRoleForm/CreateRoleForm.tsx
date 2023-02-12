@@ -57,7 +57,6 @@ export default function CreateRoleForm({
       },
       getToastStyleProps(),
     );
-
     await onSubmit?.();
   }
 
