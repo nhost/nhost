@@ -115,13 +115,19 @@ export default function AboutPage() {
               />
             }
             logo={
-              <Image
-                src="/investors/logos/nauta-capital.png"
-                alt="Logo of Nauta Capital"
-                width={122}
-                height={24}
-                quality={90}
-              />
+              <a
+                href="https://nautacapital.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Image
+                  src="/investors/logos/nauta-capital.png"
+                  alt="Logo of Nauta Capital"
+                  width={122}
+                  height={24}
+                  quality={90}
+                />
+              </a>
             }
             name="Guillem Sauge"
           />
@@ -138,12 +144,14 @@ export default function AboutPage() {
               />
             }
             logo={
-              <Image
-                src="/investors/logos/antler.svg"
-                alt="Logo of Antler"
-                width={100}
-                height={24}
-              />
+              <a href="https://antler.co" target="_blank" rel="noreferrer">
+                <Image
+                  src="/investors/logos/antler.svg"
+                  alt="Logo of Antler"
+                  width={100}
+                  height={24}
+                />
+              </a>
             }
             name="Anders Hammarbäck"
           />
@@ -158,12 +166,14 @@ export default function AboutPage() {
               />
             }
             logo={
-              <Image
-                src="/investors/logos/scne.svg"
-                alt="Logo of Scne"
-                width={67}
-                height={24}
-              />
+              <a href="https://www.scne.io" target="_blank" rel="noreferrer">
+                <Image
+                  src="/investors/logos/scne.svg"
+                  alt="Logo of Scne"
+                  width={67}
+                  height={24}
+                />
+              </a>
             }
             name="Wladimir Miroschnikow"
           />
