@@ -1,9 +1,9 @@
+import NavLink from '@/components/common/NavLink';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
@@ -54,6 +54,7 @@ export default function SignUpPage() {
           className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
           size="large"
           href="/signup/email"
+          LinkComponent={NavLink}
         >
           Continue with Email
         </Button>
@@ -62,7 +63,7 @@ export default function SignUpPage() {
 
         <Text color="secondary" className="text-center text-sm">
           By clicking continue, you agree to our{' '}
-          <Link
+          <NavLink
             href="https://nhost.io/legal/terms-of-service"
             target="_blank"
             rel="noopener noreferrer"
@@ -70,9 +71,9 @@ export default function SignUpPage() {
             color="white"
           >
             Terms of Service
-          </Link>{' '}
+          </NavLink>{' '}
           and{' '}
-          <Link
+          <NavLink
             href="https://nhost.io/legal/privacy-policy"
             target="_blank"
             rel="noopener noreferrer"
@@ -80,15 +81,15 @@ export default function SignUpPage() {
             color="white"
           >
             Privacy Policy
-          </Link>
+          </NavLink>
         </Text>
       </Box>
 
       <Text color="secondary" className="text-center text-lg">
         Already have an account?{' '}
-        <Link href="/signin" color="White">
+        <NavLink href="/signin" color="white" className="font-medium">
           Sign in
-        </Link>
+        </NavLink>
       </Text>
     </>
   );

@@ -1,21 +1,22 @@
-import Link from 'next/link';
-import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
+import type { LinkProps } from '@/ui/v2/Link';
+import Link from '@/ui/v2/Link';
+import NextLink from 'next/link';
+import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface NavLinkProps
-  extends DetailedHTMLProps<HTMLProps<HTMLAnchorElement>, HTMLAnchorElement> {}
+export interface NavLinkProps extends PropsWithoutRef<LinkProps> {}
 
 function NavLink(
   { className, children, href, ...props }: NavLinkProps,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (
-    <Link href={href} passHref>
-      <a className={twMerge('font-display', className)} ref={ref} {...props}>
+    <NextLink href={href} passHref>
+      <Link className={twMerge('font-display', className)} ref={ref} {...props}>
         {children}
-      </a>
-    </Link>
+      </Link>
+    </NextLink>
   );
 }
 

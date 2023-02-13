@@ -32,11 +32,11 @@ function AccountMenuContent({
         color="secondary"
         className="absolute top-6 right-4 grid grid-flow-col items-center gap-px self-start font-medium"
         onClick={async () => {
-          router.push('/signin');
           await nhost.auth.signOut();
+          router.push('/signin');
           await client.resetStore();
         }}
-        endIcon={<PowerIcon className="w-4 h-4 mr-1" />}
+        endIcon={<PowerIcon className="mr-1 h-4 w-4" />}
       >
         Sign Out
       </Button>
