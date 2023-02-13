@@ -69,7 +69,7 @@ export default function UnauthenticatedLayout({
           >
             <Container
               rootClassName="bg-transparent h-full py-8"
-              className="grid h-full w-full items-center justify-items-center gap-24 bg-transparent lg:grid-flow-col lg:gap-4"
+              className="grid h-full w-full items-center justify-items-center gap-24 bg-transparent lg:grid-cols-2 lg:gap-4"
             >
               <div className="order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}

@@ -18,7 +18,7 @@ export default function ApplicationUnknown() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const user = useUserData();
   const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === user.id && type === 'owner',
+    ({ userId, type }) => userId === user?.id && type === 'owner',
   );
 
   return (

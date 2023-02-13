@@ -5,7 +5,12 @@ import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface NavLinkProps extends PropsWithoutRef<LinkProps> {}
+export interface NavLinkProps extends PropsWithoutRef<LinkProps> {
+  /**
+   * Determines whether or not the link should be disabled.
+   */
+  disabled?: boolean;
+}
 
 function NavLink(
   { className, children, href, ...props }: NavLinkProps,

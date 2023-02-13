@@ -114,7 +114,11 @@ export default function SignInPage() {
               helperText={formState.errors.password?.message}
             />
 
-            <NavLink href="/reset-password" color="secondary">
+            <NavLink
+              href="/reset-password"
+              color="white"
+              className="justify-self-start font-semibold"
+            >
               Forgot password?
             </NavLink>
 
