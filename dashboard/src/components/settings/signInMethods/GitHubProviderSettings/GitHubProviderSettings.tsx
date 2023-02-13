@@ -78,7 +78,7 @@ export default function GitHubProviderSettings() {
               oauth: {
                 github: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

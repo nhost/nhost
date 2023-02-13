@@ -76,7 +76,7 @@ export default function SpotifyProviderSettings() {
               oauth: {
                 spotify: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

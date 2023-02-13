@@ -76,7 +76,7 @@ export default function FacebookProviderSettings() {
               oauth: {
                 facebook: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

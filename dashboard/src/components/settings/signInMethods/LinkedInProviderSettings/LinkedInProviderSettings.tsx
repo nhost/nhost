@@ -76,7 +76,7 @@ export default function LinkedInProviderSettings() {
               oauth: {
                 linkedin: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

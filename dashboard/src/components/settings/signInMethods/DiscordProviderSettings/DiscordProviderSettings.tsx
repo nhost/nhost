@@ -76,7 +76,7 @@ export default function DiscordProviderSettings() {
               oauth: {
                 discord: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

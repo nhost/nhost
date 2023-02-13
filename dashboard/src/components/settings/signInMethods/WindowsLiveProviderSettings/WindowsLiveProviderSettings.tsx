@@ -76,7 +76,7 @@ export default function WindowsLiveProviderSettings() {
               oauth: {
                 windowslive: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

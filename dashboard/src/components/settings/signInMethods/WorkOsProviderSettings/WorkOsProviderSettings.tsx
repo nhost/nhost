@@ -84,7 +84,7 @@ export default function WorkOsProviderSettings() {
               oauth: {
                 workos: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },

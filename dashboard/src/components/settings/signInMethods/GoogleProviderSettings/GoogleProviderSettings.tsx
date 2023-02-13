@@ -76,7 +76,7 @@ export default function GoogleProviderSettings() {
               oauth: {
                 google: {
                   ...values,
-                  scope: scope || [],
+                  scope,
                 },
               },
             },
