@@ -1,6 +1,7 @@
 import createGlobe from 'cobe'
 import { useEffect, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
+import { Glow } from '../Glow'
 
 export default function Globe() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -81,11 +82,13 @@ export default function Globe() {
   return (
     <div
       ref={ref}
-      className="after:backface-hidden relative mx-auto h-60 w-full overflow-hidden after:absolute after:top-1/2 after:left-0 after:right-0 after:z-40 after:mx-auto after:h-40 after:w-40 after:bg-brand-main after:bg-opacity-30 after:blur-3xl md:h-80"
+      className="relative mx-auto h-60 w-full overflow-hidden md:h-80"
     >
+      <Glow className="backface-hidden top-1/2 left-0 right-0 z-40 mx-auto h-40 w-40 bg-opacity-30 blur-3xl" />
+
       {size && (
         <canvas
-          className="globe-canvas mx-auto bg-black fill-black md:-translate-x-5 lg:-translate-x-16 xl:translate-x-0"
+          className="globe-canvas absolute left-1/2 z-0 mx-auto -translate-x-1/2 bg-black fill-black"
           ref={canvasRef}
           width={currentSize * 2}
           height={currentSize * 2}
