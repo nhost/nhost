@@ -1,144 +1,15 @@
-import Form from '@/components/common/Form';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import Input from '@/ui/v2/Input';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useSignUpEmailPassword } from '@nhost/nextjs';
-import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-
-type SignUpFormProps = {
-  displayName: string;
-  email: string;
-  password: string;
-};
-
-function SignUpWithEmail({ setSignUpMethod }: any) {
-  const { signUpEmailPassword, isLoading, isSuccess, isError, error } =
-    useSignUpEmailPassword();
-
-  const form = useForm<SignUpFormProps>({
-    reValidateMode: 'onSubmit',
-    defaultValues: {
-      displayName: '',
-      email: '',
-      password: '',
-    },
-  });
-
-  const { register } = form;
-
-  const router = useRouter();
-
-  async function onSubmit({ email, password, displayName }: SignUpFormProps) {
-    await signUpEmailPassword(email, password, {
-      displayName,
-    });
-  }
-
-  if (isSuccess) {
-    router.push('/');
-  }
-
-  return (
-    <div className="grid grid-flow-row items-center justify-items-center gap-2">
-      <Text variant="h1" className="text-lg font-semibold">
-        Sign Up with Email
-      </Text>
-
-      <FormProvider register={register} {...form}>
-        <Form onSubmit={onSubmit} className="grid w-full grid-flow-row gap-3">
-          <Input
-            {...register('displayName')}
-            id="displayName"
-            placeholder="Name"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="text"
-            autoFocus
-            label="Name"
-            hideEmptyHelperText
-            fullWidth
-            autoComplete="off"
-          />
-
-          <Input
-            {...register('email')}
-            id="email"
-            placeholder="Email"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="email"
-            label="Email"
-            hideEmptyHelperText
-            fullWidth
-          />
-
-          <Input
-            {...register('password')}
-            id="password"
-            placeholder="Password"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="password"
-            label="Password"
-            hideEmptyHelperText
-            fullWidth
-          />
-
-          <div className="flex flex-col">
-            <Button type="submit" disabled={isLoading} loading={isLoading}>
-              Sign Up
-            </Button>
-          </div>
-        </Form>
-      </FormProvider>
-
-      {isError && (
-        <Text className="font-medium" color="error">
-          Error: {error.message}
-        </Text>
-      )}
-
-      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
-        <span>or</span>
-        <Button
-          variant="borderless"
-          type="button"
-          size="small"
-          onClick={() => setSignUpMethod('github')}
-          className="hover:bg-transparent hover:underline"
-        >
-          sign up with GitHub
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);

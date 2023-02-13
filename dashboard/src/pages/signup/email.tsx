@@ -6,19 +6,20 @@ import Divider from '@/ui/v2/Divider';
 import Input, { inputClasses } from '@/ui/v2/Input';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
-import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
+import { useSignUpEmailPassword } from '@nhost/nextjs';
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  email: Yup.string().email().required(),
-  password: Yup.string().required(),
-  displayName: Yup.string().required(),
+  email: Yup.string().label('Email').email().required(),
+  password: Yup.string().label('Password').required(),
+  displayName: Yup.string().label('Name').required(),
 });
 
 export type EmailSignUpFormValues = Yup.InferType<typeof validationSchema>;
@@ -31,16 +32,47 @@ const StyledInput = styled(Input)({
 });
 
 export default function EmailSignUpPage() {
-  const [loading, setLoading] = useState(false);
+  const { signUpEmailPassword, error } = useSignUpEmailPassword();
+
   const form = useForm<EmailSignUpFormValues>({
+    reValidateMode: 'onSubmit',
     defaultValues: {
       email: '',
       password: '',
       displayName: '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
-  const { register } = form;
+  const { register, formState } = form;
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    toast.error(
+      error?.message || 'An error occurred while signing up. Please try again.',
+      getToastStyleProps(),
+    );
+  }, [error]);
+
+  async function handleSubmit({
+    email,
+    password,
+    displayName,
+  }: EmailSignUpFormValues) {
+    try {
+      await signUpEmailPassword(email, password, {
+        displayName,
+      });
+    } catch {
+      toast.error(
+        'An error occurred while signing up. Please try again.',
+        getToastStyleProps(),
+      );
+    }
+  }
 
   return (
     <>
@@ -54,12 +86,14 @@ export default function EmailSignUpPage() {
 
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-12">
         <FormProvider {...form}>
-          <Form className="grid grid-flow-row gap-4 bg-transparent">
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-flow-row gap-4 bg-transparent"
+          >
             <StyledInput
               {...register('displayName')}
               id="displayName"
               placeholder="Name"
-              required
               inputProps={{
                 min: 2,
                 max: 128,
@@ -72,13 +106,14 @@ export default function EmailSignUpPage() {
               hideEmptyHelperText
               fullWidth
               autoComplete="off"
+              error={!!formState.errors.displayName}
+              helperText={formState.errors.displayName?.message}
             />
 
             <StyledInput
               {...register('email')}
               id="email"
               placeholder="Email"
-              required
               inputProps={{
                 min: 2,
                 max: 128,
@@ -89,13 +124,14 @@ export default function EmailSignUpPage() {
               label="Email"
               hideEmptyHelperText
               fullWidth
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
             />
 
             <StyledInput
               {...register('password')}
               id="password"
               placeholder="Password"
-              required
               inputProps={{
                 min: 2,
                 max: 128,
@@ -106,27 +142,16 @@ export default function EmailSignUpPage() {
               label="Password"
               hideEmptyHelperText
               fullWidth
+              error={!!formState.errors.password}
+              helperText={formState.errors.password?.message}
             />
 
             <Button
               className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
               size="large"
-              disabled={loading}
-              loading={loading}
-              onClick={async () => {
-                setLoading(true);
-
-                try {
-                  await nhost.auth.signIn({ provider: 'github' });
-                } catch {
-                  toast.error(
-                    `An error occurred while trying to sign in using GitHub. Please try again later.`,
-                    getToastStyleProps(),
-                  );
-                } finally {
-                  setLoading(false);
-                }
-              }}
+              disabled={formState.isSubmitting}
+              loading={formState.isSubmitting}
+              type="submit"
             >
               Sign Up with Email
             </Button>
