@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.7
+
+### Patch Changes
+
+- e9c8909c: fix(dashboard): use correct theme color in dark mode
+
 ## 0.11.6
 
 ### Patch Changes

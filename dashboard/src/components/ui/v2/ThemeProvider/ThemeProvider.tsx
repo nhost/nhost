@@ -4,6 +4,7 @@ import useColorPreference from '@/ui/v2/useColorPreference';
 import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
+import Head from 'next/head';
 import type { PropsWithChildren } from 'react';
 
 function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
@@ -15,11 +16,15 @@ function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
       <CssBaseline />
       <GlobalStyles
         styles={{
-          body: {
-            backgroundColor: theme.palette.background.default,
+          'html, body': {
+            backgroundColor: `${theme.palette.background.default} !important`,
           },
         }}
       />
+
+      <Head>
+        <meta name="theme-color" content={theme.palette.background.paper} />
+      </Head>
 
       {children}
     </MaterialThemeProvider>
