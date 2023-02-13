@@ -75,7 +75,7 @@ export default function ExamplesSection() {
       ref={ref}
       component="section"
       slotProps={{ root: { className: 'overflow-hidden xl:overflow-visible' } }}
-      className="mt-24 grid grid-flow-row gap-12 pb-8 lg:mt-32 lg:gap-28"
+      className="mt-24 grid grid-flow-row gap-12 pb-12 lg:mt-28 lg:gap-28"
     >
       <SectionHeading
         title="For Developers - By Developers"

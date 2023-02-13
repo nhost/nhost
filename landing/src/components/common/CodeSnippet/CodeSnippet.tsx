@@ -50,11 +50,11 @@ export default function CodeSnippet({
       )}
     >
       {!disableGlow && (
-        <Glow className="top-1/2 h-[92%] w-[97%] -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-50 blur-[32px]" />
+        <Glow className="top-1/2 h-[92%] w-[97%] -translate-y-1/2 skew-x-6 skew-y-3 bg-opacity-30 blur-3xl" />
       )}
 
       {!disableLineGrid && (
-        <LineGrid className="h-[135%] w-[135%] -translate-x-1/4 -translate-y-[17.5%] transform-cpu overflow-hidden" />
+        <LineGrid className="h-[135%] w-[135%] -translate-x-[20%] -translate-y-[15%] transform-cpu" />
       )}
 
       <SyntaxHighlighter

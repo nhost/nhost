@@ -117,11 +117,11 @@ export default function PricingPage() {
         className="relative flex max-w-5xl pt-20 pb-4 lg:pt-28 lg:pb-12"
       >
         <LineGrid
-          className="-top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-5 lg:h-40 lg:w-40"
+          className="top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-16 lg:h-40 lg:w-40"
           slotProps={{ image: { className: 'mx-auto' } }}
           priority
         />
-        <Glow className="h-10 w-32 blur-[50px] lg:top-28" />
+        <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
         <SectionHeading
           title="Pricing"
           subtitle="Select your plan and start building"

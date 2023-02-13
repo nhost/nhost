@@ -113,7 +113,7 @@ export default function DatabasePage() {
 
       <Container
         component="section"
-        className="mt-24 pb-8 lg:mt-40"
+        className="mt-24 pb-12 lg:mt-40"
         slotProps={{ root: { className: 'overflow-hidden' } }}
       >
         <SectionHeading

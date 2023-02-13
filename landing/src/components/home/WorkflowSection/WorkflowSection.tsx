@@ -83,7 +83,6 @@ function CLIWorkflow({
     <div ref={ref} className={twMerge(className, 'relative pb-2')} {...props}>
       <div className="hidden w-full sm:block sm:min-h-[381px]">
         <CodeSnippet
-          disableLineGrid
           customStyle={{ minHeight: 381 }}
           slotProps={{
             root: {
@@ -100,7 +99,6 @@ function CLIWorkflow({
 
       <div className="min-h-[570px] w-full sm:hidden">
         <CodeSnippet
-          disableLineGrid
           customStyle={{ minHeight: 570 }}
           slotProps={{
             root: {
@@ -194,8 +192,8 @@ export default function WorkflowSection() {
   return (
     <Container
       component="section"
-      slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
-      className="grid grid-flow-row gap-12 overflow-hidden pb-8 lg:gap-28"
+      slotProps={{ root: { className: 'mt-24 lg:mt-28' } }}
+      className="grid grid-flow-row gap-12 pb-12 lg:gap-28"
     >
       <SectionHeading
         title="Develop Locally. Ship Globally."
@@ -370,7 +368,7 @@ export default function WorkflowSection() {
         </div>
 
         <div className="relative hidden min-h-[381px] lg:col-span-6 lg:col-start-7 lg:block">
-          <LineGrid className="scale-110" />
+          {activeStep !== 0 && <LineGrid className="scale-110" />}
 
           <div className="relative z-10">
             {activeStep === 0 && <CLIWorkflow className="z-10" />}

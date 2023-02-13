@@ -33,7 +33,9 @@ export default function Layout({
     <div className={twMerge('flex min-h-screen flex-col', inter.className)}>
       <Header
         slotProps={{
-          root: { className: 'sticky top-0 left-0 right-0 transform-cpu' },
+          root: {
+            className: 'sticky top-0 left-0 right-0 transform-cpu w-full',
+          },
         }}
       />
 
