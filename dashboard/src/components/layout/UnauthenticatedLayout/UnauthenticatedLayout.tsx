@@ -1,4 +1,3 @@
-import { LineGrid } from '@/components/common/LineGrid';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
@@ -62,25 +61,30 @@ export default function UnauthenticatedLayout({
 
         <RetryableErrorBoundary>
           <Box
-            className="flex min-h-screen items-center py-8"
-            sx={{
-              backgroundColor: (theme) => theme.palette.common.black,
-            }}
+            className="flex min-h-screen items-center"
+            sx={{ backgroundColor: (theme) => theme.palette.common.black }}
           >
             <Container
-              rootClassName="bg-transparent h-full py-8"
-              className="grid h-full w-full items-center justify-items-center gap-24 bg-transparent lg:grid-cols-2 lg:gap-4"
+              rootClassName="bg-transparent h-full"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-8 pb-12 lg:grid-cols-2 lg:gap-4 lg:pt-0 lg:pb-0"
             >
               <div className="order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}
               </div>
 
-              <div className="relative order-1 flex h-full w-full items-center justify-center lg:order-2">
-                <LineGrid
-                  className="absolute top-0 left-0 right-0 bottom-0 flex h-full w-full items-center justify-center"
-                  priority
-                  slotProps={{ image: { className: 'scale-[200%]' } }}
-                />
+              <div className="relative order-1 flex h-full min-h-[150px] w-full items-center justify-center lg:order-2 lg:min-h-[none]">
+                <div className="absolute top-0 left-0 right-0 bottom-0 flex h-full w-full items-center justify-center">
+                  <Image
+                    priority
+                    src="/assets/line-grid.svg"
+                    width={1003}
+                    height={644}
+                    alt="Transparent lines"
+                    objectFit="fill"
+                    className="h-full scale-[200%]"
+                  />
+                </div>
+
                 <Image
                   src="/assets/logo.svg"
                   width={119}

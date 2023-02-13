@@ -19,12 +19,12 @@ export default function SignUpPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-4.5xl font-semibold"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
         It&apos;s time to build
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-12">
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
           className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
           startIcon={<GithubIcon />}
@@ -85,7 +85,7 @@ export default function SignUpPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center text-lg">
+      <Text color="secondary" className="text-center lg:text-lg">
         Already have an account?{' '}
         <NavLink href="/signin" color="white" className="font-medium">
           Sign in

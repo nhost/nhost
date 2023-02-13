@@ -74,12 +74,12 @@ export default function SignInPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-4.5xl font-semibold"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
         Sign In with Email
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-12">
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -91,7 +91,6 @@ export default function SignInPage() {
               id="email"
               label="Email"
               placeholder="Email"
-              autoFocus
               fullWidth
               inputProps={{ min: 2, max: 128 }}
               spellCheck="false"
@@ -184,7 +183,7 @@ export default function SignInPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center text-lg">
+      <Text color="secondary" className="text-center text-base lg:text-lg">
         New to Nhost?{' '}
         <NavLink href="/signup" color="white" className="font-medium">
           Sign up

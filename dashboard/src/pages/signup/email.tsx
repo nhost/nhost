@@ -79,12 +79,12 @@ export default function EmailSignUpPage() {
       <Text
         variant="h2"
         component="h1"
-        className="text-center text-4.5xl font-semibold"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
         Sign Up with Email
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-12">
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -98,7 +98,6 @@ export default function EmailSignUpPage() {
               spellCheck="false"
               autoCapitalize="none"
               type="text"
-              autoFocus
               label="Name"
               hideEmptyHelperText
               fullWidth
@@ -182,7 +181,7 @@ export default function EmailSignUpPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center text-lg">
+      <Text color="secondary" className="text-center text-base lg:text-lg">
         Already have an account?{' '}
         <NavLink href="/signin" color="white">
           Sign in
