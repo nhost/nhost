@@ -9,10 +9,10 @@ Initialize a local Nhost project.
 nhost init
 ```
 
-If you already have a Nhost project in Nhost Cloud you can use that project as a starting point by appending `--remote` to the command.
+To use an existing Nhost project in Nhost Cloud as a starting point, run `nhost init --remote`. This command should only be used once and only if you want to adopt the [Git-based workflow](/platform/git) using the Nhost Cloud project.
 
-```
-nhost init --remote
-```
+The `nhost init --remote` command does the following:
 
-This will reset the local database migrations and Hasura metadata, and pull the database migrations and Hasura metadata from the Nhost Cloud project locally for you to use as a starting point. While doing `nhost init --remote` it's also recommended to setup [Git](/platform/git) to activate automated deplouments on `git push` for your Nhost project.
+- Creates a new local Nhost project.
+- Pulls the database migrations and Hasura metadata from the Nhost Cloud project.
+- Resets the remote Nhost Cloud project's database migrations.
