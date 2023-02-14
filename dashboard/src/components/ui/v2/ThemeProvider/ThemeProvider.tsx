@@ -7,9 +7,12 @@ import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import Head from 'next/head';
 import type { PropsWithChildren } from 'react';
 
-function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
+function ThemeProviderContent({
+  children,
+  color: manualColor,
+}: PropsWithChildren<{ color?: 'light' | 'dark' }>) {
   const { color } = useColorPreference();
-  const theme = createTheme(color);
+  const theme = createTheme(manualColor || color);
 
   return (
     <MaterialThemeProvider theme={theme}>
@@ -38,17 +41,22 @@ export interface ThemeProviderProps extends PropsWithChildren<unknown> {
    * @default 'color-mode'
    */
   colorPreferenceStorageKey?: string;
+  /**
+   * Manually set the color preference.
+   */
+  color?: 'light' | 'dark';
 }
 
 function ThemeProvider({
   children,
+  color,
   colorPreferenceStorageKey = 'color-preference',
 }: ThemeProviderProps) {
   return (
     <ColorPreferenceProvider
       colorPreferenceStorageKey={colorPreferenceStorageKey}
     >
-      <ThemeProviderContent>{children}</ThemeProviderContent>
+      <ThemeProviderContent color={color}>{children}</ThemeProviderContent>
     </ColorPreferenceProvider>
   );
 }

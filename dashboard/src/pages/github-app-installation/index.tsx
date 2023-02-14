@@ -12,13 +12,11 @@ export function authProtected<P>(Comp: ComponentType<P>) {
     const { isAuthenticated, isLoading } = useAuthenticationStatus();
 
     useEffect(() => {
-      if (!isLoading) {
-        if (!isAuthenticated && router.pathname === '/') {
-          router.push('/signup');
-        } else if (!isAuthenticated) {
-          router.push('/signin');
-        }
+      if (isLoading || isAuthenticated) {
+        return;
       }
+
+      router.push('/signin');
     }, [isLoading, isAuthenticated, router]);
 
     if (isLoading) {

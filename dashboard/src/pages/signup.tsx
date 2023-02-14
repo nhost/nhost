@@ -1,342 +1,214 @@
 import Form from '@/components/common/Form';
+import NavLink from '@/components/common/NavLink';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Link from '@/ui/v2/Link';
+import Divider from '@/ui/v2/Divider';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
-import { useTheme } from '@mui/material';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
-import kebabCase from 'just-kebab-case';
-import Image from 'next/image';
-import NavLink from 'next/link';
-import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-const sellingPoints = [
-  'Awesome Free Plan',
-  'Postgres Database',
-  'Instant GraphQL API with Hasura',
-  'Authentication and Storage',
-  'TypeScript Client',
-  'Serverless Functions',
-  'Push code to deploy with our GitHub Integration',
-];
+const validationSchema = Yup.object({
+  email: Yup.string().label('Email').email().required(),
+  password: Yup.string().label('Password').required(),
+  displayName: Yup.string().label('Name').required(),
+});
 
-const companies = [
-  'Revtron',
-  'HyperLab',
-  'Orthopy',
-  'Celsia',
-  'ServeHub',
-  'Teamtailor',
-];
+export type SignUpFormValues = Yup.InferType<typeof validationSchema>;
 
-function SignUpWithGithub({ setSignUpMethod }: any) {
-  const [isLoading, setIsLoading] = useState(false);
+const StyledInput = styled(Input)({
+  backgroundColor: 'transparent',
+  [`& .${inputClasses.input}`]: {
+    backgroundColor: 'transparent !important',
+  },
+});
 
-  return (
-    <div className="flex flex-col items-center">
-      <button
-        type="button"
-        className="flex flex-row items-center space-x-6 rounded-sm+ bg-github px-6 py-3 font-display font-medium text-white transition-all duration-200 ease-in-out disabled:opacity-40"
-        disabled={isLoading}
-        onClick={() => {
-          setIsLoading(true);
-          nhost.auth.signIn({ provider: 'github' });
-        }}
-      >
-        <GithubIcon className="h-6 w-6 text-white" />
-        <div>Sign Up with GitHub</div>
-      </button>
-      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
-        <span>or</span>
-        <Button
-          variant="borderless"
-          type="button"
-          size="small"
-          onClick={() => setSignUpMethod('email')}
-          className="hover:bg-transparent hover:underline"
-        >
-          sign up with email
-        </Button>
-      </div>
-    </div>
-  );
-}
+export default function SignUpPage() {
+  const { signUpEmailPassword, error } = useSignUpEmailPassword();
+  const [loading, setLoading] = useState(false);
 
-type SignUpFormProps = {
-  displayName: string;
-  email: string;
-  password: string;
-};
-
-function SignUpWithEmail({ setSignUpMethod }: any) {
-  const { signUpEmailPassword, isLoading, isSuccess, isError, error } =
-    useSignUpEmailPassword();
-
-  const form = useForm<SignUpFormProps>({
+  const form = useForm<SignUpFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      displayName: '',
       email: '',
       password: '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
-  const { register } = form;
+  const { register, formState } = form;
 
-  const router = useRouter();
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
 
-  async function onSubmit({ email, password, displayName }: SignUpFormProps) {
-    await signUpEmailPassword(email, password, {
-      displayName,
-    });
-  }
+    toast.error(
+      error?.message || 'An error occurred while signing up. Please try again.',
+      getToastStyleProps(),
+    );
+  }, [error]);
 
-  if (isSuccess) {
-    router.push('/');
+  async function handleSubmit({
+    email,
+    password,
+    displayName,
+  }: SignUpFormValues) {
+    try {
+      await signUpEmailPassword(email, password, { displayName });
+    } catch {
+      toast.error(
+        'An error occurred while signing up. Please try again.',
+        getToastStyleProps(),
+      );
+    }
   }
 
   return (
-    <div className="grid grid-flow-row items-center justify-items-center gap-2">
-      <Text variant="h1" className="text-lg font-semibold">
-        Sign Up with Email
+    <>
+      <Text
+        variant="h2"
+        component="h1"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
+      >
+        Sign Up
       </Text>
 
-      <FormProvider register={register} {...form}>
-        <Form onSubmit={onSubmit} className="grid w-full grid-flow-row gap-3">
-          <Input
-            {...register('displayName')}
-            id="displayName"
-            placeholder="Name"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="text"
-            autoFocus
-            label="Name"
-            hideEmptyHelperText
-            fullWidth
-            autoComplete="off"
-          />
-
-          <Input
-            {...register('email')}
-            id="email"
-            placeholder="Email"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="email"
-            label="Email"
-            hideEmptyHelperText
-            fullWidth
-          />
-
-          <Input
-            {...register('password')}
-            id="password"
-            placeholder="Password"
-            required
-            inputProps={{
-              min: 2,
-              max: 128,
-            }}
-            spellCheck="false"
-            autoCapitalize="none"
-            type="password"
-            label="Password"
-            hideEmptyHelperText
-            fullWidth
-          />
-
-          <div className="flex flex-col">
-            <Button type="submit" disabled={isLoading} loading={isLoading}>
-              Sign Up
-            </Button>
-          </div>
-        </Form>
-      </FormProvider>
-
-      {isError && (
-        <Text className="font-medium" color="error">
-          Error: {error.message}
-        </Text>
-      )}
-
-      <div className="mt-2 grid grid-flow-col items-center justify-center gap-px">
-        <span>or</span>
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
           variant="borderless"
-          type="button"
-          size="small"
-          onClick={() => setSignUpMethod('github')}
-          className="hover:bg-transparent hover:underline"
+          className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
+          startIcon={<GithubIcon />}
+          disabled={loading}
+          loading={loading}
+          size="large"
+          onClick={async () => {
+            setLoading(true);
+
+            try {
+              await nhost.auth.signIn({ provider: 'github' });
+            } catch {
+              toast.error(
+                `An error occurred while trying to sign up using GitHub. Please try again.`,
+                getToastStyleProps(),
+              );
+            } finally {
+              setLoading(false);
+            }
+          }}
         >
-          sign up with GitHub
+          Sign Up with GitHub
         </Button>
-      </div>
-    </div>
-  );
-}
 
-function SignUpController() {
-  const [signUpMethod, setSignUpMethod] = useState('github');
+        <div className="relative py-2">
+          <Text
+            className="absolute left-0 right-0 top-1/2 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-sm"
+            color="disabled"
+          >
+            OR
+          </Text>
 
-  if (signUpMethod === 'github') {
-    return <SignUpWithGithub setSignUpMethod={setSignUpMethod} />;
-  }
-  if (signUpMethod === 'email') {
-    return <SignUpWithEmail setSignUpMethod={setSignUpMethod} />;
-  }
+          <Divider />
+        </div>
 
-  return null;
-}
-
-export default function SignUpPage() {
-  const theme = useTheme();
-
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="grid max-w-6xl grid-cols-1 gap-x-20 gap-y-14 px-5 md:grid-cols-2">
-        <div className="flex items-center justify-center md:order-1">
-          <div className="z-30">
-            <div className="block md:hidden">
-              <div className="mb-5">
-                <Image
-                  src={
-                    theme.palette.mode === 'dark'
-                      ? '/assets/brands/light/nhost-with-text.svg'
-                      : '/assets/brands/nhost-with-text.svg'
-                  }
-                  alt="Nhost Logo"
-                  width={185}
-                  height={64}
-                />
-              </div>
-              <div className="mb-4 text-3xl font-semibold">
-                Build the App of Your Dreams
-              </div>
-            </div>
-            <Box className="rounded-lg border px-12 py-4">
-              <div className="my-4">
-                <SignUpController />
-              </div>
-              <Text className="mt-4 text-center text-xs" color="secondary">
-                By signing up, you agree to our{' '}
-                <Link
-                  href="https://nhost.io/legal/terms-of-service"
-                  target="_blank"
-                  rel="noreferrer"
-                  underline="hover"
-                >
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link
-                  href="https://nhost.io/legal/privacy-policy"
-                  target="_blank"
-                  rel="noreferrer"
-                  underline="hover"
-                >
-                  Privacy Policy
-                </Link>
-                .
-              </Text>
-            </Box>
-            <div className="mt-3 flex justify-center">
-              <div className="grid grid-flow-col items-center justify-center gap-1">
-                <Text className="text-sm">Already have an account?</Text>
-
-                <NavLink href="/signin" passHref>
-                  <Link href="signin" underline="hover">
-                    Sign in
-                  </Link>
-                </NavLink>
-              </div>
-            </div>
-          </div>
-          <div className="absolute w-full max-w-[887px]">
-            <Image
-              src="/assets/signup/bg-gradient.svg"
-              alt="Gradient background"
-              width={887}
-              height={620}
-              layout="responsive"
+        <FormProvider {...form}>
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-flow-row gap-4 bg-transparent"
+          >
+            <StyledInput
+              {...register('displayName')}
+              id="displayName"
+              label="Name"
+              placeholder="Name"
+              fullWidth
+              autoFocus
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
             />
-          </div>
-        </div>
-        <div className="">
-          <div className="hidden md:block">
-            <div className="mb-10">
-              <Image
-                src={
-                  theme.palette.mode === 'dark'
-                    ? '/assets/brands/light/nhost-with-text.svg'
-                    : '/assets/brands/nhost-with-text.svg'
-                }
-                alt="Nhost Logo"
-                width={185}
-                height={64}
-              />
-            </div>
-            <div className="mb-4 text-2xl font-semibold">
-              Build the App of Your Dreams
-            </div>
-          </div>
-          <div className="my-4 flex flex-col space-y-3">
-            {sellingPoints.map((sellingPoint) => (
-              <div key={sellingPoint} className="flex items-center space-x-2">
-                <Image
-                  src="/assets/signup/CircleWavyCheck.svg"
-                  alt="Check"
-                  width={24}
-                  height={24}
-                />
 
-                <Text className="!text-xl" color="secondary">
-                  {sellingPoint}
-                </Text>
-              </div>
-            ))}
-          </div>
-          <Box
-            className="my-14 h-2 opacity-20"
-            sx={{ backgroundColor: 'primary.main' }}
-          />
-          <div className="my-4 grid grid-cols-3 items-center gap-x-6 gap-y-6 opacity-40">
-            {companies.map((company) => (
-              <div key={company} className="h-[25px] w-[150px]">
-                <Image
-                  src={
-                    theme.palette.mode === 'dark'
-                      ? `/assets/brands/light/${kebabCase(company)}.svg`
-                      : `/assets/brands/${kebabCase(company)}.svg`
-                  }
-                  alt={`Logo of ${company}`}
-                  width={150}
-                  height={25}
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+            <StyledInput
+              {...register('email')}
+              type="email"
+              id="email"
+              label="Email"
+              placeholder="Email"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
+            />
+
+            <StyledInput
+              {...register('password')}
+              type="password"
+              id="password"
+              label="Password"
+              placeholder="Password"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.password}
+              helperText={formState.errors.password?.message}
+            />
+
+            <Button
+              variant="outlined"
+              color="secondary"
+              className="hover:!bg-white hover:!bg-opacity-10 focus:ring-0"
+              size="large"
+              type="submit"
+              disabled={formState.isSubmitting}
+              loading={formState.isSubmitting}
+            >
+              Sign Up
+            </Button>
+          </Form>
+        </FormProvider>
+
+        <Divider className="!my-2" />
+
+        <Text color="secondary" className="text-center text-sm">
+          By signing up, you agree to our{' '}
+          <NavLink
+            href="https://nhost.io/legal/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold"
+            color="white"
+          >
+            Terms of Service
+          </NavLink>{' '}
+          and{' '}
+          <NavLink
+            href="https://nhost.io/legal/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold"
+            color="white"
+          >
+            Privacy Policy
+          </NavLink>
+        </Text>
+      </Box>
+
+      <Text color="secondary" className="text-center text-base lg:text-lg">
+        Already have an account?{' '}
+        <NavLink href="/signin" color="white" className="font-medium">
+          Sign In
+        </NavLink>
+      </Text>
+    </>
   );
 }
 
