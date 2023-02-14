@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.8
+
+### Patch Changes
+
+- f33242f2: feat(dashboard): add new sign up, sign in and reset password pages
+
 ## 0.11.7
 
 ### Patch Changes
