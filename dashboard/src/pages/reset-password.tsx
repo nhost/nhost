@@ -117,8 +117,8 @@ export default function ResetPasswordPage() {
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
         Is your password okay?{' '}
-        <NavLink href="/signin" color="white" className="font-medium">
-          Sign in
+        <NavLink href="/signin/email" color="white" className="font-medium">
+          Sign In
         </NavLink>
       </Text>
     </>

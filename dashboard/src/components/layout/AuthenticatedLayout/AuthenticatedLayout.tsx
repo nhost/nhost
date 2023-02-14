@@ -45,12 +45,6 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    if (router.pathname === '/') {
-      router.push('/signup');
-
-      return;
-    }
-
     router.push('/signin');
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
@@ -84,7 +78,7 @@ export default function AuthenticatedLayout({
 
         <Container
           rootClassName="h-full"
-          className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center"
+          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
         >
           <div className="mx-auto">
             <Image
@@ -121,7 +115,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex flex-col h-full" {...props}>
+    <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex max-h-[59px] flex-auto" />
 
       <InviteAnnounce />

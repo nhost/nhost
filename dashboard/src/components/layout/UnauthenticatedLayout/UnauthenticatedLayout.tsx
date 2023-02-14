@@ -34,7 +34,7 @@ export default function UnauthenticatedLayout({
     return (
       <BaseLayout {...props}>
         <LoadingScreen
-          sx={{ backgroundColor: '#000 !important' }}
+          sx={{ backgroundColor: (theme) => theme.palette.background.default }}
           slotProps={{
             activityIndicator: {
               className: 'text-white',
@@ -73,7 +73,7 @@ export default function UnauthenticatedLayout({
               </div>
 
               <div className="relative order-1 flex h-full min-h-[150px] w-full items-center justify-center lg:order-2 lg:min-h-[none]">
-                <div className="absolute top-0 left-0 right-0 bottom-0 flex h-full w-full items-center justify-center">
+                <div className="absolute top-0 left-0 right-0 bottom-0 flex h-full w-full items-center justify-center opacity-70">
                   <Image
                     priority
                     src="/assets/line-grid.svg"
@@ -84,6 +84,13 @@ export default function UnauthenticatedLayout({
                     className="h-full scale-[200%]"
                   />
                 </div>
+
+                <Box
+                  className="backface-hidden absolute left-0 right-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
+                  sx={{
+                    backgroundColor: (theme) => theme.palette.primary.main,
+                  }}
+                />
 
                 <Image
                   src="/assets/logo.svg"

@@ -1,73 +1,18 @@
-import Form from '@/components/common/Form';
 import NavLink from '@/components/common/NavLink';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import Input, { inputClasses } from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
-import { useSignInEmailPassword } from '@nhost/nextjs';
 import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import * as Yup from 'yup';
 
-const validationSchema = Yup.object({
-  email: Yup.string().label('Email').email().required(),
-  password: Yup.string().label('Password').required(),
-});
-
-export type SignInFormValues = Yup.InferType<typeof validationSchema>;
-
-const StyledInput = styled(Input)({
-  backgroundColor: 'transparent',
-  [`& .${inputClasses.input}`]: {
-    backgroundColor: 'transparent !important',
-  },
-});
-
-export default function SignInPage() {
-  const { signInEmailPassword, error } = useSignInEmailPassword();
+export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
-
-  const form = useForm<SignInFormValues>({
-    reValidateMode: 'onSubmit',
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-    resolver: yupResolver(validationSchema),
-  });
-
-  const { register, formState } = form;
-
-  useEffect(() => {
-    if (!error) {
-      return;
-    }
-
-    toast.error(
-      error?.message || 'An error occurred while signing in. Please try again.',
-      getToastStyleProps(),
-    );
-  }, [error]);
-
-  async function handleSubmit({ email, password }: SignInFormValues) {
-    try {
-      await signInEmailPassword(email, password);
-    } catch {
-      toast.error(
-        'An error occurred while signing up. Please try again.',
-        getToastStyleProps(),
-      );
-    }
-  }
 
   return (
     <>
@@ -76,88 +21,45 @@ export default function SignInPage() {
         component="h1"
         className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
-        Sign In with Email
+        It&apos;s time to build
       </Text>
 
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
-        <FormProvider {...form}>
-          <Form
-            onSubmit={handleSubmit}
-            className="grid grid-flow-row gap-4 bg-transparent"
-          >
-            <StyledInput
-              {...register('email')}
-              type="email"
-              id="email"
-              label="Email"
-              placeholder="Email"
-              fullWidth
-              inputProps={{ min: 2, max: 128 }}
-              spellCheck="false"
-              autoCapitalize="none"
-              error={!!formState.errors.email}
-              helperText={formState.errors.email?.message}
-            />
+        <Button
+          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          startIcon={<GithubIcon />}
+          size="large"
+          disabled={loading}
+          loading={loading}
+          onClick={async () => {
+            setLoading(true);
 
-            <StyledInput
-              {...register('password')}
-              type="password"
-              id="password"
-              label="Password"
-              placeholder="Password"
-              fullWidth
-              inputProps={{ min: 2, max: 128 }}
-              spellCheck="false"
-              autoCapitalize="none"
-              error={!!formState.errors.password}
-              helperText={formState.errors.password?.message}
-            />
+            try {
+              await nhost.auth.signIn({ provider: 'github' });
+            } catch {
+              toast.error(
+                `An error occurred while trying to sign in using GitHub. Please try again later.`,
+                getToastStyleProps(),
+              );
+            } finally {
+              setLoading(false);
+            }
+          }}
+        >
+          Continue with GitHub
+        </Button>
 
-            <NavLink
-              href="/reset-password"
-              color="white"
-              className="justify-self-start font-semibold"
-            >
-              Forgot password?
-            </NavLink>
+        <Button
+          variant="borderless"
+          className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
+          size="large"
+          href="/signin/email"
+          LinkComponent={NavLink}
+        >
+          Continue with Email
+        </Button>
 
-            <Button
-              className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-              size="large"
-              type="submit"
-              disabled={formState.isSubmitting}
-              loading={formState.isSubmitting}
-            >
-              Sign In
-            </Button>
-
-            <Button
-              variant="borderless"
-              className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
-              startIcon={<GithubIcon />}
-              disabled={loading}
-              loading={loading}
-              onClick={async () => {
-                setLoading(true);
-
-                try {
-                  await nhost.auth.signIn({ provider: 'github' });
-                } catch {
-                  toast.error(
-                    `An error occurred while trying to sign in using GitHub. Please try again later.`,
-                    getToastStyleProps(),
-                  );
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
-              Continue with GitHub
-            </Button>
-          </Form>
-        </FormProvider>
-
-        <Divider />
+        <Divider className="!my-2" />
 
         <Text color="secondary" className="text-center text-sm">
           By clicking continue, you agree to our{' '}
@@ -183,16 +85,16 @@ export default function SignInPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center text-base lg:text-lg">
-        New to Nhost?{' '}
+      <Text color="secondary" className="text-center lg:text-lg">
+        Don&apos;t have an account?{' '}
         <NavLink href="/signup" color="white" className="font-medium">
-          Sign up
+          Sign Up
         </NavLink>
       </Text>
     </>
   );
 }
 
-SignInPage.getLayout = function getLayout(page: ReactElement) {
+SignUpPage.getLayout = function getLayout(page: ReactElement) {
   return <UnauthenticatedLayout title="Sign In">{page}</UnauthenticatedLayout>;
 };

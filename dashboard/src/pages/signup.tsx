@@ -1,18 +1,78 @@
+import Form from '@/components/common/Form';
 import NavLink from '@/components/common/NavLink';
 import GithubIcon from '@/components/icons/GithubIcon';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
+import { useSignUpEmailPassword } from '@nhost/nextjs';
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
+
+const validationSchema = Yup.object({
+  email: Yup.string().label('Email').email().required(),
+  password: Yup.string().label('Password').required(),
+  displayName: Yup.string().label('Name').required(),
+});
+
+export type SignUpFormValues = Yup.InferType<typeof validationSchema>;
+
+const StyledInput = styled(Input)({
+  backgroundColor: 'transparent',
+  [`& .${inputClasses.input}`]: {
+    backgroundColor: 'transparent !important',
+  },
+});
 
 export default function SignUpPage() {
+  const { signUpEmailPassword, error } = useSignUpEmailPassword();
   const [loading, setLoading] = useState(false);
+
+  const form = useForm<SignUpFormValues>({
+    reValidateMode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    resolver: yupResolver(validationSchema),
+  });
+
+  const { register, formState } = form;
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    toast.error(
+      error?.message || 'An error occurred while signing up. Please try again.',
+      getToastStyleProps(),
+    );
+  }, [error]);
+
+  async function handleSubmit({
+    email,
+    password,
+    displayName,
+  }: SignUpFormValues) {
+    try {
+      await signUpEmailPassword(email, password, { displayName });
+    } catch {
+      toast.error(
+        'An error occurred while signing up. Please try again.',
+        getToastStyleProps(),
+      );
+    }
+  }
 
   return (
     <>
@@ -21,16 +81,17 @@ export default function SignUpPage() {
         component="h1"
         className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
-        It&apos;s time to build
+        Sign Up
       </Text>
 
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
+          variant="borderless"
           className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
           startIcon={<GithubIcon />}
-          size="large"
           disabled={loading}
           loading={loading}
+          size="large"
           onClick={async () => {
             setLoading(true);
 
@@ -38,7 +99,7 @@ export default function SignUpPage() {
               await nhost.auth.signIn({ provider: 'github' });
             } catch {
               toast.error(
-                `An error occurred while trying to sign in using GitHub. Please try again later.`,
+                `An error occurred while trying to sign up using GitHub. Please try again.`,
                 getToastStyleProps(),
               );
             } finally {
@@ -46,23 +107,77 @@ export default function SignUpPage() {
             }
           }}
         >
-          Continue with GitHub
+          Sign Up with GitHub
         </Button>
 
-        <Button
-          variant="borderless"
-          className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
-          size="large"
-          href="/signup/email"
-          LinkComponent={NavLink}
-        >
-          Continue with Email
-        </Button>
+        <div className="relative py-2">
+          <Text
+            className="absolute left-0 right-0 top-1/2 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-sm"
+            color="disabled"
+          >
+            OR
+          </Text>
 
-        <Divider />
+          <Divider />
+        </div>
+
+        <FormProvider {...form}>
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-flow-row gap-4 bg-transparent"
+          >
+            <StyledInput
+              {...register('displayName')}
+              id="displayName"
+              label="Name"
+              placeholder="Name"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
+            />
+
+            <StyledInput
+              {...register('email')}
+              type="email"
+              id="email"
+              label="Email"
+              placeholder="Email"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
+            />
+
+            <StyledInput
+              {...register('password')}
+              type="password"
+              id="password"
+              label="Password"
+              placeholder="Password"
+              fullWidth
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.password}
+              helperText={formState.errors.password?.message}
+            />
+
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="large"
+              type="submit"
+              disabled={formState.isSubmitting}
+              loading={formState.isSubmitting}
+            >
+              Sign Up
+            </Button>
+          </Form>
+        </FormProvider>
+
+        <Divider className="!my-2" />
 
         <Text color="secondary" className="text-center text-sm">
-          By clicking continue, you agree to our{' '}
+          By signing up, you agree to our{' '}
           <NavLink
             href="https://nhost.io/legal/terms-of-service"
             target="_blank"
@@ -85,10 +200,10 @@ export default function SignUpPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center lg:text-lg">
+      <Text color="secondary" className="text-center text-base lg:text-lg">
         Already have an account?{' '}
         <NavLink href="/signin" color="white" className="font-medium">
-          Sign in
+          Sign In
         </NavLink>
       </Text>
     </>
