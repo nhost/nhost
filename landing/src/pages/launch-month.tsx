@@ -182,7 +182,16 @@ export default function Page() {
             link: '/blog/new-branding-and-website',
           }}
         />
-        <TbaDay date={new Date('2023-02-15T16:00:00.000+02:00')} />
+        <PostDay
+          date={new Date('2023-02-15T16:00:00.000+02:00')}
+          post={{
+            image: '/images/blog/nextjs-stripe-starter-template/banner.png',
+            title: 'Next.js Stripe Starter Template',
+            description:
+              "Save time and hassle building your next SaaS project with Nhost's fully-configured Next.js Stripe starter template, designed to get your subscription payments set up and running quickly.",
+            link: '/blog/nextjs-stripe-starter-template',
+          }}
+        />
         <TbaDay date={new Date('2023-02-22T16:00:00.000+02:00')} />
       </div>
     </Layout>
