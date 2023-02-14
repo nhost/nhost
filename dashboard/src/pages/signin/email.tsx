@@ -94,6 +94,7 @@ export default function EmailSignUpPage() {
               fullWidth
               error={!!formState.errors.email}
               helperText={formState.errors.email?.message}
+              autoFocus
             />
 
             <StyledInput

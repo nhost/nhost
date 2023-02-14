@@ -132,6 +132,7 @@ export default function SignUpPage() {
               label="Name"
               placeholder="Name"
               fullWidth
+              autoFocus
               inputProps={{ min: 2, max: 128 }}
               error={!!formState.errors.email}
               helperText={formState.errors.email?.message}
