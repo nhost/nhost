@@ -35,7 +35,7 @@ func TestConfig_dashboardService(t *testing.T) {
 		"NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1",
 		"NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run",
 		"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run/console",
-		"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=http://localhost:9693",
+		"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run",
 		"NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1",
 	}), svc.Environment)
 }
@@ -297,7 +297,7 @@ func TestConfig_addLocaldevExtraHost(t *testing.T) {
 func TestConfig_hasuraMigrationsApiURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "http://localhost:9693", c.hasuraMigrationsApiURL())
+	assert.Equal(t, "https://local.hasura.nhost.run", c.hasuraMigrationsApiURL())
 }
 
 func TestConfig_hasuraApiURL(t *testing.T) {

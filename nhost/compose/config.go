@@ -245,5 +245,5 @@ func (c Config) hasuraApiURL() string {
 }
 
 func (c Config) hasuraMigrationsApiURL() string {
-	return HasuraMigrationsAPIHostname(c.ports.HasuraConsoleAPI())
+	return HasuraHostname(c.ports.SSLProxy())
 }

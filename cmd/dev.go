@@ -378,7 +378,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(ports.FlagPortDB, ports.DefaultDBPort, "Port for database")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortGraphQL, ports.DefaultGraphQLPort, "Port for graphql server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsole, ports.DefaultHasuraConsolePort, "Port for hasura console")
-	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsoleAPI, ports.DefaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsoleAPI, ports.DefaultHasuraConsoleAPIPort, "Port for serving hasura migrate API")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")

@@ -18,7 +18,7 @@ func TestEndpoints_Dump(t *testing.T) {
 		ports.DefaultDBPort,
 		ports.DefaultGraphQLPort,
 		ports.DefaultHasuraConsolePort,
-		ports.DefaultHasuraConsoleApiPort,
+		ports.DefaultHasuraConsoleAPIPort,
 		ports.DefaultSMTPPort,
 		ports.DefaultS3MinioPort,
 	)

@@ -48,10 +48,6 @@ func HasuraConsoleRedirectHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalHasuraNhostRun, port)
 }
 
-func HasuraMigrationsAPIHostname(port uint32) string {
-	return httpHostnameWithPort(hostHasuraConsole, port)
-}
-
 func AuthHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalAuthNhostRun, port)
 }

@@ -140,25 +140,6 @@ func TestHasuraConsoleHostname(t *testing.T) {
 	}
 }
 
-func TestHasuraMigrationsAPIHostname(t *testing.T) {
-	tests := []struct {
-		name string
-		port uint32
-		want string
-	}{
-		{
-			name: "test",
-			port: 9693,
-			want: "http://localhost:9693",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, compose.HasuraMigrationsAPIHostname(tt.port), "HasuraMigrationsAPIHostname(%v)", tt.port)
-		})
-	}
-}
-
 func TestMailEndpoint(t *testing.T) {
 	tests := []struct {
 		name string

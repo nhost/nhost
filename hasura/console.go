@@ -32,6 +32,7 @@ func (c *console) start(ctx context.Context, consolePort, consoleAPIPort uint32,
 
 	args := []string{
 		"console",
+		"--address", "0.0.0.0",
 		"--no-browser",
 		"--console-port", fmt.Sprint(consolePort),
 		"--api-port", fmt.Sprint(consoleAPIPort),
