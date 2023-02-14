@@ -26,7 +26,7 @@ export default function SignUpPage() {
 
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
-          className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+          className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
           startIcon={<GithubIcon />}
           size="large"
           disabled={loading}
