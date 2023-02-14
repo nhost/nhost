@@ -32,7 +32,7 @@ export function HasuraData({ close }: HasuraDataProps) {
 
   const hasuraUrl =
     process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
-      ? `${getHasuraConsoleServiceUrl()}/console`
+      ? `${getHasuraConsoleServiceUrl()}`
       : generateAppServiceUrl(
           currentApplication?.subdomain,
           currentApplication?.region.awsName,
