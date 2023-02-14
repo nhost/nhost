@@ -95,9 +95,8 @@ export default function ResetPasswordPage() {
               label="Email"
               placeholder="Email"
               fullWidth
+              autoFocus
               inputProps={{ min: 2, max: 128 }}
-              spellCheck="false"
-              autoCapitalize="none"
               error={!!formState.errors.email}
               helperText={formState.errors.email?.message}
             />
