@@ -13,7 +13,7 @@ func (c Config) hasuraServiceEnvs() env {
 		"HASURA_GRAPHQL_ADMIN_SECRET":              util.ADMIN_SECRET,
 		"NHOST_ADMIN_SECRET":                       util.ADMIN_SECRET,
 		"NHOST_BACKEND_URL":                        c.envValueNhostBackendUrl(),
-		"NHOST_SUBDOMAIN":                          "localhost",
+		"NHOST_SUBDOMAIN":                          SubdomainLocal,
 		"NHOST_REGION":                             "",
 		"NHOST_HASURA_URL":                         c.envValueNhostHasuraURL(),
 		"NHOST_GRAPHQL_URL":                        c.PublicHasuraGraphqlEndpoint(),
@@ -37,24 +37,59 @@ func (c Config) hasuraServiceEnvs() env {
 }
 
 func (c Config) hasuraService() *types.ServiceConfig {
+	redirectRootLabels := makeTraefikServiceLabels(
+		"root-redirect-"+SvcHasura,
+		graphqlPort,
+		withTLS(),
+		withHost(HostLocalHasuraNhostRun),
+		withMethod("GET"),
+		withPath("/"),
+		withRedirect(c.PublicHasuraConsoleURL()),
+	)
+
+	redirectConsoleLabels := makeTraefikServiceLabels(
+		"console-redirect-"+SvcHasura,
+		graphqlPort,
+		withTLS(),
+		withHost(HostLocalHasuraNhostRun),
+		withMethod("GET"),
+		withPath("/console"),
+		withRedirect(c.PublicHasuraConsoleURL()),
+	)
+
 	sslLabels := makeTraefikServiceLabels(
 		SvcGraphql,
+		graphqlPort,
 		withTLS(),
+		withPathPrefix("/v1"),
+		withReplacePath("/v1/graphql"),
 		withHost(HostLocalGraphqlNhostRun),
-		withServiceListeningOnPort(graphqlPort),
 	)
 
 	// deprecated endpoints
 	httpLabels := makeTraefikServiceLabels(
 		"http-"+SvcGraphql,
+		graphqlPort,
 		withPathPrefix("/v1/graphql", "/v2/query", "/v1/metadata", "/v1/config"),
+	)
+
+	hasuraLabels := makeTraefikServiceLabels(
+		SvcHasura,
+		graphqlPort,
+		withTLS(),
+		withHost(HostLocalHasuraNhostRun),
 	)
 
 	return &types.ServiceConfig{
 		Name:        SvcGraphql,
 		Image:       c.serviceDockerImage(SvcHasura, svcHasuraDefaultImage),
 		Environment: c.hasuraServiceEnvs().dockerServiceConfigEnv(),
-		Labels:      mergeTraefikServiceLabels(sslLabels, httpLabels).AsMap(),
+		Labels: mergeTraefikServiceLabels(
+			redirectRootLabels,
+			redirectConsoleLabels,
+			sslLabels,
+			httpLabels,
+			hasuraLabels).AsMap(),
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",

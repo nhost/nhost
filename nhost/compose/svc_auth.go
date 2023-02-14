@@ -12,7 +12,7 @@ func (c Config) authServiceEnvs() env {
 	e := env{
 		"AUTH_HOST":                   "0.0.0.0",
 		"HASURA_GRAPHQL_DATABASE_URL": c.postgresConnectionStringForUser("nhost_auth_admin"),
-		"HASURA_GRAPHQL_GRAPHQL_URL":  c.hasuraGraphqlAPIEndpoint(),
+		"HASURA_GRAPHQL_GRAPHQL_URL":  c.PublicHasuraEndpoint() + "/v1/graphql", // can't use https://local.graphql.nhost.run/v1 because of https://github.com/nhost/hasura-auth/blob/258015208f36f21162b9f4d50bb5c6e05ff04c48/src/utils/hasura.ts#L12
 		"AUTH_SERVER_URL":             c.PublicAuthConnectionString(),
 		"HASURA_GRAPHQL_JWT_SECRET":   c.envValueHasuraGraphqlJwtSecret(),
 		"HASURA_GRAPHQL_ADMIN_SECRET": util.ADMIN_SECRET,
@@ -30,6 +30,7 @@ func (c Config) authServiceEnvs() env {
 func (c Config) authService() *types.ServiceConfig {
 	sslLabels := makeTraefikServiceLabels(
 		SvcAuth,
+		authPort,
 		withTLS(),
 		withHost(HostLocalAuthNhostRun),
 		withPathPrefix("/v1"),
@@ -39,6 +40,7 @@ func (c Config) authService() *types.ServiceConfig {
 	// deprecated endpoints
 	httpLabels := makeTraefikServiceLabels(
 		"http-"+SvcAuth,
+		authPort,
 		withPathPrefix("/v1/auth"),
 		withStripPrefix("/v1/auth"),
 	)
@@ -48,7 +50,6 @@ func (c Config) authService() *types.ServiceConfig {
 		Image:       c.serviceDockerImage(SvcAuth, svcAuthDefaultImage),
 		Environment: c.authServiceEnvs().dockerServiceConfigEnv(),
 		Labels:      mergeTraefikServiceLabels(sslLabels, httpLabels).AsMap(),
-		Expose:      []string{"4000"},
 		DependsOn: map[string]types.ServiceDependency{
 			SvcPostgres: {
 				Condition: types.ServiceConditionHealthy,

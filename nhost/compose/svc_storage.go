@@ -7,7 +7,7 @@ import (
 )
 
 func (c Config) storageEnvHasuraEndpoint() string {
-	return fmt.Sprintf("%s/v1", HasuraGraphqlHostname(c.ports.SSLProxy()))
+	return HasuraHostname(c.ports.SSLProxy()) + "/v1"
 }
 
 func (c Config) storageServiceEnvs(apiRootPrefix string) env {
@@ -52,6 +52,7 @@ func (c Config) storageServiceEnvs(apiRootPrefix string) env {
 func (c Config) httpStorageService() *types.ServiceConfig {
 	httpLabels := makeTraefikServiceLabels(
 		"http-"+SvcStorage,
+		storagePort,
 		withPathPrefix("/v1/storage"),
 	)
 
@@ -62,13 +63,13 @@ func (c Config) httpStorageService() *types.ServiceConfig {
 		Environment: c.storageServiceEnvs("/v1/storage").dockerServiceConfigEnv(),
 		Labels:      httpLabels.AsMap(),
 		Command:     []string{"serve"},
-		Expose:      []string{"8576"},
 	}
 }
 
 func (c Config) storageService() *types.ServiceConfig {
 	sslLabels := makeTraefikServiceLabels(
 		SvcStorage,
+		storagePort,
 		withTLS(),
 		withPathPrefix("/v1"),
 		withHost(HostLocalStorageNhostRun),
@@ -81,6 +82,5 @@ func (c Config) storageService() *types.ServiceConfig {
 		Environment: c.storageServiceEnvs("").dockerServiceConfigEnv(),
 		Labels:      sslLabels.AsMap(),
 		Command:     []string{"serve"},
-		Expose:      []string{"8576"},
 	}
 }

@@ -30,10 +30,19 @@ const (
 	// --
 
 	// container ports
-	graphqlPort  = 8080
-	dbPort       = 5432
-	proxyPort    = 1337
-	proxySSLPort = 443
+	authPort        = 4000
+	dashboardPort   = 3000
+	functionsPort   = 3000
+	mailhogUIPort   = 8025
+	mailhogSMTPPort = 1025
+	minioUIPort     = 8484
+	minioS3Port     = 9000
+	storagePort     = 8576
+	graphqlPort     = 8080
+	dbPort          = 5432
+	traefikUIPort   = 8080
+	proxyPort       = 1337
+	proxySSLPort    = 443
 	// --
 
 	// default docker images
@@ -81,12 +90,14 @@ func NewConfig(conf *nhost.Configuration, p *ports.Ports, env []string, gitBranc
 func (c Config) addExtraHosts(svc *types.ServiceConfig) *types.ServiceConfig {
 	svc.ExtraHosts = map[string]string{
 		hostDockerInternal:         hostGateway, // for Linux
-		HostLocalDashboardNhostRun: hostGateway,
+		HostLocalDbNhostRun:        hostGateway,
+		HostLocalHasuraNhostRun:    hostGateway,
 		HostLocalGraphqlNhostRun:   hostGateway,
 		HostLocalAuthNhostRun:      hostGateway,
 		HostLocalStorageNhostRun:   hostGateway,
 		HostLocalFunctionsNhostRun: hostGateway,
-		HostLocalMailNhostRun:      hostGateway,
+		HostLocalMailhogNhostRun:   hostGateway,
+		HostLocalDashboardNhostRun: hostGateway,
 	}
 	return svc
 }
@@ -164,31 +175,39 @@ func (c Config) postgresConnectionStringForUser(user string) string {
 	postgresEnv := c.postgresServiceEnvs()
 	db := postgresEnv[envPostgresDb]
 
-	return fmt.Sprintf("postgres://%s@%s:%d/%s", user, HostLocalDashboardNhostRun, c.ports.DB(), db)
+	return fmt.Sprintf("postgres://%s@%s:%d/%s", user, HostLocalDbNhostRun, c.ports.DB(), db)
 }
 
 func (c Config) PublicHasuraGraphqlEndpoint() string {
-	return HasuraGraphqlHostname(c.ports.SSLProxy())
+	return HasuraGraphqlHostname(c.ports.SSLProxy()) + "/v1"
+}
+
+func (c Config) PublicHasuraEndpoint() string {
+	return HasuraHostname(c.ports.SSLProxy())
 }
 
 func (c Config) PublicAuthConnectionString() string {
 	return fmt.Sprintf("%s/v1", AuthHostname(c.ports.SSLProxy()))
 }
 
-func (c Config) PublicStorageConnectionString() string {
-	return fmt.Sprintf("%s/v1", StorageHostname(c.ports.SSLProxy()))
+func (c Config) PublicHasuraConsoleURL() string {
+	return HasuraConsoleHostname(c.ports.HasuraConsole())
 }
 
-func (c Config) hasuraGraphqlAPIEndpoint() string {
-	return fmt.Sprintf("%s/v1/graphql", HasuraGraphqlHostname(c.ports.SSLProxy()))
+func (c Config) PublicHasuraConsoleRedirectURL() string {
+	return HasuraConsoleRedirectHostname(c.ports.SSLProxy()) + "/console"
+}
+
+func (c Config) PublicStorageConnectionString() string {
+	return fmt.Sprintf("%s/v1", StorageHostname(c.ports.SSLProxy()))
 }
 
 func (c Config) storageEnvPublicURL() string {
 	return StorageHostname(c.ports.SSLProxy())
 }
 
-func (c Config) PublicMailURL() string {
-	return MailHostname(c.ports.SSLProxy())
+func (c Config) PublicMailhogURL() string {
+	return MailhogHostname(c.ports.SSLProxy())
 }
 
 func (c Config) PublicFunctionsConnectionString() string {
@@ -201,10 +220,10 @@ func (c Config) PublicPostgresConnectionString() string {
 	password := postgresEnv[envPostgresPassword]
 	db := postgresEnv[envPostgresDb]
 
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, HostLocalDashboardNhostRun, c.ports.DB(), db)
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, HostLocalDbNhostRun, c.ports.DB(), db)
 }
 
-func (c Config) DashboardURL() string {
+func (c Config) PublicDashboardURL() string {
 	return DashboardHostname(c.ports.SSLProxy())
 }
 
@@ -218,11 +237,11 @@ func (c Config) envValueNhostBackendUrl() string {
 }
 
 func (c Config) envValueNhostHasuraURL() string {
-	return HasuraConsoleHostname(c.ports.HasuraConsole())
+	return c.PublicHasuraConsoleRedirectURL()
 }
 
 func (c Config) hasuraApiURL() string {
-	return HasuraConsoleHostname(c.ports.GraphQL())
+	return HasuraHostname(c.ports.SSLProxy())
 }
 
 func (c Config) hasuraMigrationsApiURL() string {

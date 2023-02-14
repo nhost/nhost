@@ -14,6 +14,8 @@ const (
 	FlagPortHasuraConsoleAPI = "console-api-port"
 	FlagPortSMTP             = "smtp-port"
 	FlagPortMinioS3          = "minio-s3-port"
+	FlagPortMailhog          = "mailhog-port"
+	FlagPortDashboard        = "dashboard-port"
 )
 
 type Ports struct {

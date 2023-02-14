@@ -39,12 +39,12 @@ func TestDashboardHostname(t *testing.T) {
 		{
 			name: "test with default 443 port",
 			port: 443,
-			want: "https://local.nhost.run",
+			want: "https://local.dashboard.nhost.run",
 		},
 		{
 			name: "test with custom port",
 			port: 444,
-			want: "https://local.nhost.run:444",
+			want: "https://local.dashboard.nhost.run:444",
 		},
 	}
 	for _, tt := range tests {
@@ -168,17 +168,17 @@ func TestMailEndpoint(t *testing.T) {
 		{
 			name: "test with default 443 port",
 			port: 443,
-			want: "https://local.mail.nhost.run",
+			want: "https://local.mailhog.nhost.run",
 		},
 		{
 			name: "test with custom port",
 			port: 444,
-			want: "https://local.mail.nhost.run:444",
+			want: "https://local.mailhog.nhost.run:444",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, compose.MailHostname(tt.port), "MailHostname(%v)", tt.port)
+			assert.Equalf(t, tt.want, compose.MailhogHostname(tt.port), "MailhogHostname(%v)", tt.port)
 		})
 	}
 }
@@ -203,6 +203,30 @@ func TestStorageHostname(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, compose.StorageHostname(tt.port), "StorageHostname(%v)", tt.port)
+		})
+	}
+}
+
+func TestHasuraHostname(t *testing.T) {
+	tests := []struct {
+		name string
+		port uint32
+		want string
+	}{
+		{
+			name: "test with default 443 port",
+			port: 443,
+			want: "https://local.hasura.nhost.run",
+		},
+		{
+			name: "test with custom port",
+			port: 444,
+			want: "https://local.hasura.nhost.run:444",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, compose.HasuraHostname(tt.port), "HasuraHostname(%v)", tt.port)
 		})
 	}
 }

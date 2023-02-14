@@ -11,7 +11,7 @@ docker run --rm \
   -e AWS_REGION \
   -v ${PWD}/letsencrypt:/etc/letsencrypt \
   -v ${PWD}/letsencrypt:/var/lib/letsencrypt \
-  certbot/dns-route53 certonly --dns-route53 --dns-route53-propagation-seconds 60 -d local.nhost.run -d local.graphql.nhost.run -d local.auth.nhost.run -d local.storage.nhost.run -d local.functions.nhost.run -d local.mail.nhost.run -m 'siarhei@nhost.io' --non-interactive --agree-tos --server https://acme-v02.api.letsencrypt.org/directory
+  certbot/dns-route53 certonly --dns-route53 --dns-route53-propagation-seconds 60 -d local.db.nhost.run -d local.graphql.nhost.run -d local.hasura.nhost.run -d local.auth.nhost.run -d local.storage.nhost.run -d local.functions.nhost.run -d local.mailhog.nhost.run -d local.dashboard.nhost.run -m 'siarhei@nhost.io' --non-interactive --agree-tos --server https://acme-v02.api.letsencrypt.org/directory
 
-sudo cp letsencrypt/live/localdev.nhost.run/fullchain.pem internal/ssl/.ssl/
-sudo cp letsencrypt/live/localdev.nhost.run/privkey.pem internal/ssl/.ssl/
+sudo cp letsencrypt/live/local.db.nhost.run/fullchain.pem internal/ssl/.ssl/
+sudo cp letsencrypt/live/local.db.nhost.run/privkey.pem internal/ssl/.ssl/

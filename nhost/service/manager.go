@@ -231,20 +231,22 @@ func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
 	return bucketCreator.EnsureBucketExists(ctx, bucketName)
 }
 
+// http://localhost:9695
 func (m *dockerComposeManager) HasuraConsoleURL() string {
-	return fmt.Sprintf("http://localhost:%d", m.ports.HasuraConsole())
+	return m.composeConfig.PublicHasuraConsoleURL()
 }
 
 func (m *dockerComposeManager) Endpoints() *Endpoints {
-	return newEndpoints(
+	return NewEndpoints(
 		m.composeConfig.PublicPostgresConnectionString(),
 		m.composeConfig.PublicHasuraGraphqlEndpoint(),
+		m.composeConfig.PublicHasuraEndpoint(),
 		m.composeConfig.PublicAuthConnectionString(),
 		m.composeConfig.PublicStorageConnectionString(),
 		m.composeConfig.PublicFunctionsConnectionString(),
-		m.HasuraConsoleURL(),
-		m.composeConfig.DashboardURL(),
-		m.composeConfig.PublicMailURL(),
+		m.composeConfig.PublicHasuraConsoleRedirectURL(),
+		m.composeConfig.PublicDashboardURL(),
+		m.composeConfig.PublicMailhogURL(),
 	)
 }
 
@@ -442,7 +444,7 @@ func (m *dockerComposeManager) restartContainers(ctx context.Context, ds *compos
 
 func (m *dockerComposeManager) hasuraHealthcheck(ctx context.Context) (bool, error) {
 	// GET /healthz and check for 200
-	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/healthz", compose.HostLocalDashboardNhostRun, m.ports.GraphQL()), http.NoBody)
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/healthz", compose.HostLocalhost, m.ports.GraphQL()), http.NoBody)
 	if err != nil {
 		return false, err
 	}

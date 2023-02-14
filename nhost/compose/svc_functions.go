@@ -10,7 +10,7 @@ func (c Config) functionsServiceEnvs() env {
 	e := env{}
 	e.merge(env{
 		"NHOST_BACKEND_URL":    c.envValueNhostBackendUrl(),
-		"NHOST_SUBDOMAIN":      HostLocalDashboardNhostRun,
+		"NHOST_SUBDOMAIN":      SubdomainLocal,
 		"NHOST_REGION":         "",
 		"NHOST_HASURA_URL":     c.envValueNhostHasuraURL(),
 		"NHOST_GRAPHQL_URL":    c.PublicHasuraGraphqlEndpoint(),
@@ -38,6 +38,7 @@ func (c Config) functionsServiceHealthcheck(interval, startPeriod time.Duration)
 func (c Config) functionsService() *types.ServiceConfig {
 	sslLabels := makeTraefikServiceLabels(
 		SvcFunctions,
+		functionsPort,
 		withTLS(),
 		withPathPrefix("/v1"),
 		withStripPrefix("/v1"),
@@ -46,6 +47,7 @@ func (c Config) functionsService() *types.ServiceConfig {
 
 	httpLabels := makeTraefikServiceLabels(
 		"http-"+SvcFunctions,
+		functionsPort,
 		withPathPrefix("/v1/functions"),
 		withStripPrefix("/v1/functions"),
 	)
@@ -55,7 +57,6 @@ func (c Config) functionsService() *types.ServiceConfig {
 		Image:       c.serviceDockerImage(SvcFunctions, svcFunctionsDefaultImage),
 		Labels:      mergeTraefikServiceLabels(sslLabels, httpLabels).AsMap(),
 		Restart:     types.RestartPolicyAlways,
-		Expose:      []string{"3000"},
 		Environment: c.functionsServiceEnvs().dockerServiceConfigEnv(),
 		HealthCheck: c.functionsServiceHealthcheck(time.Second*1, time.Minute*30), // 30 minutes is the maximum allowed time for a "functions" service to start, see more below
 		// Probe failure during that period will not be counted towards the maximum number of retries

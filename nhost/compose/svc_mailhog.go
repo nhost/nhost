@@ -50,9 +50,9 @@ func (c Config) mailhogService() *types.ServiceConfig {
 
 	labels := makeTraefikServiceLabels(
 		SvcMailhog,
+		mailhogUIPort,
 		withTLS(),
-		withHost(HostLocalMailNhostRun),
-		withServiceListeningOnPort(8025),
+		withHost(HostLocalMailhogNhostRun),
 	)
 
 	return &types.ServiceConfig{
@@ -64,7 +64,7 @@ func (c Config) mailhogService() *types.ServiceConfig {
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",
-				Target:    1025,
+				Target:    mailhogSMTPPort,
 				Published: fmt.Sprint(c.ports.SMTP()),
 				Protocol:  "tcp",
 			},

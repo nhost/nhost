@@ -32,9 +32,9 @@ func TestConfig_dashboardService(t *testing.T) {
 		"BAR=BAZ",
 		"NEXT_PUBLIC_NHOST_AUTH_URL=https://local.auth.nhost.run/v1",
 		"NEXT_PUBLIC_NHOST_FUNCTIONS_URL=https://local.functions.nhost.run/v1",
-		"NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1/graphql",
-		"NEXT_PUBLIC_NHOST_HASURA_API_URL=http://localhost:8080",
-		"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=http://localhost:9695",
+		"NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1",
+		"NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run",
+		"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run/console",
 		"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=http://localhost:9693",
 		"NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1",
 	}), svc.Environment)
@@ -46,10 +46,10 @@ func TestConfig_functionsServiceEnvs(t *testing.T) {
 
 	assert.Equal(t, env{
 		"NHOST_BACKEND_URL":    "http://traefik:1337",
-		"NHOST_SUBDOMAIN":      "local.nhost.run",
+		"NHOST_SUBDOMAIN":      "local",
 		"NHOST_REGION":         "",
-		"NHOST_HASURA_URL":     "http://localhost:9695",
-		"NHOST_GRAPHQL_URL":    "https://local.graphql.nhost.run",
+		"NHOST_HASURA_URL":     "https://local.hasura.nhost.run/console",
+		"NHOST_GRAPHQL_URL":    "https://local.graphql.nhost.run/v1",
 		"NHOST_AUTH_URL":       "https://local.auth.nhost.run/v1",
 		"NHOST_STORAGE_URL":    "https://local.storage.nhost.run/v1",
 		"NHOST_FUNCTIONS_URL":  "https://local.functions.nhost.run/v1",
@@ -86,7 +86,7 @@ func TestConfig_storageServiceEnvs(t *testing.T) {
 				"API_ROOT_PREFIX":             "/v1",
 				"POSTGRES_MIGRATIONS":         "1",
 				"HASURA_METADATA":             "1",
-				"HASURA_ENDPOINT":             "https://local.graphql.nhost.run/v1",
+				"HASURA_ENDPOINT":             "https://local.hasura.nhost.run/v1",
 				"HASURA_GRAPHQL_ADMIN_SECRET": "nhost-admin-secret",
 				"S3_ACCESS_KEY":               "minioaccesskey123123",
 				"S3_SECRET_KEY":               "minioaccesskey123123",
@@ -96,7 +96,7 @@ func TestConfig_storageServiceEnvs(t *testing.T) {
 				"NHOST_JWT_SECRET":            fmt.Sprintf(`{"type":"HS256", "key": "%s"}`, util.JWT_KEY),
 				"NHOST_ADMIN_SECRET":          "nhost-admin-secret",
 				"NHOST_WEBHOOK_SECRET":        "nhost-webhook-secret",
-				"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@local.nhost.run:5432/postgres?sslmode=disable",
+				"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@local.db.nhost.run:5432/postgres?sslmode=disable",
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func TestConfig_storageServiceEnvs(t *testing.T) {
 				"API_ROOT_PREFIX":             "/v1",
 				"POSTGRES_MIGRATIONS":         "1",
 				"HASURA_METADATA":             "1",
-				"HASURA_ENDPOINT":             "https://local.graphql.nhost.run/v1",
+				"HASURA_ENDPOINT":             "https://local.hasura.nhost.run/v1",
 				"HASURA_GRAPHQL_ADMIN_SECRET": "nhost-admin-secret",
 				"S3_ACCESS_KEY":               "minioaccesskey123123",
 				"S3_SECRET_KEY":               "minioaccesskey123123",
@@ -128,7 +128,7 @@ func TestConfig_storageServiceEnvs(t *testing.T) {
 				"NHOST_JWT_SECRET":            fmt.Sprintf(`{"type":"HS256", "key": "%s"}`, util.JWT_KEY),
 				"NHOST_ADMIN_SECRET":          "nhost-admin-secret",
 				"NHOST_WEBHOOK_SECRET":        "nhost-webhook-secret",
-				"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@local.nhost.run:5432/postgres?sslmode=disable",
+				"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@local.db.nhost.run:5432/postgres?sslmode=disable",
 			},
 		},
 	}
@@ -160,15 +160,15 @@ func TestConfig_hasuraServiceEnvs(t *testing.T) {
 	}
 
 	assert.Equal(env{
-		"HASURA_GRAPHQL_DATABASE_URL":              "postgres://nhost_hasura@local.nhost.run:5432/postgres",
+		"HASURA_GRAPHQL_DATABASE_URL":              "postgres://nhost_hasura@local.db.nhost.run:5432/postgres",
 		"HASURA_GRAPHQL_JWT_SECRET":                fmt.Sprintf(`{"type":"HS256", "key": "%s"}`, util.JWT_KEY),
 		"HASURA_GRAPHQL_ADMIN_SECRET":              "nhost-admin-secret",
 		"NHOST_ADMIN_SECRET":                       "nhost-admin-secret",
 		"NHOST_BACKEND_URL":                        "http://traefik:1337",
-		"NHOST_SUBDOMAIN":                          "localhost",
+		"NHOST_SUBDOMAIN":                          "local",
 		"NHOST_REGION":                             "",
-		"NHOST_HASURA_URL":                         "http://localhost:9695",
-		"NHOST_GRAPHQL_URL":                        "https://local.graphql.nhost.run",
+		"NHOST_HASURA_URL":                         "https://local.hasura.nhost.run/console",
+		"NHOST_GRAPHQL_URL":                        "https://local.graphql.nhost.run/v1",
 		"NHOST_AUTH_URL":                           "https://local.auth.nhost.run/v1",
 		"NHOST_STORAGE_URL":                        "https://local.storage.nhost.run/v1",
 		"NHOST_FUNCTIONS_URL":                      "https://local.functions.nhost.run/v1",
@@ -202,8 +202,8 @@ func TestConfig_authServiceEnvs(t *testing.T) {
 
 	assert.Equal(env{
 		"AUTH_HOST":                   "0.0.0.0",
-		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.nhost.run:5432/foo",
-		"HASURA_GRAPHQL_GRAPHQL_URL":  "https://local.graphql.nhost.run/v1/graphql",
+		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/foo",
+		"HASURA_GRAPHQL_GRAPHQL_URL":  "https://local.hasura.nhost.run/v1/graphql",
 		"AUTH_SERVER_URL":             "https://local.auth.nhost.run/v1",
 		"HASURA_GRAPHQL_JWT_SECRET":   fmt.Sprintf(`{"type":"HS256", "key": "%s"}`, util.JWT_KEY),
 		"HASURA_GRAPHQL_ADMIN_SECRET": "nhost-admin-secret",
@@ -215,7 +215,7 @@ func TestConfig_authServiceEnvs(t *testing.T) {
 func TestConfig_PublicHasuraGraphqlEndpoint(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.graphql.nhost.run", c.PublicHasuraGraphqlEndpoint())
+	assert.Equal(t, "https://local.graphql.nhost.run/v1", c.PublicHasuraGraphqlEndpoint())
 }
 
 func TestConfig_PublicAuthConnectionString(t *testing.T) {
@@ -228,6 +228,18 @@ func TestConfig_PublicStorageConnectionString(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
 	assert.Equal(t, "https://local.storage.nhost.run/v1", c.PublicStorageConnectionString())
+}
+
+func TestConfig_PublicHasuraConsoleURL(t *testing.T) {
+	t.Parallel()
+	c := &Config{ports: testPorts(t)}
+	assert.Equal(t, "http://localhost:9695", c.PublicHasuraConsoleURL())
+}
+
+func TestConfig_PublicHasuraConsoleRedirectURL(t *testing.T) {
+	t.Parallel()
+	c := &Config{ports: testPorts(t)}
+	assert.Equal(t, "https://local.hasura.nhost.run/console", c.PublicHasuraConsoleRedirectURL())
 }
 
 func TestConfig_PublicFunctionsConnectionString(t *testing.T) {
@@ -255,13 +267,13 @@ func TestConfig_PublicPostgresConnectionString(t *testing.T) {
 		},
 	}
 
-	assert.Equal("postgres://my_user:my_password@local.nhost.run:5432/my_db", c.PublicPostgresConnectionString())
+	assert.Equal("postgres://my_user:my_password@local.db.nhost.run:5432/my_db", c.PublicPostgresConnectionString())
 }
 
 func TestConfig_DashboardURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.nhost.run", c.DashboardURL())
+	assert.Equal(t, "https://local.dashboard.nhost.run", c.PublicDashboardURL())
 }
 
 func TestConfig_addLocaldevExtraHost(t *testing.T) {
@@ -272,12 +284,14 @@ func TestConfig_addLocaldevExtraHost(t *testing.T) {
 	c.addExtraHosts(svc)
 
 	assert.Equal("host-gateway", svc.ExtraHosts["host.docker.internal"])
-	assert.Equal("host-gateway", svc.ExtraHosts["local.nhost.run"])
+	assert.Equal("host-gateway", svc.ExtraHosts["local.db.nhost.run"])
+	assert.Equal("host-gateway", svc.ExtraHosts["local.hasura.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.graphql.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.auth.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.storage.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.functions.nhost.run"])
-	assert.Equal("host-gateway", svc.ExtraHosts["local.mail.nhost.run"])
+	assert.Equal("host-gateway", svc.ExtraHosts["local.mailhog.nhost.run"])
+	assert.Equal("host-gateway", svc.ExtraHosts["local.dashboard.nhost.run"])
 }
 
 func TestConfig_hasuraMigrationsApiURL(t *testing.T) {
@@ -289,13 +303,13 @@ func TestConfig_hasuraMigrationsApiURL(t *testing.T) {
 func TestConfig_hasuraApiURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "http://localhost:8080", c.hasuraApiURL())
+	assert.Equal(t, "https://local.hasura.nhost.run", c.hasuraApiURL())
 }
 
 func TestConfig_envValueNhostHasuraURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "http://localhost:9695", c.envValueNhostHasuraURL())
+	assert.Equal(t, "https://local.hasura.nhost.run/console", c.envValueNhostHasuraURL())
 }
 
 func TestConfig_envValueNhostBackendUrl(t *testing.T) {
@@ -310,20 +324,14 @@ func TestConfig_storageEnvPublicURL(t *testing.T) {
 	assert.Equal(t, "https://local.storage.nhost.run", c.storageEnvPublicURL())
 }
 
-func TestConfig_hasuraGraphqlAPIEndpoint(t *testing.T) {
-	t.Parallel()
-	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.graphql.nhost.run/v1/graphql", c.hasuraGraphqlAPIEndpoint())
-}
-
 func TestConfig_postgresConnectionStringForUser(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t), nhostConfig: &nhost.Configuration{}}
-	assert.Equal(t, "postgres://foo@local.nhost.run:5432/postgres", c.postgresConnectionStringForUser("foo"))
+	assert.Equal(t, "postgres://foo@local.db.nhost.run:5432/postgres", c.postgresConnectionStringForUser("foo"))
 }
 
 func TestConfig_PublicMailURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.mail.nhost.run", c.PublicMailURL())
+	assert.Equal(t, "https://local.mailhog.nhost.run", c.PublicMailhogURL())
 }

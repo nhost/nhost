@@ -2,13 +2,13 @@ package service
 
 import (
 	"fmt"
-	"github.com/nhost/cli/nhost/compose"
 	"io"
 )
 
 type Endpoints struct {
 	db        string
 	graphql   string
+	hasura    string
 	auth      string
 	storage   string
 	functions string
@@ -17,10 +17,11 @@ type Endpoints struct {
 	mailhog   string
 }
 
-func newEndpoints(db, graphql, auth, storage, functions, console, dashboard, mailhog string) *Endpoints {
+func NewEndpoints(db, graphql, hasura, auth, storage, functions, console, dashboard, mailhog string) *Endpoints {
 	return &Endpoints{
 		db:        db,
 		graphql:   graphql,
+		hasura:    hasura,
 		auth:      auth,
 		storage:   storage,
 		functions: functions,
@@ -35,17 +36,18 @@ func (e Endpoints) Dump(out io.Writer) {
 
 URLs:
 - Postgres:		%s
+- Hasura:		%s
 - GraphQL:		%s
 - Auth:			%s
 - Storage:		%s
 - Functions:		%s
 
-- Nhost Dashboard:	%s
+- Dashboard:		%s
 - Hasura Console:	%s
 - Mailhog:		%s
 
 - subdomain:		%s
 - region:		(empty)
 
-`, e.db, e.graphql, e.auth, e.storage, e.functions, e.dashboard, e.console, e.mailhog, compose.HostLocalDashboardNhostRun)
+`, e.db, e.hasura, e.graphql, e.auth, e.storage, e.functions, e.dashboard, e.console, e.mailhog, "local")
 }

@@ -45,13 +45,13 @@ func (c Config) minioService() *types.ServiceConfig {
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",
-				Target:    9000,
+				Target:    minioS3Port,
 				Published: fmt.Sprint(c.ports.MinioS3()),
 				Protocol:  "tcp",
 			},
 			{
 				Mode:     "ingress",
-				Target:   8484,
+				Target:   minioUIPort,
 				Protocol: "tcp",
 			},
 		},

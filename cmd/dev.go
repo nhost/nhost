@@ -251,7 +251,16 @@ var devCmd = &cobra.Command{
 }
 
 func checkHostnames() error {
-	hostnames := []string{compose.HostLocalDashboardNhostRun, compose.HostLocalGraphqlNhostRun, compose.HostLocalAuthNhostRun, compose.HostLocalStorageNhostRun, compose.HostLocalFunctionsNhostRun, compose.HostLocalMailNhostRun}
+	hostnames := []string{
+		compose.HostLocalDbNhostRun,
+		compose.HostLocalGraphqlNhostRun,
+		compose.HostLocalHasuraNhostRun,
+		compose.HostLocalAuthNhostRun,
+		compose.HostLocalStorageNhostRun,
+		compose.HostLocalFunctionsNhostRun,
+		compose.HostLocalMailhogNhostRun,
+		compose.HostLocalDashboardNhostRun,
+	}
 
 	for _, hostname := range hostnames {
 		_, err := net.LookupIP(hostname)
@@ -318,7 +327,16 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
-	return ports.NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port), nil
+	return ports.NewPorts(
+		proxyPort,
+		sslProxyPort,
+		dbPort,
+		graphqlPort,
+		hasuraConsolePort,
+		hasuraAPIPort,
+		smtpPort,
+		minioS3Port,
+	), nil
 }
 
 type Printer struct {

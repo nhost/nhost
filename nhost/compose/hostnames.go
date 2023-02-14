@@ -6,15 +6,20 @@ import (
 
 const (
 	// backend service hosts
-	hostLocalhost              = "localhost"
-	HostLocalDashboardNhostRun = "local.nhost.run"
+	HostLocalhost = "localhost"
+
+	HostLocalDbNhostRun        = "local.db.nhost.run"
 	HostLocalGraphqlNhostRun   = "local.graphql.nhost.run"
-	hostHasuraConsole          = hostLocalhost
-	hostMinio                  = hostLocalhost
+	HostLocalHasuraNhostRun    = "local.hasura.nhost.run"
+	hostHasuraConsole          = HostLocalhost
+	hostMinio                  = HostLocalhost
 	HostLocalAuthNhostRun      = "local.auth.nhost.run"
 	HostLocalStorageNhostRun   = "local.storage.nhost.run"
 	HostLocalFunctionsNhostRun = "local.functions.nhost.run"
-	HostLocalMailNhostRun      = "local.mail.nhost.run"
+	HostLocalMailhogNhostRun   = "local.mailhog.nhost.run"
+	HostLocalDashboardNhostRun = "local.dashboard.nhost.run"
+
+	SubdomainLocal = "local"
 )
 
 func DashboardHostname(port uint32) string {
@@ -25,12 +30,22 @@ func HasuraGraphqlHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalGraphqlNhostRun, port)
 }
 
+func HasuraHostname(port uint32) string {
+	return sslHostnameWithPort(HostLocalHasuraNhostRun, port)
+}
+
 func MinioHostname(port uint32) string {
 	return httpHostnameWithPort(hostMinio, port)
 }
 
+// This returns http://localhost:9695 - an instance of the hasura console which is running on the host machine.
 func HasuraConsoleHostname(port uint32) string {
 	return httpHostnameWithPort(hostHasuraConsole, port)
+}
+
+// https://local.hasura.nhost.run - all GET requests to "/" or "/console" are redirected to the hasura console running on the host machine.
+func HasuraConsoleRedirectHostname(port uint32) string {
+	return sslHostnameWithPort(HostLocalHasuraNhostRun, port)
 }
 
 func HasuraMigrationsAPIHostname(port uint32) string {
@@ -49,31 +64,21 @@ func FunctionsHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalFunctionsNhostRun, port)
 }
 
-func MailHostname(port uint32) string {
-	return sslHostnameWithPort(HostLocalMailNhostRun, port)
+func MailhogHostname(port uint32) string {
+	return sslHostnameWithPort(HostLocalMailhogNhostRun, port)
 }
 
-type endpointOpt func(string) string
-
-func httpHostnameWithPort(hostname string, port uint32, opt ...endpointOpt) string {
+func httpHostnameWithPort(hostname string, port uint32) string {
 	result := fmt.Sprintf("http://%s:%d", hostname, port)
-
-	for _, o := range opt {
-		result = o(result)
-	}
 
 	return result
 }
 
-func sslHostnameWithPort(hostname string, port uint32, opt ...endpointOpt) string {
+func sslHostnameWithPort(hostname string, port uint32) string {
 	result := fmt.Sprintf("https://%s", hostname)
 
 	if port != 443 {
 		result = fmt.Sprintf("%s:%d", result, port)
-	}
-
-	for _, o := range opt {
-		result = o(result)
 	}
 
 	return result

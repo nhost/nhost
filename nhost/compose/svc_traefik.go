@@ -25,7 +25,7 @@ func (c Config) traefikService() *types.ServiceConfig {
 			},
 			{
 				Mode:     "ingress",
-				Target:   8080,
+				Target:   traefikUIPort,
 				Protocol: "tcp",
 			},
 		},
