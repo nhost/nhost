@@ -44,11 +44,9 @@ export function urlFromSubdomain(
       return `${protocol || 'http'}://localhost:${port || 1337}/v1/${service}`
     }
 
-    if (port) {
-      return `${protocol || 'https'}://local.nhost.run:${port}/v1/${service}`
-    }
-
-    return `${protocol || 'https'}://local.nhost.run/v1/${service}`
+    return port
+      ? `${protocol || 'https'}://local.${service}.nhost.run:${port}/v1`
+      : `${protocol || 'https'}://local.${service}.nhost.run/v1`
   }
 
   if (!region) {
