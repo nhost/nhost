@@ -182,8 +182,8 @@ export default function Page() {
             link: '/blog/new-branding-and-website',
           }}
         />
-        <TbaDay date={new Date('2023-02-15T16:00:00.000+02:00')} />
-        <TbaDay date={new Date('2023-02-22T16:00:00.000+02:00')} />
+        <TbaDay date={new Date('2023-02-15T17:00:00.000+02:00')} />
+        <TbaDay date={new Date('2023-02-22T17:00:00.000+02:00')} />
       </div>
     </Layout>
   )
