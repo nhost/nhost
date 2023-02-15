@@ -5,6 +5,7 @@ import { ManagedUIContext } from '@/context/UIContext';
 import { WorkspaceProvider } from '@/context/workspace-context';
 import { UserDataProvider } from '@/context/workspace1-context';
 import createTheme from '@/ui/v2/createTheme';
+import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { NhostProvider } from '@nhost/nextjs';
@@ -65,7 +66,12 @@ function Providers({ children }: PropsWithChildren<{}>) {
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
             <NhostProvider nhost={nhost}>
-              <NhostApolloProvider nhost={nhost}>
+              <NhostApolloProvider
+                nhost={nhost}
+                link={createHttpLink({
+                  uri: 'http://localhost:1337/v1/graphql',
+                })}
+              >
                 <WorkspaceProvider>
                   <UserDataProvider>
                     <ManagedUIContext>

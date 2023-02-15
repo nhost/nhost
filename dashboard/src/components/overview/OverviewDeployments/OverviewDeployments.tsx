@@ -75,7 +75,7 @@ function OverviewDeploymentList() {
 
   if (!deployments?.length) {
     return (
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-48 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-48 shadow-sm">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -124,7 +124,7 @@ function OverviewDeploymentList() {
 
   return (
     <List
-      className="rounded-x-lg flex flex-col rounded-lg"
+      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
       {deployments?.map((deployment, index) => (
