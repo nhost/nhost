@@ -11,7 +11,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@nhost/react'
 
 import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
