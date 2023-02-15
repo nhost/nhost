@@ -60,7 +60,7 @@ This combination of backend elements creates a solid fundament and starting poin
 
 Payments are handled by Stripe, which is integrated with the backend in two ways.
 
-GraphQL API: We're using the open source [Stripe GraphQL API](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js) using a Nhost Function and Hasura Remote Sceham. This way, it's easy to get data from Stripe like customer information or invoice URLs.
+GraphQL API: We're using the open source [Stripe GraphQL API](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js) using an Nhost Function and Hasura Remote Schema. This way, it's easy to get data from Stripe like customer information or invoice URLs.
 
 Stripe Wekbooks: We're using a Nhost Function to receive [Stripe webhooks](https://stripe.com/docs/webhooks) to listen to events from Stripe. This can be set up to listen to any Stripe event and is pre-configured to listen to subscriptions created and deleted.
 
