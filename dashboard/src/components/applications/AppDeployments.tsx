@@ -111,9 +111,9 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const { deployments } = deploymentPageData || {};
+  const { deployments } = deploymentPageData || { deployments: [] };
   const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || {};
+    scheduledOrPendingDeploymentsData || { deployments: [] };
 
   const latestDeployment = latestDeploymentData?.deployments[0];
   const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
@@ -135,7 +135,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                   deployment={deployment}
                   isLive={liveDeploymentId === deployment.id}
                   showRedeploy={latestDeployment.id === deployment.id}
-                  disableRedeploy={scheduledOrPendingDeployments.length > 0}
+                  disableRedeploy={scheduledOrPendingDeployments?.length > 0}
                 />
 
                 {index !== deployments.length - 1 && <Divider component="li" />}
@@ -143,7 +143,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
             ))}
           </List>
           <div className="mt-8 flex w-full justify-center">
-            <div className="grid grid-flow-col gap-2 items-center">
+            <div className="grid grid-flow-col items-center gap-2">
               <NextPrevPageLink
                 direction="prev"
                 prevAllowed={page !== 1}

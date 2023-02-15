@@ -71,7 +71,7 @@ function OverviewDeploymentList() {
     );
   }
 
-  const { deployments } = data || {};
+  const { deployments } = data || { deployments: [] };
 
   if (!deployments?.length) {
     return (
@@ -120,7 +120,7 @@ function OverviewDeploymentList() {
 
   const liveDeploymentId = getLastLiveDeployment(deployments);
   const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || {};
+    scheduledOrPendingDeploymentsData || { deployments: [] };
 
   return (
     <List
