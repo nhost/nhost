@@ -135,7 +135,6 @@ importers:
       '@typescript-eslint/parser': ^5.43.0
       '@vitejs/plugin-react': ^3.0.0
       '@vitest/coverage-c8': ^0.27.0
-      '@zendesk/laika': ^1.2.0
       analytics-node: ^6.2.0
       autoprefixer: ^10.4.13
       axios: ^0.27.2
@@ -302,7 +301,6 @@ importers:
       '@typescript-eslint/parser': 5.43.0_hsf322ms6xhhd4b5ne6lb74y4a
       '@vitejs/plugin-react': 3.0.0_vite@4.1.1
       '@vitest/coverage-c8': 0.27.0_jsdom@21.0.0
-      '@zendesk/laika': 1.2.0_@apollo+client@3.7.3
       autoprefixer: 10.4.13_postcss@8.4.19
       babel-loader: 8.3.0_npabyccmuonwo2rku4k53xo3hi
       babel-plugin-transform-remove-console: 6.9.4
@@ -397,8 +395,8 @@ importers:
       vite: ^4.0.2
     dependencies:
       '@apollo/client': 3.7.3_gdcq4dv6opitr3wbfwyjmanyra
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      '@nhost/react-apollo': 4.13.3_crht3wuktapdn5ry4asuxgfo4m
+      '@nhost/react': link:../../packages/react
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       clsx: 1.2.1
       graphql: 16.6.0
       react: 18.2.0
@@ -442,7 +440,7 @@ importers:
       typescript: ^4.8.2
       vite: ^4.0.2
     dependencies:
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
+      '@nhost/react': link:../../packages/react
       '@tanstack/react-query': 4.10.3_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-query-devtools': 4.11.0_vhepussragssjkevgznguhxexq
       clsx: 1.2.1
@@ -488,8 +486,8 @@ importers:
       urql: ^3.0.3
       vite: ^4.0.2
     dependencies:
-      '@nhost/react': 1.13.3_f47u4fyrpsztifti3kd5wz3pee
-      '@nhost/react-urql': 1.0.3_wmrfx7afgnbo25rrluxkyf6chu
+      '@nhost/react': link:../../packages/react
+      '@nhost/react-urql': link:../../integrations/react-urql
       clsx: 1.2.1
       graphql: 16.6.0
       react: 18.2.0
@@ -523,7 +521,7 @@ importers:
       express: ^4.18.1
       typescript: ^4.8.2
     dependencies:
-      '@nhost/nhost-js': 1.13.2
+      '@nhost/nhost-js': link:../../packages/nhost-js
     devDependencies:
       '@types/express': 4.17.13
       express: 4.18.2
@@ -558,9 +556,9 @@ importers:
       '@mantine/hooks': 4.2.12_react@18.2.0
       '@mantine/next': 4.2.12_oihdxrcjzie72t7wq3ezd4naxa
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
-      '@nhost/nextjs': 1.13.3_bxtuweu4cn3wqapvd2nkw3jygq
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      '@nhost/react-apollo': 4.13.3_dozziwfelmnfrjdb5mnurqw7qy
+      '@nhost/nextjs': link:../../packages/nextjs
+      '@nhost/react': link:../../packages/react
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       graphql: 16.6.0
       next: 12.1.6_biqbaboplfbrettd7655fr4n2y
       react: 18.2.0
@@ -617,8 +615,8 @@ importers:
       '@mantine/hooks': 4.2.12_react@18.2.0
       '@mantine/notifications': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
       '@mantine/prism': 4.2.12_n5fi23fjjzlwcbqhnnpdtjftw4
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      '@nhost/react-apollo': 4.13.3_dozziwfelmnfrjdb5mnurqw7qy
+      '@nhost/react': link:../../packages/react
+      '@nhost/react-apollo': link:../../integrations/react-apollo
       graphql: 16.6.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -665,7 +663,7 @@ importers:
       vite: ^4.0.2
     dependencies:
       '@gqty/react': 2.1.0_this3cauhu72cctvptqqfq5xlq
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
+      '@nhost/react': link:../../packages/react
       gqty: 2.3.0_graphql@16.6.0
       graphql: 16.6.0
       react: 18.2.0
@@ -698,7 +696,7 @@ importers:
       stripe: ^11.1.0
     dependencies:
       '@graphql-yoga/node': 2.13.13_graphql@16.6.0
-      '@nhost/stripe-graphql-js': 1.0.1
+      '@nhost/stripe-graphql-js': link:../../integrations/stripe-graphql-js
       '@pothos/core': 3.21.0_graphql@16.6.0
       cross-fetch: 3.1.5
       graphql: 16.6.0
@@ -734,8 +732,8 @@ importers:
     dependencies:
       '@apollo/client': 3.7.1_graphql@16.6.0
       '@mdi/font': 5.9.55
-      '@nhost/apollo': 4.13.2_@apollo+client@3.7.1
-      '@nhost/vue': 1.13.3_graphql@16.6.0+vue@3.2.41
+      '@nhost/apollo': link:../../integrations/apollo
+      '@nhost/vue': link:../../packages/vue
       '@vue/apollo-composable': 4.0.0-alpha.18_mln2xengjo5swtqqzvcb3ow7xm
       graphql: 16.6.0
       graphql-tag: 2.12.6_graphql@16.6.0
@@ -746,7 +744,7 @@ importers:
       vuetify: 3.0.0-beta.10_bnhkijphndxhjfxgjuo6kgeh5y
       webfontloader: 1.6.28
     devDependencies:
-      '@nhost/hasura-auth-js': 1.12.2
+      '@nhost/hasura-auth-js': link:../../packages/hasura-auth-js
       '@types/webfontloader': 1.6.35
       '@vitejs/plugin-vue': 4.0.0_vite@4.0.2+vue@3.2.41
       '@xstate/inspect': 0.6.5
@@ -785,8 +783,8 @@ importers:
       vue-tsc: ^0.38.9
     dependencies:
       '@apollo/client': 3.6.9_graphql@16.6.0
-      '@nhost/apollo': 4.13.2_@apollo+client@3.6.9
-      '@nhost/vue': 1.13.3_graphql@16.6.0+vue@3.2.40
+      '@nhost/apollo': link:../../integrations/apollo
+      '@nhost/vue': link:../../packages/vue
       '@vue/apollo-composable': 4.0.0-alpha.18_mhdvqko7cawftvrxdvlz2dwry4
       '@vueuse/core': 8.9.4_vue@3.2.40
       graphql: 16.6.0
@@ -1582,6 +1580,7 @@ packages:
       ts-invariant: 0.10.3
       tslib: 2.4.1
       zen-observable-ts: 1.2.5
+    dev: false
 
   /@ardatan/relay-compiler/12.0.0_graphql@16.6.0:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
@@ -4548,6 +4547,7 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    dev: true
 
   /@cypress/request/2.88.10:
     resolution: {integrity: sha512-Zp7F+R93N0yZyG34GutyTNr+okam7s/Fzc1+i3kcqOP8vk6OuajuE9qZJ6Rs+10/1JFtXFYMdyarnU1rZuJesg==}
@@ -7953,6 +7953,7 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
 
   /@leichtgewicht/ip-codec/2.0.3:
     resolution: {integrity: sha512-nkalE/f1RvRGChwBnEIoBfSEYOXnCRdleKuv6+lePbMDrMZXeDQnqak5XDOeBgrPPyPfAdcCu/B5z+v3VhplGg==}
@@ -8842,256 +8843,6 @@ packages:
     dev: true
     optional: true
 
-  /@nhost/apollo/4.13.2_@apollo+client@3.6.9:
-    resolution: {integrity: sha512-0qP3umNWfu92EE/vX/g6CqG9sNVlO4i8qRBgH1crn0ncnAFkrhKu9ueooA3DLZogOVDIkUstGO7nUZqdwsih/w==}
-    peerDependencies:
-      '@apollo/client': ^3.6.2
-      '@nhost/nhost-js': 1.13.2
-    dependencies:
-      '@apollo/client': 3.6.9_graphql@16.6.0
-      graphql: 16.6.0
-      graphql-ws: 5.11.2_graphql@16.6.0
-    dev: false
-
-  /@nhost/apollo/4.13.2_@apollo+client@3.7.1:
-    resolution: {integrity: sha512-0qP3umNWfu92EE/vX/g6CqG9sNVlO4i8qRBgH1crn0ncnAFkrhKu9ueooA3DLZogOVDIkUstGO7nUZqdwsih/w==}
-    peerDependencies:
-      '@apollo/client': ^3.6.2
-      '@nhost/nhost-js': 1.13.2
-    dependencies:
-      '@apollo/client': 3.7.1_graphql@16.6.0
-      graphql: 16.6.0
-      graphql-ws: 5.11.2_graphql@16.6.0
-    dev: false
-
-  /@nhost/apollo/4.13.2_@apollo+client@3.7.3:
-    resolution: {integrity: sha512-0qP3umNWfu92EE/vX/g6CqG9sNVlO4i8qRBgH1crn0ncnAFkrhKu9ueooA3DLZogOVDIkUstGO7nUZqdwsih/w==}
-    peerDependencies:
-      '@apollo/client': ^3.6.2
-      '@nhost/nhost-js': 1.13.2
-    dependencies:
-      '@apollo/client': 3.7.3_gdcq4dv6opitr3wbfwyjmanyra
-      graphql: 16.6.0
-      graphql-ws: 5.11.2_graphql@16.6.0
-    dev: false
-
-  /@nhost/hasura-auth-js/1.12.2:
-    resolution: {integrity: sha512-LPju7aYS5bN0w5gxoGe6Tk1a7Mdum6xfuXnmgQPoRT9TiAMcfcIihgdhB7+7NsZvLukqrt/D1zK3XYbJ2J5LMQ==}
-    dependencies:
-      '@simplewebauthn/browser': 6.0.0
-      axios: 1.2.0
-      js-cookie: 3.0.1
-      jwt-decode: 3.1.2
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - debug
-
-  /@nhost/hasura-storage-js/1.13.1:
-    resolution: {integrity: sha512-PpKnoLIDtFjrMu3py7q8IpTJMik7Hp8FsBtLMw6kAGzQVfXA2sghWexQ3WN3RsdHLnMXUiJWdF6ILcjpTjDbrg==}
-    dependencies:
-      axios: 1.2.0
-      form-data: 4.0.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@nhost/nextjs/1.13.3_bxtuweu4cn3wqapvd2nkw3jygq:
-    resolution: {integrity: sha512-HnHe6HTl/qWsElj/IKLSyQ5toeGSbZtx9MgdziXxg+IA3OgYCowWPhNr53XN3AShWqiE0FThVpK6WgUTNnJeZg==}
-    peerDependencies:
-      next: ^12.0.10 || ^13.0.0
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      cross-fetch: 3.1.5
-      js-cookie: 3.0.1
-      next: 12.1.6_biqbaboplfbrettd7655fr4n2y
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - debug
-      - encoding
-      - graphql
-    dev: false
-
-  /@nhost/nhost-js/1.13.2:
-    resolution: {integrity: sha512-tSZgst7/FF6wQu4AyIcePlHoNQwqU3jG/wZoQhbJqWIjpjLYerd9TvR/ZGnuEeee2HB6ssqkrYAyh2co6sccIQ==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      '@nhost/hasura-auth-js': 1.12.2
-      '@nhost/hasura-storage-js': 1.13.1
-      axios: 1.2.0
-      jwt-decode: 3.1.2
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@nhost/nhost-js/1.13.2_graphql@16.6.0:
-    resolution: {integrity: sha512-tSZgst7/FF6wQu4AyIcePlHoNQwqU3jG/wZoQhbJqWIjpjLYerd9TvR/ZGnuEeee2HB6ssqkrYAyh2co6sccIQ==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      '@nhost/hasura-auth-js': 1.12.2
-      '@nhost/hasura-storage-js': 1.13.1
-      axios: 1.2.0
-      graphql: 16.6.0
-      jwt-decode: 3.1.2
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@nhost/react-apollo/4.13.3_crht3wuktapdn5ry4asuxgfo4m:
-    resolution: {integrity: sha512-0pgRH0btjBBmJHVWiS87/4vDhbcnpY6uIXzzGCr4fQ/7z8NRNuHPMm2/jqfUEngAO9IWwzaespFiOBK61XHZTQ==}
-    peerDependencies:
-      '@apollo/client': ^3.6.2
-      '@nhost/react': 1.13.3
-      graphql: ^16.0.0
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@apollo/client': 3.7.3_gdcq4dv6opitr3wbfwyjmanyra
-      '@nhost/apollo': 4.13.2_@apollo+client@3.7.3
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      graphql: 16.6.0
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@nhost/nhost-js'
-    dev: false
-
-  /@nhost/react-apollo/4.13.3_dozziwfelmnfrjdb5mnurqw7qy:
-    resolution: {integrity: sha512-0pgRH0btjBBmJHVWiS87/4vDhbcnpY6uIXzzGCr4fQ/7z8NRNuHPMm2/jqfUEngAO9IWwzaespFiOBK61XHZTQ==}
-    peerDependencies:
-      '@apollo/client': ^3.6.2
-      '@nhost/react': 1.13.3
-      graphql: ^16.0.0
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@apollo/client': 3.6.9_onqnqwb3ubg5opvemcqf7c2qhy
-      '@nhost/apollo': 4.13.2_@apollo+client@3.6.9
-      '@nhost/react': 1.13.3_fekdsjdxvr6rryguukhsma4zsq
-      graphql: 16.6.0
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@nhost/nhost-js'
-    dev: false
-
-  /@nhost/react-urql/1.0.3_wmrfx7afgnbo25rrluxkyf6chu:
-    resolution: {integrity: sha512-ovtZEfvc7dv4grCM2IaC9ZyFaI0u0UeVaRG+5zRWJRFZxzY8kD7GY/2hbd3DZOM47gtPQcbcpbUcOmqHvI5yxQ==}
-    peerDependencies:
-      '@nhost/react': 1.13.3
-      graphql: ^16.0.0
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-      urql: ^3.0.3
-    dependencies:
-      '@nhost/react': 1.13.3_f47u4fyrpsztifti3kd5wz3pee
-      '@urql/devtools': 2.0.3_graphql@16.6.0
-      '@urql/exchange-refocus': 1.0.0_graphql@16.6.0
-      graphql: 16.6.0
-      graphql-ws: 5.11.2_graphql@16.6.0
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      urql: 3.0.3_onqnqwb3ubg5opvemcqf7c2qhy
-    transitivePeerDependencies:
-      - '@urql/core'
-    dev: false
-
-  /@nhost/react/1.13.3_f47u4fyrpsztifti3kd5wz3pee:
-    resolution: {integrity: sha512-pVdUNq4TUjWah7y0kvuZn0W5QCASi6aePu3wW6mggGfemtCjMbS4RNgmwnfjgSbka/pPiMT27i0YINCpG395VQ==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.1.0
-      react-dom: ^17.0.0 || ^18.1.0
-    dependencies:
-      '@nhost/nhost-js': 1.13.2_graphql@16.6.0
-      '@xstate/react': 3.0.1_zemtneugyhgjtags2fxri3a4qy
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - debug
-      - graphql
-    dev: false
-
-  /@nhost/react/1.13.3_fekdsjdxvr6rryguukhsma4zsq:
-    resolution: {integrity: sha512-pVdUNq4TUjWah7y0kvuZn0W5QCASi6aePu3wW6mggGfemtCjMbS4RNgmwnfjgSbka/pPiMT27i0YINCpG395VQ==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.1.0
-      react-dom: ^17.0.0 || ^18.1.0
-    dependencies:
-      '@nhost/nhost-js': 1.13.2_graphql@16.6.0
-      '@xstate/react': 3.0.1_ixnoqypvvlzhpss4ao4hyykvcy
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - debug
-      - graphql
-    dev: false
-
-  /@nhost/stripe-graphql-js/1.0.1:
-    resolution: {integrity: sha512-sfy51WKnsANpVNADX8D+mt92KmcMJuYAxzlYkh9o20DHkIyrfSIep6MvTmi31VkVmqcHjEzBf0iVdeCDX++l1A==}
-    dependencies:
-      '@pothos/core': 3.22.9_graphql@16.6.0
-      graphql: 16.6.0
-      graphql-scalars: 1.18.0_graphql@16.6.0
-      graphql-yoga: 3.4.0_graphql@16.6.0
-      jsonwebtoken: 9.0.0
-      stripe: 11.8.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - encoding
-    dev: false
-
-  /@nhost/vue/1.13.3_graphql@16.6.0+vue@3.2.40:
-    resolution: {integrity: sha512-961xhhD8ZZ58BE2BHFuv/+9X/MkgeEoMfpzDNwqVYOSxt5SCdomPw+ARZpwF344OQArG7ThyyTeS8gjJ8sliyw==}
-    peerDependencies:
-      vue: ^3.2.31
-    dependencies:
-      '@nhost/nhost-js': 1.13.2_graphql@16.6.0
-      '@vueuse/core': 9.6.0_vue@3.2.40
-      '@xstate/vue': 2.0.0_vue@3.2.40
-      jwt-decode: 3.1.2
-      vue: 3.2.40
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - '@xstate/fsm'
-      - debug
-      - graphql
-      - xstate
-    dev: false
-
-  /@nhost/vue/1.13.3_graphql@16.6.0+vue@3.2.41:
-    resolution: {integrity: sha512-961xhhD8ZZ58BE2BHFuv/+9X/MkgeEoMfpzDNwqVYOSxt5SCdomPw+ARZpwF344OQArG7ThyyTeS8gjJ8sliyw==}
-    peerDependencies:
-      vue: ^3.2.31
-    dependencies:
-      '@nhost/nhost-js': 1.13.2_graphql@16.6.0
-      '@vueuse/core': 9.6.0_vue@3.2.41
-      '@xstate/vue': 2.0.0_vue@3.2.41
-      jwt-decode: 3.1.2
-      vue: 3.2.41
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - '@xstate/fsm'
-      - debug
-      - graphql
-      - xstate
-    dev: false
-
   /@nicolo-ribaudo/eslint-scope-5-internals/5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
     dependencies:
@@ -9718,6 +9469,7 @@ packages:
 
   /@simplewebauthn/browser/6.0.0:
     resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
+    dev: false
 
   /@simplewebauthn/typescript-types/6.0.0:
     resolution: {integrity: sha512-zBs5duUHwQ2CCnHckalMJycv8p2mfWGv+m9sI3WxnK3QR7Lw0/014zKkhC+Uygz5XSHuvPAxeMft6FbrP/OmtQ==}
@@ -11701,7 +11453,7 @@ packages:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.2.1_v776zzvn44o7tpgzieipaairwm
+      tailwindcss: 3.2.1_postcss@8.4.20
 
   /@tailwindcss/forms/0.5.3_tailwindcss@3.2.4:
     resolution: {integrity: sha512-y5mb86JUoiUgBjY/o6FJSFZSEttfb3Q5gllE4xoKjAAD+vBrnIhE4dViwUuow3va8mpH4s9jyUbUbrRGoRdc2Q==}
@@ -11921,15 +11673,19 @@ packages:
 
   /@tsconfig/node10/1.0.8:
     resolution: {integrity: sha512-6XFfSQmMgq0CFLY1MslA/CPUfhIL919M1rMsa5lP2P097N2Wd1sSX0tx1u4olM16fLNhtHZpRhedZJphNJqmZg==}
+    dev: true
 
   /@tsconfig/node12/1.0.9:
     resolution: {integrity: sha512-/yBMcem+fbvhSREH+s14YJi18sp7J9jpuhYByADT2rypfajMZZN4WQ6zBGgBKp53NKmqI36wFYDb3yaMPurITw==}
+    dev: true
 
   /@tsconfig/node14/1.0.1:
     resolution: {integrity: sha512-509r2+yARFfHHE7T6Puu2jjkoycftovhXRqW328PDXTVGKihlb1P8Z9mMZH04ebyajfRY7dedfGynlrFHJUQCg==}
+    dev: true
 
   /@tsconfig/node16/1.0.2:
     resolution: {integrity: sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==}
+    dev: true
 
   /@types/argparse/1.0.38:
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
@@ -13117,7 +12873,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@16.18.11
+      vite: 4.0.2_@types+node@18.11.17
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -13528,18 +13284,6 @@ packages:
       vue: 3.2.40
       vue-demi: 0.13.4_vue@3.2.40
 
-  /@vueuse/core/9.6.0_vue@3.2.40:
-    resolution: {integrity: sha512-qGUcjKQXHgN+jqXEgpeZGoxdCbIDCdVPz3QiF1uyecVGbMuM63o96I1GjYx5zskKgRI0FKSNsVWM7rwrRMTf6A==}
-    dependencies:
-      '@types/web-bluetooth': 0.0.16
-      '@vueuse/metadata': 9.6.0
-      '@vueuse/shared': 9.6.0_vue@3.2.40
-      vue-demi: 0.13.4_vue@3.2.40
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-    dev: false
-
   /@vueuse/core/9.6.0_vue@3.2.41:
     resolution: {integrity: sha512-qGUcjKQXHgN+jqXEgpeZGoxdCbIDCdVPz3QiF1uyecVGbMuM63o96I1GjYx5zskKgRI0FKSNsVWM7rwrRMTf6A==}
     dependencies:
@@ -13572,15 +13316,6 @@ packages:
     dependencies:
       vue: 3.2.40
       vue-demi: 0.13.4_vue@3.2.40
-
-  /@vueuse/shared/9.6.0_vue@3.2.40:
-    resolution: {integrity: sha512-/eDchxYYhkHnFyrb00t90UfjCx94kRHxc7J1GtBCqCG4HyPMX+krV9XJgVtWIsAMaxKVU4fC8NSUviG1JkwhUQ==}
-    dependencies:
-      vue-demi: 0.13.4_vue@3.2.40
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-    dev: false
 
   /@vueuse/shared/9.6.0_vue@3.2.41:
     resolution: {integrity: sha512-/eDchxYYhkHnFyrb00t90UfjCx94kRHxc7J1GtBCqCG4HyPMX+krV9XJgVtWIsAMaxKVU4fC8NSUviG1JkwhUQ==}
@@ -13875,17 +13610,6 @@ packages:
       - encoding
     dev: false
 
-  /@whatwg-node/server/0.5.8:
-    resolution: {integrity: sha512-29f2Ijk663Hr6hF5GU5a8ELGQVbNMMDBWF1lTdpIKGyLrLJTKixarp6COEyEN5H9tGzIRUQar9Z76A+Jb9DyzQ==}
-    peerDependencies:
-      '@types/node': ^18.0.6
-    dependencies:
-      '@whatwg-node/fetch': 0.6.2
-      tslib: 2.4.1
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
   /@whatwg-node/server/0.5.8_@types+node@18.11.9:
     resolution: {integrity: sha512-29f2Ijk663Hr6hF5GU5a8ELGQVbNMMDBWF1lTdpIKGyLrLJTKixarp6COEyEN5H9tGzIRUQar9Z76A+Jb9DyzQ==}
     peerDependencies:
@@ -13994,56 +13718,6 @@ packages:
       - '@types/react'
     dev: false
 
-  /@xstate/react/3.0.1_zemtneugyhgjtags2fxri3a4qy:
-    resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
-    peerDependencies:
-      '@xstate/fsm': ^2.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      xstate: ^4.33.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2_kzbn2opkn2327fwg5yzwzya5o4
-      use-sync-external-store: 1.2.0_react@18.2.0
-      xstate: 4.33.6
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  /@xstate/vue/2.0.0_vue@3.2.40:
-    resolution: {integrity: sha512-JlrJ3d+I6rZCcFBuu3O4GP+mGJfd11O9o69wRedzPMqZ+hxcMRBsih9L5kKnJHcU9CTmdJTT172oxTaYF7thzA==}
-    peerDependencies:
-      '@xstate/fsm': ^2.0.0
-      vue: ^3.0.0
-      xstate: ^4.31.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      vue: 3.2.40
-    dev: false
-
-  /@xstate/vue/2.0.0_vue@3.2.41:
-    resolution: {integrity: sha512-JlrJ3d+I6rZCcFBuu3O4GP+mGJfd11O9o69wRedzPMqZ+hxcMRBsih9L5kKnJHcU9CTmdJTT172oxTaYF7thzA==}
-    peerDependencies:
-      '@xstate/fsm': ^2.0.0
-      vue: ^3.0.0
-      xstate: ^4.31.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      vue: 3.2.41
-    dev: false
-
   /@xstate/vue/2.0.0_vue@3.2.41+xstate@4.33.6:
     resolution: {integrity: sha512-JlrJ3d+I6rZCcFBuu3O4GP+mGJfd11O9o69wRedzPMqZ+hxcMRBsih9L5kKnJHcU9CTmdJTT172oxTaYF7thzA==}
     peerDependencies:
@@ -14065,15 +13739,6 @@ packages:
 
   /@xtuc/long/4.2.2:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
-
-  /@zendesk/laika/1.2.0_@apollo+client@3.7.3:
-    resolution: {integrity: sha512-hrjNL4zgITSAy5MN9/a0Bu/rMQrsd3CXnjHRHkpO41x3xnwqQHIyXUOXm0/MN+pqx2LVys1fv8NexFFkm5TZ4A==}
-    peerDependencies:
-      '@apollo/client': '>=3.2.5'
-    dependencies:
-      '@apollo/client': 3.7.3_xe4twbeoqswbn2uas4ov5melbq
-      lodash: 4.17.21
-    dev: true
 
   /@zxing/text-encoding/0.9.0:
     resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}
@@ -14164,6 +13829,7 @@ packages:
     resolution: {integrity: sha512-Xx54uLJQZ19lKygFXOWsscKUbsBZW0CPykPhVQdhIeIwrbPmJzqeASDInc8nKBnp/JT6igTs82qPXz069H8I/A==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+    dev: true
 
   /acorn/8.8.0:
     resolution: {integrity: sha512-QOxyigPVrpZ2GXT+PFyZTl6TtOFc5egxHIP9IlQ+RbupQuX4RkT/Bee4/kQuC02Xkzg84JcT7oLYtDIQxp+v7w==}
@@ -14422,6 +14088,7 @@ packages:
 
   /arg/4.1.3:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
+    dev: true
 
   /arg/5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
@@ -14800,6 +14467,7 @@ packages:
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
+    dev: false
 
   /axobject-query/2.2.0:
     resolution: {integrity: sha512-Td525n+iPOOyUQIeBfcASuG6uJsDOITl7Mds5gFyerkWiX7qhUTdYUBlSgNMyVqtSJqwpt1kXGLdUt6SykLMRA==}
@@ -16526,6 +16194,7 @@ packages:
 
   /create-require/1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+    dev: true
 
   /cross-fetch/3.1.5:
     resolution: {integrity: sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==}
@@ -17709,6 +17378,7 @@ packages:
   /diff/4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
+    dev: true
 
   /diff/5.1.0:
     resolution: {integrity: sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==}
@@ -20247,6 +19917,7 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
 
   /follow-redirects/1.15.2_debug@4.3.4:
     resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
@@ -21222,28 +20893,6 @@ packages:
       graphql: '>=0.11 <=16'
     dependencies:
       graphql: 16.6.0
-
-  /graphql-yoga/3.4.0_graphql@16.6.0:
-    resolution: {integrity: sha512-Cjx60mmpoK1qL/sLdM285VdAOQyJBKLuC6oMZrfO8QleneNtu0nDOM6Efv5m0IrRYSONEMtIYA7eNr0u/cCBfg==}
-    peerDependencies:
-      graphql: ^15.2.0 || ^16.0.0
-    dependencies:
-      '@envelop/core': 3.0.4
-      '@envelop/parser-cache': 5.0.4_a6sekiasy2tqr6d5gj7n2wtjli
-      '@envelop/validation-cache': 5.0.5_a6sekiasy2tqr6d5gj7n2wtjli
-      '@graphql-tools/executor': 0.0.12_graphql@16.6.0
-      '@graphql-tools/schema': 9.0.4_graphql@16.6.0
-      '@graphql-tools/utils': 9.1.1_graphql@16.6.0
-      '@graphql-yoga/subscription': 3.1.0
-      '@whatwg-node/fetch': 0.6.2
-      '@whatwg-node/server': 0.5.8
-      dset: 3.1.2
-      graphql: 16.6.0
-      tslib: 2.4.1
-    transitivePeerDependencies:
-      - '@types/node'
-      - encoding
-    dev: false
 
   /graphql-yoga/3.4.0_xfoe4adolgvm4tvnio5xigcr6e:
     resolution: {integrity: sha512-Cjx60mmpoK1qL/sLdM285VdAOQyJBKLuC6oMZrfO8QleneNtu0nDOM6Efv5m0IrRYSONEMtIYA7eNr0u/cCBfg==}
@@ -22824,6 +22473,7 @@ packages:
   /js-cookie/3.0.1:
     resolution: {integrity: sha512-+0rgsUXZu4ncpPxRL+lNEptWMOWl9etvPHc/koSRp6MPwpRYAhmk0dUG00J4bxVV3r9uUzfo24wW0knS07SKSw==}
     engines: {node: '>=12'}
+    dev: false
 
   /js-levenshtein/1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
@@ -23164,6 +22814,7 @@ packages:
 
   /jwt-decode/3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /keyv/3.1.0:
     resolution: {integrity: sha512-9ykJ/46SN/9KPM/sichzQ7OvXyGDYKGTaDlKMGCAlg2UK8KRy4jb0d8sFc+0Tt0YYnThq8X2RZgCg74RPxgcVA==}
@@ -23678,6 +23329,7 @@ packages:
 
   /make-error/1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
+    dev: true
 
   /makeerror/1.0.12:
     resolution: {integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==}
@@ -25786,6 +25438,7 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
+    dev: true
 
   /postcss-import/14.1.0_postcss@8.4.20:
     resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
@@ -25797,7 +25450,6 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.1
-    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.18:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -25817,6 +25469,7 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.19
+    dev: true
 
   /postcss-js/4.0.0_postcss@8.4.20:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
@@ -25826,7 +25479,6 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.20
-    dev: true
 
   /postcss-load-config/3.1.4_postcss@8.4.18:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -25860,7 +25512,6 @@ packages:
       lilconfig: 2.0.6
       postcss: 8.4.20
       yaml: 1.10.2
-    dev: true
 
   /postcss-load-config/3.1.4_v776zzvn44o7tpgzieipaairwm:
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -25878,6 +25529,7 @@ packages:
       postcss: 8.4.19
       ts-node: 10.9.1_kdoazjjbodcwagz6yx6a7ztgpu
       yaml: 1.10.2
+    dev: true
 
   /postcss-loader/4.3.0_gzaxsinx64nntyd3vmdqwl7coe:
     resolution: {integrity: sha512-M/dSoIiNDOo8Rk0mUqoj4kpGq91gcxCfb9PoyZVdZ76/AuhxylHDYZblNE8o+EQ9AMSASeMFEKxZf5aU6wlx1Q==}
@@ -26204,6 +25856,7 @@ packages:
     dependencies:
       postcss: 8.4.19
       postcss-selector-parser: 6.0.10
+    dev: true
 
   /postcss-nested/6.0.0_postcss@8.4.20:
     resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
@@ -26213,7 +25866,6 @@ packages:
     dependencies:
       postcss: 8.4.20
       postcss-selector-parser: 6.0.10
-    dev: true
 
   /postcss-normalize-charset/5.1.0_postcss@8.4.19:
     resolution: {integrity: sha512-mSgUJ+pd/ldRGVx26p2wz9dNZ7ji6Pn8VWBajMXFf8jk7vUoSrZ2lt/wZR7DtlZYKesmZI680qjr2CeFF2fbUg==}
@@ -26896,6 +26548,7 @@ packages:
 
   /proxy-from-env/1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+    dev: false
 
   /prr/1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
@@ -29592,7 +29245,6 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
-    dev: true
 
   /tailwindcss/3.2.1_v776zzvn44o7tpgzieipaairwm:
     resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
@@ -29626,6 +29278,7 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
+    dev: true
 
   /tailwindcss/3.2.4_postcss@8.4.20:
     resolution: {integrity: sha512-AhwtHCKMtR71JgeYDaswmZXhPcW9iuI9Sp2LvZPo9upDZ7231ZJ7eA9RaURbhpXGVlrjX4cFNlB4ieTetEb7hQ==}
@@ -30183,6 +29836,7 @@ packages:
       typescript: 4.9.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    dev: true
 
   /ts-node/10.9.1_moeqx3xmzxqxagf2sz6mqkbb7m:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
@@ -30622,6 +30276,7 @@ packages:
     resolution: {integrity: sha512-CIfGzTelbKNEnLpLdGFgdyKhG23CKdKgQPOBc+OUNrkJ2vr+KSzsSV5kq5iWhEQbok+quxgGzrAtGWCyU7tHnA==}
     engines: {node: '>=4.2.0'}
     hasBin: true
+    dev: true
 
   /typescript/4.9.4:
     resolution: {integrity: sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==}
@@ -31153,19 +30808,6 @@ packages:
       react: 18.2.0
     dev: false
 
-  /use-isomorphic-layout-effect/1.1.2_kzbn2opkn2327fwg5yzwzya5o4:
-    resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': 18.0.26
-      react: 18.2.0
-    dev: false
-
   /use-isomorphic-layout-effect/1.1.2_react@17.0.2:
     resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
     peerDependencies:
@@ -31310,6 +30952,7 @@ packages:
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
+    dev: true
 
   /v8-to-istanbul/9.0.1:
     resolution: {integrity: sha512-74Y4LqY74kLE6IFyIjPtkSTWzUZmj8tdHT9Ii/26dvQ6K9Dl2NbEfj0XgU2sHCtKgt5VupqhlO/5aWuqS+IY1w==}
@@ -33016,6 +32659,7 @@ packages:
   /yn/3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
     engines: {node: '>=6'}
+    dev: true
 
   /yocto-queue/0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
