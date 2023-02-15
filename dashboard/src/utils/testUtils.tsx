@@ -33,7 +33,7 @@ const queryClient = new QueryClient({
 
 global.fetch = fetch;
 
-const mockRouter: NextRouter = {
+export const mockRouter: NextRouter = {
   basePath: '',
   pathname: '/',
   route: '/',

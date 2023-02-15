@@ -4,7 +4,11 @@ import slugify from 'slugify';
 import { LOCAL_BACKEND_URL } from './env';
 import type { DeploymentRowFragment } from './__generated__/graphql';
 
-export function getLastLiveDeployment(deployments: DeploymentRowFragment[]) {
+export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
+  if (!deployments) {
+    return '';
+  }
+
   return (
     deployments.find((deployment) => deployment.deploymentStatus === 'DEPLOYED')
       ?.id || ''

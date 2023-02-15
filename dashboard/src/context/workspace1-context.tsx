@@ -25,10 +25,25 @@ export const UserDataContext = createContext<UserDataContent>({
   setUserContext: () => {},
 });
 
-export function UserDataProvider({ children }: PropsWithChildren<unknown>) {
+export interface UserDataProviderProps {
+  /**
+   * Initial workspaces to be used in the context.
+   */
+  initialWorkspaces?: Workspace[];
+  /**
+   * Initial metadata to be used in the context.
+   */
+  initialMetadata?: Record<string, any>;
+}
+
+export function UserDataProvider({
+  children,
+  initialWorkspaces,
+  initialMetadata,
+}: PropsWithChildren<UserDataProviderProps>) {
   const [userContext, setUserContext] = useState({
-    workspaces: [],
-    metadata: {},
+    workspaces: initialWorkspaces || [],
+    metadata: initialMetadata || {},
   });
 
   const value = useMemo(
