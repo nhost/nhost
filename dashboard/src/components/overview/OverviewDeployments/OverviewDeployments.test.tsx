@@ -128,10 +128,7 @@ test('should render an empty state when GitHub is connected, but there are no de
 
   expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
   expect(screen.getByText(/test\/git-project/i)).toBeInTheDocument();
-
-  const editLink = screen.getByRole('link', { name: /edit/i });
-
-  expect(editLink).toHaveAttribute(
+  expect(screen.getByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
     '/test-workspace/test-application/settings/git',
   );
@@ -165,9 +162,6 @@ test('should render a list of deployments', async () => {
     }),
   );
 
-  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
-  process.env.NEXT_PUBLIC_ENV = 'production';
-
   render(
     <UserDataProvider initialWorkspaces={[mockWorkspace]}>
       <OverviewDeployments />
@@ -177,19 +171,68 @@ test('should render a list of deployments', async () => {
   await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
 
   expect(screen.getByText(/test commit message/i)).toBeInTheDocument();
-
-  const deploymentListItem = screen.getByRole('link', {
-    name: /test commit message/i,
-  });
-
-  expect(deploymentListItem).toHaveAttribute(
-    'href',
-    '/test-workspace/test-application/deployments/1',
+  expect(screen.getByLabelText(/avatar/i)).toHaveStyle(
+    'background-image: url(http://images.example.com/avatar.png)',
   );
+  expect(
+    screen.getByRole('link', {
+      name: /test commit message/i,
+    }),
+  ).toHaveAttribute('href', '/test-workspace/test-application/deployments/1');
   expect(screen.getByText(/5m 0s/i)).toBeInTheDocument();
   expect(screen.getByText(/live/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /redeploy/i })).not.toBeDisabled();
+});
 
-  const redeployButton = screen.getByRole('button', { name: /redeploy/i });
+test('should disable redeployments if a deployment is already in progress', async () => {
+  server.use(
+    mockGraphqlLink.operation(async (req, res, ctx) => {
+      const requestPayload = await req.json();
 
-  expect(redeployButton).not.toBeDisabled();
+      if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
+        return res(
+          ctx.data({
+            deployments: [
+              {
+                id: '2',
+                commitSHA: 'abc234',
+                deploymentStartedAt: '2021-08-02T00:00:00.000Z',
+                deploymentEndedAt: null,
+                deploymentStatus: 'PENDING',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          }),
+        );
+      }
+
+      return res(
+        ctx.data({
+          deployments: [
+            {
+              id: '1',
+              commitSHA: 'abc123',
+              deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+              deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+              deploymentStatus: 'DEPLOYED',
+              commitUserName: 'test.user',
+              commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+              commitMessage: 'Test commit message',
+            },
+          ],
+        }),
+      );
+    }),
+  );
+
+  render(
+    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
+      <OverviewDeployments />
+    </UserDataProvider>,
+  );
+
+  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
+  expect(screen.getByRole('button', { name: /redeploy/i })).toBeDisabled();
 });
