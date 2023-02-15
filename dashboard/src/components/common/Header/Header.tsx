@@ -1,9 +1,9 @@
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import FeedbackForm from '@/components/common/FeedbackForm';
+import LocalAccountMenu from '@/components/common/LocalAccountMenu';
 import Logo from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
 import NavLink from '@/components/common/NavLink';
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import Box from '@/ui/v2/Box';
@@ -73,7 +73,7 @@ export default function Header({ className, ...props }: HeaderProps) {
           Docs
         </NavLink>
 
-        {isPlatform ? <AccountMenu /> : <ThemeSwitcher className="w-52" />}
+        {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
       </div>
 
       <MobileNav className="sm:hidden" />

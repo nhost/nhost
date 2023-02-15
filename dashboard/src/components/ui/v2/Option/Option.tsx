@@ -12,6 +12,7 @@ export interface OptionProps<TValue extends {}>
 
 const StyledOption = styled(OptionUnstyled)(({ theme }) => ({
   transition: theme.transitions.create(['background-color']),
+  color: theme.palette.text.primary,
   [`&.${optionUnstyledClasses.selected}`]: {
     backgroundColor:
       theme.palette.mode === 'dark'
