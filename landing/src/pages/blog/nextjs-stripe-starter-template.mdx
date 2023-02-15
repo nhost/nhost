@@ -1,0 +1,79 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Next.js Stripe Starter Template',
+  description:
+    "Save time and hassle building your next SaaS project with Nhost's fully-configured Next.js Stripe starter template, designed to get your subscription payments set up and running quickly.",
+  image: '/images/blog/nextjs-stripe-starter-template/banner.png',
+  date: '2023-02-15',
+  authors: [
+    {
+      name: 'Johan Eliasson',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/johan.png',
+      url: 'https://twitter.com/elitasson',
+    },
+  ],
+  tags: ['Template', 'Next.js', 'Stripe'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today, we are launching a Next.js Stripe SaaS starter template. This template is a fully configured frontend and backend, equipped with the latest best practices to get your next SaaS project up and running quickly.
+
+Nhost is committed to helping developers save time on mundane tasks, and instead focus on what makes their business unique. This Next.js Stripe SaaS starter template eliminates the need to worry about connecting subscription payments to your SaaS, as Stripe and Nhost have already taken care of it.
+
+Stripe will manage all payments, while Nhost will synchronize and coordinate the backend for you.
+
+Want to see the code and start building?
+
+Here's the GitHub Link: [https://github.com/nhost/nextjs-stripe-starter](https://github.com/nhost/nextjs-stripe-starter)
+
+### Video
+
+I streamed a demonstration of Nhost and an early version of the Next.js Stripe SaaS starter template with Stripe. On the stream, we went into detail on how Nhost and Stripe can be integrated with each other for payment processing and data fetching through GraphQL federation.
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/TXsHwetfQ-Y"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
+
+## How does it work?
+
+### Next.js Frontend
+
+The frontend is built using Next.js together with TypeScript and TailwindCSS. GraphQL is handled by [GraphQL Code Generator and React Query](https://nhost.io/blog/how-to-use-graphql-code-generator-with-react-query) which works beautifully with TypeScript!
+
+### Nhost Backend
+
+The backend is (obviously) powered by Nhost, providing a Postgres database, GraphQL API, and Serverless Functions for handling Stripe webhooks and generating a [Stripe GraphQL API](https://docs.nhost.io/graphql/remote-schemas/stripe). In addition, the backend also includes [Magic Link](https://docs.nhost.io/authentication/sign-in-with-magic-link) authentication, with the ability to customize email templates.
+
+This combination of backend elements creates a solid fundament and starting point for your next SaaS application.
+
+### Stripe Payments
+
+Payments are handled by Stripe, which is integrated with the backend in two ways.
+
+GraphQL API: We're using the open source [Stripe GraphQL API](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js) using an Nhost Function and Hasura Remote Schema. This way, it's easy to get data from Stripe like customer information or invoice URLs.
+
+Stripe Wekbooks: We're using a Nhost Function to receive [Stripe webhooks](https://stripe.com/docs/webhooks) to listen to events from Stripe. This can be set up to listen to any Stripe event and is pre-configured to listen to subscriptions created and deleted.
+
+Stripe Customer Portal: We're using the [Stripe Customer Portal](https://stripe.com/docs/customer-management) to let the user manage their subscriptions. This way, we save ourselves tedious time to develop complex UI and payment management.
+
+## Architecture
+
+Here's the architecture on a high level:
+
+![Architecture](/images/blog/nextjs-stripe-starter-template/architecture.png)
+
+## What's next
+
+It can be hard to build the backend of a SaaS application. We hope to make it easier for developers and businesses to get started with this Next.js Stripe SaaS starter template from Nhost. Either use the template as a starting point for your next project or look at the code and solutions and take inspiration for your current project.
+
+Again, here's the link to the GitHub repository: [Next.js Stripe Starter Template](https://github.com/nhost/nextjs-stripe-starter)
