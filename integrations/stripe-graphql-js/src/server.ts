@@ -52,7 +52,7 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
     context,
     schema,
     graphqlEndpoint: '*',
-    maskedErrors:true
+    maskedErrors:false
   })
 
   return createServer(yoga)
