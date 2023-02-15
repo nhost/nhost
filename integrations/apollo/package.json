@@ -68,6 +68,6 @@
   },
   "devDependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@apollo/client": "^3.7.7"
+    "@apollo/client": "^3.7.3"
   }
 }
