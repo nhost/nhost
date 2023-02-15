@@ -13,6 +13,8 @@ Nhost GraphQL client.
 
 ## Install
 
+First, install `graphql-codegen` and the Nhost Typescript plugin:
+
 ```sh
 npm install @nhost/graphql-js
 npm install -D @graphql-codegen/cli @graphql-codegen/typescript-nhost
@@ -20,11 +22,28 @@ npm install -D @graphql-codegen/cli @graphql-codegen/typescript-nhost
 
 ## Configure the code generator
 
-## Configure the Nhost client
+Configure the code generator by adding a `graphql.config.yaml` file:
+
+```yaml filename="graphql.config.yaml"
+schema:
+  - http://localhost:1337/v1/graphql:
+      headers:
+        x-hasura-admin-secret: nhost-admin-secret
+generates:
+  ./src/schema.ts:
+    plugins:
+      - typescript-nhost
+```
+
+Generate the schema:
+
+```sh
+yarn graphql-codegen
+```
 
 ## Usage
 
-```ts
+```ts filename="./src/main.ts"
 import { NhostGraphqlClient } from '@nhost/graphql-js'
 import schema from './schema.ts'
 
