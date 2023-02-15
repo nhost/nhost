@@ -23,7 +23,34 @@ export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
   private accessToken: string | null
   private adminSecret?: string
 
+  /**
+   * Use `nhost.graphql.query` to run a GraphQL query from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id, name } = await nhost.graphql.query.customer({ select: { id: true, name: true }, variables: {id: 'customer-id' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/query
+   */
   public query: OperationFactory<Schema, 'Query'>
+
+  /**
+   * Use `nhost.graphql.mutation` to run a GraphQL mutation from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id } = await nhost.graphql.mutation.insertCustomer({ select: { id: true }, variables: { name: 'Bob' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/mutation
+   */
   public mutation: OperationFactory<Schema, 'Mutation'>
 
   constructor(params: NhostGraphqlConstructorParams<Schema>) {
