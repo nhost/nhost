@@ -1,5 +1,7 @@
 import type { LinkProps as MaterialLinkProps } from '@mui/material/Link';
-import MaterialLink from '@mui/material/Link';
+import MaterialLink, {
+  linkClasses as materialLinkClasses,
+} from '@mui/material/Link';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
@@ -23,5 +25,7 @@ function Link(
 }
 
 Link.displayName = 'NhostLink';
+
+export { materialLinkClasses as linkClasses };
 
 export default forwardRef(Link);

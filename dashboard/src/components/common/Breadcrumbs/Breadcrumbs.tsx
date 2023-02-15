@@ -31,6 +31,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
         <NavLink
           href="/local/local"
           className="truncate text-[13px] hover:underline sm:text-sm"
+          sx={{ color: 'text.primary' }}
         >
           local
         </NavLink>
@@ -53,6 +54,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
           <NavLink
             href={`/${currentWorkspace.slug}`}
             className="truncate text-[13px] hover:underline sm:text-sm"
+            sx={{ color: 'text.primary' }}
           >
             {currentWorkspace.name}
           </NavLink>
@@ -66,6 +68,7 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
           <NavLink
             href={`/${currentWorkspace.slug}/${currentApplication.slug}`}
             className="truncate text-[13px] hover:underline sm:text-sm"
+            sx={{ color: 'text.primary' }}
           >
             {currentApplication.name}
           </NavLink>
