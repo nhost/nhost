@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.9
+
+### Patch Changes
+
+- 7b970e68: fix(dashboard): fix header link color
+
 ## 0.11.8
 
 ### Patch Changes
