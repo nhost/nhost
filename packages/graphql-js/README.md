@@ -70,6 +70,13 @@ todos.map(({ createdAt, contents }) => {
 
 ### Mutations
 
+```ts
+const { id } = await client.mutation.insertTodo({
+  select: { id: true },
+  variables: { contents: 'document the sdk', userId: 'xxx-yyy-zzz' }
+})
+```
+
 ### Enums
 
 ```ts
