@@ -11,18 +11,11 @@ import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import CreateUserForm from '@/components/users/CreateUserForm';
 import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import type {
-  BaseSyntheticEvent,
-  DetailedHTMLProps,
-  HTMLProps,
-  PropsWithChildren,
-} from 'react';
+import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import {
   cloneElement,
   isValidElement,
@@ -46,56 +39,6 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function LoadingComponent({
-  className,
-  ...props
-}: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> = {}) {
-  return (
-    <div
-      {...props}
-      className={twMerge(
-        'grid items-center justify-center px-6 py-4',
-        className,
-      )}
-    >
-      <ActivityIndicator
-        circularProgressProps={{ className: 'w-5 h-5' }}
-        label="Loading form..."
-      />
-    </div>
-  );
-}
-
-const CreateRecordForm = dynamic(
-  () => import('@/components/dataBrowser/CreateRecordForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const CreateColumnForm = dynamic(
-  () => import('@/components/dataBrowser/CreateColumnForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditColumnForm = dynamic(
-  () => import('@/components/dataBrowser/EditColumnForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const CreateTableForm = dynamic(
-  () => import('@/components/dataBrowser/CreateTableForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditTableForm = dynamic(
-  () => import('@/components/dataBrowser/EditTableForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditPermissionsForm = dynamic(
-  () => import('@/components/dataBrowser/EditPermissionsForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const router = useRouter();
 
@@ -116,10 +59,8 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     {
       open: drawerOpen,
       activeDialog: activeDrawer,
-      activeDialogType: activeDrawerType,
       dialogProps: drawerProps,
       title: drawerTitle,
-      payload: drawerPayload,
     },
     drawerDispatch,
   ] = useReducer(drawerReducer, {
@@ -284,15 +225,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     onCancel: closeDialogWithDirtyGuard,
   };
 
-  const sharedDrawerProps = {
-    onSubmit: async () => {
-      await drawerPayload?.onSubmit();
-
-      closeDrawer();
-    },
-    onCancel: closeDrawerWithDirtyGuard,
-  };
-
   useEffect(() => {
     function handleCloseDrawerAndDialog() {
       if (isDrawerDirty.current || isDialogDirty.current) {
@@ -439,48 +371,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         }}
       >
         <RetryableErrorBoundary>
-          {activeDrawerType === 'CREATE_RECORD' && (
-            <CreateRecordForm
-              {...sharedDrawerProps}
-              columns={drawerPayload?.columns}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_COLUMN' && (
-            <CreateColumnForm {...sharedDrawerProps} />
-          )}
-
-          {activeDrawerType === 'EDIT_COLUMN' && (
-            <EditColumnForm
-              {...sharedDrawerProps}
-              column={drawerPayload?.column}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_TABLE' && (
-            <CreateTableForm
-              {...sharedDrawerProps}
-              schema={drawerPayload?.schema}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_TABLE' && (
-            <EditTableForm
-              {...sharedDrawerProps}
-              table={drawerPayload?.table}
-              schema={drawerPayload?.schema}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_PERMISSIONS' && (
-            <EditPermissionsForm
-              {...sharedDrawerProps}
-              disabled={drawerPayload?.disabled}
-              schema={drawerPayload?.schema}
-              table={drawerPayload?.table}
-            />
-          )}
-
           {isValidElement(activeDrawer)
             ? cloneElement(activeDrawer, {
                 ...activeDrawer.props,

@@ -1,3 +1,4 @@
+import type { DialogFormProps } from '@/types/common';
 import type { CommonDialogProps } from '@/ui/v2/Dialog';
 import type { ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
@@ -7,12 +8,6 @@ import { createContext } from 'react';
  */
 export type DialogType =
   | 'EDIT_WORKSPACE_NAME'
-  | 'CREATE_RECORD'
-  | 'CREATE_COLUMN'
-  | 'EDIT_COLUMN'
-  | 'CREATE_TABLE'
-  | 'EDIT_TABLE'
-  | 'EDIT_PERMISSIONS'
   | 'CREATE_FOREIGN_KEY'
   | 'EDIT_FOREIGN_KEY'
   | 'CREATE_ROLE'
@@ -22,7 +17,6 @@ export type DialogType =
   | 'EDIT_PERMISSION_VARIABLE'
   | 'CREATE_ENVIRONMENT_VARIABLE'
   | 'EDIT_ENVIRONMENT_VARIABLE'
-  | 'EDIT_USER'
   | 'EDIT_USER_PASSWORD'
   | 'EDIT_JWT_SECRET';
 
@@ -104,7 +98,7 @@ export interface DialogContextProps {
    */
   onDirtyStateChange: (
     isDirty: boolean,
-    location?: 'drawer' | 'dialog',
+    location?: DialogFormProps['location'],
   ) => void;
   /**
    * Call this function to open a dirty confirmation dialog.
