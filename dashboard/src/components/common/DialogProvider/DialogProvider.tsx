@@ -10,7 +10,6 @@ import EditPermissionVariableForm from '@/components/settings/permissions/EditPe
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import CreateUserForm from '@/components/users/CreateUserForm';
-import EditUserForm from '@/components/users/EditUserForm';
 import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
@@ -25,6 +24,8 @@ import type {
   PropsWithChildren,
 } from 'react';
 import {
+  cloneElement,
+  isValidElement,
   useCallback,
   useEffect,
   useMemo,
@@ -33,7 +34,11 @@ import {
   useState,
 } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { DialogConfig, DialogType } from './DialogContext';
+import type {
+  DialogConfig,
+  DialogType,
+  OpenDialogOptions,
+} from './DialogContext';
 import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
@@ -110,6 +115,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const [
     {
       open: drawerOpen,
+      activeDialog: activeDrawer,
       activeDialogType: activeDrawerType,
       dialogProps: drawerProps,
       title: drawerTitle,
@@ -152,12 +158,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     dialogDispatch({ type: 'CLEAR_DIALOG_CONTENT' });
   }, []);
 
-  const openDrawer = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      drawerDispatch({ type: 'OPEN_DRAWER', payload: { type, config } });
-    },
-    [],
-  );
+  const openDrawer = useCallback((options: OpenDialogOptions) => {
+    drawerDispatch({ type: 'OPEN_DRAWER', payload: options });
+  }, []);
 
   const closeDrawer = useCallback(() => {
     drawerDispatch({ type: 'HIDE_DRAWER' });
@@ -478,9 +481,21 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             />
           )}
 
-          {activeDrawerType === 'EDIT_USER' && (
-            <EditUserForm {...sharedDrawerProps} {...drawerPayload} />
-          )}
+          {isValidElement(activeDrawer)
+            ? cloneElement(activeDrawer, {
+                ...activeDrawer.props,
+                location: 'drawer',
+                onSubmit: async (values: any) => {
+                  await activeDrawer?.props?.onSubmit?.(values);
+
+                  closeDialog();
+                },
+                onCancel: () => {
+                  activeDrawer?.props?.onCancel?.();
+                  closeDrawerWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </Drawer>
 
