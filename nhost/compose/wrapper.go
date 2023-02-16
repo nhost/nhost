@@ -21,19 +21,6 @@ tls:
   certificates:
     - certFile: /opt/traefik/certs/cert.crt
       keyFile: /opt/traefik/certs/cert.key
-http:
-  routers:
-    hasura-migrate-api:
-      tls: true
-      entryPoints:
-        - web-secure
-      rule: "Host(` + "`" + `local.hasura.nhost.run` + "`" + `) && PathPrefix(` + "`" + `/apis/migrate` + "`" + `)"
-      service: hasura-migrate-api
-  services:
-    hasura-migrate-api:
-      loadBalancer:
-        servers:
-          - url: http://host.docker.internal:%d
 log:
   level: DEBUG
 accessLog: {}
@@ -71,7 +58,7 @@ func (w Wrapper) init(workdir string, cert *nhostssl.SSLCert, gitBranch string, 
 		return err
 	}
 
-	if err := w.ensureTraefikConfigFileExists(workdir, conf.ports.HasuraConsoleAPI()); err != nil {
+	if err := w.ensureTraefikConfigFileExists(workdir); err != nil {
 		return err
 	}
 
@@ -86,11 +73,11 @@ func (w Wrapper) init(workdir string, cert *nhostssl.SSLCert, gitBranch string, 
 	return nil
 }
 
-func (w Wrapper) ensureTraefikConfigFileExists(workdir string, hasuraConsoleAPIPort uint32) error {
+func (w Wrapper) ensureTraefikConfigFileExists(workdir string) error {
 	traefikConfigFile := filepath.Join(workdir, ".nhost/traefik/traefik.yaml")
 
 	if !util.PathExists(traefikConfigFile) {
-		err := os.WriteFile(traefikConfigFile, []byte(fmt.Sprintf(traefikConfig, hasuraConsoleAPIPort)), 0777)
+		err := os.WriteFile(traefikConfigFile, []byte(traefikConfig), 0777)
 		if err != nil {
 			return errors.Wrap(err, "could not write traefik configuration file")
 		}

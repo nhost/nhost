@@ -6,21 +6,7 @@ import (
 )
 
 func makeTestPorts() *Ports {
-	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8)
-}
-
-func TestNewPorts(t *testing.T) {
-	p := makeTestPorts()
-	assert.Equal(t, p.p, map[string]uint32{
-		FlagPortProxy:            1,
-		FlagSSLPortProxy:         2,
-		FlagPortDB:               3,
-		FlagPortGraphQL:          4,
-		FlagPortHasuraConsole:    5,
-		FlagPortHasuraConsoleAPI: 6,
-		FlagPortSMTP:             7,
-		FlagPortMinioS3:          8,
-	})
+	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8, 9)
 }
 
 func TestPorts_Proxy(t *testing.T) {
@@ -61,4 +47,9 @@ func TestPorts_SMTP(t *testing.T) {
 func TestPorts_MinioS3(t *testing.T) {
 	p := makeTestPorts()
 	assert.Equal(t, p.MinioS3(), uint32(8))
+}
+
+func TestPorts_Dashboard(t *testing.T) {
+	p := makeTestPorts()
+	assert.Equal(t, p.Dashboard(), uint32(9))
 }

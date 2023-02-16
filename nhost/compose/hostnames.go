@@ -17,13 +17,13 @@ const (
 	HostLocalStorageNhostRun   = "local.storage.nhost.run"
 	HostLocalFunctionsNhostRun = "local.functions.nhost.run"
 	HostLocalMailhogNhostRun   = "local.mailhog.nhost.run"
-	HostLocalDashboardNhostRun = "local.dashboard.nhost.run"
+	HostLocalDashboardNhostRun = HostLocalhost
 
 	SubdomainLocal = "local"
 )
 
 func DashboardHostname(port uint32) string {
-	return sslHostnameWithPort(HostLocalDashboardNhostRun, port)
+	return httpHostnameWithPort(HostLocalDashboardNhostRun, port)
 }
 
 func HasuraGraphqlHostname(port uint32) string {
@@ -62,6 +62,10 @@ func FunctionsHostname(port uint32) string {
 
 func MailhogHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalMailhogNhostRun, port)
+}
+
+func HasuraMigrationsAPIHostname(port uint32) string {
+	return httpHostnameWithPort(hostHasuraConsole, port)
 }
 
 func httpHostnameWithPort(hostname string, port uint32) string {

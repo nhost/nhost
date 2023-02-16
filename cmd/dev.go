@@ -219,7 +219,7 @@ var devCmd = &cobra.Command{
 				openURL := launcher.HasuraConsoleURL()
 
 				if uiType(uiTypeValue).IsNhost() {
-					openURL = compose.DashboardHostname(ports.SSLProxy())
+					openURL = compose.DashboardHostname(ports.Dashboard())
 				}
 
 				_ = openbrowser(openURL)
@@ -291,8 +291,8 @@ func offlineConfigForSSLHostnames(hostnames []string) string {
 
 func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 	var (
-		proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port uint32
-		err                                                                                                   error
+		proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port, dashboardPort uint32
+		err                                                                                                                  error
 	)
 
 	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
@@ -327,6 +327,10 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
+	if dashboardPort, err = fs.GetUint32(ports.FlagPortDashboard); err != nil {
+		return nil, err
+	}
+
 	return ports.NewPorts(
 		proxyPort,
 		sslProxyPort,
@@ -336,6 +340,7 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		hasuraAPIPort,
 		smtpPort,
 		minioS3Port,
+		dashboardPort,
 	), nil
 }
 
@@ -381,6 +386,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsoleAPI, ports.DefaultHasuraConsoleAPIPort, "Port for serving hasura migrate API")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortDashboard, ports.DefaultDashboardPort, "Port for dashboard UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 	devCmd.PersistentFlags().StringVar(&uiTypeValue, uiTypeFlag, uiTypeHasura.String(), "UI type, possible values: [hasura, nhost]")

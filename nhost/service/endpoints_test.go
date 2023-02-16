@@ -21,6 +21,7 @@ func TestEndpoints_Dump(t *testing.T) {
 		ports.DefaultHasuraConsoleAPIPort,
 		ports.DefaultSMTPPort,
 		ports.DefaultS3MinioPort,
+		ports.DefaultDashboardPort,
 	)
 	dcConf := compose.NewConfig(&nhost.Configuration{}, p, []string{}, "", "")
 	endpoints := service.NewEndpoints(
@@ -48,7 +49,7 @@ URLs:
 - Storage:		https://local.storage.nhost.run/v1
 - Functions:		https://local.functions.nhost.run/v1
 
-- Dashboard:		https://local.dashboard.nhost.run
+- Dashboard:		http://localhost:3030
 - Hasura Console:	https://local.hasura.nhost.run/console
 - Mailhog:		https://local.mailhog.nhost.run
 

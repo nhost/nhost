@@ -12,7 +12,17 @@ import (
 
 func testPorts(t *testing.T) *ports.Ports {
 	t.Helper()
-	return ports.NewPorts(1337, 443, 5432, 8080, 9695, 9693, 1025, 9000)
+	return ports.NewPorts(
+		ports.DefaultProxyPort,
+		ports.DefaultSSLProxyPort,
+		ports.DefaultDBPort,
+		ports.DefaultGraphQLPort,
+		ports.DefaultHasuraConsolePort,
+		ports.DefaultHasuraConsoleAPIPort,
+		ports.DefaultSMTPPort,
+		ports.DefaultS3MinioPort,
+		ports.DefaultDashboardPort,
+	)
 }
 
 func TestConfig_dashboardService(t *testing.T) {
@@ -35,7 +45,7 @@ func TestConfig_dashboardService(t *testing.T) {
 		"NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1",
 		"NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run",
 		"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run/console",
-		"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run",
+		"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=http://localhost:9693",
 		"NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1",
 	}), svc.Environment)
 }
@@ -273,7 +283,7 @@ func TestConfig_PublicPostgresConnectionString(t *testing.T) {
 func TestConfig_DashboardURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.dashboard.nhost.run", c.PublicDashboardURL())
+	assert.Equal(t, "http://localhost:3030", c.PublicDashboardURL())
 }
 
 func TestConfig_addLocaldevExtraHost(t *testing.T) {
@@ -291,13 +301,12 @@ func TestConfig_addLocaldevExtraHost(t *testing.T) {
 	assert.Equal("host-gateway", svc.ExtraHosts["local.storage.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.functions.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.mailhog.nhost.run"])
-	assert.Equal("host-gateway", svc.ExtraHosts["local.dashboard.nhost.run"])
 }
 
 func TestConfig_hasuraMigrationsApiURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.hasura.nhost.run", c.hasuraMigrationsApiURL())
+	assert.Equal(t, "http://localhost:9693", c.hasuraMigrationsApiURL())
 }
 
 func TestConfig_hasuraApiURL(t *testing.T) {

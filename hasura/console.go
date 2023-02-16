@@ -32,8 +32,6 @@ func (c *console) start(ctx context.Context, consolePort, consoleAPIPort uint32,
 
 	args := []string{
 		"console",
-		"--address", "0.0.0.0",
-		"--api-host", "http://127.0.0.1", // this is required to make the migrate API work properly, otherwise it will be set to the value of --address :facepalm: see https://github.com/hasura/graphql-engine/blob/cli/v2.15.2/cli/commands/console.go#L57-L68
 		"--no-browser",
 		"--console-port", fmt.Sprint(consolePort),
 		"--api-port", fmt.Sprint(consoleAPIPort),

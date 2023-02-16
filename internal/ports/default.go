@@ -1,6 +1,7 @@
 package ports
 
 const (
+	// deprecated
 	DefaultProxyPort            = 1337
 	DefaultSSLProxyPort         = 443
 	DefaultDBPort               = 5432
@@ -9,4 +10,5 @@ const (
 	DefaultHasuraConsoleAPIPort = 9693
 	DefaultSMTPPort             = 1025
 	DefaultS3MinioPort          = 9000
+	DefaultDashboardPort        = 3030
 )

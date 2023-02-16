@@ -97,7 +97,6 @@ func (c Config) addExtraHosts(svc *types.ServiceConfig) *types.ServiceConfig {
 		HostLocalStorageNhostRun:   hostGateway,
 		HostLocalFunctionsNhostRun: hostGateway,
 		HostLocalMailhogNhostRun:   hostGateway,
-		HostLocalDashboardNhostRun: hostGateway,
 	}
 	return svc
 }
@@ -224,7 +223,7 @@ func (c Config) PublicPostgresConnectionString() string {
 }
 
 func (c Config) PublicDashboardURL() string {
-	return DashboardHostname(c.ports.SSLProxy())
+	return DashboardHostname(c.ports.Dashboard())
 }
 
 func (c Config) envValueHasuraGraphqlJwtSecret() string {
@@ -245,5 +244,5 @@ func (c Config) hasuraApiURL() string {
 }
 
 func (c Config) hasuraMigrationsApiURL() string {
-	return HasuraHostname(c.ports.SSLProxy())
+	return HasuraMigrationsAPIHostname(c.ports.HasuraConsoleAPI())
 }

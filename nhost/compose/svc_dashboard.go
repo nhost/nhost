@@ -1,6 +1,7 @@
 package compose
 
 import (
+	"fmt"
 	"github.com/compose-spec/compose-go/types"
 )
 
@@ -20,17 +21,17 @@ func (c Config) dashboardServiceEnvs() env {
 }
 
 func (c Config) dashboardService() *types.ServiceConfig {
-	labels := makeTraefikServiceLabels(
-		SvcDashboard,
-		dashboardPort,
-		withTLS(),
-		withHost(HostLocalDashboardNhostRun),
-	)
-
 	return &types.ServiceConfig{
 		Name:        SvcDashboard,
-		Labels:      labels.AsMap(),
 		Image:       c.serviceDockerImage(SvcDashboard, svcDashboardDefaultImage),
 		Environment: c.dashboardServiceEnvs().dockerServiceConfigEnv(),
+		Ports: []types.ServicePortConfig{
+			{
+				Mode:      "ingress",
+				Target:    dashboardPort,
+				Published: fmt.Sprint(c.ports.Dashboard()),
+				Protocol:  "tcp",
+			},
+		},
 	}
 }

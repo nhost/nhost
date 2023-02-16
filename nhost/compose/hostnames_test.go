@@ -1,6 +1,7 @@
 package compose_test
 
 import (
+	"github.com/nhost/cli/internal/ports"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -37,14 +38,9 @@ func TestDashboardHostname(t *testing.T) {
 		want string
 	}{
 		{
-			name: "test with default 443 port",
-			port: 443,
-			want: "https://local.dashboard.nhost.run",
-		},
-		{
-			name: "test with custom port",
-			port: 444,
-			want: "https://local.dashboard.nhost.run:444",
+			name: "test",
+			port: ports.DefaultDashboardPort,
+			want: "http://localhost:3030",
 		},
 	}
 	for _, tt := range tests {
@@ -208,6 +204,25 @@ func TestHasuraHostname(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, compose.HasuraHostname(tt.port), "HasuraHostname(%v)", tt.port)
+		})
+	}
+}
+
+func TestHasuraMigrationsAPIHostname(t *testing.T) {
+	tests := []struct {
+		name string
+		port uint32
+		want string
+	}{
+		{
+			name: "test",
+			port: 9693,
+			want: "http://localhost:9693",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, compose.HasuraMigrationsAPIHostname(tt.port), "HasuraMigrationsAPIHostname(%v)", tt.port)
 		})
 	}
 }
