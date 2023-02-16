@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -12,18 +13,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface CreateUserFormValues {
-  /**
-   * Email of the user to add to this project.
-   */
-  email: string;
-  /**
-   * Password for the user.
-   */
-  password: string;
-}
-
-export interface CreateUserFormProps {
+export interface CreateUserFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -31,10 +21,10 @@ export interface CreateUserFormProps {
   /**
    * Function to be called when the submit is successful.
    */
-  onSuccess?: VoidFunction;
+  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
 
-export const CreateUserFormValidationSchema = Yup.object({
+export const validationSchema = Yup.object({
   email: Yup.string()
     .min(5, 'Email must be at least 5 characters long.')
     .email('Invalid email address')
@@ -45,8 +35,10 @@ export const CreateUserFormValidationSchema = Yup.object({
     .required('This field is required.'),
 });
 
+export type CreateUserFormValues = Yup.InferType<typeof validationSchema>;
+
 export default function CreateUserForm({
-  onSuccess,
+  onSubmit,
   onCancel,
 }: CreateUserFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -57,7 +49,7 @@ export default function CreateUserForm({
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(CreateUserFormValidationSchema),
+    resolver: yupResolver(validationSchema),
   });
 
   const {
@@ -90,7 +82,7 @@ export default function CreateUserForm({
         },
         getToastStyleProps(),
       );
-      onSuccess?.();
+      onSubmit?.();
     } catch (error) {
       if (error.response?.status === 409) {
         setError('email', {
@@ -137,7 +129,7 @@ export default function CreateUserForm({
         {createUserFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createUserFormError.message}

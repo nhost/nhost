@@ -2,6 +2,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
@@ -130,9 +131,9 @@ export default function EditUserForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   function handleChangeUserPassword() {
-    openDialog('EDIT_USER_PASSWORD', {
+    openDialog({
       title: 'Change Password',
-      payload: { user },
+      component: <EditUserPasswordForm user={user} />,
     });
   }
 

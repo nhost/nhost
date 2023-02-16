@@ -18,7 +18,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 export interface CreateRoleFormProps
-  extends Pick<BaseRoleFormProps, 'onCancel'> {
+  extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
   /**
    * Function to be called when the form is submitted.
    */

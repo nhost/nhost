@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
+import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { CustomClaim } from '@/types/application';
@@ -88,8 +90,9 @@ export default function PermissionVariableSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_PERMISSION_VARIABLE', {
+    openDialog({
       title: 'Create Permission Variable',
+      component: <CreatePermissionVariableForm />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -98,9 +101,11 @@ export default function PermissionVariableSettings() {
   }
 
   function handleOpenEditor(originalVariable: CustomClaim) {
-    openDialog('EDIT_PERMISSION_VARIABLE', {
+    openDialog({
       title: 'Edit Permission Variable',
-      payload: { originalVariable },
+      component: (
+        <EditPermissionVariableForm originalVariable={originalVariable} />
+      ),
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -136,7 +141,7 @@ export default function PermissionVariableSettings() {
       description="Permission variables are used to define permission rules in the GraphQL API."
       docsLink="https://docs.nhost.io/graphql/permissions"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <Box className="grid grid-cols-2 border-b-1 px-4 py-3">
@@ -149,7 +154,7 @@ export default function PermissionVariableSettings() {
           {availablePermissionVariables.map((customClaim, index) => (
             <Fragment key={customClaim.key}>
               <ListItem.Root
-                className="px-4 grid grid-cols-2"
+                className="grid grid-cols-2 px-4"
                 secondaryAction={
                   <Dropdown.Root>
                     <Tooltip
@@ -215,7 +220,7 @@ export default function PermissionVariableSettings() {
                     <>
                       X-Hasura-{customClaim.key}{' '}
                       {customClaim.isSystemClaim && (
-                        <LockIcon className="w-4 h-4" />
+                        <LockIcon className="h-4 w-4" />
                       )}
                     </>
                   }
@@ -237,7 +242,7 @@ export default function PermissionVariableSettings() {
         </List>
 
         <Button
-          className="justify-self-start mx-4"
+          className="mx-4 justify-self-start"
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}

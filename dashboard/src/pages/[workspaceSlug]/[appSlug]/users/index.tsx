@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Pagination from '@/components/common/Pagination';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import CreateUserForm from '@/components/users/CreateUserForm';
 import UsersBody from '@/components/users/UsersBody';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -25,7 +26,7 @@ export type RemoteAppUser = Exclude<
 >;
 
 export default function UsersPage() {
-  const { openDialog, closeDialog } = useDialog();
+  const { openDialog } = useDialog();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
 
@@ -200,14 +201,9 @@ export default function UsersPage() {
   );
 
   function openCreateUserDialog() {
-    openDialog('CREATE_USER', {
+    openDialog({
       title: 'Create User',
-      payload: {
-        onSuccess: async () => {
-          await refetchProjectUsers();
-          closeDialog();
-        },
-      },
+      component: <CreateUserForm onSubmit={refetchProjectUsers} />,
     });
   }
 
