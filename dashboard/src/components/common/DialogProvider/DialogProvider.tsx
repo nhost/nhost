@@ -485,10 +485,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
             ? cloneElement(activeDrawer, {
                 ...activeDrawer.props,
                 location: 'drawer',
-                onSubmit: async (values: any) => {
+                onSubmit: async (values?: any) => {
                   await activeDrawer?.props?.onSubmit?.(values);
-
-                  closeDialog();
+                  closeDrawer();
                 },
                 onCancel: () => {
                   activeDrawer?.props?.onCancel?.();

@@ -3,6 +3,7 @@ import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
@@ -30,7 +31,7 @@ import { twMerge } from 'tailwind-merge';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
 
-export interface EditPermissionsFormProps {
+export interface EditPermissionsFormProps extends DialogFormProps {
   /**
    * Determines whether the form is disabled or not.
    */
@@ -54,6 +55,7 @@ export default function EditPermissionsForm({
   schema,
   table,
   onCancel,
+  location,
 }: EditPermissionsFormProps) {
   const [role, setRole] = useState<string>();
   const [action, setAction] = useState<DatabaseAction>();
@@ -181,6 +183,7 @@ export default function EditPermissionsForm({
 
     return (
       <RolePermissionEditorForm
+        location={location}
         resourceVersion={metadata?.resourceVersion}
         disabled={disabled}
         schema={schema}

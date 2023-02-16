@@ -4,6 +4,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import type { DialogFormProps } from '@/types/common';
 import Avatar from '@/ui/v2/Avatar';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -35,13 +36,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditUserFormProps {
-  /**
-   * Determines whether the form is displayed in a drawer or a dialog.
-   *
-   * @default 'drawer'
-   */
-  location?: 'drawer' | 'dialog';
+export interface EditUserFormProps extends DialogFormProps {
   /**
    * This is the selected user from the user's table.
    */
@@ -87,7 +82,7 @@ export type EditUserFormValues = Yup.InferType<
 >;
 
 export default function EditUserForm({
-  location = 'drawer',
+  location,
   user,
   onSubmit,
   onCancel,
