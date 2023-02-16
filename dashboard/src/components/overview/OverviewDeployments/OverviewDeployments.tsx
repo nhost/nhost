@@ -6,6 +6,7 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import List from '@/ui/v2/List';
 import Text from '@/ui/v2/Text';
@@ -14,7 +15,6 @@ import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { ChevronRightIcon } from '@heroicons/react/solid';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
 
@@ -22,16 +22,16 @@ function OverviewDeploymentsTopBar() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const { githubRepository } = currentApplication;
+  const { githubRepository } = currentApplication || {};
 
   return (
-    <div className="grid grid-flow-col gap-2 items-center place-content-between pb-4">
+    <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
       <Text variant="h3" className="font-medium">
         Deployments
       </Text>
 
       <NavLink
-        href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments`}
+        href={`/${currentWorkspace?.slug}/${currentApplication?.slug}/deployments`}
         passHref
       >
         <Button variant="borderless" disabled={!githubRepository}>
@@ -43,20 +43,12 @@ function OverviewDeploymentsTopBar() {
   );
 }
 
-interface OverviewDeploymentsProps {
-  projectId: string;
-  githubRepository: { fullName: string };
-}
-
-function OverviewDeployments({
-  projectId,
-  githubRepository,
-}: OverviewDeploymentsProps) {
+function OverviewDeploymentList() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const { data, loading } = useGetDeploymentsSubSubscription({
     variables: {
-      id: projectId,
+      id: currentApplication?.id,
       limit: 5,
       offset: 0,
     },
@@ -67,23 +59,23 @@ function OverviewDeployments({
     loading: scheduledOrPendingDeploymentsLoading,
   } = useScheduledOrPendingDeploymentsSubSubscription({
     variables: {
-      appId: projectId,
+      appId: currentApplication?.id,
     },
   });
 
   if (loading || scheduledOrPendingDeploymentsLoading) {
     return (
-      <Box className="h-[323px] p-2 border-1 rounded-lg">
+      <Box className="h-[323px] rounded-lg border-1 p-2">
         <ActivityIndicator label="Loading deployments..." />
       </Box>
     );
   }
 
-  const { deployments } = data;
+  const { deployments } = data || { deployments: [] };
 
-  if (deployments.length === 0) {
+  if (!deployments?.length) {
     return (
-      <Box className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm border-1">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-48 shadow-sm">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -100,16 +92,16 @@ function OverviewDeployments({
         </div>
 
         <Box
-          className="mt-6 flex flex-row place-content-between rounded-lg py-2 px-2 max-w-sm w-full"
+          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg py-2 px-2"
           sx={{ backgroundColor: 'grey.200' }}
         >
           <Box
-            className="grid grid-flow-col gap-1.5 ml-2"
+            className="ml-2 grid grid-flow-col gap-1.5"
             sx={{ backgroundColor: 'transparent' }}
           >
             <GithubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
-              {githubRepository.fullName}
+              {currentApplication?.githubRepository?.fullName}
             </Text>
           </Box>
 
@@ -128,20 +120,20 @@ function OverviewDeployments({
 
   const liveDeploymentId = getLastLiveDeployment(deployments);
   const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData;
+    scheduledOrPendingDeploymentsData || { deployments: [] };
 
   return (
     <List
-      className="rounded-x-lg flex flex-col rounded-lg"
+      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
       sx={{ borderColor: 'grey.300', borderWidth: 1 }}
     >
-      {deployments.map((deployment, index) => (
+      {deployments?.map((deployment, index) => (
         <Fragment key={deployment.id}>
           <DeploymentListItem
             deployment={deployment}
             isLive={deployment.id === liveDeploymentId}
             showRedeploy={index === 0}
-            disableRedeploy={scheduledOrPendingDeployments.length > 0}
+            disableRedeploy={scheduledOrPendingDeployments?.length > 0}
           />
 
           {index !== deployments.length - 1 && <Divider component="li" />}
@@ -151,21 +143,18 @@ function OverviewDeployments({
   );
 }
 
-export default function OverviewDeploymentsPage() {
+export default function OverviewDeployments() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
 
-  const { githubRepository } = currentApplication;
+  const { githubRepository } = currentApplication || {};
 
   // GitHub repo connected. Show deployments
   if (githubRepository) {
     return (
       <div className="flex flex-col">
         <OverviewDeploymentsTopBar />
-        <OverviewDeployments
-          projectId={currentApplication.id}
-          githubRepository={githubRepository}
-        />
+        <OverviewDeploymentList />
       </div>
     );
   }
@@ -175,7 +164,7 @@ export default function OverviewDeploymentsPage() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid grid-flow-row gap-5 items-center justify-items-center rounded-lg py-12 px-48 shadow-sm border-1">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-48 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">

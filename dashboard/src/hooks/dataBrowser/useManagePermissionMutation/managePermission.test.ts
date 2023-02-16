@@ -31,6 +31,7 @@ test('should throw an error if permission object is incorrectly provided', async
       action: 'select',
       role: 'user',
       mode: 'update',
+      resourceVersion: 1,
     }),
   ).rejects.toThrowError(
     new Error(
