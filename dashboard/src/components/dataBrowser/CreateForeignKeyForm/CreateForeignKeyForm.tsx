@@ -13,7 +13,10 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface CreateForeignKeyFormProps
-  extends Pick<BaseForeignKeyFormProps, 'onCancel' | 'availableColumns'> {
+  extends Pick<
+    BaseForeignKeyFormProps,
+    'onCancel' | 'availableColumns' | 'location'
+  > {
   /**
    * Column selected by default.
    */

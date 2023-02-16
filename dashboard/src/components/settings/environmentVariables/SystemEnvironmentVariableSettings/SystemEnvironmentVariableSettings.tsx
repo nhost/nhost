@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
+import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
@@ -50,7 +51,7 @@ export default function SystemEnvironmentVariableSettings() {
   }
 
   function showViewJwtSecretModal() {
-    openDialog('EDIT_JWT_SECRET', {
+    openDialog({
       title: (
         <span className="grid grid-flow-row">
           <span>Auth JWT Secret</span>
@@ -61,15 +62,17 @@ export default function SystemEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        disabled: true,
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
-      },
+      component: (
+        <EditJwtSecretForm
+          disabled
+          jwtSecret={data?.app?.hasuraGraphqlJwtSecret}
+        />
+      ),
     });
   }
 
   function showEditJwtSecretModal() {
-    openDialog('EDIT_JWT_SECRET', {
+    openDialog({
       title: (
         <span className="grid grid-flow-row">
           <span>Edit JWT Secret</span>
@@ -80,9 +83,9 @@ export default function SystemEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
-      },
+      component: (
+        <EditJwtSecretForm jwtSecret={data?.app?.hasuraGraphqlJwtSecret} />
+      ),
     });
   }
 

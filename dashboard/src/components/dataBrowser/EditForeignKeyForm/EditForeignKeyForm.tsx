@@ -14,7 +14,10 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface EditForeignKeyFormProps
-  extends Pick<BaseForeignKeyFormProps, 'onCancel' | 'availableColumns'> {
+  extends Pick<
+    BaseForeignKeyFormProps,
+    'onCancel' | 'availableColumns' | 'location'
+  > {
   /**
    * Foreign key relation to be edited.
    */
