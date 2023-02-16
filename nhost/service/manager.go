@@ -160,6 +160,12 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Reload Hasura Metadata
+	// This is needed because some remote schemas from functions might have been offline during the first metadata reload
+	if err := m.reloadMetadata(ctx); err != nil {
+		return err
+	}
+
 	// export metadata
 	// We export the metadata here because there might be new metadata from
 	// auth and storage that we want to sync locally.
@@ -386,6 +392,14 @@ func (m *dockerComposeManager) applyMetadata(ctx context.Context) error {
 	m.l.Debug("Applying metadata")
 
 	return m.hc.ApplyMetadata(ctx, m.debug)
+}
+
+func (m *dockerComposeManager) reloadMetadata(ctx context.Context) error {
+
+	m.status.Executing("Reloading metadata...")
+	m.l.Debug("Reloading metadata")
+
+	return m.hc.ReloadMetadata(ctx, m.debug)
 }
 
 func (m *dockerComposeManager) restartContainers(ctx context.Context, ds *compose.DataStreams, containers []string) error {
