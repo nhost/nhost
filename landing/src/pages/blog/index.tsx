@@ -79,8 +79,6 @@ export default function BlogPage({ articles }: BlogPageProps) {
                   width={400}
                   height={225}
                   alt={`Cover of ${article.title}`}
-                  blurDataURL={article.image}
-                  placeholder="blur"
                   className="h-full w-full object-contain"
                 />
               }

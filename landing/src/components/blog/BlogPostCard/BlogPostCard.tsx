@@ -61,7 +61,7 @@ export default function BlogPostCard({
     >
       <Card className={twMerge('border-none p-0', className)} {...props}>
         <div className="relative z-0 overflow-hidden rounded-xl border border-divider px-12 pt-12 sm:min-h-[200px] lg:min-h-[300px]">
-          <div className="bg-glow-gradient backface-hidden absolute top-0 left-0 right-0 bottom-0 z-0 h-full w-full blur-[80px]" />
+          <div className="bg-glow-gradient backface-hidden absolute top-0 left-0 right-0 bottom-0 z-0 h-full w-full transform-gpu blur-[80px]" />
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
           <LineGrid
             className={twMerge(
