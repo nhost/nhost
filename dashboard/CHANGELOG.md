@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.11.10
+
+### Patch Changes
+
+- a37a430b: fix(dashboard): don't break UI when deployments are unavailable
+  - @nhost/react-apollo@4.13.4
+  - @nhost/nextjs@1.13.4
+
 ## 0.11.9
 
 ### Patch Changes

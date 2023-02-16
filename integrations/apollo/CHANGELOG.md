@@ -1,5 +1,12 @@
 # @nhost/apollo
 
+## 4.13.3
+
+### Patch Changes
+
+- c38f6074: chore(react-apollo): allow `link` in configuration options
+  - @nhost/nhost-js@1.13.3
+
 ## 4.13.2
 
 ### Patch Changes
