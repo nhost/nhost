@@ -39,10 +39,7 @@ export interface DialogState {
 }
 
 export type DialogAction =
-  | {
-      type: 'OPEN_DIALOG';
-      payload: { type: DialogType; config?: DialogConfig };
-    }
+  | { type: 'OPEN_DIALOG'; payload: OpenDialogOptions }
   | { type: 'HIDE_DIALOG' }
   | { type: 'CLEAR_DIALOG_CONTENT' };
 
@@ -62,10 +59,9 @@ export function dialogReducer(
       return {
         ...state,
         open: true,
-        activeDialogType: action.payload?.type,
-        dialogProps: action.payload.config?.props,
-        title: action.payload.config?.title,
-        payload: action.payload.config?.payload,
+        title: action.payload.title,
+        activeDialog: action.payload.component,
+        dialogProps: action.payload.props,
       };
     case 'HIDE_DIALOG':
       return {
@@ -76,7 +72,7 @@ export function dialogReducer(
       return {
         ...state,
         title: undefined,
-        activeDialogType: undefined,
+        activeDialog: undefined,
         dialogProps: undefined,
       };
     default:
@@ -118,7 +114,7 @@ export function drawerReducer(
       return {
         ...state,
         title: undefined,
-        activeDialogType: undefined,
+        activeDialog: undefined,
         dialogProps: undefined,
       };
     default:

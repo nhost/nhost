@@ -21,7 +21,7 @@ export interface CreateForeignKeyFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void>;
+  onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void> | void;
 }
 
 export default function CreateForeignKeyForm({
@@ -51,9 +51,7 @@ export default function CreateForeignKeyForm({
     setError(undefined);
 
     try {
-      if (onSubmit) {
-        await onSubmit(values);
-      }
+      await onSubmit?.(values);
     } catch (submitError) {
       if (submitError && submitError instanceof Error) {
         setError(submitError);

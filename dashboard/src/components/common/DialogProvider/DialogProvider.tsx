@@ -1,16 +1,4 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
-import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
-import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
-import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
-import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
-import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
-import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
-import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
-import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
-import EditRoleForm from '@/components/settings/roles/EditRoleForm';
-import CreateUserForm from '@/components/users/CreateUserForm';
-import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
@@ -27,11 +15,7 @@ import {
   useState,
 } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type {
-  DialogConfig,
-  DialogType,
-  OpenDialogOptions,
-} from './DialogContext';
+import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
@@ -43,13 +27,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const router = useRouter();
 
   const [
-    {
-      open: dialogOpen,
-      activeDialogType,
-      dialogProps,
-      title: dialogTitle,
-      payload: dialogPayload,
-    },
+    { open: dialogOpen, title: dialogTitle, activeDialog, dialogProps },
     dialogDispatch,
   ] = useReducer(dialogReducer, {
     open: false,
@@ -58,9 +36,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const [
     {
       open: drawerOpen,
+      title: drawerTitle,
       activeDialog: activeDrawer,
       dialogProps: drawerProps,
-      title: drawerTitle,
     },
     drawerDispatch,
   ] = useReducer(drawerReducer, {
@@ -83,12 +61,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const isDialogDirty = useRef(false);
   const [showDirtyConfirmation, setShowDirtyConfirmation] = useState(false);
 
-  const openDialog = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      dialogDispatch({ type: 'OPEN_DIALOG', payload: { type, config } });
-    },
-    [],
-  );
+  const openDialog = useCallback((options: OpenDialogOptions) => {
+    dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
+  }, []);
 
   const closeDialog = useCallback(() => {
     dialogDispatch({ type: 'HIDE_DIALOG' });
@@ -172,9 +147,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [closeDialog, openDirtyConfirmation],
   );
 
-  // We are coupling this logic with the location of the dialog content which is
-  // not ideal. We shoule figure out a better logic for tracking the dirty
-  // state in the future.
   const onDirtyStateChange = useCallback(
     (dirty: boolean, location: 'drawer' | 'dialog' = 'drawer') => {
       if (location === 'dialog') {
@@ -214,16 +186,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openDrawer,
     ],
   );
-
-  const sharedDialogProps = {
-    ...dialogPayload,
-    onSubmit: async (values: any) => {
-      await dialogPayload?.onSubmit?.(values);
-
-      closeDialog();
-    },
-    onCancel: closeDialogWithDirtyGuard,
-  };
 
   useEffect(() => {
     function handleCloseDrawerAndDialog() {
@@ -302,56 +264,20 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
-          {activeDialogType === 'EDIT_WORKSPACE_NAME' && (
-            <EditWorkspaceNameForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_FOREIGN_KEY' && (
-            <CreateForeignKeyForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_FOREIGN_KEY' && (
-            <EditForeignKeyForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_ROLE' && (
-            <CreateRoleForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_ROLE' && (
-            <EditRoleForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_USER' && (
-            <CreateUserForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_PERMISSION_VARIABLE' && (
-            <CreatePermissionVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_PERMISSION_VARIABLE' && (
-            <EditPermissionVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_ENVIRONMENT_VARIABLE' && (
-            <CreateEnvironmentVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
-            <EditEnvironmentVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_USER_PASSWORD' && (
-            <EditUserPasswordForm
-              {...sharedDialogProps}
-              user={sharedDialogProps?.user}
-            />
-          )}
-
-          {activeDialogType === 'EDIT_JWT_SECRET' && (
-            <EditJwtSecretForm {...sharedDialogProps} />
-          )}
+          {isValidElement(activeDialog)
+            ? cloneElement(activeDialog, {
+                ...activeDialog.props,
+                location: 'dialog',
+                onSubmit: async (values?: any) => {
+                  await activeDialog?.props?.onSubmit?.(values);
+                  closeDialog();
+                },
+                onCancel: () => {
+                  activeDialog?.props?.onCancel?.();
+                  closeDialogWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </BaseDialog>
 

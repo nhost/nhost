@@ -56,12 +56,10 @@ export interface OpenDialogOptions {
 
 export interface DialogContextProps {
   /**
-   * Call this function to open a dialog.
+   * Call this function to open a dialog. It will automatically apply the
+   * necessary functionality to the dialog.
    */
-  openDialog: <TPayload = unknown>(
-    type: DialogType,
-    config?: DialogConfig<TPayload>,
-  ) => void;
+  openDialog: (options: OpenDialogOptions) => void;
   /**
    * Call this function to open a drawer. It will automatically apply the
    * necessary functionality to the drawer.
