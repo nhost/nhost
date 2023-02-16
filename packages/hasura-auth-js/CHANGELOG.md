@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.12.3
+
+### Patch Changes
+
+- 5880f0cd: chore(hasura-auth-js): bump `msw` version to `1.0.1`
+
 ## 1.12.2
 
 ### Patch Changes
