@@ -1,10 +1,6 @@
 import type { CommonDialogProps } from '@/ui/v2/Dialog';
 import type { ReactElement, ReactNode } from 'react';
-import type {
-  DialogConfig,
-  DialogType,
-  OpenDialogOptions,
-} from './DialogContext';
+import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 
 export interface DialogState {
   /**
@@ -23,10 +19,6 @@ export interface DialogState {
     onCancel?: () => void;
     onSubmit?: (args?: any) => Promise<any> | void;
   }>;
-  /**
-   * Type of the currently active dialog.
-   */
-  activeDialogType?: DialogType;
   /**
    * Props passed to the currently active dialog.
    */

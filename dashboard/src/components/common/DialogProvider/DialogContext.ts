@@ -3,23 +3,6 @@ import type { CommonDialogProps } from '@/ui/v2/Dialog';
 import type { ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
 
-/**
- * Available dialog types.
- */
-export type DialogType =
-  | 'EDIT_WORKSPACE_NAME'
-  | 'CREATE_FOREIGN_KEY'
-  | 'EDIT_FOREIGN_KEY'
-  | 'CREATE_ROLE'
-  | 'EDIT_ROLE'
-  | 'CREATE_USER'
-  | 'CREATE_PERMISSION_VARIABLE'
-  | 'EDIT_PERMISSION_VARIABLE'
-  | 'CREATE_ENVIRONMENT_VARIABLE'
-  | 'EDIT_ENVIRONMENT_VARIABLE'
-  | 'EDIT_USER_PASSWORD'
-  | 'EDIT_JWT_SECRET';
-
 export interface DialogConfig<TPayload = unknown> {
   /**
    * Title of the dialog.
