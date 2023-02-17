@@ -34,14 +34,6 @@ describe('Hasura', () => {
   })
 
   it('should insert a todo', async () => {
-    await client.query.todos({
-      select: {
-        id: true,
-        contents: true,
-        user: { select: { email: true } }
-      }
-    })
-
     const result = await client.mutation.insertTodo({
       variables: { object: { contents: 'test', userId } },
       select: {
@@ -237,19 +229,6 @@ describe('Hasura', () => {
       on: { Dog: { select: { barks: true } }, Hamster: true }
     })
 
-    const res = result[0]
-
-    res.__typename // "Dog" | "Hamster" | null
-    res.name // string
-    res.owner.firstName // string
-
-    if (res.__typename === 'Dog') {
-      res.__typename // "Dog"
-      res.barks // boolean
-    }
-    if (res.__typename === 'Hamster') {
-      res.squeaks // boolean
-    }
     expect(result).toMatchInlineSnapshot(`
       [
         {

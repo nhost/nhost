@@ -1,7 +1,6 @@
 import { StorageImageTransformationParams } from './types'
 
 export * from './types'
-export * from './upload'
 
 export const appendImageTransformationParameters = (
   url: string,

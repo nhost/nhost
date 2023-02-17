@@ -26,6 +26,9 @@
       "@nhost/hasura-storage-js": [
         "../hasura-storage-js/src/index.ts"
       ],
+      "@nhost/graphql-js": [
+        "../graphql-js/src/index.ts"
+      ],
       "@nhost/nextjs": [
         "../nextjs/src/index.ts"
       ],
