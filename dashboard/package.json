@@ -67,7 +67,7 @@
     "react-error-boundary": "^3.1.4",
     "react-hook-form": "^7.39.5",
     "react-hot-toast": "^2.4.0",
-    "react-is": "17.0.2",
+    "react-is": "18.2.0",
     "react-loading-skeleton": "^2.2.0",
     "react-merge-refs": "^1.1.0",
     "react-syntax-highlighter": "^15.4.5",
