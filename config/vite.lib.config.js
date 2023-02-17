@@ -35,6 +35,7 @@ export default defineConfig({
     }
   },
   build: {
+    target: "es2019", // https://esbuild.docschina.org/content-types/#javascript
     sourcemap: true,
     lib: {
       entry,
