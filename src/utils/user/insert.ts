@@ -1,12 +1,18 @@
-import { User } from '@/types';
-import { pgClient } from '../postgres-client';
+import { gqlSdk } from '../gql-sdk';
+import {
+  InsertUserMutation,
+  InsertUserMutationVariables,
+} from '../__generated__/graphql-request';
 
-export const insertUser = async (user: Partial<User>): Promise<User> => {
-  const insertUser = await pgClient.insertUser(user);
+type UserInput = InsertUserMutationVariables['user'];
+type UserOutput = NonNullable<InsertUserMutation['insertUser']>;
 
+export const insertUser = async (user: UserInput): Promise<UserOutput> => {
+  const { insertUser } = await gqlSdk.insertUser({
+    user,
+  });
   if (!insertUser) {
     throw new Error('Could not insert user');
   }
-
   return insertUser;
 };

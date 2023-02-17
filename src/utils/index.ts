@@ -13,5 +13,4 @@ export * from './hasura';
 export * from './async-wrapper';
 export * from './webauthn';
 export * from './hasura-metadata';
-export * from './postgres-client';
 export * from './refresh-token';

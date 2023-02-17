@@ -3,13 +3,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import {
+  gqlSdk,
   getUserByEmail,
   insertUser,
   getGravatarUrl,
   generateTicketExpiresAt,
   ENV,
   createEmailRedirectionLink,
-  pgClient,
 } from '@/utils';
 import { sendEmail } from '@/email';
 import { EMAIL_TYPES, UserRegistrationOptionsWithRedirect } from '@/types';
@@ -56,7 +56,10 @@ export const signInPasswordlessEmailHandler: RequestHandler<
     user = await insertUser({
       displayName: displayName ?? email,
       locale,
-      roles: allowedRoles,
+      roles: {
+        // restructure user roles to be inserted in GraphQL mutation
+        data: allowedRoles.map((role: string) => ({ role })),
+      },
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       avatarUrl: getGravatarUrl(email),
       email,
@@ -73,7 +76,7 @@ export const signInPasswordlessEmailHandler: RequestHandler<
   const ticket = `passwordlessEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       ticket,

@@ -1,7 +1,8 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { createEmailRedirectionLink, getUserByEmail, pgClient } from '@/utils';
+import { gqlSdk } from '../gql-sdk';
+import { createEmailRedirectionLink, getUserByEmail } from '@/utils';
 import { ENV } from '../env';
 import { sendEmail } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
@@ -24,7 +25,9 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   userId: string,
   res: Response
 ): Promise<unknown> => {
-  const user = await pgClient.getUserById(userId);
+  const { user } = await gqlSdk.user({
+    id: userId,
+  });
 
   if (user?.isAnonymous !== true) {
     return sendError(res, 'user-not-anonymous');
@@ -41,16 +44,20 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   }
 
   // delete existing (anonymous) user roles
-  await pgClient.deleteUserRolesByUserId(userId);
+  await gqlSdk.deleteUserRolesByUserId({
+    userId,
+  });
 
   // insert new user roles (userRoles)
-  await pgClient.insertUserRoles(userId, allowedRoles);
+  await gqlSdk.insertUserRoles({
+    userRoles: allowedRoles.map((role: string) => ({ role, userId })),
+  });
 
   // TODO use createVerifyEmailTicket()
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: userId,
     user: {
       emailVerified: false,
@@ -65,12 +72,14 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   // Delete old refresh token and send email if email must be verified
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     // delete old refresh tokens for user
-    await pgClient.deleteUserRefreshTokens(userId);
+    await gqlSdk.deleteUserRefreshTokens({
+      userId,
+    });
     // create ticket
     const ticket = `passwordlessEmail:${uuidv4()}`;
     const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-    await pgClient.updateUser({
+    await gqlSdk.updateUser({
       id: userId,
       user: {
         ticket,

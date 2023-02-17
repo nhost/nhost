@@ -12,7 +12,7 @@ import {
   getUser,
   verifyWebAuthnRegistration,
   getWebAuthnRelyingParty,
-  pgClient,
+  gqlSdk,
 } from '@/utils';
 
 export type AddSecurityKeyRequestBody = {
@@ -38,7 +38,9 @@ export const addSecurityKeyHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const authUserSecurityKeys = await pgClient.getUserSecurityKeys(userId);
+  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
+    id: userId,
+  });
 
   const options = generateRegistrationOptions({
     rpID: getWebAuthnRelyingParty(),
@@ -47,12 +49,15 @@ export const addSecurityKeyHandler: RequestHandler<
     userName: displayName ?? email,
     attestationType: 'indirect',
     excludeCredentials: authUserSecurityKeys.map((securityKey) => ({
-      id: Buffer.from(securityKey.credential_id, 'base64url'),
+      id: Buffer.from(securityKey.credentialId, 'base64url'),
       type: 'public-key',
     })),
   });
 
-  await pgClient.updateUserChallenge(userId, options.challenge);
+  await gqlSdk.updateUserChallenge({
+    userId,
+    challenge: options.challenge,
+  });
 
   return res.send(options);
 };

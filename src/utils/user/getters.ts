@@ -1,33 +1,38 @@
-import { SessionUser, User } from '@/types';
-import { pgClient } from '../postgres-client';
+import { User } from '@/types';
+import { gqlSdk } from '../gql-sdk';
 
 export const getUserByPhoneNumber = async ({
   phoneNumber,
 }: {
   phoneNumber: string;
-}) => pgClient.getUserByPhoneNumber(phoneNumber);
+}) => {
+  const { users } = await gqlSdk.users({
+    where: {
+      phoneNumber: {
+        _eq: phoneNumber,
+      },
+    },
+  });
+
+  return users[0];
+};
 
 export const getUser = async ({
   userId,
 }: {
   userId: string;
 }): Promise<User> => {
-  const user = await pgClient.getUserById(userId);
+  const { user } = await gqlSdk.user({
+    id: userId,
+  });
 
   if (!user) {
     throw new Error('Unable to get user');
   }
-  return user;
-};
 
-export const getSessionUser = async (params: {
-  userId: string;
-}): Promise<SessionUser> => {
-  const user = await getUser(params);
   const {
     id,
     createdAt,
-    roles,
     displayName,
     avatarUrl,
     locale,
@@ -40,11 +45,9 @@ export const getSessionUser = async (params: {
     phoneNumberVerified,
     activeMfaType,
   } = user;
-
   return {
     id,
     createdAt,
-    roles,
     displayName,
     avatarUrl,
     locale,
@@ -56,10 +59,49 @@ export const getSessionUser = async (params: {
     phoneNumber,
     phoneNumberVerified,
     activeMfaType,
+    roles: user.roles.map((role) => role.role),
   };
 };
 
-export const getUserByEmail = (email: string) => pgClient.getUserByEmail(email);
+export const getUserByEmail = async (email: string) => {
+  const { users } = await gqlSdk.users({
+    where: {
+      email: {
+        _eq: email,
+      },
+    },
+  });
 
-export const getUserByTicket = (ticket: string) =>
-  pgClient.getUserByTicket(ticket);
+  if (users.length !== 1) {
+    return null;
+  }
+
+  return users[0];
+};
+
+export const getUserByTicket = async (ticket: string) => {
+  const now = new Date();
+
+  const { users } = await gqlSdk.users({
+    where: {
+      _and: [
+        {
+          ticket: {
+            _eq: ticket,
+          },
+        },
+        {
+          ticketExpiresAt: {
+            _gt: now,
+          },
+        },
+      ],
+    },
+  });
+
+  if (users.length !== 1) {
+    return null;
+  }
+
+  return users[0];
+};

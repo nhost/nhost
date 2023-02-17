@@ -7,9 +7,10 @@ import { ERRORS, sendError } from '@/errors';
 import {
   ENV,
   generateRedirectUrl,
+  getNewRefreshToken,
   getUserByEmail,
+  gqlSdk,
   insertUser,
-  pgClient,
 } from '@/utils';
 import {
   queryValidator,
@@ -18,6 +19,7 @@ import {
 } from '@/validation';
 import { SessionStore } from './session-store';
 import { logger } from '@/logger';
+import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
   createGrantConfig,
   normaliseProfile,
@@ -25,7 +27,6 @@ import {
   transformOauthProfile,
 } from './utils';
 import { OAUTH_ROUTE } from './config';
-import { User } from '@/types';
 
 const SESSION_NAME = 'connect.sid';
 
@@ -224,36 +225,44 @@ export const oauthProviders = Router()
 
     const { access_token: accessToken, refresh_token: refreshToken } = response;
 
-    let userId: string | null = null;
+    let user: NonNullable<InsertUserMutation['insertUser']> | null = null;
 
     // * Look for the user-provider
-    const result = await pgClient.getUserByProvider(provider, providerUserId);
+    const {
+      authUserProviders: [authUserProvider],
+    } = await gqlSdk.authUserProviders({
+      provider,
+      providerUserId,
+    });
 
-    if (result.user) {
+    if (authUserProvider) {
       // * The userProvider already exists. Update it with the new tokens
-      userId = result.user.id;
-      await pgClient.updateAuthUserprovider(result.id, {
-        accessToken,
-        refreshToken,
+      user = authUserProvider.user;
+      await gqlSdk.updateAuthUserprovider({
+        id: authUserProvider.id,
+        authUserProvider: {
+          accessToken,
+          refreshToken,
+        },
       });
     } else {
-      let user: User | null = null;
       if (profile.email) {
         user = await getUserByEmail(profile.email);
       }
       if (user) {
-        userId = user.id;
-
         // * add this provider to existing user with the same email
-        const result = await pgClient.insertUserProviderToUser({
-          userId: user.id,
-          providerId: provider,
-          providerUserId,
-          refreshToken,
-          accessToken,
-        });
+        const { insertAuthUserProvider } =
+          await gqlSdk.insertUserProviderToUser({
+            userProvider: {
+              userId: user.id,
+              providerId: provider,
+              providerUserId,
+              accessToken,
+              refreshToken,
+            },
+          });
 
-        if (!result) {
+        if (!insertAuthUserProvider) {
           logger.warn('Could not add a provider to user');
           return sendError(res, 'internal-error', { redirectTo }, true);
         }
@@ -261,20 +270,24 @@ export const oauthProviders = Router()
         // * No user found with this email. Create a new user
         // TODO feature: check if registration is enabled
         const userInput = await transformOauthProfile(profile, options);
-        const { id } = await insertUser(userInput);
-        userId = id;
-        await pgClient.insertUserProviderToUser({
-          userId: id,
-          providerId: provider,
-          providerUserId,
-          refreshToken,
-          accessToken,
+        user = await insertUser({
+          ...userInput,
+          userProviders: {
+            data: [
+              {
+                providerId: provider,
+                providerUserId,
+                accessToken,
+                refreshToken,
+              },
+            ],
+          },
         });
       }
     }
 
-    if (userId) {
-      const refreshToken = await pgClient.insertRefreshToken(userId);
+    if (user) {
+      const refreshToken: string = await getNewRefreshToken(user.id);
       // * redirect back user to app url
       return res.redirect(generateRedirectUrl(redirectTo, { refreshToken }));
     }

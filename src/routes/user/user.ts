@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 
-import { getSessionUser } from '@/utils';
+import { getUser } from '@/utils';
 
 export const userHandler: RequestHandler = async (
   req,
@@ -8,7 +8,7 @@ export const userHandler: RequestHandler = async (
 ): Promise<unknown> => {
   const { userId } = req.auth as RequestAuth;
 
-  const user = await getSessionUser({ userId });
+  const user = await getUser({ userId });
 
   return res.send({
     ...user,

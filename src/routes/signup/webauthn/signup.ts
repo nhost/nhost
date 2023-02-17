@@ -60,15 +60,19 @@ export const signUpWebauthnHandler: RequestHandler<
     id: userId,
     isAnonymous: true,
     newEmail: email,
+    email: null,
     disabled: ENV.AUTH_DISABLE_NEW_USERS,
     displayName,
     avatarUrl: getGravatarUrl(email),
     emailVerified: false,
     locale,
     defaultRole,
-    roles: allowedRoles,
+    roles: {
+      // restructure user roles to be inserted in GraphQL mutation
+      data: allowedRoles.map((role: string) => ({ role })),
+    },
     metadata,
-    webauthnCurrentChallenge: registrationOptions.challenge,
+    currentChallenge: registrationOptions.challenge,
   });
   return res.send(registrationOptions);
 };

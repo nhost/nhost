@@ -4,11 +4,11 @@ import { ReasonPhrases } from 'http-status-codes';
 
 import { UserRegistrationOptions } from '@/types';
 import {
+  gqlSdk,
   getNewOneTimePasswordData,
   getUserByPhoneNumber,
   insertUser,
   ENV,
-  pgClient,
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber, registrationOptions } from '@/validation';
@@ -46,7 +46,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
   const userExists = !!user;
 
   // if no user exists, create the user
-  if (!user) {
+  if (!userExists) {
     user = await insertUser({
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       displayName,
@@ -54,7 +54,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
       phoneNumber,
       locale,
       defaultRole,
-      roles: allowedRoles,
+      roles: {
+        // restructure user roles to be inserted in GraphQL mutation
+        data: allowedRoles.map((role: string) => ({ role })),
+      },
       metadata,
     });
   }
@@ -66,7 +69,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
   // set otp for user that will be sent in the email
   const { otp, otpHash, otpHashExpiresAt } = await getNewOneTimePasswordData();
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       otpMethodLastUsed: 'sms',
@@ -127,7 +130,9 @@ export const signInPasswordlessSmsHandler: RequestHandler<
 
     // delete user that was inserted because we were not able to send the SMS
     if (!userExists) {
-      await pgClient.deleteUser(user.id);
+      await gqlSdk.deleteUser({
+        userId: user.id,
+      });
     }
     return sendError(res, 'cannot-send-sms');
   }

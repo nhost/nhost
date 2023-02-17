@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Session, SignInResponse, User } from '@/types';
+import { Session, SignInResponse } from '@/types';
+import { gqlSdk } from './gql-sdk';
 import { generateTicketExpiresAt } from './ticket';
 import { ENV } from './env';
 import { createHasuraAccessToken } from './jwt';
+import { getNewRefreshToken, updateRefreshTokenExpiry } from './refresh-token';
 import { getUser } from './user';
-import { pgClient } from './postgres-client';
+import { UserFieldsFragment } from './__generated__/graphql-request';
 
 /**
  * Get new or update current user session
@@ -16,11 +18,11 @@ export const getNewOrUpdateCurrentSession = async ({
   user,
   currentRefreshToken,
 }: {
-  user: User;
+  user: UserFieldsFragment;
   currentRefreshToken?: string;
 }): Promise<Session> => {
   // update user's last seen
-  pgClient.updateUser({
+  gqlSdk.updateUser({
     id: user.id,
     user: {
       lastSeen: new Date(),
@@ -30,8 +32,8 @@ export const getNewOrUpdateCurrentSession = async ({
   const accessToken = await createHasuraAccessToken(user);
   const refreshToken =
     (currentRefreshToken &&
-      (await pgClient.updateRefreshTokenExpiresAt(currentRefreshToken))) ||
-    (await pgClient.insertRefreshToken(user.id));
+      (await updateRefreshTokenExpiry(currentRefreshToken))) ||
+    (await getNewRefreshToken(user.id));
   return {
     accessToken,
     accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
@@ -47,7 +49,9 @@ export const getSignInResponse = async ({
   userId: string;
   checkMFA: boolean;
 }): Promise<SignInResponse> => {
-  const user = await pgClient.getUserById(userId);
+  const { user } = await gqlSdk.user({
+    id: userId,
+  });
   if (!user) {
     throw new Error('No user');
   }
@@ -55,7 +59,7 @@ export const getSignInResponse = async ({
     // generate new ticket
     const ticket = `mfaTotp:${uuidv4()}`;
     // set ticket
-    await pgClient.updateUser({
+    await gqlSdk.updateUser({
       id: userId,
       user: {
         ticket,

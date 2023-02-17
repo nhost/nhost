@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { pgClient } from '@/utils';
+import { deleteRefreshToken, deleteUserRefreshTokens } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -30,12 +30,11 @@ export const signOutHandler: RequestHandler<
     }
 
     const { userId } = req.auth;
-
-    await pgClient.deleteUserRefreshTokens(userId);
+    await deleteUserRefreshTokens(userId);
   } else {
     // only sign out from the current session
     // delete current refresh token
-    await pgClient.deleteRefreshToken(refreshToken);
+    await deleteRefreshToken(refreshToken);
   }
 
   return res.json(ReasonPhrases.OK);

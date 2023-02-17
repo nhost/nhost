@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import {
+  gqlSdk,
   generateTicketExpiresAt,
   ENV,
   createEmailRedirectionLink,
   getUserByEmail,
-  pgClient,
 } from '@/utils';
 import { sendEmail } from '@/email';
 import { Joi, email, redirectTo } from '@/validation';
@@ -47,7 +47,7 @@ export const userEmailChange: RequestHandler<
   }
 
   // set newEmail for user
-  const user = await pgClient.updateUser({
+  const updatedUserResponse = await gqlSdk.updateUser({
     id: userId,
     user: {
       ticket,
@@ -55,6 +55,8 @@ export const userEmailChange: RequestHandler<
       newEmail,
     },
   });
+
+  const user = updatedUserResponse.updateUser;
 
   if (!user) {
     return sendError(res, 'user-not-found');

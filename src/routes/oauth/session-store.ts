@@ -1,14 +1,14 @@
 import { SessionData, Store } from 'express-session';
 
-import { pgClient } from '@/utils';
+import { gqlSdk } from '@/utils';
 
 export class SessionStore extends Store {
   constructor(options = {}) {
     super(options);
   }
   destroy(id: string, callback: (err: unknown) => void) {
-    pgClient
-      .deleteProviderRequest(id)
+    gqlSdk
+      .deleteProviderRequest({ id })
       .then(() => callback(null))
       .catch((err) => callback(err));
   }
@@ -16,14 +16,21 @@ export class SessionStore extends Store {
     id: string,
     callback: (err: unknown, session: SessionData | null) => void
   ) {
-    pgClient
-      .providerRequest(id)
-      .then(({ options }) => callback(null, options))
+    gqlSdk
+      .providerRequest({ id })
+      .then(({ authProviderRequest }) =>
+        callback(null, authProviderRequest?.options)
+      )
       .catch((err) => callback(err, null));
   }
   set(id: string, session: SessionData, callback: (err: unknown) => void) {
-    pgClient
-      .insertProviderRequest(id, session)
+    gqlSdk
+      .insertProviderRequest({
+        providerRequest: {
+          id,
+          options: session,
+        },
+      })
       .then(() => callback(null))
       .catch((err) => callback(err));
   }

@@ -26,7 +26,7 @@ cp .env.example .env
 make dev
 ```
 
-Hasura-auth is now running on `http://localhost:4000` and will restart on evey change.
+Hasura-auth is now running on `http://localhost:4000` and will restart on evey change. GraphQL-codegen is watching the Hasura GraphQL and will regenerate every change in the schema.
 
 ## Test
 

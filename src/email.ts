@@ -23,7 +23,7 @@ const transport = nodemailer.createTransport({
 /**
  * Reusable email client.
  */
-const emailClient = new Email<EmailLocals>({
+export const emailClient = new Email<EmailLocals>({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,

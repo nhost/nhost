@@ -4,11 +4,11 @@ import { ReasonPhrases } from 'http-status-codes';
 
 import { sendEmail } from '@/email';
 import {
+  gqlSdk,
   getUserByEmail,
   generateTicketExpiresAt,
   ENV,
   createEmailRedirectionLink,
-  pgClient,
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
@@ -44,7 +44,7 @@ export const userPasswordResetHandler: RequestHandler<
   const ticket = `${EMAIL_TYPES.PASSWORD_RESET}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       ticket,

@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { ENV, getSignInResponse, pgClient } from '@/utils';
+import { ENV, getSignInResponse, gqlSdk } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber } from '@/validation';
 import { isTestingPhoneNumber, isVerifySid } from '@/utils/twilio';
@@ -30,7 +30,29 @@ export const signInOtpHandler: RequestHandler<
 
   const { phoneNumber, otp } = body;
 
-  const user = await pgClient.getUserByPhoneNumberAndOtp(phoneNumber);
+  const user = await gqlSdk
+    .users({
+      where: {
+        _and: [
+          {
+            phoneNumber: {
+              _eq: phoneNumber,
+            },
+          },
+          {
+            otpMethodLastUsed: {
+              _eq: 'sms',
+            },
+          },
+          {
+            otpHashExpiresAt: {
+              _gt: new Date(),
+            },
+          },
+        ],
+      },
+    })
+    .then((gqlres) => gqlres.users[0]);
 
   if (!user) {
     return sendError(res, 'invalid-otp');
@@ -43,11 +65,10 @@ export const signInOtpHandler: RequestHandler<
   if (!user || !user.otpHash) {
     return sendError(res, 'invalid-otp');
   }
-  const userId = user.id;
 
   async function verifyPhoneNumberAndSignIn() {
-    await pgClient.updateUser({
-      id: userId,
+    await gqlSdk.updateUser({
+      id: user.id,
       user: {
         otpHash: null,
         phoneNumberVerified: true,
@@ -55,7 +76,7 @@ export const signInOtpHandler: RequestHandler<
     });
 
     const signInResponse = await getSignInResponse({
-      userId: userId,
+      userId: user.id,
       checkMFA: true,
     });
 

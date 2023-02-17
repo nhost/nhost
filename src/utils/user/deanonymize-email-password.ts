@@ -2,10 +2,15 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { pgClient, createEmailRedirectionLink, getUserByEmail } from '@/utils';
-import { sendEmail } from '@/email';
+import {
+  createEmailRedirectionLink,
+  deleteUserRefreshTokens,
+  getUserByEmail,
+} from '@/utils';
+import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 
+import { gqlSdk } from '../gql-sdk';
 import { ENV } from '../env';
 import { generateTicketExpiresAt } from '../ticket';
 import { hashPassword } from '../password';
@@ -28,7 +33,9 @@ export const handleDeanonymizeUserEmailPassword = async (
   userId: string,
   res: Response
 ): Promise<unknown> => {
-  const user = await pgClient.getUserById(userId);
+  const { user } = await gqlSdk.user({
+    id: userId,
+  });
   if (user?.isAnonymous !== true) {
     return sendError(res, 'user-not-anonymous');
   }
@@ -47,16 +54,20 @@ export const handleDeanonymizeUserEmailPassword = async (
   const passwordHash = await hashPassword(password);
 
   // delete existing (anonymous) user roles
-  await pgClient.deleteUserRolesByUserId(userId);
+  await gqlSdk.deleteUserRolesByUserId({
+    userId,
+  });
 
   // insert new user roles (userRoles)
-  await pgClient.insertUserRoles(userId, allowedRoles);
+  await gqlSdk.insertUserRoles({
+    userRoles: allowedRoles.map((role: string) => ({ role, userId })),
+  });
 
   // TODO use createVerifyEmailTicket()
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: userId,
     user: {
       emailVerified: false,
@@ -72,7 +83,7 @@ export const handleDeanonymizeUserEmailPassword = async (
   // delete old refresh tokens and send email if user must verify their email
   // before they can sign in.
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    await pgClient.deleteUserRefreshTokens(userId);
+    await deleteUserRefreshTokens(userId);
 
     const template = 'email-verify';
     const link = createEmailRedirectionLink(
@@ -80,7 +91,7 @@ export const handleDeanonymizeUserEmailPassword = async (
       ticket,
       redirectTo
     );
-    await sendEmail({
+    await emailClient.send({
       template,
       message: {
         to: email,

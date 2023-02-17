@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import {
+  gqlSdk,
   generateTicketExpiresAt,
   getUserByEmail,
   ENV,
   createEmailRedirectionLink,
-  pgClient,
 } from '@/utils';
 import { sendEmail } from '@/email';
 import { sendError } from '@/errors';
@@ -52,7 +52,7 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
 
   // set newEmail for user
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       ticket,

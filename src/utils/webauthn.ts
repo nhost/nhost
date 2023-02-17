@@ -6,18 +6,19 @@ import {
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
 
 import { ENV } from './env';
-import { pgClient } from './postgres-client';
+import { gqlSdk } from './gql-sdk';
+import { AuthUserSecurityKeys_Insert_Input } from './__generated__/graphql-request';
 
 export const getWebAuthnRelyingParty = () =>
   ENV.AUTH_CLIENT_URL && new URL(ENV.AUTH_CLIENT_URL).hostname;
 
 export const getCurrentChallenge = async (id: string) => {
-  const user = await pgClient.getUserChallenge(id);
+  const { user } = await gqlSdk.getUserChallenge({ id });
 
-  if (!user.webauthn_current_challenge) {
+  if (!user?.currentChallenge) {
     throw Error('invalid-request');
   }
-  return user.webauthn_current_challenge;
+  return user.currentChallenge;
 };
 
 export const verifyWebAuthnRegistration = async (
@@ -54,28 +55,34 @@ export const verifyWebAuthnRegistration = async (
     counter,
   } = registrationInfo;
 
-  const securityKeyId = await pgClient.addUserSecurityKey({
-    user_id: id,
-    credential_id: credentialId.toString('base64url'),
-    credential_public_key: Buffer.from(
+  const newSecurityKey: AuthUserSecurityKeys_Insert_Input = {
+    credentialId: credentialId.toString('base64url'),
+    credentialPublicKey: Buffer.from(
       '\\x' + credentialPublicKey.toString('hex')
     ).toString(),
     counter,
     nickname,
+  };
+
+  const { insertAuthUserSecurityKey } = await gqlSdk.addUserSecurityKey({
+    userSecurityKey: {
+      userId: id,
+      ...newSecurityKey,
+    },
   });
 
-  if (!securityKeyId) {
+  if (!insertAuthUserSecurityKey?.id) {
     throw Error(
       'Something went wrong. Impossible to insert new security key in the database.'
     );
   }
 
-  await pgClient.updateUser({
+  await gqlSdk.updateUser({
     id,
     user: {
-      webauthnCurrentChallenge: null,
+      currentChallenge: null,
     },
   });
 
-  return securityKeyId;
+  return insertAuthUserSecurityKey.id;
 };
