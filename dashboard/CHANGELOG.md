@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.11.11
+
+### Patch Changes
+
+- bf1e4071: chore(dashboard): bump `react-is` version to `18.2.0`
+- Updated dependencies [bf1e4071]
+- Updated dependencies [5013213b]
+  - @nhost/nextjs@1.13.5
+  - @nhost/react-apollo@4.13.5
+
 ## 0.11.10
 
 ### Patch Changes

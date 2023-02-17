@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.12.4
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+
 ## 1.12.3
 
 ### Patch Changes

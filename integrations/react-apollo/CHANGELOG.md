@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 4.13.5
+
+### Patch Changes
+
+- Updated dependencies [5013213b]
+- Updated dependencies [bf1e4071]
+  - @nhost/react@1.13.5
+  - @nhost/apollo@4.13.4
+
 ## 4.13.4
 
 ### Patch Changes
