@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.6
+
+### Patch Changes
+
+- 5013213b: fix(deps): update dependency commander to v10
+
 ## 0.1.5
 
 ### Patch Changes

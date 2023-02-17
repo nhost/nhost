@@ -1,5 +1,13 @@
 # @nhost/vue
 
+## 1.13.5
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+  - @nhost/nhost-js@1.13.4
+
 ## 1.13.4
 
 ### Patch Changes

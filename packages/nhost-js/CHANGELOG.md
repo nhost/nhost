@@ -1,5 +1,14 @@
 # @nhost/nhost-js
 
+## 1.13.4
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+  - @nhost/hasura-auth-js@1.12.4
+  - @nhost/hasura-storage-js@1.13.2
+
 ## 1.13.3
 
 ### Patch Changes
