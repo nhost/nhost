@@ -66,6 +66,7 @@ describe('Unit tests on field validation', () => {
     const subdomainUrl = `https://*.${domain}/allowed`;
     const anyportUrl = `https://${anyPortDomain}?(:{1..65536})`;
     const otherAllowedRedirects = `${anotherUrl},${subdomainUrl},${protocolUrl}`;
+
     beforeAll(async () => {
       await request.post('/change-env').send({
         AUTH_CLIENT_URL: clientUrl,
@@ -195,6 +196,16 @@ describe('Unit tests on field validation', () => {
     it('should reject sub-subdomains', () => {
       expect(
         redirectTo.validate(`https://bob.thebuilder.${domain}/allowed`).error
+      ).toBeObject();
+    });
+
+    it('should reject shadowing domains', async () => {
+      expect(
+        redirectTo.validate(`https://protocol.com.example.com`).error
+      ).toBeObject();
+
+      expect(
+        redirectTo.validate(`https://wwwaprotocol.com`).error
       ).toBeObject();
     });
   });
