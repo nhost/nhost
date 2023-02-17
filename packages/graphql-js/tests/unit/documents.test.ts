@@ -60,6 +60,39 @@ describe('main', () => {
     `)
   })
 
+  it('use multiple where', () => {
+    const q = toGraphQLDocument(schema, 'Query', 'todos', {
+      select: {
+        createdAt: true,
+        contents: true,
+        user: { select: { roles: { variables: { where: { role: { _eq: 'admin' } } } } } }
+      },
+      variables: {
+        limit: 2,
+        where: {
+          createdAt: { _lte: new Date(2023, 1, 5).toISOString() }
+        },
+        order_by: [{ createdAt: 'asc' }]
+      }
+    })
+    expect(print(q)).toMatchInlineSnapshot(`
+      "query ($limit: Int, $where: todos_bool_exp, $order_by: [todos_order_by!], $user_roles_where: authUserRoles_bool_exp) {
+        todos(limit: $limit, where: $where, order_by: $order_by) {
+          createdAt
+          contents
+          user {
+            roles(where: $user_roles_where) {
+              createdAt
+              id
+              role
+              userId
+            }
+          }
+        }
+      }"
+    `)
+  })
+
   it('select a relationship', () => {
     const q = toGraphQLDocument(schema, 'Query', 'todos', {
       select: {
