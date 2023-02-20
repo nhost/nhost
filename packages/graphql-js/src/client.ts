@@ -1,7 +1,8 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import fetch from 'cross-fetch'
-import { urlFromSubdomain } from '../../utils/helpers'
-import { NhostClientConstructorParams } from '../../utils/types'
+import { toRawGraphQL } from './graphql-object/query-builder'
+import { GenericSchema, getRootOperationNames } from './graphql-object/schema'
+import { OperationFactory } from './graphql-object/types'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {
@@ -15,34 +16,79 @@ import {
 } from './types'
 
 /**
- * Creates a client for GraphQL from either a subdomain or a URL
- */
-export function createGraphqlClient(params: NhostClientConstructorParams) {
-  const graphqlUrl =
-    'subdomain' in params || 'backendUrl' in params
-      ? urlFromSubdomain(params, 'graphql')
-      : params.graphqlUrl
-
-  if (!graphqlUrl) {
-    throw new Error('Please provide `subdomain` or `graphqlUrl`.')
-  }
-
-  return new NhostGraphqlClient({ url: graphqlUrl, ...params })
-}
-/**
  * @alias GraphQL
  */
-export class NhostGraphqlClient {
+export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
 
-  constructor(params: NhostGraphqlConstructorParams) {
-    const { url, adminSecret } = params
+  /**
+   * Use `nhost.graphql.query` to run a GraphQL query from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id, name } = await nhost.graphql.query.customer({ select: { id: true, name: true }, variables: {id: 'customer-id' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/query
+   */
+  public query: OperationFactory<Schema, 'Query'>
+
+  /**
+   * Use `nhost.graphql.mutation` to run a GraphQL mutation from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id } = await nhost.graphql.mutation.insertCustomer({ select: { id: true }, variables: { name: 'Bob' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/mutation
+   */
+  public mutation: OperationFactory<Schema, 'Mutation'>
+
+  constructor(params: NhostGraphqlConstructorParams<Schema>) {
+    const { url, adminSecret, schema } = params
 
     this._url = url
     this.accessToken = null
     this.adminSecret = adminSecret
+
+    this.query = getRootOperationNames(schema, 'Query').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Query', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
+
+    this.mutation = getRootOperationNames(schema, 'Mutation').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Mutation', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
   }
 
   /**
@@ -61,7 +107,7 @@ export class NhostGraphqlClient {
    * const { data, error } = await nhost.graphql.request(CUSTOMERS)
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/request
+   * @docs https://docs.nhost.io/reference/javascript/graphql/request
    */
   request<T = any, V = Variables>(
     document: RequestDocument | TypedDocumentNode<T, V>,
@@ -152,7 +198,7 @@ export class NhostGraphqlClient {
    * const url = nhost.graphql.httpUrl;
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-http-url
+   * @docs https://docs.nhost.io/reference/javascript/graphql/get-http-url
    */
   get httpUrl(): string {
     return this._url
@@ -165,7 +211,7 @@ export class NhostGraphqlClient {
    * const url = nhost.graphql.wsUrl;
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/get-ws-url
+   * @docs https://docs.nhost.io/reference/javascript/graphql/get-ws-url
    */
   get wsUrl(): string {
     return this._url.replace(/^(http)(s?):\/\//, 'ws$2://')
@@ -195,7 +241,7 @@ export class NhostGraphqlClient {
    * nhost.graphql.setAccessToken('some-access-token')
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/set-access-token
+   * @docs https://docs.nhost.io/reference/javascript/graphql/set-access-token
    */
   setAccessToken(accessToken: string | undefined) {
     if (!accessToken) {

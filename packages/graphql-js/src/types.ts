@@ -1,6 +1,13 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { DocumentNode, GraphQLError } from 'graphql'
-import { ErrorPayload } from '../../utils/types'
+import { GenericSchema } from './graphql-object/schema'
+
+// TODO shared with other packages
+export type ErrorPayload = {
+  error: string
+  status: number
+  message: string
+}
 
 export type RequestOptions<V extends Variables = Variables, T = any> = NhostGraphqlRequestConfig & {
   document: RequestDocument | TypedDocumentNode<T, V>
@@ -17,7 +24,7 @@ export type RemoveIndex<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
 }
 
-export interface NhostGraphqlConstructorParams {
+export interface NhostGraphqlConstructorParams<Schema extends GenericSchema | undefined> {
   /**
    * GraphQL endpoint.
    */
@@ -26,6 +33,7 @@ export interface NhostGraphqlConstructorParams {
    * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
+  schema?: Schema
 }
 
 export type NhostGraphqlRequestResponse<T = unknown> =

@@ -7,8 +7,8 @@
   "sort": [
     "source-order"
   ],
-  "json": "./.docgen/nhost-js.json",
-  "name": "Nhost JS",
+  "json": "./.docgen/graphql.json",
+  "name": "GraphQL",
   "readme": "none",
   "githubPages": false,
   "cleanOutputDir": false,
@@ -25,6 +25,9 @@
       ],
       "@nhost/hasura-storage-js": [
         "../hasura-storage-js/src/index.ts"
+      ],
+      "@nhost/graphql-js": [
+        "../graphql-js/src/index.ts"
       ],
       "@nhost/nextjs": [
         "../nextjs/src/index.ts"

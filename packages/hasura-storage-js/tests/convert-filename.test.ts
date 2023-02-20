@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toIso88591 } from '../src/utils'
+import { toIso88591 } from '../src/utils/upload'
 
 describe('test file names', () => {
   it('should be able to use ISO 8859-1 strings', async () => {

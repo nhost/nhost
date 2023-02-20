@@ -1,30 +1,33 @@
 import { faker } from '@faker-js/faker'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import gql from 'graphql-tag'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { NhostClient } from '../src'
+import { NhostGraphqlClient } from '../../src'
 
-const nhost = new NhostClient({
-  subdomain: 'localhost'
+const client = new NhostGraphqlClient({
+  url: 'http://localhost:1337/v1/graphql'
 })
+
+const authClient = new HasuraAuthClient({ url: 'http://localhost:1337/v1/auth' })
 
 type User = { id: string; displayName: string }
 
 describe('main tests', () => {
   it('getUrl()', () => {
-    const graphqlUrl = nhost.graphql.getUrl()
+    const graphqlUrl = client.getUrl()
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
   it('httpUrl', async () => {
-    const graphqlUrl = nhost.graphql.httpUrl
+    const graphqlUrl = client.httpUrl
 
     expect(graphqlUrl).toBe('http://localhost:1337/v1/graphql')
   })
 
   it('getWsUrl()', () => {
-    const graphqlUrl = nhost.graphql.wsUrl
+    const graphqlUrl = client.wsUrl
 
     expect(graphqlUrl).toBe('ws://localhost:1337/v1/graphql')
   })
@@ -32,13 +35,12 @@ describe('main tests', () => {
   it('GraphQL request as logged out user', async () => {
     const document = `
       query {
-        users {
+        files {
           id
-          displayName
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
+    const { data, error } = await client.request<{ users: User[] }>(document)
 
     expect(data).toBeNull()
     expect(error).toMatchInlineSnapshot(`
@@ -46,9 +48,9 @@ describe('main tests', () => {
         {
           "extensions": {
             "code": "validation-failed",
-            "path": "$.selectionSet.users",
+            "path": "$.selectionSet.files",
           },
-          "message": "field 'users' not found in type: 'query_root'",
+          "message": "field 'files' not found in type: 'query_root'",
         },
       ]
     `)
@@ -59,22 +61,25 @@ describe('authenticated user', () => {
   beforeAll(async () => {
     const email = faker.internet.email()
     const password = faker.internet.password()
-    await nhost.auth.signUp({ email, password })
+
+    await authClient.signUp({ email, password })
+    client.setAccessToken(authClient.getAccessToken())
   })
 
   afterAll(async () => {
-    await nhost.auth.signOut()
+    await authClient.signOut()
+    client.setAccessToken(undefined)
   })
 
   it('GraphQL with variables', async () => {
     const document = `
       query ($id: uuid!) {
-        test (where: {id: {_eq: $id }}) {
+        todos (where: {id: {_eq: $id }}) {
           id
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+    const { data, error } = await client.request<{ user: User }, { id: string }>(document, {
       id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
     })
 
@@ -85,12 +90,12 @@ describe('authenticated user', () => {
   it('should work with TypedDocumentNode', async () => {
     const document = gql`
       query ($id: uuid!) {
-        test(where: { id: { _eq: $id } }) {
+        todos(where: { id: { _eq: $id } }) {
           id
         }
       }
     ` as TypedDocumentNode<{ user: User }, { id: string }>
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+    const { data, error } = await client.request<{ user: User }, { id: string }>(document, {
       id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
     })
 
@@ -107,7 +112,7 @@ describe('authenticated user', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(document, {
+    const { data, error } = await client.request<{ user: User }, { id: string }>(document, {
       id: 'not-a-uuid'
     })
 
@@ -115,10 +120,10 @@ describe('authenticated user', () => {
       [
         {
           "extensions": {
-            "code": "validation-failed",
-            "path": "$.selectionSet.user",
+            "code": "data-exception",
+            "path": "$",
           },
-          "message": "field 'user' not found in type: 'query_root'",
+          "message": "invalid input syntax for type uuid: \\"not-a-uuid\\"",
         },
       ]
     `)
@@ -134,7 +139,7 @@ describe('authenticated user', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }>(document, {})
+    const { data, error } = await client.request<{ user: User }>(document, {})
 
     expect(error).toMatchInlineSnapshot(`
       [
@@ -161,7 +166,7 @@ describe('as an admin', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ users: User[] }>(
+    const { data, error } = await client.request<{ users: User[] }>(
       document,
       {},
       {
@@ -184,7 +189,7 @@ describe('as an admin', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
+    const { data, error } = await client.request<{ user: User }, { id: string }>(
       document,
       {
         id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
@@ -209,7 +214,7 @@ describe('as an admin', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
+    const { data, error } = await client.request<{ user: User }, { id: string }>(
       document,
       {
         id: 'not-a-uuid'
@@ -244,7 +249,7 @@ describe('as an admin', () => {
         }
       }
     `
-    const { data, error } = await nhost.graphql.request<{ user: User }>(
+    const { data, error } = await client.request<{ user: User }>(
       document,
       {},
       {
