@@ -77,16 +77,17 @@ const toJson = (
     Object.entries(values).forEach(([key, value]: [string, any]) => {
       const childVariablePrefix = variablesPrefix ? `${variablesPrefix}_${key}` : key
       const fieldType = getFieldType(schema, key, definition)
-      if (fieldType) {
-        const {
-          query,
-          variables: newVariables,
-          variablesValues: newVariablesValues
-        } = toJson(schema, value, fieldType, variables, variablesValues, childVariablePrefix)
-        select[key] = query
-        variables = { ...variables, ...newVariables }
-        variablesValues = { ...variablesValues, ...newVariablesValues }
+      if (!fieldType) {
+        throw new Error(`Field ${key} is not defined`)
       }
+      const {
+        query,
+        variables: newVariables,
+        variablesValues: newVariablesValues
+      } = toJson(schema, value, fieldType, variables, variablesValues, childVariablePrefix)
+      select[key] = query
+      variables = { ...variables, ...newVariables }
+      variablesValues = { ...variablesValues, ...newVariablesValues }
     })
   }
 

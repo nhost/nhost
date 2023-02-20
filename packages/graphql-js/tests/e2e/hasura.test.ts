@@ -96,16 +96,12 @@ describe('Hasura', () => {
     `)
   })
 
-  it('should ignore an invalid property', async () => {
-    const todos = await client.query.todos({
-      select: { id: true, unexistingProperty: true }
-    })
-
-    expect(Object.keys(todos[0])).toMatchInlineSnapshot(`
-      [
-        "id",
-      ]
-    `)
+  it('should fail with an invalid field', async () => {
+    expect(() =>
+      client.query.todos({
+        select: { id: true, unexistingProperty: true }
+      })
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Field unexistingProperty is not defined"')
   })
 
   it('should work with a nested wildcard', async () => {
