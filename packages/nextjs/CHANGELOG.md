@@ -1,5 +1,21 @@
 # @nhost/nextjs
 
+## 1.13.5
+
+### Patch Changes
+
+- bf1e4071: chore(deps): bump `react` to v18
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+- Updated dependencies [bf1e4071]
+  - @nhost/react@1.13.5
+
+## 1.13.4
+
+### Patch Changes
+
+- @nhost/react@1.13.4
+
 ## 1.13.3
 
 ### Patch Changes

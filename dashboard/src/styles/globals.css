@@ -1,18 +1,6 @@
 @tailwind base;
 @tailwind components;
 
-@media (prefers-color-scheme: dark) {
-  #__next {
-    background-color: #151a22;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  #__next {
-    background-color: #fafafa;
-  }
-}
-
 .sb-show-main {
   overflow: auto;
 }

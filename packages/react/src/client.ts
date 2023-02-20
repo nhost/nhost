@@ -1,14 +1,7 @@
 import {
-  AuthMachine,
-  NhostAuthConstructorParams,
-  NhostClient as _VanillaNhostClient,
-  NhostClientConstructorParams as VanillaNhostClientConstructorParams,
-  NHOST_REFRESH_TOKEN_KEY
+  NhostAuthConstructorParams as VanillaNhostClientConstructorParams,
+  NhostClient as _VanillaNhostClient
 } from '@nhost/nhost-js'
-
-// * Required for @nhost/nextjs
-export type { NhostAuthConstructorParams, AuthMachine }
-export { NHOST_REFRESH_TOKEN_KEY }
 
 /** @internal */
 export const VanillaNhostClient = _VanillaNhostClient
@@ -21,3 +14,7 @@ export class NhostClient extends VanillaNhostClient {
     super({ ...params, start: false })
   }
 }
+
+// * Required for @nhost/nextjs
+export { NHOST_REFRESH_TOKEN_KEY } from '@nhost/nhost-js'
+export type { AuthMachine, NhostAuthConstructorParams } from '@nhost/nhost-js'

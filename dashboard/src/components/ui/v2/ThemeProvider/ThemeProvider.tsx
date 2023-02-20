@@ -4,22 +4,30 @@ import useColorPreference from '@/ui/v2/useColorPreference';
 import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
+import Head from 'next/head';
 import type { PropsWithChildren } from 'react';
 
-function ThemeProviderContent({ children }: PropsWithChildren<unknown>) {
+function ThemeProviderContent({
+  children,
+  color: manualColor,
+}: PropsWithChildren<{ color?: 'light' | 'dark' }>) {
   const { color } = useColorPreference();
-  const theme = createTheme(color);
+  const theme = createTheme(manualColor || color);
 
   return (
     <MaterialThemeProvider theme={theme}>
       <CssBaseline />
       <GlobalStyles
         styles={{
-          body: {
-            backgroundColor: theme.palette.background.default,
+          'html, body': {
+            backgroundColor: `${theme.palette.background.default} !important`,
           },
         }}
       />
+
+      <Head>
+        <meta name="theme-color" content={theme.palette.background.paper} />
+      </Head>
 
       {children}
     </MaterialThemeProvider>
@@ -33,17 +41,22 @@ export interface ThemeProviderProps extends PropsWithChildren<unknown> {
    * @default 'color-mode'
    */
   colorPreferenceStorageKey?: string;
+  /**
+   * Manually set the color preference.
+   */
+  color?: 'light' | 'dark';
 }
 
 function ThemeProvider({
   children,
+  color,
   colorPreferenceStorageKey = 'color-preference',
 }: ThemeProviderProps) {
   return (
     <ColorPreferenceProvider
       colorPreferenceStorageKey={colorPreferenceStorageKey}
     >
-      <ThemeProviderContent>{children}</ThemeProviderContent>
+      <ThemeProviderContent color={color}>{children}</ThemeProviderContent>
     </ColorPreferenceProvider>
   );
 }

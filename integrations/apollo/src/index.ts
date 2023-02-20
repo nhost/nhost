@@ -25,6 +25,7 @@ export type NhostApolloClientOptions = {
   connectToDevTools?: boolean
   cache?: InMemoryCache
   onError?: RequestHandler
+  link?: ApolloClient<any>['link']
 }
 
 export const createApolloClient = ({
@@ -35,7 +36,8 @@ export const createApolloClient = ({
   fetchPolicy,
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
-  onError
+  onError,
+  link: customLink
 }: NhostApolloClientOptions): ApolloClient<any> => {
   let backendUrl = graphqlUrl || nhost?.graphql.getUrl()
   if (!backendUrl) {
@@ -122,7 +124,11 @@ export const createApolloClient = ({
   }
 
   // add link
-  apolloClientOptions.link = typeof onError === 'function' ? from([onError, link]) : from([link])
+  if (customLink) {
+    apolloClientOptions.link = from([customLink])
+  } else {
+    apolloClientOptions.link = typeof onError === 'function' ? from([onError, link]) : from([link])
+  }
 
   const client = new ApolloClient(apolloClientOptions)
 

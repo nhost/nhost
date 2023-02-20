@@ -1,5 +1,59 @@
 # @nhost/dashboard
 
+## 0.11.11
+
+### Patch Changes
+
+- bf1e4071: chore(dashboard): bump `react-is` version to `18.2.0`
+- Updated dependencies [bf1e4071]
+- Updated dependencies [5013213b]
+  - @nhost/nextjs@1.13.5
+  - @nhost/react-apollo@4.13.5
+
+## 0.11.10
+
+### Patch Changes
+
+- a37a430b: fix(dashboard): don't break UI when deployments are unavailable
+  - @nhost/react-apollo@4.13.4
+  - @nhost/nextjs@1.13.4
+
+## 0.11.9
+
+### Patch Changes
+
+- 7b970e68: fix(dashboard): fix header link color
+
+## 0.11.8
+
+### Patch Changes
+
+- f33242f2: feat(dashboard): add new sign up, sign in and reset password pages
+
+## 0.11.7
+
+### Patch Changes
+
+- e9c8909c: fix(dashboard): use correct theme color in dark mode
+
+## 0.11.6
+
+### Patch Changes
+
+- 902f486b: fix(dashboard): re-enable Hasura on logs page
+
+## 0.11.5
+
+### Patch Changes
+
+- 1f9720fa: fix(dashboard): apply select permissions properly
+
+## 0.11.4
+
+### Patch Changes
+
+- deb14b51: fix(dashboard): don't break billing form
+
 ## 0.11.3
 
 ### Patch Changes

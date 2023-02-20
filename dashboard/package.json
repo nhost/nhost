@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.11.3",
+  "version": "0.11.11",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -67,7 +67,7 @@
     "react-error-boundary": "^3.1.4",
     "react-hook-form": "^7.39.5",
     "react-hot-toast": "^2.4.0",
-    "react-is": "17.0.2",
+    "react-is": "18.2.0",
     "react-loading-skeleton": "^2.2.0",
     "react-merge-refs": "^1.1.0",
     "react-syntax-highlighter": "^15.4.5",
@@ -129,7 +129,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "jsdom": "^21.0.0",
     "lint-staged": ">=13",
-    "msw": "^0.49.0",
+    "msw": "^1.0.1",
     "msw-storybook-addon": "^1.6.3",
     "postcss": "^8.4.19",
     "prettier": "^2.7.1",
