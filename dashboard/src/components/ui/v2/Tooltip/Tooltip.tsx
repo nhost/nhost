@@ -24,7 +24,10 @@ const StyledTooltip = styled(Box)(({ theme }) => ({
   [`&.${tooltipClasses.tooltip}`]: {
     fontSize: '0.9375rem',
     lineHeight: '1.375rem',
-    backgroundColor: theme.palette.text.primary,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[300]
+        : theme.palette.grey[700],
     color: theme.palette.common.white,
     padding: theme.spacing(0.5, 1),
     borderRadius: theme.shape.borderRadius,

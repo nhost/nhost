@@ -17,7 +17,6 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
-import { twMerge } from 'tailwind-merge';
 
 export default function DatabaseSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -87,25 +86,17 @@ export default function DatabaseSettingsPage() {
       <SettingsContainer
         title="Connection Info"
         description="Connect directly to the Postgres database with this information."
-        primaryActionButtonProps={{ disabled: true, className: 'invisible' }}
+        slotProps={{ submitButton: { disabled: true, className: 'invisible' } }}
         className="grid grid-cols-6 gap-4"
       >
         {settingsDatabaseCustomInputs.map(
-          ({ name, label, className, disabled, value: inputValue }) => (
+          ({ name, label, className, value: inputValue }) => (
             <Input
               key={name}
               label={label}
               required
               disabled
               value={inputValue}
-              slotProps={{
-                label: {
-                  className: 'text-sm+ font-medium text-greyscaleDark pb-2',
-                },
-                inputRoot: {
-                  className: twMerge(disabled && 'cursor-pointer'),
-                },
-              }}
               className={className}
               fullWidth
               hideEmptyHelperText

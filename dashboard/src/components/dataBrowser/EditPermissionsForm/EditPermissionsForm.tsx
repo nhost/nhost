@@ -10,6 +10,7 @@ import type {
 } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
 import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
@@ -180,6 +181,7 @@ export default function EditPermissionsForm({
 
     return (
       <RolePermissionEditorForm
+        resourceVersion={metadata?.resourceVersion}
         disabled={disabled}
         schema={schema}
         table={table}
@@ -197,9 +199,12 @@ export default function EditPermissionsForm({
   }
 
   return (
-    <div className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]">
+    <Box
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
+      sx={{ backgroundColor: 'background.default' }}
+    >
       <div className="flex-auto">
-        <section className="grid grid-flow-row gap-6 content-start overflow-y-auto p-6 bg-white border-b-1 border-gray-200">
+        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
           <div className="grid grid-flow-row gap-2">
             <Text component="h2" className="!font-bold">
               Roles & Actions overview
@@ -211,30 +216,30 @@ export default function EditPermissionsForm({
             </Text>
           </div>
 
-          <div className="grid grid-flow-col gap-4 items-center justify-start">
+          <div className="grid grid-flow-col items-center justify-start gap-4">
             <Text
               variant="subtitle2"
-              className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               full access <FullPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               partial access <PartialPermissionIcon />
             </Text>
 
             <Text
               variant="subtitle2"
-              className="!text-greyscaleDark grid items-center grid-flow-col gap-1"
+              className="grid grid-flow-col items-center gap-1"
             >
               no access <NoPermissionIcon />
             </Text>
           </div>
 
-          <TableContainer>
+          <TableContainer sx={{ backgroundColor: 'background.paper' }}>
             <Table>
               <TableHead className="block">
                 <TableRow className="grid grid-cols-5 items-center">
@@ -258,7 +263,7 @@ export default function EditPermissionsForm({
                 </TableRow>
               </TableHead>
 
-              <TableBody className="rounded-sm+ block border-1">
+              <TableBody className="block rounded-sm+ border-1">
                 <RolePermissionsRow
                   name="admin"
                   disabled
@@ -335,14 +340,14 @@ export default function EditPermissionsForm({
             </NavLink>{' '}
             to add and delete roles.
           </Alert>
-        </section>
+        </Box>
       </div>
 
-      <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2 bg-white">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button variant="borderless" color="secondary" onClick={onCancel}>
           Cancel
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

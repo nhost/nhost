@@ -8,7 +8,7 @@ import BaseRoleForm, {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
   useUpdateAppMutation,
@@ -77,7 +77,7 @@ export default function CreateRoleForm({
         success: 'Role has been created successfully.',
         error: 'An error occurred while trying to create the role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     await onSubmit?.();
@@ -85,11 +85,7 @@ export default function CreateRoleForm({
 
   return (
     <FormProvider {...form}>
-      <BaseRoleForm
-        submitButtonText="Create"
-        onSubmit={handleSubmit}
-        {...props}
-      />
+      <BaseRoleForm submitButtonText="Add" onSubmit={handleSubmit} {...props} />
     </FormProvider>
   );
 }

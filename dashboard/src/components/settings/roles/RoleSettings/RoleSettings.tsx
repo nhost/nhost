@@ -3,23 +3,24 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
 import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
 import LockIcon from '@/ui/v2/icons/LockIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetRolesQuery,
-  useUpdateAppMutation
+  useUpdateAppMutation,
 } from '@/utils/__generated__/graphql';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -72,7 +73,7 @@ export default function RoleSettings() {
         success: 'Default role has been updated successfully.',
         error: 'An error occurred while trying to update the default role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
@@ -98,17 +99,17 @@ export default function RoleSettings() {
     await toast.promise(
       updateAppPromise,
       {
-        loading: 'Deleting role...',
-        success: 'Role has been deleted successfully.',
-        error: 'An error occurred while trying to delete the role.',
+        loading: 'Deleting allowed role...',
+        success: 'Allowed Role has been deleted successfully.',
+        error: 'An error occurred while trying to delete the allowed role.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
   function handleOpenCreator() {
     openDialog('CREATE_ROLE', {
-      title: 'Create Role',
+      title: 'Create Allowed Role',
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -118,7 +119,7 @@ export default function RoleSettings() {
 
   function handleOpenEditor(originalRole: Role) {
     openDialog('EDIT_ROLE', {
-      title: 'Edit Role',
+      title: 'Edit Allowed Role',
       payload: { originalRole },
       props: {
         titleProps: { className: '!pb-0' },
@@ -129,12 +130,11 @@ export default function RoleSettings() {
 
   function handleConfirmDelete(originalRole: Role) {
     openAlertDialog({
-      title: 'Delete Role',
+      title: 'Delete Allowed Role',
       payload: (
         <Text>
-          Are you sure you want to delete the &quot;
-          <strong>{originalRole.name}</strong>&quot; role? This cannot be
-          undone.
+          Are you sure you want to delete the allowed role &quot;
+          <strong>{originalRole.name}</strong>&quot;?.
         </Text>
       ),
       props: {
@@ -145,24 +145,26 @@ export default function RoleSettings() {
     });
   }
 
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableAllowedRoles = getUserRoles(
+    data?.app?.authUserDefaultAllowedRoles,
+  );
 
   return (
     <SettingsContainer
-      title="Roles"
-      description="Roles are used to control access to your application."
-      docsLink="https://docs.nhost.io/authentication/users#roles"
+      title="Allowed Roles"
+      description="Allowed roles are roles users get automatically when they sign up."
+      docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
-      className="px-0 my-2"
+      className="my-2 px-0"
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
-      <div className="px-4 py-3 border-gray-200 border-b-1">
+      <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         <List>
-          {availableRoles.map((role, index) => (
+          {availableAllowedRoles.map((role, index) => (
             <Fragment key={role.name}>
               <ListItem.Root
                 className="px-4"
@@ -171,7 +173,7 @@ export default function RoleSettings() {
                     <Dropdown.Trigger
                       asChild
                       hideChevron
-                      className="absolute -translate-y-1/2 right-4 top-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       <IconButton variant="borderless" color="secondary">
                         <DotsVerticalIcon />
@@ -209,12 +211,7 @@ export default function RoleSettings() {
                         disabled={role.isSystemRole}
                         onClick={() => handleConfirmDelete(role)}
                       >
-                        <Text
-                          className="font-medium"
-                          sx={{
-                            color: (theme) => theme.palette.error.main,
-                          }}
-                        >
+                        <Text className="font-medium" color="error">
                           Delete
                         </Text>
                       </Dropdown.Item>
@@ -231,7 +228,7 @@ export default function RoleSettings() {
                     <>
                       {role.name}
 
-                      {role.isSystemRole && <LockIcon className="w-4 h-4" />}
+                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
                       {data?.app?.authUserDefaultRole === role.name && (
                         <Chip
@@ -249,7 +246,9 @@ export default function RoleSettings() {
               <Divider
                 component="li"
                 className={twMerge(
-                  index === availableRoles.length - 1 ? '!mt-4' : '!my-4',
+                  index === availableAllowedRoles.length - 1
+                    ? '!mt-4'
+                    : '!my-4',
                 )}
               />
             </Fragment>
@@ -262,7 +261,7 @@ export default function RoleSettings() {
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
         >
-          Create Role
+          Create Allowed Role
         </Button>
       </div>
     </SettingsContainer>

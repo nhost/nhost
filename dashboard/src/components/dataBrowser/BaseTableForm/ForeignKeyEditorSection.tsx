@@ -93,8 +93,14 @@ export default function ForeignKeyEditorSection() {
         size="small"
         className={twMerge(
           'mt-1 rounded-sm+ py-2',
-          fields.length > 0 ? 'justify-self-start' : 'border-1 border-input',
+          fields.length > 0 && 'justify-self-start',
         )}
+        sx={{
+          border: (theme) =>
+            fields.length === 0
+              ? `1px solid ${theme.palette.grey[300]}`
+              : 'none',
+        }}
         disabled={columnsWithNameAndType?.length === 0}
         onClick={() => {
           const primaryKeyIndex = getValues('primaryKeyIndex');

@@ -1,5 +1,104 @@
 # @nhost/dashboard
 
+## 0.11.12
+
+### Patch Changes
+
+- 87eda76e: chore(dashboard): bump `@types/react` to v18.0.28 and `@types/react-dom` to v18.0.11
+- 6f0ac570: feat(dashboard): show dashboard version in account menu
+
+## 0.11.11
+
+### Patch Changes
+
+- bf1e4071: chore(dashboard): bump `react-is` version to `18.2.0`
+- Updated dependencies [bf1e4071]
+- Updated dependencies [5013213b]
+  - @nhost/nextjs@1.13.5
+  - @nhost/react-apollo@4.13.5
+
+## 0.11.10
+
+### Patch Changes
+
+- a37a430b: fix(dashboard): don't break UI when deployments are unavailable
+  - @nhost/react-apollo@4.13.4
+  - @nhost/nextjs@1.13.4
+
+## 0.11.9
+
+### Patch Changes
+
+- 7b970e68: fix(dashboard): fix header link color
+
+## 0.11.8
+
+### Patch Changes
+
+- f33242f2: feat(dashboard): add new sign up, sign in and reset password pages
+
+## 0.11.7
+
+### Patch Changes
+
+- e9c8909c: fix(dashboard): use correct theme color in dark mode
+
+## 0.11.6
+
+### Patch Changes
+
+- 902f486b: fix(dashboard): re-enable Hasura on logs page
+
+## 0.11.5
+
+### Patch Changes
+
+- 1f9720fa: fix(dashboard): apply select permissions properly
+
+## 0.11.4
+
+### Patch Changes
+
+- deb14b51: fix(dashboard): don't break billing form
+
+## 0.11.3
+
+### Patch Changes
+
+- @nhost/react-apollo@4.13.3
+- @nhost/nextjs@1.13.3
+
+## 0.11.2
+
+### Patch Changes
+
+- f143e51d: chore(dashboard): pin Turborepo to 1.6.3
+
+## 0.11.1
+
+### Patch Changes
+
+- c2b5a41a: chore(dashboard): select system colors by default
+
+## 0.11.0
+
+### Minor Changes
+
+- 1ebaf429: feat(dashboard): introduce Dark Mode 🌚
+
+### Patch Changes
+
+- 63b445c4: fixed duplicated logs bug and made to date count during live mode
+
+## 0.10.1
+
+### Patch Changes
+
+- e146d32e: chore(deps): update dependency @types/react to v18.0.27
+- 59347fcd: correct allowed role name
+- 5b65cac9: updated authentication documentation
+- 963f9b5e: feat(dashboard): include project info in feedback
+
 ## 0.10.0
 
 ### Minor Changes

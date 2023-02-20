@@ -33,7 +33,7 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
 }
 
 /**
- * Use the hook `useFileUpload` to upload multiple files.
+ * Use the hook `useMultipleFilesUpload` to upload multiple files.
  *
  * @example
  * ```tsx

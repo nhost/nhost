@@ -1,21 +1,23 @@
 import AppDeployments from '@/components/applications/AppDeployments';
-import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useWorkspaceContext } from '@/context/workspace-context';
-import { Button } from '@/ui/Button';
-import { Text } from '@/ui/Text';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import Image from 'next/image';
+import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 
 export default function DeploymentsPage() {
+  const { currentWorkspace, currentApplication } =
+    useCurrentWorkspaceAndApplication();
   const { workspaceContext } = useWorkspaceContext();
-  const { openGitHubModal } = useGitHubModal();
 
   if (!workspaceContext.repository) {
     return (
-      <Container className="mt-12 max-w-3xl text-center antialiased">
+      <Container className="mt-12 max-w-3xl text-center antialiased grid grid-flow-row gap-4">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
@@ -24,23 +26,24 @@ export default function DeploymentsPage() {
             alt="GitHub Logo"
           />
         </div>
-        <Text className="mt-4 font-medium" size="large" color="dark">
-          Deployments
-        </Text>
-        <Text size="normal" color="greyscaleDark" className="mt-1 transform">
-          Once you connect this app to version control, all changes will be
-          deployed automatically.
-        </Text>
-        <div className="mt-3 flex text-center">
-          <Button
-            transparent
-            color="blue"
-            className="mx-auto font-medium"
-            onClick={openGitHubModal}
-          >
+        <div className="grid grid-flow-row gap-2">
+          <Text variant="h3" component="h1">
+            Deployments
+          </Text>
+          <Text>
+            Once you connect this app to version control, all changes will be
+            deployed automatically.
+          </Text>
+        </div>
+
+        <NavLink
+          href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+          passHref
+        >
+          <Button variant="borderless" className="mx-auto font-medium">
             Connect your Project to GitHub
           </Button>
-        </div>
+        </NavLink>
       </Container>
     );
   }
@@ -48,7 +51,7 @@ export default function DeploymentsPage() {
   return (
     <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
       <div className="mt-4 flex flex-row place-content-between">
-        <Text color="greyscaleDark" size="big" className="font-medium">
+        <Text variant="h2" component="h1">
           Deployments
         </Text>
       </div>

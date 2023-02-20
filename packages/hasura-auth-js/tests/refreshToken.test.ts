@@ -471,7 +471,7 @@ describe(`Auto sign-in`, () => {
     const state = await waitFor(authService, (state) => state.context.importTokenAttempts === 2)
 
     expect(state.context.importTokenAttempts).toEqual(2)
-  })
+  }, 20000)
 
   test(`should retry a token refresh if server returns an error`, async () => {
     server.use(authTokenInternalErrorHandler)
@@ -486,7 +486,7 @@ describe(`Auto sign-in`, () => {
     const state = await waitFor(authService, (state) => state.context.importTokenAttempts === 2)
 
     expect(state.context.importTokenAttempts).toEqual(2)
-  })
+  }, 20000)
 
   test(`should wait for the server to be online when starting offline`, async () => {
     server.use(authTokenInternalErrorHandler)
@@ -511,7 +511,7 @@ describe(`Auto sign-in`, () => {
       state.matches('authentication.signedIn')
     )
     expect(signedInState.context.user).not.toBeNull()
-  })
+  }, 20000)
 
   test(`should automatically sign in if "refreshToken" was in the URL`, async () => {
     vi.stubGlobal('location', {

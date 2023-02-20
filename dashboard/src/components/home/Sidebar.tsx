@@ -1,4 +1,5 @@
 import { Resources } from '@/components/home';
+import GithubIcon from '@/components/icons/GithubIcon';
 import { WorkspaceSection } from '@/components/workspace/WorkspaceSection';
 import Button from '@/ui/v2/Button';
 import Image from 'next/image';
@@ -6,11 +7,11 @@ import Link from 'next/link';
 
 export default function Sidebar() {
   return (
-    <div className="mt-2 ml-10 flex w-full flex-col md:block md:w-workspaceSidebar">
+    <div className="grid grid-flow-row gap-8 mt-2 ml-10 w-full md:grid md:w-workspaceSidebar content-start">
       <WorkspaceSection />
       <Resources />
 
-      <div className="mt-8 grid grid-flow-row gap-2">
+      <div className="grid grid-flow-row gap-2">
         <Link
           href="https://github.com/nhost/nhost"
           passHref
@@ -21,16 +22,9 @@ export default function Sidebar() {
             className="grid grid-flow-col gap-1"
             variant="outlined"
             color="secondary"
-            aria-labelledby="github-button-label"
+            startIcon={<GithubIcon />}
           >
-            <Image
-              src="/logos/Github.svg"
-              alt="GitHub Logo"
-              width={24}
-              height={24}
-            />
-
-            <span id="github-button-label">Star us on GitHub</span>
+            Star us on GitHub
           </Button>
         </Link>
 
@@ -47,7 +41,7 @@ export default function Sidebar() {
             aria-labelledby="discord-button-label"
           >
             <Image
-              src="/logos/Discord.svg"
+              src="/assets/brands/discord.svg"
               alt="Discord Logo"
               width={24}
               height={24}

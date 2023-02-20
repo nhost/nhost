@@ -54,7 +54,7 @@ export default function ProjectStatusInfo({
   return (
     <div
       className={twMerge(
-        'mt-8 grid w-full place-content-center gap-2 text-center text-gray-700',
+        'mt-8 grid w-full place-content-center gap-2 text-center',
         className,
       )}
       {...props}

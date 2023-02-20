@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "4.13.1",
+  "version": "4.13.4",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [
@@ -68,6 +68,6 @@
   },
   "devDependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@apollo/client": "^3.7.1"
+    "@apollo/client": "^3.7.3"
   }
 }

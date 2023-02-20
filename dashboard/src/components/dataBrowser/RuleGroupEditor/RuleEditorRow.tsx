@@ -82,7 +82,7 @@ function renderOption({
       </Text>
 
       {helperText && (
-        <Text component="span" className="!text-greyscaleGrey">
+        <Text component="span" color="disabled">
           {helperText}
         </Text>
       )}
@@ -130,7 +130,7 @@ export default function RuleEditorRow({
   return (
     <div
       className={twMerge(
-        'grid lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] grid-flow-row lg:max-h-10 space-y-1 lg:space-y-0',
+        'grid grid-flow-row space-y-1 lg:max-h-10 lg:grid-cols-[320px_140px_minmax(100px,_1fr)_40px] lg:space-y-0',
         className,
       )}
       {...props}
@@ -141,7 +141,17 @@ export default function RuleEditorRow({
         schema={schema}
         table={table}
         rootClassName="h-10"
-        slotProps={{ input: { className: 'bg-white lg:!rounded-r-none' } }}
+        slotProps={{
+          input: {
+            className: 'lg:!rounded-r-none',
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'grey.300' : 'common.white',
+                }
+              : undefined,
+          },
+        }}
         fullWidth
         error={Boolean(columnState?.error?.message)}
         onChange={(_event, { value, columnMetadata, disableReset }) => {
@@ -178,7 +188,17 @@ export default function RuleEditorRow({
         name={`${rowName}.operator`}
         className="h-10"
         slotProps={{
-          root: { className: 'bg-white lg:!rounded-none' },
+          root: {
+            className: 'lg:!rounded-none',
+            sx: !disabled
+              ? {
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? `${theme.palette.grey[300]} !important`
+                      : `${theme.palette.common.white} !important`,
+                }
+              : {},
+          },
           listbox: { className: 'max-h-[300px]' },
           popper: { disablePortal: false, className: 'z-[10000]' },
         }}

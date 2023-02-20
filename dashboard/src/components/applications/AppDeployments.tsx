@@ -5,10 +5,15 @@ import {
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/generated/graphql';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Divider from '@/ui/v2/Divider';
+import IconButton from '@/ui/v2/IconButton';
+import ChevronLeftIcon from '@/ui/v2/icons/ChevronLeftIcon';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import List from '@/ui/v2/List';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid';
+import Text from '@/ui/v2/Text';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { Fragment } from 'react';
 
 type AppDeploymentsProps = {
   appId: string;
@@ -26,35 +31,27 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
 
   if (direction === 'prev') {
     if (!prevAllowed) {
-      return (
-        <div className="cursor-not-allowed">
-          <ChevronLeftIcon className="h-4 w-4" />
-        </div>
-      );
+      return <ChevronLeftIcon className="h-4 w-4 cursor-not-allowed" />;
     }
     return (
       <Link
         href={`${window.location.pathname}?page=${currentPage - 1}`}
         passHref
       >
-        <a href={`${window.location.pathname}?page=${currentPage - 1}`}>
+        <IconButton variant="borderless" color="secondary">
           <ChevronLeftIcon className="h-4 w-4" />
-        </a>
+        </IconButton>
       </Link>
     );
   }
   if (!nextAllowed) {
-    return (
-      <div className="cursor-not-allowed">
-        <ChevronRightIcon className="h-4 w-4" />
-      </div>
-    );
+    return <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />;
   }
   return (
     <Link href={`${window.location.pathname}?page=${currentPage + 1}`} passHref>
-      <a href={`${window.location.pathname}?page=${currentPage + 1}`}>
+      <IconButton variant="borderless" color="secondary">
         <ChevronRightIcon className="h-4 w-4" />
-      </a>
+      </IconButton>
     </Link>
   );
 }
@@ -114,9 +111,9 @@ export default function AppDeployments(props: AppDeploymentsProps) {
     throw error;
   }
 
-  const { deployments } = deploymentPageData || {};
+  const { deployments } = deploymentPageData || { deployments: [] };
   const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData || {};
+    scheduledOrPendingDeploymentsData || { deployments: [] };
 
   const latestDeployment = latestDeploymentData?.deployments[0];
   const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
@@ -128,28 +125,31 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   return (
     <div className="mt-6">
       {nrOfDeployments === 0 ? (
-        <p className="text-sm text-greyscaleGrey">No deployments yet.</p>
+        <Text variant="subtitle2">No deployments yet.</Text>
       ) : (
         <div>
-          <List className="mt-3 divide-y-1 border-t border-b">
-            {deployments.map((deployment) => (
-              <DeploymentListItem
-                key={deployment.id}
-                deployment={deployment}
-                isLive={liveDeploymentId === deployment.id}
-                showRedeploy={latestDeployment.id === deployment.id}
-                disableRedeploy={scheduledOrPendingDeployments.length > 0}
-              />
+          <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
+            {deployments.map((deployment, index) => (
+              <Fragment key={deployment.id}>
+                <DeploymentListItem
+                  deployment={deployment}
+                  isLive={liveDeploymentId === deployment.id}
+                  showRedeploy={latestDeployment.id === deployment.id}
+                  disableRedeploy={scheduledOrPendingDeployments?.length > 0}
+                />
+
+                {index !== deployments.length - 1 && <Divider component="li" />}
+              </Fragment>
             ))}
           </List>
           <div className="mt-8 flex w-full justify-center">
-            <div className="flex items-center">
+            <div className="grid grid-flow-col items-center gap-2">
               <NextPrevPageLink
                 direction="prev"
                 prevAllowed={page !== 1}
                 currentPage={page}
               />
-              <div className="mx-2">{page}</div>
+              <Text>{page}</Text>
               <NextPrevPageLink
                 direction="next"
                 nextAllowed={nextAllowed}

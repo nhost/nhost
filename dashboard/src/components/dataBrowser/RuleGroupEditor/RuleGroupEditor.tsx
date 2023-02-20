@@ -1,12 +1,13 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -16,7 +17,7 @@ import RuleGroupControls from './RuleGroupControls';
 import { RuleGroupEditorContext } from './useRuleGroupEditor';
 
 export interface RuleGroupEditorProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
+  extends BoxProps,
     Pick<RuleEditorRowProps, 'disabledOperators'> {
   /**
    * Determines whether or not the rule group editor is disabled.
@@ -50,8 +51,6 @@ export interface RuleGroupEditorProps
   depth?: number;
   /**
    * Maximum depth of the group editor.
-   *
-   * @default 7
    */
   maxDepth?: number;
 }
@@ -63,10 +62,11 @@ export default function RuleGroupEditor({
   disableRemove,
   disabledOperators = [],
   depth = 0,
-  maxDepth = 7,
+  maxDepth,
   schema,
   table,
   disabled,
+  sx,
   ...props
 }: RuleGroupEditorProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -109,19 +109,23 @@ export default function RuleGroupEditor({
 
   return (
     <RuleGroupEditorContext.Provider value={contextValue}>
-      <div
+      <Box
+        {...props}
         className={twMerge(
           'rounded-lg border border-r-8 border-transparent pl-2',
-          depth === 0 && 'bg-greyscale-50',
-          depth === 1 && 'bg-greyscale-100',
-          depth === 2 && 'bg-greyscale-200',
-          depth === 3 && 'bg-greyscale-300',
-          depth === 4 && 'bg-greyscale-400',
-          depth === 5 && 'bg-greyscale-500',
-          depth >= 6 && 'bg-greyscale-600',
           className,
         )}
-        {...props}
+        sx={[
+          ...(Array.isArray(sx) ? sx : [sx]),
+          depth === 0 && { backgroundColor: 'secondary.100' },
+          depth === 1 && { backgroundColor: 'secondary.200' },
+          depth === 2 && { backgroundColor: 'secondary.300' },
+          depth === 3 && { backgroundColor: 'secondary.400' },
+          depth === 4 && { backgroundColor: 'secondary.500' },
+          depth === 5 && { backgroundColor: 'secondary.600' },
+          depth === 6 && { backgroundColor: 'secondary.700' },
+          depth > 6 && { backgroundColor: 'secondary.800' },
+        ]}
       >
         <div className="grid grid-flow-row gap-4 lg:gap-2 py-4">
           {(rules as (Rule & { id: string })[]).map((rule, ruleIndex) => (
@@ -249,7 +253,7 @@ export default function RuleGroupEditor({
             )}
           </div>
         )}
-      </div>
+      </Box>
     </RuleGroupEditorContext.Provider>
   );
 }

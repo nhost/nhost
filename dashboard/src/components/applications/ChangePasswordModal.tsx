@@ -1,3 +1,4 @@
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
@@ -50,7 +51,7 @@ export function ChangePasswordModal({ close }: any) {
   };
 
   return (
-    <div className="w-full max-w-md px-6 py-6 text-left">
+    <Box className="w-full max-w-md rounded-md px-6 py-6 text-left">
       <form onSubmit={handleSubmit}>
         <div className="grid grid-flow-row gap-4">
           <div className="grid grid-flow-row gap-2">
@@ -92,7 +93,7 @@ export function ChangePasswordModal({ close }: any) {
 
           <div className="grid grid-flow-row gap-2">
             {formState.error && (
-              <Text className="w-full px-4 text-center text-red">
+              <Text className="w-full px-4 text-center" color="error">
                 Error: {formState.error}
               </Text>
             )}
@@ -103,7 +104,6 @@ export function ChangePasswordModal({ close }: any) {
 
             <Button
               type="reset"
-              className="text-grayscaleDark text-sm+ font-normal"
               variant="outlined"
               color="secondary"
               onClick={close}
@@ -113,7 +113,7 @@ export function ChangePasswordModal({ close }: any) {
           </div>
         </div>
       </form>
-    </div>
+    </Box>
   );
 }
 

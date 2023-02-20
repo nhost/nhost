@@ -91,9 +91,11 @@ export default function BasePermissionVariableForm({
           fullWidth
           autoComplete="off"
           autoFocus
-          slotProps={{ input: { className: '!pl-px' } }}
+          slotProps={{ inputRoot: { className: '!pl-px' } }}
           startAdornment={
-            <Text className="shrink-0 pl-2 text-greyscaleGrey">X-Hasura-</Text>
+            <Text className="shrink-0 pl-2" color="disabled">
+              X-Hasura-
+            </Text>
           }
         />
 
@@ -120,9 +122,11 @@ export default function BasePermissionVariableForm({
           helperText={errors?.value?.message}
           fullWidth
           autoComplete="off"
-          slotProps={{ input: { className: '!pl-px' } }}
+          slotProps={{ inputRoot: { className: '!pl-px' } }}
           startAdornment={
-            <Text className="shrink-0 pl-2 text-greyscaleGrey">user.</Text>
+            <Text className="shrink-0 pl-2" color="disabled">
+              user.
+            </Text>
           }
         />
 

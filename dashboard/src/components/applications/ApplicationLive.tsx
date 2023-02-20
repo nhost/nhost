@@ -1,3 +1,4 @@
+import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import { features } from '@/components/overview/features';
 import { frameworks } from '@/components/overview/frameworks';
@@ -28,13 +29,13 @@ export default function ApplicationLive() {
           <div className="order-2 grid grid-flow-row gap-12 lg:order-1 lg:col-span-2">
             <OverviewDocumentation
               title="Pick your favorite framework and start learning"
-              description="Nhost integrates smoothly with all of the frameworks you already know"
+              description="Nhost integrates smoothly with all of the frameworks you already know."
               cardElements={frameworks}
             />
 
             <OverviewDocumentation
               title="Platform Documentation"
-              description="More in-depth documentation for key features"
+              description="More in-depth documentation for key features."
               cardElements={features}
             />
           </div>
@@ -55,17 +56,19 @@ export default function ApplicationLive() {
 
       <div className="grid grid-cols-1 gap-12 pt-3 lg:grid-cols-3">
         <div className="order-2 grid grid-flow-row gap-12 lg:order-1 lg:col-span-2">
-          <OverviewDeployments />
+          <RetryableErrorBoundary>
+            <OverviewDeployments />
+          </RetryableErrorBoundary>
 
           <OverviewDocumentation
             title="Pick your favorite framework and start learning"
-            description="Nhost integrates smoothly with all of the frameworks you already know"
+            description="Nhost integrates smoothly with all of the frameworks you already know."
             cardElements={frameworks}
           />
 
           <OverviewDocumentation
             title="Platform Documentation"
-            description="More in-depth documentation for key features"
+            description="More in-depth documentation for key features."
             cardElements={features}
           />
         </div>

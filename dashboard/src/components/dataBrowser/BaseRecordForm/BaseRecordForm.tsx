@@ -5,10 +5,10 @@ import type {
   ColumnInsertOptions,
   DataBrowserGridColumn,
 } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 
 export interface BaseRecordFormProps {
   /**
@@ -130,7 +130,7 @@ export default function BaseRecordForm({
 
   return (
     <Form
-      className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200"
+      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
       onSubmit={handleSubmit}
     >
       <div className="flex-auto overflow-y-auto">
@@ -148,15 +148,13 @@ export default function BaseRecordForm({
             description="These columns are nullable and don't require a value."
             columns={optionalColumns}
             autoFocusFirstInput={requiredColumns.length === 0}
-            className={twMerge(
-              requiredColumns.length > 0 && 'border-t-1 border-gray-200',
-              'px-6 pt-3',
-            )}
+            sx={{ borderTopWidth: requiredColumns.length > 0 ? 1 : 0 }}
+            className="px-6 pt-3"
           />
         )}
       </div>
 
-      <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 border-gray-200 p-2">
+      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
           variant="borderless"
           color="secondary"
@@ -174,7 +172,7 @@ export default function BaseRecordForm({
         >
           {submitButtonText}
         </Button>
-      </div>
+      </Box>
     </Form>
   );
 }

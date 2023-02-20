@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import type { BaseForeignKeyFormValues } from '@/components/dataBrowser/BaseForeignKeyForm';
 import type { DatabaseColumn } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import LinkIcon from '@/ui/v2/icons/LinkIcon';
@@ -127,7 +128,7 @@ export default function ForeignKeyEditor() {
     <div className="col-span-8 grid grid-cols-8 items-center justify-start gap-x-4 gap-y-2">
       <InputLabel className="col-span-8 sm:col-span-2">Foreign Key</InputLabel>
 
-      <div className="col-span-8 rounded-sm+ border-1 border-input px-1 py-[3px] sm:col-span-6">
+      <Box className="col-span-8 rounded-sm+ border-1 px-1 py-[3px] sm:col-span-6">
         <ForeignKeyEditorInput
           ref={buttonRef}
           onEditSubmit={() =>
@@ -137,7 +138,7 @@ export default function ForeignKeyEditor() {
             requestAnimationFrame(() => buttonRef.current.focus())
           }
         />
-      </div>
+      </Box>
     </div>
   );
 }

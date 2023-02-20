@@ -1,5 +1,19 @@
 # @nhost/docs
 
+## 0.0.13
+
+### Patch Changes
+
+- bf1e4071: chore(deps): bump `react` to v18
+- 8be094be: fix(deps): update docusaurus monorepo to v2.3.1
+
+## 0.0.12
+
+### Patch Changes
+
+- e146d32e: chore(deps): update dependency @types/react to v18.0.27
+- 5b65cac9: updated authentication documentation
+
 ## 0.0.11
 
 ### Patch Changes

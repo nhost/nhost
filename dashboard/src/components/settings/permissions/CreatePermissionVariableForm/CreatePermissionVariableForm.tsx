@@ -9,7 +9,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
 import getPermissionVariablesObject from '@/utils/settings/getPermissionVariablesObject';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetAppCustomClaimsQuery,
   useUpdateAppMutation,
@@ -105,7 +105,7 @@ export default function CreatePermissionVariableForm({
         error:
           'An error occurred while trying to create the permission variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     await onSubmit?.();

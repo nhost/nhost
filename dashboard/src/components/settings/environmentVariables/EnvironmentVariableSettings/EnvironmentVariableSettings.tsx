@@ -3,6 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -12,7 +13,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteEnvironmentVariableMutation,
   useGetEnvironmentVariablesQuery,
@@ -69,7 +70,7 @@ export default function EnvironmentVariableSettings() {
         success: 'Environment variable has been deleted successfully.',
         error: 'An error occurred while deleting the environment variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
   }
 
@@ -126,15 +127,15 @@ export default function EnvironmentVariableSettings() {
       docsTitle="Environment Variables"
       rootClassName="gap-0"
       className={twMerge(
-        'px-0 my-2',
+        'my-2 px-0',
         availableEnvironmentVariables.length === 0 && 'gap-2',
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 border-b-1 border-gray-200 px-4 py-3">
+      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Updated</Text>
-      </div>
+      </Box>
 
       <div className="grid grid-flow-row gap-2">
         {availableEnvironmentVariables.length > 0 && (
@@ -148,7 +149,7 @@ export default function EnvironmentVariableSettings() {
               return (
                 <Fragment key={environmentVariable.id}>
                   <ListItem.Root
-                    className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-2"
+                    className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
                     secondaryAction={
                       <Dropdown.Root>
                         <Dropdown.Trigger
@@ -188,12 +189,7 @@ export default function EnvironmentVariableSettings() {
                               handleConfirmDelete(environmentVariable)
                             }
                           >
-                            <Text
-                              className="font-medium"
-                              sx={{
-                                color: (theme) => theme.palette.error.main,
-                              }}
-                            >
+                            <Text className="font-medium" color="error">
                               Delete
                             </Text>
                           </Dropdown.Item>
@@ -207,7 +203,7 @@ export default function EnvironmentVariableSettings() {
 
                     <Text
                       variant="subtitle1"
-                      className="lg:col-span-2 truncate"
+                      className="truncate lg:col-span-2"
                     >
                       {timestamp === '0 seconds ago' ||
                       timestamp === 'in 0 seconds'
@@ -231,7 +227,7 @@ export default function EnvironmentVariableSettings() {
         )}
 
         <Button
-          className="justify-self-start mx-4"
+          className="mx-4 justify-self-start"
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}

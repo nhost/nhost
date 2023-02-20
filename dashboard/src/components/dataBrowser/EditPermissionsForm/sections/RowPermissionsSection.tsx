@@ -109,7 +109,11 @@ export default function RowPermissionsSection({
       </RadioGroup>
 
       {errors?.filter?.message && (
-        <Text variant="subtitle2" className="font-normal !text-red">
+        <Text
+          variant="subtitle2"
+          className="font-normal"
+          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
+        >
           {errors.filter.message}
         </Text>
       )}

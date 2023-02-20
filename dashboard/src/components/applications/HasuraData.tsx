@@ -1,15 +1,17 @@
-import { ConnectionDetail } from '@/components/applications/ConnectionDetail';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import IconButton from '@/ui/v2/IconButton';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
-import Link from '@/ui/v2/Link';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Text from '@/ui/v2/Text';
 import generateAppServiceUrl, {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
+import { copy } from '@/utils/copy';
 import { LOCAL_HASURA_URL } from '@/utils/env';
 import Image from 'next/image';
 
@@ -61,31 +63,55 @@ export function HasuraData({ close }: HasuraDataProps) {
           clipboard and enter it in the next screen.
         </Text>
 
-        <div className="mt-6 divide-y-1 divide-divide border-t-1 border-b-1">
-          {/* @FIX: Get deployment version from Backend. #NHOST-262 */}
-          <ConnectionDetail
-            title="Admin Secret"
-            value={currentApplication.hasuraGraphqlAdminSecret}
-          />
-        </div>
+        <Box className="mt-6 border-y-1">
+          <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
+            <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
+              Admin Secret
+            </Text>
+
+            <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
+              <Text className="font-medium" variant="subtitle2">
+                {Array(currentApplication.hasuraGraphqlAdminSecret.length)
+                  .fill('•')
+                  .join('')}
+              </Text>
+
+              <IconButton
+                onClick={() =>
+                  copy(
+                    currentApplication.hasuraGraphqlAdminSecret,
+                    'Hasura admin secret',
+                  )
+                }
+                variant="borderless"
+                color="secondary"
+                className="min-w-0 p-1"
+                aria-label="Copy admin secret"
+              >
+                <CopyIcon className="h-4 w-4" />
+              </IconButton>
+            </div>
+          </div>
+        </Box>
 
         <div className="mt-6 grid grid-flow-row gap-2">
-          <Link
+          <Button
             href={hasuraUrl}
+            // Both `target` and `rel` are available when `href` is set. This is
+            // a limitation of MUI.
+            // @ts-ignore
             target="_blank"
             rel="noreferrer noopener"
-            className="grid grid-flow-col items-center justify-center gap-1 rounded-[4px] bg-btn p-2 text-sm+ font-medium text-white hover:ring-2 motion-safe:transition-all"
-            underline="none"
+            endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
           >
             Open Hasura
-            <ArrowSquareOutIcon className="h-4 w-4" />
-          </Link>
+          </Button>
 
           {close && (
             <Button
               variant="outlined"
               color="secondary"
-              className="text-grayscaleDark text-sm+ font-normal"
+              className="text-sm+ font-normal"
               onClick={close}
             >
               Cancel

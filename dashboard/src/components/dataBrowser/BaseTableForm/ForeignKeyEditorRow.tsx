@@ -1,4 +1,5 @@
 import type { ForeignKeyRelation } from '@/types/dataBrowser';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import LinkIcon from '@/ui/v2/icons/LinkIcon';
@@ -30,7 +31,7 @@ export default function ForeignKeyEditorRow({
   });
 
   return (
-    <div className="grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 border-input px-3 py-1">
+    <Box className="grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-1">
       <div className="grid grid-flow-col items-center gap-2">
         <LinkIcon className="h-4 w-4" />
 
@@ -62,6 +63,6 @@ export default function ForeignKeyEditorRow({
           Delete
         </Button>
       </div>
-    </div>
+    </Box>
   );
 }

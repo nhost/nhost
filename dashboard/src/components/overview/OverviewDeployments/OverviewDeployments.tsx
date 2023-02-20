@@ -1,12 +1,12 @@
-import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
-import { useDialog } from '@/components/common/DialogProvider';
-import NavLink from '@/components/common/NavLink';
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Divider from '@/ui/v2/Divider';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import List from '@/ui/v2/List';
 import Text from '@/ui/v2/Text';
@@ -15,55 +15,40 @@ import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { ChevronRightIcon } from '@heroicons/react/solid';
-import { twMerge } from 'tailwind-merge';
+import NavLink from 'next/link';
+import { Fragment } from 'react';
 
 function OverviewDeploymentsTopBar() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const { githubRepository } = currentApplication;
+  const { githubRepository } = currentApplication || {};
 
   return (
-    <div className="flex flex-row place-content-between pb-6">
-      <Text
-        variant="h3"
-        className="self-center align-middle font-medium text-greyscaleDark"
-      >
+    <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
+      <Text variant="h3" className="font-medium">
         Deployments
       </Text>
+
       <NavLink
-        href={
-          !githubRepository
-            ? `#`
-            : `/${currentWorkspace.slug}/${currentApplication.slug}/deployments`
-        }
-        className={twMerge(
-          'cursor-pointer self-center align-middle font-medium text-blue',
-          !githubRepository && 'cursor-not-allowed text-greyscaleGrey',
-        )}
+        href={`/${currentWorkspace?.slug}/${currentApplication?.slug}/deployments`}
+        passHref
       >
-        View all
-        <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
+        <Button variant="borderless" disabled={!githubRepository}>
+          View all
+          <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
+        </Button>
       </NavLink>
     </div>
   );
 }
 
-interface OverviewDeploymentsProps {
-  projectId: string;
-  githubRepository: { fullName: string };
-}
-
-function OverviewDeployments({
-  projectId,
-  githubRepository,
-}: OverviewDeploymentsProps) {
-  const { openAlertDialog } = useDialog();
-  const { openGitHubModal } = useGitHubModal();
+function OverviewDeploymentList() {
+  const { currentWorkspace, currentApplication } =
+    useCurrentWorkspaceAndApplication();
   const { data, loading } = useGetDeploymentsSubSubscription({
     variables: {
-      id: projectId,
+      id: currentApplication?.id,
       limit: 5,
       offset: 0,
     },
@@ -74,25 +59,29 @@ function OverviewDeployments({
     loading: scheduledOrPendingDeploymentsLoading,
   } = useScheduledOrPendingDeploymentsSubSubscription({
     variables: {
-      appId: projectId,
+      appId: currentApplication?.id,
     },
   });
 
   if (loading || scheduledOrPendingDeploymentsLoading) {
     return (
-      <div className="h-60">
+      <Box className="h-[323px] rounded-lg border-1 p-2">
         <ActivityIndicator label="Loading deployments..." />
-      </div>
+      </Box>
     );
   }
 
-  const { deployments } = data;
+  const { deployments } = data || { deployments: [] };
 
-  if (deployments.length === 0) {
+  if (!deployments?.length) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border border-veryLightGray py-12 px-48 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10 text-greyscaleDark" />
-        <div className="flex flex-col space-y-1">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-48 shadow-sm">
+        <RocketIcon
+          strokeWidth={1}
+          className="h-10 w-10"
+          sx={{ color: 'text.primary' }}
+        />
+        <div className="grid grid-flow-row gap-2">
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
@@ -101,76 +90,71 @@ function OverviewDeployments({
             deployment branch in your connected GitHub repository
           </Text>
         </div>
-        <div className="mt-6 flex h-[46px] w-[372px] flex-row place-content-between rounded-lg bg-card p-3">
-          <div className="flex flex-row">
-            <GithubIcon className="mr-1.5 h-4 w-4 self-center text-black" />
-            <Text
-              variant="body1"
-              className="self-center font-normal text-black"
-            >
-              {githubRepository.fullName}
-            </Text>
-          </div>
-          <Button
-            variant="borderless"
-            aria-label="Edit Repository Settings"
-            onClick={() => {
-              openAlertDialog({
-                title: 'Edit Repository Settings',
-                payload: (
-                  <EditRepositorySettings
-                    handleSelectAnotherRepository={openGitHubModal}
-                  />
-                ),
-                props: {
-                  hidePrimaryAction: true,
-                  hideSecondaryAction: true,
-                  hideTitle: true,
-                },
-              });
-            }}
+
+        <Box
+          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg py-2 px-2"
+          sx={{ backgroundColor: 'grey.200' }}
+        >
+          <Box
+            className="ml-2 grid grid-flow-col gap-1.5"
+            sx={{ backgroundColor: 'transparent' }}
           >
-            Edit
-          </Button>
-        </div>
-      </div>
+            <GithubIcon className="h-4 w-4 self-center" />
+            <Text variant="body1" className="self-center font-normal">
+              {currentApplication?.githubRepository?.fullName}
+            </Text>
+          </Box>
+
+          <NavLink
+            href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+            passHref
+          >
+            <Button variant="borderless" size="small">
+              Edit
+            </Button>
+          </NavLink>
+        </Box>
+      </Box>
     );
   }
 
   const liveDeploymentId = getLastLiveDeployment(deployments);
   const { deployments: scheduledOrPendingDeployments } =
-    scheduledOrPendingDeploymentsData;
+    scheduledOrPendingDeploymentsData || { deployments: [] };
 
   return (
-    <List className="rounded-x-lg flex flex-col divide-y-1 divide-gray-200 rounded-lg border border-veryLightGray">
-      {deployments.map((deployment, index) => (
-        <DeploymentListItem
-          key={deployment.id}
-          deployment={deployment}
-          isLive={deployment.id === liveDeploymentId}
-          showRedeploy={index === 0}
-          disableRedeploy={scheduledOrPendingDeployments.length > 0}
-        />
+    <List
+      className="rounded-x-lg flex flex-col overflow-hidden rounded-lg"
+      sx={{ borderColor: 'grey.300', borderWidth: 1 }}
+    >
+      {deployments?.map((deployment, index) => (
+        <Fragment key={deployment.id}>
+          <DeploymentListItem
+            deployment={deployment}
+            isLive={deployment.id === liveDeploymentId}
+            showRedeploy={index === 0}
+            disableRedeploy={scheduledOrPendingDeployments?.length > 0}
+          />
+
+          {index !== deployments.length - 1 && <Divider component="li" />}
+        </Fragment>
       ))}
     </List>
   );
 }
 
-export default function OverviewDeploymentsPage() {
+export default function OverviewDeployments() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
 
-  const { githubRepository } = currentApplication;
+  const { githubRepository } = currentApplication || {};
 
   // GitHub repo connected. Show deployments
   if (githubRepository) {
     return (
       <div className="flex flex-col">
         <OverviewDeploymentsTopBar />
-        <OverviewDeployments
-          projectId={currentApplication.id}
-          githubRepository={githubRepository}
-        />
+        <OverviewDeploymentList />
       </div>
     );
   }
@@ -179,9 +163,11 @@ export default function OverviewDeploymentsPage() {
   return (
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
-      <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border border-veryLightGray py-12 px-48 shadow-sm">
-        <RocketIcon strokeWidth={1} className="h-10 w-10 text-greyscaleDark" />
-        <div className="flex flex-col space-y-1">
+
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-48 shadow-sm">
+        <RocketIcon strokeWidth={1} className="h-10 w-10" />
+
+        <div className="grid grid-flow-row gap-1">
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
@@ -190,19 +176,19 @@ export default function OverviewDeploymentsPage() {
             deployment
           </Text>
         </div>
+
         <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
           <Button
             variant="contained"
             color="primary"
             className="w-full"
-            aria-label="Connect a GitHub Repository to the project"
             onClick={openGitHubModal}
           >
-            <GithubIcon className="mr-1.5 h-4 w-4 self-center text-white" />
+            <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub
           </Button>
         </div>
-      </div>
+      </Box>
     </div>
   );
 }

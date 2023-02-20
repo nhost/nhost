@@ -1,4 +1,5 @@
 import Header from '@/components/common/Header';
+import HighlightedText from '@/components/common/HighlightedText';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { InviteAnnounce } from '@/components/home/InviteAnnounce';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
@@ -44,12 +45,6 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    if (router.pathname === '/') {
-      router.push('/signup');
-
-      return;
-    }
-
     router.push('/signin');
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
@@ -70,7 +65,7 @@ export default function AuthenticatedLayout({
 
   if (isPlatform && isLoading) {
     return (
-      <BaseLayout {...props}>
+      <BaseLayout className="h-full" {...props}>
         <Header className="flex max-h-[59px] flex-auto" />
       </BaseLayout>
     );
@@ -78,10 +73,13 @@ export default function AuthenticatedLayout({
 
   if (!isPlatform && !isHealthy) {
     return (
-      <BaseLayout {...props}>
+      <BaseLayout className="h-full" {...props}>
         <Header className="flex max-h-[59px] flex-auto" />
 
-        <Container className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center">
+        <Container
+          rootClassName="h-full"
+          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
+        >
           <div className="mx-auto">
             <Image
               src="/terminal-text.svg"
@@ -97,10 +95,8 @@ export default function AuthenticatedLayout({
 
           <Text>
             Did you forget to start{' '}
-            <code className="mr-0.5 rounded-sm bg-gray-100 px-1 text-sm- leading-tight tracking-tight text-gray-700">
-              nhost up
-            </code>
-            ? Please refer to the{' '}
+            <HighlightedText className="font-mono">nhost up</HighlightedText>?
+            Please refer to the{' '}
             <Link
               href="https://docs.nhost.io/platform/cli"
               target="_blank"
@@ -119,7 +115,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex flex-col h-full" {...props}>
+    <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex max-h-[59px] flex-auto" />
 
       <InviteAnnounce />

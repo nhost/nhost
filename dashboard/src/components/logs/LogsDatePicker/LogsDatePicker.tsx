@@ -54,7 +54,8 @@ function LogsDatePicker({
           <Text
             htmlFor={label}
             component="label"
-            className="self-center text-sm+ font-normal text-greyscaleMedium"
+            className="self-center text-sm+ font-normal"
+            color="secondary"
           >
             {label}
           </Text>
@@ -65,8 +66,14 @@ function LogsDatePicker({
             startIcon={<CalendarIcon className="h-4 w-4 self-center" />}
             endIcon={<ChevronDownIcon className="h-4 w-4 self-center" />}
             {...buttonSlotProps}
+            sx={[
+              ...(Array.isArray(buttonSlotProps?.sx)
+                ? buttonSlotProps.sx
+                : [buttonSlotProps.sx]),
+              { color: 'text.secondary' },
+            ]}
             className={twMerge(
-              'text-left text-greyscaleMedium transition-all',
+              'text-left transition-all tabular-nums',
               buttonSlotProps?.className,
             )}
           >

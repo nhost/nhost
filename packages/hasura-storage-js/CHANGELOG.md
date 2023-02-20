@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 1.13.2
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+
 ## 1.13.1
 
 ### Patch Changes

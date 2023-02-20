@@ -8,7 +8,7 @@ import BaseEnvironmentVariableForm, {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateEnvironmentVariableMutation,
@@ -110,7 +110,7 @@ export default function EditEnvironmentVariableForm({
         success: 'Environment variable has been updated successfully.',
         error: 'An error occurred while updating the environment variable.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onSubmit?.();

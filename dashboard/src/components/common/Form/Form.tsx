@@ -1,8 +1,9 @@
-import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
+import type { KeyboardEvent } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export interface FormProps
-  extends DetailedHTMLProps<HTMLProps<HTMLFormElement>, HTMLFormElement> {
+export interface FormProps extends BoxProps {
   /**
    * Function to be called when the form is submitted.
    */
@@ -33,7 +34,8 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
     // We want to support form submission using `Ctrl + Enter` and `Cmd + Enter`
     // so keyboard events must be handled on the form element itself.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-    <form
+    <Box
+      component="form"
       {...props}
       onKeyDown={(event) => {
         if (onKeyDown) {

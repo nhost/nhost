@@ -5,8 +5,10 @@ import features from '@/data/features.json';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { useLazyRefetchUserData } from '@/hooks/useLazyRefetchUserData';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import DelayedLoading from '@/ui/DelayedLoading';
+import { Alert } from '@/ui/Alert';
 import { Modal } from '@/ui/Modal';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import IconButton from '@/ui/v2/IconButton';
@@ -25,7 +27,6 @@ import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
-
 import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
@@ -221,19 +222,19 @@ export function NewProjectPageContent({
   if (!selectedWorkspace) {
     return (
       <Container>
-        <div className="mx-auto my-64 max-w-full bg-white subpixel-antialiased">
+        <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
             <div className="mx-auto max-w-3xl text-center">
-              <h1 className="text-center text-6xl font-semibold text-dark">
+              <Text variant="h1" className="text-center text-6xl font-semibold">
                 Workspace Error
-              </h1>
-              <pre className="mt-2">
+              </Text>
+              <Text className="mt-2">
                 There is no workspace. You must create a workspace before
                 creating an application.
-              </pre>
+              </Text>
             </div>
           </div>
-        </div>
+        </Box>
       </Container>
     );
   }
@@ -344,12 +345,18 @@ export function NewProjectPageContent({
               helperText={
                 <div className="grid max-w-xs grid-flow-row gap-2">
                   {passwordError && (
-                    <Text variant="subtitle2" className="!text-red">
+                    <Text
+                      variant="subtitle2"
+                      sx={{
+                        color: (theme) =>
+                          `${theme.palette.error.main} !important`,
+                      }}
+                    >
                       {passwordError}
                     </Text>
                   )}
 
-                  <div className="font-medium text-greyscaleDark">
+                  <Box className="font-medium">
                     The root Postgres password for your database - it must be
                     strong and hard to guess.{' '}
                     <Button
@@ -362,7 +369,7 @@ export function NewProjectPageContent({
                     >
                       Generate a password
                     </Button>
-                  </div>
+                  </Box>
                 </div>
               }
               onChange={async (e) => {
@@ -441,10 +448,10 @@ export function NewProjectPageContent({
               >
                 <span className="row-span-2 flex">
                   <Image
-                    src={`/assets/${option.code}.svg`}
+                    src={`/assets/flags/${option.code}.svg`}
                     alt={`${option.country} country flag`}
-                    width={20}
-                    height={20}
+                    width={16}
+                    height={12}
                   />
                 </span>
 
@@ -477,8 +484,8 @@ export function NewProjectPageContent({
                 const checked = plan.id === currentPlan.id;
 
                 return (
-                  <div
-                    className="border-t border-gray-200 py-4 last-of-type:border-b"
+                  <Box
+                    className="border-t py-4 last-of-type:border-b"
                     key={currentPlan.id}
                   >
                     <Checkbox
@@ -532,7 +539,7 @@ export function NewProjectPageContent({
                         setPlan(currentPlan);
                       }}
                     />
-                  </div>
+                  </Box>
                 );
               })}
             </div>
@@ -540,13 +547,14 @@ export function NewProjectPageContent({
         </div>
 
         {submitState.error && (
-          <div className="mt-10 rounded-md bg-warning px-4 py-2 text-dark">
-            <Text className="font-medium text-textOrange">Warning</Text>
-            <Text className="pt-2 font-medium text-dimBlack" size="normal">
+          <Alert severity="error" className="text-left">
+            <Text className="font-medium">Warning</Text>{' '}
+            <Text className="font-medium">
               {submitState.error &&
-                getErrorMessage(submitState.error, 'application')}
+                getErrorMessage(submitState.error, 'application')}{' '}
+              asdsda
             </Text>
-          </div>
+          </Alert>
         )}
 
         <div className="flex justify-end">
@@ -601,7 +609,9 @@ export default function NewProjectPage() {
   }
 
   if (loading) {
-    return <DelayedLoading delay={500} />;
+    return (
+      <ActivityIndicator delay={500} label="Loading plans and regions..." />
+    );
   }
 
   const { workspace } = router.query;

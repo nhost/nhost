@@ -219,7 +219,7 @@ export default function EditTableForm({
             <Button
               variant="borderless"
               color="error"
-              className="p-1 text-greyscaleDark hover:text-greyscaleDark"
+              size="small"
               onClick={resetError}
             >
               Clear

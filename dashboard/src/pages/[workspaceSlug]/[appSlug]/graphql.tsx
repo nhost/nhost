@@ -318,7 +318,39 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout mainContainerProps={{ className: 'flex flex-col' }}>
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex flex-col',
+        sx: {
+          [`& .graphiql-container`]: {
+            [`& .graphiql-main, & .graphiql-sessions`]: {
+              backgroundColor: 'background.default',
+            },
+            [`& .graphiql-editors, & .graphiql-editor, & .CodeMirror, & .CodeMirror-gutters, & .graphiql-container .graphiql-doc-explorer, & .graphiql-doc-explorer-search-input + div > ul, & .cm-searching`]:
+              {
+                backgroundColor: 'background.paper',
+              },
+            [`& .CodeMirror-linenumber, & .CodeMirror-line, & .graphiql-tabs button.graphiql-tab, & .graphiql-editor-tools-tabs button`]:
+              {
+                color: 'text.disabled',
+              },
+            [`& .graphiql-editor-tools-tabs button.active, & .graphiql-tabs button.graphiql-tab-active, & .graphiql-markdown-description, & .graphiql-doc-explorer-section-title`]:
+              {
+                color: 'text.secondary',
+              },
+            [`& .graphiql-doc-explorer .graphiql-doc-explorer-header`]: {
+              color: 'text.primary',
+            },
+            [`& .graphiql-tabs button`]: {
+              outline: 'none',
+            },
+            [`& .CodeMirror-hint`]: {
+              borderColor: `grey.300`,
+            },
+          },
+        },
+      }}
+    >
       {page}
     </ProjectLayout>
   );

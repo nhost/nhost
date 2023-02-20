@@ -1,12 +1,18 @@
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { SxProps, Theme } from '@mui/material';
 import { alpha, styled } from '@mui/material';
-import type { ButtonProps as MaterialButtonProps } from '@mui/material/Button';
+import type {
+  ButtonProps as MaterialButtonProps,
+  ButtonTypeMap,
+} from '@mui/material/Button';
 import MaterialButton, { buttonClasses } from '@mui/material/Button';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
-export interface ButtonProps extends Omit<MaterialButtonProps, 'variant'> {
+export type ButtonProps<
+  D extends React.ElementType = ButtonTypeMap['defaultComponent'],
+  P = {},
+> = Omit<MaterialButtonProps<D, P>, 'variant'> & {
   /**
    * Variant of the button.
    */
@@ -15,7 +21,7 @@ export interface ButtonProps extends Omit<MaterialButtonProps, 'variant'> {
    * Determines whether the button should show an activity indicator.
    */
   loading?: boolean;
-}
+};
 
 const StyledButton = styled(MaterialButton)(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -112,6 +118,10 @@ const ContainedButton = forwardRef(
           boxShadow: (theme) =>
             `0 0 0 2px ${alpha(theme.palette.text.primary, 0.3)}`,
         },
+        '&:disabled': {
+          color: 'grey.600',
+          backgroundColor: (theme) => `${theme.palette.grey[200]} !important`,
+        },
       };
     }
 
@@ -196,17 +206,20 @@ const OutlinedButton = forwardRef(
         color: 'text.primary',
         borderColor: 'grey.400',
         '&:hover': {
-          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
-          borderColor: 'grey.500',
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.300',
         },
         '&:active': {
-          backgroundColor: (theme) => theme.palette.action.active,
-          borderColor: 'grey.700',
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.300',
         },
         '&:focus': {
-          backgroundColor: (theme) => theme.palette.action.focus,
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.text.primary, 0.2)}`,
+          backgroundColor: 'grey.300',
+          borderColor: 'grey.300',
+        },
+        '&:disabled': {
+          color: (theme) => `${theme.palette.text.disabled} !important`,
+          borderColor: 'grey.400',
         },
       };
     }
@@ -264,15 +277,15 @@ const BorderlessButton = forwardRef(
     let styles: SxProps<Theme> = {
       color: 'primary.main',
       '&:hover': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.05),
-        color: 'primary.dark',
+        backgroundColor: 'primary.light',
       },
       '&:active': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-        color: 'primary.dark',
+        boxShadow: 'none',
+        backgroundColor: 'primary.light',
       },
       '&:focus': {
-        backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        boxShadow: 'none',
+        backgroundColor: 'primary.light',
       },
     };
 
@@ -280,16 +293,19 @@ const BorderlessButton = forwardRef(
       styles = {
         color: 'text.primary',
         '&:hover': {
-          backgroundColor: (theme) => alpha(theme.palette.text.primary, 0.05),
+          backgroundColor: 'grey.300',
           color: 'text.primary',
         },
         '&:active': {
-          backgroundColor: (theme) => theme.palette.action.active,
+          backgroundColor: 'grey.300',
+          boxShadow: 'none',
         },
         '&:focus': {
-          boxShadow: (theme) =>
-            `0 0 0 2px ${alpha(theme.palette.text.primary, 0.1)}`,
-          backgroundColor: (theme) => theme.palette.action.focus,
+          backgroundColor: 'grey.300',
+          boxShadow: 'none',
+        },
+        '&:disabled': {
+          color: (theme) => `${theme.palette.text.disabled} !important`,
         },
       };
     }

@@ -1,6 +1,6 @@
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
-import styled from '@emotion/styled';
+import { styled } from '@mui/material/styles';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 

@@ -80,7 +80,7 @@ export default function ApplicationInfo() {
           href={`https://staging.nhost.run/console/data/default/schema/public/tables/app_state_history/browse?filter=app_id%3B%24eq%3B${currentApplication.id}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="grid grid-flow-col items-center justify-center gap-1 p-2 text-btn"
+          className="grid grid-flow-col items-center justify-center gap-1 p-2"
           underline="hover"
         >
           App State History <ArrowRightIcon />

@@ -5,7 +5,7 @@ import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -29,7 +29,7 @@ export default function ProvidersUpdatedAlert() {
         success: 'Your settings have been updated successfully.',
         error: 'An error occurred while trying to confirm the message.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     setConfirmed(false);

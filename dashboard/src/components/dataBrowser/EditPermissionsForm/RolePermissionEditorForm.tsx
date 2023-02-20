@@ -8,11 +8,12 @@ import type {
   RuleGroup,
 } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -65,6 +66,10 @@ export interface RolePermissionEditorFormValues {
    * Whether the mutation should be restricted to trusted backends.
    */
   backendOnly?: boolean;
+  /**
+   * Computed fields to be allowed for the role.
+   */
+  computedFields?: string[];
 }
 
 export interface RolePermissionEditorFormProps {
@@ -84,6 +89,10 @@ export interface RolePermissionEditorFormProps {
    * The role that is being edited.
    */
   role: string;
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
   /**
    * The action that is being edited.
    */
@@ -154,6 +163,7 @@ export default function RolePermissionEditorForm({
   schema,
   table,
   role,
+  resourceVersion,
   action,
   onSubmit,
   onCancel,
@@ -188,6 +198,7 @@ export default function RolePermissionEditorForm({
         permission?.subscription_root_fields?.length > 0,
       queryRootFields: permission?.query_root_fields || [],
       subscriptionRootFields: permission?.subscription_root_fields || [],
+      computedFields: permission?.computed_fields || [],
       columnPresets: getColumnPresets(permission?.set || {}),
       backendOnly: permission?.backend_only || false,
     },
@@ -212,13 +223,18 @@ export default function RolePermissionEditorForm({
       action,
       mode: permission ? 'update' : 'insert',
       originalPermission: permission,
+      resourceVersion,
       permission: {
         set: convertToColumnPresetObject(values.columnPresets),
         columns: values.columns,
         limit: values.limit,
         allow_aggregations: values.allowAggregations,
-        query_root_fields: values.queryRootFields,
-        subscription_root_fields: values.subscriptionRootFields,
+        query_root_fields:
+          values.queryRootFields.length > 0 ? values.queryRootFields : null,
+        subscription_root_fields:
+          values.subscriptionRootFields.length > 0
+            ? values.subscriptionRootFields
+            : null,
         filter:
           action !== 'insert'
             ? convertToHasuraPermissions(values.filter as RuleGroup)
@@ -228,6 +244,10 @@ export default function RolePermissionEditorForm({
             ? convertToHasuraPermissions(values.filter as RuleGroup)
             : permission?.check,
         backend_only: values.backendOnly,
+        computed_fields:
+          permission?.computed_fields.length > 0
+            ? permission?.computed_fields
+            : null,
       },
     });
 
@@ -238,7 +258,7 @@ export default function RolePermissionEditorForm({
         success: 'Permission has been saved successfully.',
         error: 'An error occurred while saving the permission.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onDirtyStateChange(false, 'drawer');
@@ -265,6 +285,7 @@ export default function RolePermissionEditorForm({
     const deletePermissionPromise = managePermission({
       role,
       action,
+      resourceVersion,
       originalPermission: permission,
       mode: 'delete',
     });
@@ -276,7 +297,7 @@ export default function RolePermissionEditorForm({
         success: 'Permission has been deleted successfully.',
         error: 'An error occurred while deleting the permission.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onDirtyStateChange(false, 'drawer');
@@ -327,12 +348,13 @@ export default function RolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 border-gray-200 bg-[#fafafa]"
+        className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
+        sx={{ backgroundColor: 'background.default' }}
       >
-        <div className="grid grid-flow-row gap-6 content-start flex-auto py-4 overflow-auto">
+        <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
-            className="justify-between grid-flow-col"
+            className="grid-flow-col justify-between"
           >
             <div className="grid grid-flow-col gap-4">
               <Text>
@@ -385,7 +407,7 @@ export default function RolePermissionEditorForm({
           {action !== 'select' && <BackendOnlySection disabled={disabled} />}
         </div>
 
-        <div className="grid flex-shrink-0 sm:grid-flow-col sm:justify-between gap-2 border-t-1 border-gray-200 p-2 bg-white">
+        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             variant="borderless"
             color="secondary"
@@ -396,7 +418,7 @@ export default function RolePermissionEditorForm({
           </Button>
 
           {!disabled && (
-            <div className="grid grid-flow-row sm:grid-flow-col gap-2">
+            <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
               {Boolean(permission) && (
                 <Button
                   variant="outlined"
@@ -416,9 +438,9 @@ export default function RolePermissionEditorForm({
               >
                 Save
               </Button>
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       </Form>
     </FormProvider>
   );

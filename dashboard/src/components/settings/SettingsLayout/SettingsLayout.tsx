@@ -3,6 +3,7 @@ import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import type { SettingsSidebarProps } from '@/components/settings/SettingsSidebar';
 import SettingsSidebar from '@/components/settings/SettingsSidebar';
+import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
 export interface SettingsLayoutProps extends ProjectLayoutProps {
@@ -34,9 +35,12 @@ export default function SettingsLayout({
         {...sidebarProps}
       />
 
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-[#fafafa]">
+      <Box
+        sx={{ backgroundColor: 'background.default' }}
+        className="flex w-full flex-auto flex-col overflow-x-hidden"
+      >
         <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
-      </div>
+      </Box>
     </ProjectLayout>
   );
 }

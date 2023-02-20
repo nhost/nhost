@@ -5,8 +5,10 @@ import useDeleteRecordMutation from '@/hooks/dataBrowser/useDeleteRecordMutation
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
-import Chip from '@/ui/Chip';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import ColumnIcon from '@/ui/v2/icons/ColumnIcon';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -15,13 +17,11 @@ import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers/isSchemaLocked
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
 
-export interface DataBrowserGridControlsProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+export interface DataBrowserGridControlsProps extends BoxProps {
   /**
    * Props passed to the pagination component.
    */
@@ -116,11 +116,8 @@ export default function DataBrowserGridControls({
   }
 
   return (
-    <div
-      className={twMerge(
-        'sticky top-0 z-20 border-b-1 border-gray-200 bg-white p-2',
-        className,
-      )}
+    <Box
+      className={twMerge('sticky top-0 z-20 border-b-1 p-2', className)}
       {...props}
     >
       <div
@@ -130,8 +127,12 @@ export default function DataBrowserGridControls({
         )}
       >
         {isSchemaEditable && numberOfSelectedRows > 0 && (
-          <div className="grid grid-flow-col place-content-start items-center gap-3">
-            <Chip variant="info">{numberOfSelectedRows} selected</Chip>
+          <div className="grid grid-flow-col place-content-start items-center gap-2">
+            <Chip
+              size="small"
+              color="info"
+              label={`${numberOfSelectedRows} selected`}
+            />
 
             <Button
               variant="borderless"
@@ -205,7 +206,10 @@ export default function DataBrowserGridControls({
                       className="grid w-full grid-flow-col items-center gap-2 px-3 py-2 text-sm+ font-medium"
                       disabled={isGitHubConnected}
                     >
-                      <ColumnIcon className="h-4.5 w-4.5 text-greyscaleMedium" />
+                      <ColumnIcon
+                        className="h-4.5 w-4.5"
+                        sx={{ color: 'secondary.800' }}
+                      />
 
                       <span>Column</span>
                     </Dropdown.Item>
@@ -215,9 +219,13 @@ export default function DataBrowserGridControls({
                     <Dropdown.Item
                       aria-label="Insert Row"
                       onClick={onInsertRowClick}
-                      className="grid grid-flow-col items-center gap-2 border-t-1 border-solid border-gray-200 px-3 py-2 text-sm+ font-medium"
+                      className="grid grid-flow-col items-center gap-2 border-t-1 border-solid px-3 py-2 text-sm+ font-medium"
+                      sx={{ borderColor: 'grey.300' }}
                     >
-                      <RowIcon className="h-4.5 w-4.5 text-greyscaleMedium" />
+                      <RowIcon
+                        className="h-4.5 w-4.5"
+                        sx={{ color: 'secondary.800' }}
+                      />
 
                       <span>Row</span>
                     </Dropdown.Item>
@@ -228,6 +236,6 @@ export default function DataBrowserGridControls({
           </div>
         )}
       </div>
-    </div>
+    </Box>
   );
 }

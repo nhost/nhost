@@ -1,19 +1,21 @@
 import { CheckGithubConfiguration } from '@/components/applications/github/CheckGithubConfiguration';
 import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
 import GitHubInstallNhostApplication from '@/components/applications/github/GitHubInstallNhostApplication';
-// ConnectGitHubModal and EditRepositorySettings form a dependency cycle which
-// needs to be fixed
-// eslint-disable-next-line import/no-cycle
-import { Repo } from '@/components/applications/github/Repo';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
-import DelayedLoading from '@/ui/DelayedLoading/DelayedLoading';
-import { Text } from '@/ui/Text';
+import { Avatar } from '@/ui/Avatar';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import List from '@/ui/v2/List';
+import { ListItem } from '@/ui/v2/ListItem';
+import Text from '@/ui/v2/Text';
+import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { GitHubNoRepositoriesAdded } from './github/GitHubNoRepositoriesAdded';
 
 export type ConnectGithubModalState = 'CONNECTING' | 'EDITING';
@@ -59,7 +61,9 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
   }
 
   if (loading) {
-    return <DelayedLoading delay={500} />;
+    return (
+      <ActivityIndicator delay={500} label="Loading GitHub repositories..." />
+    );
   }
 
   if (selectedRepoId !== null) {
@@ -109,7 +113,7 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
       <div className="flex flex-col">
         <div className="mx-auto text-center">
           <div className="mx-auto h-8 w-8">
-            <GithubIcon className="h-8 w-8 text-greyscaleDark" />
+            <GithubIcon className="h-8 w-8 " />
           </div>
         </div>
         {noRepositoriesAdded ? (
@@ -119,25 +123,17 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
         ) : (
           <div>
             <div>
-              <Text
-                variant="subHeading"
-                color="greyscaleDark"
-                size="large"
-                className="mt-2.5 text-center"
-              >
+              <Text className="mt-2.5 text-center text-lg font-medium">
                 Connect repository
               </Text>
               <Text
-                variant="body"
-                color="greyscaleDark"
-                size="tiny"
-                className="text-center font-normal"
+                className="text-center text-xs font-normal"
+                color="secondary"
               >
-                Showing repositories from{' '}
-                <span className="">{data.githubAppInstallations.length}</span>{' '}
+                Showing repositories from {data.githubAppInstallations.length}{' '}
                 GitHub account(s)
               </Text>
-              <div className="mt-6 flex w-full">
+              <div className="mt-6 mb-2 flex w-full">
                 <Input
                   placeholder="Search..."
                   onChange={handleFilterChange}
@@ -147,15 +143,48 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
               </div>
             </div>
             <RetryableErrorBoundary>
-              <div className="h-import  divide-y-1 divide-divide overflow-y-auto border-t-1 border-b-1">
-                {githubRepositoriesToDisplay.map((repo) => (
-                  <Repo
-                    key={repo.id}
-                    repo={repo}
-                    setSelectedRepoId={() => setSelectedRepoId(repo.id)}
-                  />
-                ))}
-              </div>
+              {githubRepositoriesToDisplay.length === 0 ? (
+                <Box className="h-import py-2">
+                  <Text variant="subtitle2">No results found.</Text>
+                </Box>
+              ) : (
+                <List className="h-import overflow-y-auto border-y">
+                  {githubRepositoriesToDisplay.map((repo, index) => (
+                    <Fragment key={repo.id}>
+                      <ListItem.Root
+                        className="grid grid-flow-col justify-start gap-2 py-2.5"
+                        secondaryAction={
+                          <Button
+                            variant="borderless"
+                            color="primary"
+                            onClick={() => setSelectedRepoId(repo.id)}
+                          >
+                            Connect
+                          </Button>
+                        }
+                      >
+                        <ListItem.Avatar>
+                          <Avatar
+                            name={repo.githubAppInstallation.accountLogin}
+                            avatarUrl={
+                              repo.githubAppInstallation.accountAvatarUrl
+                            }
+                            className="h-8 w-8 self-center"
+                          />
+                        </ListItem.Avatar>
+                        <ListItem.Text
+                          primary={repo.name}
+                          secondary={repo.githubAppInstallation.accountLogin}
+                        />
+                      </ListItem.Root>
+
+                      {index < githubRepositoriesToDisplay.length - 1 && (
+                        <Divider component="li" />
+                      )}
+                    </Fragment>
+                  ))}
+                </List>
+              )}
             </RetryableErrorBoundary>
           </div>
         )}

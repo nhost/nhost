@@ -2,15 +2,15 @@ import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Avatar } from '@/ui/Avatar';
-import Status, { StatusEnum } from '@/ui/Status';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
@@ -58,9 +58,10 @@ export default function DeploymentListItem({
   return (
     <ListItem.Root>
       <ListItem.Button
-        className="grid grid-flow-col items-center justify-between gap-2 px-2 py-2"
+        className="grid grid-flow-col items-center justify-between gap-2 rounded-none px-2 py-2"
         component={NavLink}
         href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments/${deployment.id}`}
+        aria-label={commitMessage || 'No commit message'}
       >
         <div className="flex cursor-pointer flex-row items-center justify-center space-x-2 self-center">
           <ListItem.Avatar>
@@ -83,10 +84,14 @@ export default function DeploymentListItem({
           />
         </div>
 
-        <div className="grid grid-flow-col gap-2 items-center">
+        <div className="grid grid-flow-col items-center gap-2">
           {showRedeploy && (
             <Tooltip
-              title="Deployments cannot be re-triggered when a deployment is in progress."
+              title={
+                !disableRedeploy && !loading
+                  ? 'Deployments cannot be re-triggered when a deployment is in progress.'
+                  : ''
+              }
               hasDisabledChildren={disableRedeploy || loading}
               disableHoverListener={!disableRedeploy}
             >
@@ -119,13 +124,14 @@ export default function DeploymentListItem({
                       success: 'Deployment has been scheduled successfully.',
                       error: 'An error occurred when scheduling deployment.',
                     },
-                    toastStyleProps,
+                    getToastStyleProps(),
                   );
                 }}
                 startIcon={
-                  <ArrowCounterclockwiseIcon className={twMerge('w-4 h-4')} />
+                  <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
                 className="rounded-full py-1 px-2 text-xs"
+                aria-label="Redeploy"
               >
                 Redeploy
               </Button>
@@ -133,8 +139,8 @@ export default function DeploymentListItem({
           )}
 
           {isLive && (
-            <div className="w-12 flex justify-end">
-              <Status status={StatusEnum.Live}>Live</Status>
+            <div className="flex w-12 justify-end">
+              <Chip size="small" color="success" label="Live" />
             </div>
           )}
 

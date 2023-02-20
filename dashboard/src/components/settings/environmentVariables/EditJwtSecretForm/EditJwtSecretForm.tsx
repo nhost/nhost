@@ -3,7 +3,7 @@ import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   refetchGetAppInjectedVariablesQuery,
   useUpdateApplicationMutation,
@@ -109,7 +109,7 @@ export default function EditJwtSecretForm({
         success: 'JWT secret has been updated successfully.',
         error: 'An error occurred while updating the JWT secret.',
       },
-      toastStyleProps,
+      getToastStyleProps(),
     );
 
     onSubmit?.();

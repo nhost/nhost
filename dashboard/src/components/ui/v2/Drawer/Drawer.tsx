@@ -18,13 +18,15 @@ export interface DrawerProps extends Omit<MaterialDrawerProps, 'title'> {
   hideCloseButton?: boolean;
 }
 
-const StyledDrawer = styled(MaterialDrawer)({
+const StyledDrawer = styled(MaterialDrawer)(({ theme }) => ({
   [`& .${drawerClasses.paper}`]: {
     display: 'flex',
     boxShadow:
       '0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)',
+    backgroundColor: theme.palette.background.paper,
+    backgroundImage: 'none',
   },
-});
+}));
 
 function Drawer({
   hideCloseButton,
