@@ -19,9 +19,11 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  globalSetup: require.resolve('./global-setup'),
   use: {
     actionTimeout: 0,
     trace: 'on-first-retry',
+    storageState: 'storageState.json',
   },
   projects: [
     {
