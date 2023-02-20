@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.11.12
+
+### Patch Changes
+
+- 87eda76e: chore(dashboard): bump `@types/react` to v18.0.28 and `@types/react-dom` to v18.0.11
+- 6f0ac570: feat(dashboard): show dashboard version in account menu
+
 ## 0.11.11
 
 ### Patch Changes
