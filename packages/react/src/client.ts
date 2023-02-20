@@ -1,6 +1,6 @@
 import {
-  NhostAuthConstructorParams as VanillaNhostClientConstructorParams,
-  NhostClient as _VanillaNhostClient
+  NhostClient as _VanillaNhostClient,
+  NhostClientConstructorParams as VanillaNhostClientConstructorParams
 } from '@nhost/nhost-js'
 
 /** @internal */
