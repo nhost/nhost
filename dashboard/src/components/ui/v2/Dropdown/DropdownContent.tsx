@@ -40,7 +40,7 @@ const StyledMenu = styled(MaterialMenu)(({ theme }) => ({
     borderColor:
       theme.palette.mode === 'dark'
         ? `${theme.palette.grey[400]} !important`
-        : 'none',
+        : 'transparent',
     boxShadow:
       theme.palette.mode === 'light'
         ? '0px 4px 10px rgba(33, 50, 75, 0.25)'
