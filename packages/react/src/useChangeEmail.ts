@@ -11,8 +11,6 @@ import { useNhostClient } from './useNhostClient'
 
 interface ChangeEmailHandler {
   (email: string, options?: ChangeEmailOptions): Promise<ChangeEmailHandlerResult>
-  /** @deprecated */
-  (email?: unknown, options?: ChangeEmailOptions): Promise<ChangeEmailHandlerResult>
 }
 
 export interface ChangeEmailHookResult extends ChangeEmailState {
@@ -40,16 +38,7 @@ export interface ChangeEmailHookResult extends ChangeEmailState {
  *
  * @docs https://docs.nhost.io/reference/react/use-change-email
  */
-export function useChangeEmail(options?: ChangeEmailOptions): ChangeEmailHookResult
-
-/**
- * @deprecated
- */
-export function useChangeEmail(email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
-
-export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailOptions) {
-  const stateEmail = useMemo(() => (typeof a === 'string' ? a : undefined), [a])
-  const stateOptions = useMemo(() => (typeof a !== 'string' ? a : b), [a, b])
+export function useChangeEmail(options?: ChangeEmailOptions) {
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangeEmailMachine(nhost.auth.client), [nhost])
 
@@ -61,13 +50,9 @@ export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailO
   const needsEmailVerification = useSelector(service, (state) => state.matches('idle.success'))
 
   const changeEmail: ChangeEmailHandler = useCallback(
-    async (valueEmail?: string | unknown, valueOptions = stateOptions) =>
-      changeEmailPromise(
-        service,
-        typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
-        valueOptions
-      ),
-    [service, stateEmail, stateOptions]
+    async (valueEmail, valueOptions = options) =>
+      changeEmailPromise(service, valueEmail, valueOptions),
+    [service, options]
   )
 
   return { changeEmail, isLoading, needsEmailVerification, isError, error }

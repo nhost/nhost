@@ -1,9 +1,8 @@
 import { assign, createMachine, send } from 'xstate'
-
 import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
 import { ErrorPayload } from '../types'
-import { nhostApiClient } from '../utils'
+import { getFetch, postFetch } from '../utils'
 
 export type EnableMfaContext = {
   error: ErrorPayload | null
@@ -28,7 +27,6 @@ export type EnableMfaEvents =
 export type EnableMfadMachine = ReturnType<typeof createEnableMfaMachine>
 
 export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) => {
-  const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
@@ -107,7 +105,10 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
           imageUrl: (_, { data: { imageUrl } }: any) => imageUrl,
           secret: (_, { data: { totpSecret } }: any) => totpSecret
         }),
-        reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
+        reportError: send((ctx, event) => {
+          console.log('REPORT', ctx, event)
+          return { type: 'ERROR', error: ctx.error }
+        }),
         reportSuccess: send('SUCCESS'),
         reportGeneratedSuccess: send('GENERATED'),
         reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error }))
@@ -118,25 +119,17 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
       },
       services: {
         generate: async (_) => {
-          const { data } = await api.get('/mfa/totp/generate', {
-            headers: {
-              authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
-            }
-          })
+          const { data } = await getFetch(
+            `${backendUrl}/mfa/totp/generate`,
+            interpreter?.getSnapshot().context.accessToken.value
+          )
           return data
         },
         activate: (_, { code, activeMfaType }) =>
-          api.post(
-            '/user/mfa',
-            {
-              code,
-              activeMfaType
-            },
-            {
-              headers: {
-                authorization: `Bearer ${interpreter?.getSnapshot().context.accessToken.value}`
-              }
-            }
+          postFetch(
+            `${backendUrl}/user/mfa`,
+            { code, activeMfaType },
+            interpreter?.getSnapshot().context.accessToken.value
           )
       }
     }

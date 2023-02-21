@@ -59,7 +59,6 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "axios": "^1.2.0",
     "form-data": "^4.0.0",
     "xstate": "^4.33.5"
   },

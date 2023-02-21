@@ -40,14 +40,14 @@ runs:
     - shell: bash
       name: Build packages
       if: ${{ inputs.BUILD == 'all' }}
-      run: pnpm build:all
+      run: pnpm run build:all
       env:
         TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
         TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
     - shell: bash
       name: Build everything in the monorepo
       if: ${{ inputs.BUILD == 'default' }}
-      run: pnpm build
+      run: pnpm run build
       env:
         TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
         TURBO_TEAM: ${{ inputs.TURBO_TEAM }}

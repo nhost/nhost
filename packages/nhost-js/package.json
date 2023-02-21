@@ -49,28 +49,21 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
-    "ci:test": "vitest run --config vite.config.e2e.js",
-    "e2e:backend": "nhost dev --no-browser",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./nhost-js.typedoc.json --tsconfig ./typedoc.tsconfig.json",
-    "docgen": "pnpm typedoc && docgen --config ./nhost-js.docgen.json"
+    "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
-    "axios": "^1.2.0",
-    "jwt-decode": "^3.1.2"
+    "@nhost/graphql-js": "workspace:*",
+    "cross-fetch": "^3.1.5"
   },
   "devDependencies": {
-    "@faker-js/faker": "^7.6.0",
-    "@nhost/docgen": "workspace:*",
     "graphql": "16.6.0",
     "start-server-and-test": "^1.15.2"
   },

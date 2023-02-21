@@ -18,6 +18,7 @@ export function authProtected(Comp) {
     if (isLoading) {
       return <div>Loading...</div>
     }
+
     return <Comp {...props} />
   }
 }

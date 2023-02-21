@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "include": [
+    "tests/types"
+  ]
+}

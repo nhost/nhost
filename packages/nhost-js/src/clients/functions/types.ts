@@ -1,4 +1,3 @@
-import type { AxiosResponse } from 'axios'
 import { ErrorPayload } from '../../utils/types'
 
 export interface NhostFunctionsConstructorParams {
@@ -26,18 +25,9 @@ export type NhostFunctionCallResponse<T = unknown> =
       error: ErrorPayload
     }
 
-/**@deprecated */
-export type DeprecatedNhostFunctionCallResponse<T = unknown> =
-  | {
-      res: AxiosResponse<T>
-      error: null
-    }
-  | {
-      res: null
-      error: Error
-    }
-
 /** Subset of RequestInit parameters that are supported by the functions client */
 export interface NhostFunctionCallConfig {
   headers?: Record<string, string>
+  /** @deprecated Axios has been replaced by cross-fetch. You should now remove this option. */
+  useAxios?: false
 }
