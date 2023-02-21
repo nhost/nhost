@@ -1,38 +1,67 @@
+import Form from '@/components/common/Form';
+import NavLink from '@/components/common/NavLink';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Link from '@/ui/v2/Link';
+import Input, { inputClasses } from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { useTheme } from '@mui/material';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
 import { useResetPassword } from '@nhost/nextjs';
-import Image from 'next/image';
-import NavLink from 'next/link';
 import type { ReactElement } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-type ResetPasswordFormProps = {
-  email: string;
-};
+const validationSchema = Yup.object({
+  email: Yup.string().label('Email').email().required(),
+});
 
-function ResetPasswordForm() {
-  const { resetPassword, isSent, isLoading, isError, error } =
-    useResetPassword();
+export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
-  const { register, handleSubmit, getValues } = useForm<ResetPasswordFormProps>(
-    {
-      reValidateMode: 'onSubmit',
-      defaultValues: {
-        email: '',
-      },
+const StyledInput = styled(Input)({
+  backgroundColor: 'transparent',
+  [`& .${inputClasses.input}`]: {
+    backgroundColor: 'transparent !important',
+  },
+});
+
+export default function ResetPasswordPage() {
+  const { resetPassword, error, isSent } = useResetPassword();
+
+  const form = useForm<ResetPasswordFormValues>({
+    reValidateMode: 'onSubmit',
+    defaultValues: {
+      email: '',
     },
-  );
+    resolver: yupResolver(validationSchema),
+  });
 
-  const onSubmit = async (data: ResetPasswordFormProps) => {
-    const { email } = data;
+  const { register, formState, getValues } = form;
 
-    await resetPassword(email);
-  };
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    toast.error(
+      error?.message || 'An error occurred while signing in. Please try again.',
+      getToastStyleProps(),
+    );
+  }, [error]);
+
+  async function handleSubmit({ email }: ResetPasswordFormValues) {
+    try {
+      await resetPassword(email);
+    } catch {
+      toast.error(
+        'An error occurred while signing up. Please try again.',
+        getToastStyleProps(),
+      );
+    }
+  }
 
   if (isSent) {
     return (
@@ -44,102 +73,54 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex max-w-2xl flex-col items-center">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex w-full flex-col space-y-3"
+    <>
+      <Text
+        variant="h2"
+        component="h1"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
-        <Input
-          {...register('email')}
-          autoFocus
-          id="email"
-          label="Email"
-          placeholder="Email"
-          required
-          fullWidth
-          inputProps={{ min: 2, max: 128 }}
-          spellCheck="false"
-          autoCapitalize="none"
-          type="email"
-        />
+        Reset Password
+      </Text>
 
-        <div className="flex flex-col">
-          <Button type="submit" disabled={isLoading} loading={isLoading}>
-            Send Reset Instructions
-          </Button>
-        </div>
-      </form>
-
-      {isError && (
-        <div className="my-3">
-          <Text className="font-medium" color="error">
-            Error: {error.message}
-          </Text>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  const theme = useTheme();
-
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex max-w-3xl flex-col">
-        <div className="z-30 mb-8 flex justify-center">
-          <a href="https://nhost.io" tabIndex={-1}>
-            <Image
-              src={
-                theme.palette.mode === 'dark'
-                  ? '/assets/brands/light/nhost-with-text.svg'
-                  : '/assets/brands/nhost-with-text.svg'
-              }
-              alt="Nhost Logo"
-              width={185}
-              height={64}
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+        <FormProvider {...form}>
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-flow-row gap-4 bg-transparent"
+          >
+            <StyledInput
+              {...register('email')}
+              type="email"
+              id="email"
+              label="Email"
+              placeholder="Email"
+              fullWidth
+              autoFocus
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
             />
-          </a>
-        </div>
-        <div className="flex items-center justify-center">
-          <div className="z-30">
-            <Box
-              className="rounded-lg border px-12 py-4"
-              style={{ width: '480px' }}
+
+            <Button
+              className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+              size="large"
+              type="submit"
+              disabled={formState.isSubmitting}
+              loading={formState.isSubmitting}
             >
-              <div className="my-4">
-                <div className="mb-4 flex justify-center text-lg font-semibold">
-                  Reset your password
-                </div>
-                <ResetPasswordForm />
-              </div>
-            </Box>
+              Send Reset Instructions
+            </Button>
+          </Form>
+        </FormProvider>
+      </Box>
 
-            <div className="mt-3 flex justify-center">
-              <div className="grid grid-flow-col items-center justify-center gap-1">
-                <Text className="text-sm">Is your password okay?</Text>
-
-                <NavLink href="/signin" passHref>
-                  <Link href="signin" underline="hover">
-                    Sign in
-                  </Link>
-                </NavLink>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute z-0 w-full max-w-[887px]">
-            <Image
-              src="/assets/signup/bg-gradient.svg"
-              alt="Gradient background"
-              width={887}
-              height={620}
-              layout="responsive"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      <Text color="secondary" className="text-center text-base lg:text-lg">
+        Is your password okay?{' '}
+        <NavLink href="/signin/email" color="white" className="font-medium">
+          Sign In
+        </NavLink>
+      </Text>
+    </>
   );
 }
 

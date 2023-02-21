@@ -111,10 +111,10 @@ module.exports = {
       },
       fontSize: {
         'xs-': ['0.6875rem', '0.875rem'],
-        'sm-': '13px',
+        'sm-': ['0.8125rem', '1rem'],
         'sm+': ['0.9375rem', '1.25rem'],
-        '2.5xl': '26px',
-        '5.5xl': '56px',
+        '3.5xl': ['2rem', '2.5rem'],
+        '4.5xl': ['2.5rem', '2.5rem'],
       },
       maxWidth: {
         2: '0.5rem',

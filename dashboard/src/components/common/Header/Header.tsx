@@ -1,14 +1,13 @@
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import FeedbackForm from '@/components/common/FeedbackForm';
+import LocalAccountMenu from '@/components/common/LocalAccountMenu';
 import Logo from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
+import NavLink from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import Link from '@/ui/v2/Link';
-import NavLink from 'next/link';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -32,10 +31,8 @@ export default function Header({ className, ...props }: HeaderProps) {
       {...props}
     >
       <div className="grid grid-flow-col items-center gap-3">
-        <NavLink href="/" passHref>
-          <Link href="/" className="w-12">
-            <Logo className="mx-auto cursor-pointer" />
-          </Link>
+        <NavLink href="/" className="w-12">
+          <Logo className="mx-auto cursor-pointer" />
         </NavLink>
 
         {(router.query.workspaceSlug || router.query.appSlug) && (
@@ -63,25 +60,20 @@ export default function Header({ className, ...props }: HeaderProps) {
         )}
 
         <NavLink
+          underline="none"
           href="https://docs.nhost.io"
-          passHref
+          className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+          sx={{
+            color: 'text.primary',
+            '&:hover': { backgroundColor: 'grey.200' },
+          }}
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Link
-            underline="none"
-            href="https://docs.nhost.io"
-            className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            sx={{
-              color: 'text.primary',
-              '&:hover': { backgroundColor: 'grey.200' },
-            }}
-          >
-            Docs
-          </Link>
+          Docs
         </NavLink>
 
-        {isPlatform ? <AccountMenu /> : <ThemeSwitcher className="w-52" />}
+        {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
       </div>
 
       <MobileNav className="sm:hidden" />

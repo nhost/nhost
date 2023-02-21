@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.12.2",
+  "version": "1.12.4",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -74,7 +74,7 @@
     "@types/js-cookie": "^3.0.2",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
-    "msw": "^0.47.4",
+    "msw": "^1.0.1",
     "start-server-and-test": "^1.15.2"
   }
 }

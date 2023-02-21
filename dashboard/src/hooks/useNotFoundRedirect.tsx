@@ -35,15 +35,15 @@ export default function useNotFoundRedirect() {
     }
 
     if (noResolvedWorkspace && notIn404Already) {
-      router.push('/404');
+      router.replace('/404');
     }
 
     if (noResolvedApplication && notIn404Already) {
-      router.push('/404');
+      router.replace('/404');
     }
 
     if (isProjectUsingRDS && inSettingsDatabasePage) {
-      router.push('/404');
+      router.replace('/404');
     }
   }, [
     updating,

@@ -10,6 +10,7 @@ import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
+import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -24,23 +25,10 @@ function AccountMenuContent({
   const router = useRouter();
   const client = useApolloClient();
   const { handleClose } = useDropdown();
+  const { publicRuntimeConfig } = getConfig();
 
   return (
-    <Box className="relative grid w-account grid-flow-row gap-5 p-6">
-      <Button
-        variant="borderless"
-        color="secondary"
-        className="absolute top-6 right-4 grid grid-flow-col items-center gap-px self-start font-medium"
-        onClick={async () => {
-          router.push('/signin');
-          await nhost.auth.signOut();
-          await client.resetStore();
-        }}
-        endIcon={<PowerIcon className="w-4 h-4 mr-1" />}
-      >
-        Sign Out
-      </Button>
-
+    <Box className="relative grid w-full grid-flow-row gap-5 p-6">
       <div className="grid grid-flow-row justify-center">
         <Avatar
           className="mx-auto mb-2 h-16 w-16 rounded-full"
@@ -72,9 +60,26 @@ function AccountMenuContent({
         <Button color="error" disabled>
           Remove Account
         </Button>
+
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={async () => {
+            await nhost.auth.signOut();
+            router.push('/signin');
+            await client.resetStore();
+          }}
+          endIcon={<PowerIcon className="mr-1 h-4 w-4" />}
+        >
+          Sign Out
+        </Button>
       </div>
 
-      <ThemeSwitcher label="Theme" fullWidth />
+      <ThemeSwitcher label="Theme" />
+
+      <Text className="text-center text-xs" color="disabled">
+        Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+      </Text>
     </Box>
   );
 }
@@ -107,7 +112,7 @@ export function AccountMenu() {
           />
         </Dropdown.Trigger>
 
-        <Dropdown.Content PaperProps={{ className: 'mt-1' }}>
+        <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full' }}>
           <AccountMenuContent
             onChangePasswordClick={() => setChangePasswordModal(true)}
           />

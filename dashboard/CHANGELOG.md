@@ -1,5 +1,42 @@
 # @nhost/dashboard
 
+## 0.11.12
+
+### Patch Changes
+
+- 87eda76e: chore(dashboard): bump `@types/react` to v18.0.28 and `@types/react-dom` to v18.0.11
+- 6f0ac570: feat(dashboard): show dashboard version in account menu
+
+## 0.11.11
+
+### Patch Changes
+
+- bf1e4071: chore(dashboard): bump `react-is` version to `18.2.0`
+- Updated dependencies [bf1e4071]
+- Updated dependencies [5013213b]
+  - @nhost/nextjs@1.13.5
+  - @nhost/react-apollo@4.13.5
+
+## 0.11.10
+
+### Patch Changes
+
+- a37a430b: fix(dashboard): don't break UI when deployments are unavailable
+  - @nhost/react-apollo@4.13.4
+  - @nhost/nextjs@1.13.4
+
+## 0.11.9
+
+### Patch Changes
+
+- 7b970e68: fix(dashboard): fix header link color
+
+## 0.11.8
+
+### Patch Changes
+
+- f33242f2: feat(dashboard): add new sign up, sign in and reset password pages
+
 ## 0.11.7
 
 ### Patch Changes

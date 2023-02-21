@@ -1,5 +1,20 @@
 # @nhost/react
 
+## 1.13.5
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- bf1e4071: chore(react): fix exports for `@nhost/nextjs`
+- Updated dependencies [5013213b]
+  - @nhost/nhost-js@1.13.4
+
+## 1.13.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.3
+
 ## 1.13.3
 
 ### Patch Changes

@@ -19,6 +19,10 @@ export type TextProps<
    * @default 'primary'
    */
   color?: 'primary' | 'secondary' | 'disabled' | 'error';
+  /**
+   * The component used for the root node.
+   */
+  component?: D;
 };
 
 const textClasses = {
