@@ -73,7 +73,7 @@
     "react-table": "^7.8.0",
     "sharp": "^0.31.2",
     "slugify": "^1.6.5",
-    "stripe": "^10.17.0",
+    "stripe": "^11.0.0",
     "tailwind-merge": "^1.8.0",
     "utility-types": "^3.10.0",
     "validator": "^13.7.0",
