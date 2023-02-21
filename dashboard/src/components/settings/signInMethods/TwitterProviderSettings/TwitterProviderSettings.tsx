@@ -21,8 +21,14 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  consumerSecret: Yup.string().label('Consumer Secret').nullable().required(),
-  consumerKey: Yup.string().label('Consumer Key').nullable().required(),
+  consumerSecret: Yup.string().label('Consumer Secret').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  consumerKey: Yup.string().label('Consumer Key').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
   enabled: Yup.boolean(),
 });
 
@@ -45,9 +51,9 @@ export default function TwitterProviderSettings() {
   const form = useForm<TwitterProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      consumerSecret,
-      consumerKey,
-      enabled,
+      consumerSecret: consumerSecret || '',
+      consumerKey: consumerKey || '',
+      enabled: enabled || false,
     },
     resolver: yupResolver(validationSchema),
   });

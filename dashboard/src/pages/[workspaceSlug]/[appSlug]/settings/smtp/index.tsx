@@ -35,7 +35,7 @@ const smtpValidationSchema = yup
       .number()
       .typeError('The SMTP port should contain only numbers.')
       .required(),
-    user: yup.string().label('Username').nullable().required(),
+    user: yup.string().label('Username').required(),
     password: yup.string().label('Password'),
     method: yup.string().required(),
     sender: yup.string().label('SMTP Sender').email().required(),
@@ -57,13 +57,21 @@ export default function SMTPSettingsPage() {
   const form = useForm<Optional<SmtpFormValues, 'password'>>({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(smtpValidationSchema),
+    defaultValues: {
+      secure: false,
+      host: '',
+      port: undefined,
+      user: '',
+      method: '',
+      sender: '',
+    },
     values: {
       secure: secure || false,
-      host,
+      host: host || '',
       port,
-      user,
-      method,
-      sender,
+      user: user || '',
+      method: method || '',
+      sender: sender || '',
     },
     mode: 'onSubmit',
     criteriaMode: 'all',

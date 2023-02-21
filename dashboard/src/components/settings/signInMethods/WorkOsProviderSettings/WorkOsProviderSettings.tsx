@@ -22,10 +22,22 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  clientId: Yup.string().label('Client ID').nullable().required(),
-  clientSecret: Yup.string().label('Client Secret').nullable().required(),
-  organization: Yup.string().label('Organization').nullable(),
-  connection: Yup.string().label('Connection').nullable(),
+  clientId: Yup.string().label('Client ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  clientSecret: Yup.string().label('Client Secret').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  organization: Yup.string().label('Organization').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  connection: Yup.string().label('Connection').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
   enabled: Yup.boolean(),
 });
 
@@ -48,11 +60,11 @@ export default function WorkOsProviderSettings() {
   const form = useForm<WorkOsProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      clientId,
-      clientSecret,
-      organization,
-      connection,
-      enabled,
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      organization: organization || '',
+      connection: connection || '',
+      enabled: enabled || false,
     },
     resolver: yupResolver(validationSchema),
   });

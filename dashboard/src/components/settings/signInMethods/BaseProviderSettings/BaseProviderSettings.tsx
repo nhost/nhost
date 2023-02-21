@@ -3,8 +3,14 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
 export const baseProviderValidationSchema = Yup.object({
-  clientId: Yup.string().label('Client ID').nullable().required(),
-  clientSecret: Yup.string().label('Client Secret').nullable().required(),
+  clientId: Yup.string().label('Client ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  clientSecret: Yup.string().label('Client Secret').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
   enabled: Yup.bool(),
 });
 

@@ -22,10 +22,22 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  teamId: Yup.string().label('Team ID').nullable().required(),
-  keyId: Yup.string().label('Key ID').nullable().required(),
-  clientId: Yup.string().label('Client ID').nullable().required(),
-  privateKey: Yup.string().label('Private Key').nullable().required(),
+  teamId: Yup.string().label('Team ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  keyId: Yup.string().label('Key ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  clientId: Yup.string().label('Client ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  privateKey: Yup.string().label('Private Key').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
   enabled: Yup.boolean(),
 });
 
@@ -49,11 +61,11 @@ export default function AppleProviderSettings() {
   const form = useForm<AppleProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      teamId,
-      keyId,
-      clientId,
-      privateKey,
-      enabled,
+      teamId: teamId || '',
+      keyId: keyId || '',
+      clientId: clientId || '',
+      privateKey: privateKey || '',
+      enabled: enabled || false,
     },
     resolver: yupResolver(validationSchema),
   });

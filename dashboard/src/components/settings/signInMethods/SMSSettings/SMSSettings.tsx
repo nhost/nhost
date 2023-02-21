@@ -20,12 +20,20 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  accountSid: Yup.string().label('Account SID').nullable().required(),
-  authToken: Yup.string().label('Auth Token').nullable().required(),
+  accountSid: Yup.string().label('Account SID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  authToken: Yup.string().label('Auth Token').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
   messagingServiceId: Yup.string()
     .label('Messaging Service ID')
-    .nullable()
-    .required(),
+    .when('enabled', {
+      is: true,
+      then: Yup.string().required(),
+    }),
   enabled: Yup.boolean().label('Enabled'),
 });
 
@@ -49,10 +57,10 @@ export default function SMSSettings() {
   const form = useForm<SMSSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      accountSid,
-      authToken,
-      messagingServiceId,
-      enabled,
+      accountSid: accountSid || '',
+      authToken: authToken || '',
+      messagingServiceId: messagingServiceId || '',
+      enabled: enabled || false,
     },
     resolver: yupResolver(validationSchema),
   });

@@ -34,15 +34,15 @@ export default function LinkedInProviderSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, enabled, scope } =
+  const { clientId, clientSecret, enabled } =
     data?.config?.auth?.method?.oauth?.linkedin || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      clientId,
-      clientSecret,
-      enabled,
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      enabled: enabled || false,
     },
     resolver: yupResolver(baseProviderValidationSchema),
   });
@@ -76,7 +76,7 @@ export default function LinkedInProviderSettings() {
               oauth: {
                 linkedin: {
                   ...values,
-                  scope,
+                  scope: [],
                 },
               },
             },
