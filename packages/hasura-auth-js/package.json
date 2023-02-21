@@ -62,7 +62,7 @@
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^6.0.0",
+    "@simplewebauthn/browser": "^7.0.0",
     "cross-fetch": "^3.1.5",
     "js-cookie": "^3.0.1",
     "jwt-decode": "^3.1.2",

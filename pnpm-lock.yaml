@@ -962,7 +962,7 @@ importers:
   packages/hasura-auth-js:
     specifiers:
       '@nhost/docgen': workspace:*
-      '@simplewebauthn/browser': ^6.0.0
+      '@simplewebauthn/browser': ^7.0.0
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
       cheerio: 1.0.0-rc.12
@@ -974,7 +974,7 @@ importers:
       start-server-and-test: ^1.15.2
       xstate: ^4.33.5
     dependencies:
-      '@simplewebauthn/browser': 6.0.0
+      '@simplewebauthn/browser': 7.1.0
       cross-fetch: 3.1.5
       js-cookie: 3.0.1
       jwt-decode: 3.1.2
@@ -9409,8 +9409,8 @@ packages:
   /@sideway/pinpoint/2.0.0:
     resolution: {integrity: sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ==}
 
-  /@simplewebauthn/browser/6.0.0:
-    resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
+  /@simplewebauthn/browser/7.1.0:
+    resolution: {integrity: sha512-SEwRBBpz/g3AbFvTrsoMbrn8b+HqCIiKE/0lmOywrZu/4ktfKxSDFVwG9U1QM4BdGrvm8kXPO0xv2xj/AqhsUw==}
     dev: false
 
   /@simplewebauthn/typescript-types/6.0.0:
@@ -14381,7 +14381,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.4
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -19769,19 +19769,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: false
-
-  /follow-redirects/1.15.2_debug@4.3.4:
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.4
-    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
