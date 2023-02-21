@@ -1,7 +1,7 @@
 import { ErrorPayload, NhostSession } from './common'
 
 // Hasura-auth API response types
-interface NullableErrorResponse {
+export interface NullableErrorResponse {
   error: ErrorPayload | null
 }
 

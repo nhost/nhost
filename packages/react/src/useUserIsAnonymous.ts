@@ -20,8 +20,3 @@ export const useUserIsAnonymous = (): boolean | undefined => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserIsAnonymous} instead */
-export const useIsAnonymous = useUserIsAnonymous

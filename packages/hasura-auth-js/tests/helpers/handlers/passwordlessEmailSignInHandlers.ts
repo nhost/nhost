@@ -8,7 +8,7 @@ import { BASE_URL } from '../config'
 export const correctPasswordlessEmailHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )
 
