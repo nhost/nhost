@@ -28,7 +28,7 @@ const smtpValidationSchema = yup
       .label('SMTP Host')
       .matches(
         /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
-        'The SMTP host must be a valid URL.',
+        'SMTP Host must be a valid URL',
       )
       .required(),
     port: yup
@@ -38,11 +38,7 @@ const smtpValidationSchema = yup
     user: yup.string().label('Username').nullable().required(),
     password: yup.string().label('Password'),
     method: yup.string().required(),
-    sender: yup
-      .string()
-      .label('The SMTP Sender')
-      .email('The sender address should be a valid email.')
-      .required(),
+    sender: yup.string().label('SMTP Sender').email().required(),
   })
   .required();
 
@@ -240,8 +236,8 @@ export default function SMTPSettingsPage() {
             />
 
             <ControlledCheckbox
-              name="AuthSmtpSecure"
-              id="AuthSmtpSecure"
+              name="secure"
+              id="secure"
               label="Use SSL"
               className="lg:col-span-9"
             />

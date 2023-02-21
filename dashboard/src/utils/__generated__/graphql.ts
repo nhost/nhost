@@ -216,17 +216,17 @@ export type ConfigAuthMethodOauth = {
   apple?: Maybe<ConfigAuthMethodOauthApple>;
   azuread?: Maybe<ConfigAuthMethodOauthAzuread>;
   bitbucket?: Maybe<ConfigStandardOauthProvider>;
-  discord?: Maybe<ConfigStandardOauthProvider>;
-  facebook?: Maybe<ConfigStandardOauthProvider>;
-  github?: Maybe<ConfigStandardOauthProvider>;
-  gitlab?: Maybe<ConfigStandardOauthProvider>;
-  google?: Maybe<ConfigStandardOauthProvider>;
-  linkedin?: Maybe<ConfigStandardOauthProvider>;
-  spotify?: Maybe<ConfigStandardOauthProvider>;
-  strava?: Maybe<ConfigStandardOauthProvider>;
-  twitch?: Maybe<ConfigStandardOauthProvider>;
+  discord?: Maybe<ConfigStandardOauthProviderWithScope>;
+  facebook?: Maybe<ConfigStandardOauthProviderWithScope>;
+  github?: Maybe<ConfigStandardOauthProviderWithScope>;
+  gitlab?: Maybe<ConfigStandardOauthProviderWithScope>;
+  google?: Maybe<ConfigStandardOauthProviderWithScope>;
+  linkedin?: Maybe<ConfigStandardOauthProviderWithScope>;
+  spotify?: Maybe<ConfigStandardOauthProviderWithScope>;
+  strava?: Maybe<ConfigStandardOauthProviderWithScope>;
+  twitch?: Maybe<ConfigStandardOauthProviderWithScope>;
   twitter?: Maybe<ConfigAuthMethodOauthTwitter>;
-  windowslive?: Maybe<ConfigStandardOauthProvider>;
+  windowslive?: Maybe<ConfigStandardOauthProviderWithScope>;
   workos?: Maybe<ConfigAuthMethodOauthWorkos>;
 };
 
@@ -271,7 +271,6 @@ export type ConfigAuthMethodOauthAzuread = {
   clientId?: Maybe<Scalars['String']>;
   clientSecret?: Maybe<Scalars['String']>;
   enabled?: Maybe<Scalars['Boolean']>;
-  scope?: Maybe<Array<Scalars['String']>>;
   tenant?: Maybe<Scalars['String']>;
 };
 
@@ -282,7 +281,6 @@ export type ConfigAuthMethodOauthAzureadComparisonExp = {
   clientId?: InputMaybe<ConfigStringComparisonExp>;
   clientSecret?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
-  scope?: InputMaybe<ConfigStringComparisonExp>;
   tenant?: InputMaybe<ConfigStringComparisonExp>;
 };
 
@@ -290,7 +288,6 @@ export type ConfigAuthMethodOauthAzureadInsertInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
-  scope?: InputMaybe<Array<Scalars['String']>>;
   tenant?: InputMaybe<Scalars['String']>;
 };
 
@@ -298,7 +295,6 @@ export type ConfigAuthMethodOauthAzureadUpdateInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
-  scope: Array<Scalars['String']>;
   tenant?: InputMaybe<Scalars['String']>;
 };
 
@@ -309,17 +305,17 @@ export type ConfigAuthMethodOauthComparisonExp = {
   apple?: InputMaybe<ConfigAuthMethodOauthAppleComparisonExp>;
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  discord?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  facebook?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  github?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  gitlab?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  google?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  linkedin?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  spotify?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  strava?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
-  twitch?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
   twitter?: InputMaybe<ConfigAuthMethodOauthTwitterComparisonExp>;
-  windowslive?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
 };
 
@@ -327,17 +323,17 @@ export type ConfigAuthMethodOauthInsertInput = {
   apple?: InputMaybe<ConfigAuthMethodOauthAppleInsertInput>;
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadInsertInput>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  discord?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  facebook?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  github?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  gitlab?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  google?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  linkedin?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  spotify?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  strava?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
-  twitch?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
   twitter?: InputMaybe<ConfigAuthMethodOauthTwitterInsertInput>;
-  windowslive?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosInsertInput>;
 };
 
@@ -373,17 +369,17 @@ export type ConfigAuthMethodOauthUpdateInput = {
   apple?: InputMaybe<ConfigAuthMethodOauthAppleUpdateInput>;
   azuread?: InputMaybe<ConfigAuthMethodOauthAzureadUpdateInput>;
   bitbucket?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  discord?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  facebook?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  github?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  gitlab?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  google?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  linkedin?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  spotify?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  strava?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
-  twitch?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
   twitter?: InputMaybe<ConfigAuthMethodOauthTwitterUpdateInput>;
-  windowslive?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosUpdateInput>;
 };
 
@@ -394,7 +390,6 @@ export type ConfigAuthMethodOauthWorkos = {
   connection?: Maybe<Scalars['String']>;
   enabled?: Maybe<Scalars['Boolean']>;
   organization?: Maybe<Scalars['String']>;
-  scope?: Maybe<Array<Scalars['String']>>;
 };
 
 export type ConfigAuthMethodOauthWorkosComparisonExp = {
@@ -406,7 +401,6 @@ export type ConfigAuthMethodOauthWorkosComparisonExp = {
   connection?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
   organization?: InputMaybe<ConfigStringComparisonExp>;
-  scope?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigAuthMethodOauthWorkosInsertInput = {
@@ -415,7 +409,6 @@ export type ConfigAuthMethodOauthWorkosInsertInput = {
   connection?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<Scalars['String']>;
-  scope?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type ConfigAuthMethodOauthWorkosUpdateInput = {
@@ -424,7 +417,6 @@ export type ConfigAuthMethodOauthWorkosUpdateInput = {
   connection?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   organization?: InputMaybe<Scalars['String']>;
-  scope: Array<Scalars['String']>;
 };
 
 export type ConfigAuthMethodSmsPasswordless = {
@@ -871,7 +863,7 @@ export type ConfigConfig = {
   functions?: Maybe<ConfigFunctions>;
   global?: Maybe<ConfigGlobal>;
   hasura: ConfigHasura;
-  provider: ConfigProvider;
+  provider?: Maybe<ConfigProvider>;
   storage?: Maybe<ConfigStorage>;
 };
 
@@ -892,7 +884,7 @@ export type ConfigConfigInsertInput = {
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
   hasura: ConfigHasuraInsertInput;
-  provider: ConfigProviderInsertInput;
+  provider?: InputMaybe<ConfigProviderInsertInput>;
   storage?: InputMaybe<ConfigStorageInsertInput>;
 };
 
@@ -979,7 +971,6 @@ export type ConfigFunctionsUpdateInput = {
 export type ConfigGlobal = {
   __typename?: 'ConfigGlobal';
   environment?: Maybe<Array<ConfigEnvironmentVariable>>;
-  name?: Maybe<Scalars['String']>;
 };
 
 export type ConfigGlobalComparisonExp = {
@@ -987,17 +978,14 @@ export type ConfigGlobalComparisonExp = {
   _not?: InputMaybe<ConfigGlobalComparisonExp>;
   _or?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
   environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
-  name?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigGlobalInsertInput = {
   environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
-  name?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigGlobalUpdateInput = {
   environment: Array<ConfigEnvironmentVariableUpdateInput>;
-  name?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigHasura = {
@@ -1054,6 +1042,13 @@ export type ConfigHasuraUpdateInput = {
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigInsertConfigResponse = {
+  __typename?: 'ConfigInsertConfigResponse';
+  config: ConfigConfig;
+  secrets: Array<ConfigEnvironmentVariable>;
+  systemConfig: ConfigSystemConfig;
 };
 
 export type ConfigIntComparisonExp = {
@@ -1133,50 +1128,10 @@ export type ConfigPortComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigPort']>>;
 };
 
-export type ConfigPostgresConnectionSettings = {
-  __typename?: 'ConfigPostgresConnectionSettings';
-  database?: Maybe<Scalars['String']>;
-  host?: Maybe<Scalars['String']>;
-  password?: Maybe<Scalars['String']>;
-  port?: Maybe<Scalars['ConfigPort']>;
-  type?: Maybe<Scalars['String']>;
-  user?: Maybe<Scalars['String']>;
-};
-
-export type ConfigPostgresConnectionSettingsComparisonExp = {
-  _and?: InputMaybe<Array<ConfigPostgresConnectionSettingsComparisonExp>>;
-  _not?: InputMaybe<ConfigPostgresConnectionSettingsComparisonExp>;
-  _or?: InputMaybe<Array<ConfigPostgresConnectionSettingsComparisonExp>>;
-  database?: InputMaybe<ConfigStringComparisonExp>;
-  host?: InputMaybe<ConfigStringComparisonExp>;
-  password?: InputMaybe<ConfigStringComparisonExp>;
-  port?: InputMaybe<ConfigPortComparisonExp>;
-  type?: InputMaybe<ConfigStringComparisonExp>;
-  user?: InputMaybe<ConfigStringComparisonExp>;
-};
-
-export type ConfigPostgresConnectionSettingsInsertInput = {
-  database?: InputMaybe<Scalars['String']>;
-  host?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
-  port?: InputMaybe<Scalars['ConfigPort']>;
-  type?: InputMaybe<Scalars['String']>;
-  user?: InputMaybe<Scalars['String']>;
-};
-
-export type ConfigPostgresConnectionSettingsUpdateInput = {
-  database?: InputMaybe<Scalars['String']>;
-  host?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
-  port?: InputMaybe<Scalars['ConfigPort']>;
-  type?: InputMaybe<Scalars['String']>;
-  user?: InputMaybe<Scalars['String']>;
-};
-
 export type ConfigProvider = {
   __typename?: 'ConfigProvider';
   sms?: Maybe<ConfigSms>;
-  smtp: ConfigSmtp;
+  smtp?: Maybe<ConfigSmtp>;
 };
 
 export type ConfigProviderComparisonExp = {
@@ -1189,7 +1144,7 @@ export type ConfigProviderComparisonExp = {
 
 export type ConfigProviderInsertInput = {
   sms?: InputMaybe<ConfigSmsInsertInput>;
-  smtp: ConfigSmtpInsertInput;
+  smtp?: InputMaybe<ConfigSmtpInsertInput>;
 };
 
 export type ConfigProviderUpdateInput = {
@@ -1231,13 +1186,13 @@ export type ConfigSmsUpdateInput = {
 
 export type ConfigSmtp = {
   __typename?: 'ConfigSmtp';
-  host: Scalars['String'];
+  host?: Maybe<Scalars['String']>;
   method?: Maybe<Scalars['String']>;
-  password: Scalars['String'];
+  password?: Maybe<Scalars['String']>;
   port?: Maybe<Scalars['ConfigPort']>;
   secure?: Maybe<Scalars['Boolean']>;
   sender?: Maybe<Scalars['String']>;
-  user: Scalars['String'];
+  user?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSmtpComparisonExp = {
@@ -1254,13 +1209,13 @@ export type ConfigSmtpComparisonExp = {
 };
 
 export type ConfigSmtpInsertInput = {
-  host: Scalars['String'];
+  host?: InputMaybe<Scalars['String']>;
   method?: InputMaybe<Scalars['String']>;
-  password: Scalars['String'];
+  password?: InputMaybe<Scalars['String']>;
   port?: InputMaybe<Scalars['ConfigPort']>;
   secure?: InputMaybe<Scalars['Boolean']>;
   sender?: InputMaybe<Scalars['String']>;
-  user: Scalars['String'];
+  user?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSmtpUpdateInput = {
@@ -1278,7 +1233,6 @@ export type ConfigStandardOauthProvider = {
   clientId?: Maybe<Scalars['String']>;
   clientSecret?: Maybe<Scalars['String']>;
   enabled?: Maybe<Scalars['Boolean']>;
-  scope?: Maybe<Array<Scalars['String']>>;
 };
 
 export type ConfigStandardOauthProviderComparisonExp = {
@@ -1288,17 +1242,46 @@ export type ConfigStandardOauthProviderComparisonExp = {
   clientId?: InputMaybe<ConfigStringComparisonExp>;
   clientSecret?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
-  scope?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigStandardOauthProviderInsertInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
-  scope?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type ConfigStandardOauthProviderUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderWithScope = {
+  __typename?: 'ConfigStandardOauthProviderWithScope';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  scope?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ConfigStandardOauthProviderWithScopeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStandardOauthProviderWithScopeComparisonExp>>;
+  _not?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStandardOauthProviderWithScopeComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  scope?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigStandardOauthProviderWithScopeInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigStandardOauthProviderWithScopeUpdateInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
@@ -1413,25 +1396,65 @@ export type ConfigSystemConfigInsertInput = {
 
 export type ConfigSystemConfigPostgres = {
   __typename?: 'ConfigSystemConfigPostgres';
-  connectionSettings?: Maybe<ConfigPostgresConnectionSettings>;
-  version: Scalars['String'];
+  connectionString: ConfigSystemConfigPostgresConnectionString;
+  database: Scalars['String'];
+  enabled?: Maybe<Scalars['Boolean']>;
+  password: Scalars['String'];
+  version?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
   _and?: InputMaybe<Array<ConfigSystemConfigPostgresComparisonExp>>;
   _not?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigSystemConfigPostgresComparisonExp>>;
-  connectionSettings?: InputMaybe<ConfigPostgresConnectionSettingsComparisonExp>;
+  connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
+  database?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+export type ConfigSystemConfigPostgresConnectionString = {
+  __typename?: 'ConfigSystemConfigPostgresConnectionString';
+  auth: Scalars['String'];
+  hasura: Scalars['String'];
+  storage: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresConnectionStringComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  auth?: InputMaybe<ConfigStringComparisonExp>;
+  hasura?: InputMaybe<ConfigStringComparisonExp>;
+  storage?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSystemConfigPostgresConnectionStringInsertInput = {
+  auth: Scalars['String'];
+  hasura: Scalars['String'];
+  storage: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresConnectionStringUpdateInput = {
+  auth?: InputMaybe<Scalars['String']>;
+  hasura?: InputMaybe<Scalars['String']>;
+  storage?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigSystemConfigPostgresInsertInput = {
-  connectionSettings?: InputMaybe<ConfigPostgresConnectionSettingsInsertInput>;
-  version: Scalars['String'];
+  connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput;
+  database: Scalars['String'];
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  password: Scalars['String'];
+  version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
-  connectionSettings?: InputMaybe<ConfigPostgresConnectionSettingsUpdateInput>;
+  connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringUpdateInput>;
+  database?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  password?: InputMaybe<Scalars['String']>;
   version?: InputMaybe<Scalars['String']>;
 };
 
@@ -2272,6 +2295,7 @@ export type Apps = {
   /** An object relationship */
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion: Scalars['String'];
   hasuraGraphqlAdminSecret: Scalars['String'];
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
@@ -2280,11 +2304,16 @@ export type Apps = {
   hasuraGraphqlEnabledApis: Scalars['String'];
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret: Scalars['String'];
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion: Scalars['String'];
   hasuraVersion: Scalars['String'];
   id: Scalars['uuid'];
   isProvisioned: Scalars['Boolean'];
   metadataFunctions: Scalars['jsonb'];
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
   /** whether or not this app is paused */
@@ -2661,6 +2690,7 @@ export type Apps_Bool_Exp = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlAdminSecret?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<String_Comparison_Exp>;
@@ -2669,11 +2699,16 @@ export type Apps_Bool_Exp = {
   hasuraGraphqlEnabledApis?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlJwtSecret?: InputMaybe<String_Comparison_Exp>;
+  hasuraPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraStorageVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraVersion?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isProvisioned?: InputMaybe<Boolean_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
+  mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
   paused?: InputMaybe<Boolean_Comparison_Exp>;
@@ -2851,6 +2886,7 @@ export type Apps_Insert_Input = {
   featureFlags?: InputMaybe<FeatureFlags_Arr_Rel_Insert_Input>;
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2859,11 +2895,16 @@ export type Apps_Insert_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -2973,15 +3014,21 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -3083,15 +3130,21 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -3194,15 +3247,21 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -3304,15 +3363,21 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -3471,6 +3536,7 @@ export type Apps_Order_By = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Order_By>;
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
@@ -3479,11 +3545,16 @@ export type Apps_Order_By = {
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isProvisioned?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   paused?: InputMaybe<Order_By>;
@@ -3732,6 +3803,8 @@ export enum Apps_Select_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -3748,6 +3821,10 @@ export enum Apps_Select_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -3757,6 +3834,12 @@ export enum Apps_Select_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -4039,6 +4122,7 @@ export type Apps_Set_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -4047,11 +4131,16 @@ export type Apps_Set_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -4248,6 +4337,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -4256,11 +4346,16 @@ export type Apps_Stream_Cursor_Value_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -4516,6 +4611,8 @@ export enum Apps_Update_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -4532,6 +4629,10 @@ export enum Apps_Update_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -4541,6 +4642,12 @@ export enum Apps_Update_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -10891,7 +10998,7 @@ export type Mutation_Root = {
   insertCliToken?: Maybe<CliTokens>;
   /** insert data into the table: "cli_tokens" */
   insertCliTokens?: Maybe<CliTokens_Mutation_Response>;
-  insertConfig: ConfigConfig;
+  insertConfig: ConfigInsertConfigResponse;
   /** insert a single row into the table: "deployments" */
   insertDeployment?: Maybe<Deployments>;
   /** insert a single row into the table: "deployment_logs" */
@@ -18697,14 +18804,14 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null }, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProvider', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null, scope?: Array<string> | null } | null } | null } | null } | null } };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp: { __typename?: 'ConfigSmtp', host: string, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user: string } } } };
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host?: string | null, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user?: string | null } | null } | null } };
 
 export type UpdateConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -20649,7 +20756,6 @@ export const GetSignInMethodsDocument = gql`
             clientSecret
             connection
             organization
-            scope
           }
         }
       }

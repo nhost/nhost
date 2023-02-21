@@ -24,8 +24,8 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   clientId: Yup.string().label('Client ID').nullable().required(),
   clientSecret: Yup.string().label('Client Secret').nullable().required(),
-  organization: Yup.string().label('Organization').nullable().required(),
-  connection: Yup.string().label('Connection').nullable().required(),
+  organization: Yup.string().label('Organization').nullable(),
+  connection: Yup.string().label('Connection').nullable(),
   enabled: Yup.boolean(),
 });
 
@@ -42,7 +42,7 @@ export default function WorkOsProviderSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, organization, connection, enabled, scope } =
+  const { clientId, clientSecret, organization, connection, enabled } =
     data?.config?.auth?.method?.oauth?.workos || {};
 
   const form = useForm<WorkOsProviderFormValues>({
@@ -82,10 +82,7 @@ export default function WorkOsProviderSettings() {
           auth: {
             method: {
               oauth: {
-                workos: {
-                  ...values,
-                  scope,
-                },
+                workos: values,
               },
             },
           },

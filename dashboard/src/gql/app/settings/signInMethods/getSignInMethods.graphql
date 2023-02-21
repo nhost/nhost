@@ -99,7 +99,6 @@ query GetSignInMethods($appId: uuid!) {
             clientSecret
             connection
             organization
-            scope
           }
         }
       }
