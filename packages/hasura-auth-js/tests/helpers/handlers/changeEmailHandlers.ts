@@ -48,6 +48,6 @@ export const changeEmailUnauthorizedErrorHandler = rest.post(
 export const changeEmailSuccessHandler = rest.post(
   `${BASE_URL}/user/email/change`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )

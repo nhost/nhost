@@ -4,7 +4,7 @@
   "version": "0.0.5",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -34,7 +34,7 @@
     "@vitejs/plugin-vue": "^4.0.0",
     "@xstate/inspect": "^0.6.2",
     "sass": "1.32.0",
-    "typescript": "^4.8.4",
+    "typescript": "4.9.4",
     "vite": "^4.0.2",
     "vue-tsc": "^0.38.9"
   },

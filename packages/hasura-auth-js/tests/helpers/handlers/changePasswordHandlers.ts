@@ -48,6 +48,6 @@ export const changePasswordUnauthorizedErrorHandler = rest.post(
 export const changePasswordSuccessHandler = rest.post(
   `${BASE_URL}/user/password`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )

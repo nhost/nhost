@@ -1,0 +1,79 @@
+{
+  "name": "@nhost/graphql-js",
+  "version": "0.0.1",
+  "description": "Nhost GraphQL client",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "graphql"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "run-p test:types test:unit",
+    "test:codegen": "graphql-codegen --config tests/codegen.yaml",
+    "test:unit": "vitest run --config vite.config.unit.js",
+    "test:types": "tsc -p tsconfig.test.json --noEmit",
+    "test:watch": "vitest --config vite.config.unit.js",
+    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:test",
+    "e2e:test": "vitest run --config vite.config.e2e.js",
+    "e2e:backend": "nhost dev --no-browser",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./graphql.typedoc.json --tsconfig ./typedoc.tsconfig.json",
+    "docgen": "pnpm typedoc && docgen --config ./graphql.docgen.json"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.1.1",
+    "cross-fetch": "^3.1.5",
+    "json-to-graphql-query": "^2.2.4"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
+    "@nhost/docgen": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:*",
+    "graphql": "16.6.0",
+    "graphql-tag": "^2.12.6",
+    "npm-run-all": "^4.1.5",
+    "start-server-and-test": "^1.14.0"
+  }
+}

@@ -278,7 +278,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       }
 
       if (fileError) {
-        throw fileError;
+        throw new Error(fileError.message);
       }
 
       triggerToast(`File has been uploaded successfully (${fileMetadata?.id})`);

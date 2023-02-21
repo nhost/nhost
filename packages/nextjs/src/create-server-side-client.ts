@@ -1,5 +1,6 @@
 import {
   AuthMachine,
+  NhostClient,
   NhostSession,
   NHOST_REFRESH_TOKEN_KEY,
   VanillaNhostClient
@@ -22,7 +23,7 @@ import { NHOST_SESSION_KEY } from './utils'
 export const createServerSideClient = async (
   backendUrl: string,
   context: GetServerSidePropsContext
-) => {
+): Promise<NhostClient> => {
   const nhost = new VanillaNhostClient({
     backendUrl,
     clientStorageType: 'custom',

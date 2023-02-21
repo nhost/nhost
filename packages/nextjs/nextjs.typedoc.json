@@ -26,11 +26,11 @@
       "@nhost/hasura-storage-js": [
         "../hasura-storage-js/src/index.ts"
       ],
+      "@nhost/nhost-js": [
+        "../nhost-js"
+      ],
       "@nhost/nextjs": [
         "../nextjs/src/index.ts"
-      ],
-      "@nhost/nhost-js": [
-        "../nhost-js/src/index.ts"
       ],
       "@nhost/react": [
         "../react/src/index.ts"

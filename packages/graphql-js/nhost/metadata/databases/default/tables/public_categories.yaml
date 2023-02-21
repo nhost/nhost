@@ -1,0 +1,17 @@
+table:
+  name: categories
+  schema: public
+is_enum: true
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - comment
+        - value
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - comment
+        - value
+      filter: {}
