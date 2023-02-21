@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.11.13
+
+### Patch Changes
+
+- 3343a363: chore(dashboard): bump `@testing-library/react` to v14 and `@testing-library/dom` to v9
+  - @nhost/react-apollo@5.0.0
+  - @nhost/nextjs@1.13.6
+
 ## 0.11.12
 
 ### Patch Changes
