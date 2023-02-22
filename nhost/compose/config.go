@@ -41,7 +41,7 @@ const (
 	// default docker images
 	svcDashboardDefaultImage = "nhost/dashboard:0.11.13"
 	svcPostgresDefaultImage  = "nhost/postgres:14.5-20230104-1"
-	svcAuthDefaultImage      = "nhost/hasura-auth:0.17.0"
+	svcAuthDefaultImage      = "nhost/hasura-auth:0.19.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.3.0"
 	svcFunctionsDefaultImage = "nhost/functions:0.1.8"
 	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
