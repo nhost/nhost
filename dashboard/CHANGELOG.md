@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.14
+
+### Patch Changes
+
+- 2cc18dcb: fix(dashboard): prevent permission editor dropdown from being always open
+
 ## 0.11.13
 
 ### Patch Changes

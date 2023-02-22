@@ -213,7 +213,6 @@ export default function RuleValueInput({
       freeSolo={!isHasuraInput}
       autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
-      open
       isOptionEqualToValue={(option, value) => {
         if (typeof value === 'string') {
           return option.value.toLowerCase() === (value as string).toLowerCase();
