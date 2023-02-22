@@ -1,5 +1,15 @@
 # @nhost/vue
 
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
 ## 1.13.5
 
 ### Patch Changes
