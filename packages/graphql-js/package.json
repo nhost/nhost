@@ -69,6 +69,9 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
+    "@graphql-codegen/add": "^4.0.1",
+    "@graphql-codegen/cli": "^3.1.0",
+    "@graphql-codegen/typescript-nhost": "^0.0.1",
     "@nhost/docgen": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "graphql": "16.6.0",

@@ -42,3 +42,9 @@ client.mutation.insertTodo()
 
 // * Optional parameters
 client.query.todos({ variables: {} })
+
+// * Snake case mutation
+client.mutation.insert_tasks({
+  variables: { objects: [{ description: 'a new task' }] },
+  select: { affected_rows: true }
+})

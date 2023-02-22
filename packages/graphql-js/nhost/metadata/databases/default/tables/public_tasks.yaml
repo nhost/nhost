@@ -1,0 +1,30 @@
+table:
+  name: tasks
+  schema: public
+insert_permissions:
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - description
+        - id
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - description
+        - id
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: public
+    permission:
+      columns:
+        - description
+        - id
+      filter: {}
+      check: {}
+delete_permissions:
+  - role: public
+    permission:
+      filter: {}

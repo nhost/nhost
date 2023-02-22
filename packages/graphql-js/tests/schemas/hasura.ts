@@ -286,6 +286,10 @@ export type Mutation_Root = {
   deleteTodo?: Maybe<Todos>;
   /** delete data from the table: "todos" */
   deleteTodos?: Maybe<Todos_Mutation_Response>;
+  /** delete data from the table: "tasks" */
+  delete_tasks?: Maybe<Tasks_Mutation_Response>;
+  /** delete single row from the table: "tasks" */
+  delete_tasks_by_pk?: Maybe<Tasks>;
   /** insert a single row into the table: "todos" */
   insertTodo?: Maybe<Todos>;
   /** insert data into the table: "todos" */
@@ -294,10 +298,20 @@ export type Mutation_Root = {
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
+  /** insert data into the table: "tasks" */
+  insert_tasks?: Maybe<Tasks_Mutation_Response>;
+  /** insert a single row into the table: "tasks" */
+  insert_tasks_one?: Maybe<Tasks>;
   /** update single row of the table: "todos" */
   updateTodo?: Maybe<Todos>;
   /** update data of the table: "todos" */
   updateTodos?: Maybe<Todos_Mutation_Response>;
+  /** update data of the table: "tasks" */
+  update_tasks?: Maybe<Tasks_Mutation_Response>;
+  /** update single row of the table: "tasks" */
+  update_tasks_by_pk?: Maybe<Tasks>;
+  /** update multiples rows of table: "tasks" */
+  update_tasks_many?: Maybe<Array<Maybe<Tasks_Mutation_Response>>>;
   /** update multiples rows of table: "todos" */
   update_todos_many?: Maybe<Array<Maybe<Todos_Mutation_Response>>>;
 };
@@ -312,6 +326,18 @@ export type Mutation_Root_DeleteTodoArgs = {
 /** mutation root */
 export type Mutation_Root_DeleteTodosArgs = {
   where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Delete_TasksArgs = {
+  where: Tasks_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Delete_Tasks_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -344,6 +370,20 @@ export type Mutation_Root_InsertUsersArgs = {
 
 
 /** mutation root */
+export type Mutation_Root_Insert_TasksArgs = {
+  objects: Array<Tasks_Insert_Input>;
+  on_conflict?: InputMaybe<Tasks_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Insert_Tasks_OneArgs = {
+  object: Tasks_Insert_Input;
+  on_conflict?: InputMaybe<Tasks_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_Root_UpdateTodoArgs = {
   _set?: InputMaybe<Todos_Set_Input>;
   pk_columns: Todos_Pk_Columns_Input;
@@ -354,6 +394,26 @@ export type Mutation_Root_UpdateTodoArgs = {
 export type Mutation_Root_UpdateTodosArgs = {
   _set?: InputMaybe<Todos_Set_Input>;
   where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Update_TasksArgs = {
+  _set?: InputMaybe<Tasks_Set_Input>;
+  where: Tasks_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Update_Tasks_By_PkArgs = {
+  _set?: InputMaybe<Tasks_Set_Input>;
+  pk_columns: Tasks_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_Update_Tasks_ManyArgs = {
+  updates: Array<Tasks_Updates>;
 };
 
 
@@ -391,6 +451,12 @@ export type Query_Root = {
   everyone: Array<Anyone>;
   hamsters: Array<Hamster>;
   pets: Array<Pet>;
+  /** fetch data from the table: "tasks" */
+  tasks: Array<Tasks>;
+  /** fetch aggregated fields from the table: "tasks" */
+  tasks_aggregate: Tasks_Aggregate;
+  /** fetch data from the table: "tasks" using primary key columns */
+  tasks_by_pk?: Maybe<Tasks>;
   /** fetch data from the table: "todos" using primary key columns */
   todo?: Maybe<Todos>;
   /** fetch data from the table: "todos" */
@@ -431,6 +497,29 @@ export type Query_Root_CategoriesArgs = {
 
 export type Query_Root_Categories_By_PkArgs = {
   value: Scalars['String'];
+};
+
+
+export type Query_Root_TasksArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Query_Root_Tasks_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Query_Root_Tasks_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -493,6 +582,14 @@ export type Subscription_Root = {
   categories_by_pk?: Maybe<Categories>;
   /** fetch data from the table in a streaming manner: "categories" */
   categories_stream: Array<Categories>;
+  /** fetch data from the table: "tasks" */
+  tasks: Array<Tasks>;
+  /** fetch aggregated fields from the table: "tasks" */
+  tasks_aggregate: Tasks_Aggregate;
+  /** fetch data from the table: "tasks" using primary key columns */
+  tasks_by_pk?: Maybe<Tasks>;
+  /** fetch data from the table in a streaming manner: "tasks" */
+  tasks_stream: Array<Tasks>;
   /** fetch data from the table: "todos" using primary key columns */
   todo?: Maybe<Todos>;
   /** fetch data from the table: "todos" */
@@ -554,6 +651,36 @@ export type Subscription_Root_Categories_StreamArgs = {
 };
 
 
+export type Subscription_Root_TasksArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Subscription_Root_Tasks_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Tasks_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Tasks_Order_By>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
+export type Subscription_Root_Tasks_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_Tasks_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Tasks_Stream_Cursor_Input>>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+
 export type Subscription_Root_TodoArgs = {
   id: Scalars['uuid'];
 };
@@ -611,6 +738,136 @@ export type Subscription_Root_Users_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+/** columns and relationships of "tasks" */
+export type Tasks = {
+  __typename?: 'tasks';
+  description: Scalars['String'];
+  id: Scalars['uuid'];
+};
+
+/** aggregated selection of "tasks" */
+export type Tasks_Aggregate = {
+  __typename?: 'tasks_aggregate';
+  aggregate?: Maybe<Tasks_Aggregate_Fields>;
+  nodes: Array<Tasks>;
+};
+
+/** aggregate fields of "tasks" */
+export type Tasks_Aggregate_Fields = {
+  __typename?: 'tasks_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Tasks_Max_Fields>;
+  min?: Maybe<Tasks_Min_Fields>;
+};
+
+
+/** aggregate fields of "tasks" */
+export type Tasks_Aggregate_Fields_CountArgs = {
+  columns?: InputMaybe<Array<Tasks_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "tasks". All fields are combined with a logical 'AND'. */
+export type Tasks_Bool_Exp = {
+  _and?: InputMaybe<Array<Tasks_Bool_Exp>>;
+  _not?: InputMaybe<Tasks_Bool_Exp>;
+  _or?: InputMaybe<Array<Tasks_Bool_Exp>>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "tasks" */
+export type Tasks_Constraint =
+  /** unique or primary key constraint on columns "id" */
+  | 'tasks_pkey';
+
+/** input type for inserting data into table "tasks" */
+export type Tasks_Insert_Input = {
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Tasks_Max_Fields = {
+  __typename?: 'tasks_max_fields';
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Tasks_Min_Fields = {
+  __typename?: 'tasks_min_fields';
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "tasks" */
+export type Tasks_Mutation_Response = {
+  __typename?: 'tasks_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Tasks>;
+};
+
+/** on_conflict condition type for table "tasks" */
+export type Tasks_On_Conflict = {
+  constraint: Tasks_Constraint;
+  update_columns?: Array<Tasks_Update_Column>;
+  where?: InputMaybe<Tasks_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "tasks". */
+export type Tasks_Order_By = {
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: tasks */
+export type Tasks_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "tasks" */
+export type Tasks_Select_Column =
+  /** column name */
+  | 'description'
+  /** column name */
+  | 'id';
+
+/** input type for updating data in table "tasks" */
+export type Tasks_Set_Input = {
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "tasks" */
+export type Tasks_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Tasks_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Tasks_Stream_Cursor_Value_Input = {
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "tasks" */
+export type Tasks_Update_Column =
+  /** column name */
+  | 'description'
+  /** column name */
+  | 'id';
+
+export type Tasks_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Tasks_Set_Input>;
+  where: Tasks_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
@@ -2419,6 +2676,48 @@ export default {
               ]
             },
             {
+              "name": "delete_tasks",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_mutation_response",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "tasks_bool_exp",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "delete_tasks_by_pk",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "uuid",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
               "name": "insertTodo",
               "type": {
                 "kind": "OBJECT",
@@ -2547,6 +2846,70 @@ export default {
               ]
             },
             {
+              "name": "insert_tasks",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_mutation_response",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "objects",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "LIST",
+                      "ofType": {
+                        "kind": "NON_NULL",
+                        "ofType": {
+                          "kind": "INPUT_OBJECT",
+                          "name": "tasks_insert_input",
+                          "ofType": null
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "on_conflict",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_on_conflict",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "insert_tasks_one",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "object",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "tasks_insert_input",
+                      "ofType": null
+                    }
+                  }
+                },
+                {
+                  "name": "on_conflict",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_on_conflict",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
               "name": "updateTodo",
               "type": {
                 "kind": "OBJECT",
@@ -2599,6 +2962,94 @@ export default {
                       "kind": "INPUT_OBJECT",
                       "name": "todos_bool_exp",
                       "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "update_tasks",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_mutation_response",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "_set",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_set_input",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "tasks_bool_exp",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "update_tasks_by_pk",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "_set",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_set_input",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "pk_columns",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "tasks_pk_columns_input",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "update_tasks_many",
+              "type": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "tasks_mutation_response",
+                  "ofType": null
+                }
+              },
+              "args": [
+                {
+                  "name": "updates",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "LIST",
+                      "ofType": {
+                        "kind": "NON_NULL",
+                        "ofType": {
+                          "kind": "INPUT_OBJECT",
+                          "name": "tasks_updates",
+                          "ofType": null
+                        }
+                      }
                     }
                   }
                 }
@@ -2920,6 +3371,163 @@ export default {
                 }
               },
               "args": []
+            },
+            {
+              "name": "tasks",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "tasks",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "args": [
+                {
+                  "name": "distinct_on",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "tasks_select_column",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "limit",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "offset",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "order_by",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "tasks_order_by",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "tasks_aggregate",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "tasks_aggregate",
+                  "ofType": null
+                }
+              },
+              "args": [
+                {
+                  "name": "distinct_on",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "tasks_select_column",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "limit",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "offset",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "order_by",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "tasks_order_by",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "tasks_by_pk",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "uuid",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
             },
             {
               "name": "todo",
@@ -3531,6 +4139,215 @@ export default {
               ]
             },
             {
+              "name": "tasks",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "tasks",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "args": [
+                {
+                  "name": "distinct_on",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "tasks_select_column",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "limit",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "offset",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "order_by",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "tasks_order_by",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "tasks_aggregate",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "tasks_aggregate",
+                  "ofType": null
+                }
+              },
+              "args": [
+                {
+                  "name": "distinct_on",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "tasks_select_column",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "limit",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "offset",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Int",
+                    "ofType": null
+                  }
+                },
+                {
+                  "name": "order_by",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "tasks_order_by",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "tasks_by_pk",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks",
+                "ofType": null
+              },
+              "args": [
+                {
+                  "name": "id",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "uuid",
+                      "ofType": null
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "tasks_stream",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "tasks",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "args": [
+                {
+                  "name": "batch_size",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Int",
+                      "ofType": null
+                    }
+                  }
+                },
+                {
+                  "name": "cursor",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "LIST",
+                      "ofType": {
+                        "kind": "INPUT_OBJECT",
+                        "name": "tasks_stream_cursor_input",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "where",
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
               "name": "todo",
               "type": {
                 "kind": "OBJECT",
@@ -3950,6 +4767,507 @@ export default {
             }
           ],
           "interfaces": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks",
+          "fields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "args": []
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "uuid",
+                  "ofType": null
+                }
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks_aggregate",
+          "fields": [
+            {
+              "name": "aggregate",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_aggregate_fields",
+                "ofType": null
+              },
+              "args": []
+            },
+            {
+              "name": "nodes",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "tasks",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks_aggregate_fields",
+          "fields": [
+            {
+              "name": "count",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "args": [
+                {
+                  "name": "columns",
+                  "type": {
+                    "kind": "LIST",
+                    "ofType": {
+                      "kind": "NON_NULL",
+                      "ofType": {
+                        "kind": "ENUM",
+                        "name": "tasks_select_column",
+                        "ofType": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "distinct",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  }
+                }
+              ]
+            },
+            {
+              "name": "max",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_max_fields",
+                "ofType": null
+              },
+              "args": []
+            },
+            {
+              "name": "min",
+              "type": {
+                "kind": "OBJECT",
+                "name": "tasks_min_fields",
+                "ofType": null
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_bool_exp",
+          "inputFields": [
+            {
+              "name": "_and",
+              "type": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            {
+              "name": "_not",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "tasks_bool_exp",
+                "ofType": null
+              }
+            },
+            {
+              "name": "_or",
+              "type": {
+                "kind": "LIST",
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "tasks_bool_exp",
+                    "ofType": null
+                  }
+                }
+              }
+            },
+            {
+              "name": "description",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "String_comparison_exp",
+                "ofType": null
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "uuid_comparison_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "ENUM",
+          "name": "tasks_constraint",
+          "enumValues": [
+            {
+              "name": "tasks_pkey"
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_insert_input",
+          "inputFields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "SCALAR",
+                "name": "uuid",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks_max_fields",
+          "fields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "args": []
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "SCALAR",
+                "name": "uuid",
+                "ofType": null
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks_min_fields",
+          "fields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "args": []
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "SCALAR",
+                "name": "uuid",
+                "ofType": null
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "tasks_mutation_response",
+          "fields": [
+            {
+              "name": "affected_rows",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "args": []
+            },
+            {
+              "name": "returning",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "OBJECT",
+                      "name": "tasks",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "args": []
+            }
+          ],
+          "interfaces": []
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_on_conflict",
+          "inputFields": [
+            {
+              "name": "constraint",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "tasks_constraint",
+                  "ofType": null
+                }
+              }
+            },
+            {
+              "name": "update_columns",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "LIST",
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "tasks_update_column",
+                      "ofType": null
+                    }
+                  }
+                }
+              },
+              "defaultValue": "[]"
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "tasks_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_order_by",
+          "inputFields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "ENUM",
+                "name": "order_by",
+                "ofType": null
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "ENUM",
+                "name": "order_by",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_pk_columns_input",
+          "inputFields": [
+            {
+              "name": "id",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "uuid",
+                  "ofType": null
+                }
+              }
+            }
+          ]
+        },
+        {
+          "kind": "ENUM",
+          "name": "tasks_select_column",
+          "enumValues": [
+            {
+              "name": "description"
+            },
+            {
+              "name": "id"
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_set_input",
+          "inputFields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "SCALAR",
+                "name": "uuid",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_stream_cursor_input",
+          "inputFields": [
+            {
+              "name": "initial_value",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "tasks_stream_cursor_value_input",
+                  "ofType": null
+                }
+              }
+            },
+            {
+              "name": "ordering",
+              "type": {
+                "kind": "ENUM",
+                "name": "cursor_ordering",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_stream_cursor_value_input",
+          "inputFields": [
+            {
+              "name": "description",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "kind": "SCALAR",
+                "name": "uuid",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "kind": "ENUM",
+          "name": "tasks_update_column",
+          "enumValues": [
+            {
+              "name": "description"
+            },
+            {
+              "name": "id"
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "tasks_updates",
+          "inputFields": [
+            {
+              "name": "_set",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "tasks_set_input",
+                "ofType": null
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "NON_NULL",
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "tasks_bool_exp",
+                  "ofType": null
+                }
+              }
+            }
+          ]
         },
         {
           "kind": "SCALAR",
@@ -6010,18 +7328,28 @@ export default {
     Mutation_Root: Mutation_Root,
     Mutation_Root_DeleteTodoArgs: Mutation_Root_DeleteTodoArgs,
     Mutation_Root_DeleteTodosArgs: Mutation_Root_DeleteTodosArgs,
+    Mutation_Root_Delete_TasksArgs: Mutation_Root_Delete_TasksArgs,
+    Mutation_Root_Delete_Tasks_By_PkArgs: Mutation_Root_Delete_Tasks_By_PkArgs,
     Mutation_Root_InsertTodoArgs: Mutation_Root_InsertTodoArgs,
     Mutation_Root_InsertTodosArgs: Mutation_Root_InsertTodosArgs,
     Mutation_Root_InsertUserArgs: Mutation_Root_InsertUserArgs,
     Mutation_Root_InsertUsersArgs: Mutation_Root_InsertUsersArgs,
+    Mutation_Root_Insert_TasksArgs: Mutation_Root_Insert_TasksArgs,
+    Mutation_Root_Insert_Tasks_OneArgs: Mutation_Root_Insert_Tasks_OneArgs,
     Mutation_Root_UpdateTodoArgs: Mutation_Root_UpdateTodoArgs,
     Mutation_Root_UpdateTodosArgs: Mutation_Root_UpdateTodosArgs,
+    Mutation_Root_Update_TasksArgs: Mutation_Root_Update_TasksArgs,
+    Mutation_Root_Update_Tasks_By_PkArgs: Mutation_Root_Update_Tasks_By_PkArgs,
+    Mutation_Root_Update_Tasks_ManyArgs: Mutation_Root_Update_Tasks_ManyArgs,
     Mutation_Root_Update_Todos_ManyArgs: Mutation_Root_Update_Todos_ManyArgs,
     Query_Root: Query_Root,
     Query_Root_AuthUserRoleArgs: Query_Root_AuthUserRoleArgs,
     Query_Root_AuthUserRolesArgs: Query_Root_AuthUserRolesArgs,
     Query_Root_CategoriesArgs: Query_Root_CategoriesArgs,
     Query_Root_Categories_By_PkArgs: Query_Root_Categories_By_PkArgs,
+    Query_Root_TasksArgs: Query_Root_TasksArgs,
+    Query_Root_Tasks_AggregateArgs: Query_Root_Tasks_AggregateArgs,
+    Query_Root_Tasks_By_PkArgs: Query_Root_Tasks_By_PkArgs,
     Query_Root_TodoArgs: Query_Root_TodoArgs,
     Query_Root_TodosArgs: Query_Root_TodosArgs,
     Query_Root_TodosAggregateArgs: Query_Root_TodosAggregateArgs,
@@ -6035,6 +7363,10 @@ export default {
     Subscription_Root_CategoriesArgs: Subscription_Root_CategoriesArgs,
     Subscription_Root_Categories_By_PkArgs: Subscription_Root_Categories_By_PkArgs,
     Subscription_Root_Categories_StreamArgs: Subscription_Root_Categories_StreamArgs,
+    Subscription_Root_TasksArgs: Subscription_Root_TasksArgs,
+    Subscription_Root_Tasks_AggregateArgs: Subscription_Root_Tasks_AggregateArgs,
+    Subscription_Root_Tasks_By_PkArgs: Subscription_Root_Tasks_By_PkArgs,
+    Subscription_Root_Tasks_StreamArgs: Subscription_Root_Tasks_StreamArgs,
     Subscription_Root_TodoArgs: Subscription_Root_TodoArgs,
     Subscription_Root_TodosArgs: Subscription_Root_TodosArgs,
     Subscription_Root_TodosAggregateArgs: Subscription_Root_TodosAggregateArgs,
@@ -6043,6 +7375,22 @@ export default {
     Subscription_Root_UsersArgs: Subscription_Root_UsersArgs,
     Subscription_Root_UsersAggregateArgs: Subscription_Root_UsersAggregateArgs,
     Subscription_Root_Users_StreamArgs: Subscription_Root_Users_StreamArgs,
+    Tasks: Tasks,
+    Tasks_Aggregate: Tasks_Aggregate,
+    Tasks_Aggregate_Fields: Tasks_Aggregate_Fields,
+    Tasks_Aggregate_Fields_CountArgs: Tasks_Aggregate_Fields_CountArgs,
+    Tasks_Bool_Exp: Tasks_Bool_Exp,
+    Tasks_Insert_Input: Tasks_Insert_Input,
+    Tasks_Max_Fields: Tasks_Max_Fields,
+    Tasks_Min_Fields: Tasks_Min_Fields,
+    Tasks_Mutation_Response: Tasks_Mutation_Response,
+    Tasks_On_Conflict: Tasks_On_Conflict,
+    Tasks_Order_By: Tasks_Order_By,
+    Tasks_Pk_Columns_Input: Tasks_Pk_Columns_Input,
+    Tasks_Set_Input: Tasks_Set_Input,
+    Tasks_Stream_Cursor_Input: Tasks_Stream_Cursor_Input,
+    Tasks_Stream_Cursor_Value_Input: Tasks_Stream_Cursor_Value_Input,
+    Tasks_Updates: Tasks_Updates,
     Timestamptz_Comparison_Exp: Timestamptz_Comparison_Exp,
     Todos: Todos,
     Todos_Aggregate: Todos_Aggregate,
