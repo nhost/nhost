@@ -4,6 +4,7 @@ import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLCl
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import { useUpdateRemoteAppUserMutation } from '@/utils/__generated__/graphql';
@@ -86,7 +87,7 @@ export default function EditUserPasswordForm({
         {
           loading: 'Updating user password...',
           success: 'User password updated successfully.',
-          error: 'Failed to update user password.',
+          error: getServerError('Failed to update user password.'),
         },
         getToastStyleProps(),
       );

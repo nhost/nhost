@@ -16,6 +16,7 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetRolesPermissionsDocument,
@@ -78,7 +79,9 @@ export default function PermissionVariableSettings() {
       {
         loading: 'Deleting permission variable...',
         success: 'Permission variable has been deleted successfully.',
-        error: 'An error occurred while trying to delete permission variable.',
+        error: getServerError(
+          'An error occurred while trying to delete permission variable.',
+        ),
       },
       getToastStyleProps(),
     );

@@ -11,6 +11,7 @@ import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Image from 'next/image';
@@ -111,7 +112,9 @@ export default function SMSSettings() {
         {
           loading: `SMS settings are being updated...`,
           success: `SMS settings have been updated successfully.`,
-          error: `An error occurred while trying to update SMS settings.`,
+          error: getServerError(
+            `An error occurred while trying to update SMS settings.`,
+          ),
         },
         getToastStyleProps(),
       );

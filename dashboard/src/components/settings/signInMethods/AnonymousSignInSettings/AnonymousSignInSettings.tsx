@@ -7,6 +7,7 @@ import {
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -76,7 +77,9 @@ export default function AnonymousSignInSettings() {
         {
           loading: `Anonymous sign-in settings are being updated...`,
           success: `Anonymous sign-in settings have been updated successfully.`,
-          error: `An error occurred while trying to update Anonymous sign-in settings.`,
+          error: getServerError(
+            `An error occurred while trying to update Anonymous sign-in settings.`,
+          ),
         },
         getToastStyleProps(),
       );

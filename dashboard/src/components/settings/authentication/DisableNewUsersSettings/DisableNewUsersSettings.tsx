@@ -2,6 +2,7 @@ import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetAuthenticationSettingsDocument,
@@ -76,7 +77,9 @@ export default function DisableNewUsersSettings() {
         {
           loading: `Disabling new user sign ups...`,
           success: `New user sign ups have been disabled successfully.`,
-          error: `An error occurred while trying to disable new user sign ups.`,
+          error: getServerError(
+            `An error occurred while trying to disable new user sign ups.`,
+          ),
         },
         getToastStyleProps(),
       );

@@ -8,6 +8,7 @@ import BaseRoleForm, {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
@@ -115,7 +116,9 @@ export default function EditRoleForm({
       {
         loading: 'Updating role...',
         success: 'Role has been updated successfully.',
-        error: 'An error occurred while trying to update the role.',
+        error: getServerError(
+          'An error occurred while trying to update the role.',
+        ),
       },
       getToastStyleProps(),
     );

@@ -8,6 +8,7 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -78,7 +79,9 @@ export default function ClientURLSettings() {
         {
           loading: `Client URL is being updated...`,
           success: `Client URL has been updated successfully.`,
-          error: `An error occurred while trying to update the project's Client URL.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Client URL.`,
+          ),
         },
         getToastStyleProps(),
       );

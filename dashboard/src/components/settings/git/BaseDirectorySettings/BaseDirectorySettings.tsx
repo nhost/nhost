@@ -6,6 +6,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { Alert } from '@/ui/Alert';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
@@ -54,7 +55,9 @@ export default function BaseDirectorySettings() {
       {
         loading: `The base directory is being updated...`,
         success: `The base directory has been updated successfully.`,
-        error: `An error occurred while trying to update the project's base directory.`,
+        error: getServerError(
+          `An error occurred while trying to update the project's base directory.`,
+        ),
       },
       getToastStyleProps(),
     );

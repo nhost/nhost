@@ -17,6 +17,7 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -91,7 +92,9 @@ export default function DiscordProviderSettings() {
         {
           loading: `Discord settings are being updated...`,
           success: `Discord settings have been updated successfully.`,
-          error: `An error occurred while trying to update the project's Discord settings.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Discrod settings.`,
+          ),
         },
         getToastStyleProps(),
       );

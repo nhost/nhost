@@ -13,6 +13,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,
@@ -91,7 +92,9 @@ export default function EnvironmentVariableSettings() {
       {
         loading: 'Deleting environment variable...',
         success: 'Environment variable has been deleted successfully.',
-        error: 'An error occurred while deleting the environment variable.',
+        error: getServerError(
+          'An error occurred while deleting the environment variable.',
+        ),
       },
       getToastStyleProps(),
     );

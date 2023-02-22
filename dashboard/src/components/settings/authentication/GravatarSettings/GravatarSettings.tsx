@@ -9,6 +9,7 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
+import getServerError from '@/utils/settings/getServerError';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
@@ -92,7 +93,9 @@ export default function GravatarSettings() {
         {
           loading: `Gravatar settings are being updated...`,
           success: `Gravatar settings have been updated successfully.`,
-          error: `An error occurred while trying to update the project's Gravatar settings.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Gravatar settings.`,
+          ),
         },
         getToastStyleProps(),
       );

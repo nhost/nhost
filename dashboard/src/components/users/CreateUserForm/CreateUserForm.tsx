@@ -4,6 +4,7 @@ import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import fetch from 'cross-fetch';
@@ -86,7 +87,9 @@ export default function CreateUserForm({
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
-          error: 'An error occurred while trying to create the user.',
+          error: getServerError(
+            'An error occurred while trying to create the user.',
+          ),
         },
         getToastStyleProps(),
       );
@@ -137,7 +140,7 @@ export default function CreateUserForm({
         {createUserFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createUserFormError.message}

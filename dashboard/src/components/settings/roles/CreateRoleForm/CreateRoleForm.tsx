@@ -7,6 +7,7 @@ import BaseRoleForm, {
 } from '@/components/settings/roles/BaseRoleForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
@@ -85,7 +86,9 @@ export default function CreateRoleForm({
       {
         loading: 'Creating role...',
         success: 'Role has been created successfully.',
-        error: 'An error occurred while trying to create the role.',
+        error: getServerError(
+          'An error occurred while trying to create the role.',
+        ),
       },
       getToastStyleProps(),
     );

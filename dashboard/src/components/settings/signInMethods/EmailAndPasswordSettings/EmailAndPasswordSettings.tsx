@@ -9,6 +9,7 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -83,7 +84,9 @@ export default function EmailAndPasswordSettings() {
         {
           loading: `Email and password sign-in settings are being updated...`,
           success: `Email and password sign-in settings have been updated successfully.`,
-          error: `An error occurred while trying to update email sign-in settings.`,
+          error: getServerError(
+            `An error occurred while trying to update email sign-in settings.`,
+          ),
         },
         getToastStyleProps(),
       );

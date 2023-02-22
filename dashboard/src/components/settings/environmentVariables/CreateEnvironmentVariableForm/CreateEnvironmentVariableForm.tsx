@@ -7,6 +7,7 @@ import BaseEnvironmentVariableForm, {
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,
@@ -105,7 +106,9 @@ export default function CreateEnvironmentVariableForm({
       {
         loading: 'Creating environment variable...',
         success: 'Environment variable has been created successfully.',
-        error: 'An error occurred while creating the environment variable.',
+        error: getServerError(
+          'An error occurred while creating the environment variable.',
+        ),
       },
       getToastStyleProps(),
     );

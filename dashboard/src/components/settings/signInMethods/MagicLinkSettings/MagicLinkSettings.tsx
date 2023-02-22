@@ -7,6 +7,7 @@ import {
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -76,7 +77,9 @@ export default function MagicLinkSettings() {
         {
           loading: `Magic Link settings are being updated...`,
           success: `Magic Link settings have been updated successfully.`,
-          error: `An error occurred while trying to update the project's Magic Link settings.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Magic Link settings.`,
+          ),
         },
         getToastStyleProps(),
       );

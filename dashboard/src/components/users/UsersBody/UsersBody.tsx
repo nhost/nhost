@@ -15,6 +15,7 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import getReadableProviderName from '@/utils/common/getReadableProviderName';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
@@ -149,7 +150,9 @@ export default function UsersBody({
       {
         loading: `Updating user's settings...`,
         success: 'User settings updated successfully.',
-        error: `An error occurred while trying to update this user's settings.`,
+        error: getServerError(
+          `An error occurred while trying to update this user's settings.`,
+        ),
       },
       getToastStyleProps(),
     );
@@ -178,7 +181,9 @@ export default function UsersBody({
             {
               loading: 'Deleting user...',
               success: 'User deleted successfully.',
-              error: 'An error occurred while trying to delete this user.',
+              error: getServerError(
+                'An error occurred while trying to delete this user.',
+              ),
             },
             getToastStyleProps(),
           );

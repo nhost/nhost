@@ -8,6 +8,7 @@ import BaseEnvironmentVariableForm, {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,
@@ -119,7 +120,9 @@ export default function EditEnvironmentVariableForm({
       {
         loading: 'Updating environment variable...',
         success: 'Environment variable has been updated successfully.',
-        error: 'An error occurred while updating the environment variable.',
+        error: getServerError(
+          'An error occurred while updating the environment variable.',
+        ),
       },
       getToastStyleProps(),
     );

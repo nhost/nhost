@@ -2,6 +2,7 @@ import Form from '@/components/common/Form';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { slugifyString } from '@/utils/helpers';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   refetchGetOneUserQuery,
@@ -133,7 +134,9 @@ export default function EditWorkspaceName({
           {
             loading: 'Updating workspace name...',
             success: 'Workspace name has been updated successfully.',
-            error: 'An error occurred while updating the workspace name.',
+            error: getServerError(
+              'An error occurred while updating the workspace name.',
+            ),
           },
           getToastStyleProps(),
         );
@@ -160,7 +163,9 @@ export default function EditWorkspaceName({
           {
             loading: 'Creating new workspace...',
             success: 'The new workspace has been created successfully.',
-            error: 'An error occurred while creating the new workspace.',
+            error: getServerError(
+              'An error occurred while creating the new workspace.',
+            ),
           },
           getToastStyleProps(),
         );
@@ -194,9 +199,9 @@ export default function EditWorkspaceName({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col content-between flex-auto pt-2 pb-6 overflow-hidden"
+        className="flex flex-auto flex-col content-between overflow-hidden pt-2 pb-6"
       >
-        <div className="flex-auto px-6 overflow-y-auto">
+        <div className="flex-auto overflow-y-auto px-6">
           <Input
             {...register('newWorkspaceName')}
             error={Boolean(errors.newWorkspaceName?.message)}

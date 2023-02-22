@@ -15,6 +15,7 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
@@ -83,7 +84,9 @@ export default function RoleSettings() {
       {
         loading: 'Updating default role...',
         success: 'Default role has been updated successfully.',
-        error: 'An error occurred while trying to update the default role.',
+        error: getServerError(
+          'An error occurred while trying to update the default role.',
+        ),
       },
       getToastStyleProps(),
     );
@@ -111,7 +114,9 @@ export default function RoleSettings() {
       {
         loading: 'Deleting allowed role...',
         success: 'Allowed Role has been deleted successfully.',
-        error: 'An error occurred while trying to delete the allowed role.',
+        error: getServerError(
+          'An error occurred while trying to delete the allowed role.',
+        ),
       },
       getToastStyleProps(),
     );

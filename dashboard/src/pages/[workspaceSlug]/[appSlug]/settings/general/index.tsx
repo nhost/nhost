@@ -12,6 +12,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
@@ -93,7 +94,9 @@ export default function SettingsGeneralPage() {
         {
           loading: `Project name is being updated...`,
           success: `Project name has been updated successfully.`,
-          error: `An error occurred while trying to update project name.`,
+          error: getServerError(
+            `An error occurred while trying to update project name.`,
+          ),
         },
         getToastStyleProps(),
       );
@@ -122,7 +125,9 @@ export default function SettingsGeneralPage() {
       {
         loading: `Deleting ${currentApplication.name}...`,
         success: `${currentApplication.name} deleted`,
-        error: `Error while trying to ${currentApplication.name} project name`,
+        error: getServerError(
+          `Error while trying to ${currentApplication.name} project name`,
+        ),
       },
       getToastStyleProps(),
     );
