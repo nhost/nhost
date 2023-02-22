@@ -20,6 +20,16 @@ yarn add @nhost/graphql-js graphql
 yarn add -D @graphql-codegen/cli @graphql-codegen/typescript-nhost
 ```
 
+Make sure strict null checks are enabled in `tsconfig.json`:
+
+```json filename="tsconfig.json"
+{
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
 ## Configure the code generator
 
 Configure the code generator by adding a `codegen.yaml` file:
