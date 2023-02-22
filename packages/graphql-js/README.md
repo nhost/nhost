@@ -16,15 +16,25 @@ Nhost GraphQL client.
 First, install `graphql-codegen` and the Nhost Typescript plugin:
 
 ```sh
-npm install @nhost/graphql-js
-npm install -D @graphql-codegen/cli @graphql-codegen/typescript-nhost
+yarn add @nhost/graphql-js graphql
+yarn add -D @graphql-codegen/cli @graphql-codegen/typescript-nhost
+```
+
+Make sure strict null checks are enabled in `tsconfig.json`:
+
+```json filename="tsconfig.json"
+{
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
 ```
 
 ## Configure the code generator
 
-Configure the code generator by adding a `graphql.config.yaml` file:
+Configure the code generator by adding a `codegen.yaml` file:
 
-```yaml filename="graphql.config.yaml"
+```yaml filename="codegen.yaml"
 schema:
   - http://localhost:1337/v1/graphql:
       headers:
@@ -35,17 +45,27 @@ generates:
       - typescript-nhost
 ```
 
+Add the codegen script to `package.json`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "codegen": "graphql-codegen"
+  }
+}
+```
+
 Generate the schema:
 
 ```sh
-yarn graphql-codegen
+yarn run codegen
 ```
 
 ## Usage
 
 ```ts filename="./src/main.ts"
 import { NhostGraphqlClient } from '@nhost/graphql-js'
-import schema from './schema.ts'
+import schema from './schema'
 
 const client = new NhostGraphqlClient({ url: 'http://localhost:1337/v1/graphql', schema })
 ```
@@ -137,4 +157,4 @@ giraffes.forEach((giraffe) => {
 
 ## Documentation
 
-[https://docs.nhost.io/reference/javascript/auth](https://docs.nhost.io/reference/javascript/graphql)
+[https://docs.nhost.io/reference/javascript/graphql](https://docs.nhost.io/reference/javascript/graphql)

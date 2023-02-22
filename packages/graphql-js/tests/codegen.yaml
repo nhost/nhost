@@ -1,5 +1,5 @@
 generates:
-  ./schemas/hasura.ts:
+  ./tests/schemas/hasura.ts:
     schema: http://localhost:1337/v1/graphql
     config:
       scalars:
@@ -14,11 +14,11 @@ generates:
       - typescript-nhost
       - add:
           content: 'export type JSONValue = string | number | boolean | { [x: string]: JSONValue } | Array<JSONValue>;'
-  ./schemas/countries.ts:
+  ./tests/schemas/countries.ts:
     schema: https://countries.trevorblades.com/graphql
     plugins:
       - typescript-nhost
-  ./schemas/swapi.ts:
+  ./tests/schemas/swapi.ts:
     schema: https://swapi-graphql.netlify.app/.netlify/functions/index
     plugins:
       - typescript-nhost
