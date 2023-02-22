@@ -344,6 +344,12 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
 
 func (m *dockerComposeManager) applyMigrations(ctx context.Context) error {
 	m.l.Debug("Checking if migrations need to be applied")
+
+	if !util.PathExists(nhost.MIGRATIONS_DIR) {
+		m.l.Debug("Migrations folder not found")
+		return nil
+	}
+
 	files, err := os.ReadDir(nhost.MIGRATIONS_DIR)
 	if err != nil {
 		return err
@@ -377,6 +383,11 @@ func (m *dockerComposeManager) exportMetadata(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) applyMetadata(ctx context.Context) error {
+	if !util.PathExists(nhost.METADATA_DIR) {
+		m.l.Debug("Metadata folder not found")
+		return nil
+	}
+
 	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
 	if err != nil {
 		return err
