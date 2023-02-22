@@ -43,7 +43,10 @@ const baseValidationSchema = Yup.object().shape({
 });
 
 const selectValidationSchema = baseValidationSchema.shape({
-  limit: Yup.number().min(0, 'Limit must not be negative.').nullable(true),
+  limit: Yup.number()
+    .label('Limit')
+    .min(0, 'Limit must not be negative.')
+    .nullable(true),
   allowAggregations: Yup.boolean().nullable(true),
   queryRootFields: Yup.array().of(Yup.string()).nullable(true),
   subscriptionRootFields: Yup.array().of(Yup.string()).nullable(true),

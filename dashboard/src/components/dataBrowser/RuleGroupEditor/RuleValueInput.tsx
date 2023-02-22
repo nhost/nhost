@@ -6,6 +6,7 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
@@ -211,11 +212,13 @@ export default function RuleValueInput({
     <ControlledAutocomplete
       disabled={disabled}
       freeSolo={!isHasuraInput}
-      autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
-      isOptionEqualToValue={(option, value) => {
-        if (typeof value === 'string') {
-          return option.value.toLowerCase() === (value as string).toLowerCase();
+      isOptionEqualToValue={(
+        option,
+        value: string | number | AutocompleteOption<string>,
+      ) => {
+        if (typeof value !== 'object') {
+          return option.value.toLowerCase() === value?.toString().toLowerCase();
         }
 
         return option.value.toLowerCase() === value.value.toLowerCase();

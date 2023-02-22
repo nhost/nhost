@@ -6,6 +6,7 @@ import Input from '@/ui/v2/Input';
 import Radio from '@/ui/v2/Radio';
 import RadioGroup from '@/ui/v2/RadioGroup';
 import Text from '@/ui/v2/Text';
+import type { FocusEvent } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
@@ -130,7 +131,13 @@ export default function RowPermissionsSection({
 
       {action === 'select' && (
         <Input
-          {...register('limit')}
+          {...register('limit', {
+            onBlur: (event: FocusEvent<HTMLInputElement>) => {
+              if (!event.target.value) {
+                setValue('limit', null);
+              }
+            },
+          })}
           disabled={disabled}
           id="limit"
           type="number"
