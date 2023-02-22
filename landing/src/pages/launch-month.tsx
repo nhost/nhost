@@ -67,6 +67,56 @@ function TbaDay({ date }: { date: Date }) {
   )
 }
 
+function TbaDayDelayed({ date }: { date: Date }) {
+  const [currentDate, setCurrentDate] = useState(new Date())
+
+  const { days, hours, minutes, seconds } = intervalToDuration({
+    start: currentDate,
+    end: date,
+  })
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentDate(new Date())
+    }, 1000)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [])
+
+  return (
+    <div className="font-display text-greyscaleDark mx-auto grid w-full overflow-hidden rounded-lg border border-gray-800 sm:grid-cols-5">
+      <div className="col-span-2 h-80 bg-slate-900 p-6">
+        <div className="text-sm">New Release</div>
+        <div className="text-3xl font-medium">Coming soon (deplayed)</div>
+      </div>
+
+      <div className="grid w-full grid-flow-row justify-between gap-3 p-6 sm:col-span-3 sm:gap-0">
+        <div className="grid w-full content-start gap-2">
+          <div className="text-greyscaleDarkGrey text-sm">
+            {format(date, 'MMMM d, yyyy')}
+          </div>
+
+          <div className="text-3xl font-semibold">Delayed</div>
+          <div className="text-greyscaleDarkGrey my-4 text-lg">
+            Unfortunately, this launch has been delayed due to unexpected
+            issues. But don't worry, we're working hard to fix things and get
+            back on track - we're not rocket scientists, but we're pretty close!
+          </div>
+        </div>
+
+        <div className="grid w-full grid-flow-col content-end items-center justify-start gap-6 font-sans sm:gap-8 md:gap-12">
+          <Unit value={days} unit={days === 1 ? 'day' : 'days'} />
+          <Unit value={hours} unit={hours === 1 ? 'hour' : 'hours'} />
+          <Unit value={minutes} unit={minutes === 1 ? 'minute' : 'minutes'} />
+          <Unit value={seconds} unit={seconds === 1 ? 'second' : 'seconds'} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PostDay({ date, post }: { date: Date; post: Post }) {
   const { image, title, description, link } = post
 
@@ -192,7 +242,7 @@ export default function Page() {
             link: '/blog/nextjs-stripe-starter-template',
           }}
         />
-        <TbaDay date={new Date('2023-02-22T16:00:00.000+02:00')} />
+        <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} />
       </div>
     </Layout>
   )
