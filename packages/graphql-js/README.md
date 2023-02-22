@@ -35,10 +35,20 @@ generates:
       - typescript-nhost
 ```
 
+Add the codegen script to `package.json`:
+
+```json filename="package.json"
+{
+  "scripts": {
+    "codegen": "graphql-codegen"
+  }
+}
+```
+
 Generate the schema:
 
 ```sh
-yarn graphql-codegen
+yarn run codegen
 ```
 
 ## Usage
