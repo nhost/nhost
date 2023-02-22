@@ -89,7 +89,7 @@ function TbaDayDelayed({ date }: { date: Date }) {
     <div className="font-display text-greyscaleDark mx-auto grid w-full overflow-hidden rounded-lg border border-gray-800 sm:grid-cols-5">
       <div className="col-span-2 h-80 bg-slate-900 p-6">
         <div className="text-sm">New Release</div>
-        <div className="text-3xl font-medium">Coming soon (deplayed)</div>
+        <div className="text-3xl font-medium">Coming soon (delayed)</div>
       </div>
 
       <div className="grid w-full grid-flow-row justify-between gap-3 p-6 sm:col-span-3 sm:gap-0">
@@ -100,9 +100,9 @@ function TbaDayDelayed({ date }: { date: Date }) {
 
           <div className="text-3xl font-semibold">Delayed</div>
           <div className="text-greyscaleDarkGrey my-4 text-lg">
-            Unfortunately, this launch has been delayed due to unexpected
-            issues. But don't worry, we're working hard to fix things and get
-            back on track - we're not rocket scientists, but we're pretty close!
+            {
+              "Unfortunately, this launch has been delayed due to unexpected issues. But don't worry, we're working hard to fix things and get back on track - we're not rocket scientists, but we're pretty close!"
+            }
           </div>
         </div>
 
