@@ -35,6 +35,7 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    target: 'es2019',
     lib: {
       entry,
       name: pkg.name,
