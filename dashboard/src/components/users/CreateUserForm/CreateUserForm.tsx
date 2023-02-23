@@ -81,6 +81,7 @@ export default function CreateUserForm({
       await toast.promise(
         fetch(signUpUrl, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         }).then(async (res) => {
           const data = await res.json();
