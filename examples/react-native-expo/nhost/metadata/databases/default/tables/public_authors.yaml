@@ -1,0 +1,10 @@
+table:
+  name: authors
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - name
+      filter: {}

@@ -12,3 +12,9 @@ web-build/
 
 # macOS
 .DS_Store
+
+# Nhost
+.nhost
+web/node_modules
+node_modules
+functions/node_modules
