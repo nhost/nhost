@@ -1,5 +1,13 @@
 # @nhost-examples/codegen-react-query
 
+## 0.1.6
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
 ## 0.1.5
 
 ### Patch Changes

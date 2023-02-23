@@ -1,5 +1,13 @@
 # @nhost/react-urql
 
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
 ## 2.0.2
 
 ### Patch Changes

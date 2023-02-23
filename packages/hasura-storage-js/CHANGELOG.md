@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.0.1
+
+### Patch Changes
+
+- 445d8ef4: fix(hasura-storage-js): fix forbidden error when uploading
+
 ## 2.0.0
 
 ### Major Changes
