@@ -1,5 +1,8 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import fetch from 'cross-fetch'
+import { toRawGraphQL } from './graphql-object/query-builder'
+import { GenericSchema, getRootOperationNames } from './graphql-object/schema'
+import { OperationFactory } from './graphql-object/types'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {
@@ -15,17 +18,77 @@ import {
 /**
  * @alias GraphQL
  */
-export class NhostGraphqlClient {
+export class NhostGraphqlClient<Schema extends GenericSchema | undefined> {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
 
-  constructor(params: NhostGraphqlConstructorParams) {
-    const { url, adminSecret } = params
+  /**
+   * Use `nhost.graphql.query` to run a GraphQL query from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id, name } = await nhost.graphql.query.customer({ select: { id: true, name: true }, variables: {id: 'customer-id' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/query
+   */
+  public query: OperationFactory<Schema, 'Query'>
+
+  /**
+   * Use `nhost.graphql.mutation` to run a GraphQL mutation from object parameters and the schema genetated with `@graphql-codegen/typescript-nhost`.
+   *
+   * @example
+   * ```ts
+   * import schema from './generated-schema'
+   * const nhost = new NhostClient({ subdomain: 'xxx', region: 'yyy', schema })
+   *
+   * const { id } = await nhost.graphql.mutation.insertCustomer({ select: { id: true }, variables: { name: 'Bob' } })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/mutation
+   */
+  public mutation: OperationFactory<Schema, 'Mutation'>
+
+  constructor(params: NhostGraphqlConstructorParams<Schema>) {
+    const { url, adminSecret, schema } = params
 
     this._url = url
     this.accessToken = null
     this.adminSecret = adminSecret
+
+    this.query = getRootOperationNames(schema, 'Query').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Query', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
+
+    this.mutation = getRootOperationNames(schema, 'Mutation').reduce((acc, property) => {
+      acc[property] = async (input?: unknown) => {
+        const { query, variables } = toRawGraphQL(schema, 'Mutation', property, input)
+        const { data, error } = await this.request(query, variables)
+        if (error) {
+          if ('message' in error) {
+            throw new Error(error.message)
+          }
+          throw new Error(error[0].message)
+        }
+        return data[property]
+      }
+      return acc
+    }, {} as any)
   }
 
   /**

@@ -1,4 +1,4 @@
-import { NhostGraphqlClient } from '@nhost/graphql-js'
+import { GenericSchema, NhostGraphqlClient } from '@nhost/graphql-js'
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 import { NhostClientConstructorParams } from '../utils/types'
@@ -7,13 +7,15 @@ import { createFunctionsClient, NhostFunctionsClient } from './functions'
 import { createGraphqlClient } from './graphql'
 import { createStorageClient } from './storage'
 
-export const createNhostClient = (params: NhostClientConstructorParams) => new NhostClient(params)
+export const createNhostClient = <Schema extends GenericSchema | undefined = undefined>(
+  params: NhostClientConstructorParams<Schema>
+) => new NhostClient(params)
 
-export class NhostClient {
+export class NhostClient<Schema extends GenericSchema | undefined = undefined> {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
   functions: NhostFunctionsClient
-  graphql: NhostGraphqlClient
+  graphql: NhostGraphqlClient<Schema>
   private _adminSecret?: string
   readonly devTools?: boolean
 
@@ -36,8 +38,9 @@ export class NhostClient {
     adminSecret,
     devTools,
     start = true,
+    schema,
     ...urlParams
-  }: NhostClientConstructorParams) {
+  }: NhostClientConstructorParams<Schema>) {
     // * Set clients for all services
     this.auth = createAuthClient({
       refreshIntervalTime,
@@ -50,7 +53,7 @@ export class NhostClient {
     })
     this.storage = createStorageClient({ adminSecret, ...urlParams })
     this.functions = createFunctionsClient({ adminSecret, ...urlParams })
-    this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
+    this.graphql = createGraphqlClient({ adminSecret, schema, ...urlParams })
 
     this.auth.onAuthStateChanged((_event, session) => {
       if (_event === 'SIGNED_OUT') {
