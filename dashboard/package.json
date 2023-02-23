@@ -51,7 +51,7 @@
     "generate-password": "^1.7.0",
     "graphiql": "^2.2.0",
     "graphql": "^16.6.0",
-    "graphql-request": "^4.3.0",
+    "graphql-request": "^5.0.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.11.2",
     "just-kebab-case": "^4.1.1",
