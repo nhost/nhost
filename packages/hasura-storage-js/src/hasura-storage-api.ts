@@ -28,7 +28,7 @@ export class HasuraStorageApi {
 
     return fetchUpload(this.url, formData, {
       accessToken: this.accessToken,
-      adminSecret: this.accessToken,
+      adminSecret: this.adminSecret,
       bucketId: params.bucketId,
       fileId: params.id,
       name: params.name
