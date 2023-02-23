@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 0.1.8
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/react@2.0.3
+
 ## 0.1.7
 
 ### Patch Changes

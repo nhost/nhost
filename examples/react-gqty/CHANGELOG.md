@@ -1,5 +1,13 @@
 # @nhost-examples/react-gqty
 
+## 0.0.5
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
 ## 0.0.4
 
 ### Patch Changes

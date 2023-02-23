@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 0.11.17
+
+### Patch Changes
+
+- f673adea: fix(dashboard): set correct Content-Type for user creation
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- 445d8ef4: chore(deps): bump `@nhost/nextjs` to 1.13.9
+- 0368663d: fix(dashboard): allow permission editing for auth and storage schemas
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/nextjs@1.13.9
+
 ## 0.11.16
 
 ### Patch Changes
