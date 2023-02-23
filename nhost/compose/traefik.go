@@ -147,7 +147,7 @@ func makeTraefikServiceLabels(svcName string, port int, opts ...traefikSvcLabelO
 	}
 
 	if o.redirect != "" {
-		labels["traefik.http.middlewares.redirect-"+o.svcName+".redirectregex.regex"] = "^(.*)$"
+		labels["traefik.http.middlewares.redirect-"+o.svcName+".redirectregex.regex"] = "^(.*)$$"
 		labels["traefik.http.middlewares.redirect-"+o.svcName+".redirectregex.replacement"] = o.redirect
 	}
 

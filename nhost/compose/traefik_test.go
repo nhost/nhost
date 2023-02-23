@@ -75,7 +75,7 @@ func Test_traefikLabels(t *testing.T) {
 				"traefik.http.routers.hasura-console.middlewares":                                   "hasura-console-cors@docker,redirect-hasura-console@docker",
 				"traefik.http.routers.hasura-console.service":                                       "hasura-console",
 				"traefik.http.services.hasura-console.loadbalancer.server.port":                     "8080",
-				"traefik.http.middlewares.redirect-hasura-console.redirectregex.regex":              "^(.*)$",
+				"traefik.http.middlewares.redirect-hasura-console.redirectregex.regex":              "^(.*)$$",
 				"traefik.http.middlewares.redirect-hasura-console.redirectregex.replacement":        "http://localhost:9695",
 			},
 		},
