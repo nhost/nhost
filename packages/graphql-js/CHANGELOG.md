@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.0.3
+
+### Patch Changes
+
+- 2d9145f9: chore(deps): revert GraphQL client
+
 ## 0.0.2
 
 ### Patch Changes

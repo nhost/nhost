@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.11.16
+
+### Patch Changes
+
+- b755e908: fix(dashboard): use correct date for last seen
+- 2d9145f9: chore(deps): revert GraphQL client
+- 1ddf704c: fix(dashboard): don't show false positive message for failed user creation
+  - @nhost/react-apollo@5.0.3
+  - @nhost/nextjs@1.13.8
+
 ## 0.11.15
 
 ### Patch Changes
