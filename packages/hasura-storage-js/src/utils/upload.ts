@@ -81,7 +81,6 @@ export const fetchUpload = async (
   }
   // * Browser environment: XMLHttpRequest is available
   return new Promise((resolve) => {
-    console.log('NOOOOOOO')
     let xhr = new XMLHttpRequest()
     xhr.responseType = 'json'
 
