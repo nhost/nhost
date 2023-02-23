@@ -1,5 +1,6 @@
 {
-  "name": "functions",
+  "name": "@nhost-examples/docker-compose-functions",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

@@ -1,5 +1,6 @@
 {
-  "name": "functions",
+  "name": "@nhost/nhost-js-functions",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
