@@ -59,15 +59,17 @@ export class NhostFunctionsClient {
     body: D,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>> {
-    const requestUrl = `${this.url}${url.startsWith('/') ? url : `/${url}`}`
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
       ...config?.headers
     }
 
+    const backendUrl = this.url
+    const functionUrl = url.startsWith('/') ? url : `/${url}`
+
     try {
-      const result = await fetch(requestUrl, {
+      const result = await fetch(`${backendUrl}/${functionUrl}`, {
         body: JSON.stringify(body),
         headers,
         method: 'POST'
