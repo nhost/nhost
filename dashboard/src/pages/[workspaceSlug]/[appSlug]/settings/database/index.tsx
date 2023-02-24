@@ -45,6 +45,8 @@ export default function DatabaseSettingsPage() {
     triggerToast('Error loading database connection info');
   }
 
+  console.log(data);
+
   const settingsDatabaseCustomInputs: InputProps[] = [
     {
       name: 'postgresHost',

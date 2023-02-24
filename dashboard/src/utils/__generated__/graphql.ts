@@ -1186,13 +1186,13 @@ export type ConfigSmsUpdateInput = {
 
 export type ConfigSmtp = {
   __typename?: 'ConfigSmtp';
-  host?: Maybe<Scalars['String']>;
-  method?: Maybe<Scalars['String']>;
-  password?: Maybe<Scalars['String']>;
-  port?: Maybe<Scalars['ConfigPort']>;
-  secure?: Maybe<Scalars['Boolean']>;
-  sender?: Maybe<Scalars['String']>;
-  user?: Maybe<Scalars['String']>;
+  host: Scalars['String'];
+  method: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  secure: Scalars['Boolean'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
 };
 
 export type ConfigSmtpComparisonExp = {
@@ -1209,13 +1209,13 @@ export type ConfigSmtpComparisonExp = {
 };
 
 export type ConfigSmtpInsertInput = {
-  host?: InputMaybe<Scalars['String']>;
-  method?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
-  port?: InputMaybe<Scalars['ConfigPort']>;
-  secure?: InputMaybe<Scalars['Boolean']>;
-  sender?: InputMaybe<Scalars['String']>;
-  user?: InputMaybe<Scalars['String']>;
+  host: Scalars['String'];
+  method: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  secure: Scalars['Boolean'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
 };
 
 export type ConfigSmtpUpdateInput = {
@@ -1417,6 +1417,7 @@ export type ConfigSystemConfigPostgresComparisonExp = {
 export type ConfigSystemConfigPostgresConnectionString = {
   __typename?: 'ConfigSystemConfigPostgresConnectionString';
   auth: Scalars['String'];
+  backup: Scalars['String'];
   hasura: Scalars['String'];
   storage: Scalars['String'];
 };
@@ -1426,18 +1427,21 @@ export type ConfigSystemConfigPostgresConnectionStringComparisonExp = {
   _not?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
   _or?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
   auth?: InputMaybe<ConfigStringComparisonExp>;
+  backup?: InputMaybe<ConfigStringComparisonExp>;
   hasura?: InputMaybe<ConfigStringComparisonExp>;
   storage?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionStringInsertInput = {
   auth: Scalars['String'];
+  backup: Scalars['String'];
   hasura: Scalars['String'];
   storage: Scalars['String'];
 };
 
 export type ConfigSystemConfigPostgresConnectionStringUpdateInput = {
   auth?: InputMaybe<Scalars['String']>;
+  backup?: InputMaybe<Scalars['String']>;
   hasura?: InputMaybe<Scalars['String']>;
   storage?: InputMaybe<Scalars['String']>;
 };
@@ -2271,7 +2275,7 @@ export type Apps = {
   backups: Array<Backups>;
   /** An aggregate relationship */
   backups_aggregate: Backups_Aggregate;
-  config: ConfigConfig;
+  config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
   creator?: Maybe<Users>;
@@ -2338,7 +2342,7 @@ export type Apps = {
   slug: Scalars['String'];
   stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
-  systemConfig: ConfigSystemConfig;
+  systemConfig?: Maybe<ConfigSystemConfig>;
   updatedAt: Scalars['timestamptz'];
   webhookSecret: Scalars['String'];
   /** An object relationship */
@@ -10872,7 +10876,7 @@ export type Mutation_Root = {
   deleteCliToken?: Maybe<CliTokens>;
   /** delete data from the table: "cli_tokens" */
   deleteCliTokens?: Maybe<CliTokens_Mutation_Response>;
-  deleteConfig: ConfigConfig;
+  deleteConfig?: Maybe<ConfigConfig>;
   /** delete single row from the table: "deployments" */
   deleteDeployment?: Maybe<Deployments>;
   /** delete single row from the table: "deployment_logs" */
@@ -14055,7 +14059,7 @@ export type Query_Root = {
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
-  appsSecrets: Array<ConfigAppSecrets>;
+  appsSecrets?: Maybe<Array<ConfigAppSecrets>>;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -14122,7 +14126,7 @@ export type Query_Root = {
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
-  config: ConfigConfig;
+  config?: Maybe<ConfigConfig>;
   configs: Array<ConfigAppConfig>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
@@ -14212,7 +14216,7 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
-  systemConfig: ConfigSystemConfig;
+  systemConfig?: Maybe<ConfigSystemConfig>;
   systemConfigs: Array<ConfigAppSystemConfig>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
@@ -18639,16 +18643,7 @@ export type GetAllAppsWhereQueryVariables = Exact<{
 
 export type GetAllAppsWhereQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
 
-export type GetAppFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authEmailTemplateFetchUrl?: string | null, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authAccessControlAllowedRedirectUrls: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string };
-
-export type GetAppQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authEmailTemplateFetchUrl?: string | null, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authAccessControlAllowedRedirectUrls: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string } | null };
-
-export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } };
+export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null };
 
 export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
   workspace: Scalars['String'];
@@ -18656,14 +18651,7 @@ export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
 }>;
 
 
-export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } }> };
-
-export type GetAppInjectedVariablesQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppInjectedVariablesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, webhookSecret: string, hasuraGraphqlJwtSecret: string } | null };
+export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null }> };
 
 export type GetAppRolesFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, authUserDefaultAllowedRoles: string, authUserDefaultRole: string };
 
@@ -18707,14 +18695,7 @@ export type GetAppProvisionStatusQueryVariables = Exact<{
 }>;
 
 
-export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, hasuraGraphqlAdminSecret: string, createdAt: any }> };
-
-export type GetPostgresCredentialsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetPostgresCredentialsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', postgresUser?: string | null, postgresDatabase?: string | null, postgresPassword: string, postgresHost?: string | null } | null };
+export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, createdAt: any }> };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -18744,7 +18725,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
@@ -18755,7 +18736,7 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 }>;
 
 
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -18764,7 +18745,7 @@ export type GetRolesPermissionsQueryVariables = Exact<{
 }>;
 
 
-export type GetRolesPermissionsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', roles?: { __typename?: 'ConfigAuthUserRoles', allowed?: Array<any> | null, default?: any | null } | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string }> | null } | null } | null } | null } };
+export type GetRolesPermissionsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', roles?: { __typename?: 'ConfigAuthUserRoles', allowed?: Array<any> | null, default?: any | null } | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string }> | null } | null } | null } | null } | null };
 
 export type DeleteSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -18804,14 +18785,14 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } | null };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', config: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host?: string | null, method?: string | null, port?: any | null, secure?: boolean | null, sender?: string | null, user?: string | null } | null } | null } };
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host: string, method: string, port: any, secure: boolean, sender: string, user: string } | null } | null } | null };
 
 export type UpdateConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19180,7 +19161,7 @@ export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', app?: 
 export type GetAllUserDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllUserDataQuery = { __typename?: 'query_root', workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, workspace: { __typename?: 'workspaces', id: any, name: string, creatorUserId?: any | null, apps: Array<{ __typename?: 'apps', id: any, name: string, hasuraGraphqlAdminSecret: string, subdomain: string }> } }> };
+export type GetAllUserDataQuery = { __typename?: 'query_root', workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, workspace: { __typename?: 'workspaces', id: any, name: string, creatorUserId?: any | null, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null }> } }> };
 
 export type GetAvatarQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -19189,12 +19170,14 @@ export type GetAvatarQueryVariables = Exact<{
 
 export type GetAvatarQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, avatarUrl: string } | null };
 
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
+
 export type GetOneUserQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, hasuraGraphqlAdminSecret: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
+export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
 
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -19359,67 +19342,12 @@ export const GetAppPlanAndGlobalPlansPlanFragmentDoc = gql`
   featureMaxDbSize
 }
     `;
-export const GetAppFragmentDoc = gql`
-    fragment GetApp on apps {
-  id
-  slug
-  subdomain
-  name
-  createdAt
-  authEmailSigninEmailVerifiedRequired
-  authPasswordHibpEnabled
-  authEmailPasswordlessEnabled
-  authSmsPasswordlessEnabled
-  authWebAuthnEnabled
-  authClientUrl
-  authEmailTemplateFetchUrl
-  authAccessControlAllowedEmails
-  authAccessControlAllowedEmailDomains
-  authAccessControlBlockedEmails
-  authAccessControlBlockedEmailDomains
-  authAccessControlAllowedRedirectUrls
-  authGithubEnabled
-  authGithubClientId
-  authGithubClientSecret
-  authGoogleEnabled
-  authGoogleClientId
-  authGoogleClientSecret
-  authFacebookEnabled
-  authFacebookClientId
-  authFacebookClientSecret
-  authLinkedinEnabled
-  authLinkedinClientId
-  authLinkedinClientSecret
-  authTwitterEnabled
-  authTwitterConsumerKey
-  authTwitterConsumerSecret
-  authAppleEnabled
-  authAppleTeamId
-  authAppleKeyId
-  authAppleClientId
-  authApplePrivateKey
-  authAppleScope
-  authWindowsLiveEnabled
-  authWindowsLiveClientId
-  authWindowsLiveClientSecret
-  authSpotifyEnabled
-  authSpotifyClientId
-  authSpotifyClientSecret
-  authWorkOsEnabled
-  authWorkOsClientId
-  authWorkOsClientSecret
-  authWorkOsDefaultDomain
-  authWorkOsDefaultOrganization
-  authWorkOsDefaultConnection
-}
-    `;
 export const GetAppByWorkspaceAndNameFragmentDoc = gql`
     fragment GetAppByWorkspaceAndName on apps {
   updatedAt
   id
   slug
   subdomain
-  hasuraGraphqlAdminSecret
   name
   createdAt
   isProvisioned
@@ -19444,6 +19372,11 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
     id
   }
   workspaceId
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
 }
     `;
 export const GetAppRolesFragmentDoc = gql`
@@ -19622,6 +19555,62 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     providerId
   }
   disabled
+}
+    `;
+export const ProjectFragmentDoc = gql`
+    fragment Project on apps {
+  id
+  slug
+  name
+  repositoryProductionBranch
+  subdomain
+  isProvisioned
+  createdAt
+  desiredState
+  nhostBaseFolder
+  providersUpdated
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
+  featureFlags {
+    description
+    id
+    name
+    value
+  }
+  appStates(order_by: {createdAt: desc}, limit: 1) {
+    id
+    appId
+    message
+    stateId
+    createdAt
+  }
+  region {
+    id
+    countryCode
+    awsName
+    city
+  }
+  plan {
+    id
+    name
+    isFree
+  }
+  githubRepository {
+    fullName
+  }
+  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
+  }
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
@@ -19803,44 +19792,6 @@ export type GetAllAppsWhereQueryResult = Apollo.QueryResult<GetAllAppsWhereQuery
 export function refetchGetAllAppsWhereQuery(variables: GetAllAppsWhereQueryVariables) {
       return { query: GetAllAppsWhereDocument, variables: variables }
     }
-export const GetAppDocument = gql`
-    query getApp($id: uuid!) {
-  app(id: $id) {
-    ...GetApp
-  }
-}
-    ${GetAppFragmentDoc}`;
-
-/**
- * __useGetAppQuery__
- *
- * To run a query within a React component, call `useGetAppQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppQuery(baseOptions: Apollo.QueryHookOptions<GetAppQuery, GetAppQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppQuery, GetAppQueryVariables>(GetAppDocument, options);
-      }
-export function useGetAppLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppQuery, GetAppQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppQuery, GetAppQueryVariables>(GetAppDocument, options);
-        }
-export type GetAppQueryHookResult = ReturnType<typeof useGetAppQuery>;
-export type GetAppLazyQueryHookResult = ReturnType<typeof useGetAppLazyQuery>;
-export type GetAppQueryResult = Apollo.QueryResult<GetAppQuery, GetAppQueryVariables>;
-export function refetchGetAppQuery(variables: GetAppQueryVariables) {
-      return { query: GetAppDocument, variables: variables }
-    }
 export const GetAppByWorkspaceAndNameDocument = gql`
     query getAppByWorkspaceAndName($workspace: String!, $slug: String!) {
   apps(where: {workspace: {slug: {_eq: $workspace}}, slug: {_eq: $slug}}) {
@@ -19879,46 +19830,6 @@ export type GetAppByWorkspaceAndNameLazyQueryHookResult = ReturnType<typeof useG
 export type GetAppByWorkspaceAndNameQueryResult = Apollo.QueryResult<GetAppByWorkspaceAndNameQuery, GetAppByWorkspaceAndNameQueryVariables>;
 export function refetchGetAppByWorkspaceAndNameQuery(variables: GetAppByWorkspaceAndNameQueryVariables) {
       return { query: GetAppByWorkspaceAndNameDocument, variables: variables }
-    }
-export const GetAppInjectedVariablesDocument = gql`
-    query getAppInjectedVariables($id: uuid!) {
-  app(id: $id) {
-    id
-    webhookSecret
-    hasuraGraphqlJwtSecret
-  }
-}
-    `;
-
-/**
- * __useGetAppInjectedVariablesQuery__
- *
- * To run a query within a React component, call `useGetAppInjectedVariablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppInjectedVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppInjectedVariablesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppInjectedVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>(GetAppInjectedVariablesDocument, options);
-      }
-export function useGetAppInjectedVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>(GetAppInjectedVariablesDocument, options);
-        }
-export type GetAppInjectedVariablesQueryHookResult = ReturnType<typeof useGetAppInjectedVariablesQuery>;
-export type GetAppInjectedVariablesLazyQueryHookResult = ReturnType<typeof useGetAppInjectedVariablesLazyQuery>;
-export type GetAppInjectedVariablesQueryResult = Apollo.QueryResult<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>;
-export function refetchGetAppInjectedVariablesQuery(variables: GetAppInjectedVariablesQueryVariables) {
-      return { query: GetAppInjectedVariablesDocument, variables: variables }
     }
 export const GetAppRolesAndPermissionsDocument = gql`
     query getAppRolesAndPermissions($id: uuid!) {
@@ -20139,7 +20050,6 @@ export const GetAppProvisionStatusDocument = gql`
     id
     isProvisioned
     subdomain
-    hasuraGraphqlAdminSecret
     createdAt
   }
 }
@@ -20175,47 +20085,6 @@ export type GetAppProvisionStatusLazyQueryHookResult = ReturnType<typeof useGetA
 export type GetAppProvisionStatusQueryResult = Apollo.QueryResult<GetAppProvisionStatusQuery, GetAppProvisionStatusQueryVariables>;
 export function refetchGetAppProvisionStatusQuery(variables: GetAppProvisionStatusQueryVariables) {
       return { query: GetAppProvisionStatusDocument, variables: variables }
-    }
-export const GetPostgresCredentialsDocument = gql`
-    query getPostgresCredentials($id: uuid!) {
-  app(id: $id) {
-    postgresUser
-    postgresDatabase
-    postgresPassword
-    postgresHost
-  }
-}
-    `;
-
-/**
- * __useGetPostgresCredentialsQuery__
- *
- * To run a query within a React component, call `useGetPostgresCredentialsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPostgresCredentialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPostgresCredentialsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetPostgresCredentialsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>(GetPostgresCredentialsDocument, options);
-      }
-export function useGetPostgresCredentialsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>(GetPostgresCredentialsDocument, options);
-        }
-export type GetPostgresCredentialsQueryHookResult = ReturnType<typeof useGetPostgresCredentialsQuery>;
-export type GetPostgresCredentialsLazyQueryHookResult = ReturnType<typeof useGetPostgresCredentialsLazyQuery>;
-export type GetPostgresCredentialsQueryResult = Apollo.QueryResult<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>;
-export function refetchGetPostgresCredentialsQuery(variables: GetPostgresCredentialsQueryVariables) {
-      return { query: GetPostgresCredentialsDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {
@@ -22742,8 +22611,12 @@ export const GetAllUserDataDocument = gql`
       apps {
         id
         name
-        hasuraGraphqlAdminSecret
         subdomain
+        config(resolve: true) {
+          hasura {
+            adminSecret
+          }
+        }
       }
     }
   }
@@ -22835,60 +22708,13 @@ export const GetOneUserDocument = gql`
         slug
         name
         apps {
-          id
-          slug
-          name
-          hasuraGraphqlAdminSecret
-          repositoryProductionBranch
-          subdomain
-          isProvisioned
-          createdAt
-          desiredState
-          nhostBaseFolder
-          providersUpdated
-          featureFlags {
-            description
-            id
-            name
-            value
-          }
-          appStates(order_by: {createdAt: desc}, limit: 1) {
-            id
-            appId
-            message
-            stateId
-            createdAt
-          }
-          region {
-            id
-            countryCode
-            awsName
-            city
-          }
-          plan {
-            id
-            name
-            isFree
-          }
-          githubRepository {
-            fullName
-          }
-          deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
-            id
-            commitSHA
-            commitMessage
-            commitUserName
-            deploymentStartedAt
-            deploymentEndedAt
-            commitUserAvatarUrl
-            deploymentStatus
-          }
+          ...Project
         }
       }
     }
   }
 }
-    `;
+    ${ProjectFragmentDoc}`;
 
 /**
  * __useGetOneUserQuery__

@@ -1,6 +1,6 @@
 import { FindOldApps } from '@/components/home';
 import type { UserData } from '@/hooks/useGetAllUserWorkspacesAndApplications';
-import type { Application, ApplicationState } from '@/types/application';
+import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
@@ -103,7 +103,7 @@ export function RenderWorkspacesWithApps({
           }
 
           const workspaceProjects = workspace.applications
-            .filter((app: Application) =>
+            .filter((app) =>
               app.name.toLowerCase().includes(query.toLowerCase()),
             )
             .sort((appA, appB) => {

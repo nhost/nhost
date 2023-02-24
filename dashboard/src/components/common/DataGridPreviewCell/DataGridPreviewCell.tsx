@@ -205,7 +205,7 @@ export default function DataGridPreviewCell<TData extends object>({
     }
 
     const { presignedUrl } = await appClient.storage
-      .setAdminSecret(currentApplication.hasuraGraphqlAdminSecret)
+      .setAdminSecret(currentApplication.config?.hasura.adminSecret)
       .getPresignedUrl({ fileId: id });
 
     if (!presignedUrl) {

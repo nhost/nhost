@@ -4,6 +4,7 @@
 import type {
   EnvironmentVariableFragment,
   PermissionVariableFragment,
+  ProjectFragment,
   SecretFragment,
 } from '@/utils/__generated__/graphql';
 
@@ -61,27 +62,7 @@ export type FeatureFlag = {
   value: string;
 };
 
-export type Application = {
-  id: string;
-  slug: string;
-  name: string;
-  appStates: ApplicationState[];
-  hasuraGraphqlAdminSecret: string;
-  subdomain: string;
-  isProvisioned: boolean;
-  githubRepository?: { fullName: string } | null;
-  storageSize?: string;
-  repositoryProductionBranch?: string;
-  plan?: { name: string; id: string; isFree?: boolean };
-  createdAt: string;
-  region: { awsName: string; countryCode: string; city: string; id: string };
-  users?: number;
-  deployments: Deployment[];
-  desiredState: DesiredState;
-  nhostBaseFolder?: string;
-  featureFlags: FeatureFlag[];
-  providersUpdated: boolean;
-};
+export type Project = ProjectFragment;
 
 export interface PermissionVariable extends PermissionVariableFragment {
   isSystemVariable?: boolean;

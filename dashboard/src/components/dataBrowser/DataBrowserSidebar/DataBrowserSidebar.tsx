@@ -521,7 +521,7 @@ export default function DataBrowserSidebar({
       document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
   }, []);
 
-  if (isPlatform && !currentApplication?.hasuraGraphqlAdminSecret) {
+  if (isPlatform && !currentApplication?.config?.hasura.adminSecret) {
     return null;
   }
 

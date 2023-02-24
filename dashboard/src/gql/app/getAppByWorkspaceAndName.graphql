@@ -3,7 +3,6 @@ fragment GetAppByWorkspaceAndName on apps {
   id
   slug
   subdomain
-  hasuraGraphqlAdminSecret
   name
   createdAt
   isProvisioned
@@ -28,6 +27,11 @@ fragment GetAppByWorkspaceAndName on apps {
     id
   }
   workspaceId
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
 }
 
 query getAppByWorkspaceAndName($workspace: String!, $slug: String!) {
