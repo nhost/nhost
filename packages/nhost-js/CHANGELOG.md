@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+
 ## 2.0.3
 
 ### Patch Changes

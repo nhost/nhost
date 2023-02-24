@@ -1,5 +1,13 @@
 # @nhost-examples/react-gqty
 
+## 0.0.6
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
 ## 0.0.5
 
 ### Patch Changes
