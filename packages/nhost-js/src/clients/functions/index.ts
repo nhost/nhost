@@ -65,21 +65,28 @@ export class NhostFunctionsClient {
       ...config?.headers
     }
 
+    const backendUrl = this.url
+    const functionUrl = url.startsWith('/') ? url : `/${url}`
+
     try {
-      const result = await fetch(url, {
+      const result = await fetch(`${backendUrl}/${functionUrl}`, {
         body: JSON.stringify(body),
         headers,
         method: 'POST'
       })
+
       if (!result.ok) {
         throw new Error(result.statusText)
       }
+
       let data: T
-      try {
+
+      if (result.headers.get('content-type') === 'application/json') {
         data = await result.json()
-      } catch {
+      } else {
         data = (await result.text()) as unknown as T
       }
+
       return {
         res: { data, status: result.status, statusText: result.statusText },
         error: null

@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 5.0.5
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/apollo@5.0.4
+  - @nhost/react@2.0.4
+
 ## 5.0.4
 
 ### Patch Changes
