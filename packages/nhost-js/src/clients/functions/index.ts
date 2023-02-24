@@ -59,6 +59,7 @@ export class NhostFunctionsClient {
     body: D,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>> {
+    const requestUrl = `${this.url}${url.startsWith('/') ? url : `/${url}`}`
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
@@ -66,20 +67,24 @@ export class NhostFunctionsClient {
     }
 
     try {
-      const result = await fetch(url, {
+      const result = await fetch(requestUrl, {
         body: JSON.stringify(body),
         headers,
         method: 'POST'
       })
+
       if (!result.ok) {
         throw new Error(result.statusText)
       }
+
       let data: T
-      try {
+
+      if (result.headers.get('content-type') === 'application/json') {
         data = await result.json()
-      } catch {
+      } else {
         data = (await result.text()) as unknown as T
       }
+
       return {
         res: { data, status: result.status, statusText: result.statusText },
         error: null
