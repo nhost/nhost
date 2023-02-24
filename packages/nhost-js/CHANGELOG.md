@@ -1,5 +1,29 @@
 # @nhost/nhost-js
 
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(nhost-js): bump `@nhost/hasura-storage-js` to 2.0.1
+- Updated dependencies [445d8ef4]
+  - @nhost/hasura-storage-js@2.0.1
+
+## 2.0.2
+
+### Patch Changes
+
+- 2d9145f9: chore(deps): revert GraphQL client
+- Updated dependencies [2d9145f9]
+  - @nhost/graphql-js@0.0.3
+
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [2200a0ed]
+- Updated dependencies [3b48a627]
+  - @nhost/graphql-js@0.0.2
+
 ## 2.0.0
 
 ### Major Changes

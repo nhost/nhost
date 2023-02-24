@@ -82,8 +82,21 @@ export default function CreateUserForm({
       await toast.promise(
         fetch(signUpUrl, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
-        }).then((res) => res.json()),
+        }).then(async (res) => {
+          const data = await res.json();
+
+          if (res.ok) {
+            return data;
+          }
+
+          if (res.status === 409) {
+            setError('email', { message: data?.message });
+          }
+
+          throw new Error(data?.message || 'Something went wrong.');
+        }),
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
@@ -93,17 +106,10 @@ export default function CreateUserForm({
         },
         getToastStyleProps(),
       );
+
       onSuccess?.();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError('email', {
-          message: error.response.data.message,
-        });
-        return;
-      }
-      setCreateUserFormError(
-        new Error(error.response.data.message || 'Something went wrong.'),
-      );
+    } catch {
+      // Note: Error is already handled by toast.promise
     }
   }
 

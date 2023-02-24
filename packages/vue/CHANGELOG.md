@@ -1,5 +1,26 @@
 # @nhost/vue
 
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
 ## 1.13.6
 
 ### Patch Changes

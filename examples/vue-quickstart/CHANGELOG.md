@@ -1,5 +1,14 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.5
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/apollo` to 5.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/apollo@5.0.3
+  - @nhost/vue@1.13.9
+
 ## 0.0.4
 
 ### Patch Changes

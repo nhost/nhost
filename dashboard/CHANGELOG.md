@@ -1,5 +1,35 @@
 # @nhost/dashboard
 
+## 0.11.17
+
+### Patch Changes
+
+- f673adea: fix(dashboard): set correct Content-Type for user creation
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- 445d8ef4: chore(deps): bump `@nhost/nextjs` to 1.13.9
+- 0368663d: fix(dashboard): allow permission editing for auth and storage schemas
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/nextjs@1.13.9
+
+## 0.11.16
+
+### Patch Changes
+
+- b755e908: fix(dashboard): use correct date for last seen
+- 2d9145f9: chore(deps): revert GraphQL client
+- 1ddf704c: fix(dashboard): don't show false positive message for failed user creation
+  - @nhost/react-apollo@5.0.3
+  - @nhost/nextjs@1.13.8
+
+## 0.11.15
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.2
+- @nhost/nextjs@1.13.7
+
 ## 0.11.14
 
 ### Patch Changes
