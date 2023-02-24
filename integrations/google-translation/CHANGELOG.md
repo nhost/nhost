@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.0.3
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+
 ## 0.0.2
 
 ### Patch Changes

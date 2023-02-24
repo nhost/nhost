@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.11.18
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react-apollo@5.0.5
+  - @nhost/nextjs@1.13.10
+
 ## 0.11.17
 
 ### Patch Changes

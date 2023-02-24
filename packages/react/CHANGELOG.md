@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
 ## 2.0.3
 
 ### Patch Changes

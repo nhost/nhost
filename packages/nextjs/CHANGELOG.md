@@ -1,5 +1,13 @@
 # @nhost/nextjs
 
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
 ## 1.13.9
 
 ### Patch Changes

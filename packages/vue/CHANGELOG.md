@@ -1,5 +1,13 @@
 # @nhost/vue
 
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
 ## 1.13.9
 
 ### Patch Changes
