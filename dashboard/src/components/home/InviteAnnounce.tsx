@@ -58,16 +58,19 @@ export function InviteAnnounce() {
       error: null,
       loading: true,
     });
-    const res = await nhost.functions.call('/accept-workspace-invite', {
-      workspaceMemberInviteId: invite.id,
-      isAccepted: true,
-    });
+    const { res, error: acceptError } = await nhost.functions.call(
+      '/accept-workspace-invite',
+      {
+        workspaceMemberInviteId: invite.id,
+        isAccepted: true,
+      },
+    );
 
-    if (res?.res?.status !== 200) {
+    if (res?.status !== 200) {
       triggerToast('An error occurred when trying to accept the invitation.');
 
       return setSubmitState({
-        error: new Error(res.error.message),
+        error: new Error(acceptError.message),
         loading: false,
       });
     }
@@ -90,7 +93,7 @@ export function InviteAnnounce() {
       error: null,
     });
 
-    const res = await nhost.functions.call(
+    const { error: ignoreError } = await nhost.functions.call(
       '/accept-workspace-invite',
       {
         workspaceMemberInviteId: inviteId,
@@ -99,12 +102,12 @@ export function InviteAnnounce() {
       { useAxios: false },
     );
 
-    if (res?.error) {
+    if (ignoreError) {
       triggerToast('An error occurred when trying to ignore the invitation.');
 
       setIgnoreState({
         loading: false,
-        error: new Error(res.error.message),
+        error: new Error(ignoreError.message),
       });
 
       return;
