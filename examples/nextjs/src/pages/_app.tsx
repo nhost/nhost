@@ -2,21 +2,13 @@ import { AppShell, Header, MantineProvider } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
 import { NhostClient, NhostProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
-import { inspect } from '@xstate/inspect'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import NavBar from '../components/NavBar'
 import { BACKEND_URL } from '../helpers'
 import '../styles/globals.css?inline'
 
-const devTools = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_DEBUG
-if (devTools) {
-  inspect({
-    url: 'https://stately.ai/viz?inspect',
-    iframe: false
-  })
-}
-const nhost = new NhostClient({ backendUrl: BACKEND_URL, devTools })
+const nhost = new NhostClient({ backendUrl: BACKEND_URL })
 const title = 'Nhost with NextJs'
 function MyApp({ Component, pageProps }: AppProps) {
   // * Monorepo-related. See: https://stackoverflow.com/questions/71843247/react-nextjs-type-error-component-cannot-be-used-as-a-jsx-component
