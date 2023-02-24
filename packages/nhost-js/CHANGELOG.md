@@ -1,5 +1,72 @@
 # @nhost/nhost-js
 
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(nhost-js): bump `@nhost/hasura-storage-js` to 2.0.1
+- Updated dependencies [445d8ef4]
+  - @nhost/hasura-storage-js@2.0.1
+
+## 2.0.2
+
+### Patch Changes
+
+- 2d9145f9: chore(deps): revert GraphQL client
+- Updated dependencies [2d9145f9]
+  - @nhost/graphql-js@0.0.3
+
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [2200a0ed]
+- Updated dependencies [3b48a627]
+  - @nhost/graphql-js@0.0.2
+
+## 2.0.0
+
+### Major Changes
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
+  **Breaking Changes**
+
+  - The `config` type of `nhost.functions.call(url, data, config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
+
+  - The `config` type of `nhost.graphql.request(document, [variables], config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
+
+### Minor Changes
+
+- c9d2d31a: Add new getters `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl`
+
+  `nhost.graphql.getUrl()` is now deprecated.
+
+- 80bbd3a1: Improve type inference of `nhost.graphql.request`
+
+  The method `nhost.graphql.request` is now set to infer result and variables types from [typed document nodes](https://github.com/dotansimha/graphql-typed-document-node).
+
+- 2949ff0f: Introduce typed `nhost.graphql.query` and `nhost.graphql.mutation`
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [19b11d40]
+  - @nhost/hasura-storage-js@2.0.0
+  - @nhost/hasura-auth-js@2.0.0
+  - @nhost/graphql-js@0.0.1
+
 ## 1.13.4
 
 ### Patch Changes

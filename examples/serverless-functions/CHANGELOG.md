@@ -1,5 +1,13 @@
 # @nhost-examples/serverless-functions
 
+## 0.0.7
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/stripe-graphql-js@1.0.2
+
 ## 0.0.6
 
 ### Patch Changes

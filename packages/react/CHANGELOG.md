@@ -1,5 +1,102 @@
 # @nhost/react
 
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 2.0.2
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove deprecated signatures in React hooks
+
+  It is now not possible to send the input values of the following hooks when creating them:
+
+  - `useChangeEmail`
+  - `useChangePassword`
+  - `useResetPassword`
+  - `useSendVerificationEmail`
+  - `useSignInEmailPassword`
+  - `useSignInEmailPasswordless`
+  - `useSignUpEmailPassword`
+
+  For instance, it is not possible to do the following:
+
+  ```tsx
+  const [email, setEmail] = useState('')
+  const { changeEmail } = useChangeEmail(email)
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      await changeEmail()
+  }
+
+  return <form onSubmit={ handleSubmit }>
+              <input value={email} onChange={onChange={(event) => setEmail(event.target.value)}}  />
+         </form>
+  ```
+
+  Instead, write:
+
+  ```tsx
+  const [email, setEmail] = useState('')
+  const { changeEmail } = useChangeEmail()
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      await changeEmail(email)
+  }
+
+  return <form onSubmit={ handleSubmit }>
+              <input value={email} onChange={onChange={(event) => setEmail(event.target.value)}}  />
+         </form>
+
+  ```
+
+- 19b11d40: Remove deprecated hooks
+
+  - `useNhostAuth`: use `useNhostClient` instead
+  - `useAuthLoading`: use `useAuthenticationStatus` instead
+  - `useAvatarUrl`: use `useUserAvatarUrl` instead.
+  - `useDefaultRole`: use `useUserDefaultRole` instead.
+  - `useDisplayName`: use `useUserDisplayName` instead.
+  - `useEmail`: use `useUserEmail` instead.
+  - `useIsAnonymous`: use `useUserIsAnonymous` instead.
+  - `useNhostBackendUrl`: use `useNhostClient` instead, then the urls in the respective `nhost.<auth,storage,graphql,functions>` clients
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
 ## 1.13.5
 
 ### Patch Changes

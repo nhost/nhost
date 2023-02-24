@@ -1,5 +1,29 @@
 # @nhost-examples/nextjs
 
+## 0.1.7
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react-apollo@5.0.5
+  - @nhost/nextjs@1.13.10
+  - @nhost/react@2.0.4
+
+## 0.1.6
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- 445d8ef4: chore(deps): bump `@nhost/nextjs` to 1.13.9
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/nextjs@1.13.9
+  - @nhost/react@2.0.3
+
 ## 0.1.5
 
 ### Patch Changes

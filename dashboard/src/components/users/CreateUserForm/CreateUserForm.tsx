@@ -81,26 +81,35 @@ export default function CreateUserForm({
       await toast.promise(
         fetch(signUpUrl, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
-        }).then((res) => res.json()),
+        }).then(async (res) => {
+          const data = await res.json();
+
+          if (res.ok) {
+            return data;
+          }
+
+          if (res.status === 409) {
+            setError('email', { message: data?.message });
+          }
+
+          throw new Error(data?.message || 'Something went wrong.');
+        }),
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
-          error: 'An error occurred while trying to create the user.',
+          error: (arg) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : 'An error occurred while trying to create the user.',
         },
         getToastStyleProps(),
       );
+
       onSuccess?.();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError('email', {
-          message: error.response.data.message,
-        });
-        return;
-      }
-      setCreateUserFormError(
-        new Error(error.response.data.message || 'Something went wrong.'),
-      );
+    } catch {
+      // Note: Error is already handled by toast.promise
     }
   }
 
@@ -137,7 +146,7 @@ export default function CreateUserForm({
         {createUserFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createUserFormError.message}

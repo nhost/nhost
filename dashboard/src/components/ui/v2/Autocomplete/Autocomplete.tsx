@@ -222,9 +222,9 @@ function Autocomplete(
     inputValue: inputValue || '',
     getOptionLabel: props.getOptionLabel
       ? props.getOptionLabel
-      : (option) => {
-          if (typeof option === 'string') {
-            return option;
+      : (option: string | number | AutocompleteOption<string>) => {
+          if (typeof option !== 'object') {
+            return option.toString();
           }
 
           return option.label ?? option.dropdownLabel;
@@ -284,33 +284,46 @@ function Autocomplete(
       }}
       PopperComponent={AutocompletePopper}
       popupIcon={<ChevronDownIcon sx={{ width: 12, height: 12 }} />}
-      getOptionLabel={(option) => {
-        if (typeof option === 'string') {
-          return option;
+      getOptionLabel={(
+        option: string | number | AutocompleteOption<string>,
+      ) => {
+        if (!option) {
+          return '';
+        }
+
+        if (typeof option !== 'object') {
+          return option.toString();
         }
 
         return option.label ?? option.dropdownLabel;
       }}
-      isOptionEqualToValue={(option, value) => {
+      isOptionEqualToValue={(
+        option,
+        value: string | number | AutocompleteOption<string>,
+      ) => {
         if (!value) {
           return false;
         }
 
-        if (typeof value === 'string') {
-          return option.value === value;
+        if (typeof value !== 'object') {
+          return option.value.toString() === value.toString();
         }
 
         return option.value === value.value && option.custom === value.custom;
       }}
       renderTags={(value, getTagProps) =>
-        value.map((option, index) => (
-          <StyledTag
-            deleteIcon={<XIcon />}
-            size="small"
-            label={typeof option === 'string' ? option : option.value}
-            {...getTagProps({ index })}
-          />
-        ))
+        value.map(
+          (option: string | number | AutocompleteOption<string>, index) => (
+            <StyledTag
+              deleteIcon={<XIcon />}
+              size="small"
+              label={
+                typeof option !== 'object' ? option.toString() : option.value
+              }
+              {...getTagProps({ index })}
+            />
+          ),
+        )
       }
       renderGroup={({ group, key, children }) =>
         group ? (
@@ -323,9 +336,12 @@ function Autocomplete(
           <div key={key}>{children}</div>
         )
       }
-      renderOption={(optionProps, option) => {
-        if (typeof option === 'string') {
-          return <OptionBase {...optionProps}>{option}</OptionBase>;
+      renderOption={(
+        optionProps,
+        option: string | number | AutocompleteOption<string>,
+      ) => {
+        if (typeof option !== 'object') {
+          return <OptionBase {...optionProps}>{option.toString()}</OptionBase>;
         }
 
         return (
