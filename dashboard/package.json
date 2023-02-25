@@ -112,7 +112,7 @@
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
     "@vitejs/plugin-react": "^3.0.0",
-    "@vitest/coverage-c8": "^0.27.0",
+    "@vitest/coverage-c8": "^0.29.0",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
@@ -143,7 +143,7 @@
     "typescript": "^4.8.4",
     "vite": "^4.0.2",
     "vite-tsconfig-paths": "^4.0.3",
-    "vitest": "^0.27.0",
+    "vitest": "^0.29.0",
     "webpack": "^5.75.0"
   },
   "browserslist": {
