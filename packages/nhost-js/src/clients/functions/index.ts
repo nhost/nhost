@@ -69,7 +69,7 @@ export class NhostFunctionsClient {
     const functionUrl = url.startsWith('/') ? url : `/${url}`
 
     try {
-      const result = await fetch(`${backendUrl}${functionUrl}`, {
+      const result = await fetch(`${backendUrl}/${functionUrl}`, {
         body: JSON.stringify(body),
         headers,
         method: 'POST'
