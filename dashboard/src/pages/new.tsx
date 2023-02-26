@@ -21,7 +21,7 @@ import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getCurrentEnvironment, slugifyString } from '@/utils/helpers';
+import { getCurrentEnvironment } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
@@ -146,17 +146,6 @@ export function NewProjectPageContent({
       });
     }
 
-    const slug = slugifyString(name);
-
-    if (slug.length < 1 || slug.length > 32) {
-      setSubmitState({
-        error: Error('The project slug must be between 1 and 32 characters.'),
-        loading: false,
-      });
-
-      return;
-    }
-
     if (isK8SPostgresEnabledInCurrentEnvironment) {
       try {
         await resetDatabasePasswordValidationSchema.validate({
@@ -175,28 +164,31 @@ export function NewProjectPageContent({
     // subdomain max length is 63 characters
     // const subdomain = `${slug}-${workspaceSlug}`.substring(0, 63);
 
+    let slug = '';
+
     try {
       if (isK8SPostgresEnabledInCurrentEnvironment) {
-        await createNewApp({
+        const { data } = await createNewApp({
           variables: {
             name,
-            slug,
             planId: plan.id,
             workspaceId: selectedWorkspace.id,
             regionId: selectedRegion.id,
             postgresPassword: databasePassword,
           },
         });
+
+        slug = data.createNewApp.slug;
       } else {
-        await createNewApp({
+        const { data } = await createNewApp({
           variables: {
             name,
-            slug,
             planId: plan.id,
             workspaceId: selectedWorkspace.id,
             regionId: selectedRegion.id,
           },
         });
+        slug = data.createNewApp.slug;
       }
 
       triggerToast(`New project ${name} created`);

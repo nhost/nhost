@@ -55,7 +55,8 @@ export type Boolean_Comparison_Exp = {
 
 export type CreateNewApp = {
   __typename?: 'CreateNewApp';
-  created: Scalars['Boolean'];
+  id?: Maybe<Scalars['String']>;
+  slug?: Maybe<Scalars['String']>;
 };
 
 /** Database Backups */
@@ -9870,7 +9871,6 @@ export type Mutation_RootCreateNewAppArgs = {
   planId: Scalars['String'];
   postgresPassword?: InputMaybe<Scalars['String']>;
   regionId: Scalars['String'];
-  slug: Scalars['String'];
   workspaceId: Scalars['String'];
 };
 
@@ -17156,7 +17156,6 @@ export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: A
 
 export type CreateNewAppMutationVariables = Exact<{
   name: Scalars['String'];
-  slug: Scalars['String'];
   planId: Scalars['String'];
   workspaceId: Scalars['String'];
   regionId: Scalars['String'];
@@ -17164,7 +17163,7 @@ export type CreateNewAppMutationVariables = Exact<{
 }>;
 
 
-export type CreateNewAppMutation = { __typename?: 'mutation_root', createNewApp: { __typename?: 'CreateNewApp', created: boolean } };
+export type CreateNewAppMutation = { __typename?: 'mutation_root', createNewApp: { __typename?: 'CreateNewApp', id?: string | null, slug?: string | null } };
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -18336,16 +18335,16 @@ export function refetchGetAppPlanAndGlobalPlansQuery(variables: GetAppPlanAndGlo
       return { query: GetAppPlanAndGlobalPlansDocument, variables: variables }
     }
 export const CreateNewAppDocument = gql`
-    mutation CreateNewApp($name: String!, $slug: String!, $planId: String!, $workspaceId: String!, $regionId: String!, $postgresPassword: String) {
+    mutation CreateNewApp($name: String!, $planId: String!, $workspaceId: String!, $regionId: String!, $postgresPassword: String) {
   createNewApp(
     name: $name
-    slug: $slug
     planId: $planId
     workspaceId: $workspaceId
     regionId: $regionId
     postgresPassword: $postgresPassword
   ) {
-    created
+    id
+    slug
   }
 }
     `;
@@ -18365,7 +18364,6 @@ export type CreateNewAppMutationFn = Apollo.MutationFunction<CreateNewAppMutatio
  * const [createNewAppMutation, { data, loading, error }] = useCreateNewAppMutation({
  *   variables: {
  *      name: // value for 'name'
- *      slug: // value for 'slug'
  *      planId: // value for 'planId'
  *      workspaceId: // value for 'workspaceId'
  *      regionId: // value for 'regionId'

@@ -1,6 +1,5 @@
 mutation CreateNewApp(
   $name: String!
-  $slug: String!
   $planId: String!
   $workspaceId: String!
   $regionId: String!
@@ -8,12 +7,12 @@ mutation CreateNewApp(
 ) {
   createNewApp(
     name: $name
-    slug: $slug
     planId: $planId
     workspaceId: $workspaceId
     regionId: $regionId
     postgresPassword: $postgresPassword
   ) {
-    created
+    id
+    slug
   }
 }
