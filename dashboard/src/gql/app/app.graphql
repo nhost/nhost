@@ -1,0 +1,19 @@
+mutation CreateNewApp(
+  $name: String!
+  $slug: String!
+  $planId: String!
+  $workspaceId: String!
+  $regionId: String!
+  $postgresPassword: String
+) {
+  createNewApp(
+    name: $name
+    slug: $slug
+    planId: $planId
+    workspaceId: $workspaceId
+    regionId: $regionId
+    postgresPassword: $postgresPassword
+  ) {
+    created
+  }
+}

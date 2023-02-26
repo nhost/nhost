@@ -53,6 +53,11 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
 };
 
+export type CreateNewApp = {
+  __typename?: 'CreateNewApp';
+  created: Scalars['Boolean'];
+};
+
 /** Database Backups */
 export type DatabaseBackupEntry = {
   __typename?: 'DatabaseBackupEntry';
@@ -855,6 +860,7 @@ export type Apps = {
   /** An object relationship */
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion: Scalars['String'];
   hasuraGraphqlAdminSecret: Scalars['String'];
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
@@ -863,11 +869,16 @@ export type Apps = {
   hasuraGraphqlEnabledApis: Scalars['String'];
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret: Scalars['String'];
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion: Scalars['String'];
   hasuraVersion: Scalars['String'];
   id: Scalars['uuid'];
   isProvisioned: Scalars['Boolean'];
   metadataFunctions: Scalars['jsonb'];
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
   /** whether or not this app is paused */
@@ -1237,6 +1248,7 @@ export type Apps_Bool_Exp = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlAdminSecret?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<String_Comparison_Exp>;
@@ -1245,11 +1257,16 @@ export type Apps_Bool_Exp = {
   hasuraGraphqlEnabledApis?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlJwtSecret?: InputMaybe<String_Comparison_Exp>;
+  hasuraPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraStorageVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraVersion?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isProvisioned?: InputMaybe<Boolean_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
+  mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
   paused?: InputMaybe<Boolean_Comparison_Exp>;
@@ -1427,6 +1444,7 @@ export type Apps_Insert_Input = {
   featureFlags?: InputMaybe<FeatureFlags_Arr_Rel_Insert_Input>;
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -1435,11 +1453,16 @@ export type Apps_Insert_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -1549,15 +1572,21 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -1659,15 +1688,21 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -1770,15 +1805,21 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -1880,15 +1921,21 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -2047,6 +2094,7 @@ export type Apps_Order_By = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Order_By>;
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
@@ -2055,11 +2103,16 @@ export type Apps_Order_By = {
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isProvisioned?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   paused?: InputMaybe<Order_By>;
@@ -2308,6 +2361,8 @@ export enum Apps_Select_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -2324,6 +2379,10 @@ export enum Apps_Select_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -2333,6 +2392,12 @@ export enum Apps_Select_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -2615,6 +2680,7 @@ export type Apps_Set_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2623,11 +2689,16 @@ export type Apps_Set_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -2824,6 +2895,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2832,11 +2904,16 @@ export type Apps_Stream_Cursor_Value_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -3092,6 +3169,8 @@ export enum Apps_Update_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -3108,6 +3187,10 @@ export enum Apps_Update_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -3117,6 +3200,12 @@ export enum Apps_Update_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -3569,7 +3658,9 @@ export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
   expiresAt: Scalars['timestamptz'];
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
+  refreshTokenHash?: Maybe<Scalars['String']>;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -3630,6 +3721,7 @@ export type AuthRefreshTokens_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -3644,6 +3736,7 @@ export enum AuthRefreshTokens_Constraint {
 export type AuthRefreshTokens_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -3654,7 +3747,9 @@ export type AuthRefreshTokens_Max_Fields = {
   __typename?: 'authRefreshTokens_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3662,7 +3757,9 @@ export type AuthRefreshTokens_Max_Fields = {
 export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3671,7 +3768,9 @@ export type AuthRefreshTokens_Min_Fields = {
   __typename?: 'authRefreshTokens_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3679,7 +3778,9 @@ export type AuthRefreshTokens_Min_Fields = {
 export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3704,12 +3805,14 @@ export type AuthRefreshTokens_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: auth.refresh_tokens */
 export type AuthRefreshTokens_Pk_Columns_Input = {
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
 };
 
@@ -3722,6 +3825,8 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshToken = 'refreshToken',
   /** column name */
+  RefreshTokenHash = 'refreshTokenHash',
+  /** column name */
   UserId = 'userId'
 }
 
@@ -3729,6 +3834,7 @@ export enum AuthRefreshTokens_Select_Column {
 export type AuthRefreshTokens_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -3745,7 +3851,9 @@ export type AuthRefreshTokens_Stream_Cursor_Input = {
 export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -9289,6 +9397,7 @@ export type Mutation_Root = {
   backupApplicationDatabase: BackupResult;
   /** Create a database backup */
   createDatabaseBackup: DatabaseBackupEntry;
+  createNewApp: CreateNewApp;
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -9752,6 +9861,17 @@ export type Mutation_RootBackupApplicationDatabaseArgs = {
 /** mutation root */
 export type Mutation_RootCreateDatabaseBackupArgs = {
   appId: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootCreateNewAppArgs = {
+  name: Scalars['String'];
+  planId: Scalars['String'];
+  postgresPassword?: InputMaybe<Scalars['String']>;
+  regionId: Scalars['String'];
+  slug: Scalars['String'];
+  workspaceId: Scalars['String'];
 };
 
 
@@ -12596,6 +12716,7 @@ export type Query_Root = {
   githubRepository?: Maybe<GithubRepositories>;
   /** health */
   health: Health;
+  healthCheckTest: Scalars['Boolean'];
   listInactiveApps: Array<Scalars['uuid']>;
   /**
    * Returns logs for a given application. If `service` is not provided all services are returned.
@@ -17033,6 +17154,18 @@ export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
 
 export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
 
+export type CreateNewAppMutationVariables = Exact<{
+  name: Scalars['String'];
+  slug: Scalars['String'];
+  planId: Scalars['String'];
+  workspaceId: Scalars['String'];
+  regionId: Scalars['String'];
+  postgresPassword?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type CreateNewAppMutation = { __typename?: 'mutation_root', createNewApp: { __typename?: 'CreateNewApp', created: boolean } };
+
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -18202,6 +18335,51 @@ export type GetAppPlanAndGlobalPlansQueryResult = Apollo.QueryResult<GetAppPlanA
 export function refetchGetAppPlanAndGlobalPlansQuery(variables: GetAppPlanAndGlobalPlansQueryVariables) {
       return { query: GetAppPlanAndGlobalPlansDocument, variables: variables }
     }
+export const CreateNewAppDocument = gql`
+    mutation CreateNewApp($name: String!, $slug: String!, $planId: String!, $workspaceId: String!, $regionId: String!, $postgresPassword: String) {
+  createNewApp(
+    name: $name
+    slug: $slug
+    planId: $planId
+    workspaceId: $workspaceId
+    regionId: $regionId
+    postgresPassword: $postgresPassword
+  ) {
+    created
+  }
+}
+    `;
+export type CreateNewAppMutationFn = Apollo.MutationFunction<CreateNewAppMutation, CreateNewAppMutationVariables>;
+
+/**
+ * __useCreateNewAppMutation__
+ *
+ * To run a mutation, you first call `useCreateNewAppMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNewAppMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNewAppMutation, { data, loading, error }] = useCreateNewAppMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *      slug: // value for 'slug'
+ *      planId: // value for 'planId'
+ *      workspaceId: // value for 'workspaceId'
+ *      regionId: // value for 'regionId'
+ *      postgresPassword: // value for 'postgresPassword'
+ *   },
+ * });
+ */
+export function useCreateNewAppMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewAppMutation, CreateNewAppMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewAppMutation, CreateNewAppMutationVariables>(CreateNewAppDocument, options);
+      }
+export type CreateNewAppMutationHookResult = ReturnType<typeof useCreateNewAppMutation>;
+export type CreateNewAppMutationResult = Apollo.MutationResult<CreateNewAppMutation>;
+export type CreateNewAppMutationOptions = Apollo.BaseMutationOptions<CreateNewAppMutation, CreateNewAppMutationVariables>;
 export const DeleteApplicationDocument = gql`
     mutation deleteApplication($appId: uuid!) {
   deleteApp(id: $appId) {
@@ -19171,7 +19349,7 @@ export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariabl
 export const ScheduledOrPendingDeploymentsSubDocument = gql`
     subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
-    where: {deploymentStatus: {_in: ["PENDING", "SCHEDULED"]}, appId: {_eq: $appId}}
+    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
   ) {
     ...DeploymentRow
   }

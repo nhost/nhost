@@ -20,7 +20,6 @@ import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment, slugifyString } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
@@ -34,7 +33,7 @@ import type {
   PrefetchNewAppWorkspaceFragment,
 } from '@/utils/__generated__/graphql';
 import {
-  useInsertApplicationMutation,
+  useCreateNewAppMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
@@ -92,7 +91,7 @@ export function NewProjectPageContent({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // graphql mutations
-  const [insertApp] = useInsertApplicationMutation();
+  const [createNewApp] = useCreateNewAppMutation();
   const { refetchUserData } = useLazyRefetchUserData();
 
   // options
@@ -178,45 +177,41 @@ export function NewProjectPageContent({
 
     try {
       if (isK8SPostgresEnabledInCurrentEnvironment) {
-        await insertApp({
+        await createNewApp({
           variables: {
-            app: {
-              name,
-              slug,
-              planId: plan.id,
-              workspaceId: selectedWorkspace.id,
-              regionId: selectedRegion.id,
-              postgresPassword: databasePassword,
-            },
+            name,
+            slug,
+            planId: plan.id,
+            workspaceId: selectedWorkspace.id,
+            regionId: selectedRegion.id,
+            postgresPassword: databasePassword,
           },
         });
       } else {
-        await insertApp({
+        await createNewApp({
           variables: {
-            app: {
-              name,
-              slug,
-              planId: plan.id,
-              workspaceId: selectedWorkspace.id,
-              regionId: selectedRegion.id,
-            },
+            name,
+            slug,
+            planId: plan.id,
+            workspaceId: selectedWorkspace.id,
+            regionId: selectedRegion.id,
           },
         });
       }
 
       triggerToast(`New project ${name} created`);
     } catch (error) {
-      discordAnnounce(
-        `Error creating project: ${error.message}. (${user.email})`,
-      );
       setSubmitState({
         error: Error(getErrorMessage(error, 'application')),
         loading: false,
       });
+
+      return;
     }
 
     await refetchUserData();
-    router.push(`/${selectedWorkspace.slug}/${slug}`);
+    console.log(`/${selectedWorkspace.slug}/${slug}`);
+    // router.push(`/${selectedWorkspace.slug}/${slug}`);
   };
 
   if (!selectedWorkspace) {
