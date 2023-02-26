@@ -22,7 +22,6 @@ import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
-import { nhost } from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
@@ -31,11 +30,11 @@ import type {
   CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
-  PrefetchNewAppWorkspaceFragment,
+  PrefetchNewAppWorkspaceFragment
 } from '@/utils/__generated__/graphql';
 import {
   useCreateNewAppMutation,
-  usePrefetchNewAppQuery,
+  usePrefetchNewAppQuery
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -117,8 +116,6 @@ export function NewProjectPageContent({
     (availableWorkspace) => availableWorkspace.id === selectedWorkspace.id,
   );
 
-  const user = nhost.auth.getUser();
-
   const isK8SPostgresEnabledInCurrentEnvironment = features[
     'k8s-postgres'
   ].enabled.find((e) => e === getCurrentEnvironment());
@@ -159,11 +156,6 @@ export function NewProjectPageContent({
         });
       }
     }
-
-    // NOTE: Maybe we'll reintroduce this way of creating the subdomain in the future
-    // https://www.rfc-editor.org/rfc/rfc1034#section-3.1
-    // subdomain max length is 63 characters
-    // const subdomain = `${slug}-${workspaceSlug}`.substring(0, 63);
 
     let slug = '';
 
