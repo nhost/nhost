@@ -1027,7 +1027,6 @@ importers:
       '@nhost/hasura-storage-js': workspace:*
       cross-fetch: ^3.1.5
       graphql: 16.6.0
-      start-server-and-test: ^1.15.2
     dependencies:
       '@nhost/graphql-js': link:../graphql-js
       '@nhost/hasura-auth-js': link:../hasura-auth-js
@@ -1035,7 +1034,6 @@ importers:
       cross-fetch: 3.1.5
     devDependencies:
       graphql: 16.6.0
-      start-server-and-test: 1.15.2
 
   packages/react:
     specifiers:
@@ -12817,7 +12815,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@18.11.17
+      vite: 4.0.2_@types+node@16.18.11
     transitivePeerDependencies:
       - supports-color
     dev: true
