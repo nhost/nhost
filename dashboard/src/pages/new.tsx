@@ -28,6 +28,7 @@ import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatab
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import type {
+  CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
   PrefetchNewAppWorkspaceFragment,
@@ -167,29 +168,21 @@ export function NewProjectPageContent({
     let slug = '';
 
     try {
-      if (isK8SPostgresEnabledInCurrentEnvironment) {
-        const { data } = await createNewApp({
-          variables: {
-            name,
-            planId: plan.id,
-            workspaceId: selectedWorkspace.id,
-            regionId: selectedRegion.id,
-            postgresPassword: databasePassword,
-          },
-        });
+      const variables = {
+        name,
+        planId: plan.id,
+        workspaceId: selectedWorkspace.id,
+        regionId: selectedRegion.id,
+        postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
+          ? databasePassword
+          : undefined,
+      } as CreateNewAppMutationVariables;
 
-        slug = data.createNewApp.slug;
-      } else {
-        const { data } = await createNewApp({
-          variables: {
-            name,
-            planId: plan.id,
-            workspaceId: selectedWorkspace.id,
-            regionId: selectedRegion.id,
-          },
-        });
-        slug = data.createNewApp.slug;
-      }
+      const { data } = await createNewApp({
+        variables,
+      });
+
+      slug = data.createNewApp.slug;
 
       triggerToast(`New project ${name} created`);
     } catch (error) {
@@ -202,8 +195,7 @@ export function NewProjectPageContent({
     }
 
     await refetchUserData();
-    console.log(`/${selectedWorkspace.slug}/${slug}`);
-    // router.push(`/${selectedWorkspace.slug}/${slug}`);
+    router.push(`/${selectedWorkspace.slug}/${slug}`);
   };
 
   if (!selectedWorkspace) {
