@@ -157,7 +157,7 @@ export function NewProjectPageContent({
       }
     }
 
-    let slug = '';
+    let projectSlug = '';
 
     try {
       const variables = {
@@ -174,7 +174,7 @@ export function NewProjectPageContent({
         variables,
       });
 
-      slug = data.createNewApp.slug;
+      projectSlug = data.createNewApp.slug;
 
       triggerToast(`New project ${name} created`);
     } catch (error) {
@@ -187,7 +187,7 @@ export function NewProjectPageContent({
     }
 
     await refetchUserData();
-    router.push(`/${selectedWorkspace.slug}/${slug}`);
+    router.push(`/${selectedWorkspace.slug}/${projectSlug}`);
   };
 
   if (!selectedWorkspace) {
