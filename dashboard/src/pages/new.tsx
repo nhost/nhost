@@ -30,11 +30,11 @@ import type {
   CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
-  PrefetchNewAppWorkspaceFragment
+  PrefetchNewAppWorkspaceFragment,
 } from '@/utils/__generated__/graphql';
 import {
   useCreateNewAppMutation,
-  usePrefetchNewAppQuery
+  usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -519,11 +519,10 @@ export function NewProjectPageContent({
 
         {submitState.error && (
           <Alert severity="error" className="text-left">
-            <Text className="font-medium">Warning</Text>{' '}
+            <Text className="font-medium">Error</Text>{' '}
             <Text className="font-medium">
               {submitState.error &&
                 getErrorMessage(submitState.error, 'application')}{' '}
-              asdsda
             </Text>
           </Alert>
         )}
