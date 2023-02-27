@@ -94,8 +94,6 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
       currentApplication = firstApplication;
     }
 
-    console.log(currentApplication);
-
     setCurrentWorkspaceAndApplication({
       currentWorkspace,
       currentApplication,

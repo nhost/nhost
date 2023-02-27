@@ -19152,11 +19152,11 @@ export type ConfirmProvidersUpdatedMutationVariables = Exact<{
 export type ConfirmProvidersUpdatedMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
 
 export type GetDatabaseConnectionInfoQueryVariables = Exact<{
-  id: Scalars['uuid'];
+  appId: Scalars['uuid'];
 }>;
 
 
-export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, postgresUser?: string | null, postgresDatabase?: string | null } | null };
+export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null };
 
 export type GetAllUserDataQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -22561,11 +22561,11 @@ export type ConfirmProvidersUpdatedMutationHookResult = ReturnType<typeof useCon
 export type ConfirmProvidersUpdatedMutationResult = Apollo.MutationResult<ConfirmProvidersUpdatedMutation>;
 export type ConfirmProvidersUpdatedMutationOptions = Apollo.BaseMutationOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
 export const GetDatabaseConnectionInfoDocument = gql`
-    query getDatabaseConnectionInfo($id: uuid!) {
-  app(id: $id) {
-    id
-    postgresUser
-    postgresDatabase
+    query GetDatabaseConnectionInfo($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    postgres {
+      database
+    }
   }
 }
     `;
@@ -22582,7 +22582,7 @@ export const GetDatabaseConnectionInfoDocument = gql`
  * @example
  * const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      appId: // value for 'appId'
  *   },
  * });
  */
