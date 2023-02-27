@@ -64,7 +64,7 @@ export default function AboutPage() {
         <div className="relative z-0 -mt-24 h-72 overflow-hidden bg-black">
           <LineGrid
             slotProps={{ image: { className: 'w-full object-left' } }}
-            className="z-10 h-[100%] w-[100%] -translate-x-1/4 -translate-y-[17.5%] transform-cpu overflow-hidden"
+            className="absolute z-10 mx-auto h-[100%] w-[100%] -translate-y-[17.5%] transform-cpu overflow-hidden"
           />
           <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
           <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
