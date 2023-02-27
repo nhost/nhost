@@ -1,6 +1,6 @@
-import fetch from 'cross-fetch'
 import FormData from 'form-data'
 import fs from 'fs'
+import fetch from 'isomorphic-unfetch'
 import jpeg from 'jpeg-js'
 import pixelmatch from 'pixelmatch'
 import { beforeAll, describe, expect, it } from 'vitest'
