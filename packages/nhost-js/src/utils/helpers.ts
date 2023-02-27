@@ -1,7 +1,7 @@
 import { NhostClientConstructorParams } from './types'
 
 // a port can be a number or a placeholder string with leading and trailing double underscores, f.e. "8080" or "__PLACEHOLDER_NAME__"
-const LOCALHOST_REGEX =
+export const LOCALHOST_REGEX =
   /^((?<protocol>http[s]?):\/\/)?(?<host>(localhost|local))(:(?<port>(\d+|__\w+__)))?$/
 
 /**
