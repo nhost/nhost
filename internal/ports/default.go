@@ -11,4 +11,5 @@ const (
 	DefaultSMTPPort             = 1025
 	DefaultS3MinioPort          = 9000
 	DefaultDashboardPort        = 3030
+	DefaultMailhogPort          = 8025
 )

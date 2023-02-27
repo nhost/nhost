@@ -258,7 +258,6 @@ func checkHostnames() error {
 		compose.HostLocalAuthNhostRun,
 		compose.HostLocalStorageNhostRun,
 		compose.HostLocalFunctionsNhostRun,
-		compose.HostLocalMailhogNhostRun,
 		compose.HostLocalDashboardNhostRun,
 	}
 
@@ -291,8 +290,8 @@ func offlineConfigForSSLHostnames(hostnames []string) string {
 
 func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 	var (
-		proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port, dashboardPort uint32
-		err                                                                                                                  error
+		proxyPort, sslProxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraAPIPort, smtpPort, minioS3Port, dashboardPort, mailhogPort uint32
+		err                                                                                                                               error
 	)
 
 	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
@@ -331,6 +330,10 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		return nil, err
 	}
 
+	if mailhogPort, err = fs.GetUint32(ports.FlagPortMailhog); err != nil {
+		return nil, err
+	}
+
 	return ports.NewPorts(
 		proxyPort,
 		sslProxyPort,
@@ -341,6 +344,7 @@ func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 		smtpPort,
 		minioS3Port,
 		dashboardPort,
+		mailhogPort,
 	), nil
 }
 
@@ -387,6 +391,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
 	devCmd.PersistentFlags().Uint32(ports.FlagPortDashboard, ports.DefaultDashboardPort, "Port for dashboard UI")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortMailhog, ports.DefaultMailhogPort, "Port for mailhog UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 	devCmd.PersistentFlags().StringVar(&uiTypeValue, uiTypeFlag, uiTypeHasura.String(), "UI type, possible values: [hasura, nhost]")

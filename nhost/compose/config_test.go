@@ -22,6 +22,7 @@ func testPorts(t *testing.T) *ports.Ports {
 		ports.DefaultSMTPPort,
 		ports.DefaultS3MinioPort,
 		ports.DefaultDashboardPort,
+		ports.DefaultMailhogPort,
 	)
 }
 
@@ -300,7 +301,6 @@ func TestConfig_addLocaldevExtraHost(t *testing.T) {
 	assert.Equal("host-gateway", svc.ExtraHosts["local.auth.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.storage.nhost.run"])
 	assert.Equal("host-gateway", svc.ExtraHosts["local.functions.nhost.run"])
-	assert.Equal("host-gateway", svc.ExtraHosts["local.mailhog.nhost.run"])
 }
 
 func TestConfig_hasuraMigrationsApiURL(t *testing.T) {
@@ -342,5 +342,5 @@ func TestConfig_postgresConnectionStringForUser(t *testing.T) {
 func TestConfig_PublicMailURL(t *testing.T) {
 	t.Parallel()
 	c := &Config{ports: testPorts(t)}
-	assert.Equal(t, "https://local.mailhog.nhost.run", c.PublicMailhogURL())
+	assert.Equal(t, "http://localhost:8025", c.PublicMailhogURL())
 }

@@ -96,7 +96,6 @@ func (c Config) addExtraHosts(svc *types.ServiceConfig) *types.ServiceConfig {
 		HostLocalAuthNhostRun:      hostGateway,
 		HostLocalStorageNhostRun:   hostGateway,
 		HostLocalFunctionsNhostRun: hostGateway,
-		HostLocalMailhogNhostRun:   hostGateway,
 	}
 	return svc
 }
@@ -206,7 +205,7 @@ func (c Config) storageEnvPublicURL() string {
 }
 
 func (c Config) PublicMailhogURL() string {
-	return MailhogHostname(c.ports.SSLProxy())
+	return MailhogHostname(c.ports.Mailhog())
 }
 
 func (c Config) PublicFunctionsConnectionString() string {

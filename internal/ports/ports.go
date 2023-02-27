@@ -15,13 +15,14 @@ const (
 	FlagPortSMTP             = "smtp-port"
 	FlagPortMinioS3          = "minio-s3-port"
 	FlagPortDashboard        = "dashboard-port"
+	FlagPortMailhog          = "mailhog-port"
 )
 
 type Ports struct {
 	p map[string]uint32
 }
 
-func NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort, minioS3Port, dashboardPort uint32) *Ports {
+func NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort, minioS3Port, dashboardPort, mailhogPort uint32) *Ports {
 	return &Ports{
 		p: map[string]uint32{
 			FlagPortProxy:            proxyPort,
@@ -33,6 +34,7 @@ func NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, consolePort, console
 			FlagPortSMTP:             smtpPort,
 			FlagPortMinioS3:          minioS3Port,
 			FlagPortDashboard:        dashboardPort,
+			FlagPortMailhog:          mailhogPort,
 		},
 	}
 }
@@ -81,6 +83,10 @@ func (p Ports) MinioS3() uint32 {
 
 func (p Ports) Dashboard() uint32 {
 	return p.get(FlagPortDashboard)
+}
+
+func (p Ports) Mailhog() uint32 {
+	return p.get(FlagPortMailhog)
 }
 
 func (p Ports) get(name string) uint32 {

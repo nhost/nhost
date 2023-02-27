@@ -22,6 +22,7 @@ func TestEndpoints_Dump(t *testing.T) {
 		ports.DefaultSMTPPort,
 		ports.DefaultS3MinioPort,
 		ports.DefaultDashboardPort,
+		ports.DefaultMailhogPort,
 	)
 	dcConf := compose.NewConfig(&nhost.Configuration{}, p, []string{}, "", "")
 	endpoints := service.NewEndpoints(
@@ -49,7 +50,7 @@ URLs:
 - Functions:		https://local.functions.nhost.run/v1
 
 - Dashboard:		http://localhost:3030
-- Mailhog:		https://local.mailhog.nhost.run
+- Mailhog:		http://localhost:8025
 
 - subdomain:		local
 - region:		(empty)

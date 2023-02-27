@@ -143,14 +143,9 @@ func TestMailEndpoint(t *testing.T) {
 		want string
 	}{
 		{
-			name: "test with default 443 port",
-			port: 443,
-			want: "https://local.mailhog.nhost.run",
-		},
-		{
-			name: "test with custom port",
-			port: 444,
-			want: "https://local.mailhog.nhost.run:444",
+			name: "test",
+			port: 8025,
+			want: "http://localhost:8025",
 		},
 	}
 	for _, tt := range tests {

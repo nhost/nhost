@@ -48,17 +48,9 @@ func (c Config) mailhogService() *types.ServiceConfig {
 		return nil
 	}
 
-	labels := makeTraefikServiceLabels(
-		SvcMailhog,
-		mailhogUIPort,
-		withTLS(),
-		withHost(HostLocalMailhogNhostRun),
-	)
-
 	return &types.ServiceConfig{
 		Name:        SvcMailhog,
 		Environment: c.mailhogServiceEnvs().dockerServiceConfigEnv(),
-		Labels:      labels.AsMap(),
 		Restart:     types.RestartPolicyAlways,
 		Image:       c.serviceDockerImage(SvcMailhog, svcMailhogDefaultImage),
 		Ports: []types.ServicePortConfig{
@@ -66,6 +58,12 @@ func (c Config) mailhogService() *types.ServiceConfig {
 				Mode:      "ingress",
 				Target:    mailhogSMTPPort,
 				Published: fmt.Sprint(c.ports.SMTP()),
+				Protocol:  "tcp",
+			},
+			{
+				Mode:      "ingress",
+				Target:    8025,
+				Published: fmt.Sprint(c.ports.Mailhog()),
 				Protocol:  "tcp",
 			},
 		},

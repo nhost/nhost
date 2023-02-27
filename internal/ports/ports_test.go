@@ -6,7 +6,7 @@ import (
 )
 
 func makeTestPorts() *Ports {
-	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8, 9)
+	return NewPorts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 }
 
 func TestPorts_Proxy(t *testing.T) {
@@ -52,4 +52,9 @@ func TestPorts_MinioS3(t *testing.T) {
 func TestPorts_Dashboard(t *testing.T) {
 	p := makeTestPorts()
 	assert.Equal(t, p.Dashboard(), uint32(9))
+}
+
+func TestPorts_Mailhog(t *testing.T) {
+	p := makeTestPorts()
+	assert.Equal(t, p.Mailhog(), uint32(10))
 }
