@@ -28,7 +28,7 @@ fragment PrefetchNewAppWorkspace on workspaces {
   }
 }
 
-query PrefetchNewApp {
+query PrefetchNewApp($userId: uuid!) {
   regions(order_by: { city: asc }) {
     ...PrefetchNewAppRegions
   }
@@ -37,5 +37,10 @@ query PrefetchNewApp {
   }
   workspaces {
     ...PrefetchNewAppWorkspace
+  }
+  apps(
+    where: { creatorUserId: { _eq: $userId }, plan: { isFree: { _eq: true } } }
+  ) {
+    id
   }
 }

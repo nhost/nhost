@@ -17302,10 +17302,12 @@ export type PrefetchNewAppPlansFragment = { __typename?: 'plans', id: any, name:
 
 export type PrefetchNewAppWorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> };
 
-export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
+export type PrefetchNewAppQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
 
 
-export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }>, apps: Array<{ __typename?: 'apps', id: any }> };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -19115,7 +19117,7 @@ export type InsertApplicationMutationHookResult = ReturnType<typeof useInsertApp
 export type InsertApplicationMutationResult = Apollo.MutationResult<InsertApplicationMutation>;
 export type InsertApplicationMutationOptions = Apollo.BaseMutationOptions<InsertApplicationMutation, InsertApplicationMutationVariables>;
 export const PrefetchNewAppDocument = gql`
-    query PrefetchNewApp {
+    query PrefetchNewApp($userId: uuid!) {
   regions(order_by: {city: asc}) {
     ...PrefetchNewAppRegions
   }
@@ -19124,6 +19126,9 @@ export const PrefetchNewAppDocument = gql`
   }
   workspaces {
     ...PrefetchNewAppWorkspace
+  }
+  apps(where: {creatorUserId: {_eq: $userId}, plan: {isFree: {_eq: true}}}) {
+    id
   }
 }
     ${PrefetchNewAppRegionsFragmentDoc}
@@ -19142,10 +19147,11 @@ ${PrefetchNewAppWorkspaceFragmentDoc}`;
  * @example
  * const { data, loading, error } = usePrefetchNewAppQuery({
  *   variables: {
+ *      userId: // value for 'userId'
  *   },
  * });
  */
-export function usePrefetchNewAppQuery(baseOptions?: Apollo.QueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
+export function usePrefetchNewAppQuery(baseOptions: Apollo.QueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(PrefetchNewAppDocument, options);
       }
@@ -19156,7 +19162,7 @@ export function usePrefetchNewAppLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type PrefetchNewAppQueryHookResult = ReturnType<typeof usePrefetchNewAppQuery>;
 export type PrefetchNewAppLazyQueryHookResult = ReturnType<typeof usePrefetchNewAppLazyQuery>;
 export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>;
-export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
+export function refetchPrefetchNewAppQuery(variables: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
 export const UpdateAppDocument = gql`

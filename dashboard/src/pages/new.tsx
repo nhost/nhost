@@ -19,9 +19,11 @@ import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
+import { MAX_FREE_APPS } from '@/utils/CONSTANTS';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
+import nhost from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
@@ -30,11 +32,11 @@ import type {
   CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
-  PrefetchNewAppWorkspaceFragment,
+  PrefetchNewAppWorkspaceFragment
 } from '@/utils/__generated__/graphql';
 import {
   useCreateNewAppMutation,
-  usePrefetchNewAppQuery,
+  usePrefetchNewAppQuery
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -46,6 +48,7 @@ type NewAppPageProps = {
   regions: PrefetchNewAppRegionsFragment[];
   plans: PrefetchNewAppPlansFragment[];
   workspaces: PrefetchNewAppWorkspaceFragment[];
+  nrOfFreeAppsCreatedByUser: number;
   preSelectedWorkspace: PrefetchNewAppWorkspaceFragment;
   preSelectedRegion: PrefetchNewAppRegionsFragment;
 };
@@ -54,6 +57,7 @@ export function NewProjectPageContent({
   regions,
   plans,
   workspaces,
+  nrOfFreeAppsCreatedByUser,
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
@@ -83,7 +87,15 @@ export function NewProjectPageContent({
     generateRandomDatabasePassword(),
   );
 
-  const [plan, setPlan] = useState(plans[0]);
+  // find the first acceptable plan as default plan
+  const defaultSelectedPlan = plans.find((plan) => {
+    if (!plan.isFree) {
+      return true;
+    }
+    return nrOfFreeAppsCreatedByUser < MAX_FREE_APPS;
+  });
+
+  const [plan, setPlan] = useState(defaultSelectedPlan);
 
   // state
   const { submitState, setSubmitState } = useSubmitState();
@@ -381,7 +393,6 @@ export function NewProjectPageContent({
             }}
             onChange={(_event, value) => {
               const regionInList = regions.find(({ id }) => id === value);
-              setPlan(plans[0]);
               setSelectedRegion({
                 id: regionInList.id,
                 name: regionInList.country.name,
@@ -454,12 +465,16 @@ export function NewProjectPageContent({
               {plans.map((currentPlan) => {
                 const checked = plan.id === currentPlan.id;
 
+                const disabledPlan =
+                  currentPlan.isFree && nrOfFreeAppsCreatedByUser >= MAX_FREE_APPS;
+
                 return (
                   <Box
                     className="border-t py-4 last-of-type:border-b"
                     key={currentPlan.id}
                   >
                     <Checkbox
+                      disabled={disabledPlan}
                       label={
                         <>
                           <span className="inline-block max-w-xs">
@@ -467,6 +482,11 @@ export function NewProjectPageContent({
                               {currentPlan.name}:
                             </span>{' '}
                             {planDescriptions[currentPlan.name]}
+                            {disabledPlan && (
+                              <div className="font-bold text-red-700">
+                                Diasbled: You can create max 1 free project.
+                              </div>
+                            )}
                           </span>
 
                           {currentPlan.isFree ? (
@@ -571,7 +591,13 @@ export function NewProjectPageContent({
 }
 
 export default function NewProjectPage() {
-  const { data, loading, error } = usePrefetchNewAppQuery();
+  const user = nhost.auth.getUser();
+
+  const { data, loading, error } = usePrefetchNewAppQuery({
+    variables: {
+      userId: user.id,
+    },
+  });
   const router = useRouter();
 
   if (error) {
@@ -596,11 +622,15 @@ export default function NewProjectPage() {
 
   const preSelectedRegion = regions.filter((region) => region.active)[0];
 
+  // the `apps` property is filtered by the GraphQL query
+  const nrOfFreeAppsCreatedByUser = data.apps.length;
+
   return (
     <NewProjectPageContent
       regions={regions}
       plans={plans}
       workspaces={workspaces}
+      nrOfFreeAppsCreatedByUser={nrOfFreeAppsCreatedByUser}
       preSelectedWorkspace={preSelectedWorkspace}
       preSelectedRegion={preSelectedRegion}
     />

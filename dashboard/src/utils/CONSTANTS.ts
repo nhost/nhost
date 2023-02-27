@@ -22,3 +22,8 @@ export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
  * Key used to store the color preference in local storage.
  */
 export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
+
+/**
+ * Maxumum number of free apps a user is allowed to have.
+ */
+export const MAX_FREE_APPS = 1;
