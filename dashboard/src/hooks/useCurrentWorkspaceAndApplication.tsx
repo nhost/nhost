@@ -55,6 +55,11 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         repositoryProductionBranch: null,
         nhostBaseFolder: null,
         plan: null,
+        config: {
+          hasura: {
+            adminSecret: 'nhost-admin-secret',
+          },
+        },
       };
 
       setCurrentWorkspaceAndApplication({
