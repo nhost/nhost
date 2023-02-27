@@ -244,7 +244,6 @@ func (m *dockerComposeManager) Endpoints() *Endpoints {
 		m.composeConfig.PublicAuthConnectionString(),
 		m.composeConfig.PublicStorageConnectionString(),
 		m.composeConfig.PublicFunctionsConnectionString(),
-		m.composeConfig.PublicHasuraConsoleRedirectURL(),
 		m.composeConfig.PublicDashboardURL(),
 		m.composeConfig.PublicMailhogURL(),
 	)
