@@ -85,3 +85,16 @@ function getValueFromEnv(service: string) {
 
   return process.env[`NHOST_${service.toUpperCase()}_URL`]
 }
+
+/**
+ * Combines a base URL and a path into a single URL string.
+ *
+ * @param baseUrl - The base URL to use.
+ * @param path - The path to append to the base URL.
+ * @returns The combined URL string.
+ */
+export function buildUrl(baseUrl: string, path: string) {
+  const hasLeadingSlash = path.startsWith('/')
+  const urlPath = hasLeadingSlash ? path : `/${path}`
+  return baseUrl + urlPath
+}
