@@ -242,7 +242,7 @@ export default function Page() {
             link: '/blog/nextjs-stripe-starter-template',
           }}
         />
-        <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} />
+        {/* <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} /> */}
       </div>
     </Layout>
   )
