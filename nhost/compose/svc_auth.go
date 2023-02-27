@@ -12,7 +12,7 @@ func (c Config) authServiceEnvs() env {
 	e := env{
 		"AUTH_HOST":                   "0.0.0.0",
 		"HASURA_GRAPHQL_DATABASE_URL": c.postgresConnectionStringForUser("nhost_auth_admin"),
-		"HASURA_GRAPHQL_GRAPHQL_URL":  c.PublicHasuraEndpoint() + "/v1/graphql", // can't use https://local.graphql.nhost.run/v1 because of https://github.com/nhost/hasura-auth/blob/258015208f36f21162b9f4d50bb5c6e05ff04c48/src/utils/hasura.ts#L12
+		"HASURA_GRAPHQL_GRAPHQL_URL":  "http://graphql:8080/v1/graphql",
 		"AUTH_SERVER_URL":             c.PublicAuthConnectionString(),
 		"HASURA_GRAPHQL_JWT_SECRET":   c.envValueHasuraGraphqlJwtSecret(),
 		"HASURA_GRAPHQL_ADMIN_SECRET": util.ADMIN_SECRET,

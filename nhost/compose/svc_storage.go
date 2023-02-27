@@ -6,10 +6,6 @@ import (
 	"github.com/nhost/cli/util"
 )
 
-func (c Config) storageEnvHasuraEndpoint() string {
-	return HasuraHostname(c.ports.SSLProxy()) + "/v1"
-}
-
 func (c Config) storageServiceEnvs(apiRootPrefix string) env {
 	minioEnv := c.minioServiceEnvs()
 	s3Endpoint := "http://minio:9000"
@@ -27,7 +23,7 @@ func (c Config) storageServiceEnvs(apiRootPrefix string) env {
 		"API_ROOT_PREFIX":             apiRootPrefix,
 		"POSTGRES_MIGRATIONS":         "1",
 		"HASURA_METADATA":             "1",
-		"HASURA_ENDPOINT":             c.storageEnvHasuraEndpoint(),
+		"HASURA_ENDPOINT":             "http://graphql:8080/v1",
 		"HASURA_GRAPHQL_ADMIN_SECRET": util.ADMIN_SECRET,
 		"S3_ACCESS_KEY":               minioEnv[envMinioRootUser],
 		"S3_SECRET_KEY":               minioEnv[envMinioRootPassword],
