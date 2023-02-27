@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.0.5
+
+### Patch Changes
+
+- 3c7cf92e: fixing generating the correct URL for function calls
+
 ## 2.0.4
 
 ### Patch Changes

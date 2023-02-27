@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { urlFromSubdomain } from '../src/utils/helpers'
+import { buildUrl, LOCALHOST_REGEX, urlFromSubdomain } from '../src/utils/helpers'
 
 describe('urlFromParams', () => {
   describe('when using backendUrl', () => {
@@ -79,5 +79,71 @@ describe('urlFromParams', () => {
         }).toThrow()
       })
     })
+  })
+})
+
+describe('buildUrl', () => {
+  it('should combine base URL and path', () => {
+    const baseUrl = 'https://example.com'
+    const path = '/api/users'
+    expect(buildUrl(baseUrl, path)).toBe('https://example.com/api/users')
+  })
+
+  it('should add missing leading slash to path', () => {
+    const baseUrl = 'https://example.com'
+    const path = 'api/users'
+    expect(buildUrl(baseUrl, path)).toBe('https://example.com/api/users')
+  })
+
+  it('should handle empty base URL', () => {
+    const baseUrl = ''
+    const path = '/api/users'
+    expect(buildUrl(baseUrl, path)).toBe('/api/users')
+  })
+
+  it('should handle empty path', () => {
+    const baseUrl = 'https://example.com'
+    const path = ''
+    expect(buildUrl(baseUrl, path)).toBe('https://example.com/')
+  })
+
+  it('should handle missing parameters', () => {
+    expect(() => buildUrl()).toThrow()
+    expect(() => buildUrl('https://example.com')).toThrow()
+  })
+})
+
+describe('LOCALHOST_REGEX', () => {
+  it('should match localhost without protocol or port', () => {
+    const input = 'localhost'
+    const match = input.match(LOCALHOST_REGEX)
+    expect(match?.groups).toEqual({ host: 'localhost', protocol: undefined, port: undefined })
+  })
+
+  it('should match localhost with http protocol', () => {
+    const input = 'http://localhost'
+    const match = input.match(LOCALHOST_REGEX)
+    expect(match?.groups).toEqual({ host: 'localhost', protocol: 'http', port: undefined })
+  })
+
+  it('should match localhost with https protocol and port', () => {
+    const input = 'https://localhost:8443'
+    const match = input.match(LOCALHOST_REGEX)
+    expect(match?.groups).toEqual({ host: 'localhost', protocol: 'https', port: '8443' })
+  })
+
+  it('should match localhost with named port placeholder', () => {
+    const input = 'http://localhost:__PORT_NAME__'
+    const match = input.match(LOCALHOST_REGEX)
+    expect(match?.groups).toEqual({ host: 'localhost', protocol: 'http', port: '__PORT_NAME__' })
+  })
+
+  it('should not match other URLs', () => {
+    const input1 = 'https://www.example.com'
+    const input2 = 'http://127.0.0.1:3000'
+    const match1 = input1.match(LOCALHOST_REGEX)
+    const match2 = input2.match(LOCALHOST_REGEX)
+    expect(match1).toBeNull()
+    expect(match2).toBeNull()
   })
 })
