@@ -82,6 +82,7 @@ export type ConfigAuth = {
   __typename?: 'ConfigAuth';
   method?: Maybe<ConfigAuthMethod>;
   redirections?: Maybe<ConfigAuthRedirections>;
+  resources?: Maybe<ConfigResources>;
   session?: Maybe<ConfigAuthSession>;
   signUp?: Maybe<ConfigAuthSignUp>;
   totp?: Maybe<ConfigAuthTotp>;
@@ -95,6 +96,7 @@ export type ConfigAuthComparisonExp = {
   _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
   method?: InputMaybe<ConfigAuthMethodComparisonExp>;
   redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
   session?: InputMaybe<ConfigAuthSessionComparisonExp>;
   signUp?: InputMaybe<ConfigAuthSignUpComparisonExp>;
   totp?: InputMaybe<ConfigAuthTotpComparisonExp>;
@@ -105,6 +107,7 @@ export type ConfigAuthComparisonExp = {
 export type ConfigAuthInsertInput = {
   method?: InputMaybe<ConfigAuthMethodInsertInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
   session?: InputMaybe<ConfigAuthSessionInsertInput>;
   signUp?: InputMaybe<ConfigAuthSignUpInsertInput>;
   totp?: InputMaybe<ConfigAuthTotpInsertInput>;
@@ -236,6 +239,7 @@ export type ConfigAuthMethodOauthApple = {
   enabled?: Maybe<Scalars['Boolean']>;
   keyId?: Maybe<Scalars['String']>;
   privateKey?: Maybe<Scalars['String']>;
+  scope?: Maybe<Array<Scalars['String']>>;
   teamId?: Maybe<Scalars['String']>;
 };
 
@@ -247,6 +251,7 @@ export type ConfigAuthMethodOauthAppleComparisonExp = {
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
   keyId?: InputMaybe<ConfigStringComparisonExp>;
   privateKey?: InputMaybe<ConfigStringComparisonExp>;
+  scope?: InputMaybe<ConfigStringComparisonExp>;
   teamId?: InputMaybe<ConfigStringComparisonExp>;
 };
 
@@ -255,6 +260,7 @@ export type ConfigAuthMethodOauthAppleInsertInput = {
   enabled?: InputMaybe<Scalars['Boolean']>;
   keyId?: InputMaybe<Scalars['String']>;
   privateKey?: InputMaybe<Scalars['String']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
   teamId?: InputMaybe<Scalars['String']>;
 };
 
@@ -263,6 +269,7 @@ export type ConfigAuthMethodOauthAppleUpdateInput = {
   enabled?: InputMaybe<Scalars['Boolean']>;
   keyId?: InputMaybe<Scalars['String']>;
   privateKey?: InputMaybe<Scalars['String']>;
+  scope: Array<Scalars['String']>;
   teamId?: InputMaybe<Scalars['String']>;
 };
 
@@ -659,6 +666,7 @@ export type ConfigAuthTotpUpdateInput = {
 export type ConfigAuthUpdateInput = {
   method?: InputMaybe<ConfigAuthMethodUpdateInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
   session?: InputMaybe<ConfigAuthSessionUpdateInput>;
   signUp?: InputMaybe<ConfigAuthSignUpUpdateInput>;
   totp?: InputMaybe<ConfigAuthTotpUpdateInput>;
@@ -863,6 +871,7 @@ export type ConfigConfig = {
   functions?: Maybe<ConfigFunctions>;
   global?: Maybe<ConfigGlobal>;
   hasura: ConfigHasura;
+  postgres?: Maybe<ConfigPostgres>;
   provider?: Maybe<ConfigProvider>;
   storage?: Maybe<ConfigStorage>;
 };
@@ -875,6 +884,7 @@ export type ConfigConfigComparisonExp = {
   functions?: InputMaybe<ConfigFunctionsComparisonExp>;
   global?: InputMaybe<ConfigGlobalComparisonExp>;
   hasura?: InputMaybe<ConfigHasuraComparisonExp>;
+  postgres?: InputMaybe<ConfigPostgresComparisonExp>;
   provider?: InputMaybe<ConfigProviderComparisonExp>;
   storage?: InputMaybe<ConfigStorageComparisonExp>;
 };
@@ -884,6 +894,7 @@ export type ConfigConfigInsertInput = {
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
   hasura: ConfigHasuraInsertInput;
+  postgres?: InputMaybe<ConfigPostgresInsertInput>;
   provider?: InputMaybe<ConfigProviderInsertInput>;
   storage?: InputMaybe<ConfigStorageInsertInput>;
 };
@@ -893,6 +904,7 @@ export type ConfigConfigUpdateInput = {
   functions?: InputMaybe<ConfigFunctionsUpdateInput>;
   global?: InputMaybe<ConfigGlobalUpdateInput>;
   hasura?: InputMaybe<ConfigHasuraUpdateInput>;
+  postgres?: InputMaybe<ConfigPostgresUpdateInput>;
   provider?: InputMaybe<ConfigProviderUpdateInput>;
   storage?: InputMaybe<ConfigStorageUpdateInput>;
 };
@@ -992,6 +1004,7 @@ export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   adminSecret: Scalars['String'];
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+  resources?: Maybe<ConfigResources>;
   settings?: Maybe<ConfigHasuraSettings>;
   version?: Maybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
@@ -1003,6 +1016,7 @@ export type ConfigHasuraComparisonExp = {
   _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   adminSecret?: InputMaybe<ConfigStringComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
   settings?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
   webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
@@ -1011,6 +1025,7 @@ export type ConfigHasuraComparisonExp = {
 export type ConfigHasuraInsertInput = {
   adminSecret: Scalars['String'];
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
   settings?: InputMaybe<ConfigHasuraSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
@@ -1039,6 +1054,7 @@ export type ConfigHasuraSettingsUpdateInput = {
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
   jwtSecrets: Array<ConfigJwtSecretUpdateInput>;
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret?: InputMaybe<Scalars['String']>;
@@ -1128,6 +1144,30 @@ export type ConfigPortComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigPort']>>;
 };
 
+export type ConfigPostgres = {
+  __typename?: 'ConfigPostgres';
+  resources?: Maybe<ConfigResources>;
+  version?: Maybe<Scalars['String']>;
+};
+
+export type ConfigPostgresComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigPostgresInsertInput = {
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresUpdateInput = {
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigProvider = {
   __typename?: 'ConfigProvider';
   sms?: Maybe<ConfigSms>;
@@ -1150,6 +1190,54 @@ export type ConfigProviderInsertInput = {
 export type ConfigProviderUpdateInput = {
   sms?: InputMaybe<ConfigSmsUpdateInput>;
   smtp?: InputMaybe<ConfigSmtpUpdateInput>;
+};
+
+export type ConfigResources = {
+  __typename?: 'ConfigResources';
+  compute: ConfigResourcesCompute;
+  replicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  replicas?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigResourcesCompute = {
+  __typename?: 'ConfigResourcesCompute';
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigResourcesComputeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigResourcesComputeComparisonExp>>;
+  _not?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigResourcesComputeComparisonExp>>;
+  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
+  memory?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigResourcesComputeInsertInput = {
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigResourcesComputeUpdateInput = {
+  cpu?: InputMaybe<Scalars['ConfigUint32']>;
+  memory?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigResourcesInsertInput = {
+  compute: ConfigResourcesComputeInsertInput;
+  replicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
 export type ConfigSms = {
@@ -1290,6 +1378,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
+  resources?: Maybe<ConfigResources>;
   version?: Maybe<Scalars['String']>;
 };
 
@@ -1297,14 +1386,17 @@ export type ConfigStorageComparisonExp = {
   _and?: InputMaybe<Array<ConfigStorageComparisonExp>>;
   _not?: InputMaybe<ConfigStorageComparisonExp>;
   _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigStorageInsertInput = {
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigStorageUpdateInput = {
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
@@ -1400,7 +1492,6 @@ export type ConfigSystemConfigPostgres = {
   database: Scalars['String'];
   enabled?: Maybe<Scalars['Boolean']>;
   password: Scalars['String'];
-  version?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -1411,7 +1502,6 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   database?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
   password?: InputMaybe<ConfigStringComparisonExp>;
-  version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -1451,7 +1541,6 @@ export type ConfigSystemConfigPostgresInsertInput = {
   database: Scalars['String'];
   enabled?: InputMaybe<Scalars['Boolean']>;
   password: Scalars['String'];
-  version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
@@ -1459,7 +1548,6 @@ export type ConfigSystemConfigPostgresUpdateInput = {
   database?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
   password?: InputMaybe<Scalars['String']>;
-  version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
