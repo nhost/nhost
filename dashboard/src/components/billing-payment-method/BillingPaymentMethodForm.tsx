@@ -205,7 +205,7 @@ function AddPaymentMethodForm({
 
 type BillingPaymentMethodFormProps = {
   close: () => void;
-  onPaymentMethodAdded?: () => Promise<void>;
+  onPaymentMethodAdded?: (e?: any) => Promise<void>;
   workspaceId: string;
 };
 

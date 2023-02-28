@@ -10,15 +10,17 @@ import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import Checkbox from '@/ui/v2/Checkbox';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import Option from '@/ui/v2/Option';
+import Radio from '@/ui/v2/Radio';
+import RadioGroup from '@/ui/v2/RadioGroup';
 import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
+import Tooltip from '@/ui/v2/Tooltip';
 import { MAX_FREE_APPS } from '@/utils/CONSTANTS';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
@@ -32,11 +34,11 @@ import type {
   CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
-  PrefetchNewAppWorkspaceFragment
+  PrefetchNewAppWorkspaceFragment,
 } from '@/utils/__generated__/graphql';
 import {
   useCreateNewAppMutation,
-  usePrefetchNewAppQuery
+  usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -140,7 +142,13 @@ export function NewProjectPageContent({
     setDatabasePassword(newRandomDatabasePassword);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!plan.isFree && workspace.paymentMethods.length === 0) {
+      setShowPaymentModal(true);
+      return;
+    }
+
     setSubmitState({
       error: null,
       loading: true,
@@ -224,368 +232,367 @@ export function NewProjectPageContent({
 
   return (
     <Container>
-      <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-        <Text variant="h2" component="h1">
-          New Project
-        </Text>
+      <form onSubmit={handleSubmit}>
+        <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
+          <Text variant="h2" component="h1">
+            New Project
+          </Text>
 
-        <div className="grid grid-flow-row gap-4">
-          <Input
-            id="name"
-            autoComplete="off"
-            label="Project Name"
-            variant="inline"
-            fullWidth
-            hideEmptyHelperText
-            placeholder="Project Name"
-            onChange={(event) => {
-              setSubmitState({
-                error: null,
-                loading: false,
-              });
-              setApplicationError('');
-              setName(event.target.value);
-            }}
-            value={name}
-            autoFocus
-          />
-
-          <Select
-            id="workspace"
-            label="Workspace"
-            variant="inline"
-            hideEmptyHelperText
-            placeholder="Select Workspace"
-            slotProps={{
-              root: { className: 'grid grid-flow-col gap-1' },
-            }}
-            onChange={(_event, value) => {
-              const workspaceInList = workspaces.find(({ id }) => id === value);
-              setPlan(plans[0]);
-              setSelectedWorkspace({
-                id: workspaceInList.id,
-                name: workspaceInList.name,
-                disabled: false,
-                slug: workspaceInList.slug,
-              });
-            }}
-            value={selectedWorkspace.id}
-            renderValue={(option) => (
-              <span className="inline-grid grid-flow-col items-center gap-2">
-                {option?.label}
-              </span>
-            )}
-          >
-            {workspaceOptions.map((option) => (
-              <Option
-                value={option.id}
-                key={option.id}
-                className="grid grid-flow-col items-center gap-2"
-              >
-                <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                  <Image
-                    src="/logos/new.svg"
-                    alt="Nhost Logo"
-                    width={24}
-                    height={24}
-                  />
-                </span>
-
-                {option.name}
-              </Option>
-            ))}
-          </Select>
-
-          {isK8SPostgresEnabledInCurrentEnvironment && (
+          <div className="grid grid-flow-row gap-4">
             <Input
-              name="databasePassword"
-              id="databasePassword"
-              autoComplete="new-password"
-              label="Database Password"
-              value={databasePassword}
+              id="name"
+              autoComplete="off"
+              label="Project Name"
               variant="inline"
-              type="password"
-              error={!!passwordError}
+              fullWidth
               hideEmptyHelperText
-              endAdornment={
-                <InputAdornment position="end" className="mr-2">
-                  <IconButton
-                    color="secondary"
-                    onClick={() => {
-                      copy(databasePassword, 'Postgres password');
-                    }}
-                    variant="borderless"
-                    aria-label="Copy password"
-                  >
-                    <CopyIcon className="h-4 w-4" />
-                  </IconButton>
-                </InputAdornment>
-              }
-              slotProps={{
-                // Note: this is supposed to fix a `validateDOMNesting` error
-                helperText: { component: 'div' },
-              }}
-              helperText={
-                <div className="grid max-w-xs grid-flow-row gap-2">
-                  {passwordError && (
-                    <Text
-                      variant="subtitle2"
-                      sx={{
-                        color: (theme) =>
-                          `${theme.palette.error.main} !important`,
-                      }}
-                    >
-                      {passwordError}
-                    </Text>
-                  )}
-
-                  <Box className="font-medium">
-                    The root Postgres password for your database - it must be
-                    strong and hard to guess.{' '}
-                    <Button
-                      type="button"
-                      variant="borderless"
-                      color="secondary"
-                      onClick={handleGenerateRandomPassword}
-                      className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                      tabIndex={-1}
-                    >
-                      Generate a password
-                    </Button>
-                  </Box>
-                </div>
-              }
-              onChange={async (e) => {
-                e.preventDefault();
+              placeholder="Project Name"
+              onChange={(event) => {
                 setSubmitState({
                   error: null,
                   loading: false,
                 });
-                if (e.target.value.length === 0) {
-                  setDatabasePassword(e.target.value);
-                  setPasswordError('Please enter a password');
-
-                  return;
-                }
-                setDatabasePassword(e.target.value);
-                setPasswordError('');
-                try {
-                  await resetDatabasePasswordValidationSchema.validate({
-                    databasePassword: e.target.value,
-                  });
-                  setPasswordError('');
-                } catch (validationError) {
-                  setPasswordError(validationError.message);
-                }
+                setApplicationError('');
+                setName(event.target.value);
               }}
-              fullWidth
+              value={name}
+              autoFocus
             />
-          )}
 
-          <Select
-            id="region"
-            label="Region"
-            variant="inline"
-            hideEmptyHelperText
-            placeholder="Select Region"
-            slotProps={{
-              root: { className: 'grid grid-flow-col gap-1' },
-            }}
-            onChange={(_event, value) => {
-              const regionInList = regions.find(({ id }) => id === value);
-              setSelectedRegion({
-                id: regionInList.id,
-                name: regionInList.country.name,
-                disabled: false,
-                code: regionInList.country.code,
-              });
-            }}
-            value={selectedRegion.id}
-            renderValue={(option) => {
-              const [flag, , country] = (option?.label as any[]) || [];
-
-              return (
-                <span className="inline-grid grid-flow-col grid-rows-none items-center gap-x-2">
-                  {flag}
-
-                  {isValidElement<TextProps>(country)
-                    ? cloneElement(country, {
-                        ...country.props,
-                        variant: 'body1',
-                      })
-                    : null}
+            <Select
+              id="workspace"
+              label="Workspace"
+              variant="inline"
+              hideEmptyHelperText
+              placeholder="Select Workspace"
+              slotProps={{
+                root: { className: 'grid grid-flow-col gap-1' },
+              }}
+              onChange={(_event, value) => {
+                const workspaceInList = workspaces.find(
+                  ({ id }) => id === value,
+                );
+                setPlan(plans[0]);
+                setSelectedWorkspace({
+                  id: workspaceInList.id,
+                  name: workspaceInList.name,
+                  disabled: false,
+                  slug: workspaceInList.slug,
+                });
+              }}
+              value={selectedWorkspace.id}
+              renderValue={(option) => (
+                <span className="inline-grid grid-flow-col items-center gap-2">
+                  {option?.label}
                 </span>
-              );
-            }}
-          >
-            {regionOptions.map((option) => (
-              <Option
-                value={option.id}
-                key={option.id}
-                className={twMerge(
-                  'relative grid grid-flow-col grid-rows-2 items-center justify-start gap-x-3',
-                  option.disabled && 'pointer-events-none opacity-50',
-                )}
-                disabled={option.disabled}
-              >
-                <span className="row-span-2 flex">
-                  <Image
-                    src={`/assets/flags/${option.code}.svg`}
-                    alt={`${option.country} country flag`}
-                    width={16}
-                    height={12}
-                  />
-                </span>
+              )}
+            >
+              {workspaceOptions.map((option) => (
+                <Option
+                  value={option.id}
+                  key={option.id}
+                  className="grid grid-flow-col items-center gap-2"
+                >
+                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
+                    <Image
+                      src="/logos/new.svg"
+                      alt="Nhost Logo"
+                      width={24}
+                      height={24}
+                    />
+                  </span>
 
-                <Text className="row-span-1 font-medium">{option.name}</Text>
+                  {option.name}
+                </Option>
+              ))}
+            </Select>
 
-                <Text variant="subtitle2" className="row-span-1">
-                  {option.country}
-                </Text>
+            {isK8SPostgresEnabledInCurrentEnvironment && (
+              <Input
+                name="databasePassword"
+                id="databasePassword"
+                autoComplete="new-password"
+                label="Database Password"
+                value={databasePassword}
+                variant="inline"
+                type="password"
+                error={!!passwordError}
+                hideEmptyHelperText
+                endAdornment={
+                  <InputAdornment position="end" className="mr-2">
+                    <IconButton
+                      color="secondary"
+                      onClick={() => {
+                        copy(databasePassword, 'Postgres password');
+                      }}
+                      variant="borderless"
+                      aria-label="Copy password"
+                    >
+                      <CopyIcon className="h-4 w-4" />
+                    </IconButton>
+                  </InputAdornment>
+                }
+                slotProps={{
+                  // Note: this is supposed to fix a `validateDOMNesting` error
+                  helperText: { component: 'div' },
+                }}
+                helperText={
+                  <div className="grid max-w-xs grid-flow-row gap-2">
+                    {passwordError && (
+                      <Text
+                        variant="subtitle2"
+                        sx={{
+                          color: (theme) =>
+                            `${theme.palette.error.main} !important`,
+                        }}
+                      >
+                        {passwordError}
+                      </Text>
+                    )}
 
-                {option.disabled && (
-                  <Text
-                    variant="subtitle2"
-                    className="absolute top-1/2 right-4 -translate-y-1/2"
-                  >
-                    Disabled
-                  </Text>
-                )}
-              </Option>
-            ))}
-          </Select>
+                    <Box className="font-medium">
+                      The root Postgres password for your database - it must be
+                      strong and hard to guess.{' '}
+                      <Button
+                        type="button"
+                        variant="borderless"
+                        color="secondary"
+                        onClick={handleGenerateRandomPassword}
+                        className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
+                        tabIndex={-1}
+                      >
+                        Generate a password
+                      </Button>
+                    </Box>
+                  </div>
+                }
+                onChange={async (e) => {
+                  e.preventDefault();
+                  setSubmitState({
+                    error: null,
+                    loading: false,
+                  });
+                  if (e.target.value.length === 0) {
+                    setDatabasePassword(e.target.value);
+                    setPasswordError('Please enter a password');
 
-          <div className="grid w-full grid-cols-8 gap-x-4 gap-y-2">
-            <div className="col-span-8 sm:col-span-2">
-              <Text className="text-xs font-medium">Plan</Text>
-              <Text variant="subtitle2">You can change this later.</Text>
-            </div>
+                    return;
+                  }
+                  setDatabasePassword(e.target.value);
+                  setPasswordError('');
+                  try {
+                    await resetDatabasePasswordValidationSchema.validate({
+                      databasePassword: e.target.value,
+                    });
+                    setPasswordError('');
+                  } catch (validationError) {
+                    setPasswordError(validationError.message);
+                  }
+                }}
+                fullWidth
+              />
+            )}
 
-            <div className="col-span-8 sm:col-span-6">
-              {plans.map((currentPlan) => {
-                const checked = plan.id === currentPlan.id;
-
-                const disabledPlan =
-                  currentPlan.isFree && nrOfFreeAppsCreatedByUser >= MAX_FREE_APPS;
+            <Select
+              id="region"
+              label="Region"
+              variant="inline"
+              hideEmptyHelperText
+              placeholder="Select Region"
+              slotProps={{
+                root: { className: 'grid grid-flow-col gap-1' },
+              }}
+              onChange={(_event, value) => {
+                const regionInList = regions.find(({ id }) => id === value);
+                setSelectedRegion({
+                  id: regionInList.id,
+                  name: regionInList.country.name,
+                  disabled: false,
+                  code: regionInList.country.code,
+                });
+              }}
+              value={selectedRegion.id}
+              renderValue={(option) => {
+                const [flag, , country] = (option?.label as any[]) || [];
 
                 return (
-                  <Box
-                    className="border-t py-4 last-of-type:border-b"
-                    key={currentPlan.id}
-                  >
-                    <Checkbox
-                      disabled={disabledPlan}
-                      label={
-                        <>
-                          <span className="inline-block max-w-xs">
-                            <span className="font-medium">
-                              {currentPlan.name}:
-                            </span>{' '}
-                            {planDescriptions[currentPlan.name]}
-                            {disabledPlan && (
-                              <div className="font-bold text-red-700">
-                                Diasbled: You can create max 1 free project.
-                              </div>
-                            )}
-                          </span>
+                  <span className="inline-grid grid-flow-col grid-rows-none items-center gap-x-2">
+                    {flag}
 
-                          {currentPlan.isFree ? (
-                            <Text variant="h3" component="span">
-                              Free
-                            </Text>
-                          ) : (
-                            <Text
-                              variant="h3"
-                              component="span"
-                              className="inline-grid grid-flow-col items-center gap-1"
-                            >
-                              $ {currentPlan.price}{' '}
-                              <Text variant="subtitle2" component="span">
-                                / mo
-                              </Text>
-                            </Text>
-                          )}
-                        </>
-                      }
-                      componentsProps={{
-                        formControlLabel: {
-                          className: 'flex',
-                          componentsProps: {
-                            typography: {
-                              className:
-                                'font-regular text-xs grid grid-flow-col justify-between items-center w-full',
-                            },
-                          },
-                        },
-                      }}
-                      checked={checked}
-                      key={currentPlan.id}
-                      onChange={(event, inputChecked) => {
-                        if (!inputChecked) {
-                          event.preventDefault();
-
-                          return;
-                        }
-
-                        setPlan(currentPlan);
-                      }}
-                    />
-                  </Box>
+                    {isValidElement<TextProps>(country)
+                      ? cloneElement(country, {
+                          ...country.props,
+                          variant: 'body1',
+                        })
+                      : null}
+                  </span>
                 );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {submitState.error && (
-          <Alert severity="error" className="text-left">
-            <Text className="font-medium">Error</Text>{' '}
-            <Text className="font-medium">
-              {submitState.error &&
-                getErrorMessage(submitState.error, 'application')}{' '}
-            </Text>
-          </Alert>
-        )}
-
-        <div className="flex justify-end">
-          {showPaymentModal && (
-            <Modal
-              showModal={showPaymentModal}
-              close={() => {
-                setShowPaymentModal(false);
               }}
             >
-              <BillingPaymentMethodForm
+              {regionOptions.map((option) => (
+                <Option
+                  value={option.id}
+                  key={option.id}
+                  className={twMerge(
+                    'relative grid grid-flow-col grid-rows-2 items-center justify-start gap-x-3',
+                    option.disabled && 'pointer-events-none opacity-50',
+                  )}
+                  disabled={option.disabled}
+                >
+                  <span className="row-span-2 flex">
+                    <Image
+                      src={`/assets/flags/${option.code}.svg`}
+                      alt={`${option.country} country flag`}
+                      width={16}
+                      height={12}
+                    />
+                  </span>
+
+                  <Text className="row-span-1 font-medium">{option.name}</Text>
+
+                  <Text variant="subtitle2" className="row-span-1">
+                    {option.country}
+                  </Text>
+
+                  {option.disabled && (
+                    <Text
+                      variant="subtitle2"
+                      className="absolute top-1/2 right-4 -translate-y-1/2"
+                    >
+                      Disabled
+                    </Text>
+                  )}
+                </Option>
+              ))}
+            </Select>
+
+            <div className="grid w-full grid-cols-8 gap-x-4 gap-y-2">
+              <div className="col-span-8 sm:col-span-2">
+                <Text className="text-xs font-medium">Plan</Text>
+                <Text variant="subtitle2">You can change this later.</Text>
+              </div>
+
+              <RadioGroup
+                value={plan.id}
+                onChange={(_event, value) => {
+                  setPlan(plans.find((p) => p.id === value));
+                }}
+                className="col-span-8 space-y-2 sm:col-span-6"
+              >
+                {plans.map((currentPlan) => {
+                  const disabledPlan =
+                    currentPlan.isFree &&
+                    nrOfFreeAppsCreatedByUser >= MAX_FREE_APPS;
+
+                  return (
+                    <Tooltip
+                      visible={disabledPlan}
+                      title={`You can only have ${MAX_FREE_APPS} live free project`}
+                    >
+                      <Box
+                        className="w-full rounded-md border"
+                        sx={
+                          {
+                            // borderColor: (theme) => {
+                            //   if (selectedPlan) {
+                            //     return `${theme.palette.primary.main} !important`;
+                            //   }
+                            //   return `${theme.palette.divider} !important`;
+                            // },
+                          }
+                        }
+                        key={currentPlan.id}
+                      >
+                        <Radio
+                          className=""
+                          slotProps={{
+                            formControl: {
+                              className: 'p-3 w-full ',
+                              slotProps: {
+                                typography: {
+                                  className: 'w-full',
+                                },
+                              },
+                            },
+                          }}
+                          value={currentPlan.id}
+                          disabled={disabledPlan}
+                          label={
+                            <div className="flex w-full items-center justify-between ">
+                              <div className="inline-block max-w-xs">
+                                <Text className="font-medium text-[inherit]">
+                                  {currentPlan.name}
+                                </Text>
+                                <Text className="text-xs text-[inherit]">
+                                  {planDescriptions[currentPlan.name]}
+                                </Text>
+                              </div>
+
+                              {currentPlan.isFree ? (
+                                <Text
+                                  variant="h3"
+                                  component="span"
+                                  className="text-[inherit]"
+                                >
+                                  Free
+                                </Text>
+                              ) : (
+                                <Text variant="h3" component="span">
+                                  ${currentPlan.price}/mo
+                                </Text>
+                              )}
+                            </div>
+                          }
+                        />
+                      </Box>
+                    </Tooltip>
+                  );
+                })}
+              </RadioGroup>
+            </div>
+          </div>
+
+          {submitState.error && (
+            <Alert severity="error" className="text-left">
+              <Text className="font-medium">Error</Text>{' '}
+              <Text className="font-medium">
+                {submitState.error &&
+                  getErrorMessage(submitState.error, 'application')}{' '}
+              </Text>
+            </Alert>
+          )}
+
+          <div className="flex justify-end">
+            {showPaymentModal && (
+              <Modal
+                showModal={showPaymentModal}
                 close={() => {
                   setShowPaymentModal(false);
                 }}
-                onPaymentMethodAdded={handleSubmit}
-                workspaceId={workspace.id}
-              />
-            </Modal>
-          )}
+              >
+                <BillingPaymentMethodForm
+                  close={() => {
+                    setShowPaymentModal(false);
+                  }}
+                  onPaymentMethodAdded={handleSubmit}
+                  workspaceId={workspace.id}
+                />
+              </Modal>
+            )}
 
-          <Button
-            onClick={() => {
-              if (!plan.isFree && workspace.paymentMethods.length === 0) {
-                setShowPaymentModal(true);
-
-                return;
+            <Button
+              type="submit"
+              loading={submitState.loading}
+              disabled={
+                !!applicationError || !!submitState.error || !!passwordError
               }
-
-              handleSubmit();
-            }}
-            type="submit"
-            loading={submitState.loading}
-            disabled={
-              !!applicationError || !!submitState.error || !!passwordError
-            }
-            id="create-app"
-          >
-            Create Project
-          </Button>
+              id="create-app"
+            >
+              Create Project
+            </Button>
+          </div>
         </div>
-      </div>
+      </form>
     </Container>
   );
 }
