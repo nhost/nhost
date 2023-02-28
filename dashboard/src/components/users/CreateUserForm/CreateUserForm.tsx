@@ -1,3 +1,4 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { DialogFormProps } from '@/types/common';
@@ -8,7 +9,7 @@ import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import fetch from 'cross-fetch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -40,7 +41,9 @@ export type CreateUserFormValues = Yup.InferType<typeof validationSchema>;
 export default function CreateUserForm({
   onSubmit,
   onCancel,
+  location,
 }: CreateUserFormProps) {
+  const { onDirtyStateChange } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [createUserFormError, setCreateUserFormError] = useState<Error | null>(
     null,
@@ -54,9 +57,15 @@ export default function CreateUserForm({
 
   const {
     register,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
     setError,
   } = form;
+
+  const isDirty = Object.keys(dirtyFields).length > 0;
+
+  useEffect(() => {
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   const baseAuthUrl = generateAppServiceUrl(
     currentApplication?.subdomain,
