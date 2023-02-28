@@ -959,7 +959,7 @@ importers:
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
       msw: ^1.0.1
-      start-server-and-test: ^1.15.2
+      start-server-and-test: ^2.0.0
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
@@ -974,7 +974,7 @@ importers:
       cheerio: 1.0.0-rc.12
       mailhog: 4.16.0
       msw: 1.0.1
-      start-server-and-test: 1.15.2
+      start-server-and-test: 2.0.0
 
   packages/hasura-storage-js:
     specifiers:
@@ -983,7 +983,7 @@ importers:
       form-data: ^4.0.0
       jpeg-js: ^0.4.4
       pixelmatch: ^5.3.0
-      start-server-and-test: ^1.15.2
+      start-server-and-test: ^2.0.0
       uuid: ^9.0.0
       xstate: ^4.33.5
     dependencies:
@@ -994,7 +994,7 @@ importers:
       cross-fetch: 3.1.5
       jpeg-js: 0.4.4
       pixelmatch: 5.3.0
-      start-server-and-test: 1.15.2
+      start-server-and-test: 2.0.0
       uuid: 9.0.0
 
   packages/nextjs:
@@ -13247,7 +13247,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@16.18.11
+      vite: 4.0.2_@types+node@18.11.17
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -14885,6 +14885,15 @@ packages:
     transitivePeerDependencies:
       - debug
     dev: false
+
+  /axios/0.27.2_debug@4.3.4:
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
+    dependencies:
+      follow-redirects: 1.15.2_debug@4.3.4
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
+    dev: true
 
   /axobject-query/2.2.0:
     resolution: {integrity: sha512-Td525n+iPOOyUQIeBfcASuG6uJsDOITl7Mds5gFyerkWiX7qhUTdYUBlSgNMyVqtSJqwpt1kXGLdUt6SykLMRA==}
@@ -20298,6 +20307,18 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+
+  /follow-redirects/1.15.2_debug@4.3.4:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -28645,6 +28666,23 @@ packages:
       - supports-color
     dev: true
 
+  /start-server-and-test/2.0.0:
+    resolution: {integrity: sha512-UqKLw0mJbfrsG1jcRLTUlvuRi9sjNuUiDOLI42r7R5fA9dsFoywAy9DoLXNYys9B886E4RCKb+qM1Gzu96h7DQ==}
+    engines: {node: '>=6'}
+    hasBin: true
+    dependencies:
+      arg: 5.0.2
+      bluebird: 3.7.2
+      check-more-types: 2.24.0
+      debug: 4.3.4
+      execa: 5.1.1
+      lazy-ass: 1.6.0
+      ps-tree: 1.2.0
+      wait-on: 7.0.1_debug@4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /state-toggle/1.0.3:
     resolution: {integrity: sha512-d/5Z4/2iiCnHw6Xzghyhb+GcmF89bxwgXG60wjIiZaxnymbyOmI8Hk4VqHXiVVp6u2ysaskFfXg3ekCj4WNftQ==}
 
@@ -31715,6 +31753,20 @@ packages:
     hasBin: true
     dependencies:
       axios: 0.25.0_debug@4.3.4
+      joi: 17.7.0
+      lodash: 4.17.21
+      minimist: 1.2.7
+      rxjs: 7.8.0
+    transitivePeerDependencies:
+      - debug
+    dev: true
+
+  /wait-on/7.0.1_debug@4.3.4:
+    resolution: {integrity: sha512-9AnJE9qTjRQOlTZIldAaf/da2eW0eSRSgcqq85mXQja/DW3MriHxkpODDSUEg+Gri/rKEcXUZHe+cevvYItaog==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+    dependencies:
+      axios: 0.27.2_debug@4.3.4
       joi: 17.7.0
       lodash: 4.17.21
       minimist: 1.2.7

@@ -75,6 +75,6 @@
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
     "msw": "^1.0.1",
-    "start-server-and-test": "^1.15.2"
+    "start-server-and-test": "^2.0.0"
   }
 }
