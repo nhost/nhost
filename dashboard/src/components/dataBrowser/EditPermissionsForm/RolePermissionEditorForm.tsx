@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import HighlightedText from '@/components/common/HighlightedText';
 import useManagePermissionMutation from '@/hooks/dataBrowser/useManagePermissionMutation';
+import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
@@ -72,7 +73,7 @@ export interface RolePermissionEditorFormValues {
   computedFields?: string[];
 }
 
-export interface RolePermissionEditorFormProps {
+export interface RolePermissionEditorFormProps extends DialogFormProps {
   /**
    * Determines whether or not the form is disabled.
    */
@@ -169,6 +170,7 @@ export default function RolePermissionEditorForm({
   onCancel,
   permission,
   disabled,
+  location,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
   const {
@@ -214,8 +216,8 @@ export default function RolePermissionEditorForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
     const managePermissionPromise = managePermission({
@@ -245,7 +247,7 @@ export default function RolePermissionEditorForm({
             : permission?.check,
         backend_only: values.backendOnly,
         computed_fields:
-          permission?.computed_fields.length > 0
+          permission?.computed_fields?.length > 0
             ? permission?.computed_fields
             : null,
       },
@@ -261,7 +263,7 @@ export default function RolePermissionEditorForm({
       getToastStyleProps(),
     );
 
-    onDirtyStateChange(false, 'drawer');
+    onDirtyStateChange(false, location);
     onSubmit?.();
   }
 
@@ -270,7 +272,7 @@ export default function RolePermissionEditorForm({
       openDirtyConfirmation({
         props: {
           onPrimaryAction: () => {
-            onDirtyStateChange(false, 'drawer');
+            onDirtyStateChange(false, location);
             onCancel?.();
           },
         },
@@ -300,7 +302,7 @@ export default function RolePermissionEditorForm({
       getToastStyleProps(),
     );
 
-    onDirtyStateChange(false, 'drawer');
+    onDirtyStateChange(false, location);
     onSubmit?.();
   }
 

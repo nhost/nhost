@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch'
-import { urlFromSubdomain } from '../../utils/helpers'
+import { buildUrl, urlFromSubdomain } from '../../utils/helpers'
 import { NhostClientConstructorParams } from '../../utils/types'
 import {
   NhostFunctionCallConfig,
@@ -65,21 +65,27 @@ export class NhostFunctionsClient {
       ...config?.headers
     }
 
+    const fullUrl = buildUrl(this.url, url)
+
     try {
-      const result = await fetch(url, {
+      const result = await fetch(fullUrl, {
         body: JSON.stringify(body),
         headers,
         method: 'POST'
       })
+
       if (!result.ok) {
         throw new Error(result.statusText)
       }
+
       let data: T
-      try {
+
+      if (result.headers.get('content-type') === 'application/json') {
         data = await result.json()
-      } catch {
+      } else {
         data = (await result.text()) as unknown as T
       }
+
       return {
         res: { data, status: result.status, statusText: result.statusText },
         error: null
@@ -116,7 +122,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {
+  generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

@@ -15,11 +15,11 @@ import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface CreateColumnFormProps
-  extends Pick<BaseColumnFormProps, 'onCancel'> {
+  extends Pick<BaseColumnFormProps, 'onCancel' | 'location'> {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: (args?: any) => Promise<any>;
 }
 
 export default function CreateColumnForm({

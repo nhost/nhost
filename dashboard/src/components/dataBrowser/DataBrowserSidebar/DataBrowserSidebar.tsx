@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import InlineCode from '@/components/common/InlineCode';
 import NavLink from '@/components/common/NavLink';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
@@ -31,10 +32,35 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
 import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+
+const CreateTableForm = dynamic(
+  () => import('@/components/dataBrowser/CreateTableForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditTableForm = dynamic(
+  () => import('@/components/dataBrowser/EditTableForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditPermissionsForm = dynamic(
+  () => import('@/components/dataBrowser/EditPermissionsForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
 
 export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
   /**
@@ -200,7 +226,7 @@ function DataBrowserSidebarContent({
     table: string,
     disabled?: boolean,
   ) {
-    openDrawer('EDIT_PERMISSIONS', {
+    openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
@@ -208,21 +234,17 @@ function DataBrowserSidebarContent({
           <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
+      component: (
+        <EditPermissionsForm
+          disabled={disabled}
+          schema={schema}
+          table={table}
+        />
+      ),
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
         },
-      },
-      payload: {
-        onSubmit: async () => {
-          await queryClient.refetchQueries([
-            `${dataSourceSlug}.${schema}.${table}`,
-          ]);
-          await refetch();
-        },
-        disabled,
-        schema,
-        table,
       },
     });
   }
@@ -296,9 +318,11 @@ function DataBrowserSidebarContent({
           endIcon={<PlusIcon />}
           className="mt-1 w-full justify-between px-2"
           onClick={() => {
-            openDrawer('CREATE_TABLE', {
+            openDrawer({
               title: 'Create a New Table',
-              payload: { onSubmit: refetch, schema: selectedSchema },
+              component: (
+                <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
+              ),
             });
 
             onSidebarItemClick();
@@ -328,69 +352,68 @@ function DataBrowserSidebarContent({
                   className="group"
                   key={tablePath}
                   secondaryAction={
-                    !isSelectedSchemaLocked && (
-                      <Dropdown.Root
-                        id="table-management-menu"
-                        onOpen={() => setSidebarMenuTable(tablePath)}
-                        onClose={() => setSidebarMenuTable(undefined)}
+                    <Dropdown.Root
+                      id="table-management-menu"
+                      onOpen={() => setSidebarMenuTable(tablePath)}
+                      onClose={() => setSidebarMenuTable(undefined)}
+                    >
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        disabled={tablePath === removableTable}
                       >
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          disabled={tablePath === removableTable}
+                        <IconButton
+                          variant="borderless"
+                          color={isSelected ? 'primary' : 'secondary'}
+                          className={twMerge(
+                            !isSelected &&
+                              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                          )}
                         >
-                          <IconButton
-                            variant="borderless"
-                            color={isSelected ? 'primary' : 'secondary'}
-                            className={twMerge(
-                              !isSelected &&
-                                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
-                            )}
+                          <DotsHorizontalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
+
+                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
+                        {isGitHubConnected ? (
+                          <Dropdown.Item
+                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                            onClick={() =>
+                              handleEditPermissionClick(
+                                table.table_schema,
+                                table.table_name,
+                                true,
+                              )
+                            }
                           >
-                            <DotsHorizontalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+                            <UsersIcon
+                              className="h-4 w-4"
+                              sx={{ color: 'text.secondary' }}
+                            />
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-52' }}
-                        >
-                          {isGitHubConnected ? (
-                            <Dropdown.Item
-                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                              onClick={() =>
-                                handleEditPermissionClick(
-                                  table.table_schema,
-                                  table.table_name,
-                                  true,
-                                )
-                              }
-                            >
-                              <UsersIcon
-                                className="h-4 w-4"
-                                sx={{ color: 'text.secondary' }}
-                              />
-
-                              <span>View Permissions</span>
-                            </Dropdown.Item>
-                          ) : (
-                            [
+                            <span>View Permissions</span>
+                          </Dropdown.Item>
+                        ) : (
+                          [
+                            !isSelectedSchemaLocked && (
                               <Dropdown.Item
                                 key="edit-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                                 onClick={() =>
-                                  openDrawer('EDIT_TABLE', {
+                                  openDrawer({
                                     title: 'Edit Table',
-                                    payload: {
-                                      onSubmit: async () => {
-                                        await queryClient.refetchQueries([
-                                          `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
-                                        ]);
-                                        await refetch();
-                                      },
-                                      schema: table.table_schema,
-                                      table,
-                                    },
+                                    component: (
+                                      <EditTableForm
+                                        onSubmit={async () => {
+                                          await queryClient.refetchQueries([
+                                            `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                          ]);
+                                          await refetch();
+                                        }}
+                                        schema={table.table_schema}
+                                        table={table}
+                                      />
+                                    ),
                                   })
                                 }
                               >
@@ -400,32 +423,38 @@ function DataBrowserSidebarContent({
                                 />
 
                                 <span>Edit Table</span>
-                              </Dropdown.Item>,
+                              </Dropdown.Item>
+                            ),
+                            !isSelectedSchemaLocked && (
                               <Divider
                                 key="edit-table-separator"
                                 component="li"
-                              />,
-                              <Dropdown.Item
-                                key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                onClick={() =>
-                                  handleEditPermissionClick(
-                                    table.table_schema,
-                                    table.table_name,
-                                  )
-                                }
-                              >
-                                <UsersIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
+                              />
+                            ),
+                            <Dropdown.Item
+                              key="edit-permissions"
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditPermissionClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                )
+                              }
+                            >
+                              <UsersIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
 
-                                <span>Edit Permissions</span>
-                              </Dropdown.Item>,
+                              <span>Edit Permissions</span>
+                            </Dropdown.Item>,
+                            !isSelectedSchemaLocked && (
                               <Divider
                                 key="edit-permissions-separator"
                                 component="li"
-                              />,
+                              />
+                            ),
+                            !isSelectedSchemaLocked && (
                               <Dropdown.Item
                                 key="delete-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
@@ -443,12 +472,12 @@ function DataBrowserSidebarContent({
                                 />
 
                                 <span>Delete Table</span>
-                              </Dropdown.Item>,
-                            ]
-                          )}
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    )
+                              </Dropdown.Item>
+                            ),
+                          ]
+                        )}
+                      </Dropdown.Content>
+                    </Dropdown.Root>
                   }
                 >
                   <ListItem.Button

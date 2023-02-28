@@ -1,5 +1,0 @@
-- name: functions
-  definition:
-    url_from_env: NHOST_FUNCTIONS_URL
-    timeout_seconds: 60
-    customization: {}

@@ -18,7 +18,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface EditRoleFormProps extends Pick<BaseRoleFormProps, 'onCancel'> {
+export interface EditRoleFormProps
+  extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
   /**
    * The role to be edited.
    */
