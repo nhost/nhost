@@ -53,7 +53,7 @@ const StyledListbox = styled('ul')(({ theme }) => ({
       ? `1px solid ${theme.palette.grey[300]}`
       : 'none',
   borderWidth: theme.palette.mode === 'dark' ? 1 : 0,
-  borderColor: theme.palette.mode === 'dark' ? 'grey.400' : 'none',
+  borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[400] : 'none',
   '&:focus': {
     outline: 'none',
   },

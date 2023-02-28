@@ -352,53 +352,50 @@ function DataBrowserSidebarContent({
                   className="group"
                   key={tablePath}
                   secondaryAction={
-                    !isSelectedSchemaLocked && (
-                      <Dropdown.Root
-                        id="table-management-menu"
-                        onOpen={() => setSidebarMenuTable(tablePath)}
-                        onClose={() => setSidebarMenuTable(undefined)}
+                    <Dropdown.Root
+                      id="table-management-menu"
+                      onOpen={() => setSidebarMenuTable(tablePath)}
+                      onClose={() => setSidebarMenuTable(undefined)}
+                    >
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        disabled={tablePath === removableTable}
                       >
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          disabled={tablePath === removableTable}
+                        <IconButton
+                          variant="borderless"
+                          color={isSelected ? 'primary' : 'secondary'}
+                          className={twMerge(
+                            !isSelected &&
+                              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                          )}
                         >
-                          <IconButton
-                            variant="borderless"
-                            color={isSelected ? 'primary' : 'secondary'}
-                            className={twMerge(
-                              !isSelected &&
-                                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
-                            )}
+                          <DotsHorizontalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
+
+                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
+                        {isGitHubConnected ? (
+                          <Dropdown.Item
+                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                            onClick={() =>
+                              handleEditPermissionClick(
+                                table.table_schema,
+                                table.table_name,
+                                true,
+                              )
+                            }
                           >
-                            <DotsHorizontalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+                            <UsersIcon
+                              className="h-4 w-4"
+                              sx={{ color: 'text.secondary' }}
+                            />
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-52' }}
-                        >
-                          {isGitHubConnected ? (
-                            <Dropdown.Item
-                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                              onClick={() =>
-                                handleEditPermissionClick(
-                                  table.table_schema,
-                                  table.table_name,
-                                  true,
-                                )
-                              }
-                            >
-                              <UsersIcon
-                                className="h-4 w-4"
-                                sx={{ color: 'text.secondary' }}
-                              />
-
-                              <span>View Permissions</span>
-                            </Dropdown.Item>
-                          ) : (
-                            [
+                            <span>View Permissions</span>
+                          </Dropdown.Item>
+                        ) : (
+                          [
+                            !isSelectedSchemaLocked && (
                               <Dropdown.Item
                                 key="edit-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
@@ -426,32 +423,38 @@ function DataBrowserSidebarContent({
                                 />
 
                                 <span>Edit Table</span>
-                              </Dropdown.Item>,
+                              </Dropdown.Item>
+                            ),
+                            !isSelectedSchemaLocked && (
                               <Divider
                                 key="edit-table-separator"
                                 component="li"
-                              />,
-                              <Dropdown.Item
-                                key="edit-permissions"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                onClick={() =>
-                                  handleEditPermissionClick(
-                                    table.table_schema,
-                                    table.table_name,
-                                  )
-                                }
-                              >
-                                <UsersIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
+                              />
+                            ),
+                            <Dropdown.Item
+                              key="edit-permissions"
+                              className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                              onClick={() =>
+                                handleEditPermissionClick(
+                                  table.table_schema,
+                                  table.table_name,
+                                )
+                              }
+                            >
+                              <UsersIcon
+                                className="h-4 w-4"
+                                sx={{ color: 'text.secondary' }}
+                              />
 
-                                <span>Edit Permissions</span>
-                              </Dropdown.Item>,
+                              <span>Edit Permissions</span>
+                            </Dropdown.Item>,
+                            !isSelectedSchemaLocked && (
                               <Divider
                                 key="edit-permissions-separator"
                                 component="li"
-                              />,
+                              />
+                            ),
+                            !isSelectedSchemaLocked && (
                               <Dropdown.Item
                                 key="delete-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
@@ -469,12 +472,12 @@ function DataBrowserSidebarContent({
                                 />
 
                                 <span>Delete Table</span>
-                              </Dropdown.Item>,
-                            ]
-                          )}
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    )
+                              </Dropdown.Item>
+                            ),
+                          ]
+                        )}
+                      </Dropdown.Content>
+                    </Dropdown.Root>
                   }
                 >
                   <ListItem.Button

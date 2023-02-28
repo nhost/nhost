@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.2
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+
 ## 1.0.1
 
 ### Patch Changes

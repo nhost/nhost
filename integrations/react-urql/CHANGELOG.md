@@ -1,5 +1,55 @@
 # @nhost/react-urql
 
+## 2.0.5
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
+## 2.0.2
+
+### Patch Changes
+
+- @nhost/react@2.0.2
+
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/react@2.0.1
+
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [5013213b]
+- Updated dependencies [bf1e4071]
+  - @nhost/react@1.13.5
+
 ## 1.0.4
 
 ### Patch Changes

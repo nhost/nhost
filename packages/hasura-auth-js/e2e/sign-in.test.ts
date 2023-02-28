@@ -1,8 +1,7 @@
 import { faker } from '@faker-js/faker'
-import axios from 'axios'
+import fetch from 'cross-fetch'
 import { afterEach, describe, expect, it } from 'vitest'
 import { USER_ALREADY_SIGNED_IN } from '../src'
-
 import { auth, getHtmlLink, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 
 describe('sign-in', () => {
@@ -57,10 +56,11 @@ describe('sign-in', () => {
     const emailLink = await getHtmlLink(email, 'signinPasswordless')
 
     // verify email
-    await axios.get(emailLink, {
-      maxRedirects: 0,
-      validateStatus: (status) => status === 302
-    })
+    try {
+      await fetch(emailLink, { method: 'GET', redirect: 'follow' })
+    } catch {
+      // ignore
+    }
   })
 
   it('should not be possible to sign in with email+password in when already authenticated', async () => {

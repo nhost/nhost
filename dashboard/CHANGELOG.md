@@ -1,5 +1,82 @@
 # @nhost/dashboard
 
+## 0.11.19
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.6
+- @nhost/nextjs@1.13.11
+
+## 0.11.18
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react-apollo@5.0.5
+  - @nhost/nextjs@1.13.10
+
+## 0.11.17
+
+### Patch Changes
+
+- f673adea: fix(dashboard): set correct Content-Type for user creation
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- 445d8ef4: chore(deps): bump `@nhost/nextjs` to 1.13.9
+- 0368663d: fix(dashboard): allow permission editing for auth and storage schemas
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/nextjs@1.13.9
+
+## 0.11.16
+
+### Patch Changes
+
+- b755e908: fix(dashboard): use correct date for last seen
+- 2d9145f9: chore(deps): revert GraphQL client
+- 1ddf704c: fix(dashboard): don't show false positive message for failed user creation
+  - @nhost/react-apollo@5.0.3
+  - @nhost/nextjs@1.13.8
+
+## 0.11.15
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.2
+- @nhost/nextjs@1.13.7
+
+## 0.11.14
+
+### Patch Changes
+
+- 2cc18dcb: fix(dashboard): prevent permission editor dropdown from being always open
+
+## 0.11.13
+
+### Patch Changes
+
+- 3343a363: chore(dashboard): bump `@testing-library/react` to v14 and `@testing-library/dom` to v9
+  - @nhost/react-apollo@5.0.1
+  - @nhost/nextjs@1.13.6
+
+## 0.11.12
+
+### Patch Changes
+
+- 87eda76e: chore(dashboard): bump `@types/react` to v18.0.28 and `@types/react-dom` to v18.0.11
+- 6f0ac570: feat(dashboard): show dashboard version in account menu
+
+## 0.11.11
+
+### Patch Changes
+
+- bf1e4071: chore(dashboard): bump `react-is` version to `18.2.0`
+- Updated dependencies [bf1e4071]
+- Updated dependencies [5013213b]
+  - @nhost/nextjs@1.13.5
+  - @nhost/react-apollo@4.13.5
+
 ## 0.11.10
 
 ### Patch Changes

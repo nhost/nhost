@@ -1,5 +1,23 @@
 # @nhost-examples/vue-apollo
 
+## 0.0.7
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/apollo@5.0.4
+  - @nhost/vue@1.13.10
+
+## 0.0.6
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/apollo` to 5.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/apollo@5.0.3
+  - @nhost/vue@1.13.9
+
 ## 0.0.5
 
 ### Patch Changes

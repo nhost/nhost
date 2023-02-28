@@ -5,7 +5,6 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, InterpreterFrom, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
@@ -42,16 +41,14 @@ import {
 } from '../../types'
 import {
   getParameterByName,
-  nhostApiClient,
-  removeParameterFromWindow,
-  rewriteRedirectTo
-} from '../../utils'
-import {
   isValidEmail,
   isValidPassword,
   isValidPhoneNumber,
-  isValidTicket
-} from '../../utils/validators'
+  isValidTicket,
+  postFetch,
+  removeParameterFromWindow,
+  rewriteRedirectTo
+} from '../../utils'
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
 import { AuthEvents } from './events'
 
@@ -81,23 +78,20 @@ type AuthServices = {
 export const createAuthMachine = ({
   backendUrl,
   clientUrl,
-  clientStorageGetter,
-  clientStorageSetter,
   clientStorageType = 'web',
   clientStorage,
   refreshIntervalTime,
   autoRefreshToken = true,
   autoSignIn = true
 }: AuthMachineOptions) => {
-  const storageGetter = clientStorageGetter || localStorageGetter(clientStorageType, clientStorage)
-  const storageSetter = clientStorageSetter || localStorageSetter(clientStorageType, clientStorage)
-  const api = nhostApiClient(backendUrl)
+  const storageGetter = localStorageGetter(clientStorageType, clientStorage)
+  const storageSetter = localStorageSetter(clientStorageType, clientStorage)
   const postRequest = async <T = any, D = any>(
     url: string,
     data?: D,
-    config?: AxiosRequestConfig<D>
+    token?: string | null
   ): Promise<T> => {
-    const result = await api.post(url, data, config)
+    const result = await postFetch<T>(`${backendUrl}${url}`, data, token)
 
     return result.data
   }
@@ -704,11 +698,7 @@ export const createAuthMachine = ({
                 phoneNumber,
                 options: rewriteRedirectTo(clientUrl, options)
               },
-              {
-                headers: {
-                  authorization: `Bearer ${context.accessToken.value}`
-                }
-              }
+              context.accessToken.value
             )
           } else {
             return postRequest('/signin/passwordless/sms', {
@@ -739,11 +729,7 @@ export const createAuthMachine = ({
                 email,
                 options: rewriteRedirectTo(clientUrl, options)
               },
-              {
-                headers: {
-                  authorization: `Bearer ${context.accessToken.value}`
-                }
-              }
+              context.accessToken.value
             )
           } else {
             return postRequest('/signin/passwordless/email', {
@@ -811,11 +797,7 @@ export const createAuthMachine = ({
                 password,
                 options: rewriteRedirectTo(clientUrl, options)
               },
-              {
-                headers: {
-                  authorization: `Bearer ${context.accessToken.value}`
-                }
-              }
+              context.accessToken.value
             )
           } else {
             return postRequest<SignUpResponse>('/signup/email-password', {

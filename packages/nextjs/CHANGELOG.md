@@ -1,5 +1,57 @@
 # @nhost/nextjs
 
+## 1.13.11
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- @nhost/react@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/react@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+
+## 1.13.5
+
+### Patch Changes
+
+- bf1e4071: chore(deps): bump `react` to v18
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+- Updated dependencies [bf1e4071]
+  - @nhost/react@1.13.5
+
 ## 1.13.4
 
 ### Patch Changes

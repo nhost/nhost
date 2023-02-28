@@ -263,7 +263,7 @@ export default function EditUserForm({
               Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
-              {format(new Date(user.createdAt), 'yyyy-MM-dd hh:mm:ss')}
+              {format(new Date(user.createdAt), 'yyyy-MM-dd HH:mm:ss')}
             </Text>
 
             <InputLabel as="h3" className="col-span-1 self-center ">
@@ -271,7 +271,7 @@ export default function EditUserForm({
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {user.lastSeen
-                ? `${format(new Date(user.lastSeen), 'yyyy-mm-dd hh:mm:ss')}`
+                ? `${format(new Date(user.lastSeen), 'yyyy-MM-dd HH:mm:ss')}`
                 : '-'}
             </Text>
           </Box>

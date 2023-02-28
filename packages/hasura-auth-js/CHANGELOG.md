@@ -1,5 +1,47 @@
 # @nhost/hasura-auth-js
 
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove the deprecated `AuthCookieClient` and `AuthClientSSR` constructors
+
+  Use the `clientStorageType` option instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'cookie' })
+  ```
+
+- 19b11d40: Remove the deprecated `nhost.auth.getJWTToken` method
+
+  Use `nhost.auth.getAccessToken()` instead.
+
+- 19b11d40: Remove the deprecated `autoLogin` option
+
+  Use `autoSignIn` instead:
+
+  ```ts
+  const nhost = new NhostClient({ autoSignIn: true })
+  ```
+
+- 19b11d40: Remove the deprecated `clientStorageGetter` and `clientStorageSetter` options
+
+  Use `clientStorageType` and `clientStorage` instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'custom', clientStorage: TODO })
+  ```
+
+### Minor Changes
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
+## 1.12.4
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+
 ## 1.12.3
 
 ### Patch Changes

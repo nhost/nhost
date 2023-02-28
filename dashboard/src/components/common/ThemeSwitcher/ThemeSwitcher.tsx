@@ -21,6 +21,13 @@ export default function ThemeSwitcher({
 
         onChange?.(event, value);
       }}
+      slotProps={{
+        listbox: { className: 'min-w-0 w-full' },
+        popper: {
+          disablePortal: false,
+          className: 'z-[10000] w-[270px] w-full',
+        },
+      }}
     >
       <Option value="light">Light</Option>
       <Option value="dark">Dark</Option>

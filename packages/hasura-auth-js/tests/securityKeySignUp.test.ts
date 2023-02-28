@@ -80,7 +80,7 @@ describe('Security Key', () => {
     expect(state.context.errors).toMatchInlineSnapshot(`
       {
         "registration": {
-          "error": "OK",
+          "error": "network",
           "message": "Network Error",
           "status": 0,
         },

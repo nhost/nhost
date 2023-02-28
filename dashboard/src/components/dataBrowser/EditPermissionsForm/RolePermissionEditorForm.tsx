@@ -247,7 +247,7 @@ export default function RolePermissionEditorForm({
             : permission?.check,
         backend_only: values.backendOnly,
         computed_fields:
-          permission?.computed_fields.length > 0
+          permission?.computed_fields?.length > 0
             ? permission?.computed_fields
             : null,
       },

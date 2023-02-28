@@ -52,7 +52,9 @@ function ControlledAutocomplete(
 
   return (
     <Autocomplete
-      inputValue={typeof field.value === 'string' ? field.value : undefined}
+      inputValue={
+        typeof field.value !== 'object' ? field.value.toString() : undefined
+      }
       {...props}
       {...field}
       ref={mergeRefs([field.ref, ref])}

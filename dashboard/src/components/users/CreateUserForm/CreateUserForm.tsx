@@ -7,7 +7,7 @@ import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import axios from 'axios';
+import fetch from 'cross-fetch';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -71,28 +71,37 @@ export default function CreateUserForm({
 
     try {
       await toast.promise(
-        axios.post(signUpUrl, {
-          email,
-          password,
+        fetch(signUpUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }).then(async (res) => {
+          const data = await res.json();
+
+          if (res.ok) {
+            return data;
+          }
+
+          if (res.status === 409) {
+            setError('email', { message: data?.message });
+          }
+
+          throw new Error(data?.message || 'Something went wrong.');
         }),
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
-          error: 'An error occurred while trying to create the user.',
+          error: (arg) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : 'An error occurred while trying to create the user.',
         },
         getToastStyleProps(),
       );
+
       onSubmit?.();
     } catch (error) {
-      if (error.response?.status === 409) {
-        setError('email', {
-          message: error.response.data.message,
-        });
-        return;
-      }
-      setCreateUserFormError(
-        new Error(error.response.data.message || 'Something went wrong.'),
-      );
+      // Note: The error is already handled by the toast promise.
     }
   }
 

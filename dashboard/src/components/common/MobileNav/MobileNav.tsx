@@ -20,6 +20,7 @@ import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useSignOut } from '@nhost/nextjs';
+import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { cloneElement, Fragment, isValidElement, useState } from 'react';
@@ -89,6 +90,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { signOut } = useSignOut();
   const { setUserContext } = useUserDataContext();
   const router = useRouter();
+  const { publicRuntimeConfig } = getConfig();
 
   return (
     <>
@@ -256,6 +258,10 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                 </ListItem.Button>
               </ListItem.Root>
             </List>
+
+            <Text className="text-center text-xs" color="secondary">
+              Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+            </Text>
           </section>
         )}
       </Drawer>

@@ -101,5 +101,5 @@ export const activateMfaTotpUnauthorizedErrorHandler = rest.post(
  * Request handler for MSW to mock an successful network request when activating MFA.
  */
 export const activateMfaTotpSuccessHandler = rest.post(`${BASE_URL}/user/mfa`, (_req, res, ctx) => {
-  return res(ctx.status(200))
+  return res(ctx.status(200), ctx.json('OK'))
 })

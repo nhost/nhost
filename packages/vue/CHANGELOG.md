@@ -1,5 +1,59 @@
 # @nhost/vue
 
+## 1.13.11
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
+## 1.13.5
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+  - @nhost/nhost-js@1.13.4
+
 ## 1.13.4
 
 ### Patch Changes

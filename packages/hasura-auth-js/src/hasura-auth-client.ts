@@ -75,11 +75,8 @@ export class HasuraAuthClient {
     url,
     autoRefreshToken = true,
     autoSignIn = true,
-    autoLogin,
     clientStorage,
     clientStorageType,
-    clientStorageGetter,
-    clientStorageSetter,
     refreshIntervalTime,
     start = true
   }: NhostAuthConstructorParams) {
@@ -88,12 +85,10 @@ export class HasuraAuthClient {
       backendUrl: url,
       clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
       autoRefreshToken,
-      autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
+      autoSignIn,
       start,
       clientStorage,
       clientStorageType,
-      clientStorageGetter,
-      clientStorageSetter,
       refreshIntervalTime
     })
   }
@@ -550,16 +545,6 @@ export class HasuraAuthClient {
       }
     }
     return { isAuthenticated: this.isAuthenticated(), isLoading: false, connectionAttempts }
-  }
-
-  /**
-   * @internal
-   * @deprecated Use `nhost.auth.getAccessToken()` instead.
-   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
-   */
-
-  getJWTToken(): string | undefined {
-    return this.getAccessToken()
   }
 
   /**

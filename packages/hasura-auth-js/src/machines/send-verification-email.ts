@@ -1,9 +1,8 @@
 import { assign, createMachine, send } from 'xstate'
-
 import { INVALID_EMAIL_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
 import { ErrorPayload, SendVerificationEmailOptions, SendVerificationEmailResponse } from '../types'
-import { nhostApiClient, rewriteRedirectTo } from '../utils'
+import { postFetch, rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../utils/validators'
 
 export type SendVerificationEmailContext = {
@@ -25,7 +24,6 @@ export type SendVerificationEmailServices = {
 
 export type SendVerificationEmailMachine = ReturnType<typeof createSendVerificationEmailMachine>
 export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: AuthClient) => {
-  const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
@@ -84,12 +82,9 @@ export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: Au
       },
       services: {
         request: async (_, { email, options }) => {
-          const res = await api.post<SendVerificationEmailResponse>(
-            '/user/email/send-verification-email',
-            {
-              email,
-              options: rewriteRedirectTo(clientUrl, options)
-            }
+          const res = await postFetch<SendVerificationEmailResponse>(
+            `${backendUrl}/user/email/send-verification-email`,
+            { email, options: rewriteRedirectTo(clientUrl, options) }
           )
           return res.data
         }

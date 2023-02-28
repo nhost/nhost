@@ -1,7 +1,8 @@
 import { NhostClientConstructorParams } from './types'
 
 // a port can be a number or a placeholder string with leading and trailing double underscores, f.e. "8080" or "__PLACEHOLDER_NAME__"
-const LOCALHOST_REGEX = /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>(\d+|__\w+__)))?$/
+export const LOCALHOST_REGEX =
+  /^((?<protocol>http[s]?):\/\/)?(?<host>localhost)(:(?<port>(\d+|__\w+__)))?$/
 
 /**
  * `backendUrl` should now be used only when self-hosting
@@ -72,4 +73,17 @@ function getValueFromEnv(service: string) {
   }
 
   return process.env[`NHOST_${service.toUpperCase()}_URL`]
+}
+
+/**
+ * Combines a base URL and a path into a single URL string.
+ *
+ * @param baseUrl - The base URL to use.
+ * @param path - The path to append to the base URL.
+ * @returns The combined URL string.
+ */
+export function buildUrl(baseUrl: string, path: string) {
+  const hasLeadingSlash = path.startsWith('/')
+  const urlPath = hasLeadingSlash ? path : `/${path}`
+  return baseUrl + urlPath
 }
