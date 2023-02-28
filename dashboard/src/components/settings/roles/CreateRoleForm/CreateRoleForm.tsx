@@ -73,7 +73,7 @@ export default function CreateRoleForm({
           auth: {
             user: {
               roles: {
-                allowed: [...allowedRoles, name],
+                allowed: [...(allowedRoles || []), name],
               },
             },
           },
@@ -81,19 +81,23 @@ export default function CreateRoleForm({
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Creating role...',
-        success: 'Role has been created successfully.',
-        error: getServerError(
-          'An error occurred while trying to create the role.',
-        ),
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Creating role...',
+          success: 'Role has been created successfully.',
+          error: getServerError(
+            'An error occurred while trying to create the role.',
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    await onSubmit?.();
+      onSubmit?.();
+    } catch (updateConfigError) {
+      console.error(updateConfigError);
+    }
   }
 
   return (

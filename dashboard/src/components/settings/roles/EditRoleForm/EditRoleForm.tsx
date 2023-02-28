@@ -112,19 +112,23 @@ export default function EditRoleForm({
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Updating role...',
-        success: 'Role has been updated successfully.',
-        error: getServerError(
-          'An error occurred while trying to update the role.',
-        ),
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Updating role...',
+          success: 'Role has been updated successfully.',
+          error: getServerError(
+            'An error occurred while trying to update the role.',
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    await onSubmit?.();
+      onSubmit?.();
+    } catch (updateConfigError) {
+      console.error(updateConfigError);
+    }
   }
 
   return (

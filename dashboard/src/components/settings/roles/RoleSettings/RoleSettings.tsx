@@ -171,7 +171,10 @@ export default function RoleSettings() {
       description="Allowed roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
-      className="my-2 px-0"
+      className={twMerge(
+        'my-2 px-0',
+        availableAllowedRoles.length === 0 && 'gap-2',
+      )}
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <Box className="border-b-1 px-4 py-3">
@@ -179,97 +182,99 @@ export default function RoleSettings() {
       </Box>
 
       <div className="grid grid-flow-row gap-2">
-        <List>
-          {availableAllowedRoles.map((role, index) => (
-            <Fragment key={role.name}>
-              <ListItem.Root
-                className="px-4"
-                secondaryAction={
-                  <Dropdown.Root>
-                    <Dropdown.Trigger
-                      asChild
-                      hideChevron
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
-                    >
-                      <IconButton variant="borderless" color="secondary">
-                        <DotsVerticalIcon />
-                      </IconButton>
-                    </Dropdown.Trigger>
-
-                    <Dropdown.Content
-                      menu
-                      PaperProps={{ className: 'w-32' }}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                    >
-                      <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
-                        <Text className="font-medium">Set as Default</Text>
-                      </Dropdown.Item>
-
-                      <Divider component="li" />
-
-                      <Dropdown.Item
-                        disabled={role.isSystemRole}
-                        onClick={() => handleOpenEditor(role)}
+        {availableAllowedRoles.length > 0 && (
+          <List>
+            {availableAllowedRoles.map((role, index) => (
+              <Fragment key={role.name}>
+                <ListItem.Root
+                  className="px-4"
+                  secondaryAction={
+                    <Dropdown.Root>
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
-                        <Text className="font-medium">Edit</Text>
-                      </Dropdown.Item>
+                        <IconButton variant="borderless" color="secondary">
+                          <DotsVerticalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
 
-                      <Divider component="li" />
-
-                      <Dropdown.Item
-                        disabled={role.isSystemRole}
-                        onClick={() => handleConfirmDelete(role)}
+                      <Dropdown.Content
+                        menu
+                        PaperProps={{ className: 'w-32' }}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
                       >
-                        <Text className="font-medium" color="error">
-                          Delete
-                        </Text>
-                      </Dropdown.Item>
-                    </Dropdown.Content>
-                  </Dropdown.Root>
-                }
-              >
-                <ListItem.Text
-                  primaryTypographyProps={{
-                    className:
-                      'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
-                  }}
-                  primary={
-                    <>
-                      {role.name}
+                        <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
+                          <Text className="font-medium">Set as Default</Text>
+                        </Dropdown.Item>
 
-                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                        <Divider component="li" />
 
-                      {defaultRole === role.name && (
-                        <Chip
-                          component="span"
-                          color="info"
-                          size="small"
-                          label="Default"
-                        />
-                      )}
-                    </>
+                        <Dropdown.Item
+                          disabled={role.isSystemRole}
+                          onClick={() => handleOpenEditor(role)}
+                        >
+                          <Text className="font-medium">Edit</Text>
+                        </Dropdown.Item>
+
+                        <Divider component="li" />
+
+                        <Dropdown.Item
+                          disabled={role.isSystemRole}
+                          onClick={() => handleConfirmDelete(role)}
+                        >
+                          <Text className="font-medium" color="error">
+                            Delete
+                          </Text>
+                        </Dropdown.Item>
+                      </Dropdown.Content>
+                    </Dropdown.Root>
                   }
-                />
-              </ListItem.Root>
+                >
+                  <ListItem.Text
+                    primaryTypographyProps={{
+                      className:
+                        'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
+                    }}
+                    primary={
+                      <>
+                        {role.name}
 
-              <Divider
-                component="li"
-                className={twMerge(
-                  index === availableAllowedRoles.length - 1
-                    ? '!mt-4'
-                    : '!my-4',
-                )}
-              />
-            </Fragment>
-          ))}
-        </List>
+                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+
+                        {defaultRole === role.name && (
+                          <Chip
+                            component="span"
+                            color="info"
+                            size="small"
+                            label="Default"
+                          />
+                        )}
+                      </>
+                    }
+                  />
+                </ListItem.Root>
+
+                <Divider
+                  component="li"
+                  className={twMerge(
+                    index === availableAllowedRoles.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
+                  )}
+                />
+              </Fragment>
+            ))}
+          </List>
+        )}
 
         <Button
           className="mx-4 justify-self-start"
