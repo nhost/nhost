@@ -59,6 +59,7 @@ pnpm storybook
 | `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`      | URL of the GitHub application. Not necessary for local development.                                                                                  |
 | `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`         | Analytics key. Not necessary for local development.                                                                                                  |
 | `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`       | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
+| `NEXT_PUBLIC_PROJECT_MANAGEMENT_DISABLED` | Determines whether or not features related to project management (such as project creation and project settings) are disabled.                       |
 
 ## ESLint Rules
 

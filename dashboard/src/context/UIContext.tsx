@@ -13,6 +13,10 @@ export interface UIContextState {
    * (such as project creation and project settings) are disabled.
    */
   projectManagementDisabled: boolean;
+  openPaymentModal: () => void;
+  closePaymentModal: () => void;
+  openDeleteWorkspaceModal: () => void;
+  closeDeleteWorkspaceModal: () => void;
 }
 
 const initialState: UIContextState = {
@@ -23,6 +27,10 @@ const initialState: UIContextState = {
   resourcesCollapsible: true,
   paymentModal: false,
   projectManagementDisabled: false,
+  openPaymentModal: () => {},
+  closePaymentModal: () => {},
+  openDeleteWorkspaceModal: () => {},
+  closeDeleteWorkspaceModal: () => {},
 };
 
 export const UIContext = createContext<UIContextState>(initialState);
@@ -31,40 +39,10 @@ UIContext.displayName = 'UIContext';
 
 function sideReducer(state: any, action: any) {
   switch (action.type) {
-    case 'TOGGLE_WORKSPACES': {
-      return {
-        ...state,
-        newWorkspace: !state.newWorkspace,
-      };
-    }
-    case 'OPEN_MODAL': {
-      return {
-        ...state,
-        modal: true,
-      };
-    }
-    case 'CLOSE_MODAL': {
-      return {
-        ...state,
-        modal: false,
-      };
-    }
-    case 'TOGGLE_DELETE_APP_MODAL': {
-      return {
-        ...state,
-        deleteApplicationModal: !state.deleteApplicationModal,
-      };
-    }
     case 'TOGGLE_DELETE_WORKSPACE_MODAL': {
       return {
         ...state,
         deleteWorkspaceModal: !state.deleteWorkspaceModal,
-      };
-    }
-    case 'TOGGLE_RESOURCES': {
-      return {
-        ...state,
-        resourcesCollapsible: !state.resourcesCollapsible,
       };
     }
     case 'TOGGLE_PAYMENT_MODAL': {
@@ -81,34 +59,18 @@ function sideReducer(state: any, action: any) {
 export function UIProvider(props: PropsWithChildren<unknown>) {
   const [state, dispatch] = useReducer(sideReducer, initialState);
 
-  const openSection = () => dispatch({ type: 'TOGGLE_WORKSPACES' });
-  const closeSection = () => dispatch({ type: 'TOGGLE_WORKSPACES' });
-  const openModal = () => dispatch({ type: 'OPEN_MODAL' });
-  const closeModal = () => dispatch({ type: 'CLOSE_MODAL' });
-  const toggleResources = () => dispatch({ type: 'TOGGLE_RESOURCES' });
-  const openDeleteAppModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_APP_MODAL' });
   const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
   const closePaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
-  const closeDeleteAppModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_APP_MODAL' });
   const openDeleteWorkspaceModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
   const closeDeleteWorkspaceModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
 
-  const value = useMemo(
+  const value: UIContextState = useMemo(
     () => ({
       ...state,
-      openSection,
-      closeSection,
-      openModal,
-      closeModal,
-      openDeleteAppModal,
-      closeDeleteAppModal,
       openDeleteWorkspaceModal,
       closeDeleteWorkspaceModal,
-      toggleResources,
       openPaymentModal,
       closePaymentModal,
       projectManagementDisabled:
