@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.11.20
+
+### Patch Changes
+
+- 4b4f0d01: chore(dashboard): improve dialog management
+
 ## 0.11.19
 
 ### Patch Changes
