@@ -100,7 +100,6 @@ export function NewProjectPageContent({
 
   // state
   const { submitState, setSubmitState } = useSubmitState();
-  const [applicationError, setApplicationError] = useState<any>('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // graphql mutations
@@ -143,6 +142,7 @@ export function NewProjectPageContent({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!plan.isFree && workspace.paymentMethods.length === 0) {
       setShowPaymentModal(true);
       return;
@@ -154,13 +154,11 @@ export function NewProjectPageContent({
     });
 
     if (name.length < 1 || name.length > 32) {
-      setApplicationError(
-        `The project name must be between 1 and 32 characters`,
-      );
       setSubmitState({
-        error: null,
+        error: Error('The project name must be between 1 and 32 characters'),
         loading: false,
       });
+      return;
     }
 
     if (isK8SPostgresEnabledInCurrentEnvironment) {
@@ -249,7 +247,6 @@ export function NewProjectPageContent({
                   error: null,
                   loading: false,
                 });
-                setApplicationError('');
                 setName(event.target.value);
               }}
               value={name}
@@ -568,9 +565,7 @@ export function NewProjectPageContent({
             <Button
               type="submit"
               loading={submitState.loading}
-              disabled={
-                !!applicationError || !!submitState.error || !!passwordError
-              }
+              disabled={!!submitState.error || !!passwordError}
               id="create-app"
             >
               Create Project
