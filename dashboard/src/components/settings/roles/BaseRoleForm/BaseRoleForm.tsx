@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -8,7 +9,7 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseRoleFormProps {
+export interface BaseRoleFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
@@ -37,6 +38,7 @@ export default function BaseRoleForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: BaseRoleFormProps) {
   const { onDirtyStateChange } = useDialog();
   const form = useFormContext<BaseRoleFormValues>();
@@ -49,8 +51,8 @@ export default function BaseRoleForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   return (
     <div className="grid grid-flow-row gap-3 px-6 pb-6">

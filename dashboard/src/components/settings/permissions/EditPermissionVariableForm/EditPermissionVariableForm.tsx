@@ -20,7 +20,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 export interface EditPermissionVariableFormProps
-  extends Pick<BasePermissionVariableFormProps, 'onCancel'> {
+  extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {
   /**
    * The permission variable to be edited.
    */

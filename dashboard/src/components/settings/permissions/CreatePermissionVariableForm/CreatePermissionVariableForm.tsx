@@ -19,7 +19,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 export interface CreatePermissionVariableFormProps
-  extends Pick<BasePermissionVariableFormProps, 'onCancel'> {
+  extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {
   /**
    * Function to be called when the form is submitted.
    */

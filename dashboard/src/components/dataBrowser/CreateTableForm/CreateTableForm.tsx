@@ -17,7 +17,7 @@ import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface CreateTableFormProps
-  extends Pick<BaseTableFormProps, 'onCancel'> {
+  extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
   /**
    * Schema where the table should be created.
    */
@@ -25,7 +25,7 @@ export interface CreateTableFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: (args?: any) => Promise<any>;
 }
 
 export default function CreateTableForm({

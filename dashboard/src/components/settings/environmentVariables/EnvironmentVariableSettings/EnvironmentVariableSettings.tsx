@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
+import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
@@ -24,9 +26,9 @@ import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
-export interface PermissionVariableSettingsFormValues {
+export interface EnvironmentVariableSettingsFormValues {
   /**
-   * Permission variables.
+   * Environment variables.
    */
   environmentVariables: EnvironmentVariable[];
 }
@@ -101,8 +103,9 @@ export default function EnvironmentVariableSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_ENVIRONMENT_VARIABLE', {
+    openDialog({
       title: 'Create Environment Variable',
+      component: <CreateEnvironmentVariableForm />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-sm' },
@@ -111,9 +114,13 @@ export default function EnvironmentVariableSettings() {
   }
 
   function handleOpenEditor(originalVariable: EnvironmentVariable) {
-    openDialog('EDIT_ENVIRONMENT_VARIABLE', {
-      title: 'Edit Environment Variables',
-      payload: { originalEnvironmentVariable: originalVariable },
+    openDialog({
+      title: 'Edit Environment Variable',
+      component: (
+        <EditEnvironmentVariableForm
+          originalEnvironmentVariable={originalVariable}
+        />
+      ),
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-sm' },

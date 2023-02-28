@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
+import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
@@ -123,8 +125,9 @@ export default function RoleSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_ROLE', {
+    openDialog({
       title: 'Create Allowed Role',
+      component: <CreateRoleForm />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -133,9 +136,9 @@ export default function RoleSettings() {
   }
 
   function handleOpenEditor(originalRole: Role) {
-    openDialog('EDIT_ROLE', {
+    openDialog({
       title: 'Edit Allowed Role',
-      payload: { originalRole },
+      component: <EditRoleForm originalRole={originalRole} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },

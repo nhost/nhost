@@ -20,7 +20,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 export interface EditEnvironmentVariableFormProps
-  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel'> {
+  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {
   /**
    * The environment variable to edit.
    */

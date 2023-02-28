@@ -1,4 +1,6 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { slugifyString } from '@/utils/helpers';
@@ -12,11 +14,12 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditWorkspaceNameFormProps {
+export interface EditWorkspaceNameFormProps extends DialogFormProps {
   /**
    * The current workspace name if this is an edit operation.
    */
@@ -45,14 +48,7 @@ export interface EditWorkspaceNameFormProps {
   onCancel?: VoidFunction;
 }
 
-export interface EditWorkspaceNameFormValues {
-  /**
-   * New workspace name.
-   */
-  newWorkspaceName: string;
-}
-
-const validationSchema = Yup.object().shape({
+const validationSchema = Yup.object({
   newWorkspaceName: Yup.string()
     .required('Workspace name is required.')
     .min(4, 'The new Workspace name must be at least 4 characters.')
@@ -72,14 +68,20 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
-export default function EditWorkspaceName({
+export type EditWorkspaceNameFormValues = Yup.InferType<
+  typeof validationSchema
+>;
+
+export default function EditWorkspaceNameForm({
   disabled,
   onSubmit,
   onCancel,
   currentWorkspaceName,
   currentWorkspaceId,
   submitButtonText = 'Create',
+  location,
 }: EditWorkspaceNameFormProps) {
+  const { onDirtyStateChange } = useDialog();
   const currentUser = useUserData();
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
   const [updateWorkspaceName] = useUpdateWorkspaceMutation({
@@ -106,6 +108,10 @@ export default function EditWorkspaceName({
   } = form;
   const isDirty = Object.keys(dirtyFields).length > 0;
 
+  useEffect(() => {
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
+
   async function handleSubmit({
     newWorkspaceName,
   }: EditWorkspaceNameFormValues) {
@@ -113,6 +119,8 @@ export default function EditWorkspaceName({
 
     try {
       if (currentWorkspaceId) {
+        onDirtyStateChange(false, location);
+
         // In this bit of code we spread the props of the current path (e.g. /workspace/...) and add one key-value pair: `mutating: true`.
         // We want to indicate that the currently we're in the process of running a mutation state that will affect the routing behaviour of the website
         // i.e. redirecting to 404 if there's no workspace/project with that slug.
@@ -190,6 +198,9 @@ export default function EditWorkspaceName({
     await client.refetchQueries({
       include: ['getOneUser'],
     });
+
+    // The form has been submitted, it's not dirty anymore
+    onDirtyStateChange(false, location);
 
     await router.push(slug);
     onSubmit?.();

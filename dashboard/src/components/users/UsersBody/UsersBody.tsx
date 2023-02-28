@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -18,7 +19,6 @@ import getReadableProviderName from '@/utils/common/getReadableProviderName';
 import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -26,16 +26,21 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
-import type { ApolloQueryResult } from '@apollo/client';
 import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
 import toast from 'react-hot-toast';
 
-export interface UsersBodyProps<T = {}> {
+const EditUserForm = dynamic(() => import('@/components/users/EditUserForm'), {
+  ssr: false,
+  loading: () => <FormActivityIndicator />,
+});
+
+export interface UsersBodyProps {
   /**
    * The users fetched from entering the users page given a limit and offset.
    * @remark users will be an empty array if there are no users.
@@ -47,13 +52,10 @@ export interface UsersBodyProps<T = {}> {
    * @example onSuccessfulAction={() => refetch()}
    * @example onSuccessfulAction={() => router.reload()}
    */
-  onSuccessfulAction?: () => Promise<void> | void | Promise<T>;
+  onSubmit?: () => Promise<any>;
 }
 
-export default function UsersBody({
-  users,
-  onSuccessfulAction,
-}: UsersBodyProps<ApolloQueryResult<RemoteAppGetUsersQuery>>) {
+export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
   const theme = useTheme();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -156,7 +158,8 @@ export default function UsersBody({
       },
       getToastStyleProps(),
     );
-    await onSuccessfulAction?.();
+
+    await onSubmit?.();
 
     closeDrawer();
   }
@@ -188,7 +191,7 @@ export default function UsersBody({
             getToastStyleProps(),
           );
 
-          await onSuccessfulAction();
+          await onSubmit();
           closeDrawer();
         },
         primaryButtonColor: 'error',
@@ -198,20 +201,20 @@ export default function UsersBody({
   }
 
   function handleViewUser(user: RemoteAppUser) {
-    openDrawer('EDIT_USER', {
+    openDrawer({
       title: 'User Details',
-
-      payload: {
-        user,
-        onEditUser: handleEditUser,
-        onDeleteUser: handleDeleteUser,
-        onSuccessfulAction,
-        roles: allAvailableProjectRoles.map((role) => ({
-          [role.name]: user.roles.some(
-            (userRole) => userRole.role === role.name,
-          ),
-        })),
-      },
+      component: (
+        <EditUserForm
+          user={user}
+          onSubmit={(values) => handleEditUser(values, user)}
+          onDeleteUser={handleDeleteUser}
+          roles={allAvailableProjectRoles.map((role) => ({
+            [role.name]: user.roles.some(
+              (userRole) => userRole.role === role.name,
+            ),
+          }))}
+        />
+      ),
     });
   }
 

@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
+import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { PermissionVariable } from '@/types/application';
@@ -88,8 +90,9 @@ export default function PermissionVariableSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_PERMISSION_VARIABLE', {
+    openDialog({
       title: 'Create Permission Variable',
+      component: <CreatePermissionVariableForm />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -98,9 +101,11 @@ export default function PermissionVariableSettings() {
   }
 
   function handleOpenEditor(originalVariable: PermissionVariable) {
-    openDialog('EDIT_PERMISSION_VARIABLE', {
+    openDialog({
       title: 'Edit Permission Variable',
-      payload: { originalVariable },
+      component: (
+        <EditPermissionVariableForm originalVariable={originalVariable} />
+      ),
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },

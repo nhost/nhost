@@ -10,11 +10,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface CreateRecordFormProps
-  extends Pick<BaseRecordFormProps, 'columns' | 'onCancel'> {
+  extends Pick<BaseRecordFormProps, 'columns' | 'onCancel' | 'location'> {
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: (args?: any) => Promise<any>;
 }
 
 export default function CreateRecordForm({

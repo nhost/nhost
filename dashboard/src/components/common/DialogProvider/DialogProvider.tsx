@@ -1,32 +1,12 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
-import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
-import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
-import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
-import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
-import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
-import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
-import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
-import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
-import EditRoleForm from '@/components/settings/roles/EditRoleForm';
-import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
-import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
-import CreateUserForm from '@/components/users/CreateUserForm';
-import EditUserForm from '@/components/users/EditUserForm';
-import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import type {
-  BaseSyntheticEvent,
-  DetailedHTMLProps,
-  HTMLProps,
-  PropsWithChildren,
-} from 'react';
+import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import {
+  cloneElement,
+  isValidElement,
   useCallback,
   useEffect,
   useMemo,
@@ -35,7 +15,7 @@ import {
   useState,
 } from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { DialogConfig, DialogType } from './DialogContext';
+import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
@@ -43,67 +23,11 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function LoadingComponent({
-  className,
-  ...props
-}: DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> = {}) {
-  return (
-    <div
-      {...props}
-      className={twMerge(
-        'grid items-center justify-center px-6 py-4',
-        className,
-      )}
-    >
-      <ActivityIndicator
-        circularProgressProps={{ className: 'w-5 h-5' }}
-        label="Loading form..."
-      />
-    </div>
-  );
-}
-
-const CreateRecordForm = dynamic(
-  () => import('@/components/dataBrowser/CreateRecordForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const CreateColumnForm = dynamic(
-  () => import('@/components/dataBrowser/CreateColumnForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditColumnForm = dynamic(
-  () => import('@/components/dataBrowser/EditColumnForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const CreateTableForm = dynamic(
-  () => import('@/components/dataBrowser/CreateTableForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditTableForm = dynamic(
-  () => import('@/components/dataBrowser/EditTableForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
-const EditPermissionsForm = dynamic(
-  () => import('@/components/dataBrowser/EditPermissionsForm'),
-  { ssr: false, loading: () => LoadingComponent() },
-);
-
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const router = useRouter();
 
   const [
-    {
-      open: dialogOpen,
-      activeDialogType,
-      dialogProps,
-      title: dialogTitle,
-      payload: dialogPayload,
-    },
+    { open: dialogOpen, title: dialogTitle, activeDialog, dialogProps },
     dialogDispatch,
   ] = useReducer(dialogReducer, {
     open: false,
@@ -112,10 +36,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const [
     {
       open: drawerOpen,
-      activeDialogType: activeDrawerType,
-      dialogProps: drawerProps,
       title: drawerTitle,
-      payload: drawerPayload,
+      activeDialog: activeDrawer,
+      dialogProps: drawerProps,
     },
     drawerDispatch,
   ] = useReducer(drawerReducer, {
@@ -138,12 +61,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const isDialogDirty = useRef(false);
   const [showDirtyConfirmation, setShowDirtyConfirmation] = useState(false);
 
-  const openDialog = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      dialogDispatch({ type: 'OPEN_DIALOG', payload: { type, config } });
-    },
-    [],
-  );
+  const openDialog = useCallback((options: OpenDialogOptions) => {
+    dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
+  }, []);
 
   const closeDialog = useCallback(() => {
     dialogDispatch({ type: 'HIDE_DIALOG' });
@@ -154,12 +74,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     dialogDispatch({ type: 'CLEAR_DIALOG_CONTENT' });
   }, []);
 
-  const openDrawer = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      drawerDispatch({ type: 'OPEN_DRAWER', payload: { type, config } });
-    },
-    [],
-  );
+  const openDrawer = useCallback((options: OpenDialogOptions) => {
+    drawerDispatch({ type: 'OPEN_DRAWER', payload: options });
+  }, []);
 
   const closeDrawer = useCallback(() => {
     drawerDispatch({ type: 'HIDE_DRAWER' });
@@ -230,9 +147,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     [closeDialog, openDirtyConfirmation],
   );
 
-  // We are coupling this logic with the location of the dialog content which is
-  // not ideal. We shoule figure out a better logic for tracking the dirty
-  // state in the future.
   const onDirtyStateChange = useCallback(
     (dirty: boolean, location: 'drawer' | 'dialog' = 'drawer') => {
       if (location === 'dialog') {
@@ -272,25 +186,6 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openDrawer,
     ],
   );
-
-  const sharedDialogProps = {
-    ...dialogPayload,
-    onSubmit: async (values: any) => {
-      await dialogPayload?.onSubmit?.(values);
-
-      closeDialog();
-    },
-    onCancel: closeDialogWithDirtyGuard,
-  };
-
-  const sharedDrawerProps = {
-    onSubmit: async () => {
-      await drawerPayload?.onSubmit();
-
-      closeDrawer();
-    },
-    onCancel: closeDrawerWithDirtyGuard,
-  };
 
   useEffect(() => {
     function handleCloseDrawerAndDialog() {
@@ -369,64 +264,20 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
-          {activeDialogType === 'EDIT_WORKSPACE_NAME' && (
-            <EditWorkspaceNameForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_FOREIGN_KEY' && (
-            <CreateForeignKeyForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_FOREIGN_KEY' && (
-            <EditForeignKeyForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_ROLE' && (
-            <CreateRoleForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_ROLE' && (
-            <EditRoleForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_USER' && (
-            <CreateUserForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_PERMISSION_VARIABLE' && (
-            <CreatePermissionVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_PERMISSION_VARIABLE' && (
-            <EditPermissionVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_ENVIRONMENT_VARIABLE' && (
-            <CreateEnvironmentVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_ENVIRONMENT_VARIABLE' && (
-            <EditEnvironmentVariableForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_USER_PASSWORD' && (
-            <EditUserPasswordForm
-              {...sharedDialogProps}
-              user={sharedDialogProps?.user}
-            />
-          )}
-
-          {activeDialogType === 'EDIT_JWT_SECRET' && (
-            <EditJwtSecretForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'CREATE_SECRET' && (
-            <CreateSecretForm {...sharedDialogProps} />
-          )}
-
-          {activeDialogType === 'EDIT_SECRET' && (
-            <EditSecretForm {...sharedDialogProps} />
-          )}
+          {isValidElement(activeDialog)
+            ? cloneElement(activeDialog, {
+                ...activeDialog.props,
+                location: 'dialog',
+                onSubmit: async (values?: any) => {
+                  await activeDialog?.props?.onSubmit?.(values);
+                  closeDialog();
+                },
+                onCancel: () => {
+                  activeDialog?.props?.onCancel?.();
+                  closeDialogWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </BaseDialog>
 
@@ -446,51 +297,20 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         }}
       >
         <RetryableErrorBoundary>
-          {activeDrawerType === 'CREATE_RECORD' && (
-            <CreateRecordForm
-              {...sharedDrawerProps}
-              columns={drawerPayload?.columns}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_COLUMN' && (
-            <CreateColumnForm {...sharedDrawerProps} />
-          )}
-
-          {activeDrawerType === 'EDIT_COLUMN' && (
-            <EditColumnForm
-              {...sharedDrawerProps}
-              column={drawerPayload?.column}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_TABLE' && (
-            <CreateTableForm
-              {...sharedDrawerProps}
-              schema={drawerPayload?.schema}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_TABLE' && (
-            <EditTableForm
-              {...sharedDrawerProps}
-              table={drawerPayload?.table}
-              schema={drawerPayload?.schema}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_PERMISSIONS' && (
-            <EditPermissionsForm
-              {...sharedDrawerProps}
-              disabled={drawerPayload?.disabled}
-              schema={drawerPayload?.schema}
-              table={drawerPayload?.table}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_USER' && (
-            <EditUserForm {...sharedDrawerProps} {...drawerPayload} />
-          )}
+          {isValidElement(activeDrawer)
+            ? cloneElement(activeDrawer, {
+                ...activeDrawer.props,
+                location: 'drawer',
+                onSubmit: async (values?: any) => {
+                  await activeDrawer?.props?.onSubmit?.(values);
+                  closeDrawer();
+                },
+                onCancel: () => {
+                  activeDrawer?.props?.onCancel?.();
+                  closeDrawerWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </Drawer>
 

@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
@@ -14,7 +15,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditJwtSecretFormProps {
+export interface EditJwtSecretFormProps extends DialogFormProps {
   /**
    * Initial JWT secret.
    */
@@ -61,6 +62,7 @@ export default function EditJwtSecretForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: EditJwtSecretFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
@@ -82,8 +84,8 @@ export default function EditJwtSecretForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: EditJwtSecretFormValues) {
     const parsedJwtSecret = JSON.parse(values.jwtSecret);
