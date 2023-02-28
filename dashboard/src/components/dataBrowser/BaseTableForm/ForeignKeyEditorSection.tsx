@@ -1,5 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import type { BaseForeignKeyFormValues } from '@/components/dataBrowser/BaseForeignKeyForm';
+import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import type { DatabaseColumn, ForeignKeyRelation } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
@@ -68,18 +70,19 @@ export default function ForeignKeyEditorSection() {
           onEdit={() => {
             const primaryKeyIndex = getValues('primaryKeyIndex');
 
-            openDialog('EDIT_FOREIGN_KEY', {
+            openDialog({
               title: 'Edit Foreign Key Relation',
-              payload: {
-                foreignKeyRelation: fields[index],
-                availableColumns: columns.map((column, columnIndex) =>
-                  columnIndex === primaryKeyIndex
-                    ? { ...column, isPrimary: true }
-                    : column,
-                ),
-                onSubmit: (values: BaseForeignKeyFormValues) =>
-                  handleEdit(values, index),
-              },
+              component: (
+                <EditForeignKeyForm
+                  foreignKeyRelation={fields[index] as ForeignKeyRelation}
+                  availableColumns={columns.map((column, columnIndex) =>
+                    columnIndex === primaryKeyIndex
+                      ? { ...column, isPrimary: true }
+                      : column,
+                  )}
+                  onSubmit={(values) => handleEdit(values, index)}
+                />
+              ),
             });
           }}
           onDelete={() => remove(index)}
@@ -105,7 +108,7 @@ export default function ForeignKeyEditorSection() {
         onClick={() => {
           const primaryKeyIndex = getValues('primaryKeyIndex');
 
-          openDialog('CREATE_FOREIGN_KEY', {
+          openDialog({
             title: (
               <span className="grid grid-flow-row">
                 <span>Add a Foreign Key Relation</span>
@@ -116,14 +119,16 @@ export default function ForeignKeyEditorSection() {
                 </Text>
               </span>
             ),
-            payload: {
-              availableColumns: columns.map((column, index) =>
-                index === primaryKeyIndex
-                  ? { ...column, isPrimary: true }
-                  : column,
-              ),
-              onSubmit: handleCreate,
-            },
+            component: (
+              <CreateForeignKeyForm
+                availableColumns={columns.map((column, index) =>
+                  index === primaryKeyIndex
+                    ? { ...column, isPrimary: true }
+                    : column,
+                )}
+                onSubmit={handleCreate}
+              />
+            ),
           });
         }}
       >
