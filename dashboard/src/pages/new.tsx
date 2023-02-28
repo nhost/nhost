@@ -25,13 +25,11 @@ import { MAX_FREE_APPS } from '@/utils/CONSTANTS';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
-import nhost from '@/utils/nhost';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import type {
-  CreateNewAppMutationVariables,
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
   PrefetchNewAppWorkspaceFragment,
@@ -40,6 +38,7 @@ import {
   useCreateNewAppMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
+import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -180,18 +179,16 @@ export function NewProjectPageContent({
     let projectSlug = '';
 
     try {
-      const variables = {
-        name,
-        planId: plan.id,
-        workspaceId: selectedWorkspace.id,
-        regionId: selectedRegion.id,
-        postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
-          ? databasePassword
-          : undefined,
-      } as CreateNewAppMutationVariables;
-
       const { data } = await createNewApp({
-        variables,
+        variables: {
+          name,
+          planId: plan.id,
+          workspaceId: selectedWorkspace.id,
+          regionId: selectedRegion.id,
+          postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
+            ? databasePassword
+            : undefined,
+        },
       });
 
       projectSlug = data.createNewApp.slug;
@@ -488,21 +485,9 @@ export function NewProjectPageContent({
                     <Tooltip
                       visible={disabledPlan}
                       title={`You can only have ${MAX_FREE_APPS} live free project`}
+                      key={currentPlan.id}
                     >
-                      <Box
-                        className="w-full rounded-md border"
-                        sx={
-                          {
-                            // borderColor: (theme) => {
-                            //   if (selectedPlan) {
-                            //     return `${theme.palette.primary.main} !important`;
-                            //   }
-                            //   return `${theme.palette.divider} !important`;
-                            // },
-                          }
-                        }
-                        key={currentPlan.id}
-                      >
+                      <Box className="w-full rounded-md border">
                         <Radio
                           className=""
                           slotProps={{
@@ -598,7 +583,7 @@ export function NewProjectPageContent({
 }
 
 export default function NewProjectPage() {
-  const user = nhost.auth.getUser();
+  const user = useUserData();
 
   const { data, loading, error } = usePrefetchNewAppQuery({
     variables: {
