@@ -1,5 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
+import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
+import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -73,8 +75,9 @@ export default function SecretsPage() {
   }
 
   function handleOpenCreator() {
-    openDialog('CREATE_SECRET', {
+    openDialog({
       title: 'Create Secret',
+      component: <CreateSecretForm />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-md' },
@@ -83,11 +86,9 @@ export default function SecretsPage() {
   }
 
   function handleOpenEditor(originalSecret: Secret) {
-    openDialog('EDIT_SECRET', {
+    openDialog({
       title: 'Edit Secret',
-      payload: {
-        originalSecret,
-      },
+      component: <EditSecretForm originalSecret={originalSecret} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-md' },

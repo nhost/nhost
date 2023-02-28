@@ -82,7 +82,7 @@ export default function EditSecretForm({
     <FormProvider {...form}>
       <BaseSecretForm
         mode="edit"
-        submitButtonText="Edit"
+        submitButtonText="Save"
         onSubmit={handleSubmit}
         {...props}
       />
