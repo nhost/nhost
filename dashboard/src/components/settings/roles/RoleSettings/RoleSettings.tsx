@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -41,6 +42,7 @@ export interface RoleSettingsFormValues {
 }
 
 export default function RoleSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -195,7 +197,11 @@ export default function RoleSettings() {
                         hideChevron
                         className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
-                        <IconButton variant="borderless" color="secondary">
+                        <IconButton
+                          variant="borderless"
+                          color="secondary"
+                          disabled={projectManagementDisabled}
+                        >
                           <DotsVerticalIcon />
                         </IconButton>
                       </Dropdown.Trigger>
@@ -281,6 +287,7 @@ export default function RoleSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
+          disabled={projectManagementDisabled}
         >
           Create Allowed Role
         </Button>

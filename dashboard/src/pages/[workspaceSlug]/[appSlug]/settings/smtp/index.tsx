@@ -4,6 +4,7 @@ import Form from '@/components/common/Form';
 import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
@@ -45,6 +46,7 @@ const smtpValidationSchema = yup
 export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
@@ -160,8 +162,8 @@ export default function SMTPSettingsPage() {
             className="grid grid-cols-9 gap-4"
             slotProps={{
               submitButton: {
+                disabled: !isDirty || projectManagementDisabled,
                 loading: isSubmitting,
-                disabled: !isDirty,
               },
             }}
           >

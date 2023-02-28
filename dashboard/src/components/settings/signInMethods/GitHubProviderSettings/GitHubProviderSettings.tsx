@@ -4,6 +4,7 @@ import type { BaseProviderSettingsFormValues } from '@/components/settings/signI
 import BaseProviderSettings, {
   baseProviderValidationSchema,
 } from '@/components/settings/signInMethods/BaseProviderSettings';
+import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -27,6 +28,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function GitHubProviderSettings() {
   const theme = useTheme();
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -115,7 +117,7 @@ export default function GitHubProviderSettings() {
           description="Allow users to sign in with GitHub."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

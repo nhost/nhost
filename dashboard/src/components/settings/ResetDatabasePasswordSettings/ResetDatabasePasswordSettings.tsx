@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
@@ -28,6 +29,7 @@ export interface ResetDatabasePasswordFormValues {
 
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
+  const { projectManagementDisabled } = useUI();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -44,11 +46,10 @@ export default function ResetDatabasePasswordSettings() {
     setValue,
     getValues,
     register,
-    formState: { errors },
+    formState: { errors, isDirty, isSubmitting },
   } = form;
 
-  const [resetPostgresPasswordMutation, { loading }] =
-    useResetPostgresPasswordMutation();
+  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
   const user = useUserData();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
@@ -99,12 +100,16 @@ export default function ResetDatabasePasswordSettings() {
           title="Reset Password"
           description="This password is used for accessing your database."
           submitButtonText="Reset"
-          rootClassName="border-[#F87171]"
-          primaryActionButtonProps={{
-            variant: 'contained',
-            color: 'error',
-            disabled: Boolean(errors?.databasePassword),
-            loading,
+          slotProps={{
+            root: {
+              sx: { borderColor: (theme) => theme.palette.error.main },
+            },
+            submitButton: {
+              variant: 'contained',
+              color: 'error',
+              disabled: !isDirty || projectManagementDisabled,
+              loading: isSubmitting,
+            },
           }}
           className="grid grid-flow-row pb-4"
         >

@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -42,6 +43,7 @@ export default function SystemEnvironmentVariableSettings() {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   const { openDialog } = useDialog();
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentApplication?.id },
@@ -253,6 +255,7 @@ export default function SystemEnvironmentVariableSettings() {
               variant="borderless"
               onClick={showEditJwtSecretModal}
               size="small"
+              disabled={projectManagementDisabled}
             >
               Edit JWT Secret
             </Button>

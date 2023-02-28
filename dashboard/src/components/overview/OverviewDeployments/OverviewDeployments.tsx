@@ -1,6 +1,7 @@
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -146,6 +147,7 @@ function OverviewDeploymentList() {
 export default function OverviewDeployments() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
+  const { projectManagementDisabled } = useUI();
 
   const { githubRepository } = currentApplication || {};
 
@@ -183,6 +185,7 @@ export default function OverviewDeployments() {
             color="primary"
             className="w-full"
             onClick={openGitHubModal}
+            disabled={projectManagementDisabled}
           >
             <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub

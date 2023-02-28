@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -21,6 +22,7 @@ const validationSchema = Yup.object({
 export type AnonymousSignInFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AnonymousSignInSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -98,7 +100,7 @@ export default function AnonymousSignInSettings() {
           description="Allow users to sign in anonymously."
           slotProps={{
             submitButton: {
-              disabled: !form.formState.isDirty,
+              disabled: !form.formState.isDirty || projectManagementDisabled,
               loading: form.formState.isSubmitting,
             },
           }}

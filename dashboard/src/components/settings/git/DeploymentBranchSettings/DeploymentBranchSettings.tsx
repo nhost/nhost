@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
@@ -20,6 +21,7 @@ export interface DeploymentBranchFormValues {
 }
 
 export default function DeploymentBranchSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -82,9 +84,11 @@ export default function DeploymentBranchSettings() {
         <SettingsContainer
           title="Deployment Branch"
           description="All commits pushed to this deployment branch will trigger a deployment. You can switch to a different branch here."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || projectManagementDisabled,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/github-integration#deployment-branch"
           className="grid grid-flow-row lg:grid-cols-5"

@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
@@ -24,6 +25,7 @@ export type AllowedRedirectURLFormValues = Yup.InferType<
 >;
 
 export default function AllowedRedirectURLsSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -105,7 +107,7 @@ export default function AllowedRedirectURLsSettings() {
           description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

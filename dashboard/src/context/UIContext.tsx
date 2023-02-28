@@ -7,19 +7,25 @@ export interface UIContextState {
   deleteApplicationModal: boolean;
   deleteWorkspaceModal: boolean;
   resourcesCollapsible: boolean;
+  paymentModal: boolean;
+  /**
+   * Determines whether or not features related to project management
+   * (such as project creation and project settings) are disabled.
+   */
+  projectManagementDisabled: boolean;
 }
 
-const initialState = {
+const initialState: UIContextState = {
   newWorkspace: false,
   modal: false,
   deleteApplicationModal: false,
   deleteWorkspaceModal: false,
   resourcesCollapsible: true,
-  newsCollapsible: true,
   paymentModal: false,
+  projectManagementDisabled: false,
 };
 
-export const UIContext = createContext<UIContextState | any>(initialState);
+export const UIContext = createContext<UIContextState>(initialState);
 
 UIContext.displayName = 'UIContext';
 
@@ -61,12 +67,6 @@ function sideReducer(state: any, action: any) {
         resourcesCollapsible: !state.resourcesCollapsible,
       };
     }
-    case 'TOGGLE_NEWS': {
-      return {
-        ...state,
-        newsCollapsible: !state.newsCollapsible,
-      };
-    }
     case 'TOGGLE_PAYMENT_MODAL': {
       return {
         ...state,
@@ -86,7 +86,6 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
   const openModal = () => dispatch({ type: 'OPEN_MODAL' });
   const closeModal = () => dispatch({ type: 'CLOSE_MODAL' });
   const toggleResources = () => dispatch({ type: 'TOGGLE_RESOURCES' });
-  const toggleNews = () => dispatch({ type: 'TOGGLE_NEWS' });
   const openDeleteAppModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_APP_MODAL' });
   const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
@@ -110,9 +109,10 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
       openDeleteWorkspaceModal,
       closeDeleteWorkspaceModal,
       toggleResources,
-      toggleNews,
       openPaymentModal,
       closePaymentModal,
+      projectManagementDisabled:
+        process.env.NEXT_PUBLIC_PROJECT_MANAGEMENT_DISABLED === 'true',
     }),
     [state],
   );

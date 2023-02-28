@@ -4,6 +4,7 @@ import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
 import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Secret } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -30,6 +31,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function SecretsPage() {
   const { openDialog, openAlertDialog } = useDialog();
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSecretsQuery({
@@ -148,7 +150,11 @@ export default function SecretsPage() {
                           hideChevron
                           className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
-                          <IconButton variant="borderless" color="secondary">
+                          <IconButton
+                            variant="borderless"
+                            color="secondary"
+                            disabled={projectManagementDisabled}
+                          >
                             <DotsVerticalIcon />
                           </IconButton>
                         </Dropdown.Trigger>
@@ -210,6 +216,7 @@ export default function SecretsPage() {
             variant="borderless"
             startIcon={<PlusIcon />}
             onClick={handleOpenCreator}
+            disabled={projectManagementDisabled}
           >
             Create Secret
           </Button>

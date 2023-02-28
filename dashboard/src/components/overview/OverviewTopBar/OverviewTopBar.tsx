@@ -1,6 +1,7 @@
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
@@ -16,6 +17,7 @@ export default function OverviewTopBar() {
     useCurrentWorkspaceAndApplication();
   const isPro = !currentApplication?.plan?.isFree;
   const { openAlertDialog } = useDialog();
+  const { projectManagementDisabled } = useUI();
 
   if (!isPlatform) {
     return (
@@ -104,6 +106,7 @@ export default function OverviewTopBar() {
           endIcon={<CogIcon className="h-4 w-4" />}
           variant="outlined"
           color="secondary"
+          disabled={projectManagementDisabled}
         >
           Settings
         </Button>

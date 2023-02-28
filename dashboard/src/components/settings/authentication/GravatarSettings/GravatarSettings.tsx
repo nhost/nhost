@@ -1,6 +1,7 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
@@ -30,6 +31,7 @@ const validationSchema = Yup.object({
 export type GravatarFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function GravatarSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -114,7 +116,7 @@ export default function GravatarSettings() {
           description="Use Gravatars for avatar URLs for users."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

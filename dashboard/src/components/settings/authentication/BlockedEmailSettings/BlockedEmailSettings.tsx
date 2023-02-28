@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
@@ -25,6 +26,7 @@ const validationSchema = Yup.object({
 export type BlockedEmailFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function BlockedEmailSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -125,7 +127,7 @@ export default function BlockedEmailSettings() {
           description="Block specific email addresses and domains to sign up."
           slotProps={{
             submitButton: {
-              disabled: !isDirty,
+              disabled: !isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

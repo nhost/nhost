@@ -23,6 +23,7 @@ export default function Header({ className, ...props }: HeaderProps) {
 
   return (
     <Box
+      component="header"
       className={twMerge(
         'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
         className,

@@ -1,6 +1,7 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -45,6 +46,7 @@ const validationSchema = Yup.object({
 export type WorkOsProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WorkOsProviderSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -130,7 +132,7 @@ export default function WorkOsProviderSettings() {
           description="Allow users to sign in with WorkOS."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

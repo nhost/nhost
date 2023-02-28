@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -35,6 +36,7 @@ export interface EnvironmentVariableSettingsFormValues {
 
 export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentApplication?.id },
@@ -89,17 +91,21 @@ export default function EnvironmentVariableSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Deleting environment variable...',
-        success: 'Environment variable has been deleted successfully.',
-        error: getServerError(
-          'An error occurred while deleting the environment variable.',
-        ),
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Deleting environment variable...',
+          success: 'Environment variable has been deleted successfully.',
+          error: getServerError(
+            'An error occurred while deleting the environment variable.',
+          ),
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
   }
 
   function handleOpenCreator() {
@@ -177,7 +183,11 @@ export default function EnvironmentVariableSettings() {
                         hideChevron
                         className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
-                        <IconButton variant="borderless" color="secondary">
+                        <IconButton
+                          variant="borderless"
+                          color="secondary"
+                          disabled={projectManagementDisabled}
+                        >
                           <DotsVerticalIcon />
                         </IconButton>
                       </Dropdown.Trigger>
@@ -238,6 +248,7 @@ export default function EnvironmentVariableSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
+          disabled={projectManagementDisabled}
         >
           Create Environment Variable
         </Button>

@@ -1,6 +1,7 @@
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -24,6 +25,7 @@ const validationSchema = Yup.object({
 export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailAndPasswordSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -40,8 +42,8 @@ export default function EmailAndPasswordSettings() {
   const form = useForm<EmailAndPasswordFormValues>({
     reValidateMode: 'onChange',
     defaultValues: {
-      hibpEnabled,
-      emailVerificationRequired,
+      hibpEnabled: hibpEnabled || false,
+      emailVerificationRequired: emailVerificationRequired || false,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -109,11 +111,9 @@ export default function EmailAndPasswordSettings() {
           showSwitch
           enabled
           slotProps={{
-            switch: {
-              disabled: true,
-            },
+            switch: { disabled: true },
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}

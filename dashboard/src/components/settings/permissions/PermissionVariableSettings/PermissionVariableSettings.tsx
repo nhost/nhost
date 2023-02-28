@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import CreatePermissionVariableForm from '@/components/settings/permissions/CreatePermissionVariableForm';
 import EditPermissionVariableForm from '@/components/settings/permissions/EditPermissionVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { PermissionVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -30,6 +31,7 @@ import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function PermissionVariableSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -173,7 +175,10 @@ export default function PermissionVariableSettings() {
                         <IconButton
                           variant="borderless"
                           color="secondary"
-                          disabled={permissionVariable.isSystemVariable}
+                          disabled={
+                            permissionVariable.isSystemVariable ||
+                            projectManagementDisabled
+                          }
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -249,6 +254,7 @@ export default function PermissionVariableSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
+          disabled={projectManagementDisabled}
         >
           Create Permission Variable
         </Button>

@@ -1,6 +1,7 @@
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
@@ -21,6 +22,7 @@ export interface BaseDirectoryFormValues {
 }
 
 export default function BaseDirectorySettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -87,9 +89,11 @@ export default function BaseDirectorySettings() {
               <InlineCode className="text-xs">nhost</InlineCode> folder.
             </>
           }
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || projectManagementDisabled,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/github-integration#base-directory"
           className="grid grid-flow-row lg:grid-cols-5"

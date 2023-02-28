@@ -4,6 +4,7 @@ import type { BaseProviderSettingsFormValues } from '@/components/settings/signI
 import BaseProviderSettings, {
   baseProviderValidationSchema,
 } from '@/components/settings/signInMethods/BaseProviderSettings';
+import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -25,6 +26,7 @@ import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function DiscordProviderSettings() {
+  const { projectManagementDisabled } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -113,7 +115,7 @@ export default function DiscordProviderSettings() {
           description="Allow users to sign in with Discord."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty,
+              disabled: !formState.isDirty || projectManagementDisabled,
               loading: formState.isSubmitting,
             },
           }}
