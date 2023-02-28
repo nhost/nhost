@@ -96,7 +96,10 @@ export default function AppleProviderSettings() {
           auth: {
             method: {
               oauth: {
-                apple: values,
+                apple: {
+                  ...values,
+                  scope: [],
+                },
               },
             },
           },
