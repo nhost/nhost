@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
 import { useUI } from '@/context/UIContext';
 import { useGetWorkspace } from '@/hooks/use-GetWorkspace';
@@ -114,7 +115,7 @@ export default function WorkspaceHeader() {
                 <Dropdown.Item
                   className="py-2"
                   onClick={() => {
-                    openDialog('EDIT_WORKSPACE_NAME', {
+                    openDialog({
                       title: (
                         <span className="grid grid-flow-row">
                           <span>Change Workspace Name</span>
@@ -124,10 +125,12 @@ export default function WorkspaceHeader() {
                           </Text>
                         </span>
                       ),
-                      payload: {
-                        currentWorkspaceName: currentWorkspace.name,
-                        currentWorkspaceId: currentWorkspace.id,
-                      },
+                      component: (
+                        <EditWorkspaceNameForm
+                          currentWorkspaceId={currentWorkspace.id}
+                          currentWorkspaceName={currentWorkspace.name}
+                        />
+                      ),
                     });
                   }}
                 >

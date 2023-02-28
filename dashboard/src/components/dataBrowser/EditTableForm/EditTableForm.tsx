@@ -23,7 +23,7 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface EditTableFormProps
-  extends Pick<BaseTableFormProps, 'onCancel'> {
+  extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
   /**
    * Schema where the table is located.
    */

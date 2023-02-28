@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
@@ -14,7 +15,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditJwtSecretFormProps {
+export interface EditJwtSecretFormProps extends DialogFormProps {
   /**
    * Initial JWT secret.
    */
@@ -39,14 +40,7 @@ export interface EditJwtSecretFormProps {
   onCancel?: VoidFunction;
 }
 
-export interface EditJwtSecretFormValues {
-  /**
-   * JWT secret.
-   */
-  jwtSecret: string;
-}
-
-const validationSchema = Yup.object().shape({
+const validationSchema = Yup.object({
   jwtSecret: Yup.string()
     .nullable()
     .required('This field is required.')
@@ -60,12 +54,15 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
+export type EditJwtSecretFormValues = Yup.InferType<typeof validationSchema>;
+
 export default function EditJwtSecretForm({
   disabled,
   jwtSecret,
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: EditJwtSecretFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApplication] = useUpdateApplicationMutation({
@@ -89,8 +86,8 @@ export default function EditJwtSecretForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: EditJwtSecretFormValues) {
     const updateAppPromise = updateApplication({
@@ -121,7 +118,7 @@ export default function EditJwtSecretForm({
         onSubmit={handleSubmit}
         className="flex flex-auto flex-col content-between overflow-hidden pb-4"
       >
-        <div className="px-6 overflow-y-auto flex-auto">
+        <div className="flex-auto overflow-y-auto px-6">
           <Input
             {...register('jwtSecret')}
             error={Boolean(errors.jwtSecret?.message)}

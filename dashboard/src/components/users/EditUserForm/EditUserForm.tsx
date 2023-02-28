@@ -2,8 +2,10 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import type { DialogFormProps } from '@/types/common';
 import Avatar from '@/ui/v2/Avatar';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -20,6 +22,7 @@ import { copy } from '@/utils/copy';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  RemoteAppGetUsersDocument,
   useGetRolesQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
@@ -34,7 +37,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditUserFormProps {
+export interface EditUserFormProps extends DialogFormProps {
   /**
    * This is the selected user from the user's table.
    */
@@ -42,10 +45,7 @@ export interface EditUserFormProps {
   /**
    * Function to be called when the form is submitted.
    */
-  onEditUser?: (
-    values: EditUserFormValues,
-    user: RemoteAppUser,
-  ) => Promise<void>;
+  onSubmit?: (values: EditUserFormValues) => Promise<void>;
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -53,19 +53,15 @@ export interface EditUserFormProps {
   /**
    * Function to be called when banning the user.
    */
-  onBanUser?: (user: RemoteAppUser) => Promise<void>;
+  onBanUser?: (user: RemoteAppUser) => Promise<void> | void;
   /**
    * Function to be called when deleting the user.
    */
-  onDeleteUser: (user: RemoteAppUser) => Promise<void>;
+  onDeleteUser: (user: RemoteAppUser) => Promise<void> | void;
   /**
    * User roles
    */
   roles: { [key: string]: boolean }[];
-  /**
-   * Function to be called after a successful action.
-   */
-  onSuccessfulAction?: () => Promise<void> | void;
 }
 
 export const EditUserFormValidationSchema = Yup.object({
@@ -87,12 +83,12 @@ export type EditUserFormValues = Yup.InferType<
 >;
 
 export default function EditUserForm({
+  location,
   user,
-  onEditUser,
+  onSubmit,
   onCancel,
   onDeleteUser,
   roles,
-  onSuccessfulAction,
 }: EditUserFormProps) {
   const theme = useTheme();
   const { onDirtyStateChange, openDialog } = useDialog();
@@ -104,6 +100,7 @@ export default function EditUserForm({
 
   const [updateUser] = useUpdateRemoteAppUserMutation({
     client: remoteProjectGQLClient,
+    refetchQueries: [RemoteAppGetUsersDocument],
   });
 
   const form = useForm<EditUserFormValues>({
@@ -124,20 +121,19 @@ export default function EditUserForm({
 
   const {
     register,
-    handleSubmit,
     formState: { errors, dirtyFields, isSubmitting, isValidating },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   function handleChangeUserPassword() {
-    openDialog('EDIT_USER_PASSWORD', {
+    openDialog({
       title: 'Change Password',
-      payload: { user },
+      component: <EditUserPasswordForm user={user} />,
     });
   }
 
@@ -156,11 +152,13 @@ export default function EditUserForm({
    * both having to refetch this single user from the database again or causing a re-render of the drawer.
    */
   async function handleUserDisabledStatus() {
+    const shouldBan = !isUserBanned;
+
     const banUser = updateUser({
       variables: {
         id: user.id,
         user: {
-          disabled: !isUserBanned,
+          disabled: shouldBan,
         },
       },
     });
@@ -168,26 +166,23 @@ export default function EditUserForm({
     await toast.promise(
       banUser,
       {
-        loading: user.disabled ? 'Unbanning user...' : 'Banning user...',
-        success: user.disabled
-          ? 'User unbanned successfully.'
-          : 'User banned successfully',
-        error: user.disabled
-          ? 'An error occurred while trying to unban the user.'
-          : 'An error occurred while trying to ban the user.',
+        loading: shouldBan ? 'Banning user...' : 'Unbanning user...',
+        success: shouldBan
+          ? 'User banned successfully'
+          : 'User unbanned successfully.',
+        error: shouldBan
+          ? 'An error occurred while trying to ban the user.'
+          : 'An error occurred while trying to unban the user.',
       },
       getToastStyleProps(),
     );
-    await onSuccessfulAction();
   }
 
   return (
     <FormProvider {...form}>
       <Form
         className="flex flex-col overflow-hidden border-t-1 lg:flex-auto lg:content-between"
-        onSubmit={handleSubmit(async (values) => {
-          await onEditUser(values, user);
-        })}
+        onSubmit={onSubmit}
       >
         <Box className="flex-auto divide-y overflow-y-auto">
           <Box

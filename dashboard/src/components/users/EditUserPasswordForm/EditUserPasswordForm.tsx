@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -14,18 +15,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface EditUserPasswordFormValues {
-  /**
-   * Password for the user.
-   */
-  password: string;
-  /**
-   * Confirm Password for the user.
-   */
-  cpassword: string;
-}
-
-export interface EditUserPasswordFormProps {
+export interface EditUserPasswordFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -36,7 +26,7 @@ export interface EditUserPasswordFormProps {
   user: RemoteAppGetUsersQuery['users'][0];
 }
 
-export const EditUserPasswordFormValidationSchema = Yup.object().shape({
+export const validationSchema = Yup.object({
   password: Yup.string()
     .label('Users Password')
     .min(8, 'Password must be at least 8 characters long.')
@@ -46,6 +36,8 @@ export const EditUserPasswordFormValidationSchema = Yup.object().shape({
     .min(8, 'Password must be at least 8 characters long.')
     .oneOf([Yup.ref('password')], 'Passwords do not match'),
 });
+
+export type EditUserPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EditUserPasswordForm({
   onCancel,
@@ -63,7 +55,7 @@ export default function EditUserPasswordForm({
   const form = useForm<EditUserPasswordFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(EditUserPasswordFormValidationSchema),
+    resolver: yupResolver(validationSchema),
   });
 
   const handleSubmit = async ({ password }: EditUserPasswordFormValues) => {
