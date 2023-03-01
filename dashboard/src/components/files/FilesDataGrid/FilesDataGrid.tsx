@@ -262,7 +262,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
         .setAdminSecret(
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? 'nhost-admin-secret'
-            : currentApplication.hasuraGraphqlAdminSecret,
+            : currentApplication.config?.hasura.adminSecret,
         )
         .upload({
           file,

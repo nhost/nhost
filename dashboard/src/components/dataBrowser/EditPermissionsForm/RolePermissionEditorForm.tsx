@@ -14,6 +14,7 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
@@ -258,7 +259,7 @@ export default function RolePermissionEditorForm({
       {
         loading: 'Saving permission...',
         success: 'Permission has been saved successfully.',
-        error: 'An error occurred while saving the permission.',
+        error: getServerError('An error occurred while saving the permission.'),
       },
       getToastStyleProps(),
     );
@@ -297,7 +298,9 @@ export default function RolePermissionEditorForm({
       {
         loading: 'Deleting permission...',
         success: 'Permission has been deleted successfully.',
-        error: 'An error occurred while deleting the permission.',
+        error: getServerError(
+          'An error occurred while deleting the permission.',
+        ),
       },
       getToastStyleProps(),
     );

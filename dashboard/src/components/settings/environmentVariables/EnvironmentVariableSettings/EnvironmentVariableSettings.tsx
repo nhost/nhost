@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -15,12 +16,13 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useDeleteEnvironmentVariableMutation,
+  GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -34,15 +36,29 @@ export interface EnvironmentVariableSettingsFormValues {
 
 export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
-  const [deleteEnvironmentVariable] = useDeleteEnvironmentVariableMutation({
-    refetchQueries: ['getEnvironmentVariables'],
+  const availableEnvironmentVariables = [
+    ...(data?.config?.global?.environment || []),
+  ].sort((a, b) => {
+    if (a.name < b.name) {
+      return -1;
+    }
+
+    if (a.name > b.name) {
+      return 1;
+    }
+
+    return 0;
+  });
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   if (loading) {
@@ -59,21 +75,37 @@ export default function EnvironmentVariableSettings() {
   }
 
   async function handleDeleteVariable({ id }: EnvironmentVariable) {
-    const deleteEnvironmentVariablePromise = deleteEnvironmentVariable({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id,
+        appId: currentApplication?.id,
+        config: {
+          global: {
+            environment: availableEnvironmentVariables
+              .filter((variable) => variable.id !== id)
+              .map((variable) => ({
+                name: variable.name,
+                value: variable.value,
+              })),
+          },
+        },
       },
     });
 
-    await toast.promise(
-      deleteEnvironmentVariablePromise,
-      {
-        loading: 'Deleting environment variable...',
-        success: 'Environment variable has been deleted successfully.',
-        error: 'An error occurred while deleting the environment variable.',
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Deleting environment variable...',
+          success: 'Environment variable has been deleted successfully.',
+          error: getServerError(
+            'An error occurred while deleting the environment variable.',
+          ),
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
   }
 
   function handleOpenCreator() {
@@ -120,12 +152,6 @@ export default function EnvironmentVariableSettings() {
     });
   }
 
-  const availableEnvironmentVariables =
-    [...data.environmentVariables].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    ) || [];
-
   return (
     <SettingsContainer
       title="Project Environment Variables"
@@ -141,95 +167,79 @@ export default function EnvironmentVariableSettings() {
     >
       <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium lg:col-span-2">Updated</Text>
       </Box>
 
       <div className="grid grid-flow-row gap-2">
         {availableEnvironmentVariables.length > 0 && (
           <List>
-            {availableEnvironmentVariables.map((environmentVariable, index) => {
-              const timestamp = formatDistanceToNowStrict(
-                parseISO(environmentVariable.updatedAt),
-                { addSuffix: true, roundingMethod: 'floor' },
-              );
-
-              return (
-                <Fragment key={environmentVariable.id}>
-                  <ListItem.Root
-                    className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
-                    secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+            {availableEnvironmentVariables.map((environmentVariable, index) => (
+              <Fragment key={environmentVariable.id}>
+                <ListItem.Root
+                  className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
+                  secondaryAction={
+                    <Dropdown.Root>
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                      >
+                        <IconButton
+                          variant="borderless"
+                          color="secondary"
+                          disabled={maintenanceActive}
                         >
-                          <IconButton variant="borderless" color="secondary">
-                            <DotsVerticalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+                          <DotsVerticalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
+                      <Dropdown.Content
+                        menu
+                        PaperProps={{ className: 'w-32' }}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                      >
+                        <Dropdown.Item
+                          onClick={() => handleOpenEditor(environmentVariable)}
                         >
-                          <Dropdown.Item
-                            onClick={() =>
-                              handleOpenEditor(environmentVariable)
-                            }
-                          >
-                            <Text className="font-medium">Edit</Text>
-                          </Dropdown.Item>
+                          <Text className="font-medium">Edit</Text>
+                        </Dropdown.Item>
 
-                          <Divider component="li" />
+                        <Divider component="li" />
 
-                          <Dropdown.Item
-                            onClick={() =>
-                              handleConfirmDelete(environmentVariable)
-                            }
-                          >
-                            <Text className="font-medium" color="error">
-                              Delete
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
-                  >
-                    <ListItem.Text className="truncate">
-                      {environmentVariable.name}
-                    </ListItem.Text>
+                        <Dropdown.Item
+                          onClick={() =>
+                            handleConfirmDelete(environmentVariable)
+                          }
+                        >
+                          <Text className="font-medium" color="error">
+                            Delete
+                          </Text>
+                        </Dropdown.Item>
+                      </Dropdown.Content>
+                    </Dropdown.Root>
+                  }
+                >
+                  <ListItem.Text className="truncate">
+                    {environmentVariable.name}
+                  </ListItem.Text>
+                </ListItem.Root>
 
-                    <Text
-                      variant="subtitle1"
-                      className="truncate lg:col-span-2"
-                    >
-                      {timestamp === '0 seconds ago' ||
-                      timestamp === 'in 0 seconds'
-                        ? 'Now'
-                        : timestamp}
-                    </Text>
-                  </ListItem.Root>
-
-                  <Divider
-                    component="li"
-                    className={twMerge(
-                      index === availableEnvironmentVariables.length - 1
-                        ? '!mt-4'
-                        : '!my-4',
-                    )}
-                  />
-                </Fragment>
-              );
-            })}
+                <Divider
+                  component="li"
+                  className={twMerge(
+                    index === availableEnvironmentVariables.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
+                  )}
+                />
+              </Fragment>
+            ))}
           </List>
         )}
 
@@ -238,6 +248,7 @@ export default function EnvironmentVariableSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
+          disabled={maintenanceActive}
         >
           Create Environment Variable
         </Button>

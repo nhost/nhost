@@ -16,11 +16,12 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import getReadableProviderName from '@/utils/common/getReadableProviderName';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   useDeleteRemoteAppUserRolesMutation,
-  useGetRolesQuery,
+  useGetRolesPermissionsQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
@@ -81,13 +82,15 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
    * going to use once the user selects a user of their application; we use it
    * in the drawer form.
    */
-  const { data: dataRoles } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+  const { data: dataRoles } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
   });
 
+  const { allowed: allowedRoles } = dataRoles?.config?.auth?.user?.roles || {};
+
   const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(dataRoles?.app?.authUserDefaultAllowedRoles),
-    [dataRoles],
+    () => getUserRoles(allowedRoles),
+    [allowedRoles],
   );
 
   async function handleEditUser(
@@ -149,7 +152,9 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       {
         loading: `Updating user's settings...`,
         success: 'User settings updated successfully.',
-        error: `An error occurred while trying to update this user's settings.`,
+        error: getServerError(
+          `An error occurred while trying to update this user's settings.`,
+        ),
       },
       getToastStyleProps(),
     );
@@ -179,7 +184,9 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
             {
               loading: 'Deleting user...',
               success: 'User deleted successfully.',
-              error: 'An error occurred while trying to delete this user.',
+              error: getServerError(
+                'An error occurred while trying to delete this user.',
+              ),
             },
             getToastStyleProps(),
           );

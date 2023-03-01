@@ -6,6 +6,7 @@ import BaseDirectorySettings from '@/components/settings/git/BaseDirectorySettin
 import DeploymentBranchSettings from '@/components/settings/git/DeploymentBranchSettings';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Box from '@/ui/v2/Box';
@@ -17,6 +18,7 @@ import { useApolloClient } from '@apollo/client';
 import type { ReactElement } from 'react';
 
 export default function SettingsGitPage() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
   const { openAlertDialog } = useDialog();
@@ -41,6 +43,7 @@ export default function SettingsGitPage() {
             onClick={openGitHubModal}
             className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
             startIcon={<GithubIcon className="h-4 w-4 self-center" />}
+            disabled={maintenanceActive}
           >
             Connect to GitHub
           </Button>
@@ -53,6 +56,7 @@ export default function SettingsGitPage() {
               </Text>
             </div>
             <Button
+              disabled={maintenanceActive}
               variant="borderless"
               onClick={() => {
                 openAlertDialog({

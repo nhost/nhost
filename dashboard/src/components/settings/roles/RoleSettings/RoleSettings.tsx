@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -17,11 +18,13 @@ import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
-  useUpdateAppMutation,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
@@ -39,15 +42,20 @@ export interface RoleSettingsFormValues {
 }
 
 export default function RoleSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+  const { data, loading, error } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
+  const { allowed: allowedRoles, default: defaultRole } =
+    data?.config?.auth?.user?.roles || {};
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {
@@ -59,51 +67,60 @@ export default function RoleSettings() {
   }
 
   async function handleSetAsDefault({ name }: Role) {
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultRole: name,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: allowedRoles,
+                default: name,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Updating default role...',
         success: 'Default role has been updated successfully.',
-        error: 'An error occurred while trying to update the default role.',
+        error: getServerError(
+          'An error occurred while trying to update the default role.',
+        ),
       },
       getToastStyleProps(),
     );
   }
 
   async function handleDeleteRole({ name }: Role) {
-    const filteredRoles = data?.app?.authUserDefaultAllowedRoles
-      .split(',')
-      .filter((role) => role !== name)
-      .join(',');
-
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultAllowedRoles: filteredRoles,
-          authUserDefaultRole:
-            name === data?.app?.authUserDefaultRole
-              ? 'user'
-              : data?.app?.authUserDefaultRole,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: allowedRoles.filter((role) => role !== name),
+                default: name === defaultRole ? 'user' : defaultRole,
+              },
+            },
+          },
         },
       },
     });
 
     await toast.promise(
-      updateAppPromise,
+      updateConfigPromise,
       {
         loading: 'Deleting allowed role...',
         success: 'Allowed Role has been deleted successfully.',
-        error: 'An error occurred while trying to delete the allowed role.',
+        error: getServerError(
+          'An error occurred while trying to delete the allowed role.',
+        ),
       },
       getToastStyleProps(),
     );
@@ -148,9 +165,7 @@ export default function RoleSettings() {
     });
   }
 
-  const availableAllowedRoles = getUserRoles(
-    data?.app?.authUserDefaultAllowedRoles,
-  );
+  const availableAllowedRoles = getUserRoles(allowedRoles);
 
   return (
     <SettingsContainer
@@ -158,7 +173,10 @@ export default function RoleSettings() {
       description="Allowed roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
-      className="my-2 px-0"
+      className={twMerge(
+        'my-2 px-0',
+        availableAllowedRoles.length === 0 && 'gap-2',
+      )}
       slotProps={{ submitButton: { className: 'invisible' } }}
     >
       <Box className="border-b-1 px-4 py-3">
@@ -166,103 +184,110 @@ export default function RoleSettings() {
       </Box>
 
       <div className="grid grid-flow-row gap-2">
-        <List>
-          {availableAllowedRoles.map((role, index) => (
-            <Fragment key={role.name}>
-              <ListItem.Root
-                className="px-4"
-                secondaryAction={
-                  <Dropdown.Root>
-                    <Dropdown.Trigger
-                      asChild
-                      hideChevron
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
-                    >
-                      <IconButton variant="borderless" color="secondary">
-                        <DotsVerticalIcon />
-                      </IconButton>
-                    </Dropdown.Trigger>
-
-                    <Dropdown.Content
-                      menu
-                      PaperProps={{ className: 'w-32' }}
-                      anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'right',
-                      }}
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                    >
-                      <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
-                        <Text className="font-medium">Set as Default</Text>
-                      </Dropdown.Item>
-
-                      <Divider component="li" />
-
-                      <Dropdown.Item
-                        disabled={role.isSystemRole}
-                        onClick={() => handleOpenEditor(role)}
+        {availableAllowedRoles.length > 0 && (
+          <List>
+            {availableAllowedRoles.map((role, index) => (
+              <Fragment key={role.name}>
+                <ListItem.Root
+                  className="px-4"
+                  secondaryAction={
+                    <Dropdown.Root>
+                      <Dropdown.Trigger
+                        asChild
+                        hideChevron
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
                       >
-                        <Text className="font-medium">Edit</Text>
-                      </Dropdown.Item>
+                        <IconButton
+                          variant="borderless"
+                          color="secondary"
+                          disabled={maintenanceActive}
+                        >
+                          <DotsVerticalIcon />
+                        </IconButton>
+                      </Dropdown.Trigger>
 
-                      <Divider component="li" />
-
-                      <Dropdown.Item
-                        disabled={role.isSystemRole}
-                        onClick={() => handleConfirmDelete(role)}
+                      <Dropdown.Content
+                        menu
+                        PaperProps={{ className: 'w-32' }}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
                       >
-                        <Text className="font-medium" color="error">
-                          Delete
-                        </Text>
-                      </Dropdown.Item>
-                    </Dropdown.Content>
-                  </Dropdown.Root>
-                }
-              >
-                <ListItem.Text
-                  primaryTypographyProps={{
-                    className:
-                      'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
-                  }}
-                  primary={
-                    <>
-                      {role.name}
+                        <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
+                          <Text className="font-medium">Set as Default</Text>
+                        </Dropdown.Item>
 
-                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                        <Divider component="li" />
 
-                      {data?.app?.authUserDefaultRole === role.name && (
-                        <Chip
-                          component="span"
-                          color="info"
-                          size="small"
-                          label="Default"
-                        />
-                      )}
-                    </>
+                        <Dropdown.Item
+                          disabled={role.isSystemRole}
+                          onClick={() => handleOpenEditor(role)}
+                        >
+                          <Text className="font-medium">Edit</Text>
+                        </Dropdown.Item>
+
+                        <Divider component="li" />
+
+                        <Dropdown.Item
+                          disabled={role.isSystemRole}
+                          onClick={() => handleConfirmDelete(role)}
+                        >
+                          <Text className="font-medium" color="error">
+                            Delete
+                          </Text>
+                        </Dropdown.Item>
+                      </Dropdown.Content>
+                    </Dropdown.Root>
                   }
-                />
-              </ListItem.Root>
+                >
+                  <ListItem.Text
+                    primaryTypographyProps={{
+                      className:
+                        'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
+                    }}
+                    primary={
+                      <>
+                        {role.name}
 
-              <Divider
-                component="li"
-                className={twMerge(
-                  index === availableAllowedRoles.length - 1
-                    ? '!mt-4'
-                    : '!my-4',
-                )}
-              />
-            </Fragment>
-          ))}
-        </List>
+                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+
+                        {defaultRole === role.name && (
+                          <Chip
+                            component="span"
+                            color="info"
+                            size="small"
+                            label="Default"
+                          />
+                        )}
+                      </>
+                    }
+                  />
+                </ListItem.Root>
+
+                <Divider
+                  component="li"
+                  className={twMerge(
+                    index === availableAllowedRoles.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
+                  )}
+                />
+              </Fragment>
+            ))}
+          </List>
+        )}
 
         <Button
           className="mx-4 justify-self-start"
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
+          disabled={maintenanceActive}
         >
           Create Allowed Role
         </Button>

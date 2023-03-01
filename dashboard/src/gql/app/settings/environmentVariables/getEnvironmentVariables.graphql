@@ -1,0 +1,37 @@
+fragment EnvironmentVariable on ConfigEnvironmentVariable {
+  id: name
+  name
+  value
+}
+
+fragment JWTSecret on ConfigJWTSecret {
+  issuer
+  key
+  type
+  jwk_url
+  header
+  claims_namespace_path
+  claims_namespace
+  claims_format
+  audience
+  allowed_skew
+}
+
+query GetEnvironmentVariables($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    global {
+      environment {
+        ...EnvironmentVariable
+      }
+    }
+    hasura {
+      adminSecret
+      webhookSecret
+      jwtSecrets {
+        ...JWTSecret
+      }
+    }
+  }
+}

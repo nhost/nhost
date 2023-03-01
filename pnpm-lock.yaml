@@ -178,7 +178,7 @@ importers:
       react-date-fns-hooks: ^0.9.4
       react-dom: 18.2.0
       react-error-boundary: ^3.1.4
-      react-hook-form: ^7.39.5
+      react-hook-form: ^7.42.1
       react-hot-toast: ^2.4.0
       react-is: 18.2.0
       react-loading-skeleton: ^2.2.0
@@ -216,7 +216,7 @@ importers:
       '@graphiql/toolkit': 0.8.0_7fbl5omhlrpwpn5f5culy6mafe
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
       '@heroicons/react': 1.0.6_react@18.2.0
-      '@hookform/resolvers': 2.9.10_react-hook-form@7.39.5
+      '@hookform/resolvers': 2.9.10_react-hook-form@7.42.1
       '@mui/base': 5.0.0-alpha.106_zula6vjvt3wdocc4mwcxqa6nzi
       '@mui/material': 5.10.14_acl7mc3llczqccvmbrsweq6vga
       '@mui/system': 5.10.14_teoksulxetwanny5ohzazahldq
@@ -251,7 +251,7 @@ importers:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-error-boundary: 3.1.4_react@18.2.0
-      react-hook-form: 7.39.5_react@18.2.0
+      react-hook-form: 7.42.1_react@18.2.0
       react-hot-toast: 2.4.0_vt6aeitzauirmcdhimiad2yjxy
       react-is: 18.2.0
       react-loading-skeleton: 2.2.0_react@18.2.0
@@ -8118,12 +8118,12 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@hookform/resolvers/2.9.10_react-hook-form@7.39.5:
+  /@hookform/resolvers/2.9.10_react-hook-form@7.42.1:
     resolution: {integrity: sha512-JIL1DgJIlH9yuxcNGtyhsWX/PgNltz+5Gr6+8SX9fhXc/hPbEIk6wPI82nhgvp3uUb6ZfAM5mqg/x7KR7NAb+A==}
     peerDependencies:
       react-hook-form: ^7.0.0
     dependencies:
-      react-hook-form: 7.39.5_react@18.2.0
+      react-hook-form: 7.42.1_react@18.2.0
     dev: false
 
   /@humanwhocodes/config-array/0.10.7:
@@ -26966,8 +26966,8 @@ packages:
       react-fast-compare: 3.2.0
       shallowequal: 1.1.0
 
-  /react-hook-form/7.39.5_react@18.2.0:
-    resolution: {integrity: sha512-OE0HKyz5IPc6svN2wd+e+evidZrw4O4WZWAWYzQVZuHi+hYnHFSLnxOq0ddjbdmaLIsLHut/ab7j72y2QT3+KA==}
+  /react-hook-form/7.42.1_react@18.2.0:
+    resolution: {integrity: sha512-2UIGqwMZksd5HS55crTT1ATLTr0rAI4jS7yVuqTaoRVDhY2Qc4IyjskCmpnmdYqUNOYFy04vW253tb2JRVh+IQ==}
     engines: {node: '>=12.22.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18

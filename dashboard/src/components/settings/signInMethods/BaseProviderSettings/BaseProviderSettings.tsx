@@ -1,60 +1,59 @@
 import Input from '@/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
+import * as Yup from 'yup';
 
-export interface BaseProviderSettingsFormValues {
-  authEnabled: boolean;
-  authClientId: string;
-  authClientSecret: string;
+export const baseProviderValidationSchema = Yup.object({
+  clientId: Yup.string().label('Client ID').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  clientSecret: Yup.string().label('Client Secret').when('enabled', {
+    is: true,
+    then: Yup.string().required(),
+  }),
+  enabled: Yup.bool(),
+});
+
+export type BaseProviderSettingsFormValues = Yup.InferType<
+  typeof baseProviderValidationSchema
+>;
+
+export interface BaseProviderSettingsProps {
+  /**
+   * The name of the provider. Used to provide unique IDs to the inputs.
+   */
+  providerName: string;
 }
 
-/**
- * Third-party auth providers e.g. Google, GitHub.
- *
- * @remarks
- *
- * These providers follow the same API structure in our database and in our GraphQL API:
- * In the case of adding a new provider to this list it should contain the configuration in the example below.
- *
- * ```
- * auth<Provider>Enabled
- * auth<Provider>ClientId
- * auth<Provider>ClientSecret
- * ```
- *
- * @example
- *
- * ```
- * authGithubEnabled
- * authGithubClientId
- * authGithubClientSecret
- * ```
- *
- * @remarks If the provider has a different configuration (more or less fields) it should be added as its own component
- * @see {@link 'src\components\settings\sign-in-methods\ProviderTwitterSettings\ProviderTwitterSettings.tsx'}
- *
- */
-export default function BaseProviderSettings() {
-  const { register } = useFormContext<BaseProviderSettingsFormValues>();
+export default function BaseProviderSettings({
+  providerName,
+}: BaseProviderSettingsProps) {
+  const { register, formState } =
+    useFormContext<BaseProviderSettingsFormValues>();
 
   return (
     <>
       <Input
-        {...register(`authClientId`)}
-        id="authClientId"
+        {...register('clientId')}
+        id={`${providerName}-clientId`}
         label="Client ID"
         placeholder="Enter your Client ID"
         className="col-span-1"
         fullWidth
         hideEmptyHelperText
+        error={!!formState.errors?.clientId}
+        helperText={formState.errors?.clientId?.message}
       />
       <Input
-        {...register(`authClientSecret`)}
-        id="authClientSecret"
+        {...register('clientSecret')}
+        id={`${providerName}-clientSecret`}
         label="Client Secret"
         placeholder="Enter your Client Secret"
         className="col-span-1"
         fullWidth
         hideEmptyHelperText
+        error={!!formState.errors?.clientSecret}
+        helperText={formState.errors?.clientSecret?.message}
       />
     </>
   );

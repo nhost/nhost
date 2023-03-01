@@ -5,7 +5,6 @@ query getAppProvisionStatus($workspace: String!, $slug: String!) {
     id
     isProvisioned
     subdomain
-    hasuraGraphqlAdminSecret
     createdAt
   }
 }

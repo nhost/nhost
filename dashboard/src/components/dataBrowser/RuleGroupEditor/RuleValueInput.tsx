@@ -10,8 +10,8 @@ import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
-import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
-import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -117,8 +117,8 @@ export default function RuleValueInput({
     data,
     loading,
     error: customClaimsError,
-  } = useGetAppCustomClaimsQuery({
-    variables: { id: currentApplication?.id },
+  } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
     skip: !isHasuraInput || !currentApplication?.id,
   });
 
@@ -200,8 +200,8 @@ export default function RuleValueInput({
     );
   }
 
-  const availableHasuraPermissionVariables = getPermissionVariablesArray(
-    data?.app?.authJwtCustomClaims,
+  const availableHasuraPermissionVariables = getAllPermissionVariables(
+    data?.config?.auth?.session?.accessToken?.customClaims,
   ).map(({ key }) => ({
     value: `X-Hasura-${key}`,
     label: `X-Hasura-${key}`,

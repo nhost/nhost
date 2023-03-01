@@ -54,13 +54,14 @@ export default function useMetadataQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? 'nhost-admin-secret'
-            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {
       ...queryOptions,
       enabled:
-        currentApplication?.hasuraGraphqlAdminSecret && isReady
+        currentApplication?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
     },
