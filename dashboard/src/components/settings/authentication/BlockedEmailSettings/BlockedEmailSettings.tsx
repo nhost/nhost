@@ -80,18 +80,28 @@ export default function BlockedEmailSettings() {
                 allowed: email.allowed,
                 blocked:
                   values.enabled && values.blockedEmails
-                    ? values.blockedEmails
-                        .split(',')
-                        .map((blockedEmail) => blockedEmail.trim())
+                    ? [
+                        ...new Set(
+                          values.blockedEmails
+                            .split(',')
+                            .map((blockedEmail) => blockedEmail.trim()),
+                        ),
+                      ]
                     : [],
               },
               emailDomains: {
                 allowed: emailDomains.allowed,
                 blocked:
                   values.enabled && values.blockedEmailDomains
-                    ? values.blockedEmailDomains
-                        .split(',')
-                        .map((blockedEmailDomain) => blockedEmailDomain.trim())
+                    ? [
+                        ...new Set(
+                          values.blockedEmailDomains
+                            .split(',')
+                            .map((blockedEmailDomain) =>
+                              blockedEmailDomain.trim(),
+                            ),
+                        ),
+                      ]
                     : [],
               },
             },

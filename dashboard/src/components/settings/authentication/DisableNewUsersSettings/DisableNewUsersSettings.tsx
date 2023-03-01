@@ -32,12 +32,10 @@ export default function DisableNewUsersSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { enabled } = data?.config?.auth?.signUp || {};
-
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      disabled: !enabled || false,
+      disabled: !!data?.config?.auth?.signUp?.enabled,
     },
   });
 

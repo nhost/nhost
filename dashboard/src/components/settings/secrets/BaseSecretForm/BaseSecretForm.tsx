@@ -6,21 +6,6 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseSecretFormValues {
-  /**
-   * Identifier of the environment variable.
-   */
-  id: string;
-  /**
-   * The name of the role.
-   */
-  name: string;
-  /**
-   * Value of the secret.
-   */
-  value: string;
-}
-
 export interface BaseSecretFormProps {
   /**
    * Determines the mode of the form.
@@ -44,14 +29,20 @@ export interface BaseSecretFormProps {
   submitButtonText?: string;
 }
 
-export const BaseSecretFormValidationSchema = Yup.object({
+export const baseSecretFormValidationSchema = Yup.object({
   name: Yup.string()
     .required('This field is required.')
-    .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
-      /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
+    .test(
+      'isSecretValid',
+      'A name must start with a letter and can only contain letters, numbers, and underscores.',
+      (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
   value: Yup.string().required('This field is required.'),
 });
+
+export type BaseSecretFormValues = Yup.InferType<
+  typeof baseSecretFormValidationSchema
+>;
 
 export default function BaseSecretForm({
   mode = 'edit',
@@ -79,21 +70,7 @@ export default function BaseSecretForm({
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
-          {...register('name', {
-            onChange: (event) => {
-              if (
-                event.target.value &&
-                !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
-              ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
-                event.target.value = event.target.value.replace(
-                  /[^a-zA-Z0-9_]/g,
-                  '',
-                );
-              }
-            },
-          })}
+          {...register('name')}
           id="name"
           label="Name"
           placeholder="EXAMPLE_NAME"

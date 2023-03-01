@@ -66,6 +66,8 @@ export default function CreateRoleForm({
       return;
     }
 
+    const updatedAllowedRoles = allowedRoles ? [...allowedRoles, name] : [name];
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication?.id,
@@ -73,7 +75,7 @@ export default function CreateRoleForm({
           auth: {
             user: {
               roles: {
-                allowed: [...(allowedRoles || []), name],
+                allowed: updatedAllowedRoles,
               },
             },
           },

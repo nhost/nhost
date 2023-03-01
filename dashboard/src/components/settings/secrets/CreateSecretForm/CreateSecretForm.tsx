@@ -3,7 +3,7 @@ import type {
   BaseSecretFormValues,
 } from '@/components/settings/secrets/BaseSecretForm';
 import BaseSecretForm, {
-  BaseSecretFormValidationSchema,
+  baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
@@ -33,7 +33,7 @@ export default function CreateSecretForm({
       value: '',
     },
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(BaseSecretFormValidationSchema),
+    resolver: yupResolver(baseSecretFormValidationSchema),
   });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();

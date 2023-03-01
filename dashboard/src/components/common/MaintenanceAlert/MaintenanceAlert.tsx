@@ -8,6 +8,25 @@ export default function MaintenanceAlert() {
     return null;
   }
 
+  const dateTimeFormat = Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZoneName: 'short',
+  });
+
+  const parts = dateTimeFormat.formatToParts(maintenanceEndDate);
+
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+  const hour = parts.find((part) => part.type === 'hour')?.value;
+  const minute = parts.find((part) => part.type === 'minute')?.value;
+  const timeZone = parts.find((part) => part.type === 'timeZoneName')?.value;
+
   return (
     <Alert severity="warning" className="mt-4">
       <p>
@@ -18,17 +37,8 @@ export default function MaintenanceAlert() {
 
       {maintenanceEndDate && (
         <p>
-          Maintenance is expected to be completed at{' '}
-          {Intl.DateTimeFormat(undefined, {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            timeZoneName: 'short',
-          }).format(maintenanceEndDate)}
-          .
+          Maintenance is expected to be completed at {year}-{month}-{day} {hour}
+          :{minute} {timeZone}.
         </p>
       )}
     </Alert>

@@ -3,7 +3,7 @@ import type {
   BaseSecretFormValues,
 } from '@/components/settings/secrets/BaseSecretForm';
 import BaseSecretForm, {
-  BaseSecretFormValidationSchema,
+  baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Secret } from '@/types/application';
@@ -39,7 +39,7 @@ export default function EditSecretForm({
       value: '',
     },
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(BaseSecretFormValidationSchema),
+    resolver: yupResolver(baseSecretFormValidationSchema),
   });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();

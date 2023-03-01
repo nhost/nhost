@@ -62,8 +62,10 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
           (prefix) => !value.startsWith(prefix),
         ),
     )
-    .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
-      /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
+    .test(
+      'isEnvVarValid',
+      'A name must start with a letter and can only contain letters, numbers, and underscores.',
+      (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
   value: Yup.string().label('Value').nullable().required(),
 });
@@ -104,21 +106,7 @@ export default function BaseEnvironmentVariableForm({
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
-          {...register('name', {
-            onChange: (event) => {
-              if (
-                event.target.value &&
-                !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
-              ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
-                event.target.value = event.target.value.replace(
-                  /[^a-zA-Z0-9_]/g,
-                  '',
-                );
-              }
-            },
-          })}
+          {...register('name')}
           id="name"
           label="Name"
           placeholder="EXAMPLE_NAME"
