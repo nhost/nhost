@@ -77,13 +77,16 @@ pnpm storybook
 
 ### Other Environment Variables
 
-| Name                                 | Description                                                                                 |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | Backend URL. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                   |
-| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.             |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`. |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.    |
+| Name                                    | Description                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`         | Backend URL. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                   |
+| `NEXT_PUBLIC_STRIPE_PK`                 | Stripe public key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.             |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`    | URL of the GitHub application. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`. |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`       | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`     | URL of the Bragi websocket. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.    |
+| `NEXT_PUBLIC_MAINTENANCE_ACTIVE`        | Determines whether or not maintenance mode is active.                                       |
+| `NEXT_PUBLIC_MAINTENANCE_END_DATE`      | Date when maintenance mode will end.                                                        |
+| `NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET` | Secret that can be used to bypass maintenance mode.                                         |
 
 ## ESLint Rules
 

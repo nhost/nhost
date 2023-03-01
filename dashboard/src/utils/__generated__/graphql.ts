@@ -13,6 +13,13 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  ConfigEmail: any;
+  ConfigLocale: any;
+  ConfigPort: any;
+  ConfigUint8: any;
+  ConfigUint32: any;
+  ConfigUrl: any;
+  ConfigUserRole: any;
   Timestamp: any;
   bigint: any;
   bpchar: any;
@@ -51,6 +58,1529 @@ export type Boolean_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['Boolean']>;
   _neq?: InputMaybe<Scalars['Boolean']>;
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
+};
+
+export type ConfigAppConfig = {
+  __typename?: 'ConfigAppConfig';
+  appID: Scalars['uuid'];
+  config: ConfigConfig;
+};
+
+export type ConfigAppSecrets = {
+  __typename?: 'ConfigAppSecrets';
+  appID: Scalars['uuid'];
+  secrets: Array<ConfigEnvironmentVariable>;
+};
+
+export type ConfigAppSystemConfig = {
+  __typename?: 'ConfigAppSystemConfig';
+  appID: Scalars['uuid'];
+  systemConfig: ConfigSystemConfig;
+};
+
+export type ConfigAuth = {
+  __typename?: 'ConfigAuth';
+  method?: Maybe<ConfigAuthMethod>;
+  redirections?: Maybe<ConfigAuthRedirections>;
+  resources?: Maybe<ConfigResources>;
+  session?: Maybe<ConfigAuthSession>;
+  signUp?: Maybe<ConfigAuthSignUp>;
+  totp?: Maybe<ConfigAuthTotp>;
+  user?: Maybe<ConfigAuthUser>;
+  version?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
+  method?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  session?: InputMaybe<ConfigAuthSessionComparisonExp>;
+  signUp?: InputMaybe<ConfigAuthSignUpComparisonExp>;
+  totp?: InputMaybe<ConfigAuthTotpComparisonExp>;
+  user?: InputMaybe<ConfigAuthUserComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthInsertInput = {
+  method?: InputMaybe<ConfigAuthMethodInsertInput>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  session?: InputMaybe<ConfigAuthSessionInsertInput>;
+  signUp?: InputMaybe<ConfigAuthSignUpInsertInput>;
+  totp?: InputMaybe<ConfigAuthTotpInsertInput>;
+  user?: InputMaybe<ConfigAuthUserInsertInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethod = {
+  __typename?: 'ConfigAuthMethod';
+  anonymous?: Maybe<ConfigAuthMethodAnonymous>;
+  emailPassword?: Maybe<ConfigAuthMethodEmailPassword>;
+  emailPasswordless?: Maybe<ConfigAuthMethodEmailPasswordless>;
+  oauth?: Maybe<ConfigAuthMethodOauth>;
+  smsPasswordless?: Maybe<ConfigAuthMethodSmsPasswordless>;
+  webauthn?: Maybe<ConfigAuthMethodWebauthn>;
+};
+
+export type ConfigAuthMethodAnonymous = {
+  __typename?: 'ConfigAuthMethodAnonymous';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodAnonymousComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodAnonymousComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodAnonymousComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodAnonymousComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodAnonymousInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodAnonymousUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodComparisonExp>>;
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousComparisonExp>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordComparisonExp>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessComparisonExp>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthComparisonExp>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessComparisonExp>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPassword = {
+  __typename?: 'ConfigAuthMethodEmailPassword';
+  emailVerificationRequired?: Maybe<Scalars['Boolean']>;
+  hibpEnabled?: Maybe<Scalars['Boolean']>;
+  passwordMinLength?: Maybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodEmailPasswordComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodEmailPasswordComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodEmailPasswordComparisonExp>>;
+  emailVerificationRequired?: InputMaybe<ConfigBooleanComparisonExp>;
+  hibpEnabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  passwordMinLength?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPasswordInsertInput = {
+  emailVerificationRequired?: InputMaybe<Scalars['Boolean']>;
+  hibpEnabled?: InputMaybe<Scalars['Boolean']>;
+  passwordMinLength?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordUpdateInput = {
+  emailVerificationRequired?: InputMaybe<Scalars['Boolean']>;
+  hibpEnabled?: InputMaybe<Scalars['Boolean']>;
+  passwordMinLength?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigAuthMethodEmailPasswordless = {
+  __typename?: 'ConfigAuthMethodEmailPasswordless';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodEmailPasswordlessComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodEmailPasswordlessComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodEmailPasswordlessComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodEmailPasswordlessUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodInsertInput = {
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousInsertInput>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordInsertInput>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessInsertInput>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthInsertInput>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessInsertInput>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnInsertInput>;
+};
+
+export type ConfigAuthMethodOauth = {
+  __typename?: 'ConfigAuthMethodOauth';
+  apple?: Maybe<ConfigAuthMethodOauthApple>;
+  azuread?: Maybe<ConfigAuthMethodOauthAzuread>;
+  bitbucket?: Maybe<ConfigStandardOauthProvider>;
+  discord?: Maybe<ConfigStandardOauthProviderWithScope>;
+  facebook?: Maybe<ConfigStandardOauthProviderWithScope>;
+  github?: Maybe<ConfigStandardOauthProviderWithScope>;
+  gitlab?: Maybe<ConfigStandardOauthProviderWithScope>;
+  google?: Maybe<ConfigStandardOauthProviderWithScope>;
+  linkedin?: Maybe<ConfigStandardOauthProviderWithScope>;
+  spotify?: Maybe<ConfigStandardOauthProviderWithScope>;
+  strava?: Maybe<ConfigStandardOauthProviderWithScope>;
+  twitch?: Maybe<ConfigStandardOauthProviderWithScope>;
+  twitter?: Maybe<ConfigAuthMethodOauthTwitter>;
+  windowslive?: Maybe<ConfigStandardOauthProviderWithScope>;
+  workos?: Maybe<ConfigAuthMethodOauthWorkos>;
+};
+
+export type ConfigAuthMethodOauthApple = {
+  __typename?: 'ConfigAuthMethodOauthApple';
+  clientId?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  keyId?: Maybe<Scalars['String']>;
+  privateKey?: Maybe<Scalars['String']>;
+  scope?: Maybe<Array<Scalars['String']>>;
+  teamId?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAppleComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthAppleComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthAppleComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthAppleComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  keyId?: InputMaybe<ConfigStringComparisonExp>;
+  privateKey?: InputMaybe<ConfigStringComparisonExp>;
+  scope?: InputMaybe<ConfigStringComparisonExp>;
+  teamId?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthAppleInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  keyId?: InputMaybe<Scalars['String']>;
+  privateKey?: InputMaybe<Scalars['String']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
+  teamId?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAppleUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  keyId?: InputMaybe<Scalars['String']>;
+  privateKey?: InputMaybe<Scalars['String']>;
+  scope: Array<Scalars['String']>;
+  teamId?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzuread = {
+  __typename?: 'ConfigAuthMethodOauthAzuread';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  tenant?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzureadComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthAzureadComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthAzureadComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  tenant?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthAzureadInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthAzureadUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  tenant?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthComparisonExp>>;
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleComparisonExp>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadComparisonExp>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterComparisonExp>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthInsertInput = {
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleInsertInput>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadInsertInput>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderInsertInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterInsertInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeInsertInput>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosInsertInput>;
+};
+
+export type ConfigAuthMethodOauthTwitter = {
+  __typename?: 'ConfigAuthMethodOauthTwitter';
+  consumerKey?: Maybe<Scalars['String']>;
+  consumerSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthTwitterComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthTwitterComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthTwitterComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthTwitterComparisonExp>>;
+  consumerKey?: InputMaybe<ConfigStringComparisonExp>;
+  consumerSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthTwitterInsertInput = {
+  consumerKey?: InputMaybe<Scalars['String']>;
+  consumerSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthTwitterUpdateInput = {
+  consumerKey?: InputMaybe<Scalars['String']>;
+  consumerSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodOauthUpdateInput = {
+  apple?: InputMaybe<ConfigAuthMethodOauthAppleUpdateInput>;
+  azuread?: InputMaybe<ConfigAuthMethodOauthAzureadUpdateInput>;
+  bitbucket?: InputMaybe<ConfigStandardOauthProviderUpdateInput>;
+  discord?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  facebook?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  github?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  gitlab?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  google?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  linkedin?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  spotify?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  strava?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  twitch?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  twitter?: InputMaybe<ConfigAuthMethodOauthTwitterUpdateInput>;
+  windowslive?: InputMaybe<ConfigStandardOauthProviderWithScopeUpdateInput>;
+  workos?: InputMaybe<ConfigAuthMethodOauthWorkosUpdateInput>;
+};
+
+export type ConfigAuthMethodOauthWorkos = {
+  __typename?: 'ConfigAuthMethodOauthWorkos';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  connection?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  organization?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthWorkosComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodOauthWorkosComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodOauthWorkosComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  connection?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  organization?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthMethodOauthWorkosInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  connection?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodOauthWorkosUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  connection?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthMethodSmsPasswordless = {
+  __typename?: 'ConfigAuthMethodSmsPasswordless';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodSmsPasswordlessComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodSmsPasswordlessComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodSmsPasswordlessComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodSmsPasswordlessUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMethodUpdateInput = {
+  anonymous?: InputMaybe<ConfigAuthMethodAnonymousUpdateInput>;
+  emailPassword?: InputMaybe<ConfigAuthMethodEmailPasswordUpdateInput>;
+  emailPasswordless?: InputMaybe<ConfigAuthMethodEmailPasswordlessUpdateInput>;
+  oauth?: InputMaybe<ConfigAuthMethodOauthUpdateInput>;
+  smsPasswordless?: InputMaybe<ConfigAuthMethodSmsPasswordlessUpdateInput>;
+  webauthn?: InputMaybe<ConfigAuthMethodWebauthnUpdateInput>;
+};
+
+export type ConfigAuthMethodWebauthn = {
+  __typename?: 'ConfigAuthMethodWebauthn';
+  attestation?: Maybe<ConfigAuthMethodWebauthnAttestation>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  relyingParty?: Maybe<ConfigAuthMethodWebauthnRelyingParty>;
+};
+
+export type ConfigAuthMethodWebauthnAttestation = {
+  __typename?: 'ConfigAuthMethodWebauthnAttestation';
+  timeout?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnAttestationComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnAttestationComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnAttestationComparisonExp>>;
+  timeout?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationInsertInput = {
+  timeout?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnAttestationUpdateInput = {
+  timeout?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthMethodWebauthnComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnComparisonExp>>;
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnInsertInput = {
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationInsertInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyInsertInput>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingParty = {
+  __typename?: 'ConfigAuthMethodWebauthnRelyingParty';
+  name?: Maybe<Scalars['String']>;
+  origins?: Maybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  origins?: InputMaybe<ConfigUrlComparisonExp>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyInsertInput = {
+  name?: InputMaybe<Scalars['String']>;
+  origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigAuthMethodWebauthnRelyingPartyUpdateInput = {
+  name?: InputMaybe<Scalars['String']>;
+  origins: Array<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthMethodWebauthnUpdateInput = {
+  attestation?: InputMaybe<ConfigAuthMethodWebauthnAttestationUpdateInput>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyUpdateInput>;
+};
+
+export type ConfigAuthRedirections = {
+  __typename?: 'ConfigAuthRedirections';
+  allowedUrls?: Maybe<Array<Scalars['String']>>;
+  clientUrl?: Maybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthRedirectionsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthRedirectionsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthRedirectionsComparisonExp>>;
+  allowedUrls?: InputMaybe<ConfigStringComparisonExp>;
+  clientUrl?: InputMaybe<ConfigUrlComparisonExp>;
+};
+
+export type ConfigAuthRedirectionsInsertInput = {
+  allowedUrls?: InputMaybe<Array<Scalars['String']>>;
+  clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthRedirectionsUpdateInput = {
+  allowedUrls: Array<Scalars['String']>;
+  clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
+};
+
+export type ConfigAuthSession = {
+  __typename?: 'ConfigAuthSession';
+  accessToken?: Maybe<ConfigAuthSessionAccessToken>;
+  refreshToken?: Maybe<ConfigAuthSessionRefreshToken>;
+};
+
+export type ConfigAuthSessionAccessToken = {
+  __typename?: 'ConfigAuthSessionAccessToken';
+  customClaims?: Maybe<Array<ConfigAuthsessionaccessTokenCustomClaims>>;
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionAccessTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionAccessTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionAccessTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionAccessTokenComparisonExp>>;
+  customClaims?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthSessionAccessTokenInsertInput = {
+  customClaims?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsInsertInput>>;
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionAccessTokenUpdateInput = {
+  customClaims: Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>;
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionComparisonExp>>;
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenComparisonExp>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenComparisonExp>;
+};
+
+export type ConfigAuthSessionInsertInput = {
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenInsertInput>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenInsertInput>;
+};
+
+export type ConfigAuthSessionRefreshToken = {
+  __typename?: 'ConfigAuthSessionRefreshToken';
+  expiresIn?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionRefreshTokenComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSessionRefreshTokenComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSessionRefreshTokenComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSessionRefreshTokenComparisonExp>>;
+  expiresIn?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAuthSessionRefreshTokenInsertInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionRefreshTokenUpdateInput = {
+  expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAuthSessionUpdateInput = {
+  accessToken?: InputMaybe<ConfigAuthSessionAccessTokenUpdateInput>;
+  refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenUpdateInput>;
+};
+
+export type ConfigAuthSignUp = {
+  __typename?: 'ConfigAuthSignUp';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthSignUpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthSignUpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthSignUpInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthSignUpUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthTotp = {
+  __typename?: 'ConfigAuthTotp';
+  enabled?: Maybe<Scalars['Boolean']>;
+  issuer?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthTotpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthTotpComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthTotpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthTotpComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  issuer?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthTotpInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  issuer?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthTotpUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  issuer?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUpdateInput = {
+  method?: InputMaybe<ConfigAuthMethodUpdateInput>;
+  redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  session?: InputMaybe<ConfigAuthSessionUpdateInput>;
+  signUp?: InputMaybe<ConfigAuthSignUpUpdateInput>;
+  totp?: InputMaybe<ConfigAuthTotpUpdateInput>;
+  user?: InputMaybe<ConfigAuthUserUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUser = {
+  __typename?: 'ConfigAuthUser';
+  email?: Maybe<ConfigAuthUserEmail>;
+  emailDomains?: Maybe<ConfigAuthUserEmailDomains>;
+  gravatar?: Maybe<ConfigAuthUserGravatar>;
+  locale?: Maybe<ConfigAuthUserLocale>;
+  roles?: Maybe<ConfigAuthUserRoles>;
+};
+
+export type ConfigAuthUserComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserComparisonExp>>;
+  email?: InputMaybe<ConfigAuthUserEmailComparisonExp>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsComparisonExp>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarComparisonExp>;
+  locale?: InputMaybe<ConfigAuthUserLocaleComparisonExp>;
+  roles?: InputMaybe<ConfigAuthUserRolesComparisonExp>;
+};
+
+export type ConfigAuthUserEmail = {
+  __typename?: 'ConfigAuthUserEmail';
+  allowed?: Maybe<Array<Scalars['ConfigEmail']>>;
+  blocked?: Maybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigAuthUserEmailComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserEmailComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserEmailComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserEmailComparisonExp>>;
+  allowed?: InputMaybe<ConfigEmailComparisonExp>;
+  blocked?: InputMaybe<ConfigEmailComparisonExp>;
+};
+
+export type ConfigAuthUserEmailDomains = {
+  __typename?: 'ConfigAuthUserEmailDomains';
+  allowed?: Maybe<Array<Scalars['String']>>;
+  blocked?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ConfigAuthUserEmailDomainsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserEmailDomainsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserEmailDomainsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserEmailDomainsComparisonExp>>;
+  allowed?: InputMaybe<ConfigStringComparisonExp>;
+  blocked?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthUserEmailDomainsInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['String']>>;
+  blocked?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigAuthUserEmailDomainsUpdateInput = {
+  allowed: Array<Scalars['String']>;
+  blocked: Array<Scalars['String']>;
+};
+
+export type ConfigAuthUserEmailInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+  blocked?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigAuthUserEmailUpdateInput = {
+  allowed: Array<Scalars['ConfigEmail']>;
+  blocked: Array<Scalars['ConfigEmail']>;
+};
+
+export type ConfigAuthUserGravatar = {
+  __typename?: 'ConfigAuthUserGravatar';
+  default?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  rating?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserGravatarComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserGravatarComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserGravatarComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserGravatarComparisonExp>>;
+  default?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  rating?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthUserGravatarInsertInput = {
+  default?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  rating?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserGravatarUpdateInput = {
+  default?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  rating?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthUserInsertInput = {
+  email?: InputMaybe<ConfigAuthUserEmailInsertInput>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsInsertInput>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarInsertInput>;
+  locale?: InputMaybe<ConfigAuthUserLocaleInsertInput>;
+  roles?: InputMaybe<ConfigAuthUserRolesInsertInput>;
+};
+
+export type ConfigAuthUserLocale = {
+  __typename?: 'ConfigAuthUserLocale';
+  allowed?: Maybe<Array<Scalars['ConfigLocale']>>;
+  default?: Maybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserLocaleComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserLocaleComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserLocaleComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserLocaleComparisonExp>>;
+  allowed?: InputMaybe<ConfigLocaleComparisonExp>;
+  default?: InputMaybe<ConfigLocaleComparisonExp>;
+};
+
+export type ConfigAuthUserLocaleInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+  default?: InputMaybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserLocaleUpdateInput = {
+  allowed: Array<Scalars['ConfigLocale']>;
+  default?: InputMaybe<Scalars['ConfigLocale']>;
+};
+
+export type ConfigAuthUserRoles = {
+  __typename?: 'ConfigAuthUserRoles';
+  allowed?: Maybe<Array<Scalars['ConfigUserRole']>>;
+  default?: Maybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserRolesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthUserRolesComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthUserRolesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthUserRolesComparisonExp>>;
+  allowed?: InputMaybe<ConfigUserRoleComparisonExp>;
+  default?: InputMaybe<ConfigUserRoleComparisonExp>;
+};
+
+export type ConfigAuthUserRolesInsertInput = {
+  allowed?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
+  default?: InputMaybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserRolesUpdateInput = {
+  allowed: Array<Scalars['ConfigUserRole']>;
+  default?: InputMaybe<Scalars['ConfigUserRole']>;
+};
+
+export type ConfigAuthUserUpdateInput = {
+  email?: InputMaybe<ConfigAuthUserEmailUpdateInput>;
+  emailDomains?: InputMaybe<ConfigAuthUserEmailDomainsUpdateInput>;
+  gravatar?: InputMaybe<ConfigAuthUserGravatarUpdateInput>;
+  locale?: InputMaybe<ConfigAuthUserLocaleUpdateInput>;
+  roles?: InputMaybe<ConfigAuthUserRolesUpdateInput>;
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaims = {
+  __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsComparisonExp>>;
+  key?: InputMaybe<ConfigStringComparisonExp>;
+  value?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsInsertInput = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput = {
+  key?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigBooleanComparisonExp = {
+  _eq?: InputMaybe<Scalars['Boolean']>;
+  _in?: InputMaybe<Array<Scalars['Boolean']>>;
+  _neq?: InputMaybe<Scalars['Boolean']>;
+  _nin?: InputMaybe<Array<Scalars['Boolean']>>;
+};
+
+export type ConfigConfig = {
+  __typename?: 'ConfigConfig';
+  auth?: Maybe<ConfigAuth>;
+  functions?: Maybe<ConfigFunctions>;
+  global?: Maybe<ConfigGlobal>;
+  hasura: ConfigHasura;
+  postgres?: Maybe<ConfigPostgres>;
+  provider?: Maybe<ConfigProvider>;
+  storage?: Maybe<ConfigStorage>;
+};
+
+export type ConfigConfigComparisonExp = {
+  _and?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  _not?: InputMaybe<ConfigConfigComparisonExp>;
+  _or?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  auth?: InputMaybe<ConfigAuthComparisonExp>;
+  functions?: InputMaybe<ConfigFunctionsComparisonExp>;
+  global?: InputMaybe<ConfigGlobalComparisonExp>;
+  hasura?: InputMaybe<ConfigHasuraComparisonExp>;
+  postgres?: InputMaybe<ConfigPostgresComparisonExp>;
+  provider?: InputMaybe<ConfigProviderComparisonExp>;
+  storage?: InputMaybe<ConfigStorageComparisonExp>;
+};
+
+export type ConfigConfigInsertInput = {
+  auth?: InputMaybe<ConfigAuthInsertInput>;
+  functions?: InputMaybe<ConfigFunctionsInsertInput>;
+  global?: InputMaybe<ConfigGlobalInsertInput>;
+  hasura: ConfigHasuraInsertInput;
+  postgres?: InputMaybe<ConfigPostgresInsertInput>;
+  provider?: InputMaybe<ConfigProviderInsertInput>;
+  storage?: InputMaybe<ConfigStorageInsertInput>;
+};
+
+export type ConfigConfigUpdateInput = {
+  auth?: InputMaybe<ConfigAuthUpdateInput>;
+  functions?: InputMaybe<ConfigFunctionsUpdateInput>;
+  global?: InputMaybe<ConfigGlobalUpdateInput>;
+  hasura?: InputMaybe<ConfigHasuraUpdateInput>;
+  postgres?: InputMaybe<ConfigPostgresUpdateInput>;
+  provider?: InputMaybe<ConfigProviderUpdateInput>;
+  storage?: InputMaybe<ConfigStorageUpdateInput>;
+};
+
+export type ConfigEmailComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigEmail']>;
+  _in?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+  _neq?: InputMaybe<Scalars['ConfigEmail']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+};
+
+export type ConfigEnvironmentVariable = {
+  __typename?: 'ConfigEnvironmentVariable';
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigEnvironmentVariableComparisonExp = {
+  _and?: InputMaybe<Array<ConfigEnvironmentVariableComparisonExp>>;
+  _not?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  _or?: InputMaybe<Array<ConfigEnvironmentVariableComparisonExp>>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  value?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigEnvironmentVariableInsertInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigEnvironmentVariableUpdateInput = {
+  name?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigFunctions = {
+  __typename?: 'ConfigFunctions';
+  node?: Maybe<ConfigFunctionsNode>;
+};
+
+export type ConfigFunctionsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
+  node?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+};
+
+export type ConfigFunctionsInsertInput = {
+  node?: InputMaybe<ConfigFunctionsNodeInsertInput>;
+};
+
+export type ConfigFunctionsNode = {
+  __typename?: 'ConfigFunctionsNode';
+  version?: Maybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsNodeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsNodeComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsNodeComparisonExp>>;
+  version?: InputMaybe<ConfigIntComparisonExp>;
+};
+
+export type ConfigFunctionsNodeInsertInput = {
+  version?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsNodeUpdateInput = {
+  version?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigFunctionsUpdateInput = {
+  node?: InputMaybe<ConfigFunctionsNodeUpdateInput>;
+};
+
+export type ConfigGlobal = {
+  __typename?: 'ConfigGlobal';
+  environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+};
+
+export type ConfigGlobalComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
+  _not?: InputMaybe<ConfigGlobalComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
+  environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+};
+
+export type ConfigGlobalInsertInput = {
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+};
+
+export type ConfigGlobalUpdateInput = {
+  environment: Array<ConfigEnvironmentVariableUpdateInput>;
+};
+
+export type ConfigHasura = {
+  __typename?: 'ConfigHasura';
+  adminSecret: Scalars['String'];
+  jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+  resources?: Maybe<ConfigResources>;
+  settings?: Maybe<ConfigHasuraSettings>;
+  version?: Maybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigHasuraComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
+  adminSecret?: InputMaybe<ConfigStringComparisonExp>;
+  jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  settings?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+  webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigHasuraInsertInput = {
+  adminSecret: Scalars['String'];
+  jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  settings?: InputMaybe<ConfigHasuraSettingsInsertInput>;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigHasuraSettings = {
+  __typename?: 'ConfigHasuraSettings';
+  enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigHasuraSettingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraSettingsComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraSettingsComparisonExp>>;
+  enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigHasuraSettingsInsertInput = {
+  enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigHasuraSettingsUpdateInput = {
+  enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigHasuraUpdateInput = {
+  adminSecret?: InputMaybe<Scalars['String']>;
+  jwtSecrets: Array<ConfigJwtSecretUpdateInput>;
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigInsertConfigResponse = {
+  __typename?: 'ConfigInsertConfigResponse';
+  config: ConfigConfig;
+  secrets: Array<ConfigEnvironmentVariable>;
+  systemConfig: ConfigSystemConfig;
+};
+
+export type ConfigIntComparisonExp = {
+  _eq?: InputMaybe<Scalars['Int']>;
+  _in?: InputMaybe<Array<Scalars['Int']>>;
+  _neq?: InputMaybe<Scalars['Int']>;
+  _nin?: InputMaybe<Array<Scalars['Int']>>;
+};
+
+export type ConfigJwtSecret = {
+  __typename?: 'ConfigJWTSecret';
+  allowed_skew?: Maybe<Scalars['ConfigUint32']>;
+  audience?: Maybe<Scalars['String']>;
+  claims_format?: Maybe<Scalars['String']>;
+  claims_namespace?: Maybe<Scalars['String']>;
+  claims_namespace_path?: Maybe<Scalars['String']>;
+  header?: Maybe<Scalars['String']>;
+  issuer?: Maybe<Scalars['String']>;
+  jwk_url?: Maybe<Scalars['ConfigUrl']>;
+  key?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+export type ConfigJwtSecretComparisonExp = {
+  _and?: InputMaybe<Array<ConfigJwtSecretComparisonExp>>;
+  _not?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  _or?: InputMaybe<Array<ConfigJwtSecretComparisonExp>>;
+  allowed_skew?: InputMaybe<ConfigUint32ComparisonExp>;
+  audience?: InputMaybe<ConfigStringComparisonExp>;
+  claims_format?: InputMaybe<ConfigStringComparisonExp>;
+  claims_namespace?: InputMaybe<ConfigStringComparisonExp>;
+  claims_namespace_path?: InputMaybe<ConfigStringComparisonExp>;
+  header?: InputMaybe<ConfigStringComparisonExp>;
+  issuer?: InputMaybe<ConfigStringComparisonExp>;
+  jwk_url?: InputMaybe<ConfigUrlComparisonExp>;
+  key?: InputMaybe<ConfigStringComparisonExp>;
+  type?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigJwtSecretInsertInput = {
+  allowed_skew?: InputMaybe<Scalars['ConfigUint32']>;
+  audience?: InputMaybe<Scalars['String']>;
+  claims_format?: InputMaybe<Scalars['String']>;
+  claims_namespace?: InputMaybe<Scalars['String']>;
+  claims_namespace_path?: InputMaybe<Scalars['String']>;
+  header?: InputMaybe<Scalars['String']>;
+  issuer?: InputMaybe<Scalars['String']>;
+  jwk_url?: InputMaybe<Scalars['ConfigUrl']>;
+  key?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigJwtSecretUpdateInput = {
+  allowed_skew?: InputMaybe<Scalars['ConfigUint32']>;
+  audience?: InputMaybe<Scalars['String']>;
+  claims_format?: InputMaybe<Scalars['String']>;
+  claims_namespace?: InputMaybe<Scalars['String']>;
+  claims_namespace_path?: InputMaybe<Scalars['String']>;
+  header?: InputMaybe<Scalars['String']>;
+  issuer?: InputMaybe<Scalars['String']>;
+  jwk_url?: InputMaybe<Scalars['ConfigUrl']>;
+  key?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigLocaleComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigLocale']>;
+  _in?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+  _neq?: InputMaybe<Scalars['ConfigLocale']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigLocale']>>;
+};
+
+export type ConfigPortComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigPort']>;
+  _in?: InputMaybe<Array<Scalars['ConfigPort']>>;
+  _neq?: InputMaybe<Scalars['ConfigPort']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigPort']>>;
+};
+
+export type ConfigPostgres = {
+  __typename?: 'ConfigPostgres';
+  resources?: Maybe<ConfigResources>;
+  version?: Maybe<Scalars['String']>;
+};
+
+export type ConfigPostgresComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigPostgresInsertInput = {
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresUpdateInput = {
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigProvider = {
+  __typename?: 'ConfigProvider';
+  sms?: Maybe<ConfigSms>;
+  smtp?: Maybe<ConfigSmtp>;
+};
+
+export type ConfigProviderComparisonExp = {
+  _and?: InputMaybe<Array<ConfigProviderComparisonExp>>;
+  _not?: InputMaybe<ConfigProviderComparisonExp>;
+  _or?: InputMaybe<Array<ConfigProviderComparisonExp>>;
+  sms?: InputMaybe<ConfigSmsComparisonExp>;
+  smtp?: InputMaybe<ConfigSmtpComparisonExp>;
+};
+
+export type ConfigProviderInsertInput = {
+  sms?: InputMaybe<ConfigSmsInsertInput>;
+  smtp?: InputMaybe<ConfigSmtpInsertInput>;
+};
+
+export type ConfigProviderUpdateInput = {
+  sms?: InputMaybe<ConfigSmsUpdateInput>;
+  smtp?: InputMaybe<ConfigSmtpUpdateInput>;
+};
+
+export type ConfigResources = {
+  __typename?: 'ConfigResources';
+  compute: ConfigResourcesCompute;
+  replicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  replicas?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigResourcesCompute = {
+  __typename?: 'ConfigResourcesCompute';
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigResourcesComputeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigResourcesComputeComparisonExp>>;
+  _not?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigResourcesComputeComparisonExp>>;
+  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
+  memory?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigResourcesComputeInsertInput = {
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigResourcesComputeUpdateInput = {
+  cpu?: InputMaybe<Scalars['ConfigUint32']>;
+  memory?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigResourcesInsertInput = {
+  compute: ConfigResourcesComputeInsertInput;
+  replicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigSms = {
+  __typename?: 'ConfigSms';
+  accountSid: Scalars['String'];
+  authToken: Scalars['String'];
+  messagingServiceId: Scalars['String'];
+  provider?: Maybe<Scalars['String']>;
+};
+
+export type ConfigSmsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSmsComparisonExp>>;
+  _not?: InputMaybe<ConfigSmsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSmsComparisonExp>>;
+  accountSid?: InputMaybe<ConfigStringComparisonExp>;
+  authToken?: InputMaybe<ConfigStringComparisonExp>;
+  messagingServiceId?: InputMaybe<ConfigStringComparisonExp>;
+  provider?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSmsInsertInput = {
+  accountSid: Scalars['String'];
+  authToken: Scalars['String'];
+  messagingServiceId: Scalars['String'];
+  provider?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSmsUpdateInput = {
+  accountSid?: InputMaybe<Scalars['String']>;
+  authToken?: InputMaybe<Scalars['String']>;
+  messagingServiceId?: InputMaybe<Scalars['String']>;
+  provider?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSmtp = {
+  __typename?: 'ConfigSmtp';
+  host: Scalars['String'];
+  method: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  secure: Scalars['Boolean'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
+};
+
+export type ConfigSmtpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSmtpComparisonExp>>;
+  _not?: InputMaybe<ConfigSmtpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSmtpComparisonExp>>;
+  host?: InputMaybe<ConfigStringComparisonExp>;
+  method?: InputMaybe<ConfigStringComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  secure?: InputMaybe<ConfigBooleanComparisonExp>;
+  sender?: InputMaybe<ConfigStringComparisonExp>;
+  user?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSmtpInsertInput = {
+  host: Scalars['String'];
+  method: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  secure: Scalars['Boolean'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
+};
+
+export type ConfigSmtpUpdateInput = {
+  host?: InputMaybe<Scalars['String']>;
+  method?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  secure?: InputMaybe<Scalars['Boolean']>;
+  sender?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStandardOauthProvider = {
+  __typename?: 'ConfigStandardOauthProvider';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStandardOauthProviderComparisonExp>>;
+  _not?: InputMaybe<ConfigStandardOauthProviderComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStandardOauthProviderComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigStandardOauthProviderInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigStandardOauthProviderWithScope = {
+  __typename?: 'ConfigStandardOauthProviderWithScope';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecret?: Maybe<Scalars['String']>;
+  enabled?: Maybe<Scalars['Boolean']>;
+  scope?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ConfigStandardOauthProviderWithScopeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStandardOauthProviderWithScopeComparisonExp>>;
+  _not?: InputMaybe<ConfigStandardOauthProviderWithScopeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStandardOauthProviderWithScopeComparisonExp>>;
+  clientId?: InputMaybe<ConfigStringComparisonExp>;
+  clientSecret?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  scope?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigStandardOauthProviderWithScopeInsertInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigStandardOauthProviderWithScopeUpdateInput = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecret?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  scope: Array<Scalars['String']>;
+};
+
+export type ConfigStorage = {
+  __typename?: 'ConfigStorage';
+  resources?: Maybe<ConfigResources>;
+  version?: Maybe<Scalars['String']>;
+};
+
+export type ConfigStorageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStorageComparisonExp>>;
+  _not?: InputMaybe<ConfigStorageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
+  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigStorageInsertInput = {
+  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStorageUpdateInput = {
+  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStringComparisonExp = {
+  _eq?: InputMaybe<Scalars['String']>;
+  _in?: InputMaybe<Array<Scalars['String']>>;
+  _neq?: InputMaybe<Scalars['String']>;
+  _nin?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigSystemConfig = {
+  __typename?: 'ConfigSystemConfig';
+  auth?: Maybe<ConfigSystemConfigAuth>;
+  postgres: ConfigSystemConfigPostgres;
+};
+
+export type ConfigSystemConfigAuth = {
+  __typename?: 'ConfigSystemConfigAuth';
+  email?: Maybe<ConfigSystemConfigAuthEmail>;
+};
+
+export type ConfigSystemConfigAuthComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigAuthComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigAuthComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigAuthComparisonExp>>;
+  email?: InputMaybe<ConfigSystemConfigAuthEmailComparisonExp>;
+};
+
+export type ConfigSystemConfigAuthEmail = {
+  __typename?: 'ConfigSystemConfigAuthEmail';
+  templates?: Maybe<ConfigSystemConfigAuthEmailTemplates>;
+};
+
+export type ConfigSystemConfigAuthEmailComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigAuthEmailComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigAuthEmailComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigAuthEmailComparisonExp>>;
+  templates?: InputMaybe<ConfigSystemConfigAuthEmailTemplatesComparisonExp>;
+};
+
+export type ConfigSystemConfigAuthEmailInsertInput = {
+  templates?: InputMaybe<ConfigSystemConfigAuthEmailTemplatesInsertInput>;
+};
+
+export type ConfigSystemConfigAuthEmailTemplates = {
+  __typename?: 'ConfigSystemConfigAuthEmailTemplates';
+  s3Key?: Maybe<Scalars['String']>;
+};
+
+export type ConfigSystemConfigAuthEmailTemplatesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigAuthEmailTemplatesComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigAuthEmailTemplatesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigAuthEmailTemplatesComparisonExp>>;
+  s3Key?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSystemConfigAuthEmailTemplatesInsertInput = {
+  s3Key?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSystemConfigAuthEmailTemplatesUpdateInput = {
+  s3Key?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSystemConfigAuthEmailUpdateInput = {
+  templates?: InputMaybe<ConfigSystemConfigAuthEmailTemplatesUpdateInput>;
+};
+
+export type ConfigSystemConfigAuthInsertInput = {
+  email?: InputMaybe<ConfigSystemConfigAuthEmailInsertInput>;
+};
+
+export type ConfigSystemConfigAuthUpdateInput = {
+  email?: InputMaybe<ConfigSystemConfigAuthEmailUpdateInput>;
+};
+
+export type ConfigSystemConfigComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigComparisonExp>>;
+  auth?: InputMaybe<ConfigSystemConfigAuthComparisonExp>;
+  postgres?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
+};
+
+export type ConfigSystemConfigInsertInput = {
+  auth?: InputMaybe<ConfigSystemConfigAuthInsertInput>;
+  postgres: ConfigSystemConfigPostgresInsertInput;
+};
+
+export type ConfigSystemConfigPostgres = {
+  __typename?: 'ConfigSystemConfigPostgres';
+  connectionString: ConfigSystemConfigPostgresConnectionString;
+  database: Scalars['String'];
+  enabled?: Maybe<Scalars['Boolean']>;
+  password: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigPostgresComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigPostgresComparisonExp>>;
+  connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
+  database?: InputMaybe<ConfigStringComparisonExp>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSystemConfigPostgresConnectionString = {
+  __typename?: 'ConfigSystemConfigPostgresConnectionString';
+  auth: Scalars['String'];
+  backup: Scalars['String'];
+  hasura: Scalars['String'];
+  storage: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresConnectionStringComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigPostgresConnectionStringComparisonExp>>;
+  auth?: InputMaybe<ConfigStringComparisonExp>;
+  backup?: InputMaybe<ConfigStringComparisonExp>;
+  hasura?: InputMaybe<ConfigStringComparisonExp>;
+  storage?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigSystemConfigPostgresConnectionStringInsertInput = {
+  auth: Scalars['String'];
+  backup: Scalars['String'];
+  hasura: Scalars['String'];
+  storage: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresConnectionStringUpdateInput = {
+  auth?: InputMaybe<Scalars['String']>;
+  backup?: InputMaybe<Scalars['String']>;
+  hasura?: InputMaybe<Scalars['String']>;
+  storage?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSystemConfigPostgresInsertInput = {
+  connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput;
+  database: Scalars['String'];
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  password: Scalars['String'];
+};
+
+export type ConfigSystemConfigPostgresUpdateInput = {
+  connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringUpdateInput>;
+  database?: InputMaybe<Scalars['String']>;
+  enabled?: InputMaybe<Scalars['Boolean']>;
+  password?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigSystemConfigUpdateInput = {
+  auth?: InputMaybe<ConfigSystemConfigAuthUpdateInput>;
+  postgres?: InputMaybe<ConfigSystemConfigPostgresUpdateInput>;
+};
+
+export type ConfigUint8ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint8']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint8']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint8']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint8']>>;
+};
+
+export type ConfigUint32ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint32']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint32']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+};
+
+export type ConfigUrlComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUrl']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+  _neq?: InputMaybe<Scalars['ConfigUrl']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+};
+
+export type ConfigUserRoleComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUserRole']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
+  _neq?: InputMaybe<Scalars['ConfigUserRole']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
 /** Database Backups */
@@ -735,6 +2265,7 @@ export type Apps = {
   StorageForceDownloadForContentTypes: Scalars['String'];
   StorageLogLevel: Scalars['String'];
   StorageSwaggerEnabled: Scalars['Boolean'];
+  appSecrets: Array<ConfigEnvironmentVariable>;
   /** An array relationship */
   appStates: Array<AppStateHistory>;
   /** An aggregate relationship */
@@ -832,6 +2363,7 @@ export type Apps = {
   backups: Array<Backups>;
   /** An aggregate relationship */
   backups_aggregate: Backups_Aggregate;
+  config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
   creator?: Maybe<Users>;
@@ -855,6 +2387,7 @@ export type Apps = {
   /** An object relationship */
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion: Scalars['String'];
   hasuraGraphqlAdminSecret: Scalars['String'];
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
@@ -863,11 +2396,16 @@ export type Apps = {
   hasuraGraphqlEnabledApis: Scalars['String'];
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret: Scalars['String'];
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion: Scalars['String'];
   hasuraVersion: Scalars['String'];
   id: Scalars['uuid'];
   isProvisioned: Scalars['Boolean'];
   metadataFunctions: Scalars['jsonb'];
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
   /** whether or not this app is paused */
@@ -892,6 +2430,7 @@ export type Apps = {
   slug: Scalars['String'];
   stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
+  systemConfig?: Maybe<ConfigSystemConfig>;
   updatedAt: Scalars['timestamptz'];
   webhookSecret: Scalars['String'];
   /** An object relationship */
@@ -943,6 +2482,12 @@ export type AppsBackups_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Backups_Order_By>>;
   where?: InputMaybe<Backups_Bool_Exp>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsConfigArgs = {
+  resolve: Scalars['Boolean'];
 };
 
 
@@ -1237,6 +2782,7 @@ export type Apps_Bool_Exp = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Bool_Exp>;
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraAuthVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlAdminSecret?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<String_Comparison_Exp>;
@@ -1245,11 +2791,16 @@ export type Apps_Bool_Exp = {
   hasuraGraphqlEnabledApis?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<String_Comparison_Exp>;
   hasuraGraphqlJwtSecret?: InputMaybe<String_Comparison_Exp>;
+  hasuraPostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<String_Comparison_Exp>;
   hasuraStorageVersion?: InputMaybe<String_Comparison_Exp>;
   hasuraVersion?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isProvisioned?: InputMaybe<Boolean_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
+  mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
+  mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
   paused?: InputMaybe<Boolean_Comparison_Exp>;
@@ -1427,6 +2978,7 @@ export type Apps_Insert_Input = {
   featureFlags?: InputMaybe<FeatureFlags_Arr_Rel_Insert_Input>;
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -1435,11 +2987,16 @@ export type Apps_Insert_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -1549,15 +3106,21 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -1659,15 +3222,21 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -1770,15 +3339,21 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   emailTemplatesS3Key?: Maybe<Scalars['String']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraAuthVersion?: Maybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: Maybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlEnabledApis?: Maybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: Maybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: Maybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: Maybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: Maybe<Scalars['String']>;
   hasuraStorageVersion?: Maybe<Scalars['String']>;
   hasuraVersion?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  mimirSecretsEnc?: Maybe<Scalars['String']>;
+  mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
@@ -1880,15 +3455,21 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   emailTemplatesS3Key?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
@@ -2047,6 +3628,7 @@ export type Apps_Order_By = {
   featureFlags_aggregate?: InputMaybe<FeatureFlags_Aggregate_Order_By>;
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Order_By>;
   hasuraAuthVersion?: InputMaybe<Order_By>;
   hasuraGraphqlAdminSecret?: InputMaybe<Order_By>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Order_By>;
@@ -2055,11 +3637,16 @@ export type Apps_Order_By = {
   hasuraGraphqlEnabledApis?: InputMaybe<Order_By>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Order_By>;
   hasuraGraphqlJwtSecret?: InputMaybe<Order_By>;
+  hasuraPostgresConnectionString?: InputMaybe<Order_By>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Order_By>;
   hasuraStorageVersion?: InputMaybe<Order_By>;
   hasuraVersion?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isProvisioned?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  mimirSecretsEnc?: InputMaybe<Order_By>;
+  mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   paused?: InputMaybe<Order_By>;
@@ -2308,6 +3895,8 @@ export enum Apps_Select_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -2324,6 +3913,10 @@ export enum Apps_Select_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -2333,6 +3926,12 @@ export enum Apps_Select_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -2615,6 +4214,7 @@ export type Apps_Set_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2623,11 +4223,16 @@ export type Apps_Set_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -2824,6 +4429,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   desiredState?: InputMaybe<Scalars['Int']>;
   emailTemplatesS3Key?: InputMaybe<Scalars['String']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
+  hasuraAuthPostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraAuthVersion?: InputMaybe<Scalars['String']>;
   hasuraGraphqlAdminSecret?: InputMaybe<Scalars['String']>;
   hasuraGraphqlDatabaseUrl?: InputMaybe<Scalars['String']>;
@@ -2832,11 +4438,16 @@ export type Apps_Stream_Cursor_Value_Input = {
   hasuraGraphqlEnabledApis?: InputMaybe<Scalars['String']>;
   hasuraGraphqlGraphqlUrl?: InputMaybe<Scalars['String']>;
   hasuraGraphqlJwtSecret?: InputMaybe<Scalars['String']>;
+  hasuraPostgresConnectionString?: InputMaybe<Scalars['String']>;
+  hasuraStoragePostgresConnectionString?: InputMaybe<Scalars['String']>;
   hasuraStorageVersion?: InputMaybe<Scalars['String']>;
   hasuraVersion?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isProvisioned?: InputMaybe<Scalars['Boolean']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  mimirSecretsEnc?: InputMaybe<Scalars['String']>;
+  mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   /** whether or not this app is paused */
@@ -3092,6 +4703,8 @@ export enum Apps_Update_Column {
   /** column name */
   GithubRepositoryId = 'githubRepositoryId',
   /** column name */
+  HasuraAuthPostgresConnectionString = 'hasuraAuthPostgresConnectionString',
+  /** column name */
   HasuraAuthVersion = 'hasuraAuthVersion',
   /** column name */
   HasuraGraphqlAdminSecret = 'hasuraGraphqlAdminSecret',
@@ -3108,6 +4721,10 @@ export enum Apps_Update_Column {
   /** column name */
   HasuraGraphqlJwtSecret = 'hasuraGraphqlJwtSecret',
   /** column name */
+  HasuraPostgresConnectionString = 'hasuraPostgresConnectionString',
+  /** column name */
+  HasuraStoragePostgresConnectionString = 'hasuraStoragePostgresConnectionString',
+  /** column name */
   HasuraStorageVersion = 'hasuraStorageVersion',
   /** column name */
   HasuraVersion = 'hasuraVersion',
@@ -3117,6 +4734,12 @@ export enum Apps_Update_Column {
   IsProvisioned = 'isProvisioned',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  MimirSecretsEnc = 'mimirSecretsEnc',
+  /** column name */
+  MimirSystemConfigEnc = 'mimirSystemConfigEnc',
   /** column name */
   Name = 'name',
   /** column name */
@@ -9341,6 +10964,7 @@ export type Mutation_Root = {
   deleteCliToken?: Maybe<CliTokens>;
   /** delete data from the table: "cli_tokens" */
   deleteCliTokens?: Maybe<CliTokens_Mutation_Response>;
+  deleteConfig?: Maybe<ConfigConfig>;
   /** delete single row from the table: "deployments" */
   deleteDeployment?: Maybe<Deployments>;
   /** delete single row from the table: "deployment_logs" */
@@ -9381,6 +11005,7 @@ export type Mutation_Root = {
   deletePlan?: Maybe<Plans>;
   /** delete data from the table: "plans" */
   deletePlans?: Maybe<Plans_Mutation_Response>;
+  deleteSecret: ConfigEnvironmentVariable;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -9465,6 +11090,7 @@ export type Mutation_Root = {
   insertCliToken?: Maybe<CliTokens>;
   /** insert data into the table: "cli_tokens" */
   insertCliTokens?: Maybe<CliTokens_Mutation_Response>;
+  insertConfig: ConfigInsertConfigResponse;
   /** insert a single row into the table: "deployments" */
   insertDeployment?: Maybe<Deployments>;
   /** insert a single row into the table: "deployment_logs" */
@@ -9505,6 +11131,7 @@ export type Mutation_Root = {
   insertPlan?: Maybe<Plans>;
   /** insert data into the table: "plans" */
   insertPlans?: Maybe<Plans_Mutation_Response>;
+  insertSecret: ConfigEnvironmentVariable;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -9606,6 +11233,7 @@ export type Mutation_Root = {
   updateCliToken?: Maybe<CliTokens>;
   /** update data of the table: "cli_tokens" */
   updateCliTokens?: Maybe<CliTokens_Mutation_Response>;
+  updateConfig: ConfigConfig;
   /** update single row of the table: "deployments" */
   updateDeployment?: Maybe<Deployments>;
   /** update single row of the table: "deployment_logs" */
@@ -9646,6 +11274,8 @@ export type Mutation_Root = {
   updatePlan?: Maybe<Plans>;
   /** update data of the table: "plans" */
   updatePlans?: Maybe<Plans_Mutation_Response>;
+  updateSecret: ConfigEnvironmentVariable;
+  updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -9912,6 +11542,12 @@ export type Mutation_RootDeleteCliTokensArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteConfigArgs = {
+  appID: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteDeploymentArgs = {
   id: Scalars['uuid'];
 };
@@ -10028,6 +11664,13 @@ export type Mutation_RootDeletePlanArgs = {
 /** mutation root */
 export type Mutation_RootDeletePlansArgs = {
   where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSecretArgs = {
+  appID: Scalars['uuid'];
+  key: Scalars['String'];
 };
 
 
@@ -10310,6 +11953,15 @@ export type Mutation_RootInsertCliTokensArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
+  secrets?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  systemConfig: ConfigSystemConfigInsertInput;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertDeploymentArgs = {
   object: Deployments_Insert_Input;
   on_conflict?: InputMaybe<Deployments_On_Conflict>;
@@ -10446,6 +12098,13 @@ export type Mutation_RootInsertPlanArgs = {
 export type Mutation_RootInsertPlansArgs = {
   objects: Array<Plans_Insert_Input>;
   on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSecretArgs = {
+  appID: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
 };
 
 
@@ -10829,6 +12488,13 @@ export type Mutation_RootUpdateCliTokensArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigUpdateInput;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateDeploymentArgs = {
   _set?: InputMaybe<Deployments_Set_Input>;
   pk_columns: Deployments_Pk_Columns_Input;
@@ -10985,6 +12651,20 @@ export type Mutation_RootUpdatePlansArgs = {
   _inc?: InputMaybe<Plans_Inc_Input>;
   _set?: InputMaybe<Plans_Set_Input>;
   where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSecretArgs = {
+  appID: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSystemConfigArgs = {
+  appID: Scalars['uuid'];
+  systemConfig: ConfigSystemConfigUpdateInput;
 };
 
 
@@ -12450,6 +14130,7 @@ export type Query_Root = {
   __typename?: 'query_root';
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
+  appSecrets: Array<ConfigEnvironmentVariable>;
   /** fetch data from the table: "app_states" using primary key columns */
   appState?: Maybe<AppStates>;
   /** fetch data from the table: "app_state_history" */
@@ -12466,6 +14147,7 @@ export type Query_Root = {
   apps: Array<Apps>;
   /** fetch aggregated fields from the table: "apps" */
   appsAggregate: Apps_Aggregate;
+  appsSecrets?: Maybe<Array<ConfigAppSecrets>>;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -12532,6 +14214,8 @@ export type Query_Root = {
   cliTokens: Array<CliTokens>;
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
+  config?: Maybe<ConfigConfig>;
+  configs: Array<ConfigAppConfig>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
   /** fetch aggregated fields from the table: "continents" */
@@ -12620,6 +14304,8 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  systemConfig?: Maybe<ConfigSystemConfig>;
+  systemConfigs: Array<ConfigAppSystemConfig>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -12649,6 +14335,11 @@ export type Query_Root = {
 
 export type Query_RootAppArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootAppSecretsArgs = {
+  appID: Scalars['uuid'];
 };
 
 
@@ -12969,6 +14660,18 @@ export type Query_RootCliTokensAggregateArgs = {
 };
 
 
+export type Query_RootConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+};
+
+
+export type Query_RootConfigsArgs = {
+  resolve: Scalars['Boolean'];
+  where?: InputMaybe<ConfigConfigComparisonExp>;
+};
+
+
 export type Query_RootContinentsArgs = {
   distinct_on?: InputMaybe<Array<Continents_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -13281,6 +14984,16 @@ export type Query_RootRegions_AggregateArgs = {
 
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootSystemConfigArgs = {
+  appID: Scalars['uuid'];
+};
+
+
+export type Query_RootSystemConfigsArgs = {
+  where?: InputMaybe<ConfigSystemConfigComparisonExp>;
 };
 
 
@@ -16992,35 +18705,6 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
-export type DeleteEnvironmentVariableMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteEnvironmentVariableMutation = { __typename?: 'mutation_root', deleteEnvironmentVariable?: { __typename?: 'environmentVariables', id: any } | null };
-
-export type UpdateEnvironmentVariableMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  environmentVariable: EnvironmentVariables_Set_Input;
-}>;
-
-
-export type UpdateEnvironmentVariableMutation = { __typename?: 'mutation_root', updateEnvironmentVariable?: { __typename?: 'environmentVariables', id: any } | null };
-
-export type GetEnvironmentVariablesQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', environmentVariables: Array<{ __typename?: 'environmentVariables', id: any, name: string, updatedAt: any, prodValue: string, devValue: string }> };
-
-export type InsertEnvironmentVariablesMutationVariables = Exact<{
-  environmentVariables: Array<EnvironmentVariables_Insert_Input> | EnvironmentVariables_Insert_Input;
-}>;
-
-
-export type InsertEnvironmentVariablesMutation = { __typename?: 'mutation_root', insertEnvironmentVariables?: { __typename?: 'environmentVariables_mutation_response', affected_rows: number } | null };
-
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
 export type GetAppPlanAndGlobalPlansPlanFragment = { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number };
@@ -17047,16 +18731,7 @@ export type GetAllAppsWhereQueryVariables = Exact<{
 
 export type GetAllAppsWhereQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
 
-export type GetAppFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authEmailTemplateFetchUrl?: string | null, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authAccessControlAllowedRedirectUrls: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string };
-
-export type GetAppQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, createdAt: any, authEmailSigninEmailVerifiedRequired: boolean, authPasswordHibpEnabled: boolean, authEmailPasswordlessEnabled: boolean, authSmsPasswordlessEnabled: boolean, authWebAuthnEnabled: boolean, authClientUrl: string, authEmailTemplateFetchUrl?: string | null, authAccessControlAllowedEmails: string, authAccessControlAllowedEmailDomains: string, authAccessControlBlockedEmails: string, authAccessControlBlockedEmailDomains: string, authAccessControlAllowedRedirectUrls: string, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string } | null };
-
-export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } };
+export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null };
 
 export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
   workspace: Scalars['String'];
@@ -17064,21 +18739,7 @@ export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
 }>;
 
 
-export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, hasuraGraphqlAdminSecret: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any } }> };
-
-export type GetAppCustomClaimsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppCustomClaimsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, authJwtCustomClaims: any } | null };
-
-export type GetAppInjectedVariablesQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAppInjectedVariablesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, webhookSecret: string, hasuraGraphqlJwtSecret: string } | null };
+export type GetAppByWorkspaceAndNameQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null }> };
 
 export type GetAppRolesFragment = { __typename?: 'apps', id: any, slug: string, subdomain: string, name: string, authUserDefaultAllowedRoles: string, authUserDefaultRole: string };
 
@@ -17122,40 +18783,12 @@ export type GetAppProvisionStatusQueryVariables = Exact<{
 }>;
 
 
-export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, hasuraGraphqlAdminSecret: string, createdAt: any }> };
-
-export type GetPostgresCredentialsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetPostgresCredentialsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', postgresUser?: string | null, postgresDatabase?: string | null, postgresPassword: string, postgresHost?: string | null } | null };
-
-export type GetRolesQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetRolesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authUserDefaultRole: string, authUserDefaultAllowedRoles: string } | null };
+export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, createdAt: any }> };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
-
-export type GetSmsSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetSmsSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authSmsPasswordlessEnabled: boolean, authSmsTwilioAccountSid: string, authSmsTwilioAuthToken: string, authSmsTwilioMessagingServiceId: string, authSmsTwilioFrom: string } | null };
-
-export type GetSmtpSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, authSmtpSender?: string | null, authSmtpUser?: string | null, authSmtpHost?: string | null, authSmtpPort?: number | null, AuthSmtpSecure?: boolean | null, AuthSmtpAuthMethod?: string | null } | null };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -17174,6 +18807,88 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+
+export type GetAuthenticationSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
+
+export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
+
+export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
+
+export type GetEnvironmentVariablesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
+
+export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
+
+export type GetRolesPermissionsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetRolesPermissionsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', roles?: { __typename?: 'ConfigAuthUserRoles', allowed?: Array<any> | null, default?: any | null } | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', customClaims?: Array<{ __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string }> | null } | null } | null } | null } | null };
+
+export type DeleteSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  name: Scalars['String'];
+}>;
+
+
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
+
+export type GetSecretsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
+
+export type InsertSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type UpdateSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type GetSignInMethodsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } | null };
+
+export type GetSmtpSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host: string, method: string, port: any, secure: boolean, sender: string, user: string } | null } | null } | null };
+
+export type UpdateConfigMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  config: ConfigConfigUpdateInput;
+}>;
+
+
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig' } };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -17381,13 +19096,6 @@ export type GetAppFunctionsMetadataQueryVariables = Exact<{
 
 export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', metadataFunctions: any } | null };
 
-export type GetAuthSettingsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type GetAuthSettingsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', authAnonymousUsersEnabled: boolean, authDisableNewUsers: boolean, authPasswordMinLength: number, authMfaEnabled: boolean, authMfaTotpIssuer: string, authAccessControlAllowedRedirectUrls: string } | null };
-
 export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -17532,23 +19240,16 @@ export type ConfirmProvidersUpdatedMutationVariables = Exact<{
 export type ConfirmProvidersUpdatedMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
 
 export type GetDatabaseConnectionInfoQueryVariables = Exact<{
-  id: Scalars['uuid'];
+  appId: Scalars['uuid'];
 }>;
 
 
-export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, postgresUser?: string | null, postgresDatabase?: string | null } | null };
-
-export type SignInMethodsQueryVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type SignInMethodsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, slug: string, subdomain: string, authEmailPasswordlessEnabled: boolean, authEmailSigninEmailVerifiedRequired: boolean, authAnonymousUsersEnabled: boolean, authWebAuthnEnabled: boolean, authSmsPasswordlessEnabled: boolean, authSmsTwilioAccountSid: string, authSmsTwilioAuthToken: string, authSmsTwilioMessagingServiceId: string, authSmsTwilioFrom: string, authPasswordHibpEnabled: boolean, authGithubEnabled: boolean, authGithubClientId: string, authGithubClientSecret: string, authGoogleEnabled: boolean, authGoogleClientId: string, authGoogleClientSecret: string, authFacebookEnabled: boolean, authFacebookClientId: string, authFacebookClientSecret: string, authLinkedinEnabled: boolean, authLinkedinClientId: string, authLinkedinClientSecret: string, authDiscordEnabled: boolean, authDiscordClientId: string, authDiscordClientSecret: string, authTwitchEnabled: boolean, authTwitchClientId: string, authTwitchClientSecret: string, authTwitterEnabled: boolean, authTwitterConsumerKey: string, authTwitterConsumerSecret: string, authAppleEnabled: boolean, authAppleTeamId: string, authAppleKeyId: string, authAppleClientId: string, authApplePrivateKey: string, authAppleScope: string, authWindowsLiveEnabled: boolean, authWindowsLiveClientId: string, authWindowsLiveClientSecret: string, authSpotifyEnabled: boolean, authSpotifyClientId: string, authSpotifyClientSecret: string, authWorkOsEnabled: boolean, authWorkOsClientId: string, authWorkOsClientSecret: string, authWorkOsDefaultDomain: string, authWorkOsDefaultOrganization: string, authWorkOsDefaultConnection: string } | null };
+export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null };
 
 export type GetAllUserDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllUserDataQuery = { __typename?: 'query_root', workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, workspace: { __typename?: 'workspaces', id: any, name: string, creatorUserId?: any | null, apps: Array<{ __typename?: 'apps', id: any, name: string, hasuraGraphqlAdminSecret: string, subdomain: string }> } }> };
+export type GetAllUserDataQuery = { __typename?: 'query_root', workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, workspace: { __typename?: 'workspaces', id: any, name: string, creatorUserId?: any | null, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null }> } }> };
 
 export type GetAvatarQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -17557,12 +19258,14 @@ export type GetAvatarQueryVariables = Exact<{
 
 export type GetAvatarQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, avatarUrl: string } | null };
 
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
+
 export type GetOneUserQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, hasuraGraphqlAdminSecret: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
+export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
 
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17727,67 +19430,12 @@ export const GetAppPlanAndGlobalPlansPlanFragmentDoc = gql`
   featureMaxDbSize
 }
     `;
-export const GetAppFragmentDoc = gql`
-    fragment GetApp on apps {
-  id
-  slug
-  subdomain
-  name
-  createdAt
-  authEmailSigninEmailVerifiedRequired
-  authPasswordHibpEnabled
-  authEmailPasswordlessEnabled
-  authSmsPasswordlessEnabled
-  authWebAuthnEnabled
-  authClientUrl
-  authEmailTemplateFetchUrl
-  authAccessControlAllowedEmails
-  authAccessControlAllowedEmailDomains
-  authAccessControlBlockedEmails
-  authAccessControlBlockedEmailDomains
-  authAccessControlAllowedRedirectUrls
-  authGithubEnabled
-  authGithubClientId
-  authGithubClientSecret
-  authGoogleEnabled
-  authGoogleClientId
-  authGoogleClientSecret
-  authFacebookEnabled
-  authFacebookClientId
-  authFacebookClientSecret
-  authLinkedinEnabled
-  authLinkedinClientId
-  authLinkedinClientSecret
-  authTwitterEnabled
-  authTwitterConsumerKey
-  authTwitterConsumerSecret
-  authAppleEnabled
-  authAppleTeamId
-  authAppleKeyId
-  authAppleClientId
-  authApplePrivateKey
-  authAppleScope
-  authWindowsLiveEnabled
-  authWindowsLiveClientId
-  authWindowsLiveClientSecret
-  authSpotifyEnabled
-  authSpotifyClientId
-  authSpotifyClientSecret
-  authWorkOsEnabled
-  authWorkOsClientId
-  authWorkOsClientSecret
-  authWorkOsDefaultDomain
-  authWorkOsDefaultOrganization
-  authWorkOsDefaultConnection
-}
-    `;
 export const GetAppByWorkspaceAndNameFragmentDoc = gql`
     fragment GetAppByWorkspaceAndName on apps {
   updatedAt
   id
   slug
   subdomain
-  hasuraGraphqlAdminSecret
   name
   createdAt
   isProvisioned
@@ -17812,6 +19460,11 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
     id
   }
   workspaceId
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
 }
     `;
 export const GetAppRolesFragmentDoc = gql`
@@ -17855,6 +19508,39 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
   paymentMethods {
     id
   }
+}
+    `;
+export const EnvironmentVariableFragmentDoc = gql`
+    fragment EnvironmentVariable on ConfigEnvironmentVariable {
+  id: name
+  name
+  value
+}
+    `;
+export const JwtSecretFragmentDoc = gql`
+    fragment JWTSecret on ConfigJWTSecret {
+  issuer
+  key
+  type
+  jwk_url
+  header
+  claims_namespace_path
+  claims_namespace
+  claims_format
+  audience
+  allowed_skew
+}
+    `;
+export const PermissionVariableFragmentDoc = gql`
+    fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
+  id: key
+  key
+  value
+}
+    `;
+export const SecretFragmentDoc = gql`
+    fragment Secret on ConfigEnvironmentVariable {
+  name
 }
     `;
 export const DeploymentRowFragmentDoc = gql`
@@ -17959,6 +19645,62 @@ export const RemoteAppGetUsersFragmentDoc = gql`
   disabled
 }
     `;
+export const ProjectFragmentDoc = gql`
+    fragment Project on apps {
+  id
+  slug
+  name
+  repositoryProductionBranch
+  subdomain
+  isProvisioned
+  createdAt
+  desiredState
+  nhostBaseFolder
+  providersUpdated
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
+  featureFlags {
+    description
+    id
+    name
+    value
+  }
+  appStates(order_by: {createdAt: desc}, limit: 1) {
+    id
+    appId
+    message
+    stateId
+    createdAt
+  }
+  region {
+    id
+    countryCode
+    awsName
+    city
+  }
+  plan {
+    id
+    name
+    isFree
+  }
+  githubRepository {
+    fullName
+  }
+  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
+  }
+}
+    `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
     fragment getWorkspaceMembersWorkspaceMember on workspaceMembers {
   id
@@ -18017,148 +19759,6 @@ export const GetWorkspaceFragmentDoc = gql`
   }
 }
     `;
-export const DeleteEnvironmentVariableDocument = gql`
-    mutation deleteEnvironmentVariable($id: uuid!) {
-  deleteEnvironmentVariable(id: $id) {
-    id
-  }
-}
-    `;
-export type DeleteEnvironmentVariableMutationFn = Apollo.MutationFunction<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>;
-
-/**
- * __useDeleteEnvironmentVariableMutation__
- *
- * To run a mutation, you first call `useDeleteEnvironmentVariableMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteEnvironmentVariableMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteEnvironmentVariableMutation, { data, loading, error }] = useDeleteEnvironmentVariableMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteEnvironmentVariableMutation(baseOptions?: Apollo.MutationHookOptions<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>(DeleteEnvironmentVariableDocument, options);
-      }
-export type DeleteEnvironmentVariableMutationHookResult = ReturnType<typeof useDeleteEnvironmentVariableMutation>;
-export type DeleteEnvironmentVariableMutationResult = Apollo.MutationResult<DeleteEnvironmentVariableMutation>;
-export type DeleteEnvironmentVariableMutationOptions = Apollo.BaseMutationOptions<DeleteEnvironmentVariableMutation, DeleteEnvironmentVariableMutationVariables>;
-export const UpdateEnvironmentVariableDocument = gql`
-    mutation updateEnvironmentVariable($id: uuid!, $environmentVariable: environmentVariables_set_input!) {
-  updateEnvironmentVariable(pk_columns: {id: $id}, _set: $environmentVariable) {
-    id
-  }
-}
-    `;
-export type UpdateEnvironmentVariableMutationFn = Apollo.MutationFunction<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>;
-
-/**
- * __useUpdateEnvironmentVariableMutation__
- *
- * To run a mutation, you first call `useUpdateEnvironmentVariableMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateEnvironmentVariableMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateEnvironmentVariableMutation, { data, loading, error }] = useUpdateEnvironmentVariableMutation({
- *   variables: {
- *      id: // value for 'id'
- *      environmentVariable: // value for 'environmentVariable'
- *   },
- * });
- */
-export function useUpdateEnvironmentVariableMutation(baseOptions?: Apollo.MutationHookOptions<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>(UpdateEnvironmentVariableDocument, options);
-      }
-export type UpdateEnvironmentVariableMutationHookResult = ReturnType<typeof useUpdateEnvironmentVariableMutation>;
-export type UpdateEnvironmentVariableMutationResult = Apollo.MutationResult<UpdateEnvironmentVariableMutation>;
-export type UpdateEnvironmentVariableMutationOptions = Apollo.BaseMutationOptions<UpdateEnvironmentVariableMutation, UpdateEnvironmentVariableMutationVariables>;
-export const GetEnvironmentVariablesDocument = gql`
-    query getEnvironmentVariables($id: uuid!) {
-  environmentVariables(where: {appId: {_eq: $id}}) {
-    id
-    name
-    updatedAt
-    prodValue
-    devValue
-  }
-}
-    `;
-
-/**
- * __useGetEnvironmentVariablesQuery__
- *
- * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEnvironmentVariablesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-      }
-export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
-        }
-export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
-export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
-export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
-export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
-      return { query: GetEnvironmentVariablesDocument, variables: variables }
-    }
-export const InsertEnvironmentVariablesDocument = gql`
-    mutation insertEnvironmentVariables($environmentVariables: [environmentVariables_insert_input!]!) {
-  insertEnvironmentVariables(objects: $environmentVariables) {
-    affected_rows
-  }
-}
-    `;
-export type InsertEnvironmentVariablesMutationFn = Apollo.MutationFunction<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>;
-
-/**
- * __useInsertEnvironmentVariablesMutation__
- *
- * To run a mutation, you first call `useInsertEnvironmentVariablesMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertEnvironmentVariablesMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertEnvironmentVariablesMutation, { data, loading, error }] = useInsertEnvironmentVariablesMutation({
- *   variables: {
- *      environmentVariables: // value for 'environmentVariables'
- *   },
- * });
- */
-export function useInsertEnvironmentVariablesMutation(baseOptions?: Apollo.MutationHookOptions<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>(InsertEnvironmentVariablesDocument, options);
-      }
-export type InsertEnvironmentVariablesMutationHookResult = ReturnType<typeof useInsertEnvironmentVariablesMutation>;
-export type InsertEnvironmentVariablesMutationResult = Apollo.MutationResult<InsertEnvironmentVariablesMutation>;
-export type InsertEnvironmentVariablesMutationOptions = Apollo.BaseMutationOptions<InsertEnvironmentVariablesMutation, InsertEnvironmentVariablesMutationVariables>;
 export const GetAppPlanAndGlobalPlansDocument = gql`
     query getAppPlanAndGlobalPlans($workspaceSlug: String!, $appSlug: String!) {
   apps(where: {workspace: {slug: {_eq: $workspaceSlug}}, slug: {_eq: $appSlug}}) {
@@ -18280,44 +19880,6 @@ export type GetAllAppsWhereQueryResult = Apollo.QueryResult<GetAllAppsWhereQuery
 export function refetchGetAllAppsWhereQuery(variables: GetAllAppsWhereQueryVariables) {
       return { query: GetAllAppsWhereDocument, variables: variables }
     }
-export const GetAppDocument = gql`
-    query getApp($id: uuid!) {
-  app(id: $id) {
-    ...GetApp
-  }
-}
-    ${GetAppFragmentDoc}`;
-
-/**
- * __useGetAppQuery__
- *
- * To run a query within a React component, call `useGetAppQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppQuery(baseOptions: Apollo.QueryHookOptions<GetAppQuery, GetAppQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppQuery, GetAppQueryVariables>(GetAppDocument, options);
-      }
-export function useGetAppLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppQuery, GetAppQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppQuery, GetAppQueryVariables>(GetAppDocument, options);
-        }
-export type GetAppQueryHookResult = ReturnType<typeof useGetAppQuery>;
-export type GetAppLazyQueryHookResult = ReturnType<typeof useGetAppLazyQuery>;
-export type GetAppQueryResult = Apollo.QueryResult<GetAppQuery, GetAppQueryVariables>;
-export function refetchGetAppQuery(variables: GetAppQueryVariables) {
-      return { query: GetAppDocument, variables: variables }
-    }
 export const GetAppByWorkspaceAndNameDocument = gql`
     query getAppByWorkspaceAndName($workspace: String!, $slug: String!) {
   apps(where: {workspace: {slug: {_eq: $workspace}}, slug: {_eq: $slug}}) {
@@ -18356,86 +19918,6 @@ export type GetAppByWorkspaceAndNameLazyQueryHookResult = ReturnType<typeof useG
 export type GetAppByWorkspaceAndNameQueryResult = Apollo.QueryResult<GetAppByWorkspaceAndNameQuery, GetAppByWorkspaceAndNameQueryVariables>;
 export function refetchGetAppByWorkspaceAndNameQuery(variables: GetAppByWorkspaceAndNameQueryVariables) {
       return { query: GetAppByWorkspaceAndNameDocument, variables: variables }
-    }
-export const GetAppCustomClaimsDocument = gql`
-    query getAppCustomClaims($id: uuid!) {
-  app(id: $id) {
-    id
-    name
-    authJwtCustomClaims
-  }
-}
-    `;
-
-/**
- * __useGetAppCustomClaimsQuery__
- *
- * To run a query within a React component, call `useGetAppCustomClaimsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppCustomClaimsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppCustomClaimsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppCustomClaimsQuery(baseOptions: Apollo.QueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
-      }
-export function useGetAppCustomClaimsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>(GetAppCustomClaimsDocument, options);
-        }
-export type GetAppCustomClaimsQueryHookResult = ReturnType<typeof useGetAppCustomClaimsQuery>;
-export type GetAppCustomClaimsLazyQueryHookResult = ReturnType<typeof useGetAppCustomClaimsLazyQuery>;
-export type GetAppCustomClaimsQueryResult = Apollo.QueryResult<GetAppCustomClaimsQuery, GetAppCustomClaimsQueryVariables>;
-export function refetchGetAppCustomClaimsQuery(variables: GetAppCustomClaimsQueryVariables) {
-      return { query: GetAppCustomClaimsDocument, variables: variables }
-    }
-export const GetAppInjectedVariablesDocument = gql`
-    query getAppInjectedVariables($id: uuid!) {
-  app(id: $id) {
-    id
-    webhookSecret
-    hasuraGraphqlJwtSecret
-  }
-}
-    `;
-
-/**
- * __useGetAppInjectedVariablesQuery__
- *
- * To run a query within a React component, call `useGetAppInjectedVariablesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAppInjectedVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAppInjectedVariablesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAppInjectedVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>(GetAppInjectedVariablesDocument, options);
-      }
-export function useGetAppInjectedVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>(GetAppInjectedVariablesDocument, options);
-        }
-export type GetAppInjectedVariablesQueryHookResult = ReturnType<typeof useGetAppInjectedVariablesQuery>;
-export type GetAppInjectedVariablesLazyQueryHookResult = ReturnType<typeof useGetAppInjectedVariablesLazyQuery>;
-export type GetAppInjectedVariablesQueryResult = Apollo.QueryResult<GetAppInjectedVariablesQuery, GetAppInjectedVariablesQueryVariables>;
-export function refetchGetAppInjectedVariablesQuery(variables: GetAppInjectedVariablesQueryVariables) {
-      return { query: GetAppInjectedVariablesDocument, variables: variables }
     }
 export const GetAppRolesAndPermissionsDocument = gql`
     query getAppRolesAndPermissions($id: uuid!) {
@@ -18656,7 +20138,6 @@ export const GetAppProvisionStatusDocument = gql`
     id
     isProvisioned
     subdomain
-    hasuraGraphqlAdminSecret
     createdAt
   }
 }
@@ -18692,87 +20173,6 @@ export type GetAppProvisionStatusLazyQueryHookResult = ReturnType<typeof useGetA
 export type GetAppProvisionStatusQueryResult = Apollo.QueryResult<GetAppProvisionStatusQuery, GetAppProvisionStatusQueryVariables>;
 export function refetchGetAppProvisionStatusQuery(variables: GetAppProvisionStatusQueryVariables) {
       return { query: GetAppProvisionStatusDocument, variables: variables }
-    }
-export const GetPostgresCredentialsDocument = gql`
-    query getPostgresCredentials($id: uuid!) {
-  app(id: $id) {
-    postgresUser
-    postgresDatabase
-    postgresPassword
-    postgresHost
-  }
-}
-    `;
-
-/**
- * __useGetPostgresCredentialsQuery__
- *
- * To run a query within a React component, call `useGetPostgresCredentialsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPostgresCredentialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPostgresCredentialsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetPostgresCredentialsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>(GetPostgresCredentialsDocument, options);
-      }
-export function useGetPostgresCredentialsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>(GetPostgresCredentialsDocument, options);
-        }
-export type GetPostgresCredentialsQueryHookResult = ReturnType<typeof useGetPostgresCredentialsQuery>;
-export type GetPostgresCredentialsLazyQueryHookResult = ReturnType<typeof useGetPostgresCredentialsLazyQuery>;
-export type GetPostgresCredentialsQueryResult = Apollo.QueryResult<GetPostgresCredentialsQuery, GetPostgresCredentialsQueryVariables>;
-export function refetchGetPostgresCredentialsQuery(variables: GetPostgresCredentialsQueryVariables) {
-      return { query: GetPostgresCredentialsDocument, variables: variables }
-    }
-export const GetRolesDocument = gql`
-    query getRoles($id: uuid!) {
-  app(id: $id) {
-    id
-    authUserDefaultRole
-    authUserDefaultAllowedRoles
-  }
-}
-    `;
-
-/**
- * __useGetRolesQuery__
- *
- * To run a query within a React component, call `useGetRolesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRolesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetRolesQuery(baseOptions: Apollo.QueryHookOptions<GetRolesQuery, GetRolesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRolesQuery, GetRolesQueryVariables>(GetRolesDocument, options);
-      }
-export function useGetRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRolesQuery, GetRolesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRolesQuery, GetRolesQueryVariables>(GetRolesDocument, options);
-        }
-export type GetRolesQueryHookResult = ReturnType<typeof useGetRolesQuery>;
-export type GetRolesLazyQueryHookResult = ReturnType<typeof useGetRolesLazyQuery>;
-export type GetRolesQueryResult = Apollo.QueryResult<GetRolesQuery, GetRolesQueryVariables>;
-export function refetchGetRolesQuery(variables: GetRolesQueryVariables) {
-      return { query: GetRolesDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {
@@ -18810,93 +20210,6 @@ export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<typeof useGetRemot
 export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>;
 export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
       return { query: GetRemoteAppRolesDocument, variables: variables }
-    }
-export const GetSmsSettingsDocument = gql`
-    query getSMSSettings($id: uuid!) {
-  app(id: $id) {
-    id
-    authSmsPasswordlessEnabled
-    authSmsTwilioAccountSid
-    authSmsTwilioAuthToken
-    authSmsTwilioMessagingServiceId
-    authSmsTwilioFrom
-  }
-}
-    `;
-
-/**
- * __useGetSmsSettingsQuery__
- *
- * To run a query within a React component, call `useGetSmsSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSmsSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetSmsSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>(GetSmsSettingsDocument, options);
-      }
-export function useGetSmsSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>(GetSmsSettingsDocument, options);
-        }
-export type GetSmsSettingsQueryHookResult = ReturnType<typeof useGetSmsSettingsQuery>;
-export type GetSmsSettingsLazyQueryHookResult = ReturnType<typeof useGetSmsSettingsLazyQuery>;
-export type GetSmsSettingsQueryResult = Apollo.QueryResult<GetSmsSettingsQuery, GetSmsSettingsQueryVariables>;
-export function refetchGetSmsSettingsQuery(variables: GetSmsSettingsQueryVariables) {
-      return { query: GetSmsSettingsDocument, variables: variables }
-    }
-export const GetSmtpSettingsDocument = gql`
-    query getSMTPSettings($id: uuid!) {
-  app(id: $id) {
-    id
-    authSmtpSender
-    authSmtpUser
-    authSmtpHost
-    authSmtpPort
-    AuthSmtpSecure
-    AuthSmtpAuthMethod
-  }
-}
-    `;
-
-/**
- * __useGetSmtpSettingsQuery__
- *
- * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSmtpSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetSmtpSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-      }
-export function useGetSmtpSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
-        }
-export type GetSmtpSettingsQueryHookResult = ReturnType<typeof useGetSmtpSettingsQuery>;
-export type GetSmtpSettingsLazyQueryHookResult = ReturnType<typeof useGetSmtpSettingsLazyQuery>;
-export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>;
-export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
-      return { query: GetSmtpSettingsDocument, variables: variables }
     }
 export const InsertApplicationDocument = gql`
     mutation insertApplication($app: apps_insert_input!) {
@@ -18983,6 +20296,546 @@ export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, 
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
+export const GetAuthenticationSettingsDocument = gql`
+    query GetAuthenticationSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    auth {
+      id: __typename
+      __typename
+      redirections {
+        clientUrl
+        allowedUrls
+      }
+      totp {
+        enabled
+        issuer
+      }
+      signUp {
+        enabled
+      }
+      user {
+        email {
+          allowed
+          blocked
+        }
+        emailDomains {
+          allowed
+          blocked
+        }
+        gravatar {
+          enabled
+          default
+          rating
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAuthenticationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthenticationSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAuthenticationSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+      }
+export function useGetAuthenticationSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+        }
+export type GetAuthenticationSettingsQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsQuery>;
+export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsLazyQuery>;
+export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
+export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
+      return { query: GetAuthenticationSettingsDocument, variables: variables }
+    }
+export const GetEnvironmentVariablesDocument = gql`
+    query GetEnvironmentVariables($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    global {
+      environment {
+        ...EnvironmentVariable
+      }
+    }
+    hasura {
+      adminSecret
+      webhookSecret
+      jwtSecrets {
+        ...JWTSecret
+      }
+    }
+  }
+}
+    ${EnvironmentVariableFragmentDoc}
+${JwtSecretFragmentDoc}`;
+
+/**
+ * __useGetEnvironmentVariablesQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentVariablesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentVariablesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentVariablesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetEnvironmentVariablesQuery(baseOptions: Apollo.QueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
+      }
+export function useGetEnvironmentVariablesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>(GetEnvironmentVariablesDocument, options);
+        }
+export type GetEnvironmentVariablesQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesQuery>;
+export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGetEnvironmentVariablesLazyQuery>;
+export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
+export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
+      return { query: GetEnvironmentVariablesDocument, variables: variables }
+    }
+export const GetRolesPermissionsDocument = gql`
+    query GetRolesPermissions($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    auth {
+      user {
+        roles {
+          allowed
+          default
+        }
+      }
+      session {
+        accessToken {
+          customClaims {
+            ...PermissionVariable
+          }
+        }
+      }
+    }
+  }
+}
+    ${PermissionVariableFragmentDoc}`;
+
+/**
+ * __useGetRolesPermissionsQuery__
+ *
+ * To run a query within a React component, call `useGetRolesPermissionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRolesPermissionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRolesPermissionsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetRolesPermissionsQuery(baseOptions: Apollo.QueryHookOptions<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>(GetRolesPermissionsDocument, options);
+      }
+export function useGetRolesPermissionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>(GetRolesPermissionsDocument, options);
+        }
+export type GetRolesPermissionsQueryHookResult = ReturnType<typeof useGetRolesPermissionsQuery>;
+export type GetRolesPermissionsLazyQueryHookResult = ReturnType<typeof useGetRolesPermissionsLazyQuery>;
+export type GetRolesPermissionsQueryResult = Apollo.QueryResult<GetRolesPermissionsQuery, GetRolesPermissionsQueryVariables>;
+export function refetchGetRolesPermissionsQuery(variables: GetRolesPermissionsQueryVariables) {
+      return { query: GetRolesPermissionsDocument, variables: variables }
+    }
+export const DeleteSecretDocument = gql`
+    mutation DeleteSecret($appId: uuid!, $name: String!) {
+  deleteSecret(appID: $appId, key: $name) {
+    name
+  }
+}
+    `;
+export type DeleteSecretMutationFn = Apollo.MutationFunction<DeleteSecretMutation, DeleteSecretMutationVariables>;
+
+/**
+ * __useDeleteSecretMutation__
+ *
+ * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useDeleteSecretMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSecretMutation, DeleteSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteSecretMutation, DeleteSecretMutationVariables>(DeleteSecretDocument, options);
+      }
+export type DeleteSecretMutationHookResult = ReturnType<typeof useDeleteSecretMutation>;
+export type DeleteSecretMutationResult = Apollo.MutationResult<DeleteSecretMutation>;
+export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecretMutation, DeleteSecretMutationVariables>;
+export const GetSecretsDocument = gql`
+    query GetSecrets($appId: uuid!) {
+  appSecrets(appID: $appId) {
+    ...Secret
+  }
+}
+    ${SecretFragmentDoc}`;
+
+/**
+ * __useGetSecretsQuery__
+ *
+ * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecretsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+      }
+export function useGetSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+        }
+export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
+export type GetSecretsLazyQueryHookResult = ReturnType<typeof useGetSecretsLazyQuery>;
+export type GetSecretsQueryResult = Apollo.QueryResult<GetSecretsQuery, GetSecretsQueryVariables>;
+export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
+      return { query: GetSecretsDocument, variables: variables }
+    }
+export const InsertSecretDocument = gql`
+    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  insertSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type InsertSecretMutationFn = Apollo.MutationFunction<InsertSecretMutation, InsertSecretMutationVariables>;
+
+/**
+ * __useInsertSecretMutation__
+ *
+ * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useInsertSecretMutation(baseOptions?: Apollo.MutationHookOptions<InsertSecretMutation, InsertSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertSecretMutation, InsertSecretMutationVariables>(InsertSecretDocument, options);
+      }
+export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMutation>;
+export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
+export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
+export const UpdateSecretDocument = gql`
+    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  updateSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
+
+/**
+ * __useUpdateSecretMutation__
+ *
+ * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
+      }
+export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
+export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
+export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
+export const GetSignInMethodsDocument = gql`
+    query GetSignInMethods($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    provider {
+      id: __typename
+      __typename
+      sms {
+        accountSid
+        authToken
+        messagingServiceId
+        provider
+      }
+    }
+    auth {
+      id: __typename
+      __typename
+      method {
+        emailPassword {
+          emailVerificationRequired
+          hibpEnabled
+        }
+        emailPasswordless {
+          enabled
+        }
+        smsPasswordless {
+          enabled
+        }
+        anonymous {
+          enabled
+        }
+        webauthn {
+          enabled
+        }
+        oauth {
+          apple {
+            enabled
+            clientId
+            keyId
+            teamId
+            privateKey
+          }
+          discord {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          facebook {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          github {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          google {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          linkedin {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          spotify {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          twitch {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          twitter {
+            enabled
+            consumerKey
+            consumerSecret
+          }
+          windowslive {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          workos {
+            enabled
+            clientId
+            clientSecret
+            connection
+            organization
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSignInMethodsQuery__
+ *
+ * To run a query within a React component, call `useGetSignInMethodsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSignInMethodsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSignInMethodsQuery(baseOptions: Apollo.QueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
+      }
+export function useGetSignInMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>(GetSignInMethodsDocument, options);
+        }
+export type GetSignInMethodsQueryHookResult = ReturnType<typeof useGetSignInMethodsQuery>;
+export type GetSignInMethodsLazyQueryHookResult = ReturnType<typeof useGetSignInMethodsLazyQuery>;
+export type GetSignInMethodsQueryResult = Apollo.QueryResult<GetSignInMethodsQuery, GetSignInMethodsQueryVariables>;
+export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVariables) {
+      return { query: GetSignInMethodsDocument, variables: variables }
+    }
+export const GetSmtpSettingsDocument = gql`
+    query GetSmtpSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    provider {
+      id: __typename
+      __typename
+      smtp {
+        host
+        method
+        port
+        secure
+        sender
+        user
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSmtpSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetSmtpSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSmtpSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSmtpSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSmtpSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
+      }
+export function useGetSmtpSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>(GetSmtpSettingsDocument, options);
+        }
+export type GetSmtpSettingsQueryHookResult = ReturnType<typeof useGetSmtpSettingsQuery>;
+export type GetSmtpSettingsLazyQueryHookResult = ReturnType<typeof useGetSmtpSettingsLazyQuery>;
+export type GetSmtpSettingsQueryResult = Apollo.QueryResult<GetSmtpSettingsQuery, GetSmtpSettingsQueryVariables>;
+export function refetchGetSmtpSettingsQuery(variables: GetSmtpSettingsQueryVariables) {
+      return { query: GetSmtpSettingsDocument, variables: variables }
+    }
+export const UpdateConfigDocument = gql`
+    mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
+  updateConfig(appID: $appId, config: $config) {
+    id: __typename
+  }
+}
+    `;
+export type UpdateConfigMutationFn = Apollo.MutationFunction<UpdateConfigMutation, UpdateConfigMutationVariables>;
+
+/**
+ * __useUpdateConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateConfigMutation, { data, loading, error }] = useUpdateConfigMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateConfigMutation, UpdateConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateConfigMutation, UpdateConfigMutationVariables>(UpdateConfigDocument, options);
+      }
+export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
+export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
+export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
   updateApp(pk_columns: {id: $id}, _set: $app) {
@@ -19171,7 +21024,7 @@ export function refetchGetDeploymentsQuery(variables: GetDeploymentsQueryVariabl
 export const ScheduledOrPendingDeploymentsSubDocument = gql`
     subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
-    where: {deploymentStatus: {_in: ["PENDING", "SCHEDULED"]}, appId: {_eq: $appId}}
+    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
   ) {
     ...DeploymentRow
   }
@@ -20029,49 +21882,6 @@ export type GetAppFunctionsMetadataQueryResult = Apollo.QueryResult<GetAppFuncti
 export function refetchGetAppFunctionsMetadataQuery(variables: GetAppFunctionsMetadataQueryVariables) {
       return { query: GetAppFunctionsMetadataDocument, variables: variables }
     }
-export const GetAuthSettingsDocument = gql`
-    query getAuthSettings($id: uuid!) {
-  app(id: $id) {
-    authAnonymousUsersEnabled
-    authDisableNewUsers
-    authPasswordMinLength
-    authMfaEnabled
-    authMfaTotpIssuer
-    authAccessControlAllowedRedirectUrls
-  }
-}
-    `;
-
-/**
- * __useGetAuthSettingsQuery__
- *
- * To run a query within a React component, call `useGetAuthSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthSettingsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetAuthSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>(GetAuthSettingsDocument, options);
-      }
-export function useGetAuthSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>(GetAuthSettingsDocument, options);
-        }
-export type GetAuthSettingsQueryHookResult = ReturnType<typeof useGetAuthSettingsQuery>;
-export type GetAuthSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthSettingsLazyQuery>;
-export type GetAuthSettingsQueryResult = Apollo.QueryResult<GetAuthSettingsQuery, GetAuthSettingsQueryVariables>;
-export function refetchGetAuthSettingsQuery(variables: GetAuthSettingsQueryVariables) {
-      return { query: GetAuthSettingsDocument, variables: variables }
-    }
 export const GetRemoteAppFilesUsageDocument = gql`
     query getRemoteAppFilesUsage {
   filesAggregate {
@@ -20839,11 +22649,11 @@ export type ConfirmProvidersUpdatedMutationHookResult = ReturnType<typeof useCon
 export type ConfirmProvidersUpdatedMutationResult = Apollo.MutationResult<ConfirmProvidersUpdatedMutation>;
 export type ConfirmProvidersUpdatedMutationOptions = Apollo.BaseMutationOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
 export const GetDatabaseConnectionInfoDocument = gql`
-    query getDatabaseConnectionInfo($id: uuid!) {
-  app(id: $id) {
-    id
-    postgresUser
-    postgresDatabase
+    query GetDatabaseConnectionInfo($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    postgres {
+      database
+    }
   }
 }
     `;
@@ -20860,7 +22670,7 @@ export const GetDatabaseConnectionInfoDocument = gql`
  * @example
  * const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      appId: // value for 'appId'
  *   },
  * });
  */
@@ -20878,95 +22688,6 @@ export type GetDatabaseConnectionInfoQueryResult = Apollo.QueryResult<GetDatabas
 export function refetchGetDatabaseConnectionInfoQuery(variables: GetDatabaseConnectionInfoQueryVariables) {
       return { query: GetDatabaseConnectionInfoDocument, variables: variables }
     }
-export const SignInMethodsDocument = gql`
-    query signInMethods($id: uuid!) {
-  app(id: $id) {
-    id
-    slug
-    subdomain
-    authEmailPasswordlessEnabled
-    authEmailSigninEmailVerifiedRequired
-    authAnonymousUsersEnabled
-    authWebAuthnEnabled
-    authSmsPasswordlessEnabled
-    authSmsTwilioAccountSid
-    authSmsTwilioAuthToken
-    authSmsTwilioMessagingServiceId
-    authSmsTwilioFrom
-    authPasswordHibpEnabled
-    authGithubEnabled
-    authGithubClientId
-    authGithubClientSecret
-    authGoogleEnabled
-    authGoogleClientId
-    authGoogleClientSecret
-    authFacebookEnabled
-    authFacebookClientId
-    authFacebookClientSecret
-    authLinkedinEnabled
-    authLinkedinClientId
-    authLinkedinClientSecret
-    authDiscordEnabled
-    authDiscordClientId
-    authDiscordClientSecret
-    authTwitchEnabled
-    authTwitchClientId
-    authTwitchClientSecret
-    authTwitterEnabled
-    authTwitterConsumerKey
-    authTwitterConsumerSecret
-    authAppleEnabled
-    authAppleTeamId
-    authAppleKeyId
-    authAppleClientId
-    authApplePrivateKey
-    authAppleScope
-    authWindowsLiveEnabled
-    authWindowsLiveClientId
-    authWindowsLiveClientSecret
-    authSpotifyEnabled
-    authSpotifyClientId
-    authSpotifyClientSecret
-    authWorkOsEnabled
-    authWorkOsClientId
-    authWorkOsClientSecret
-    authWorkOsDefaultDomain
-    authWorkOsDefaultOrganization
-    authWorkOsDefaultConnection
-  }
-}
-    `;
-
-/**
- * __useSignInMethodsQuery__
- *
- * To run a query within a React component, call `useSignInMethodsQuery` and pass it any options that fit your needs.
- * When your component renders, `useSignInMethodsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSignInMethodsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useSignInMethodsQuery(baseOptions: Apollo.QueryHookOptions<SignInMethodsQuery, SignInMethodsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SignInMethodsQuery, SignInMethodsQueryVariables>(SignInMethodsDocument, options);
-      }
-export function useSignInMethodsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SignInMethodsQuery, SignInMethodsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SignInMethodsQuery, SignInMethodsQueryVariables>(SignInMethodsDocument, options);
-        }
-export type SignInMethodsQueryHookResult = ReturnType<typeof useSignInMethodsQuery>;
-export type SignInMethodsLazyQueryHookResult = ReturnType<typeof useSignInMethodsLazyQuery>;
-export type SignInMethodsQueryResult = Apollo.QueryResult<SignInMethodsQuery, SignInMethodsQueryVariables>;
-export function refetchSignInMethodsQuery(variables: SignInMethodsQueryVariables) {
-      return { query: SignInMethodsDocument, variables: variables }
-    }
 export const GetAllUserDataDocument = gql`
     query getAllUserData {
   workspaceMembers {
@@ -20978,8 +22699,12 @@ export const GetAllUserDataDocument = gql`
       apps {
         id
         name
-        hasuraGraphqlAdminSecret
         subdomain
+        config(resolve: true) {
+          hasura {
+            adminSecret
+          }
+        }
       }
     }
   }
@@ -21071,60 +22796,13 @@ export const GetOneUserDocument = gql`
         slug
         name
         apps {
-          id
-          slug
-          name
-          hasuraGraphqlAdminSecret
-          repositoryProductionBranch
-          subdomain
-          isProvisioned
-          createdAt
-          desiredState
-          nhostBaseFolder
-          providersUpdated
-          featureFlags {
-            description
-            id
-            name
-            value
-          }
-          appStates(order_by: {createdAt: desc}, limit: 1) {
-            id
-            appId
-            message
-            stateId
-            createdAt
-          }
-          region {
-            id
-            countryCode
-            awsName
-            city
-          }
-          plan {
-            id
-            name
-            isFree
-          }
-          githubRepository {
-            fullName
-          }
-          deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
-            id
-            commitSHA
-            commitMessage
-            commitUserName
-            deploymentStartedAt
-            deploymentEndedAt
-            commitUserAvatarUrl
-            deploymentStatus
-          }
+          ...Project
         }
       }
     }
   }
 }
-    `;
+    ${ProjectFragmentDoc}`;
 
 /**
  * __useGetOneUserQuery__

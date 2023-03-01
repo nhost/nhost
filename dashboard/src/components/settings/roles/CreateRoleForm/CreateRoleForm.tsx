@@ -7,18 +7,20 @@ import BaseRoleForm, {
 } from '@/components/settings/roles/BaseRoleForm';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
-  useUpdateAppMutation,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 export interface CreateRoleFormProps
-  extends Pick<BaseRoleFormProps, 'onCancel'> {
+  extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
   /**
    * Function to be called when the form is submitted.
    */
@@ -30,10 +32,11 @@ export default function CreateRoleForm({
   ...props
 }: CreateRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+  const { data, loading, error } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+  const { allowed: allowedRoles } = data?.config?.auth?.user?.roles || {};
 
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {},
@@ -41,7 +44,9 @@ export default function CreateRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['getRoles'] });
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesPermissionsDocument],
+  });
 
   if (loading) {
     return <ActivityIndicator delay={1000} label="Loading roles..." />;
@@ -52,7 +57,7 @@ export default function CreateRoleForm({
   }
 
   const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableRoles = getUserRoles(allowedRoles);
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
     if (availableRoles.some((role) => role.name === name)) {
@@ -61,26 +66,40 @@ export default function CreateRoleForm({
       return;
     }
 
-    const updateAppPromise = updateApp({
+    const updatedAllowedRoles = allowedRoles ? [...allowedRoles, name] : [name];
+
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultAllowedRoles: `${data?.app?.authUserDefaultAllowedRoles},${name}`,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                allowed: updatedAllowedRoles,
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppPromise,
-      {
-        loading: 'Creating role...',
-        success: 'Role has been created successfully.',
-        error: 'An error occurred while trying to create the role.',
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Creating role...',
+          success: 'Role has been created successfully.',
+          error: getServerError(
+            'An error occurred while trying to create the role.',
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    await onSubmit?.();
+      onSubmit?.();
+    } catch (updateConfigError) {
+      console.error(updateConfigError);
+    }
   }
 
   return (

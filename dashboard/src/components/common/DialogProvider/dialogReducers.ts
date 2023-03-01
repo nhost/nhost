@@ -1,6 +1,6 @@
 import type { CommonDialogProps } from '@/ui/v2/Dialog';
-import type { ReactNode } from 'react';
-import type { DialogConfig, DialogType } from './DialogContext';
+import type { ReactElement, ReactNode } from 'react';
+import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 
 export interface DialogState {
   /**
@@ -12,9 +12,13 @@ export interface DialogState {
    */
   open?: boolean;
   /**
-   * Type of the currently active dialog.
+   * Component to render inside the dialog skeleton.
    */
-  activeDialogType?: DialogType;
+  activeDialog?: ReactElement<{
+    location?: 'drawer' | 'dialog';
+    onCancel?: () => void;
+    onSubmit?: (args?: any) => Promise<any> | void;
+  }>;
   /**
    * Props passed to the currently active dialog.
    */
@@ -27,10 +31,7 @@ export interface DialogState {
 }
 
 export type DialogAction =
-  | {
-      type: 'OPEN_DIALOG';
-      payload: { type: DialogType; config?: DialogConfig };
-    }
+  | { type: 'OPEN_DIALOG'; payload: OpenDialogOptions }
   | { type: 'HIDE_DIALOG' }
   | { type: 'CLEAR_DIALOG_CONTENT' };
 
@@ -50,10 +51,9 @@ export function dialogReducer(
       return {
         ...state,
         open: true,
-        activeDialogType: action.payload?.type,
-        dialogProps: action.payload.config?.props,
-        title: action.payload.config?.title,
-        payload: action.payload.config?.payload,
+        title: action.payload.title,
+        activeDialog: action.payload.component,
+        dialogProps: action.payload.props,
       };
     case 'HIDE_DIALOG':
       return {
@@ -64,8 +64,7 @@ export function dialogReducer(
       return {
         ...state,
         title: undefined,
-        payload: undefined,
-        activeDialogType: undefined,
+        activeDialog: undefined,
         dialogProps: undefined,
       };
     default:
@@ -74,10 +73,7 @@ export function dialogReducer(
 }
 
 export type DrawerAction =
-  | {
-      type: 'OPEN_DRAWER';
-      payload: { type: DialogType; config?: DialogConfig };
-    }
+  | { type: 'OPEN_DRAWER'; payload: OpenDialogOptions }
   | { type: 'HIDE_DRAWER' }
   | { type: 'CLEAR_DRAWER_CONTENT' };
 
@@ -97,10 +93,9 @@ export function drawerReducer(
       return {
         ...state,
         open: true,
-        activeDialogType: action.payload?.type,
-        dialogProps: action.payload.config?.props,
-        title: action.payload.config?.title,
-        payload: action.payload.config?.payload,
+        title: action.payload.title,
+        activeDialog: action.payload.component,
+        dialogProps: action.payload.props,
       };
     case 'HIDE_DRAWER':
       return {
@@ -111,8 +106,7 @@ export function drawerReducer(
       return {
         ...state,
         title: undefined,
-        payload: undefined,
-        activeDialogType: undefined,
+        activeDialog: undefined,
         dialogProps: undefined,
       };
     default:

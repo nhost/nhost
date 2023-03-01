@@ -3,6 +3,7 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
+import type { DialogFormProps } from '@/types/common';
 import type { ColumnType, DatabaseColumn } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -22,7 +23,7 @@ import ForeignKeyEditor from './ForeignKeyEditor';
 
 export type BaseColumnFormValues = DatabaseColumn;
 
-export interface BaseColumnFormProps {
+export interface BaseColumnFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
@@ -60,6 +61,7 @@ export default function BaseColumnForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: BaseColumnFormProps) {
   const { onDirtyStateChange } = useDialog();
 
@@ -91,8 +93,8 @@ export default function BaseColumnForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   return (
     <Form

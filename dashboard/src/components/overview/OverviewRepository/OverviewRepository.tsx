@@ -1,4 +1,5 @@
 import GithubIcon from '@/components/icons/GithubIcon';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -8,6 +9,7 @@ import NavLink from 'next/link';
 export default function OverviewRepository() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
+  const { maintenanceActive } = useUI();
 
   return (
     <div>
@@ -28,6 +30,7 @@ export default function OverviewRepository() {
               color="secondary"
               className="w-full border-1 hover:border-1"
               startIcon={<GithubIcon />}
+              disabled={maintenanceActive}
             >
               Connect to GitHub
             </Button>
@@ -39,7 +42,7 @@ export default function OverviewRepository() {
           sx={{ backgroundColor: 'grey.200' }}
         >
           <Box
-            className="grid grid-flow-col gap-1.5 ml-2"
+            className="ml-2 grid grid-flow-col gap-1.5"
             sx={{ backgroundColor: 'transparent' }}
           >
             <GithubIcon className="h-4 w-4 self-center" />
@@ -52,7 +55,11 @@ export default function OverviewRepository() {
             href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
             passHref
           >
-            <Button variant="borderless" size="small">
+            <Button
+              variant="borderless"
+              size="small"
+              disabled={maintenanceActive}
+            >
               Edit
             </Button>
           </NavLink>

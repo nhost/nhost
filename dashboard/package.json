@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.11.19",
+  "version": "0.12.1",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -64,7 +64,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-error-boundary": "^3.1.4",
-    "react-hook-form": "^7.39.5",
+    "react-hook-form": "^7.42.1",
     "react-hot-toast": "^2.4.0",
     "react-is": "18.2.0",
     "react-loading-skeleton": "^2.2.0",
@@ -82,10 +82,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",
-    "@graphql-codegen/cli": "^2.8.0",
-    "@graphql-codegen/typescript": "^2.7.1",
+    "@graphql-codegen/cli": "^3.0.0",
+    "@graphql-codegen/typescript": "^3.0.0",
     "@graphql-codegen/typescript-graphql-request": "^4.5.1",
-    "@graphql-codegen/typescript-operations": "^2.5.1",
+    "@graphql-codegen/typescript-operations": "^3.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.1",
     "@next/bundle-analyzer": "^12.3.1",
     "@storybook/addon-actions": "^6.5.14",

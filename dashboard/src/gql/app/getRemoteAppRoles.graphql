@@ -1,0 +1,5 @@
+query getRemoteAppRoles {
+  authRoles {
+    role
+  }
+}

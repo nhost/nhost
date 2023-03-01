@@ -1,36 +1,49 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import { useUI } from '@/context/UIContext';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface AllowedRedirectURLFormValues {
-  /**
-   * Set of URLs that are allowed to be redirected to after project's users authentication.
-   */
-  authAccessControlAllowedRedirectUrls: string;
-}
+const validationSchema = Yup.object({
+  allowedUrls: Yup.string().label('Allowed Redirect URLs'),
+});
+
+export type AllowedRedirectURLFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
 export default function AllowedRedirectURLsSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { allowedUrls } = data?.config?.auth?.redirections || {};
 
   const form = useForm<AllowedRedirectURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAccessControlAllowedRedirectUrls:
-        data?.app?.authAccessControlAllowedRedirectUrls,
+      allowedUrls: allowedUrls?.join(', ') || '',
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -52,26 +65,38 @@ export default function AllowedRedirectURLsSettings() {
   const handleAllowedRedirectURLsChange = async (
     values: AllowedRedirectURLFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            redirections: {
+              allowedUrls: values.allowedUrls
+                ? values.allowedUrls.split(',').map((url) => url.trim())
+                : [],
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Allowed redirect URL settings are being updated...`,
-        success: `Allowed redirect URL settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's allowed redirect URL settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Allowed redirect URL settings are being updated...`,
+          success: `Allowed redirect URL settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's allowed redirect URL settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -80,17 +105,19 @@ export default function AllowedRedirectURLsSettings() {
         <SettingsContainer
           title="Allowed Redirect URLs"
           description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication#allowed-redirect-urls"
           className="grid grid-flow-row px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('authAccessControlAllowedRedirectUrls')}
-            name="authAccessControlAllowedRedirectUrls"
-            id="authAccessControlAllowedRedirectUrls"
+            {...register('allowedUrls')}
+            name="allowedUrls"
+            id="allowedUrls"
             placeholder="http://localhost:3000, http://localhost:4000"
             className="col-span-2"
             fullWidth

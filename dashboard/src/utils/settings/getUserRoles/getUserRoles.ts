@@ -7,12 +7,12 @@ import type { Role } from '@/types/application';
  * @param roles - Roles in string format
  * @returns An array of roles
  */
-export default function getUserRoles(roles?: string): Role[] {
+export default function getUserRoles(roles?: string[]): Role[] {
   if (!roles) {
     return [];
   }
 
-  return roles.split(',').map((role) => ({
+  return roles.map((role) => ({
     name: role.trim(),
     isSystemRole: role === 'user' || role === 'me',
   }));

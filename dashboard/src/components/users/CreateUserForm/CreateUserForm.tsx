@@ -1,29 +1,21 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import fetch from 'cross-fetch';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface CreateUserFormValues {
-  /**
-   * Email of the user to add to this project.
-   */
-  email: string;
-  /**
-   * Password for the user.
-   */
-  password: string;
-}
-
-export interface CreateUserFormProps {
+export interface CreateUserFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
@@ -31,10 +23,10 @@ export interface CreateUserFormProps {
   /**
    * Function to be called when the submit is successful.
    */
-  onSuccess?: VoidFunction;
+  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
 
-export const CreateUserFormValidationSchema = Yup.object({
+export const validationSchema = Yup.object({
   email: Yup.string()
     .min(5, 'Email must be at least 5 characters long.')
     .email('Invalid email address')
@@ -45,10 +37,14 @@ export const CreateUserFormValidationSchema = Yup.object({
     .required('This field is required.'),
 });
 
+export type CreateUserFormValues = Yup.InferType<typeof validationSchema>;
+
 export default function CreateUserForm({
-  onSuccess,
+  onSubmit,
   onCancel,
+  location,
 }: CreateUserFormProps) {
+  const { onDirtyStateChange } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [createUserFormError, setCreateUserFormError] = useState<Error | null>(
     null,
@@ -57,14 +53,20 @@ export default function CreateUserForm({
   const form = useForm<CreateUserFormValues>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(CreateUserFormValidationSchema),
+    resolver: yupResolver(validationSchema),
   });
 
   const {
     register,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
     setError,
   } = form;
+
+  const isDirty = Object.keys(dirtyFields).length > 0;
+
+  useEffect(() => {
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   const baseAuthUrl = generateAppServiceUrl(
     currentApplication?.subdomain,
@@ -99,17 +101,16 @@ export default function CreateUserForm({
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
-          error: (arg) =>
-            arg?.message
-              ? `Error: ${arg.message}`
-              : 'An error occurred while trying to create the user.',
+          error: getServerError(
+            'An error occurred while trying to create the user.',
+          ),
         },
         getToastStyleProps(),
       );
 
-      onSuccess?.();
-    } catch {
-      // Note: Error is already handled by toast.promise
+      onSubmit?.();
+    } catch (error) {
+      // Note: The error is already handled by the toast promise.
     }
   }
 

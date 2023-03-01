@@ -73,7 +73,7 @@ export default function FilesDataGridControls({
       const storageWithAdminSecret = appClient.storage.setAdminSecret(
         process.env.NEXT_PUBLIC_ENV === 'dev'
           ? getHasuraAdminSecret()
-          : currentApplication.hasuraGraphqlAdminSecret,
+          : currentApplication.config?.hasura.adminSecret,
       );
 
       // note: this is not an optimal solution, but we don't have a better way

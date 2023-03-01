@@ -50,7 +50,8 @@ export default function useTrackTableMutation({
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
       }),

@@ -30,6 +30,7 @@ module.exports = {
       'error',
       { ignoreTypeReferences: true },
     ],
+    'no-console': ['warn', { allow: ['error'] }],
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',

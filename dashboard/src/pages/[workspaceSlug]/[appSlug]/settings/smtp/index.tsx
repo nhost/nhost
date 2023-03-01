@@ -4,98 +4,89 @@ import Form from '@/components/common/Form';
 import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
+  GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
-  useUpdateAppMutation,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 
-const settingsSMTPValidationSchema = yup
+const smtpValidationSchema = yup
   .object({
-    AuthSmtpSecure: yup.bool().label('SMTP Secure'),
-    authSmtpHost: yup
+    secure: yup.bool().label('SMTP Secure'),
+    host: yup
       .string()
       .label('SMTP Host')
       .matches(
         /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
-        'The SMTP host must be a valid URL.',
+        'SMTP Host must be a valid URL',
       )
       .required(),
-    authSmtpPort: yup
+    port: yup
       .number()
       .typeError('The SMTP port should contain only numbers.')
       .required(),
-    authSmtpUser: yup.string().label('The SMTP Username').required(),
-    authSmtpPass: yup.string().label('The SMTP Password'),
-    AuthSmtpAuthMethod: yup.string().required(),
-    authSmtpSender: yup
-      .string()
-      .label('The SMTP Sender')
-      .email('The sender address should be a valid email.')
-      .required(),
+    user: yup.string().label('Username').required(),
+    password: yup.string().label('Password'),
+    method: yup.string().required(),
+    sender: yup.string().label('SMTP Sender').email().required(),
   })
   .required();
 
-export type SettingsSMTPValidationSchemaFormData = yup.InferType<
-  typeof settingsSMTPValidationSchema
->;
+export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+    variables: { appId: currentApplication?.id },
   });
 
-  const form = useForm<
-    Optional<SettingsSMTPValidationSchemaFormData, 'authSmtpPass'>
-  >({
+  const { secure, host, port, user, method, sender } =
+    data?.config?.provider?.smtp || {};
+
+  const form = useForm<Optional<SmtpFormValues, 'password'>>({
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(settingsSMTPValidationSchema),
+    resolver: yupResolver(smtpValidationSchema),
     defaultValues: {
-      AuthSmtpSecure: data?.app?.AuthSmtpSecure,
-      authSmtpHost: data?.app?.authSmtpHost,
-      authSmtpPort: data?.app?.authSmtpPort,
-      authSmtpUser: data?.app?.authSmtpUser,
-      AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
-      authSmtpSender: data?.app.authSmtpSender,
+      secure: false,
+      host: '',
+      port: undefined,
+      user: '',
+      method: '',
+      sender: '',
+    },
+    values: {
+      secure: secure || false,
+      host: host || '',
+      port,
+      user: user || '',
+      method: method || '',
+      sender: sender || '',
     },
     mode: 'onSubmit',
     criteriaMode: 'all',
   });
 
-  useEffect(() => {
-    form.reset(() => ({
-      AuthSmtpSecure: data?.app?.AuthSmtpSecure || false,
-      authSmtpHost: data?.app?.authSmtpHost,
-      authSmtpPort: data?.app?.authSmtpPort,
-      authSmtpUser: data?.app?.authSmtpUser,
-      AuthSmtpAuthMethod: data?.app.AuthSmtpAuthMethod,
-      authSmtpSender: data?.app.authSmtpSender,
-    }));
-  }, [data?.app, form, form.reset]);
-
   const {
     register,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isSubmitting },
   } = form;
 
-  const [updateApp, { loading: loadingUpdateAppMutation }] =
-    useUpdateAppMutation({
-      refetchQueries: ['getSMTPSettings'],
-    });
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSmtpSettingsDocument],
+  });
 
   if (currentApplication.plan.isFree) {
     return (
@@ -125,42 +116,36 @@ export default function SMTPSettingsPage() {
     throw error;
   }
 
-  const handleEditSMTPSettings = async ({
-    authSmtpSender,
-    authSmtpHost,
-    authSmtpPass,
-    authSmtpPort,
-    authSmtpUser,
-    AuthSmtpAuthMethod,
-    AuthSmtpSecure,
-  }: SettingsSMTPValidationSchemaFormData) => {
-    const dataInputWithoutPass = {
-      authSmtpSender,
-      authSmtpUser,
-      authSmtpHost,
-      authSmtpPort,
-      AuthSmtpSecure,
-      AuthSmtpAuthMethod,
-    };
+  const handleEditSMTPSettings = async (values: SmtpFormValues) => {
+    const { password, ...valuesWithoutPassword } = values;
 
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: authSmtpPass
-          ? { ...dataInputWithoutPass, authSmtpPass }
-          : dataInputWithoutPass,
+        appId: currentApplication.id,
+        config: {
+          provider: {
+            smtp: password ? values : valuesWithoutPassword,
+          },
+        },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `SMTP settings are being updated...`,
-        success: `SMTP settings updated successfully`,
-        error: `Error while updating SMTP settings`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `SMTP settings are being updated...`,
+          success: `SMTP settings have been updated successfully.`,
+          error: (arg: Error) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : `An error occurred while trying to update the SMTP settings.`,
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -174,96 +159,95 @@ export default function SMTPSettingsPage() {
             title="SMTP Settings"
             description="Configure your SMTP settings to send emails from your email domain."
             submitButtonText="Save"
-            primaryActionButtonProps={{
-              loading: loadingUpdateAppMutation,
-              disabled:
-                !isValid ||
-                !isDirty ||
-                (errors && Object.keys(errors).length > 0),
-            }}
             className="grid grid-cols-9 gap-4"
+            slotProps={{
+              submitButton: {
+                disabled: !isDirty || maintenanceActive,
+                loading: isSubmitting,
+              },
+            }}
           >
             <Input
-              {...register('authSmtpSender')}
-              id="authSmtpSender"
-              name="authSmtpSender"
+              {...register('sender')}
+              id="sender"
+              name="sender"
               label="From Email"
               placeholder="noreply@nhost.app"
               className="lg:col-span-4"
               hideEmptyHelperText
               fullWidth
-              error={Boolean(errors.authSmtpSender)}
-              helperText={errors.authSmtpSender?.message}
+              error={Boolean(errors.sender)}
+              helperText={errors.sender?.message}
             />
 
             <Input
-              {...register('authSmtpHost')}
-              id="authSmtpHost"
-              name="authSmtpHost"
+              {...register('host')}
+              id="host"
+              name="host"
               label="SMTP Host"
               className="lg:col-span-4"
               placeholder="e.g. smtp.sendgrid.net"
               hideEmptyHelperText
               fullWidth
-              error={Boolean(errors.authSmtpHost)}
-              helperText={errors.authSmtpHost?.message}
+              error={Boolean(errors.host)}
+              helperText={errors.host?.message}
             />
 
             <Input
-              {...register('authSmtpPort')}
-              id="authSmtpPort"
-              name="authSmtpPort"
+              {...register('port')}
+              id="port"
+              name="port"
               label="Port"
               type="number"
               placeholder="587"
               className="lg:col-span-1"
               hideEmptyHelperText
               fullWidth
-              error={Boolean(errors.authSmtpPort)}
-              helperText={errors.authSmtpPort?.message}
+              error={Boolean(errors.port)}
+              helperText={errors.port?.message}
             />
 
             <Input
-              {...register('authSmtpUser')}
-              id="authSmtpUser"
+              {...register('user')}
+              id="user"
               label="SMTP Username"
               placeholder="SMTP Username"
               className="lg:col-span-4"
               hideEmptyHelperText
               fullWidth
-              error={Boolean(errors.authSmtpUser)}
-              helperText={errors.authSmtpUser?.message}
+              error={Boolean(errors.user)}
+              helperText={errors.user?.message}
             />
 
             <Input
-              {...register('authSmtpPass')}
-              id="authSmtpPass"
+              {...register('password')}
+              id="password"
               label="SMTP Password"
               type="password"
               placeholder="Enter SMTP password"
               className="lg:col-span-5"
               hideEmptyHelperText
               fullWidth
-              error={Boolean(errors.authSmtpPass)}
-              helperText={errors.authSmtpPass?.message}
+              error={Boolean(errors.password)}
+              helperText={errors.password?.message}
             />
 
             <Input
-              {...register('AuthSmtpAuthMethod')}
-              id="AuthSmtpAuthMethod"
-              name="AuthSmtpAuthMethod"
+              {...register('method')}
+              id="method"
+              name="method"
               label="SMTP Auth Method"
               placeholder="LOGIN"
               hideEmptyHelperText
               className="lg:col-span-4"
               fullWidth
-              error={Boolean(errors.AuthSmtpAuthMethod)}
-              helperText={errors.AuthSmtpAuthMethod?.message}
+              error={Boolean(errors.method)}
+              helperText={errors.method?.message}
             />
 
             <ControlledCheckbox
-              name="AuthSmtpSecure"
-              id="AuthSmtpSecure"
+              name="secure"
+              id="secure"
               label="Use SSL"
               className="lg:col-span-9"
             />

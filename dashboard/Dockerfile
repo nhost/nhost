@@ -11,7 +11,7 @@ FROM node:16-alpine AS builder
 ARG TURBO_TOKEN
 ARG TURBO_TEAM
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 RUN apk update
 WORKDIR /app
 

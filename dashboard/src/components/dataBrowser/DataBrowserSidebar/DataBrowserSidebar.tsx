@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import InlineCode from '@/components/common/InlineCode';
 import NavLink from '@/components/common/NavLink';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
@@ -31,10 +32,35 @@ import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
 import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
 import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
+
+const CreateTableForm = dynamic(
+  () => import('@/components/dataBrowser/CreateTableForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditTableForm = dynamic(
+  () => import('@/components/dataBrowser/EditTableForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
+
+const EditPermissionsForm = dynamic(
+  () => import('@/components/dataBrowser/EditPermissionsForm'),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
 
 export interface DataBrowserSidebarProps extends Omit<BoxProps, 'children'> {
   /**
@@ -200,7 +226,7 @@ function DataBrowserSidebarContent({
     table: string,
     disabled?: boolean,
   ) {
-    openDrawer('EDIT_PERMISSIONS', {
+    openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions
@@ -208,21 +234,17 @@ function DataBrowserSidebarContent({
           <Chip label="Preview" size="small" color="info" component="span" />
         </span>
       ),
+      component: (
+        <EditPermissionsForm
+          disabled={disabled}
+          schema={schema}
+          table={table}
+        />
+      ),
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
         },
-      },
-      payload: {
-        onSubmit: async () => {
-          await queryClient.refetchQueries([
-            `${dataSourceSlug}.${schema}.${table}`,
-          ]);
-          await refetch();
-        },
-        disabled,
-        schema,
-        table,
       },
     });
   }
@@ -296,9 +318,11 @@ function DataBrowserSidebarContent({
           endIcon={<PlusIcon />}
           className="mt-1 w-full justify-between px-2"
           onClick={() => {
-            openDrawer('CREATE_TABLE', {
+            openDrawer({
               title: 'Create a New Table',
-              payload: { onSubmit: refetch, schema: selectedSchema },
+              component: (
+                <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
+              ),
             });
 
             onSidebarItemClick();
@@ -376,18 +400,20 @@ function DataBrowserSidebarContent({
                                 key="edit-table"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                                 onClick={() =>
-                                  openDrawer('EDIT_TABLE', {
+                                  openDrawer({
                                     title: 'Edit Table',
-                                    payload: {
-                                      onSubmit: async () => {
-                                        await queryClient.refetchQueries([
-                                          `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
-                                        ]);
-                                        await refetch();
-                                      },
-                                      schema: table.table_schema,
-                                      table,
-                                    },
+                                    component: (
+                                      <EditTableForm
+                                        onSubmit={async () => {
+                                          await queryClient.refetchQueries([
+                                            `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                          ]);
+                                          await refetch();
+                                        }}
+                                        schema={table.table_schema}
+                                        table={table}
+                                      />
+                                    ),
                                   })
                                 }
                               >
@@ -521,7 +547,7 @@ export default function DataBrowserSidebar({
       document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
   }, []);
 
-  if (isPlatform && !currentApplication?.hasuraGraphqlAdminSecret) {
+  if (isPlatform && !currentApplication?.config?.hasura.adminSecret) {
     return null;
   }
 

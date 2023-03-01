@@ -1,6 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
+import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
@@ -20,7 +22,8 @@ import generateAppServiceUrl, {
 } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { generateRemoteAppUrl } from '@/utils/helpers';
-import { useGetAppInjectedVariablesQuery } from '@/utils/__generated__/graphql';
+import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -28,10 +31,22 @@ export default function SystemEnvironmentVariableSettings() {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   const { openDialog } = useDialog();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetAppInjectedVariablesQuery({
-    variables: { id: currentApplication?.id },
+  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
+
+  const { jwtSecrets, webhookSecret, adminSecret } = data?.config?.hasura || {};
+  const jwtSecretsWithoutFalsyValues = getJwtSecretsWithoutFalsyValues(
+    jwtSecrets || [],
+  );
+  const stringifiedJwtSecrets =
+    jwtSecretsWithoutFalsyValues.length === 1
+      ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
+      : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
+
   const isPlatform = useIsPlatform();
 
   const appClient = useAppClient();
@@ -50,7 +65,7 @@ export default function SystemEnvironmentVariableSettings() {
   }
 
   function showViewJwtSecretModal() {
-    openDialog('EDIT_JWT_SECRET', {
+    openDialog({
       title: (
         <span className="grid grid-flow-row">
           <span>Auth JWT Secret</span>
@@ -61,15 +76,14 @@ export default function SystemEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        disabled: true,
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
-      },
+      component: (
+        <EditJwtSecretForm disabled jwtSecret={stringifiedJwtSecrets} />
+      ),
     });
   }
 
   function showEditJwtSecretModal() {
-    openDialog('EDIT_JWT_SECRET', {
+    openDialog({
       title: (
         <span className="grid grid-flow-row">
           <span>Edit JWT Secret</span>
@@ -80,9 +94,7 @@ export default function SystemEnvironmentVariableSettings() {
           </Text>
         </span>
       ),
-      payload: {
-        jwtSecret: data?.app?.hasuraGraphqlJwtSecret,
-      },
+      component: <EditJwtSecretForm jwtSecret={stringifiedJwtSecrets} />,
     });
   }
 
@@ -134,7 +146,7 @@ export default function SystemEnvironmentVariableSettings() {
             <Text className="truncate" color="secondary">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium">
-                  {currentApplication?.hasuraGraphqlAdminSecret}
+                  {adminSecret}
                 </InlineCode>
               ) : (
                 '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
@@ -167,7 +179,7 @@ export default function SystemEnvironmentVariableSettings() {
             <Text className="truncate" color="secondary">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium">
-                  {data?.app?.webhookSecret}
+                  {webhookSecret}
                 </InlineCode>
               ) : (
                 '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
@@ -231,6 +243,7 @@ export default function SystemEnvironmentVariableSettings() {
               variant="borderless"
               onClick={showEditJwtSecretModal}
               size="small"
+              disabled={maintenanceActive}
             >
               Edit JWT Secret
             </Button>

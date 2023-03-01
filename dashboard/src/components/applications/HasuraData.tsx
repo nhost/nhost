@@ -22,11 +22,9 @@ interface HasuraDataProps {
 export function HasuraData({ close }: HasuraDataProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const isPlatform = useIsPlatform();
+  const projectAdminSecret = currentApplication?.config?.hasura.adminSecret;
 
-  if (
-    !currentApplication?.subdomain ||
-    !currentApplication?.hasuraGraphqlAdminSecret
-  ) {
+  if (!currentApplication?.subdomain || !projectAdminSecret) {
     return <LoadingScreen />;
   }
 
@@ -71,18 +69,11 @@ export function HasuraData({ close }: HasuraDataProps) {
 
             <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
               <Text className="font-medium" variant="subtitle2">
-                {Array(currentApplication.hasuraGraphqlAdminSecret.length)
-                  .fill('•')
-                  .join('')}
+                {Array(projectAdminSecret.length).fill('•').join('')}
               </Text>
 
               <IconButton
-                onClick={() =>
-                  copy(
-                    currentApplication.hasuraGraphqlAdminSecret,
-                    'Hasura admin secret',
-                  )
-                }
+                onClick={() => copy(projectAdminSecret, 'Hasura admin secret')}
                 variant="borderless"
                 color="secondary"
                 className="min-w-0 p-1"

@@ -59,7 +59,7 @@ export default function useFiles({
 
   return {
     files:
-      currentApplication?.hasuraGraphqlAdminSecret && cachedOrFetchedFiles
+      currentApplication?.config?.hasura.adminSecret && cachedOrFetchedFiles
         ? cachedOrFetchedFiles.map((file) => ({
             ...file,
             preview: {
@@ -94,7 +94,7 @@ export default function useFiles({
                       'x-hasura-admin-secret':
                         process.env.NEXT_PUBLIC_ENV === 'dev'
                           ? getHasuraAdminSecret()
-                          : currentApplication?.hasuraGraphqlAdminSecret,
+                          : currentApplication?.config?.hasura.adminSecret,
                     },
                     mode: 'cors',
                     ...init,

@@ -8,8 +8,12 @@ query getAllUserData {
       apps {
         id
         name
-        hasuraGraphqlAdminSecret
         subdomain
+        config(resolve: true) {
+          hasura {
+            adminSecret
+          }
+        }
       }
     }
   }

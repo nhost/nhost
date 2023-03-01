@@ -28,7 +28,7 @@ export function useRemoteApplicationGQLClient() {
           'x-hasura-admin-secret':
             process.env.NEXT_PUBLIC_ENV === 'dev'
               ? getHasuraAdminSecret()
-              : currentApplication?.hasuraGraphqlAdminSecret,
+              : currentApplication?.config?.hasura.adminSecret,
         },
       }),
     });

@@ -55,7 +55,8 @@ export default function useTableQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),
@@ -65,7 +66,7 @@ export default function useTableQuery(
       keepPreviousData: true,
       ...queryOptions,
       enabled:
-        currentApplication?.hasuraGraphqlAdminSecret && isReady
+        currentApplication?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
     },

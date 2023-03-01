@@ -41,7 +41,7 @@ export const useSetAppWorkspaceContextFromUserContext = () => {
       appAdminSecret:
         process.env.NEXT_PUBLIC_ENV === 'dev'
           ? getHasuraAdminSecret()
-          : currentApplication.hasuraGraphqlAdminSecret,
+          : currentApplication.config?.hasura.adminSecret,
       repository: currentApplication.githubRepository,
       provisioning:
         workspaceContext.provisioning || !currentApplication.isProvisioned,
