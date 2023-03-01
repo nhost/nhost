@@ -31,7 +31,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function SecretsPage() {
   const { openDialog, openAlertDialog } = useDialog();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSecretsQuery({
@@ -153,7 +153,7 @@ export default function SecretsPage() {
                           <IconButton
                             variant="borderless"
                             color="secondary"
-                            disabled={projectManagementDisabled}
+                            disabled={maintenanceActive}
                           >
                             <DotsVerticalIcon />
                           </IconButton>
@@ -216,7 +216,7 @@ export default function SecretsPage() {
             variant="borderless"
             startIcon={<PlusIcon />}
             onClick={handleOpenCreator}
-            disabled={projectManagementDisabled}
+            disabled={maintenanceActive}
           >
             Create Secret
           </Button>

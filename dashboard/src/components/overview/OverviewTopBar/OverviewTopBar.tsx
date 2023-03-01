@@ -17,7 +17,7 @@ export default function OverviewTopBar() {
     useCurrentWorkspaceAndApplication();
   const isPro = !currentApplication?.plan?.isFree;
   const { openAlertDialog } = useDialog();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   if (!isPlatform) {
     return (
@@ -106,7 +106,7 @@ export default function OverviewTopBar() {
           endIcon={<CogIcon className="h-4 w-4" />}
           variant="outlined"
           color="secondary"
-          disabled={projectManagementDisabled}
+          disabled={maintenanceActive}
         >
           Settings
         </Button>

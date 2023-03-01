@@ -53,7 +53,7 @@ export interface ProjectRoute {
 
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   const nhostRoutes: ProjectRoute[] = [
     {
@@ -83,7 +83,7 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Settings',
       icon: <CogIcon />,
-      disabled: !isPlatform || projectManagementDisabled,
+      disabled: !isPlatform || maintenanceActive,
     },
   ];
 

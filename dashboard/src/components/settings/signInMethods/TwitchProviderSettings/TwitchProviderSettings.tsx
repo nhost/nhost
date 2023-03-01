@@ -28,7 +28,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -117,7 +117,7 @@ export default function TwitchProviderSettings() {
           description="Allow users to sign in with Twitch."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

@@ -147,7 +147,7 @@ function OverviewDeploymentList() {
 export default function OverviewDeployments() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   const { githubRepository } = currentApplication || {};
 
@@ -185,7 +185,7 @@ export default function OverviewDeployments() {
             color="primary"
             className="w-full"
             onClick={openGitHubModal}
-            disabled={projectManagementDisabled}
+            disabled={maintenanceActive}
           >
             <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub

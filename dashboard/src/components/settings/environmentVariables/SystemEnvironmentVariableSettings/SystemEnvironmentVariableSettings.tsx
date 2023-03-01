@@ -43,7 +43,7 @@ export default function SystemEnvironmentVariableSettings() {
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
   const { openDialog } = useDialog();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentApplication?.id },
@@ -255,7 +255,7 @@ export default function SystemEnvironmentVariableSettings() {
               variant="borderless"
               onClick={showEditJwtSecretModal}
               size="small"
-              disabled={projectManagementDisabled}
+              disabled={maintenanceActive}
             >
               Edit JWT Secret
             </Button>

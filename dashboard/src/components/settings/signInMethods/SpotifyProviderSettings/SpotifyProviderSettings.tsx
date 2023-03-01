@@ -26,7 +26,7 @@ import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function SpotifyProviderSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -115,7 +115,7 @@ export default function SpotifyProviderSettings() {
           description="Allow users to sign in with Spotify."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

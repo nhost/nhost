@@ -31,7 +31,7 @@ const validationSchema = Yup.object({
 export type GravatarFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function GravatarSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -116,7 +116,7 @@ export default function GravatarSettings() {
           description="Use Gravatars for avatar URLs for users."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

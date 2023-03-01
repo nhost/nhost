@@ -22,7 +22,7 @@ export interface BaseDirectoryFormValues {
 }
 
 export default function BaseDirectorySettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -91,7 +91,7 @@ export default function BaseDirectorySettings() {
           }
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

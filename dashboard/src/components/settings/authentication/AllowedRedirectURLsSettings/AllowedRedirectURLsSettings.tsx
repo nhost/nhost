@@ -25,7 +25,7 @@ export type AllowedRedirectURLFormValues = Yup.InferType<
 >;
 
 export default function AllowedRedirectURLsSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -107,7 +107,7 @@ export default function AllowedRedirectURLsSettings() {
           description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

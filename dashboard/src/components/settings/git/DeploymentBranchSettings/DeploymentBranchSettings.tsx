@@ -21,7 +21,7 @@ export interface DeploymentBranchFormValues {
 }
 
 export default function DeploymentBranchSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -86,7 +86,7 @@ export default function DeploymentBranchSettings() {
           description="All commits pushed to this deployment branch will trigger a deployment. You can switch to a different branch here."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

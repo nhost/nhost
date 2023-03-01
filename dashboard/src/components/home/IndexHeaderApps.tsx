@@ -12,7 +12,7 @@ interface IndexHeaderAppsProps {
 }
 
 export function IndexHeaderApps({ query, setQuery }: IndexHeaderAppsProps) {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   return (
     <div className="mx-auto mb-6 grid w-full grid-flow-col place-content-between items-center py-2">
@@ -39,7 +39,7 @@ export function IndexHeaderApps({ query, setQuery }: IndexHeaderAppsProps) {
           variant="outlined"
           color="secondary"
           startIcon={<PlusCircleIcon />}
-          disabled={projectManagementDisabled}
+          disabled={maintenanceActive}
         >
           New Project
         </Button>

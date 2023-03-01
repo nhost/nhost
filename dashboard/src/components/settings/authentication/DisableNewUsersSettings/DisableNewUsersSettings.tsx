@@ -21,7 +21,7 @@ const validationSchema = Yup.object({
 export type DisableNewUsersFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DisableNewUsersSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -103,7 +103,7 @@ export default function DisableNewUsersSettings() {
           showSwitch
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

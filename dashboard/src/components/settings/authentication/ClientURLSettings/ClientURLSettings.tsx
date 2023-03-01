@@ -23,7 +23,7 @@ const validationSchema = Yup.object({
 export type ClientURLFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function ClientURLSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -102,7 +102,7 @@ export default function ClientURLSettings() {
           description="This should be the URL of your frontend app where users are redirected after authenticating."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

@@ -42,7 +42,7 @@ export interface RoleSettingsFormValues {
 }
 
 export default function RoleSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -200,7 +200,7 @@ export default function RoleSettings() {
                         <IconButton
                           variant="borderless"
                           color="secondary"
-                          disabled={projectManagementDisabled}
+                          disabled={maintenanceActive}
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -287,7 +287,7 @@ export default function RoleSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
-          disabled={projectManagementDisabled}
+          disabled={maintenanceActive}
         >
           Create Allowed Role
         </Button>

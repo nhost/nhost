@@ -29,7 +29,7 @@ export interface ResetDatabasePasswordFormValues {
 
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -107,7 +107,7 @@ export default function ResetDatabasePasswordSettings() {
             submitButton: {
               variant: 'contained',
               color: 'error',
-              disabled: !isDirty || projectManagementDisabled,
+              disabled: !isDirty || maintenanceActive,
               loading: isSubmitting,
             },
           }}

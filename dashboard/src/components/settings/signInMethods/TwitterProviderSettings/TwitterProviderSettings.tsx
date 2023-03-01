@@ -37,7 +37,7 @@ const validationSchema = Yup.object({
 export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -121,7 +121,7 @@ export default function TwitterProviderSettings() {
           description="Allow users to sign in with Twitter."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

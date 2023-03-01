@@ -9,7 +9,7 @@ import NavLink from 'next/link';
 export default function OverviewRepository() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   return (
     <div>
@@ -30,7 +30,7 @@ export default function OverviewRepository() {
               color="secondary"
               className="w-full border-1 hover:border-1"
               startIcon={<GithubIcon />}
-              disabled={projectManagementDisabled}
+              disabled={maintenanceActive}
             >
               Connect to GitHub
             </Button>
@@ -58,7 +58,7 @@ export default function OverviewRepository() {
             <Button
               variant="borderless"
               size="small"
-              disabled={projectManagementDisabled}
+              disabled={maintenanceActive}
             >
               Edit
             </Button>

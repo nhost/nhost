@@ -22,7 +22,7 @@ const validationSchema = Yup.object({
 export type WebAuthnFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WebAuthnSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -100,7 +100,7 @@ export default function WebAuthnSettings() {
           description="Allow users to sign in with security keys using WebAuthn."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

@@ -45,7 +45,7 @@ export default function SettingsGeneralPage() {
   });
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -150,7 +150,7 @@ export default function SettingsGeneralPage() {
             className="grid grid-flow-row px-4 lg:grid-cols-4"
             slotProps={{
               submitButton: {
-                disabled: !formState.isDirty || projectManagementDisabled,
+                disabled: !formState.isDirty || maintenanceActive,
                 loading: formState.isSubmitting,
               },
             }}
@@ -183,7 +183,7 @@ export default function SettingsGeneralPage() {
             type: 'button',
             color: 'error',
             variant: 'contained',
-            disabled: projectManagementDisabled,
+            disabled: maintenanceActive,
             onClick: () => {
               openDialog({
                 title: '',

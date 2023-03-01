@@ -15,7 +15,7 @@ export default function DeploymentsPage() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const { workspaceContext } = useWorkspaceContext();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
 
   if (!workspaceContext.repository) {
     return (
@@ -45,7 +45,7 @@ export default function DeploymentsPage() {
           <Button
             variant="borderless"
             className="mx-auto font-medium"
-            disabled={projectManagementDisabled}
+            disabled={maintenanceActive}
           >
             Connect your Project to GitHub
           </Button>

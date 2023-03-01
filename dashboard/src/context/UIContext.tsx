@@ -9,10 +9,13 @@ export interface UIContextState {
   resourcesCollapsible: boolean;
   paymentModal: boolean;
   /**
-   * Determines whether or not features related to project management
-   * (such as project creation and project settings) are disabled.
+   * Determines whether or not the dashboard is in maintenance mode.
    */
-  projectManagementDisabled: boolean;
+  maintenanceActive: boolean;
+  /**
+   * The date and time when maintenance mode will end.
+   */
+  maintenanceEndDate: Date;
   openPaymentModal: () => void;
   closePaymentModal: () => void;
   openDeleteWorkspaceModal: () => void;
@@ -26,7 +29,8 @@ const initialState: UIContextState = {
   deleteWorkspaceModal: false,
   resourcesCollapsible: true,
   paymentModal: false,
-  projectManagementDisabled: false,
+  maintenanceActive: false,
+  maintenanceEndDate: null,
   openPaymentModal: () => {},
   closePaymentModal: () => {},
   openDeleteWorkspaceModal: () => {},
@@ -73,8 +77,12 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
       closeDeleteWorkspaceModal,
       openPaymentModal,
       closePaymentModal,
-      projectManagementDisabled:
-        process.env.NEXT_PUBLIC_PROJECT_MANAGEMENT_DISABLED === 'true',
+      maintenanceActive: process.env.NEXT_PUBLIC_MAINTENANCE_ACTIVE === 'true',
+      maintenanceEndDate:
+        process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE &&
+        !Number.isNaN(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
+          ? new Date(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
+          : null,
     }),
     [state],
   );

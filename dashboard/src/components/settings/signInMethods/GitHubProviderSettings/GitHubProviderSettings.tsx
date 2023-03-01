@@ -28,7 +28,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function GitHubProviderSettings() {
   const theme = useTheme();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -117,7 +117,7 @@ export default function GitHubProviderSettings() {
           description="Allow users to sign in with GitHub."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

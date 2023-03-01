@@ -28,7 +28,7 @@ export type AllowedEmailSettingsFormValues = Yup.InferType<
 >;
 
 export default function AllowedEmailDomainsSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -130,7 +130,7 @@ export default function AllowedEmailDomainsSettings() {
           description="Allow specific email addresses and domains to sign up."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || projectManagementDisabled,
+              disabled: !isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

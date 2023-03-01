@@ -22,7 +22,7 @@ const validationSchema = Yup.object({
 export type MagicLinkFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function MagicLinkSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -100,7 +100,7 @@ export default function MagicLinkSettings() {
           description="Allow users to sign in with a Magic Link."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

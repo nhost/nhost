@@ -25,7 +25,7 @@ const validationSchema = Yup.object({
 export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailAndPasswordSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -113,7 +113,7 @@ export default function EmailAndPasswordSettings() {
           slotProps={{
             switch: { disabled: true },
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

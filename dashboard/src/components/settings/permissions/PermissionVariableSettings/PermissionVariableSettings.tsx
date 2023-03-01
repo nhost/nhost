@@ -31,7 +31,7 @@ import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function PermissionVariableSettings() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openDialog, openAlertDialog } = useDialog();
 
@@ -177,7 +177,7 @@ export default function PermissionVariableSettings() {
                           color="secondary"
                           disabled={
                             permissionVariable.isSystemVariable ||
-                            projectManagementDisabled
+                            maintenanceActive
                           }
                         >
                           <DotsVerticalIcon />
@@ -254,7 +254,7 @@ export default function PermissionVariableSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
-          disabled={projectManagementDisabled}
+          disabled={maintenanceActive}
         >
           Create Permission Variable
         </Button>

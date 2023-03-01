@@ -47,7 +47,7 @@ export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
   const theme = useTheme();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -136,7 +136,7 @@ export default function AppleProviderSettings() {
           description="Allow users to sign in with Apple."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || projectManagementDisabled,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}

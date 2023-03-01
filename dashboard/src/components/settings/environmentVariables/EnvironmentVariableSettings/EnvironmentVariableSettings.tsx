@@ -36,7 +36,7 @@ export interface EnvironmentVariableSettingsFormValues {
 
 export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentApplication?.id },
@@ -186,7 +186,7 @@ export default function EnvironmentVariableSettings() {
                         <IconButton
                           variant="borderless"
                           color="secondary"
-                          disabled={projectManagementDisabled}
+                          disabled={maintenanceActive}
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -248,7 +248,7 @@ export default function EnvironmentVariableSettings() {
           variant="borderless"
           startIcon={<PlusIcon />}
           onClick={handleOpenCreator}
-          disabled={projectManagementDisabled}
+          disabled={maintenanceActive}
         >
           Create Environment Variable
         </Button>

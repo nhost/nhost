@@ -46,7 +46,7 @@ const smtpValidationSchema = yup
 export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
-  const { projectManagementDisabled } = useUI();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
@@ -162,7 +162,7 @@ export default function SMTPSettingsPage() {
             className="grid grid-cols-9 gap-4"
             slotProps={{
               submitButton: {
-                disabled: !isDirty || projectManagementDisabled,
+                disabled: !isDirty || maintenanceActive,
                 loading: isSubmitting,
               },
             }}
