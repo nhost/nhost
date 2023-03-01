@@ -25,7 +25,7 @@ export default function HeroSection() {
             }
             subtitle={
               <>
-                Nhost is a an open-source backend and development platform that
+                Nhost is an open-source backend and development platform that
                 enables <strong>developers</strong> to <strong>build</strong>{' '}
                 and <strong>scale</strong> their web and mobile{' '}
                 <strong>apps</strong>.
