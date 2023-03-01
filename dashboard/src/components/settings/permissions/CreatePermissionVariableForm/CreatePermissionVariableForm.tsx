@@ -81,6 +81,12 @@ export default function CreatePermissionVariableForm({
       return;
     }
 
+    const existingPermissionVariables =
+      permissionVariables?.map((permissionVariable) => ({
+        key: permissionVariable.key,
+        value: permissionVariable.value,
+      })) || [];
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication?.id,
@@ -88,13 +94,7 @@ export default function CreatePermissionVariableForm({
           auth: {
             session: {
               accessToken: {
-                customClaims: [
-                  ...(permissionVariables?.map((permissionVariable) => ({
-                    key: permissionVariable.key,
-                    value: permissionVariable.value,
-                  })) || []),
-                  { key, value },
-                ],
+                customClaims: [...existingPermissionVariables, { key, value }],
               },
             },
           },

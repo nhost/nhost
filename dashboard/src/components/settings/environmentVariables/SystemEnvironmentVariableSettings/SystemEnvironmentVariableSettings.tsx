@@ -22,21 +22,9 @@ import generateAppServiceUrl, {
 } from '@/utils/common/generateAppServiceUrl';
 import { LOCAL_HASURA_URL } from '@/utils/env';
 import { generateRemoteAppUrl } from '@/utils/helpers';
-import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
+import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
-
-function getJwtSecretsWithoutFalsyValues(jwtSecrets: JwtSecretFragment[]) {
-  return jwtSecrets.map((secret) =>
-    Object.keys(secret).reduce(
-      (secretWithoutFalsyValues, key) =>
-        secret[key] && key !== '__typename'
-          ? { ...secretWithoutFalsyValues, [key]: secret[key] }
-          : secretWithoutFalsyValues,
-      {},
-    ),
-  );
-}
 
 export default function SystemEnvironmentVariableSettings() {
   const [showAdminSecret, setShowAdminSecret] = useState(false);
