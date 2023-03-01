@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.12.1
+
+### Patch Changes
+
+- c96d7ccd: fix(dashboard): fix docker builds
+
 ## 0.12.0
 
 ### Minor Changes
