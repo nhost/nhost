@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { createContext, useContext, useMemo, useReducer } from 'react';
 
@@ -62,6 +63,7 @@ function sideReducer(state: any, action: any) {
 
 export function UIProvider(props: PropsWithChildren<unknown>) {
   const [state, dispatch] = useReducer(sideReducer, initialState);
+  const router = useRouter();
 
   const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
   const closePaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
@@ -70,6 +72,11 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
   const closeDeleteWorkspaceModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
 
+  const maintenanceUnlocked =
+    process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET &&
+    process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET ===
+      router.query.maintenanceUnlockSecret;
+
   const value: UIContextState = useMemo(
     () => ({
       ...state,
@@ -77,14 +84,16 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
       closeDeleteWorkspaceModal,
       openPaymentModal,
       closePaymentModal,
-      maintenanceActive: process.env.NEXT_PUBLIC_MAINTENANCE_ACTIVE === 'true',
+      maintenanceActive: maintenanceUnlocked
+        ? false
+        : process.env.NEXT_PUBLIC_MAINTENANCE_ACTIVE === 'true',
       maintenanceEndDate:
         process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE &&
         !Number.isNaN(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
           ? new Date(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
           : null,
     }),
-    [state],
+    [state, maintenanceUnlocked],
   );
 
   return <UIContext.Provider value={value} {...props} />;

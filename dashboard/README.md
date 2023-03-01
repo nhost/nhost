@@ -61,6 +61,7 @@ pnpm storybook
 | `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`       | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
 | `NEXT_PUBLIC_MAINTENANCE_ACTIVE`          | Determines whether or not maintenance mode is active.                                                                                                |
 | `NEXT_PUBLIC_MAINTENANCE_END_DATE`        | Date when maintenance mode will end.                                                                                                                 |
+| `NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET`   | Secret that can be used to bypass maintenance mode.                                                                                                  |
 
 ## ESLint Rules
 
