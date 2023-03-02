@@ -141,7 +141,6 @@ importers:
       babel-plugin-transform-remove-console: ^6.9.4
       bcryptjs: ^2.4.3
       clsx: ^1.2.1
-      cross-fetch: ^3.1.5
       csstype: ^3.0.10
       date-fns: ^2.29.3
       eslint: ^8.28.0
@@ -167,6 +166,7 @@ importers:
       msw-storybook-addon: ^1.6.3
       next: ^12.3.1
       next-seo: ^5.14.1
+      node-fetch: ^3.3.0
       node-pg-format: ^1.3.5
       pluralize: ^8.0.0
       postcss: ^8.4.19
@@ -233,7 +233,6 @@ importers:
       analytics-node: 6.2.0
       bcryptjs: 2.4.3
       clsx: 1.2.1
-      cross-fetch: 3.1.5
       date-fns: 2.29.3
       generate-password: 1.7.0
       graphiql: 2.2.0_755ntyjuho6qjwic26h62or3by
@@ -316,6 +315,7 @@ importers:
       lint-staged: 13.0.3
       msw: 1.0.1_typescript@4.9.3
       msw-storybook-addon: 1.6.3_wfed36xf2cj7dcilohayxz5mxm
+      node-fetch: 3.3.0
       postcss: 8.4.19
       prettier: 2.7.1
       prettier-plugin-organize-imports: 3.2.0_wbcyan4knibwiqrg7345gyo3qi
@@ -938,11 +938,11 @@ importers:
     specifiers:
       '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/docgen': workspace:*
-      cross-fetch: ^3.1.5
       graphql: 16.6.0
+      isomorphic-unfetch: ^3.1.0
     dependencies:
       '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
-      cross-fetch: 3.1.5
+      isomorphic-unfetch: 3.1.0
     devDependencies:
       '@nhost/docgen': link:../docgen
       graphql: 16.6.0
@@ -954,7 +954,7 @@ importers:
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
       cheerio: 1.0.0-rc.12
-      cross-fetch: ^3.1.5
+      isomorphic-unfetch: ^3.1.0
       js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
@@ -963,7 +963,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
-      cross-fetch: 3.1.5
+      isomorphic-unfetch: 3.1.0
       js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.33.6
@@ -979,8 +979,8 @@ importers:
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': workspace:*
-      cross-fetch: ^3.1.5
       form-data: ^4.0.0
+      isomorphic-unfetch: ^3.1.0
       jpeg-js: ^0.4.4
       pixelmatch: ^5.3.0
       start-server-and-test: ^1.15.2
@@ -988,10 +988,10 @@ importers:
       xstate: ^4.33.5
     dependencies:
       form-data: 4.0.0
+      isomorphic-unfetch: 3.1.0
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
-      cross-fetch: 3.1.5
       jpeg-js: 0.4.4
       pixelmatch: 5.3.0
       start-server-and-test: 1.15.2
@@ -1002,7 +1002,7 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
-      cross-fetch: ^3.1.5
+      isomorphic-unfetch: ^3.1.0
       js-cookie: ^3.0.1
       next: 12.3.4
       react: ^18.2.0
@@ -1010,7 +1010,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@nhost/react': link:../react
-      cross-fetch: 3.1.5
+      isomorphic-unfetch: 3.1.0
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
@@ -1025,13 +1025,13 @@ importers:
       '@nhost/graphql-js': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      cross-fetch: ^3.1.5
       graphql: 16.6.0
+      isomorphic-unfetch: ^3.1.0
     dependencies:
       '@nhost/graphql-js': link:../graphql-js
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      cross-fetch: 3.1.5
+      isomorphic-unfetch: 3.1.0
     devDependencies:
       graphql: 16.6.0
 
@@ -13247,7 +13247,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@16.18.11
+      vite: 4.0.2_@types+node@18.11.17
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -17380,6 +17380,11 @@ packages:
       assert-plus: 1.0.0
     dev: true
 
+  /data-uri-to-buffer/4.0.1:
+    resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
+    engines: {node: '>= 12'}
+    dev: true
+
   /data-urls/3.0.1:
     resolution: {integrity: sha512-Ds554NeT5Gennfoo9KN50Vh6tpgtvYEwraYjejXnyTpu1C7oXKxdFk75REooENHE8ndTVOJuv+BEs4/J/xcozw==}
     engines: {node: '>=12'}
@@ -20089,6 +20094,14 @@ packages:
       xml-js: 1.6.11
     dev: false
 
+  /fetch-blob/3.2.0:
+    resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
+    engines: {node: ^12.20 || >= 14.13}
+    dependencies:
+      node-domexception: 1.0.0
+      web-streams-polyfill: 3.2.1
+    dev: true
+
   /fetch-retry/5.0.3:
     resolution: {integrity: sha512-uJQyMrX5IJZkhoEUBQ3EjxkeiZkppBd5jS/fMTJmfZxLSiaQjv2zD0kTvuvkSH89uFvgSlB6ueGpjD3HWN7Bxw==}
     dev: true
@@ -20484,6 +20497,13 @@ packages:
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 4.0.0-beta.1
+
+  /formdata-polyfill/4.0.10:
+    resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
+    engines: {node: '>=12.20.0'}
+    dependencies:
+      fetch-blob: 3.2.0
+    dev: true
 
   /forwarded/0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -22598,7 +22618,6 @@ packages:
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /isomorphic-ws/5.0.0_ws@8.11.0:
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -24691,6 +24710,15 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+
+  /node-fetch/3.3.0:
+    resolution: {integrity: sha512-BKwRP/O0UvoMKp7GNdwPlObhYGB5DQqwhEDQlNKuoqwVYSxkSZCSbHjnFFmUEtwSKRPU4kNK8PbDYYitwaE3QA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      data-uri-to-buffer: 4.0.1
+      fetch-blob: 3.2.0
+      formdata-polyfill: 4.0.10
+    dev: true
 
   /node-forge/1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -30321,7 +30349,6 @@ packages:
 
   /unfetch/4.2.0:
     resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
-    dev: true
 
   /unherit/1.1.3:
     resolution: {integrity: sha512-Ft16BJcnapDKp0+J/rqFC3Rrk6Y/Ng4nzsC028k2jdDII/rdZ7Wd3pPT/6+vIIxRagwRc9K0IUX0Ra4fKvw+WQ==}

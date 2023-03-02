@@ -1,10 +1,9 @@
-import fs from 'fs'
-import { describe, expect, it } from 'vitest'
-import fetch from 'cross-fetch'
-import { v4 as uuidv4 } from 'uuid'
-
-import { storage } from './utils/helpers'
 import FormData from 'form-data'
+import fs from 'fs'
+import fetch from 'isomorphic-unfetch'
+import { v4 as uuidv4 } from 'uuid'
+import { describe, expect, it } from 'vitest'
+import { storage } from './utils/helpers'
 
 describe('test get file', () => {
   it('should be able to get uploaded file', async () => {

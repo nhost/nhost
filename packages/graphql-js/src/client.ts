@@ -1,5 +1,5 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import { parseRequestArgs } from './parse-args'
 import { resolveRequestDocument } from './resolve-request-document'
 import {

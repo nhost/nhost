@@ -9,7 +9,6 @@ import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import fetch from 'cross-fetch';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';

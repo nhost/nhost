@@ -1,5 +1,4 @@
-import fetch from 'cross-fetch'
-
+import fetch from 'isomorphic-unfetch'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,

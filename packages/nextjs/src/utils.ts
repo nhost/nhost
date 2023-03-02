@@ -1,5 +1,5 @@
 import { NhostClient, NhostSession } from '@nhost/react'
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import Cookies from 'js-cookie'
 
 export const refresh = async (nhostUrl: string, refreshToken: string): Promise<NhostSession> => {
