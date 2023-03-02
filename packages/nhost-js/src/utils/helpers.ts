@@ -50,7 +50,7 @@ export function urlFromSubdomain(
   }
 
   if (!region) {
-    throw new Error('`region` must be set when using a `subdomain` other than "localhost".')
+    throw new Error('`region` must be set when using a `subdomain` other than "local".')
   }
 
   return `https://${subdomain}.${service}.${region}.nhost.run/v1`
