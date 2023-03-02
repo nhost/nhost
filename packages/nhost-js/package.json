@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -61,7 +61,7 @@
     "@nhost/graphql-js": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
-    "cross-fetch": "^3.1.5"
+    "isomorphic-unfetch": "^3.1.0"
   },
   "devDependencies": {
     "graphql": "16.6.0"

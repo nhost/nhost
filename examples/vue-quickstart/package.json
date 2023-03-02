@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/vue-quickstart",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "scripts": {
     "build": "vite build",
@@ -37,7 +37,6 @@
     "unplugin-vue-components": "^0.19.9",
     "vite": "^4.0.2",
     "vite-plugin-pages": "^0.28.0",
-    "vitest": "^0.12.4",
     "vue-tsc": "^0.38.9"
   }
 }

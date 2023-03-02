@@ -4,7 +4,6 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
 } from '@/types/dataBrowser';
-import fetch from 'cross-fetch';
 
 export interface FetchMetadataOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
