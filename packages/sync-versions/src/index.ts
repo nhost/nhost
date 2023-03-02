@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { findWorkspaceDir } from '@pnpm/find-workspace-dir'
 import fs from 'fs'
-import glob from 'glob'
+import { globSync } from 'glob'
 import { set } from 'object-path'
 import path from 'path'
 import yaml from 'yaml'
@@ -19,7 +19,7 @@ const main = async () => {
     fs.readFileSync(path.join(root!, 'nhost-cloud.yaml'), 'utf-8')
   )
 
-  const nhostConfigs = glob.sync('**/nhost/config.yaml', {
+  const nhostConfigs = globSync('**/nhost/config.yaml', {
     cwd: root,
     absolute: true,
     realpath: true
