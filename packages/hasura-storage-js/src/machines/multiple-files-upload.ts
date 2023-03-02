@@ -131,7 +131,7 @@ export const createMultipleFilesUploadMachine = () => {
           const additions = files
             ? Array.isArray(files)
               ? files // File[]
-              : 'length' in files // FileList
+              : 'item' in files // FileList
               ? Array.from(files)
               : [files] // File
             : [] // No file

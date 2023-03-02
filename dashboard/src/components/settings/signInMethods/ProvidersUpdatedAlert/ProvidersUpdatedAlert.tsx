@@ -5,6 +5,7 @@ import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -27,7 +28,9 @@ export default function ProvidersUpdatedAlert() {
       {
         loading: 'Confirming...',
         success: 'Your settings have been updated successfully.',
-        error: 'An error occurred while trying to confirm the message.',
+        error: getServerError(
+          'An error occurred while trying to confirm the message.',
+        ),
       },
       getToastStyleProps(),
     );
@@ -55,7 +58,7 @@ export default function ProvidersUpdatedAlert() {
   }
 
   return (
-    <Alert className="grid items-center grid-flow-row gap-2 p-4 place-items-center lg:grid-flow-col lg:place-content-between bg-amber-500">
+    <Alert className="grid grid-flow-row place-items-center items-center gap-2 bg-amber-500 p-4 lg:grid-flow-col lg:place-content-between">
       <div className="grid grid-flow-row gap-1 text-left">
         <Text className="font-semibold">
           Please update the Redirect URL for all providers being used
@@ -74,7 +77,7 @@ export default function ProvidersUpdatedAlert() {
             className="font-medium"
           >
             Read the discussion here.
-            <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
           </Link>
         </Text>
       </div>

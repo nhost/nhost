@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { baseColumnValidationSchema } from '@/components/dataBrowser/BaseColumnForm';
+import type { DialogFormProps } from '@/types/common';
 import type { DatabaseTable, ForeignKeyRelation } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -30,7 +31,7 @@ export interface BaseTableFormValues
   foreignKeyRelations?: ForeignKeyRelation[];
 }
 
-export interface BaseTableFormProps {
+export interface BaseTableFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
@@ -99,7 +100,9 @@ function NameInput() {
 function FormFooter({
   onCancel,
   submitButtonText,
-}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'>) {
+  location,
+}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
+  Pick<DialogFormProps, 'location'>) {
   const { onDirtyStateChange } = useDialog();
   const { isSubmitting, dirtyFields } = useFormState();
 
@@ -108,8 +111,8 @@ function FormFooter({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   return (
     <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
@@ -135,6 +138,7 @@ function FormFooter({
 }
 
 export default function BaseTableForm({
+  location,
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
@@ -168,7 +172,11 @@ export default function BaseTableForm({
         <ForeignKeyEditorSection />
       </div>
 
-      <FormFooter onCancel={onCancel} submitButtonText={submitButtonText} />
+      <FormFooter
+        onCancel={onCancel}
+        submitButtonText={submitButtonText}
+        location={location}
+      />
     </Form>
   );
 }

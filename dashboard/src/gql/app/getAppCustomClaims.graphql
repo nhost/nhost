@@ -1,7 +1,0 @@
-query getAppCustomClaims($id: uuid!) {
-  app(id: $id) {
-    id
-    name
-    authJwtCustomClaims
-  }
-}

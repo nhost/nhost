@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import { NETWORK_ERROR_CODE } from '../errors'
 import { NullableErrorResponse } from '../types'
 

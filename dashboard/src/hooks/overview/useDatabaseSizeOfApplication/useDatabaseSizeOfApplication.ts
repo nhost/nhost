@@ -29,11 +29,11 @@ export default function useDatabaseSizeOfApplication(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? 'nhost-admin-secret'
-            : currentApplication?.hasuraGraphqlAdminSecret,
+            : currentApplication?.config?.hasura.adminSecret,
       }),
     {
       ...queryOptions,
-      enabled: currentApplication?.hasuraGraphqlAdminSecret
+      enabled: currentApplication?.config?.hasura.adminSecret
         ? queryOptions?.enabled
         : false,
     },

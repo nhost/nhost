@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import { afterEach, describe, expect, it } from 'vitest'
 import { auth, getHtmlLink, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 

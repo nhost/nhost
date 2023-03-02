@@ -1,10 +1,14 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/components/settings/signInMethods/BaseProviderSettings';
-import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import BaseProviderSettings, {
+  baseProviderValidationSchema,
+} from '@/components/settings/signInMethods/BaseProviderSettings';
+import { useUI } from '@/context/UIContext';
 import {
-  useSignInMethodsQuery,
-  useUpdateAppMutation,
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -14,7 +18,9 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -22,30 +28,35 @@ import { twMerge } from 'tailwind-merge';
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, clientSecret, enabled } =
+    data?.config?.auth?.method?.oauth?.twitch || {};
 
   const form = useForm<BaseProviderSettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientId: data?.app?.authTwitchClientId,
-      authClientSecret: data?.app?.authTwitchClientSecret,
-      authEnabled: data?.app?.authTwitchEnabled,
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      enabled: enabled || false,
     },
+    resolver: yupResolver(baseProviderValidationSchema),
   });
 
   if (loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Twitch Settings..."
+        label="Loading settings for Twitch..."
         className="justify-center"
       />
     );
@@ -56,33 +67,46 @@ export default function TwitchProviderSettings() {
   }
 
   const { formState, watch } = form;
-  const authEnabled = watch('authEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (
     values: BaseProviderSettingsFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authTwitchClientId: values.authClientId,
-          authTwitchClientSecret: values.authClientSecret,
-          authTwitchEnabled: values.authEnabled,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                twitch: {
+                  ...values,
+                  scope: [],
+                },
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Twitch settings are being updated...`,
-        success: `Twitch settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Twitch settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Twitch settings are being updated...`,
+          success: `Twitch settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Twitch settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -91,9 +115,11 @@ export default function TwitchProviderSettings() {
         <SettingsContainer
           title="Twitch"
           description="Allow users to sign in with Twitch."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-twitch"
           docsTitle="how to sign in users with Twitch"
@@ -102,15 +128,14 @@ export default function TwitchProviderSettings() {
               ? '/assets/brands/light/twitch.svg'
               : '/assets/brands/twitch.svg'
           }
-          switchId="authEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings />
+          <BaseProviderSettings providerName="twitch" />
           <Input
             name="redirectUrl"
             id="redirectUrl"
@@ -142,7 +167,7 @@ export default function TwitchProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </IconButton>
               </InputAdornment>
             }

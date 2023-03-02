@@ -1,4 +1,4 @@
-import customClaimsQuery from '@/utils/msw/mocks/graphql/customClaimsQuery';
+import permissionVariablesQuery from '@/utils/msw/mocks/graphql/permissionVariablesQuery';
 import hasuraMetadataQuery from '@/utils/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/utils/msw/mocks/rest/tableQuery';
 import { render, screen } from '@/utils/testUtils';
@@ -6,7 +6,11 @@ import { setupServer } from 'msw/node';
 import { test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
-const server = setupServer(tableQuery, hasuraMetadataQuery, customClaimsQuery);
+const server = setupServer(
+  tableQuery,
+  hasuraMetadataQuery,
+  permissionVariablesQuery,
+);
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
 afterEach(() => server.resetHandlers());
