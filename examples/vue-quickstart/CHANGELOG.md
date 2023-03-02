@@ -1,5 +1,15 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.7
+
+### Patch Changes
+
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/apollo@5.0.6
+  - @nhost/vue@1.13.12
+
 ## 0.0.6
 
 ### Patch Changes

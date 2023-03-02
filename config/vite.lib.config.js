@@ -20,7 +20,9 @@ export default defineConfig({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
       entryRoot: 'src',
       // Was defaulting to true until version 1.7
-      skipDiagnostics: true
+      skipDiagnostics: true,
+      // Was defaulting to true until version 2.0
+      copyDtsFiles: true
     })
   ],
   test: {

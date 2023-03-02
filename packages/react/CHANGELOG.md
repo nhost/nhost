@@ -1,5 +1,16 @@
 # @nhost/react
 
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
 ## 2.0.5
 
 ### Patch Changes
