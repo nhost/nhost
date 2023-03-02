@@ -1055,22 +1055,22 @@ importers:
       '@pnpm/find-workspace-dir': ^5.0.0
       '@swc-node/register': ^1.5.4
       '@swc/core': ^1.3.11
-      '@types/glob': ^8.0.0
+      '@types/glob': ^8.1.0
       '@types/node': ^16.11.7
       '@types/object-path': ^0.11.1
-      glob: ^8.0.3
+      glob: ^9.0.0
       object-path: ^0.11.8
       typescript: ^4.8.4
       yaml: ^2.1.1
     dependencies:
       '@pnpm/find-workspace-dir': 5.0.0
-      glob: 8.0.3
+      glob: 9.0.1
       object-path: 0.11.8
       yaml: 2.1.1
     devDependencies:
       '@swc-node/register': 1.5.4_shqznlriov6afx6xf3bowxn3ra
       '@swc/core': 1.3.11
-      '@types/glob': 8.0.0
+      '@types/glob': 8.1.0
       '@types/node': 16.18.11
       '@types/object-path': 0.11.1
       typescript: 4.8.4
@@ -12149,14 +12149,14 @@ packages:
   /@types/glob/7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
-      '@types/minimatch': 3.0.5
+      '@types/minimatch': 5.1.2
       '@types/node': 16.18.11
     dev: true
 
-  /@types/glob/8.0.0:
-    resolution: {integrity: sha512-l6NQsDDyQUVeoTynNpC9uRvCUint/gSUXQA2euwmTuWGvPY5LSDUu6tkCtJB2SvGQlJQzLaKqcGZP4//7EDveA==}
+  /@types/glob/8.1.0:
+    resolution: {integrity: sha512-IO+MJPVhoqz+28h1qLAcBEH2+xHMK6MTyHJc7MTnnYb6wsoLR29POVGJ7LycmVXIqyy/4/2ShP5sUwTXuOwb/w==}
     dependencies:
-      '@types/minimatch': 3.0.5
+      '@types/minimatch': 5.1.2
       '@types/node': 16.18.11
     dev: true
 
@@ -12294,8 +12294,8 @@ packages:
   /@types/mime/1.3.2:
     resolution: {integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==}
 
-  /@types/minimatch/3.0.5:
-    resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
+  /@types/minimatch/5.1.2:
+    resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
     dev: true
 
   /@types/minimist/1.2.2:
@@ -20583,7 +20583,7 @@ packages:
     peerDependencies:
       glob: '*'
     dependencies:
-      '@types/glob': 8.0.0
+      '@types/glob': 8.1.0
       glob: 7.2.3
     dev: true
 
@@ -20624,6 +20624,16 @@ packages:
       inherits: 2.0.4
       minimatch: 5.1.0
       once: 1.4.0
+
+  /glob/9.0.1:
+    resolution: {integrity: sha512-psRdn8MI0gRcH0xow0VOhYxXD/6ZaRGmgtfN0oWN/hCgjxpRQBMCl7wE4JRJSAUTdJsW+FmD0EtE0CgJhKqSVw==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      fs.realpath: 1.0.0
+      minimatch: 7.3.0
+      minipass: 4.2.4
+      path-scurry: 1.5.0
+    dev: false
 
   /global-dirs/3.0.0:
     resolution: {integrity: sha512-v8ho2DS5RiCjftj1nD9NmnfaOzTdud7RRnVd9kFNOjqZbISlx5DQ+OrTkywgd0dIt7oFCvKetZSHoHcP3sDdiA==}
@@ -23442,6 +23452,11 @@ packages:
     dependencies:
       yallist: 4.0.0
 
+  /lru-cache/7.17.0:
+    resolution: {integrity: sha512-zSxlVVwOabhVyTi6E8gYv2cr6bXK+8ifYz5/uyJb9feXX6NACVDwY4p5Ut3WC3Ivo/QhpARHU3iujx2xGAYHbQ==}
+    engines: {node: '>=12'}
+    dev: false
+
   /lunr/2.3.9:
     resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}
     dev: true
@@ -24008,6 +24023,13 @@ packages:
       brace-expansion: 2.0.1
     dev: true
 
+  /minimatch/7.3.0:
+    resolution: {integrity: sha512-WaMDuhKa7a6zKiwplR1AOz+zGvJba24k5VU1Cy6NhEguavT2YRlHxuINUgTas4wiS6fwBpYq4TcA1XIECSntyw==}
+    engines: {node: '>=10'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: false
+
   /minimist-options/4.1.0:
     resolution: {integrity: sha512-Q4r8ghd80yhO/0j1O3B2BjweX3fiHg9cdOwjJd2J76Q135c+NDxGCqdYKQ1SKBuFfgWbAUzBfvYjPUEeNgqN1A==}
     engines: {node: '>= 6'}
@@ -24051,6 +24073,11 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
+
+  /minipass/4.2.4:
+    resolution: {integrity: sha512-lwycX3cBMTvcejsHITUgYj6Gy6A7Nh4Q6h9NP4sTHY1ccJlC7yKzDmiShEHsJ16Jf1nKGDEaiHxiltsJEvk0nQ==}
+    engines: {node: '>=8'}
+    dev: false
 
   /minizlib/2.1.2:
     resolution: {integrity: sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==}
@@ -25225,6 +25252,14 @@ packages:
     dependencies:
       path-root-regex: 0.1.2
     dev: true
+
+  /path-scurry/1.5.0:
+    resolution: {integrity: sha512-hJ8rODLI9B2qwsYAd32rrI76gwVUPeu5kq/do6URDj2bJCVH3ilyT978Mv/NLuFMaqzHrn3XtiDLMZHaTTh4vA==}
+    engines: {node: '>=14'}
+    dependencies:
+      lru-cache: 7.17.0
+      minipass: 4.2.4
+    dev: false
 
   /path-to-regexp/0.1.7:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
