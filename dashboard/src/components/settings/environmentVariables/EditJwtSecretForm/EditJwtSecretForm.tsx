@@ -6,8 +6,8 @@ import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  refetchGetAppInjectedVariablesQuery,
-  useUpdateApplicationMutation,
+  GetEnvironmentVariablesDocument,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
@@ -65,10 +65,8 @@ export default function EditJwtSecretForm({
   location,
 }: EditJwtSecretFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApplication] = useUpdateApplicationMutation({
-    refetchQueries: [
-      refetchGetAppInjectedVariablesQuery({ id: currentApplication?.id }),
-    ],
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetEnvironmentVariablesDocument],
   });
 
   const { onDirtyStateChange } = useDialog();
@@ -90,26 +88,38 @@ export default function EditJwtSecretForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: EditJwtSecretFormValues) {
-    const updateAppPromise = updateApplication({
+    const parsedJwtSecret = JSON.parse(values.jwtSecret);
+    const isArray = Array.isArray(parsedJwtSecret);
+
+    const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication?.id,
-        app: {
-          hasuraGraphqlJwtSecret: values.jwtSecret,
+        config: {
+          hasura: {
+            jwtSecrets: isArray ? parsedJwtSecret : [parsedJwtSecret],
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppPromise,
-      {
-        loading: 'Updating JWT secret...',
-        success: 'JWT secret has been updated successfully.',
-        error: 'An error occurred while updating the JWT secret.',
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Updating JWT secret...',
+          success: 'JWT secret has been updated successfully.',
+          error: (arg: Error) =>
+            arg?.message
+              ? `Error: ${arg.message}`
+              : 'An error occurred while updating the JWT secret.',
+        },
+        getToastStyleProps(),
+      );
 
-    onSubmit?.();
+      onSubmit?.();
+    } catch {
+      // Note: error is handled above
+    }
   }
 
   return (

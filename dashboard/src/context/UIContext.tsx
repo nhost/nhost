@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { createContext, useContext, useMemo, useReducer } from 'react';
 
@@ -7,64 +8,46 @@ export interface UIContextState {
   deleteApplicationModal: boolean;
   deleteWorkspaceModal: boolean;
   resourcesCollapsible: boolean;
+  paymentModal: boolean;
+  /**
+   * Determines whether or not the dashboard is in maintenance mode.
+   */
+  maintenanceActive: boolean;
+  /**
+   * The date and time when maintenance mode will end.
+   */
+  maintenanceEndDate: Date;
+  openPaymentModal: () => void;
+  closePaymentModal: () => void;
+  openDeleteWorkspaceModal: () => void;
+  closeDeleteWorkspaceModal: () => void;
 }
 
-const initialState = {
+const initialState: UIContextState = {
   newWorkspace: false,
   modal: false,
   deleteApplicationModal: false,
   deleteWorkspaceModal: false,
   resourcesCollapsible: true,
-  newsCollapsible: true,
   paymentModal: false,
+  maintenanceActive: false,
+  maintenanceEndDate: null,
+  openPaymentModal: () => {},
+  closePaymentModal: () => {},
+  openDeleteWorkspaceModal: () => {},
+  closeDeleteWorkspaceModal: () => {},
 };
 
-export const UIContext = createContext<UIContextState | any>(initialState);
+export const UIContext = createContext<UIContextState>(initialState);
 
 UIContext.displayName = 'UIContext';
 
 function sideReducer(state: any, action: any) {
   switch (action.type) {
-    case 'TOGGLE_WORKSPACES': {
-      return {
-        ...state,
-        newWorkspace: !state.newWorkspace,
-      };
-    }
-    case 'OPEN_MODAL': {
-      return {
-        ...state,
-        modal: true,
-      };
-    }
-    case 'CLOSE_MODAL': {
-      return {
-        ...state,
-        modal: false,
-      };
-    }
-    case 'TOGGLE_DELETE_APP_MODAL': {
-      return {
-        ...state,
-        deleteApplicationModal: !state.deleteApplicationModal,
-      };
-    }
     case 'TOGGLE_DELETE_WORKSPACE_MODAL': {
       return {
         ...state,
         deleteWorkspaceModal: !state.deleteWorkspaceModal,
-      };
-    }
-    case 'TOGGLE_RESOURCES': {
-      return {
-        ...state,
-        resourcesCollapsible: !state.resourcesCollapsible,
-      };
-    }
-    case 'TOGGLE_NEWS': {
-      return {
-        ...state,
-        newsCollapsible: !state.newsCollapsible,
       };
     }
     case 'TOGGLE_PAYMENT_MODAL': {
@@ -80,41 +63,37 @@ function sideReducer(state: any, action: any) {
 
 export function UIProvider(props: PropsWithChildren<unknown>) {
   const [state, dispatch] = useReducer(sideReducer, initialState);
+  const router = useRouter();
 
-  const openSection = () => dispatch({ type: 'TOGGLE_WORKSPACES' });
-  const closeSection = () => dispatch({ type: 'TOGGLE_WORKSPACES' });
-  const openModal = () => dispatch({ type: 'OPEN_MODAL' });
-  const closeModal = () => dispatch({ type: 'CLOSE_MODAL' });
-  const toggleResources = () => dispatch({ type: 'TOGGLE_RESOURCES' });
-  const toggleNews = () => dispatch({ type: 'TOGGLE_NEWS' });
-  const openDeleteAppModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_APP_MODAL' });
   const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
   const closePaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
-  const closeDeleteAppModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_APP_MODAL' });
   const openDeleteWorkspaceModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
   const closeDeleteWorkspaceModal = () =>
     dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
 
-  const value = useMemo(
+  const maintenanceUnlocked =
+    process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET &&
+    process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET ===
+      router.query.maintenanceUnlockSecret;
+
+  const value: UIContextState = useMemo(
     () => ({
       ...state,
-      openSection,
-      closeSection,
-      openModal,
-      closeModal,
-      openDeleteAppModal,
-      closeDeleteAppModal,
       openDeleteWorkspaceModal,
       closeDeleteWorkspaceModal,
-      toggleResources,
-      toggleNews,
       openPaymentModal,
       closePaymentModal,
+      maintenanceActive: maintenanceUnlocked
+        ? false
+        : process.env.NEXT_PUBLIC_MAINTENANCE_ACTIVE === 'true',
+      maintenanceEndDate:
+        process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE &&
+        !Number.isNaN(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
+          ? new Date(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
+          : null,
     }),
-    [state],
+    [state, maintenanceUnlocked],
   );
 
   return <UIContext.Provider value={value} {...props} />;

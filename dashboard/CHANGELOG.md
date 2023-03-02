@@ -1,5 +1,21 @@
 # @nhost/dashboard
 
+## 0.12.1
+
+### Patch Changes
+
+- c96d7ccd: fix(dashboard): fix docker builds
+
+## 0.12.0
+
+### Minor Changes
+
+- d1671210: feat(dashboard): use mimir to manage project configuration
+
+### Patch Changes
+
+- f65e4de9: chore(deps): bump @graphql-codegen monorepo to v3
+
 ## 0.11.20
 
 ### Patch Changes

@@ -1,6 +1,5 @@
-import fetch from 'cross-fetch'
 import FormData from 'form-data'
-
+import fetch from 'isomorphic-unfetch'
 import { ErrorPayload, StorageUploadResponse } from './types'
 
 /** Convert any string into ISO-8859-1 */

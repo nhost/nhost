@@ -11,8 +11,8 @@ import XIcon from '@/ui/v2/icons/XIcon';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
-import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
@@ -51,8 +51,8 @@ export default function ColumnPresetsSection({
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data: customClaimsData } = useGetAppCustomClaimsQuery({
-    variables: { id: currentApplication?.id },
+  const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
     skip: !currentApplication?.id,
   });
   const {
@@ -74,8 +74,8 @@ export default function ColumnPresetsSection({
     throw tableError;
   }
 
-  const permissionVariableOptions = getPermissionVariablesArray(
-    customClaimsData?.app?.authJwtCustomClaims,
+  const permissionVariableOptions = getAllPermissionVariables(
+    permissionVariablesData?.config?.auth?.session?.accessToken?.customClaims,
   ).map(({ key }) => ({
     label: `X-Hasura-${key}`,
     value: `X-Hasura-${key}`,
@@ -136,7 +136,7 @@ export default function ColumnPresetsSection({
                   disableClearable={false}
                   clearIcon={
                     <XIcon
-                      className="w-4 h-4 mt-px"
+                      className="mt-px h-4 w-4"
                       sx={{ color: theme.palette.text.primary }}
                     />
                   }
@@ -187,7 +187,7 @@ export default function ColumnPresetsSection({
                   disabled={disabled}
                   variant="outlined"
                   color="secondary"
-                  className="shrink-0 grow-0 flex-[40px]"
+                  className="flex-[40px] shrink-0 grow-0"
                   onClick={() => {
                     if (fields.length === 1) {
                       remove(index);
@@ -199,7 +199,7 @@ export default function ColumnPresetsSection({
                     remove(index);
                   }}
                 >
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="h-4 w-4" />
                 </IconButton>
               </div>
             ))}

@@ -2,7 +2,7 @@ import Form from '@/components/common/Form';
 import type { RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
-import customClaimsQuery from '@/utils/msw/mocks/graphql/customClaimsQuery';
+import permissionVariablesQuery from '@/utils/msw/mocks/graphql/permissionVariablesQuery';
 import hasuraMetadataQuery from '@/utils/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/utils/msw/mocks/rest/tableQuery';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
@@ -36,7 +36,7 @@ const defaultParameters = {
     },
   },
   msw: {
-    handlers: [tableQuery, hasuraMetadataQuery, customClaimsQuery],
+    handlers: [tableQuery, hasuraMetadataQuery, permissionVariablesQuery],
   },
 };
 

@@ -38,6 +38,12 @@ function IconLink(
                   : [icon.props?.sx]),
                 {
                   color: (theme) => {
+                    if (props.disabled) {
+                      return theme.palette.mode === 'dark'
+                        ? 'text.secondary'
+                        : 'text.primary';
+                    }
+
                     if (active) {
                       return 'primary.main';
                     }

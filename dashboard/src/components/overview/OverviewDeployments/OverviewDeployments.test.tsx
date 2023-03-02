@@ -1,5 +1,5 @@
 import { UserDataProvider } from '@/context/workspace1-context';
-import type { Application } from '@/types/application';
+import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
 import { render, screen, waitForElementToBeRemoved } from '@/utils/testUtils';
@@ -36,12 +36,11 @@ vi.mock('next/router', () => ({
   }),
 }));
 
-const mockApplication: Application = {
+const mockApplication: Project = {
   id: '1',
   name: 'Test Application',
   slug: 'test-application',
   appStates: [],
-  hasuraGraphqlAdminSecret: 'nhost-admin-secret',
   subdomain: '',
   isProvisioned: true,
   region: {
@@ -56,6 +55,14 @@ const mockApplication: Application = {
   featureFlags: [],
   providersUpdated: true,
   githubRepository: { fullName: 'test/git-project' },
+  repositoryProductionBranch: null,
+  nhostBaseFolder: null,
+  plan: null,
+  config: {
+    hasura: {
+      adminSecret: 'nhost-admin-secret',
+    },
+  },
 };
 
 const mockWorkspace: Workspace = {

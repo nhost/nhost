@@ -26,8 +26,8 @@ export interface BasePermissionVariableFormProps extends DialogFormProps {
 }
 
 export const basePermissionVariableValidationSchema = Yup.object({
-  key: Yup.string().required('This field is required.'),
-  value: Yup.string().required('This field is required.'),
+  key: Yup.string().label('Field Name').nullable().required(),
+  value: Yup.string().label('Path').nullable().required(),
 });
 
 export type BasePermissionVariableFormValues = Yup.InferType<

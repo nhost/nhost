@@ -1,6 +1,7 @@
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import type { KeyboardEvent } from 'react';
+import { useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 export interface FormProps extends BoxProps {
@@ -11,6 +12,7 @@ export interface FormProps extends BoxProps {
 }
 
 export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
+  const formRef = useRef<HTMLDivElement>();
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -25,6 +27,15 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
       return;
     }
 
+    const submitButton = Array.from(
+      formRef.current.getElementsByTagName('button'),
+    ).find((item) => item.type === 'submit');
+
+    // Disabling submit if the submit button is disabled
+    if (submitButton?.disabled) {
+      return;
+    }
+
     event.preventDefault();
 
     handleSubmit(onSubmit)(event);
@@ -35,6 +46,7 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
     // so keyboard events must be handled on the form element itself.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <Box
+      ref={formRef}
       component="form"
       {...props}
       onKeyDown={(event) => {

@@ -8,25 +8,6 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BaseEnvironmentVariableFormValues {
-  /**
-   * Identifier of the environment variable.
-   */
-  id: string;
-  /**
-   * The name of the role.
-   */
-  name: string;
-  /**
-   * Development environment variable value.
-   */
-  devValue: string;
-  /**
-   * Production environment variable value.
-   */
-  prodValue: string;
-}
-
 export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
   /**
    * Determines the mode of the form.
@@ -51,8 +32,11 @@ export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
 }
 
 export const baseEnvironmentVariableFormValidationSchema = Yup.object({
+  id: Yup.string().label('ID'),
   name: Yup.string()
-    .required('This field is required.')
+    .label('Name')
+    .nullable()
+    .required()
     .test(
       'isEnvVarPermitted',
       'This is a reserved name.',
@@ -78,12 +62,17 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
           (prefix) => !value.startsWith(prefix),
         ),
     )
-    .test('isEnvVarValid', `The name must start with a letter.`, (value) =>
-      /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
+    .test(
+      'isEnvVarValid',
+      'A name must start with a letter and can only contain letters, numbers, and underscores.',
+      (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  devValue: Yup.string().required('This field is required.'),
-  prodValue: Yup.string().required('This field is required.'),
+  value: Yup.string().label('Value').nullable().required(),
 });
+
+export type BaseEnvironmentVariableFormValues = Yup.InferType<
+  typeof baseEnvironmentVariableFormValidationSchema
+>;
 
 export default function BaseEnvironmentVariableForm({
   mode = 'edit',
@@ -117,21 +106,7 @@ export default function BaseEnvironmentVariableForm({
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
         <Input
-          {...register('name', {
-            onChange: (event) => {
-              if (
-                event.target.value &&
-                !/^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/g.test(event.target.value)
-              ) {
-                // we need to prevent invalid characters from being entered
-                // eslint-disable-next-line no-param-reassign
-                event.target.value = event.target.value.replace(
-                  /[^a-zA-Z0-9_]/g,
-                  '',
-                );
-              }
-            },
-          })}
+          {...register('name')}
           id="name"
           label="Name"
           placeholder="EXAMPLE_NAME"
@@ -145,28 +120,16 @@ export default function BaseEnvironmentVariableForm({
         />
 
         <Input
-          {...register('prodValue')}
-          id="prodValue"
-          label="Production Value"
+          {...register('value')}
+          id="value"
+          label="Value"
           placeholder="Enter value"
           hideEmptyHelperText
-          error={!!errors.prodValue}
-          helperText={errors?.prodValue?.message}
+          error={!!errors.value}
+          helperText={errors?.value?.message}
           fullWidth
           autoComplete="off"
           autoFocus={mode === 'edit'}
-        />
-
-        <Input
-          {...register('devValue')}
-          id="devValue"
-          label="Development Value"
-          placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.devValue}
-          helperText={errors?.devValue?.message}
-          fullWidth
-          autoComplete="off"
         />
 
         <div className="grid grid-flow-row gap-2">
