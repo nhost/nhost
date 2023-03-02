@@ -1,5 +1,13 @@
 # @nhost/hasura-storage-js
 
+## 2.0.2
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+
 ## 2.0.1
 
 ### Patch Changes

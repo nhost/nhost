@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 0.12.2
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/react-apollo@5.0.7
+  - @nhost/nextjs@1.13.12
+
 ## 0.12.1
 
 ### Patch Changes

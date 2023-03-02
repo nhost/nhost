@@ -1,5 +1,13 @@
 # @nhost/graphql-js
 
+## 0.0.4
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+
 ## 0.0.3
 
 ### Patch Changes
