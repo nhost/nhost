@@ -366,14 +366,8 @@ export function NewProjectPageContent({
                     error: null,
                     loading: false,
                   });
-                  if (e.target.value.length === 0) {
-                    setDatabasePassword(e.target.value);
-                    setPasswordError('Please enter a password');
-
-                    return;
-                  }
                   setDatabasePassword(e.target.value);
-                  setPasswordError('');
+
                   try {
                     await resetDatabasePasswordValidationSchema.validate({
                       databasePassword: e.target.value,
