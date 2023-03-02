@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^6.0.0",
-    "isomorphic-unfetch": "^3.1.0",
+    "isomorphic-unfetch": "^4.0.0",
     "js-cookie": "^3.0.1",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.33.5"

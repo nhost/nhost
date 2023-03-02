@@ -939,10 +939,10 @@ importers:
       '@graphql-typed-document-node/core': ^3.1.1
       '@nhost/docgen': workspace:*
       graphql: 16.6.0
-      isomorphic-unfetch: ^3.1.0
+      isomorphic-unfetch: ^4.0.0
     dependencies:
       '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 4.0.2
     devDependencies:
       '@nhost/docgen': link:../docgen
       graphql: 16.6.0
@@ -954,7 +954,7 @@ importers:
       '@simplewebauthn/typescript-types': ^6.0.0
       '@types/js-cookie': ^3.0.2
       cheerio: 1.0.0-rc.12
-      isomorphic-unfetch: ^3.1.0
+      isomorphic-unfetch: ^4.0.0
       js-cookie: ^3.0.1
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
@@ -963,7 +963,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@simplewebauthn/browser': 6.0.0
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 4.0.2
       js-cookie: 3.0.1
       jwt-decode: 3.1.2
       xstate: 4.33.6
@@ -980,7 +980,7 @@ importers:
     specifiers:
       '@nhost/docgen': workspace:*
       form-data: ^4.0.0
-      isomorphic-unfetch: ^3.1.0
+      isomorphic-unfetch: ^4.0.0
       jpeg-js: ^0.4.4
       pixelmatch: ^5.3.0
       start-server-and-test: ^1.15.2
@@ -988,7 +988,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       form-data: 4.0.0
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 4.0.2
       xstate: 4.33.6
     devDependencies:
       '@nhost/docgen': link:../docgen
@@ -1002,7 +1002,7 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/react': workspace:*
       '@types/js-cookie': ^3.0.2
-      isomorphic-unfetch: ^3.1.0
+      isomorphic-unfetch: ^4.0.0
       js-cookie: ^3.0.1
       next: 12.3.4
       react: ^18.2.0
@@ -1010,7 +1010,7 @@ importers:
       xstate: ^4.33.5
     dependencies:
       '@nhost/react': link:../react
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 4.0.2
       js-cookie: 3.0.1
       xstate: 4.33.6
     devDependencies:
@@ -1026,12 +1026,12 @@ importers:
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       graphql: 16.6.0
-      isomorphic-unfetch: ^3.1.0
+      isomorphic-unfetch: ^4.0.0
     dependencies:
       '@nhost/graphql-js': link:../graphql-js
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 4.0.2
     devDependencies:
       graphql: 16.6.0
 
@@ -17383,7 +17383,6 @@ packages:
   /data-uri-to-buffer/4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
     engines: {node: '>= 12'}
-    dev: true
 
   /data-urls/3.0.1:
     resolution: {integrity: sha512-Ds554NeT5Gennfoo9KN50Vh6tpgtvYEwraYjejXnyTpu1C7oXKxdFk75REooENHE8ndTVOJuv+BEs4/J/xcozw==}
@@ -20100,7 +20099,6 @@ packages:
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
-    dev: true
 
   /fetch-retry/5.0.3:
     resolution: {integrity: sha512-uJQyMrX5IJZkhoEUBQ3EjxkeiZkppBd5jS/fMTJmfZxLSiaQjv2zD0kTvuvkSH89uFvgSlB6ueGpjD3HWN7Bxw==}
@@ -20503,7 +20501,6 @@ packages:
     engines: {node: '>=12.20.0'}
     dependencies:
       fetch-blob: 3.2.0
-    dev: true
 
   /forwarded/0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -22618,6 +22615,14 @@ packages:
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
+    dev: true
+
+  /isomorphic-unfetch/4.0.2:
+    resolution: {integrity: sha512-1Yd+CF/7al18/N2BDbsLBcp6RO3tucSW+jcLq24dqdX5MNbCNTw1z4BsGsp4zNmjr/Izm2cs/cEqZPp4kvWSCA==}
+    dependencies:
+      node-fetch: 3.3.0
+      unfetch: 5.0.0
+    dev: false
 
   /isomorphic-ws/5.0.0_ws@8.11.0:
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -24718,7 +24723,6 @@ packages:
       data-uri-to-buffer: 4.0.1
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
-    dev: true
 
   /node-forge/1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -30349,6 +30353,11 @@ packages:
 
   /unfetch/4.2.0:
     resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
+    dev: true
+
+  /unfetch/5.0.0:
+    resolution: {integrity: sha512-3xM2c89siXg0nHvlmYsQ2zkLASvVMBisZm5lF3gFDqfF2xonNStDJyMpvaOBe0a1Edxmqrf2E0HBdmy9QyZaeg==}
+    dev: false
 
   /unherit/1.1.3:
     resolution: {integrity: sha512-Ft16BJcnapDKp0+J/rqFC3Rrk6Y/Ng4nzsC028k2jdDII/rdZ7Wd3pPT/6+vIIxRagwRc9K0IUX0Ra4fKvw+WQ==}

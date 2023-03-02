@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "form-data": "^4.0.0",
-    "isomorphic-unfetch": "^3.1.0",
+    "isomorphic-unfetch": "^4.0.0",
     "xstate": "^4.33.5"
   },
   "devDependencies": {
