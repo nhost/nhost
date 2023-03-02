@@ -4,6 +4,7 @@ import Form from '@/components/common/Form';
 import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { useUI } from '@/context/UIContext';
 import {
   useDeleteApplicationMutation,
   useUpdateAppMutation,
@@ -12,6 +13,7 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
@@ -35,7 +37,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
 
 export default function SettingsGeneralPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openAlertDialog, closeAlertDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
   const [deleteApplication] = useDeleteApplicationMutation({
@@ -43,6 +45,7 @@ export default function SettingsGeneralPage() {
   });
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
+  const { maintenanceActive } = useUI();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -87,15 +90,22 @@ export default function SettingsGeneralPage() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Project name is being updated...`,
-        success: `Project name has been updated successfully.`,
-        error: `An error occurred while trying to update project name.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateAppMutation,
+        {
+          loading: `Project name is being updated...`,
+          success: `Project name has been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update project name.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
+
     try {
       await client.refetchQueries({
         include: ['getOneUser'],
@@ -117,7 +127,9 @@ export default function SettingsGeneralPage() {
       {
         loading: `Deleting ${currentApplication.name}...`,
         success: `${currentApplication.name} deleted`,
-        error: `Error while trying to ${currentApplication.name} project name`,
+        error: getServerError(
+          `Error while trying to ${currentApplication.name} project name`,
+        ),
       },
       getToastStyleProps(),
     );
@@ -138,7 +150,7 @@ export default function SettingsGeneralPage() {
             className="grid grid-flow-row px-4 lg:grid-cols-4"
             slotProps={{
               submitButton: {
-                disabled: !formState.isValid || !formState.isDirty,
+                disabled: !formState.isDirty || maintenanceActive,
                 loading: formState.isSubmitting,
               },
             }}
@@ -163,31 +175,30 @@ export default function SettingsGeneralPage() {
         title="Delete Project"
         description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
         submitButtonText="Delete"
-        rootClassName="border-[#F87171]"
-        primaryActionButtonProps={{
-          type: 'button',
-          color: 'error',
-          variant: 'contained',
-          onClick: () => {
-            openAlertDialog({
-              title: `Are you sure you want to remove ${currentApplication?.name}?`,
-              payload: (
-                <RemoveApplicationModal
-                  close={closeAlertDialog}
-                  handler={handleDeleteApplication}
-                  className="p-0"
-                />
-              ),
-              props: {
-                primaryButtonText: 'Delete',
-                primaryButtonColor: 'error',
-                PaperProps: { className: 'max-w-sm' },
-                fullWidth: true,
-                hideTitle: true,
-                hidePrimaryAction: true,
-                hideSecondaryAction: true,
-              },
-            });
+        slotProps={{
+          root: {
+            sx: { borderColor: (theme) => theme.palette.error.main },
+          },
+          submitButton: {
+            type: 'button',
+            color: 'error',
+            variant: 'contained',
+            disabled: maintenanceActive,
+            onClick: () => {
+              openDialog({
+                title: '',
+                component: (
+                  <RemoveApplicationModal
+                    close={closeDialog}
+                    handler={handleDeleteApplication}
+                  />
+                ),
+                props: {
+                  PaperProps: { className: 'max-w-sm' },
+                  hideTitle: true,
+                },
+              });
+            },
           },
         }}
       />

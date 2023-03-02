@@ -16,7 +16,6 @@ import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
-import { triggerToast } from '@/utils/toast';
 
 export default function DatabaseSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -27,7 +26,7 @@ export default function DatabaseSettingsPage() {
 
   const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
     variables: {
-      id: currentApplication?.id,
+      appId: currentApplication?.id,
     },
   });
 
@@ -42,7 +41,11 @@ export default function DatabaseSettingsPage() {
   }
 
   if (error) {
-    triggerToast('Error loading database connection info');
+    throw new Error(
+      `Error: ${
+        error.message || 'An unknown error occurred. Please try again.'
+      }`,
+    );
   }
 
   const settingsDatabaseCustomInputs: InputProps[] = [
@@ -61,7 +64,7 @@ export default function DatabaseSettingsPage() {
     {
       name: 'postgresDatabase',
       label: 'Database Name',
-      value: data.app.postgresDatabase,
+      value: data?.systemConfig?.postgres.database,
       className: 'col-span-6',
     },
     {
@@ -73,7 +76,7 @@ export default function DatabaseSettingsPage() {
     {
       name: 'connectiongString',
       label: 'Connection String',
-      value: `postgres://postgres:[YOUR-PASSWORD]@${postgresHost}:5432/${data.app.postgresDatabase}`,
+      value: `postgres://postgres:[YOUR-PASSWORD]@${postgresHost}:5432/${data?.systemConfig?.postgres.database}`,
       className: 'col-span-6',
     },
   ];

@@ -6,9 +6,9 @@ import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import fetch from 'cross-fetch';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
@@ -100,10 +100,9 @@ export default function CreateUserForm({
         {
           loading: 'Creating user...',
           success: 'User created successfully.',
-          error: (arg) =>
-            arg?.message
-              ? `Error: ${arg.message}`
-              : 'An error occurred while trying to create the user.',
+          error: getServerError(
+            'An error occurred while trying to create the user.',
+          ),
         },
         getToastStyleProps(),
       );

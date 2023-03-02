@@ -1,4 +1,4 @@
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import { buildUrl, urlFromSubdomain } from '../../utils/helpers'
 import { NhostClientConstructorParams } from '../../utils/types'
 import {

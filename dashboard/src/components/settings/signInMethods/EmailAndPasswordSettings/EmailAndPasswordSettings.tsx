@@ -1,46 +1,51 @@
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
-  useSignInMethodsQuery,
-  useUpdateAppMutation,
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface EmailAndPasswordFormValues {
-  /**
-   * When enabled, users will need to verify their email by a link sent to their specified email.
-   */
-  authEmailSigninEmailVerifiedRequired: boolean;
-  /**
-   * If true, users' passwords will be checked against https://haveibeenpwned.com/Passwords
-   */
-  authPasswordHibpEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  emailVerificationRequired: Yup.boolean(),
+  hibpEnabled: Yup.boolean(),
+});
+
+export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailAndPasswordSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
-  const { data, error, loading } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, error, loading } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { hibpEnabled, emailVerificationRequired } =
+    data?.config?.auth?.method?.emailPassword || {};
 
   const form = useForm<EmailAndPasswordFormValues>({
     reValidateMode: 'onChange',
     defaultValues: {
-      authPasswordHibpEnabled: data?.app?.authPasswordHibpEnabled || false,
-      authEmailSigninEmailVerifiedRequired:
-        data?.app?.authEmailSigninEmailVerifiedRequired || false,
+      hibpEnabled: hibpEnabled || false,
+      emailVerificationRequired: emailVerificationRequired || false,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -62,28 +67,36 @@ export default function EmailAndPasswordSettings() {
   const handleEmailAndPasswordSettingsChange = async (
     values: EmailAndPasswordFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          authPasswordHibpEnabled: values.authPasswordHibpEnabled,
-          authEmailSigninEmailVerifiedRequired:
-            values.authEmailSigninEmailVerifiedRequired,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              emailPassword: values,
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Email and password sign-in settings are being updated...`,
-        success: `Email and password sign-in settings have been updated successfully.`,
-        error: `An error occurred while trying to update email sign-in settings.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Email and password sign-in settings are being updated...`,
+          success: `Email and password sign-in settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update email sign-in settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -98,18 +111,16 @@ export default function EmailAndPasswordSettings() {
           showSwitch
           enabled
           slotProps={{
-            switch: {
-              disabled: true,
-            },
+            switch: { disabled: true },
             submitButton: {
-              disabled: !formState.isValid || !formState.isDirty,
+              disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}
         >
           <ControlledCheckbox
-            name="authEmailSigninEmailVerifiedRequired"
-            id="authEmailSigninEmailVerifiedRequired"
+            name="emailVerificationRequired"
+            id="emailVerificationRequired"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Require Verified Emails</Text>
@@ -121,8 +132,8 @@ export default function EmailAndPasswordSettings() {
           />
 
           <ControlledCheckbox
-            name="authPasswordHibpEnabled"
-            id="authPasswordHibpEnabled"
+            name="hibpEnabled"
+            id="hibpEnabled"
             label={
               <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
                 <Text component="span">Password Protection</Text>

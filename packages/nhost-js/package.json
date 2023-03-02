@@ -61,7 +61,7 @@
     "@nhost/graphql-js": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
-    "cross-fetch": "^3.1.5"
+    "isomorphic-unfetch": "^3.1.0"
   },
   "devDependencies": {
     "graphql": "16.6.0"

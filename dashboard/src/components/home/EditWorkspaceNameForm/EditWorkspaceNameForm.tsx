@@ -4,6 +4,7 @@ import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { slugifyString } from '@/utils/helpers';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   refetchGetOneUserQuery,
@@ -141,7 +142,9 @@ export default function EditWorkspaceNameForm({
           {
             loading: 'Updating workspace name...',
             success: 'Workspace name has been updated successfully.',
-            error: 'An error occurred while updating the workspace name.',
+            error: getServerError(
+              'An error occurred while updating the workspace name.',
+            ),
           },
           getToastStyleProps(),
         );
@@ -168,7 +171,9 @@ export default function EditWorkspaceNameForm({
           {
             loading: 'Creating new workspace...',
             success: 'The new workspace has been created successfully.',
-            error: 'An error occurred while creating the new workspace.',
+            error: getServerError(
+              'An error occurred while creating the new workspace.',
+            ),
           },
           getToastStyleProps(),
         );

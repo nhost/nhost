@@ -1,5 +1,5 @@
 import { load } from 'cheerio'
-import fetch from 'cross-fetch'
+import fetch from 'isomorphic-unfetch'
 import createMailhogClient from 'mailhog'
 import { expect } from 'vitest'
 import { HasuraAuthClient, SignUpParams } from '../src'

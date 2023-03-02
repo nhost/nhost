@@ -10,6 +10,7 @@ import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
@@ -122,7 +123,9 @@ export default function DeploymentListItem({
                     {
                       loading: 'Scheduling deployment...',
                       success: 'Deployment has been scheduled successfully.',
-                      error: 'An error occurred when scheduling deployment.',
+                      error: getServerError(
+                        'An error occurred when scheduling deployment.',
+                      ),
                     },
                     getToastStyleProps(),
                   );

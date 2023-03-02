@@ -1,36 +1,47 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import { useUI } from '@/context/UIContext';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface ClientURLFormValues {
-  /**
-   * The URL of the frontend app of where users are redirected after authenticating.
-   */
-  authClientUrl: string;
-}
+const validationSchema = Yup.object({
+  clientUrl: Yup.string().label('Client URL'),
+});
+
+export type ClientURLFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function ClientURLSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation({ refetchQueries: ['GetApp'] });
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
-    fetchPolicy: 'cache-first',
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { clientUrl, allowedUrls } = data?.config?.auth?.redirections || {};
 
   const form = useForm<ClientURLFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authClientUrl: data?.app?.authClientUrl,
+      clientUrl,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
@@ -50,26 +61,37 @@ export default function ClientURLSettings() {
   const { register, formState } = form;
 
   const handleClientURLChange = async (values: ClientURLFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            redirections: {
+              ...values,
+              allowedUrls,
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Client URL is being updated...`,
-        success: `Client URL has been updated successfully.`,
-        error: `An error occurred while trying to update the project's Client URL.`,
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Client URL is being updated...`,
+          success: `Client URL has been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Client URL.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -78,22 +100,26 @@ export default function ClientURLSettings() {
         <SettingsContainer
           title="Client URL"
           description="This should be the URL of your frontend app where users are redirected after authenticating."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication#client-url"
           className="grid grid-flow-row lg:grid-cols-5"
         >
           <Input
-            {...register('authClientUrl')}
-            name="authClientUrl"
-            id="authClientUrl"
+            {...register('clientUrl')}
+            name="clientUrl"
+            id="clientUrl"
             placeholder="http://localhost:3000"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
             aria-label="Client URL"
+            error={!!formState.errors?.clientUrl}
+            helperText={formState.errors?.clientUrl?.message}
           />
         </SettingsContainer>
       </Form>
