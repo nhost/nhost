@@ -578,6 +578,7 @@ export function NewProjectPageContent({
 }
 
 export default function NewProjectPage() {
+  const router = useRouter();
   const user = useUserData();
 
   const { data, loading, error } = usePrefetchNewAppQuery({
@@ -585,7 +586,6 @@ export default function NewProjectPage() {
       userId: user.id,
     },
   });
-  const router = useRouter();
 
   if (error) {
     throw error;
@@ -607,7 +607,7 @@ export default function NewProjectPage() {
     ? workspaces.find((w) => w.slug === workspace)
     : workspaces[0];
 
-  const preSelectedRegion = regions.filter((region) => region.active)[0];
+  const preSelectedRegion = regions.find((region) => region.active);
 
   // the `apps` property is filtered by the GraphQL query
   const nrOfFreeAppsCreatedByUser = data.apps.length;
