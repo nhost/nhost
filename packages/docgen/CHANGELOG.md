@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.7
+
+### Patch Changes
+
+- 8bb097c9: chore(deps): bump `vitest`
+
 ## 0.1.6
 
 ### Patch Changes
