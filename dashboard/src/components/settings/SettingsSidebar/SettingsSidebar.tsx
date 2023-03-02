@@ -132,6 +132,13 @@ export default function SettingsSidebar({
             >
               General
             </SettingsNavLink>
+            <SettingsNavLink
+              href="/resources"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Resources
+            </SettingsNavLink>
             {isK8SPostgresEnabledInCurrentEnvironment && !isProjectUsingRDS && (
               <SettingsNavLink
                 href="/database"

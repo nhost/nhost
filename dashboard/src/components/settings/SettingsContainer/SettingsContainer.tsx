@@ -40,12 +40,6 @@ export interface SettingsContainerProps
    */
   docsLink?: string;
   /**
-   * Props for the primary action.
-   *
-   * @deprecated Use `slotProps.submitButton` instead.
-   */
-  primaryActionButtonProps?: ButtonProps;
-  /**
    * Submit button text.
    *
    * @default 'Save'
@@ -106,7 +100,6 @@ export default function SettingsContainer({
   title,
   description,
   icon,
-  primaryActionButtonProps,
   submitButtonText = 'Save',
   className,
   onEnabledChange,
@@ -188,18 +181,10 @@ export default function SettingsContainer({
         )}
 
         <Button
-          variant={
-            (submitButton || primaryActionButtonProps)?.disabled
-              ? 'outlined'
-              : 'contained'
-          }
-          color={
-            (submitButton || primaryActionButtonProps)?.disabled
-              ? 'secondary'
-              : 'primary'
-          }
+          variant={submitButton?.disabled ? 'outlined' : 'contained'}
+          color={submitButton?.disabled ? 'secondary' : 'primary'}
           type="submit"
-          {...(submitButton || primaryActionButtonProps)}
+          {...submitButton}
         >
           {submitButtonText}
         </Button>
