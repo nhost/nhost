@@ -25,7 +25,7 @@
     "@emotion/styled": "^11.10.5",
     "@fontsource/inter": "^4.5.14",
     "@fontsource/roboto-mono": "^4.5.8",
-    "@graphiql/react": "^0.15.0",
+    "@graphiql/react": "^0.17.0",
     "@graphiql/toolkit": "^0.8.0",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
