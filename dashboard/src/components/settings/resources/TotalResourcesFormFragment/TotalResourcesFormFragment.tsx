@@ -1,5 +1,6 @@
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
+import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Input from '@/ui/v2/Input';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
@@ -84,9 +85,19 @@ export default function TotalResourcesFormFragment() {
     <Box className="px-4 pb-4">
       <Box className="rounded-md border">
         <Box className="flex flex-col gap-4 bg-transparent p-4">
-          <Text color="secondary">
-            Total available resources for your project:
-          </Text>
+          <Box className="flex flex-row items-center justify-between gap-4">
+            <Text color="secondary">
+              Total available resources for your project:
+            </Text>
+
+            <Text className="flex flex-row items-center justify-end gap-2">
+              <Text component="span" color="secondary">
+                $25.00/mo
+              </Text>
+              <ArrowRightIcon />
+              <Text className="font-medium">$125.00/mo</Text>
+            </Text>
+          </Box>
 
           <Box className="flex flex-row items-center justify-start gap-4">
             <Input

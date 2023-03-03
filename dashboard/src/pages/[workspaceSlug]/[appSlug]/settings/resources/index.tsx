@@ -6,7 +6,9 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
+import Text from '@/ui/v2/Text';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
@@ -35,7 +37,8 @@ export default function ResourceSettingsPage() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
-  const { watch } = form;
+  const { watch, formState } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   function handleSubmit(formValues: ResourceSettingsFormValues) {
     setError(null);
@@ -80,8 +83,10 @@ export default function ResourceSettingsPage() {
             showSwitch
             switchId="enabled"
             slotProps={{
-              submitButton: { disabled: !enabled },
-              footer: { className: twMerge(!enabled && 'hidden') },
+              submitButton: { disabled: !enabled || !isDirty },
+              // Note: We need a custom footer because of the pricing
+              // information
+              footer: { className: 'hidden' },
             }}
           >
             {enabled ? (
@@ -116,7 +121,7 @@ export default function ResourceSettingsPage() {
                   ramKey="storageRAM"
                 />
                 {error && (
-                  <Box className="px-4">
+                  <Box className="px-4 pb-4">
                     <Alert
                       severity="error"
                       className="flex flex-col gap-2 text-left"
@@ -127,6 +132,26 @@ export default function ResourceSettingsPage() {
                     </Alert>
                   </Box>
                 )}
+
+                <Box className="flex flex-row items-center justify-between border-t px-4 pt-4">
+                  <span />
+
+                  <Box className="flex flex-row items-center gap-4">
+                    <Text>
+                      Total cost:{' '}
+                      <span className="font-medium">$125.00/mo</span>
+                    </Text>
+
+                    <Button
+                      type="submit"
+                      variant={isDirty ? 'contained' : 'outlined'}
+                      color={isDirty ? 'primary' : 'secondary'}
+                      disabled={!isDirty}
+                    >
+                      Save
+                    </Button>
+                  </Box>
+                </Box>
               </>
             ) : (
               <Alert className="text-left">

@@ -106,7 +106,7 @@ export default function ResourceFormFragment({
       </Box>
 
       <Box className="flex flex-col gap-2">
-        <Text className="text-base">
+        <Text>
           Allocated CPU:{' '}
           <span className="font-medium">{formValues[cpuKey]}</span>
         </Text>
@@ -123,7 +123,7 @@ export default function ResourceFormFragment({
       </Box>
 
       <Box className="flex flex-col gap-2">
-        <Text className="text-base">
+        <Text>
           Allocated Memory:{' '}
           <span className="font-medium">{formValues[ramKey]} GiB</span>
         </Text>
