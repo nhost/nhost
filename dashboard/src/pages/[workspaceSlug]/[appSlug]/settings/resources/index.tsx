@@ -9,9 +9,19 @@ import Divider from '@/ui/v2/Divider';
 import Input from '@/ui/v2/Input';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
-import { RESOURCE_RAM_MULTIPLIER } from '@/utils/CONSTANTS';
+import {
+  RESOURCE_CPU_STEP,
+  RESOURCE_RAM_MULTIPLIER,
+  RESOURCE_RAM_STEP,
+} from '@/utils/CONSTANTS';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
-import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
+import {
+  MAX_TOTAL_CPU,
+  MAX_TOTAL_RAM,
+  MIN_TOTAL_CPU,
+  MIN_TOTAL_RAM,
+  resourceSettingsValidationSchema,
+} from '@/utils/settings/resourceSettingsValidationSchema';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { alpha, styled } from '@mui/material';
 import type { ReactElement } from 'react';
@@ -28,16 +38,6 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
     backgroundColor: alpha(theme.palette.primary.main, 0.15),
   },
 }));
-
-/**
- * The minimum total CPU that has to be allocated.
- */
-const MIN_TOTAL_CPU = 1;
-
-/**
- * The minimum total RAM that has to be allocated.
- */
-const MIN_TOTAL_RAM = MIN_TOTAL_CPU * RESOURCE_RAM_MULTIPLIER;
 
 function TotalResourcesFormFragment() {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
@@ -104,8 +104,8 @@ function TotalResourcesFormFragment() {
               type="number"
               inputProps={{
                 min: Math.max(MIN_TOTAL_CPU, allocatedCPU),
-                max: 60,
-                step: 0.25,
+                max: MAX_TOTAL_CPU,
+                step: RESOURCE_CPU_STEP,
               }}
               label="CPU:"
               variant="inline"
@@ -124,8 +124,8 @@ function TotalResourcesFormFragment() {
               type="number"
               inputProps={{
                 min: Math.max(MIN_TOTAL_RAM, allocatedRAM),
-                max: 60 * RESOURCE_RAM_MULTIPLIER,
-                step: 0.25 * RESOURCE_RAM_MULTIPLIER,
+                max: MAX_TOTAL_RAM,
+                step: RESOURCE_RAM_STEP,
               }}
               label="Memory:"
               variant="inline"
@@ -143,8 +143,8 @@ function TotalResourcesFormFragment() {
             value={values.totalAvailableCPU}
             onChange={(_event, value) => handleCPUChange(value.toString())}
             min={MIN_TOTAL_CPU}
-            max={60}
-            step={0.25}
+            max={MAX_TOTAL_CPU}
+            step={RESOURCE_CPU_STEP}
             aria-label="Total Available CPU Slider"
           />
         </Box>

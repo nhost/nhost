@@ -27,3 +27,13 @@ export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
  * For every CPU, we allocate N times the amount of RAM.
  */
 export const RESOURCE_RAM_MULTIPLIER = 2;
+
+/**
+ * Number of steps between CPU cores.
+ */
+export const RESOURCE_CPU_STEP = 0.25;
+
+/**
+ * Number of steps between GiB of RAM.
+ */
+export const RESOURCE_RAM_STEP = RESOURCE_CPU_STEP * RESOURCE_RAM_MULTIPLIER;

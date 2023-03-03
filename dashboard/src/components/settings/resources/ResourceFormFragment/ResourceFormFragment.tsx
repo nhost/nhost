@@ -2,8 +2,14 @@ import Box from '@/ui/v2/Box';
 import Input from '@/ui/v2/Input';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
-import { RESOURCE_RAM_MULTIPLIER } from '@/utils/CONSTANTS';
+import { RESOURCE_CPU_STEP, RESOURCE_RAM_STEP } from '@/utils/CONSTANTS';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
+import {
+  MAX_SERVICE_CPU,
+  MAX_SERVICE_RAM,
+  MIN_SERVICE_CPU,
+  MIN_SERVICE_RAM,
+} from '@/utils/settings/resourceSettingsValidationSchema';
 import kebabCase from 'just-kebab-case';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -31,16 +37,6 @@ export interface ResourceFormFragmentProps {
     'enabled' | 'totalAvailableCPU' | 'totalAvailableRAM'
   >;
 }
-
-/**
- * Maximum allowed CPU for a single service.
- */
-const MAX_ALLOWED_CPU = 15;
-
-/**
- * Maximum allowed RAM for a single service.
- */
-const MAX_ALLOWED_RAM = MAX_ALLOWED_CPU * RESOURCE_RAM_MULTIPLIER;
 
 export default function ResourceFormFragment({
   title,
@@ -110,9 +106,9 @@ export default function ResourceFormFragment({
           onChange={(event) => handleCPUChange(event.target.value)}
           type="number"
           inputProps={{
-            min: 0.25,
-            max: MAX_ALLOWED_CPU,
-            step: 0.25,
+            min: MIN_SERVICE_CPU,
+            max: MAX_SERVICE_CPU,
+            step: RESOURCE_CPU_STEP,
           }}
           label="Allocated CPU:"
           variant="inline"
@@ -127,9 +123,9 @@ export default function ResourceFormFragment({
         <Slider
           value={values[cpuKey]}
           onChange={(_event, value) => handleCPUChange(value.toString())}
-          min={0.25}
-          max={MAX_ALLOWED_CPU}
-          step={0.25}
+          min={MIN_SERVICE_CPU}
+          max={MAX_SERVICE_CPU}
+          step={RESOURCE_CPU_STEP}
           allowed={allowedCPU}
           aria-label={`${title} CPU Slider`}
           marks
@@ -143,9 +139,9 @@ export default function ResourceFormFragment({
           onChange={(event) => handleRAMChange(event.target.value)}
           type="number"
           inputProps={{
-            min: 0.25 * RESOURCE_RAM_MULTIPLIER,
-            max: MAX_ALLOWED_RAM,
-            step: 0.25 * RESOURCE_RAM_MULTIPLIER,
+            min: MIN_SERVICE_RAM,
+            max: MAX_SERVICE_RAM,
+            step: RESOURCE_RAM_STEP,
           }}
           label="Allocated Memory:"
           variant="inline"
@@ -161,9 +157,9 @@ export default function ResourceFormFragment({
         <Slider
           value={values[ramKey]}
           onChange={(_event, value) => handleRAMChange(value.toString())}
-          min={0.5}
-          max={MAX_ALLOWED_RAM}
-          step={0.5}
+          min={MIN_SERVICE_RAM}
+          max={MAX_SERVICE_RAM}
+          step={RESOURCE_RAM_STEP}
           allowed={allowedRAM}
           aria-label={`${title} RAM Slider`}
           marks
