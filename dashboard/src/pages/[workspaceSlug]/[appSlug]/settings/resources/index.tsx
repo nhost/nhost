@@ -38,6 +38,8 @@ export default function ResourceSettingsPage() {
   const { watch } = form;
 
   function handleSubmit(formValues: ResourceSettingsFormValues) {
+    setError(null);
+
     const { cpu: unallocatedCPU, ram: unallocatedRAM } =
       getUnallocatedResources(formValues);
     const hasUnusedResources = unallocatedCPU > 0 || unallocatedRAM > 0;

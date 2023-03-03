@@ -125,7 +125,7 @@ export default function ResourceFormFragment({
       <Box className="flex flex-col gap-2">
         <Text className="text-base">
           Allocated Memory:{' '}
-          <span className="font-medium">{formValues[cpuKey]} GiB</span>
+          <span className="font-medium">{formValues[ramKey]} GiB</span>
         </Text>
 
         <Slider
