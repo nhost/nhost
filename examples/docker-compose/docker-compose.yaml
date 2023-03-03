@@ -110,9 +110,5 @@ services:
       - 8025:8025
     volumes:
       - ./data/mailhog:/maildir
-  dashboard:
-    image: nhost/dashboard:0.12.2
-    ports:
-      - '3030:3000'
 volumes:
   functions_node_modules:

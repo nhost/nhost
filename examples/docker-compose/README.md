@@ -13,22 +13,9 @@ docker-compose up -d
 
 The following endpoints are now exposed:
 
-- `http://localhost:8080`: Hasura
-- `http://localhost:4000`: Hasura Auth
-- `http://localhost:4001`: Hasura Storage
-- `http://localhost:4002`: Functions
+- `http://localhost:8080`: [Hasura](https://github.com/hasura/graphql-engine)
+- `http://localhost:4000`: [Hasura Auth](https://github.com/nhost/hasura-auth)
+- `http://localhost:4001`: [Hasura Storage](https://github.com/nhost/hasura-storage)
+- `http://localhost:4002`: [Functions](https://github.com/nhost/functions)
 
-- `http://localhost:3030`: Nhost Dashboard
-- `http://localhost:8080`: Hasura Console
-- `http://localhost:8025`: Mailhog SMTP testing dashboard
-- `http://localhost:9090`: Traefik dashboad
-
-## Running the Nhost dashboard locally
-
-In order to use the Nhost dashboard, you need to run the [Hasura console locally from the Hasura CLI](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/):
-
-```sh
-hasura console
-```
-
-The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret`. This will change in the future. If you can't wait, don't hesitate to contribute.
+- `http://localhost:8025`: [Mailhog](https://github.com/mailhog/MailHog)
