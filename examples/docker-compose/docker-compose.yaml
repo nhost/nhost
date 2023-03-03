@@ -1,18 +1,5 @@
 version: '3.6'
 services:
-  traefik:
-    image: "traefik:v2.5"
-    container_name: "traefik"
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:1337"
-    ports:
-      - "1337:1337"
-      - "9090:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
   postgres:
     image: postgres
     restart: always
@@ -37,10 +24,8 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       HASURA_GRAPHQL_LOG_LEVEL: debug
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.hasura.rule=Host(`localhost`) && PathPrefix(`/`)"
-      - "traefik.http.routers.hasura.entrypoints=web"
+    ports:
+      - '8080:8080'
   auth:
     image: nhost/hasura-auth:0.16.2
     depends_on:
@@ -61,14 +46,10 @@ services:
       AUTH_SMTP_USER: user
       AUTH_SMTP_PASS: password
       AUTH_SMTP_SENDER: mail@example.com
-    expose: 
+    expose:
       - 4000
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
-      - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/v1/auth`)"
-      - "traefik.http.routers.auth.middlewares=strip-auth@docker"
-      - "traefik.http.routers.auth.entrypoints=web"
+    ports:
+      - '4000:4000'
   storage:
     image: nhost/hasura-storage:0.3.1
     depends_on:
@@ -78,8 +59,10 @@ services:
     restart: always
     expose:
       - 8000
+    ports:
+      - '4001:8000'
     environment:
-      PUBLIC_URL: http://localhost:${PROXY_PORT:-1337}
+      PUBLIC_URL: http://localhost:4001
       HASURA_METADATA: 1
       HASURA_ENDPOINT: http://graphql-engine:8080/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
@@ -89,26 +72,14 @@ services:
       S3_BUCKET: nhost
       POSTGRES_MIGRATIONS: 1
       POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
-      - "traefik.http.routers.storage.entrypoints=web"
-      # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
-      - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
   functions:
     image: nhost/functions:0.1.8
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
-      - "traefik.http.routers.functions.rule=Host(`localhost`) && PathPrefix(`/v1/functions`)"
-      - "traefik.http.routers.functions.middlewares=strip-functions@docker"
-      - "traefik.http.routers.functions.entrypoints=web"
     restart: always
-    expose: 
+    expose:
       - 3000
+    ports:
+      - '4002:3000'
     volumes:
       - .:/opt/project
       - functions_node_modules:/opt/project/node_modules
@@ -132,16 +103,16 @@ services:
       SMTP_PORT: ${AUTH_SMTP_PORT:-1025}
       SMTP_PASS: ${AUTH_SMTP_PASS:-password}
       SMTP_USER: ${AUTH_SMTP_USER:-user}
-      SMTP_SECURE: "${AUTH_SMTP_SECURE:-false}"
+      SMTP_SECURE: '${AUTH_SMTP_SECURE:-false}'
       SMTP_SENDER: ${AUTH_SMTP_SENDER:-hbp@hbp.com}
     ports:
-      - ${AUTH_SMTP_PORT:-1025}:1025 
+      - ${AUTH_SMTP_PORT:-1025}:1025
       - 8025:8025
     volumes:
       - ./data/mailhog:/maildir
   dashboard:
-    image: nhost/dashboard:0.7.4
+    image: nhost/dashboard:0.12.2
     ports:
-      - "3030:3000"
+      - '3030:3000'
 volumes:
   functions_node_modules:
