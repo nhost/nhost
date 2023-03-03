@@ -29,6 +29,16 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
   },
 }));
 
+/**
+ * The minimum total CPU that has to be allocated.
+ */
+const MIN_TOTAL_CPU = 1;
+
+/**
+ * The minimum total RAM that has to be allocated.
+ */
+const MIN_TOTAL_RAM = MIN_TOTAL_CPU * RESOURCE_RAM_MULTIPLIER;
+
 function TotalResourcesFormFragment() {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const values = useWatch<ResourceSettingsFormValues>();
@@ -51,15 +61,18 @@ function TotalResourcesFormFragment() {
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
+    const updatedRAM = updatedCPU * RESOURCE_RAM_MULTIPLIER;
 
-    if (Number.isNaN(updatedCPU) || updatedCPU < Math.max(1, allocatedCPU)) {
+    if (
+      Number.isNaN(updatedCPU) ||
+      updatedCPU < Math.max(MIN_TOTAL_CPU, allocatedCPU) ||
+      updatedRAM < Math.max(MIN_TOTAL_RAM, allocatedRAM)
+    ) {
       return;
     }
 
     setValue('totalAvailableCPU', updatedCPU, { shouldDirty: true });
-    setValue('totalAvailableRAM', updatedCPU * RESOURCE_RAM_MULTIPLIER, {
-      shouldDirty: true,
-    });
+    setValue('totalAvailableRAM', updatedRAM, { shouldDirty: true });
   }
 
   function handleRAMChange(value: string) {
@@ -90,7 +103,7 @@ function TotalResourcesFormFragment() {
               onChange={(event) => handleCPUChange(event.target.value)}
               type="number"
               inputProps={{
-                min: Math.max(1, allocatedCPU),
+                min: Math.max(MIN_TOTAL_CPU, allocatedCPU),
                 max: 60,
                 step: 0.25,
               }}
@@ -110,7 +123,7 @@ function TotalResourcesFormFragment() {
               onChange={(event) => handleRAMChange(event.target.value)}
               type="number"
               inputProps={{
-                min: Math.max(1 * RESOURCE_RAM_MULTIPLIER, allocatedRAM),
+                min: Math.max(MIN_TOTAL_RAM, allocatedRAM),
                 max: 60 * RESOURCE_RAM_MULTIPLIER,
                 step: 0.25 * RESOURCE_RAM_MULTIPLIER,
               }}
@@ -128,10 +141,8 @@ function TotalResourcesFormFragment() {
 
           <StyledAvailableCpuSlider
             value={values.totalAvailableCPU}
-            onChange={(_event, value) => {
-              handleCPUChange(value.toString());
-            }}
-            min={1}
+            onChange={(_event, value) => handleCPUChange(value.toString())}
+            min={MIN_TOTAL_CPU}
             max={60}
             step={0.25}
             aria-label="Total Available CPU Slider"

@@ -31,6 +31,11 @@ export interface SliderRailWithAllowedValueProps {
   max?: number;
 }
 
+/**
+ * The thumb width is 16px, so we need to sub
+ */
+const THUMB_WIDTH_PERCENT = 0.2;
+
 export default function SliderRailWithAllowedValue(
   railAttributes?: SliderRailWithAllowedValueProps,
 ) {
@@ -48,7 +53,8 @@ export default function SliderRailWithAllowedValue(
             component="span"
             style={{
               width: `${
-                (railAttributes.allowed / railAttributes.max) * 100 - 1.3
+                (railAttributes.allowed / railAttributes.max) * 100 -
+                THUMB_WIDTH_PERCENT
               }%`,
             }}
           />
