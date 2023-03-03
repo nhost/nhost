@@ -238,14 +238,14 @@ export default function ResourceSettingsPage() {
                 <Divider />
                 <ResourceFormFragment
                   title="Auth"
-                  description="Manage how much resources you need for Hasura Auth."
+                  description="Manage how much resources you need for Auth."
                   cpuKey="authCPU"
                   ramKey="authRAM"
                 />
                 <Divider />
                 <ResourceFormFragment
                   title="Storage"
-                  description="Manage how much resources you need for Hasura Storage."
+                  description="Manage how much resources you need for Storage."
                   cpuKey="storageCPU"
                   ramKey="storageRAM"
                 />
