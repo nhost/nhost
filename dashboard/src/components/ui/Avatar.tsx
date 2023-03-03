@@ -59,7 +59,8 @@ export function Avatar({
     <Box
       style={Object.assign(style, { backgroundImage: `url(${avatarUrl})` })}
       className={classes}
-      aria-label="Avatar"
+      aria-label={name ? `Avatar of ${name}` : 'Avatar'}
+      role="img"
       {...rest}
     />
   );
