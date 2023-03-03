@@ -5,15 +5,27 @@ import MaterialSlider, {
 } from '@mui/material/Slider';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
+import type { SliderRailWithAllowedValueProps } from './SliderRail';
+import SliderRailWithAllowedValue from './SliderRail';
 
 export interface SliderProps
-  extends PropsWithoutRef<Omit<MaterialSliderProps, 'color'>> {}
+  extends PropsWithoutRef<Omit<MaterialSliderProps, 'color'>> {
+  /**
+   * The maximum allowed value of the slider. The rail will be colored up to
+   * this value. Can't be greater than `max`.
+   */
+  allowed?: SliderRailWithAllowedValueProps['allowed'];
+}
 
 const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
   color: theme.palette.primary.main,
-  [`& .${materialSliderClasses.rail}`]: {
-    backgroundColor: theme.palette.grey[400],
+  [`& .${materialSliderClasses.mark}`]: {
     height: 6,
+    width: 1,
+    backgroundColor: theme.palette.grey[400],
+  },
+  [`& .${materialSliderClasses.markActive}`]: {
+    opacity: 0,
   },
   [`& .${materialSliderClasses.track}`]: {
     backgroundColor: theme.palette.primary.main,
@@ -22,6 +34,9 @@ const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
   [`& .${materialSliderClasses.thumb}`]: {
     width: 16,
     height: 16,
+    '&:before': {
+      boxShadow: 'none',
+    },
   },
   [`& .${materialSliderClasses.thumbColorPrimary}`]: {
     backgroundColor: theme.palette.primary.main,
@@ -31,12 +46,18 @@ const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
   },
 }));
 
-function Slider(props: SliderProps, ref: ForwardedRef<HTMLDivElement>) {
+function Slider(
+  { allowed, components, ...props }: SliderProps,
+  ref: ForwardedRef<HTMLDivElement>,
+) {
   return (
     <StyledSlider
-      color="primary"
-      slotProps={{ thumb: {} }}
       ref={ref}
+      components={{
+        Rail: SliderRailWithAllowedValue({ allowed, max: props.max }),
+        ...components,
+      }}
+      color="primary"
       {...props}
     />
   );
