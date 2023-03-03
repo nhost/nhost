@@ -32,6 +32,16 @@ export interface ResourceFormFragmentProps {
   >;
 }
 
+/**
+ * Maximum allowed CPU for a single service.
+ */
+const MAX_ALLOWED_CPU = 15;
+
+/**
+ * Maximum allowed RAM for a single service.
+ */
+const MAX_ALLOWED_RAM = MAX_ALLOWED_CPU * RESOURCE_RAM_MULTIPLIER;
+
 export default function ResourceFormFragment({
   title,
   description,
@@ -52,14 +62,10 @@ export default function ResourceFormFragment({
     .reduce((acc, key) => acc + values[key], 0);
 
   const remainingCPU = values.totalAvailableCPU - totalAllocatedCPU;
-  const allowedCPU = Math.min(remainingCPU + values[cpuKey], 15);
+  const allowedCPU = remainingCPU + values[cpuKey];
 
   const remainingRAM = values.totalAvailableRAM - totalAllocatedRAM;
-
-  const allowedRAM = Math.min(
-    remainingRAM + values[ramKey],
-    15 * RESOURCE_RAM_MULTIPLIER,
-  );
+  const allowedRAM = remainingRAM + values[ramKey];
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
@@ -105,7 +111,7 @@ export default function ResourceFormFragment({
           type="number"
           inputProps={{
             min: 0.25,
-            max: 15,
+            max: MAX_ALLOWED_CPU,
             step: 0.25,
           }}
           label="Allocated CPU:"
@@ -122,7 +128,7 @@ export default function ResourceFormFragment({
           value={values[cpuKey]}
           onChange={(_event, value) => handleCPUChange(value.toString())}
           min={0.25}
-          max={15}
+          max={MAX_ALLOWED_CPU}
           step={0.25}
           allowed={allowedCPU}
           aria-label={`${title} CPU Slider`}
@@ -138,7 +144,7 @@ export default function ResourceFormFragment({
           type="number"
           inputProps={{
             min: 0.25 * RESOURCE_RAM_MULTIPLIER,
-            max: 15 * RESOURCE_RAM_MULTIPLIER,
+            max: MAX_ALLOWED_RAM,
             step: 0.25 * RESOURCE_RAM_MULTIPLIER,
           }}
           label="Allocated Memory:"
@@ -156,7 +162,7 @@ export default function ResourceFormFragment({
           value={values[ramKey]}
           onChange={(_event, value) => handleRAMChange(value.toString())}
           min={0.5}
-          max={30}
+          max={MAX_ALLOWED_RAM}
           step={0.5}
           allowed={allowedRAM}
           aria-label={`${title} RAM Slider`}

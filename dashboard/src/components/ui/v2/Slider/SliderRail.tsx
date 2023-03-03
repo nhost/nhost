@@ -12,17 +12,17 @@ const StyledRail = styled(Box)(({ theme }) => ({
   width: '100%',
   borderRadius: 3,
   transform: 'translateY(-50%)',
+  overflow: 'hidden',
 }));
 
 const StyledRailMaxValue = styled(StyledRail)(({ theme }) => ({
   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-  borderRadius: 0,
 }));
 
 export interface SliderRailWithAllowedValueProps {
   /**
    * The maximum allowed value of the slider. The rail will be colored up to
-   * this value. Can't be greater than `max`.
+   * this value.
    */
   allowed?: number;
   /**
@@ -32,34 +32,32 @@ export interface SliderRailWithAllowedValueProps {
 }
 
 /**
- * The thumb width is 16px, so we need to sub
+ * Adjust the width of the rail to account for the thumb width.
+ *
+ * @remarks This actual size should be used here. We are only assuming the thumb
+ * is 16px wide.
  */
-const THUMB_WIDTH_PERCENT = 0.2;
+const THUMB_ADJUSTMENT = 8;
 
 export default function SliderRailWithAllowedValue(
   railAttributes?: SliderRailWithAllowedValueProps,
 ) {
-  if (railAttributes?.allowed && railAttributes.allowed > railAttributes.max) {
-    throw new Error("`allowed` value can't be greater than `max` value.");
-  }
-
   return function SliderRail(props: BoxProps) {
     return (
-      <>
-        <StyledRail component="span" {...props} />
+      <StyledRail component="span" {...props}>
         {railAttributes?.allowed > 0 && (
           <StyledRailMaxValue
             className={generateUtilityClass('MuiSlider', 'railMaxValue')}
             component="span"
             style={{
-              width: `${
-                (railAttributes.allowed / railAttributes.max) * 100 -
-                THUMB_WIDTH_PERCENT
-              }%`,
+              width: `calc(${Math.min(
+                (railAttributes.allowed / railAttributes.max) * 100,
+                105,
+              )}% - ${THUMB_ADJUSTMENT}px)`,
             }}
           />
         )}
-      </>
+      </StyledRail>
     );
   };
 }

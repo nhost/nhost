@@ -12,7 +12,7 @@ export interface SliderProps
   extends PropsWithoutRef<Omit<MaterialSliderProps, 'color'>> {
   /**
    * The maximum allowed value of the slider. The rail will be colored up to
-   * this value. Can't be greater than `max`.
+   * this value.
    */
   allowed?: SliderRailWithAllowedValueProps['allowed'];
 }
