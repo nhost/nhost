@@ -42,12 +42,14 @@ export default function SliderRailWithAllowedValue(
     return (
       <>
         <StyledRail component="span" {...props} />
-        {railAttributes?.allowed && (
+        {railAttributes?.allowed > 0 && (
           <StyledRailMaxValue
             className={generateUtilityClass('MuiSlider', 'railMaxValue')}
             component="span"
             style={{
-              width: `${(railAttributes.allowed / railAttributes.max) * 100}%`,
+              width: `${
+                (railAttributes.allowed / railAttributes.max) * 100 - 1.3
+              }%`,
             }}
           />
         )}

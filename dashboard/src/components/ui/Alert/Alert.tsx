@@ -21,7 +21,7 @@ export function Alert({
   return (
     <Box
       className={twMerge(
-        'rounded-sm+ bg-opacity-20 p-2 text-center text-sm+',
+        'rounded-sm+ bg-opacity-20 p-2 text-center text-sm+ motion-safe:transition-colors',
         className,
       )}
       sx={[
@@ -36,7 +36,7 @@ export function Alert({
         },
         severity === 'success' && {
           backgroundColor: 'success.light',
-          color: 'success.main',
+          color: 'success.dark',
         },
         severity === 'info' && { backgroundColor: 'primary.light' },
       ]}

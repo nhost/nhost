@@ -23,7 +23,7 @@ import {
 } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
-const StyledTotalCPUSlider = styled(Slider)(({ theme }) => ({
+const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
   [`& .${sliderClasses.rail}`]: {
     backgroundColor: alpha(theme.palette.primary.main, 0.15),
   },
@@ -38,8 +38,8 @@ function TotalResourcesFormFragment() {
   const allocatedRAM =
     values.databaseRAM + values.hasuraRAM + values.authRAM + values.storageRAM;
 
-  const unallocatedCPU = Math.max(values.totalCPU - allocatedCPU, 0);
-  const unallocatedRAM = Math.max(values.totalRAM - allocatedRAM, 0);
+  const unallocatedCPU = Math.max(values.totalAvailableCPU - allocatedCPU, 0);
+  const unallocatedRAM = Math.max(values.totalAvailableRAM - allocatedRAM, 0);
 
   const hasUnusedResources = unallocatedCPU > 0 || unallocatedRAM > 0;
   const unusedResourceMessage = [
@@ -52,12 +52,12 @@ function TotalResourcesFormFragment() {
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
 
-    if (Number.isNaN(updatedCPU)) {
+    if (Number.isNaN(updatedCPU) || updatedCPU < Math.max(1, allocatedCPU)) {
       return;
     }
 
-    setValue('totalCPU', updatedCPU, { shouldDirty: true });
-    setValue('totalRAM', updatedCPU * RESOURCE_RAM_MULTIPLIER, {
+    setValue('totalAvailableCPU', updatedCPU, { shouldDirty: true });
+    setValue('totalAvailableRAM', updatedCPU * RESOURCE_RAM_MULTIPLIER, {
       shouldDirty: true,
     });
   }
@@ -65,12 +65,12 @@ function TotalResourcesFormFragment() {
   function handleRAMChange(value: string) {
     const updatedRAM = parseFloat(value);
 
-    if (Number.isNaN(updatedRAM)) {
+    if (Number.isNaN(updatedRAM) || updatedRAM < Math.max(1, allocatedRAM)) {
       return;
     }
 
-    setValue('totalRAM', updatedRAM, { shouldDirty: true });
-    setValue('totalCPU', updatedRAM / RESOURCE_RAM_MULTIPLIER, {
+    setValue('totalAvailableRAM', updatedRAM, { shouldDirty: true });
+    setValue('totalAvailableCPU', updatedRAM / RESOURCE_RAM_MULTIPLIER, {
       shouldDirty: true,
     });
   }
@@ -85,8 +85,8 @@ function TotalResourcesFormFragment() {
 
           <Box className="flex flex-row items-center justify-start gap-4">
             <Input
-              id="totalCPU"
-              value={values.totalCPU}
+              id="totalAvailableCPU"
+              value={values.totalAvailableCPU}
               onChange={(event) => handleCPUChange(event.target.value)}
               type="number"
               inputProps={{
@@ -105,8 +105,8 @@ function TotalResourcesFormFragment() {
             />
 
             <Input
-              id="totalRAM"
-              value={values.totalRAM}
+              id="totalAvailableRAM"
+              value={values.totalAvailableRAM}
               onChange={(event) => handleRAMChange(event.target.value)}
               type="number"
               inputProps={{
@@ -126,32 +126,39 @@ function TotalResourcesFormFragment() {
             />
           </Box>
 
-          <StyledTotalCPUSlider
-            value={values.totalCPU}
+          <StyledAvailableCpuSlider
+            value={values.totalAvailableCPU}
             onChange={(_event, value) => {
-              if (value < Math.max(1, allocatedCPU)) {
-                return;
-              }
-
               handleCPUChange(value.toString());
             }}
             min={1}
             max={60}
             step={0.25}
-            aria-label="Total CPU Slider"
+            aria-label="Total Available CPU Slider"
           />
         </Box>
 
-        {hasUnusedResources && (
-          <Alert className="flex flex-col gap-2 rounded-b-md p-4 text-left">
-            <strong>Please use all available CPU and RAM</strong>
+        <Alert
+          severity={hasUnusedResources ? 'warning' : 'info'}
+          className="flex flex-col gap-2 rounded-t-none rounded-b-[5px] p-4 text-left"
+        >
+          {hasUnusedResources ? (
+            <>
+              <strong>Please use all available CPU and RAM</strong>
 
-            <p>
-              You now have {unusedResourceMessage} unused. Allocate it to any of
-              the services before saving.
-            </p>
-          </Alert>
-        )}
+              <p>
+                You now have {unusedResourceMessage} unused. Allocate it to any
+                of the services before saving.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>All Set!</strong>
+
+              <p>You have successfully allocated all available CPU and RAM.</p>
+            </>
+          )}
+        </Alert>
       </Box>
     </Box>
   );
@@ -161,8 +168,8 @@ export default function ResourceSettingsPage() {
   const form = useForm<ResourceSettingsFormValues>({
     defaultValues: {
       enabled: true,
-      totalCPU: 2,
-      totalRAM: 4,
+      totalAvailableCPU: 2,
+      totalAvailableRAM: 4,
       databaseCPU: 0.5,
       databaseRAM: 1,
       hasuraCPU: 0.5,

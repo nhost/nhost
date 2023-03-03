@@ -19,11 +19,17 @@ export interface ResourceFormFragmentProps {
   /**
    * Form field name for CPU.
    */
-  cpuKey: keyof ResourceSettingsFormValues;
+  cpuKey: Exclude<
+    keyof ResourceSettingsFormValues,
+    'enabled' | 'totalAvailableCPU' | 'totalAvailableRAM'
+  >;
   /**
    * Form field name for RAM.
    */
-  ramKey: keyof ResourceSettingsFormValues;
+  ramKey: Exclude<
+    keyof ResourceSettingsFormValues,
+    'enabled' | 'totalAvailableCPU' | 'totalAvailableRAM'
+  >;
 }
 
 export default function ResourceFormFragment({
@@ -33,14 +39,35 @@ export default function ResourceFormFragment({
   ramKey,
 }: ResourceFormFragmentProps) {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
-  const [cpuValue, ramValue] = useWatch<ResourceSettingsFormValues>({
-    name: [cpuKey, ramKey],
-  }) as [number, number];
+  const values = useWatch<ResourceSettingsFormValues>();
+
+  // Total allocated CPU for all resources
+  const totalAllocatedCPU = Object.keys(values)
+    .filter((key) => key.endsWith('CPU') && key !== 'totalAvailableCPU')
+    .reduce((acc, key) => acc + values[key], 0);
+
+  // Total allocated RAM for all resources
+  const totalAllocatedRAM = Object.keys(values)
+    .filter((key) => key.endsWith('RAM') && key !== 'totalAvailableRAM')
+    .reduce((acc, key) => acc + values[key], 0);
+
+  const remainingCPU = values.totalAvailableCPU - totalAllocatedCPU;
+  const allowedCPU = Math.min(remainingCPU + values[cpuKey], 15);
+
+  const remainingRAM = values.totalAvailableRAM - totalAllocatedRAM;
+
+  const allowedRAM = Math.min(
+    remainingRAM + values[ramKey],
+    15 * RESOURCE_RAM_MULTIPLIER,
+  );
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
+    const exceedsAvailableCPU =
+      updatedCPU + (totalAllocatedCPU - values[cpuKey]) >
+      values.totalAvailableCPU;
 
-    if (Number.isNaN(updatedCPU)) {
+    if (Number.isNaN(updatedCPU) || exceedsAvailableCPU) {
       return;
     }
 
@@ -49,8 +76,11 @@ export default function ResourceFormFragment({
 
   function handleRAMChange(value: string) {
     const updatedRAM = parseFloat(value);
+    const exceedsAvailableRAM =
+      updatedRAM + (totalAllocatedRAM - values[ramKey]) >
+      values.totalAvailableRAM;
 
-    if (Number.isNaN(updatedRAM)) {
+    if (Number.isNaN(updatedRAM) || exceedsAvailableRAM) {
       return;
     }
 
@@ -70,7 +100,7 @@ export default function ResourceFormFragment({
       <Box className="flex flex-col gap-2">
         <Input
           id={`${kebabCase(title)}-${cpuKey}`}
-          value={cpuValue}
+          value={values[cpuKey]}
           onChange={(event) => handleCPUChange(event.target.value)}
           type="number"
           inputProps={{
@@ -89,11 +119,12 @@ export default function ResourceFormFragment({
         />
 
         <Slider
-          value={cpuValue}
+          value={values[cpuKey]}
           onChange={(_event, value) => handleCPUChange(value.toString())}
           min={0.25}
           max={15}
           step={0.25}
+          allowed={allowedCPU}
           aria-label={`${title} CPU Slider`}
           marks
         />
@@ -102,7 +133,7 @@ export default function ResourceFormFragment({
       <Box className="flex flex-col gap-2">
         <Input
           id={`${kebabCase(title)}-${ramKey}`}
-          value={ramValue}
+          value={values[ramKey]}
           onChange={(event) => handleRAMChange(event.target.value)}
           type="number"
           inputProps={{
@@ -122,11 +153,12 @@ export default function ResourceFormFragment({
         />
 
         <Slider
-          value={ramValue}
+          value={values[ramKey]}
           onChange={(_event, value) => handleRAMChange(value.toString())}
-          min={0.25}
-          max={15}
-          step={0.25}
+          min={0.5}
+          max={30}
+          step={0.5}
+          allowed={allowedRAM}
           aria-label={`${title} RAM Slider`}
           marks
         />
