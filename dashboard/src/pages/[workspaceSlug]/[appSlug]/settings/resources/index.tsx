@@ -31,9 +31,23 @@ const StyledTotalCPUSlider = styled(Slider)(({ theme }) => ({
 
 function TotalResourcesFormFragment() {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
-  const [totalCPU, totalRAM] = useWatch<ResourceSettingsFormValues>({
-    name: ['totalCPU', 'totalRAM'],
-  }) as [number, number];
+  const values = useWatch<ResourceSettingsFormValues>();
+
+  const allocatedCPU =
+    values.databaseCPU + values.hasuraCPU + values.authCPU + values.storageCPU;
+  const allocatedRAM =
+    values.databaseRAM + values.hasuraRAM + values.authRAM + values.storageRAM;
+
+  const unallocatedCPU = Math.max(values.totalCPU - allocatedCPU, 0);
+  const unallocatedRAM = Math.max(values.totalRAM - allocatedRAM, 0);
+
+  const hasUnusedResources = unallocatedCPU > 0 || unallocatedRAM > 0;
+  const unusedResourceMessage = [
+    unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
+    unallocatedRAM > 0 ? `${unallocatedRAM} GiB of memory` : '',
+  ]
+    .filter(Boolean)
+    .join(' and ');
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
@@ -72,11 +86,11 @@ function TotalResourcesFormFragment() {
           <Box className="flex flex-row items-center justify-start gap-4">
             <Input
               id="totalCPU"
-              value={totalCPU}
+              value={values.totalCPU}
               onChange={(event) => handleCPUChange(event.target.value)}
               type="number"
               inputProps={{
-                min: 1,
+                min: Math.max(1, allocatedCPU),
                 max: 60,
                 step: 0.25,
               }}
@@ -92,11 +106,11 @@ function TotalResourcesFormFragment() {
 
             <Input
               id="totalRAM"
-              value={totalRAM}
+              value={values.totalRAM}
               onChange={(event) => handleRAMChange(event.target.value)}
               type="number"
               inputProps={{
-                min: 1 * RESOURCE_RAM_MULTIPLIER,
+                min: Math.max(1 * RESOURCE_RAM_MULTIPLIER, allocatedRAM),
                 max: 60 * RESOURCE_RAM_MULTIPLIER,
                 step: 0.25 * RESOURCE_RAM_MULTIPLIER,
               }}
@@ -113,8 +127,14 @@ function TotalResourcesFormFragment() {
           </Box>
 
           <StyledTotalCPUSlider
-            value={totalCPU}
-            onChange={(_event, value) => handleCPUChange(value.toString())}
+            value={values.totalCPU}
+            onChange={(_event, value) => {
+              if (value < Math.max(1, allocatedCPU)) {
+                return;
+              }
+
+              handleCPUChange(value.toString());
+            }}
             min={1}
             max={60}
             step={0.25}
@@ -122,14 +142,16 @@ function TotalResourcesFormFragment() {
           />
         </Box>
 
-        <Alert className="flex flex-col gap-2 rounded-b-md p-4 text-left">
-          <strong>Please use all available CPU & Memory</strong>
+        {hasUnusedResources && (
+          <Alert className="flex flex-col gap-2 rounded-b-md p-4 text-left">
+            <strong>Please use all available CPU and RAM</strong>
 
-          <p>
-            You now have N CPU & M GB of memory unused. Allocate it to any of
-            the services before saving.
-          </p>
-        </Alert>
+            <p>
+              You now have {unusedResourceMessage} unused. Allocate it to any of
+              the services before saving.
+            </p>
+          </Alert>
+        )}
       </Box>
     </Box>
   );
