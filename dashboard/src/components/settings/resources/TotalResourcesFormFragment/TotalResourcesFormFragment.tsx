@@ -95,7 +95,9 @@ export default function TotalResourcesFormFragment() {
                 $25.00/mo
               </Text>
               <ArrowRightIcon />
-              <Text className="font-medium">$125.00/mo</Text>
+              <Text component="span" className="font-medium">
+                $125.00/mo
+              </Text>
             </Text>
           </Box>
 
