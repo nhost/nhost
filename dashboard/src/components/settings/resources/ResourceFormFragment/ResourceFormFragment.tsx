@@ -1,5 +1,4 @@
 import Box from '@/ui/v2/Box';
-import Input from '@/ui/v2/Input';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import { RESOURCE_CPU_STEP, RESOURCE_RAM_STEP } from '@/utils/CONSTANTS';
@@ -10,7 +9,6 @@ import {
   MIN_SERVICE_CPU,
   MIN_SERVICE_RAM,
 } from '@/utils/settings/resourceSettingsValidationSchema';
-import kebabCase from 'just-kebab-case';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ResourceFormFragmentProps {
@@ -69,7 +67,11 @@ export default function ResourceFormFragment({
       updatedCPU + (totalAllocatedCPU - values[cpuKey]) >
       values.totalAvailableCPU;
 
-    if (Number.isNaN(updatedCPU) || exceedsAvailableCPU) {
+    if (
+      Number.isNaN(updatedCPU) ||
+      exceedsAvailableCPU ||
+      updatedCPU < MIN_SERVICE_CPU
+    ) {
       return;
     }
 
@@ -82,7 +84,11 @@ export default function ResourceFormFragment({
       updatedRAM + (totalAllocatedRAM - values[ramKey]) >
       values.totalAvailableRAM;
 
-    if (Number.isNaN(updatedRAM) || exceedsAvailableRAM) {
+    if (
+      Number.isNaN(updatedRAM) ||
+      exceedsAvailableRAM ||
+      updatedRAM < MIN_SERVICE_RAM
+    ) {
       return;
     }
 
@@ -100,30 +106,13 @@ export default function ResourceFormFragment({
       </Box>
 
       <Box className="flex flex-col gap-2">
-        <Input
-          id={`${kebabCase(title)}-${cpuKey}`}
-          value={values[cpuKey]}
-          onChange={(event) => handleCPUChange(event.target.value)}
-          type="number"
-          inputProps={{
-            min: MIN_SERVICE_CPU,
-            max: MAX_SERVICE_CPU,
-            step: RESOURCE_CPU_STEP,
-          }}
-          label="Allocated CPU:"
-          variant="inline"
-          slotProps={{
-            label: { className: 'text-base font-normal' },
-            formControl: { className: 'flex flex-row gap-2' },
-            inputWrapper: { className: 'w-auto' },
-            input: { className: 'w-[100px]' },
-          }}
-        />
+        <Text className="text-base">
+          Allocated CPU: <span className="font-medium">{values[cpuKey]}</span>
+        </Text>
 
         <Slider
           value={values[cpuKey]}
           onChange={(_event, value) => handleCPUChange(value.toString())}
-          min={MIN_SERVICE_CPU}
           max={MAX_SERVICE_CPU}
           step={RESOURCE_CPU_STEP}
           allowed={allowedCPU}
@@ -133,31 +122,14 @@ export default function ResourceFormFragment({
       </Box>
 
       <Box className="flex flex-col gap-2">
-        <Input
-          id={`${kebabCase(title)}-${ramKey}`}
-          value={values[ramKey]}
-          onChange={(event) => handleRAMChange(event.target.value)}
-          type="number"
-          inputProps={{
-            min: MIN_SERVICE_RAM,
-            max: MAX_SERVICE_RAM,
-            step: RESOURCE_RAM_STEP,
-          }}
-          label="Allocated Memory:"
-          variant="inline"
-          slotProps={{
-            label: { className: 'text-base font-normal' },
-            formControl: { className: 'flex flex-row gap-2' },
-            inputWrapper: { className: 'w-auto' },
-            input: { className: 'w-[100px]' },
-          }}
-          endAdornment={<Text className="pr-2">GiB</Text>}
-        />
+        <Text className="text-base">
+          Allocated Memory:{' '}
+          <span className="font-medium">{values[cpuKey]} GiB</span>
+        </Text>
 
         <Slider
           value={values[ramKey]}
           onChange={(_event, value) => handleRAMChange(value.toString())}
-          min={MIN_SERVICE_RAM}
           max={MAX_SERVICE_RAM}
           step={RESOURCE_RAM_STEP}
           allowed={allowedRAM}

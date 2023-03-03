@@ -133,16 +133,15 @@ function TotalResourcesFormFragment() {
                 label: { className: 'text-base font-normal' },
                 formControl: { className: 'flex flex-row gap-2' },
                 inputWrapper: { className: 'w-auto' },
-                input: { className: 'w-[100px]' },
+                input: { className: 'w-[110px]' },
               }}
-              endAdornment={<Text className="pr-2">GiB</Text>}
+              endAdornment={<Text className="pr-2 font-medium">GiB</Text>}
             />
           </Box>
 
           <StyledAvailableCpuSlider
             value={values.totalAvailableCPU}
             onChange={(_event, value) => handleCPUChange(value.toString())}
-            min={MIN_TOTAL_CPU}
             max={MAX_TOTAL_CPU}
             step={RESOURCE_CPU_STEP}
             aria-label="Total Available CPU Slider"
