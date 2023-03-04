@@ -6,37 +6,38 @@ import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
 export function WorkspaceInvoices() {
+  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const [loading, setLoading] = useState(false);
 
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const handleViewInvoices = async () => {
+    setLoading(true);
+    const { res, error } = await nhost.functions.call('/stripe-create-portal', {
+      workspaceId: currentWorkspace.id,
+    });
+
+    if (error) {
+      setLoading(false);
+      triggerToast(`Unable to get Stripe Customer Portal URL`);
+      return;
+    }
+
+    const jsonData = JSON.parse(res.data as string);
+    const url = jsonData.url as string;
+
+    window.open(url, '_blank');
+
+    setLoading(false);
+  };
 
   return (
     <div className="mt-18">
-      <div className="mx-auto max-w-3xl font-display grid grid-flow-row gap-2 justify-start">
-        <Text className="font-medium text-lg">Invoices</Text>
+      <div className="mx-auto grid max-w-3xl grid-flow-row justify-start gap-2 font-display">
+        <Text className="text-lg font-medium">Invoices</Text>
 
         <Button
           variant="outlined"
           color="secondary"
-          onClick={async () => {
-            setLoading(true);
-            const { res, error } = await nhost.functions.call(
-              '/stripe-create-portal',
-              { workspaceId: currentWorkspace.id },
-              { useAxios: false },
-            );
-
-            if (error) {
-              setLoading(false);
-              triggerToast(`Unable to get Stripe Customer Portal URL`);
-              return;
-            }
-
-            const url = (res.data as any).url as string;
-
-            window.open(url, '_blank');
-            setLoading(false);
-          }}
+          onClick={handleViewInvoices}
           loading={loading}
         >
           View Invoices in the Stripe Customer Portal
