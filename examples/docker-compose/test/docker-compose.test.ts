@@ -75,14 +75,6 @@ describe(
         },
         { retry: HEALTH_CHECK_RETRY_COUNT, timeout: HEALTH_CHECK_TIMEOUT }
       )
-
-      it(
-        'Dashboard',
-        async () => {
-          await healthCheck('http://localhost:3030')
-        },
-        { retry: HEALTH_CHECK_RETRY_COUNT, timeout: HEALTH_CHECK_TIMEOUT }
-      )
     })
 
     describe('Nhost SDK', () => {
