@@ -9,6 +9,10 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
+import {
+  RESOURCE_MEMORY_MULTIPLIER,
+  RESOURCE_VCPU_MULTIPLIER,
+} from '@/utils/CONSTANTS';
 import getServerError from '@/utils/settings/getServerError';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
@@ -30,9 +34,11 @@ function getServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
+  const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
+
   return {
-    cpu: (data?.config?.[service]?.resources?.compute.cpu as number) || 0,
-    memory: (data?.config?.[service]?.resources?.compute.memory as number) || 0,
+    cpu: (cpu || 0) / RESOURCE_VCPU_MULTIPLIER,
+    memory: (memory || 0) / RESOURCE_MEMORY_MULTIPLIER,
   };
 }
 
@@ -115,8 +121,8 @@ export default function ResourcesForm() {
           postgres: {
             resources: {
               compute: {
-                cpu: formValues.databaseCPU * 1000,
-                memory: formValues.databaseMemory * 1024,
+                cpu: formValues.databaseCPU * RESOURCE_VCPU_MULTIPLIER,
+                memory: formValues.databaseMemory * RESOURCE_MEMORY_MULTIPLIER,
               },
               replicas: 1,
             },
@@ -124,8 +130,8 @@ export default function ResourcesForm() {
           hasura: {
             resources: {
               compute: {
-                cpu: formValues.hasuraCPU * 1000,
-                memory: formValues.hasuraMemory * 1024,
+                cpu: formValues.hasuraCPU * RESOURCE_VCPU_MULTIPLIER,
+                memory: formValues.hasuraMemory * RESOURCE_MEMORY_MULTIPLIER,
               },
               replicas: 1,
             },
@@ -133,8 +139,8 @@ export default function ResourcesForm() {
           auth: {
             resources: {
               compute: {
-                cpu: formValues.authCPU * 1000,
-                memory: formValues.authMemory * 1024,
+                cpu: formValues.authCPU * RESOURCE_VCPU_MULTIPLIER,
+                memory: formValues.authMemory * RESOURCE_MEMORY_MULTIPLIER,
               },
               replicas: 1,
             },
@@ -142,8 +148,8 @@ export default function ResourcesForm() {
           storage: {
             resources: {
               compute: {
-                cpu: formValues.storageCPU * 1000,
-                memory: formValues.storageMemory * 1024,
+                cpu: formValues.storageCPU * RESOURCE_VCPU_MULTIPLIER,
+                memory: formValues.storageMemory * RESOURCE_MEMORY_MULTIPLIER,
               },
               replicas: 1,
             },

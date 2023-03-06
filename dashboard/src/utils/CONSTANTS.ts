@@ -26,15 +26,26 @@ export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
 /**
  * For every CPU, we allocate N times the amount of RAM.
  */
-export const RESOURCE_CPU_MEMORY_RATIO = 2;
+export const RESOURCE_VCPU_MEMORY_RATIO = 2;
 
 /**
  * Number of steps between CPU cores.
  */
-export const RESOURCE_CPU_STEP = 0.25;
+export const RESOURCE_VCPU_STEP = 0.25;
 
 /**
  * Number of steps between GiB of RAM.
  */
 export const RESOURCE_MEMORY_STEP =
-  RESOURCE_CPU_STEP * RESOURCE_CPU_MEMORY_RATIO;
+  RESOURCE_VCPU_STEP * RESOURCE_VCPU_MEMORY_RATIO;
+
+/**
+ * The infrastructure uses a multiplier of 1000 to represent vCPU cores.
+ */
+export const RESOURCE_VCPU_MULTIPLIER = 1000;
+
+/**
+ * The infrastructure uses MiB to represent memory, but this value is managed
+ * in GiB.
+ */
+export const RESOURCE_MEMORY_MULTIPLIER = 1024;

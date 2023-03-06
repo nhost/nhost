@@ -1,53 +1,53 @@
-import { RESOURCE_CPU_MEMORY_RATIO } from '@/utils/CONSTANTS';
+import { RESOURCE_VCPU_MEMORY_RATIO } from '@/utils/CONSTANTS';
 import * as Yup from 'yup';
 
 /**
  * The minimum total CPU that has to be allocated.
  */
-export const MIN_TOTAL_CPU = 1;
+export const MIN_TOTAL_VCPU = 1;
 
 /**
  * The minimum amount of memory that has to be allocated in total.
  */
-export const MIN_TOTAL_MEMORY = MIN_TOTAL_CPU * RESOURCE_CPU_MEMORY_RATIO;
+export const MIN_TOTAL_MEMORY = MIN_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
  * The maximum total CPU that can be allocated.
  */
-export const MAX_TOTAL_CPU = 60;
+export const MAX_TOTAL_VCPU = 60;
 
 /**
  * The maximum amount of memory that can be allocated in total.
  */
-export const MAX_TOTAL_MEMORY = MAX_TOTAL_CPU * RESOURCE_CPU_MEMORY_RATIO;
+export const MAX_TOTAL_MEMORY = MAX_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
  * The minimum amount of CPU that has to be allocated per service.
  */
-export const MIN_SERVICE_CPU = 0.25;
+export const MIN_SERVICE_VCPU = 0.25;
 
 /**
  * The maximum amount of CPU that can be allocated per service.
  */
-export const MAX_SERVICE_CPU = 15;
+export const MAX_SERVICE_VCPU = 15;
 
 /**
  * The minimum amount of memory that has to be allocated per service.
  */
-export const MIN_SERVICE_MEMORY = MIN_SERVICE_CPU * RESOURCE_CPU_MEMORY_RATIO;
+export const MIN_SERVICE_MEMORY = MIN_SERVICE_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
  * The maximum amount of memory that can be allocated per service.
  */
-export const MAX_SERVICE_MEMORY = MAX_SERVICE_CPU * RESOURCE_CPU_MEMORY_RATIO;
+export const MAX_SERVICE_MEMORY = MAX_SERVICE_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
   totalAvailableCPU: Yup.number()
     .label('Total CPU')
     .required()
-    .min(MIN_TOTAL_CPU)
-    .max(MAX_TOTAL_CPU),
+    .min(MIN_TOTAL_VCPU)
+    .max(MAX_TOTAL_VCPU),
   totalAvailableMemory: Yup.number()
     .label('Total Memory')
     .required()
@@ -56,8 +56,8 @@ export const resourceSettingsValidationSchema = Yup.object({
   databaseCPU: Yup.number()
     .label('Database CPU')
     .required()
-    .min(MIN_SERVICE_CPU)
-    .max(MAX_SERVICE_CPU),
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
   databaseMemory: Yup.number()
     .label('Database Memory')
     .required()
@@ -66,8 +66,8 @@ export const resourceSettingsValidationSchema = Yup.object({
   hasuraCPU: Yup.number()
     .label('Hasura CPU')
     .required()
-    .min(MIN_SERVICE_CPU)
-    .max(MAX_SERVICE_CPU),
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
   hasuraMemory: Yup.number()
     .label('Hasura Memory')
     .required()
@@ -76,8 +76,8 @@ export const resourceSettingsValidationSchema = Yup.object({
   authCPU: Yup.number()
     .label('Auth CPU')
     .required()
-    .min(MIN_SERVICE_CPU)
-    .max(MAX_SERVICE_CPU),
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
   authMemory: Yup.number()
     .label('Auth Memory')
     .required()
@@ -86,8 +86,8 @@ export const resourceSettingsValidationSchema = Yup.object({
   storageCPU: Yup.number()
     .label('Storage CPU')
     .required()
-    .min(MIN_SERVICE_CPU)
-    .max(MAX_SERVICE_CPU),
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
   storageMemory: Yup.number()
     .label('Storage Memory')
     .required()

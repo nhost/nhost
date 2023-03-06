@@ -1,13 +1,13 @@
 import Box from '@/ui/v2/Box';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
-import { RESOURCE_CPU_STEP, RESOURCE_MEMORY_STEP } from '@/utils/CONSTANTS';
+import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import {
-  MAX_SERVICE_CPU,
   MAX_SERVICE_MEMORY,
-  MIN_SERVICE_CPU,
+  MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
+  MIN_SERVICE_VCPU,
 } from '@/utils/settings/resourceSettingsValidationSchema';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -71,7 +71,7 @@ export default function ServiceResourcesFormFragment({
     if (
       Number.isNaN(updatedCPU) ||
       exceedsAvailableCPU ||
-      updatedCPU < MIN_SERVICE_CPU
+      updatedCPU < MIN_SERVICE_VCPU
     ) {
       return;
     }
@@ -123,8 +123,8 @@ export default function ServiceResourcesFormFragment({
         <Slider
           value={formValues[cpuKey]}
           onChange={(_event, value) => handleCPUChange(value.toString())}
-          max={MAX_SERVICE_CPU}
-          step={RESOURCE_CPU_STEP}
+          max={MAX_SERVICE_VCPU}
+          step={RESOURCE_VCPU_STEP}
           allowed={allowedCPU}
           aria-label={`${title} vCPU Slider`}
           marks

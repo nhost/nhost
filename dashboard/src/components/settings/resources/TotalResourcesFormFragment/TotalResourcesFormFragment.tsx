@@ -5,17 +5,17 @@ import Input from '@/ui/v2/Input';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import {
-  RESOURCE_CPU_MEMORY_RATIO,
-  RESOURCE_CPU_STEP,
   RESOURCE_MEMORY_STEP,
+  RESOURCE_VCPU_MEMORY_RATIO,
+  RESOURCE_VCPU_STEP,
 } from '@/utils/CONSTANTS';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import {
-  MAX_TOTAL_CPU,
   MAX_TOTAL_MEMORY,
-  MIN_TOTAL_CPU,
+  MAX_TOTAL_VCPU,
   MIN_TOTAL_MEMORY,
+  MIN_TOTAL_VCPU,
 } from '@/utils/settings/resourceSettingsValidationSchema';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
@@ -68,11 +68,11 @@ export default function TotalResourcesFormFragment({
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
-    const updatedMemory = updatedCPU * RESOURCE_CPU_MEMORY_RATIO;
+    const updatedMemory = updatedCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
     if (
       Number.isNaN(updatedCPU) ||
-      updatedCPU < Math.max(MIN_TOTAL_CPU, allocatedCPU) ||
+      updatedCPU < Math.max(MIN_TOTAL_VCPU, allocatedCPU) ||
       updatedMemory < Math.max(MIN_TOTAL_MEMORY, allocatedMemory)
     ) {
       return;
@@ -93,7 +93,7 @@ export default function TotalResourcesFormFragment({
     }
 
     setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
-    setValue('totalAvailableCPU', updatedMemory / RESOURCE_CPU_MEMORY_RATIO, {
+    setValue('totalAvailableCPU', updatedMemory / RESOURCE_VCPU_MEMORY_RATIO, {
       shouldDirty: true,
     });
   }
@@ -127,9 +127,9 @@ export default function TotalResourcesFormFragment({
               onChange={(event) => handleCPUChange(event.target.value)}
               type="number"
               inputProps={{
-                min: Math.max(MIN_TOTAL_CPU, allocatedCPU),
-                max: MAX_TOTAL_CPU,
-                step: RESOURCE_CPU_STEP,
+                min: Math.max(MIN_TOTAL_VCPU, allocatedCPU),
+                max: MAX_TOTAL_VCPU,
+                step: RESOURCE_VCPU_STEP,
               }}
               label="vCPUs:"
               variant="inline"
@@ -166,8 +166,8 @@ export default function TotalResourcesFormFragment({
           <StyledAvailableCpuSlider
             value={formValues.totalAvailableCPU}
             onChange={(_event, value) => handleCPUChange(value.toString())}
-            max={MAX_TOTAL_CPU}
-            step={RESOURCE_CPU_STEP}
+            max={MAX_TOTAL_VCPU}
+            step={RESOURCE_VCPU_STEP}
             aria-label="Total Available vCPU Slider"
           />
         </Box>
