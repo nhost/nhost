@@ -16,14 +16,14 @@ export default function getUnallocatedResources(
     formValues.authCPU +
     formValues.storageCPU;
 
-  const allocatedRAM =
-    formValues.databaseRAM +
-    formValues.hasuraRAM +
-    formValues.authRAM +
-    formValues.storageRAM;
+  const allocatedMemory =
+    formValues.databaseMemory +
+    formValues.hasuraMemory +
+    formValues.authMemory +
+    formValues.storageMemory;
 
   return {
     cpu: formValues.totalAvailableCPU - allocatedCPU,
-    ram: formValues.totalAvailableRAM - allocatedRAM,
+    memory: formValues.totalAvailableMemory - allocatedMemory,
   };
 }

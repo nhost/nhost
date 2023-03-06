@@ -1,22 +1,22 @@
 import { test } from 'vitest';
 import getUnallocatedResources from './getUnallocatedResources';
 
-test('should return 0 for CPU and RAM if they are allocated', () => {
+test('should return 0 for CPU and Memory if all the available resources are allocated', () => {
   expect(
     getUnallocatedResources({
       enabled: true,
       totalAvailableCPU: 4,
-      totalAvailableRAM: 8,
+      totalAvailableMemory: 8,
       databaseCPU: 1,
-      databaseRAM: 2,
+      databaseMemory: 2,
       hasuraCPU: 1,
-      hasuraRAM: 2,
+      hasuraMemory: 2,
       authCPU: 1,
-      authRAM: 2,
+      authMemory: 2,
       storageCPU: 1,
-      storageRAM: 2,
+      storageMemory: 2,
     }),
-  ).toEqual({ cpu: 0, ram: 0 });
+  ).toEqual({ cpu: 0, memory: 0 });
 });
 
 test('should return the unallocated resources if not everything is allocated', () => {
@@ -24,33 +24,33 @@ test('should return the unallocated resources if not everything is allocated', (
     getUnallocatedResources({
       enabled: true,
       totalAvailableCPU: 1,
-      totalAvailableRAM: 2,
+      totalAvailableMemory: 2,
       databaseCPU: 0,
-      databaseRAM: 0.5,
+      databaseMemory: 0.5,
       hasuraCPU: 0,
-      hasuraRAM: 0.5,
+      hasuraMemory: 0.5,
       authCPU: 0,
-      authRAM: 0.5,
+      authMemory: 0.5,
       storageCPU: 0,
-      storageRAM: 0.5,
+      storageMemory: 0.5,
     }),
-  ).toEqual({ cpu: 1, ram: 0 });
+  ).toEqual({ cpu: 1, memory: 0 });
 
   expect(
     getUnallocatedResources({
       enabled: true,
       totalAvailableCPU: 1,
-      totalAvailableRAM: 2,
+      totalAvailableMemory: 2,
       databaseCPU: 0.25,
-      databaseRAM: 0,
+      databaseMemory: 0,
       hasuraCPU: 0.25,
-      hasuraRAM: 0,
+      hasuraMemory: 0,
       authCPU: 0.25,
-      authRAM: 0,
+      authMemory: 0,
       storageCPU: 0.25,
-      storageRAM: 0,
+      storageMemory: 0,
     }),
-  ).toEqual({ cpu: 0, ram: 2 });
+  ).toEqual({ cpu: 0, memory: 2 });
 });
 
 test('should return negative values if services are overallocated', () => {
@@ -58,31 +58,31 @@ test('should return negative values if services are overallocated', () => {
     getUnallocatedResources({
       enabled: true,
       totalAvailableCPU: 1,
-      totalAvailableRAM: 2,
+      totalAvailableMemory: 2,
       databaseCPU: 0.5,
-      databaseRAM: 0.5,
+      databaseMemory: 0.5,
       hasuraCPU: 0.5,
-      hasuraRAM: 0.5,
+      hasuraMemory: 0.5,
       authCPU: 0.5,
-      authRAM: 0.5,
+      authMemory: 0.5,
       storageCPU: 0.5,
-      storageRAM: 0.5,
+      storageMemory: 0.5,
     }),
-  ).toEqual({ cpu: -1, ram: 0 });
+  ).toEqual({ cpu: -1, memory: 0 });
 
   expect(
     getUnallocatedResources({
       enabled: true,
       totalAvailableCPU: 1,
-      totalAvailableRAM: 2,
+      totalAvailableMemory: 2,
       databaseCPU: 0.25,
-      databaseRAM: 1,
+      databaseMemory: 1,
       hasuraCPU: 0.25,
-      hasuraRAM: 1,
+      hasuraMemory: 1,
       authCPU: 0.25,
-      authRAM: 1,
+      authMemory: 1,
       storageCPU: 0.25,
-      storageRAM: 1,
+      storageMemory: 1,
     }),
-  ).toEqual({ cpu: 0, ram: -2 });
+  ).toEqual({ cpu: 0, memory: -2 });
 });

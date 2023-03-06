@@ -5,17 +5,17 @@ import Input from '@/ui/v2/Input';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import {
+  RESOURCE_CPU_MEMORY_RATIO,
   RESOURCE_CPU_STEP,
-  RESOURCE_RAM_MULTIPLIER,
-  RESOURCE_RAM_STEP,
+  RESOURCE_MEMORY_STEP,
 } from '@/utils/CONSTANTS';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import {
   MAX_TOTAL_CPU,
-  MAX_TOTAL_RAM,
+  MAX_TOTAL_MEMORY,
   MIN_TOTAL_CPU,
-  MIN_TOTAL_RAM,
+  MIN_TOTAL_MEMORY,
 } from '@/utils/settings/resourceSettingsValidationSchema';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -35,48 +35,51 @@ export default function TotalResourcesFormFragment() {
     formValues.hasuraCPU +
     formValues.authCPU +
     formValues.storageCPU;
-  const allocatedRAM =
-    formValues.databaseRAM +
-    formValues.hasuraRAM +
-    formValues.authRAM +
-    formValues.storageRAM;
+  const allocatedMemory =
+    formValues.databaseMemory +
+    formValues.hasuraMemory +
+    formValues.authMemory +
+    formValues.storageMemory;
 
-  const { cpu: unallocatedCPU, ram: unallocatedRAM } =
+  const { cpu: unallocatedCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
 
-  const hasUnusedResources = unallocatedCPU > 0 || unallocatedRAM > 0;
+  const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
     unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
-    unallocatedRAM > 0 ? `${unallocatedRAM} GiB of memory` : '',
+    unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
   ]
     .filter(Boolean)
     .join(' and ');
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
-    const updatedRAM = updatedCPU * RESOURCE_RAM_MULTIPLIER;
+    const updatedMemory = updatedCPU * RESOURCE_CPU_MEMORY_RATIO;
 
     if (
       Number.isNaN(updatedCPU) ||
       updatedCPU < Math.max(MIN_TOTAL_CPU, allocatedCPU) ||
-      updatedRAM < Math.max(MIN_TOTAL_RAM, allocatedRAM)
+      updatedMemory < Math.max(MIN_TOTAL_MEMORY, allocatedMemory)
     ) {
       return;
     }
 
     setValue('totalAvailableCPU', updatedCPU, { shouldDirty: true });
-    setValue('totalAvailableRAM', updatedRAM, { shouldDirty: true });
+    setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
   }
 
-  function handleRAMChange(value: string) {
-    const updatedRAM = parseFloat(value);
+  function handleMemoryChange(value: string) {
+    const updatedMemory = parseFloat(value);
 
-    if (Number.isNaN(updatedRAM) || updatedRAM < Math.max(1, allocatedRAM)) {
+    if (
+      Number.isNaN(updatedMemory) ||
+      updatedMemory < Math.max(1, allocatedMemory)
+    ) {
       return;
     }
 
-    setValue('totalAvailableRAM', updatedRAM, { shouldDirty: true });
-    setValue('totalAvailableCPU', updatedRAM / RESOURCE_RAM_MULTIPLIER, {
+    setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
+    setValue('totalAvailableCPU', updatedMemory / RESOURCE_CPU_MEMORY_RATIO, {
       shouldDirty: true,
     });
   }
@@ -123,14 +126,14 @@ export default function TotalResourcesFormFragment() {
             />
 
             <Input
-              id="totalAvailableRAM"
-              value={formValues.totalAvailableRAM}
-              onChange={(event) => handleRAMChange(event.target.value)}
+              id="totalAvailableMemory"
+              value={formValues.totalAvailableMemory}
+              onChange={(event) => handleMemoryChange(event.target.value)}
               type="number"
               inputProps={{
-                min: Math.max(MIN_TOTAL_RAM, allocatedRAM),
-                max: MAX_TOTAL_RAM,
-                step: RESOURCE_RAM_STEP,
+                min: Math.max(MIN_TOTAL_MEMORY, allocatedMemory),
+                max: MAX_TOTAL_MEMORY,
+                step: RESOURCE_MEMORY_STEP,
               }}
               label="Memory:"
               variant="inline"

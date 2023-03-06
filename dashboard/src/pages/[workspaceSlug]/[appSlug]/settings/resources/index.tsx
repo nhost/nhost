@@ -24,15 +24,15 @@ export default function ResourceSettingsPage() {
     defaultValues: {
       enabled: true,
       totalAvailableCPU: 2,
-      totalAvailableRAM: 4,
+      totalAvailableMemory: 4,
       databaseCPU: 0.5,
-      databaseRAM: 1,
+      databaseMemory: 1,
       hasuraCPU: 0.5,
-      hasuraRAM: 1,
+      hasuraMemory: 1,
       authCPU: 0.5,
-      authRAM: 1,
+      authMemory: 1,
       storageCPU: 0.5,
-      storageRAM: 1,
+      storageMemory: 1,
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
@@ -43,14 +43,14 @@ export default function ResourceSettingsPage() {
   function handleSubmit(formValues: ResourceSettingsFormValues) {
     setError(null);
 
-    const { cpu: unallocatedCPU, ram: unallocatedRAM } =
+    const { cpu: unallocatedCPU, memory: unallocatedMemory } =
       getUnallocatedResources(formValues);
-    const hasUnusedResources = unallocatedCPU > 0 || unallocatedRAM > 0;
+    const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
 
     if (hasUnusedResources) {
       const unusedResourceMessage = [
         unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
-        unallocatedRAM > 0 ? `${unallocatedRAM} GiB of memory` : '',
+        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
       ]
         .filter(Boolean)
         .join(' and ');
@@ -97,28 +97,28 @@ export default function ResourceSettingsPage() {
                   title="Database"
                   description="Manage how much resources you need for Database."
                   cpuKey="databaseCPU"
-                  ramKey="databaseRAM"
+                  memoryKey="databaseMemory"
                 />
                 <Divider />
                 <ResourceFormFragment
                   title="Hasura GraphQL"
                   description="Manage how much resources you need for Hasura GraphQL."
                   cpuKey="hasuraCPU"
-                  ramKey="hasuraRAM"
+                  memoryKey="hasuraMemory"
                 />
                 <Divider />
                 <ResourceFormFragment
                   title="Auth"
                   description="Manage how much resources you need for Auth."
                   cpuKey="authCPU"
-                  ramKey="authRAM"
+                  memoryKey="authMemory"
                 />
                 <Divider />
                 <ResourceFormFragment
                   title="Storage"
                   description="Manage how much resources you need for Storage."
                   cpuKey="storageCPU"
-                  ramKey="storageRAM"
+                  memoryKey="storageMemory"
                 />
                 {error && (
                   <Box className="px-4 pb-4">
