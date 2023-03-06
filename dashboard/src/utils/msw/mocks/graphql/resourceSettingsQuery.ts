@@ -34,32 +34,32 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
           postgres: {
             resources: {
               compute: {
-                cpu: 2,
-                memory: 4,
+                cpu: 2000,
+                memory: 4096,
               },
             },
           },
           hasura: {
             resources: {
               compute: {
-                cpu: 2,
-                memory: 4,
+                cpu: 2000,
+                memory: 4096,
               },
             },
           },
           auth: {
             resources: {
               compute: {
-                cpu: 2,
-                memory: 4,
+                cpu: 2000,
+                memory: 4096,
               },
             },
           },
           storage: {
             resources: {
               compute: {
-                cpu: 2,
-                memory: 4,
+                cpu: 2000,
+                memory: 4096,
               },
             },
           },

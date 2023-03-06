@@ -50,6 +50,7 @@ export default function ResourcesForm() {
 
   const { openDialog, closeDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
+
   const { data, error, loading } = useGetResourcesQuery({
     variables: {
       appId: currentApplication?.id,
@@ -93,6 +94,14 @@ export default function ResourcesForm() {
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
+
+  if (!currentApplication.plan) {
+    return (
+      <Alert severity="error">
+        Couldn&apos;t be load the plan for this project. Please try again.
+      </Alert>
+    );
+  }
 
   const { watch, formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;

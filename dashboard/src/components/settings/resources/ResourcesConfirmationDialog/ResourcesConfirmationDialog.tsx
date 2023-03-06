@@ -1,4 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
@@ -30,6 +31,14 @@ export default function ResourcesConfirmationDialog({
 }: ResourcesConfirmationDialogProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const updatedPrice = RESOURCE_VCPU_PRICE * updatedResources.cpu;
+
+  if (!currentApplication) {
+    return (
+      <Alert severity="error">
+        Couldn&apos;t be load the plan for this project. Please try again.
+      </Alert>
+    );
+  }
 
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">

@@ -4,6 +4,9 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
 import { WorkspaceProvider } from '@/context/workspace-context';
 import { UserDataProvider } from '@/context/workspace1-context';
+import type { Project } from '@/types/application';
+import { ApplicationStatus } from '@/types/application';
+import type { Workspace } from '@/types/workspace';
 import createTheme from '@/ui/v2/createTheme';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
@@ -33,9 +36,9 @@ const queryClient = new QueryClient({
 
 export const mockRouter: NextRouter = {
   basePath: '',
-  pathname: '/',
-  route: '/',
-  asPath: '/',
+  pathname: '/test-workspace/test-application',
+  route: '/[workspaceSlug]/[appSlug]',
+  asPath: '/test-workspace/test-application',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
@@ -54,6 +57,48 @@ export const mockRouter: NextRouter = {
   isFallback: false,
 };
 
+export const mockApplication: Project = {
+  id: '1',
+  name: 'Test Application',
+  slug: 'test-application',
+  appStates: [],
+  subdomain: '',
+  isProvisioned: true,
+  region: {
+    awsName: 'us-east-1',
+    city: 'New York',
+    countryCode: 'US',
+    id: '1',
+  },
+  createdAt: new Date().toISOString(),
+  deployments: [],
+  desiredState: ApplicationStatus.Live,
+  featureFlags: [],
+  providersUpdated: true,
+  githubRepository: { fullName: 'test/git-project' },
+  repositoryProductionBranch: null,
+  nhostBaseFolder: null,
+  plan: {
+    id: '1',
+    name: 'Starter',
+    isFree: true,
+    price: 0,
+  },
+  config: {
+    hasura: {
+      adminSecret: 'nhost-admin-secret',
+    },
+  },
+};
+
+export const mockWorkspace: Workspace = {
+  id: '1',
+  name: 'Test Workspace',
+  slug: 'test-workspace',
+  members: [],
+  applications: [mockApplication],
+};
+
 function Providers({ children }: PropsWithChildren<{}>) {
   const theme = createTheme('light');
 
@@ -70,7 +115,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
                 })}
               >
                 <WorkspaceProvider>
-                  <UserDataProvider>
+                  <UserDataProvider initialWorkspaces={[mockWorkspace]}>
                     <ManagedUIContext>
                       <Toaster position="bottom-center" />
                       <ThemeProvider theme={theme}>

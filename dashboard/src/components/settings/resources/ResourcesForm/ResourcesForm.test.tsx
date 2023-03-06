@@ -10,11 +10,44 @@ import {
 } from '@/utils/testUtils';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
+import { test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
+
+vi.mock('next/router', () => ({
+  useRouter: vi.fn().mockReturnValue({
+    basePath: '',
+    pathname: '/test-workspace/test-application',
+    route: '/[workspaceSlug]/[appSlug]',
+    asPath: '/test-workspace/test-application',
+    isLocaleDomain: false,
+    isReady: true,
+    isPreview: false,
+    query: {
+      workspaceSlug: 'test-workspace',
+      appSlug: 'test-application',
+    },
+    push: vi.fn(),
+    replace: vi.fn(),
+    reload: vi.fn(),
+    back: vi.fn(),
+    prefetch: vi.fn(),
+    beforePopState: vi.fn(),
+    events: {
+      on: vi.fn(),
+      off: vi.fn(),
+      emit: vi.fn(),
+    },
+    isFallback: false,
+  }),
+}));
 
 const server = setupServer(resourcesAvailableQuery);
 
-beforeAll(() => server.listen());
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
+  process.env.NEXT_PUBLIC_ENV = 'production';
+  server.listen();
+});
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
