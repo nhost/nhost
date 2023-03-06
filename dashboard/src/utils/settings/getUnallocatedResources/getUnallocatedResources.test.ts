@@ -5,8 +5,8 @@ test('should return 0 for CPU and Memory if all the available resources are allo
   expect(
     getUnallocatedResources({
       enabled: true,
-      totalAvailableCPU: 4,
-      totalAvailableMemory: 8,
+      totalSelectedCPU: 4,
+      totalSelectedMemory: 8,
       databaseCPU: 1,
       databaseMemory: 2,
       hasuraCPU: 1,
@@ -23,8 +23,8 @@ test('should return the unallocated resources if not everything is allocated', (
   expect(
     getUnallocatedResources({
       enabled: true,
-      totalAvailableCPU: 1,
-      totalAvailableMemory: 2,
+      totalSelectedCPU: 1,
+      totalSelectedMemory: 2,
       databaseCPU: 0,
       databaseMemory: 0.5,
       hasuraCPU: 0,
@@ -39,8 +39,8 @@ test('should return the unallocated resources if not everything is allocated', (
   expect(
     getUnallocatedResources({
       enabled: true,
-      totalAvailableCPU: 1,
-      totalAvailableMemory: 2,
+      totalSelectedCPU: 1,
+      totalSelectedMemory: 2,
       databaseCPU: 0.25,
       databaseMemory: 0,
       hasuraCPU: 0.25,
@@ -57,8 +57,8 @@ test('should return negative values if services are overallocated', () => {
   expect(
     getUnallocatedResources({
       enabled: true,
-      totalAvailableCPU: 1,
-      totalAvailableMemory: 2,
+      totalSelectedCPU: 1,
+      totalSelectedMemory: 2,
       databaseCPU: 0.5,
       databaseMemory: 0.5,
       hasuraCPU: 0.5,
@@ -73,8 +73,8 @@ test('should return negative values if services are overallocated', () => {
   expect(
     getUnallocatedResources({
       enabled: true,
-      totalAvailableCPU: 1,
-      totalAvailableMemory: 2,
+      totalSelectedCPU: 1,
+      totalSelectedMemory: 2,
       databaseCPU: 0.25,
       databaseMemory: 1,
       hasuraCPU: 0.25,

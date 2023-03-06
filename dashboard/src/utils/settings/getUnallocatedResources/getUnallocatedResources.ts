@@ -23,7 +23,7 @@ export default function getUnallocatedResources(
     formValues.storageMemory;
 
   return {
-    cpu: formValues.totalAvailableCPU - allocatedCPU,
-    memory: formValues.totalAvailableMemory - allocatedMemory,
+    cpu: formValues.totalSelectedCPU - allocatedCPU,
+    memory: formValues.totalSelectedMemory - allocatedMemory,
   };
 }

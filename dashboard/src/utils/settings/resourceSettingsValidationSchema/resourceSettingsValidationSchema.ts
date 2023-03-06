@@ -43,12 +43,12 @@ export const MAX_SERVICE_MEMORY = MAX_SERVICE_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
-  totalAvailableCPU: Yup.number()
+  totalSelectedCPU: Yup.number()
     .label('Total CPU')
     .required()
     .min(MIN_TOTAL_VCPU)
     .max(MAX_TOTAL_VCPU),
-  totalAvailableMemory: Yup.number()
+  totalSelectedMemory: Yup.number()
     .label('Total Memory')
     .required()
     .min(MIN_TOTAL_MEMORY)

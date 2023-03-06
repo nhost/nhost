@@ -31,7 +31,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { twMerge } from 'tailwind-merge';
 
 function getServiceResources(
   data: GetResourcesQuery,
@@ -81,8 +80,8 @@ export default function ResourcesForm() {
   const form = useForm<ResourceSettingsFormValues>({
     values: {
       enabled: totalCPU > 0 && totalMemory > 0,
-      totalAvailableCPU: totalCPU || 2,
-      totalAvailableMemory: totalMemory || 4,
+      totalSelectedCPU: totalCPU || 2,
+      totalSelectedMemory: totalMemory || 4,
       databaseCPU: databaseResources.cpu || 0.5,
       databaseMemory: databaseResources.memory || 1,
       hasuraCPU: hasuraResources.cpu || 0.5,
@@ -107,12 +106,13 @@ export default function ResourcesForm() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const enabled = watch('enabled');
-  const totalAvailableCPU = watch('totalAvailableCPU');
+  const totalSelectedCPU = watch('totalSelectedCPU');
 
   const initialPrice =
     RESOURCE_VCPU_PRICE * totalCPU + currentApplication.plan.price;
-  const updatedPrice =
-    RESOURCE_VCPU_PRICE * totalAvailableCPU + currentApplication.plan.price;
+  const updatedPrice = enabled
+    ? RESOURCE_VCPU_PRICE * totalSelectedCPU + currentApplication.plan.price
+    : currentApplication.plan.price;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -171,6 +171,8 @@ export default function ResourcesForm() {
         },
         getToastStyleProps(),
       );
+
+      form.reset();
     } catch {
       // Note: The error has already been handled by the toast.
     }
@@ -205,8 +207,8 @@ export default function ResourcesForm() {
       component: (
         <ResourcesConfirmationDialog
           updatedResources={{
-            cpu: formValues.totalAvailableCPU,
-            memory: formValues.totalAvailableMemory,
+            cpu: enabled ? formValues.totalSelectedCPU : 0,
+            memory: enabled ? formValues.totalSelectedMemory : 0,
           }}
           onCancel={closeDialog}
           onSubmit={() => handleSubmit(formValues)}
@@ -240,7 +242,7 @@ export default function ResourcesForm() {
         <SettingsContainer
           title="Resources"
           description="See how much resources you have available and customise usage on this page."
-          className={twMerge(enabled && 'gap-0 px-0')}
+          className="gap-0 px-0"
           showSwitch
           switchId="enabled"
           slotProps={{
@@ -296,34 +298,38 @@ export default function ResourcesForm() {
                   </Alert>
                 </Box>
               )}
-
-              <Box className="flex flex-row items-center justify-between border-t px-4 pt-4">
-                <span />
-
-                <Box className="flex flex-row items-center gap-4">
-                  <Text>
-                    Total cost:{' '}
-                    <span className="font-medium">
-                      ${updatedPrice.toFixed(2)}/mo
-                    </span>
-                  </Text>
-
-                  <Button
-                    type="submit"
-                    variant={isDirty ? 'contained' : 'outlined'}
-                    color={isDirty ? 'primary' : 'secondary'}
-                    disabled={!isDirty}
-                  >
-                    Save
-                  </Button>
-                </Box>
-              </Box>
             </>
           ) : (
-            <Alert className="text-left">
-              Enable this feature to access custom resource allocation for your
-              services.
-            </Alert>
+            <Box className="px-4 pb-4">
+              <Alert className="text-left">
+                Enable this feature to access custom resource allocation for
+                your services.
+              </Alert>
+            </Box>
+          )}
+
+          {(enabled || isDirty) && (
+            <Box className="flex flex-row items-center justify-between border-t px-4 pt-4">
+              <span />
+
+              <Box className="flex flex-row items-center gap-4">
+                <Text>
+                  Total cost:{' '}
+                  <span className="font-medium">
+                    ${updatedPrice.toFixed(2)}/mo
+                  </span>
+                </Text>
+
+                <Button
+                  type="submit"
+                  variant={isDirty ? 'contained' : 'outlined'}
+                  color={isDirty ? 'primary' : 'secondary'}
+                  disabled={!isDirty}
+                >
+                  Save
+                </Button>
+              </Box>
+            </Box>
           )}
         </SettingsContainer>
       </Form>

@@ -55,7 +55,7 @@ export default function TotalResourcesFormFragment({
     formValues.storageMemory;
 
   const updatedPrice =
-    RESOURCE_VCPU_PRICE * formValues.totalAvailableCPU +
+    RESOURCE_VCPU_PRICE * formValues.totalSelectedCPU +
     currentApplication.plan.price;
 
   const { cpu: unallocatedCPU, memory: unallocatedMemory } =
@@ -83,8 +83,8 @@ export default function TotalResourcesFormFragment({
       return;
     }
 
-    setValue('totalAvailableCPU', updatedCPU, { shouldDirty: true });
-    setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
+    setValue('totalSelectedCPU', updatedCPU, { shouldDirty: true });
+    setValue('totalSelectedMemory', updatedMemory, { shouldDirty: true });
   }
 
   function handleMemoryChange(value: string) {
@@ -97,8 +97,8 @@ export default function TotalResourcesFormFragment({
       return;
     }
 
-    setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
-    setValue('totalAvailableCPU', updatedMemory / RESOURCE_VCPU_MEMORY_RATIO, {
+    setValue('totalSelectedMemory', updatedMemory, { shouldDirty: true });
+    setValue('totalSelectedCPU', updatedMemory / RESOURCE_VCPU_MEMORY_RATIO, {
       shouldDirty: true,
     });
   }
@@ -127,8 +127,8 @@ export default function TotalResourcesFormFragment({
 
           <Box className="flex flex-row items-center justify-start gap-4">
             <Input
-              id="totalAvailableCPU"
-              value={formValues.totalAvailableCPU}
+              id="totalSelectedCPU"
+              value={formValues.totalSelectedCPU}
               onChange={(event) => handleCPUChange(event.target.value)}
               type="number"
               inputProps={{
@@ -147,8 +147,8 @@ export default function TotalResourcesFormFragment({
             />
 
             <Input
-              id="totalAvailableMemory"
-              value={formValues.totalAvailableMemory}
+              id="totalSelectedMemory"
+              value={formValues.totalSelectedMemory}
               onChange={(event) => handleMemoryChange(event.target.value)}
               type="number"
               inputProps={{
@@ -169,7 +169,7 @@ export default function TotalResourcesFormFragment({
           </Box>
 
           <StyledAvailableCpuSlider
-            value={formValues.totalAvailableCPU}
+            value={formValues.totalSelectedCPU}
             onChange={(_event, value) => handleCPUChange(value.toString())}
             max={MAX_TOTAL_VCPU}
             step={RESOURCE_VCPU_STEP}
