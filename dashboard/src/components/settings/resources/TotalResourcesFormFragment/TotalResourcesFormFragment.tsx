@@ -18,7 +18,14 @@ import {
   MIN_TOTAL_MEMORY,
 } from '@/utils/settings/resourceSettingsValidationSchema';
 import { alpha, styled } from '@mui/material';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+
+export interface TotalResourcesFormFragmentProps {
+  /**
+   * The initial price of the resources.
+   */
+  initialPrice: number;
+}
 
 const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
   [`& .${sliderClasses.rail}`]: {
@@ -26,7 +33,10 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
   },
 }));
 
-export default function TotalResourcesFormFragment() {
+export default function TotalResourcesFormFragment({
+  initialPrice,
+}: TotalResourcesFormFragmentProps) {
+  const { dirtyFields } = useFormState<ResourceSettingsFormValues>();
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
@@ -41,9 +51,13 @@ export default function TotalResourcesFormFragment() {
     formValues.authMemory +
     formValues.storageMemory;
 
+  const updatedPrice = 50 * formValues.totalAvailableCPU + 25;
+
   const { cpu: unallocatedCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
 
+  const showAlert =
+    Object.keys(dirtyFields).filter((key) => key !== 'enabled').length > 0;
   const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
     unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
@@ -93,15 +107,17 @@ export default function TotalResourcesFormFragment() {
               Total available resources for your project:
             </Text>
 
-            <Text className="flex flex-row items-center justify-end gap-2">
-              <Text component="span" color="secondary">
-                $25.00/mo
+            {initialPrice !== updatedPrice && (
+              <Text className="flex flex-row items-center justify-end gap-2">
+                <Text component="span" color="secondary">
+                  ${initialPrice}/mo
+                </Text>
+                <ArrowRightIcon />
+                <Text component="span" className="font-medium">
+                  ${updatedPrice}/mo
+                </Text>
               </Text>
-              <ArrowRightIcon />
-              <Text component="span" className="font-medium">
-                $125.00/mo
-              </Text>
-            </Text>
+            )}
           </Box>
 
           <Box className="flex flex-row items-center justify-start gap-4">
@@ -156,29 +172,31 @@ export default function TotalResourcesFormFragment() {
           />
         </Box>
 
-        <Alert
-          severity={hasUnusedResources ? 'warning' : 'info'}
-          className="flex flex-col gap-2 rounded-t-none rounded-b-[5px] text-left"
-        >
-          {hasUnusedResources ? (
-            <>
-              <strong>Please use all available CPU and Memory</strong>
+        {showAlert && (
+          <Alert
+            severity={hasUnusedResources ? 'warning' : 'info'}
+            className="flex flex-col gap-2 rounded-t-none rounded-b-[5px] text-left"
+          >
+            {hasUnusedResources ? (
+              <>
+                <strong>Please use all available CPU and Memory</strong>
 
-              <p>
-                You now have {unusedResourceMessage} unused. Allocate it to any
-                of the services before saving.
-              </p>
-            </>
-          ) : (
-            <>
-              <strong>All Set!</strong>
+                <p>
+                  You now have {unusedResourceMessage} unused. Allocate it to
+                  any of the services before saving.
+                </p>
+              </>
+            ) : (
+              <>
+                <strong>All Set!</strong>
 
-              <p>
-                You have successfully allocated all available CPU and Memory.
-              </p>
-            </>
-          )}
-        </Alert>
+                <p>
+                  You have successfully allocated all available CPU and Memory.
+                </p>
+              </>
+            )}
+          </Alert>
+        )}
       </Box>
     </Box>
   );

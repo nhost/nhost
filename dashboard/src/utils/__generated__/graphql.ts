@@ -269,7 +269,7 @@ export type ConfigAuthMethodOauthAppleUpdateInput = {
   enabled?: InputMaybe<Scalars['Boolean']>;
   keyId?: InputMaybe<Scalars['String']>;
   privateKey?: InputMaybe<Scalars['String']>;
-  scope: Array<Scalars['String']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
   teamId?: InputMaybe<Scalars['String']>;
 };
 
@@ -518,7 +518,7 @@ export type ConfigAuthMethodWebauthnRelyingPartyInsertInput = {
 
 export type ConfigAuthMethodWebauthnRelyingPartyUpdateInput = {
   name?: InputMaybe<Scalars['String']>;
-  origins: Array<Scalars['ConfigUrl']>;
+  origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
 };
 
 export type ConfigAuthMethodWebauthnUpdateInput = {
@@ -547,7 +547,7 @@ export type ConfigAuthRedirectionsInsertInput = {
 };
 
 export type ConfigAuthRedirectionsUpdateInput = {
-  allowedUrls: Array<Scalars['String']>;
+  allowedUrls?: InputMaybe<Array<Scalars['String']>>;
   clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
 };
 
@@ -577,7 +577,7 @@ export type ConfigAuthSessionAccessTokenInsertInput = {
 };
 
 export type ConfigAuthSessionAccessTokenUpdateInput = {
-  customClaims: Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>;
+  customClaims?: InputMaybe<Array<ConfigAuthsessionaccessTokenCustomClaimsUpdateInput>>;
   expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
@@ -728,8 +728,8 @@ export type ConfigAuthUserEmailDomainsInsertInput = {
 };
 
 export type ConfigAuthUserEmailDomainsUpdateInput = {
-  allowed: Array<Scalars['String']>;
-  blocked: Array<Scalars['String']>;
+  allowed?: InputMaybe<Array<Scalars['String']>>;
+  blocked?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type ConfigAuthUserEmailInsertInput = {
@@ -738,8 +738,8 @@ export type ConfigAuthUserEmailInsertInput = {
 };
 
 export type ConfigAuthUserEmailUpdateInput = {
-  allowed: Array<Scalars['ConfigEmail']>;
-  blocked: Array<Scalars['ConfigEmail']>;
+  allowed?: InputMaybe<Array<Scalars['ConfigEmail']>>;
+  blocked?: InputMaybe<Array<Scalars['ConfigEmail']>>;
 };
 
 export type ConfigAuthUserGravatar = {
@@ -798,7 +798,7 @@ export type ConfigAuthUserLocaleInsertInput = {
 };
 
 export type ConfigAuthUserLocaleUpdateInput = {
-  allowed: Array<Scalars['ConfigLocale']>;
+  allowed?: InputMaybe<Array<Scalars['ConfigLocale']>>;
   default?: InputMaybe<Scalars['ConfigLocale']>;
 };
 
@@ -822,7 +822,7 @@ export type ConfigAuthUserRolesInsertInput = {
 };
 
 export type ConfigAuthUserRolesUpdateInput = {
-  allowed: Array<Scalars['ConfigUserRole']>;
+  allowed?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
   default?: InputMaybe<Scalars['ConfigUserRole']>;
 };
 
@@ -997,7 +997,7 @@ export type ConfigGlobalInsertInput = {
 };
 
 export type ConfigGlobalUpdateInput = {
-  environment: Array<ConfigEnvironmentVariableUpdateInput>;
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableUpdateInput>>;
 };
 
 export type ConfigHasura = {
@@ -1053,7 +1053,7 @@ export type ConfigHasuraSettingsUpdateInput = {
 
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
-  jwtSecrets: Array<ConfigJwtSecretUpdateInput>;
+  jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -1373,7 +1373,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
   clientId?: InputMaybe<Scalars['String']>;
   clientSecret?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
-  scope: Array<Scalars['String']>;
+  scope?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export type ConfigStorage = {
@@ -1581,28 +1581,6 @@ export type ConfigUserRoleComparisonExp = {
   _in?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
   _neq?: InputMaybe<Scalars['ConfigUserRole']>;
   _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
-};
-
-/** Database Backups */
-export type DatabaseBackupEntry = {
-  __typename?: 'DatabaseBackupEntry';
-  id: Scalars['uuid'];
-  size: Scalars['Int'];
-};
-
-/** Function Logs */
-export type FunctionLogEntry = {
-  __typename?: 'FunctionLogEntry';
-  createdAt: Scalars['timestamptz'];
-  functionPath: Scalars['String'];
-  message: Scalars['String'];
-};
-
-/** Health */
-export type Health = {
-  __typename?: 'Health';
-  status: Scalars['String'];
-  version: Scalars['String'];
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
@@ -5192,7 +5170,9 @@ export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
   expiresAt: Scalars['timestamptz'];
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
+  refreshTokenHash?: Maybe<Scalars['String']>;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -5253,6 +5233,7 @@ export type AuthRefreshTokens_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
+  refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -5267,6 +5248,7 @@ export enum AuthRefreshTokens_Constraint {
 export type AuthRefreshTokens_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -5277,7 +5259,9 @@ export type AuthRefreshTokens_Max_Fields = {
   __typename?: 'authRefreshTokens_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5285,7 +5269,9 @@ export type AuthRefreshTokens_Max_Fields = {
 export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5294,7 +5280,9 @@ export type AuthRefreshTokens_Min_Fields = {
   __typename?: 'authRefreshTokens_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: Maybe<Scalars['uuid']>;
+  refreshTokenHash?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5302,7 +5290,9 @@ export type AuthRefreshTokens_Min_Fields = {
 export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5327,12 +5317,14 @@ export type AuthRefreshTokens_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
+  refreshTokenHash?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: auth.refresh_tokens */
 export type AuthRefreshTokens_Pk_Columns_Input = {
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken: Scalars['uuid'];
 };
 
@@ -5345,6 +5337,8 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshToken = 'refreshToken',
   /** column name */
+  RefreshTokenHash = 'refreshTokenHash',
+  /** column name */
   UserId = 'userId'
 }
 
@@ -5352,6 +5346,7 @@ export enum AuthRefreshTokens_Select_Column {
 export type AuthRefreshTokens_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -5368,7 +5363,9 @@ export type AuthRefreshTokens_Stream_Cursor_Input = {
 export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -10910,8 +10907,6 @@ export type Mutation_Root = {
   __typename?: 'mutation_root';
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
-  /** Create a database backup */
-  createDatabaseBackup: DatabaseBackupEntry;
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -11165,22 +11160,8 @@ export type Mutation_Root = {
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
   migrateRDSToPostgres: Scalars['Boolean'];
-  /** legacy version */
-  pauseInactiveApps: Array<Scalars['uuid']>;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
-  /** Restore a database backup */
-  restoreDatabaseBackup: Scalars['Boolean'];
-  /** Schedule a creation of a database backup */
-  scheduleCreateDatabaseBackup: Array<Scalars['String']>;
-  /** Pausing Tenants */
-  schedulePauseInactiveTenants: Array<Scalars['uuid']>;
-  /**
-   * Database Backups
-   * Schedule a restore of a database backup
-   */
-  scheduleRestoreDatabaseBackup: Scalars['String'];
-  syncDatabaseBackups: Scalars['Boolean'];
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
   /** update single row of the table: "app_states" */
@@ -11376,12 +11357,6 @@ export type Mutation_Root = {
 /** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootCreateDatabaseBackupArgs = {
-  appId: Scalars['uuid'];
 };
 
 
@@ -12228,12 +12203,6 @@ export type Mutation_RootMigrateRdsToPostgresArgs = {
 
 
 /** mutation root */
-export type Mutation_RootPauseInactiveAppsArgs = {
-  maxAppsToPause?: InputMaybe<Scalars['Int']>;
-};
-
-
-/** mutation root */
 export type Mutation_RootResetPostgresPasswordArgs = {
   appID: Scalars['String'];
   newPassword: Scalars['String'];
@@ -12244,32 +12213,6 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootRestoreDatabaseBackupArgs = {
-  appId: Scalars['uuid'];
-  backupId: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootScheduleCreateDatabaseBackupArgs = {
-  appId?: InputMaybe<Scalars['uuid']>;
-};
-
-
-/** mutation root */
-export type Mutation_RootSchedulePauseInactiveTenantsArgs = {
-  maxAppsToPause?: InputMaybe<Scalars['Int']>;
-};
-
-
-/** mutation root */
-export type Mutation_RootScheduleRestoreDatabaseBackupArgs = {
-  appId: Scalars['uuid'];
-  backupId: Scalars['uuid'];
 };
 
 
@@ -14264,8 +14207,6 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
-  /** Function Logs */
-  getFunctionLogs: Array<FunctionLogEntry>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -14278,9 +14219,6 @@ export type Query_Root = {
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
   /** fetch data from the table: "github_repositories" using primary key columns */
   githubRepository?: Maybe<GithubRepositories>;
-  /** health */
-  health: Health;
-  listInactiveApps: Array<Scalars['uuid']>;
   /**
    * Returns logs for a given application. If `service` is not provided all services are returned.
    * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
@@ -14853,14 +14791,6 @@ export type Query_RootFilesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
-};
-
-
-export type Query_RootGetFunctionLogsArgs = {
-  endTime?: InputMaybe<Scalars['timestamptz']>;
-  functionPaths?: InputMaybe<Array<Scalars['String']>>;
-  startTime?: InputMaybe<Scalars['timestamptz']>;
-  subdomain: Scalars['String'];
 };
 
 
@@ -18826,6 +18756,15 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 
 export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
+
+export type GetResourcesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
+
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
 export type GetRolesPermissionsQueryVariables = Exact<{
@@ -19101,21 +19040,6 @@ export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never;
 
 export type GetRemoteAppFilesUsageQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null } };
 
-export type GetFunctionsLogsQueryVariables = Exact<{
-  subdomain: Scalars['String'];
-}>;
-
-
-export type GetFunctionsLogsQuery = { __typename?: 'query_root', getFunctionLogs: Array<{ __typename?: 'FunctionLogEntry', functionPath: string, createdAt: any, message: string }> };
-
-export type GetFunctionLogQueryVariables = Exact<{
-  subdomain: Scalars['String'];
-  functionPaths?: InputMaybe<Array<Scalars['String']> | Scalars['String']>;
-}>;
-
-
-export type GetFunctionLogQuery = { __typename?: 'query_root', getFunctionLogs: Array<{ __typename?: 'FunctionLogEntry', functionPath: string, createdAt: any, message: string }> };
-
 export type GetGravatarSettingsQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -19192,22 +19116,6 @@ export type TotalUsersByDateQueryVariables = Exact<{
 
 
 export type TotalUsersByDateQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
-
-export type RestoreDatabaseBackupMutationVariables = Exact<{
-  appId: Scalars['uuid'];
-  backupId: Scalars['uuid'];
-}>;
-
-
-export type RestoreDatabaseBackupMutation = { __typename?: 'mutation_root', restoreDatabaseBackup: boolean };
-
-export type ScheduleRestoreDatabaseBackupMutationVariables = Exact<{
-  appId: Scalars['uuid'];
-  backupId: Scalars['uuid'];
-}>;
-
-
-export type ScheduleRestoreDatabaseBackupMutation = { __typename?: 'mutation_root', scheduleRestoreDatabaseBackup: string };
 
 export type UpdateRemoteAppUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -19529,6 +19437,42 @@ export const JwtSecretFragmentDoc = gql`
   claims_format
   audience
   allowed_skew
+}
+    `;
+export const ServiceResourcesFragmentDoc = gql`
+    fragment ServiceResources on ConfigConfig {
+  auth {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  hasura {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  postgres {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  storage {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
 }
     `;
 export const PermissionVariableFragmentDoc = gql`
@@ -20416,6 +20360,44 @@ export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGe
 export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
 export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
       return { query: GetEnvironmentVariablesDocument, variables: variables }
+    }
+export const GetResourcesDocument = gql`
+    query GetResources($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    ...ServiceResources
+  }
+}
+    ${ServiceResourcesFragmentDoc}`;
+
+/**
+ * __useGetResourcesQuery__
+ *
+ * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResourcesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+      }
+export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+        }
+export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
+export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
+export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
+export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
+      return { query: GetResourcesDocument, variables: variables }
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
@@ -21924,87 +21906,6 @@ export type GetRemoteAppFilesUsageQueryResult = Apollo.QueryResult<GetRemoteAppF
 export function refetchGetRemoteAppFilesUsageQuery(variables?: GetRemoteAppFilesUsageQueryVariables) {
       return { query: GetRemoteAppFilesUsageDocument, variables: variables }
     }
-export const GetFunctionsLogsDocument = gql`
-    query getFunctionsLogs($subdomain: String!) {
-  getFunctionLogs(subdomain: $subdomain) {
-    functionPath
-    createdAt
-    message
-  }
-}
-    `;
-
-/**
- * __useGetFunctionsLogsQuery__
- *
- * To run a query within a React component, call `useGetFunctionsLogsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFunctionsLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFunctionsLogsQuery({
- *   variables: {
- *      subdomain: // value for 'subdomain'
- *   },
- * });
- */
-export function useGetFunctionsLogsQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
-      }
-export function useGetFunctionsLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>(GetFunctionsLogsDocument, options);
-        }
-export type GetFunctionsLogsQueryHookResult = ReturnType<typeof useGetFunctionsLogsQuery>;
-export type GetFunctionsLogsLazyQueryHookResult = ReturnType<typeof useGetFunctionsLogsLazyQuery>;
-export type GetFunctionsLogsQueryResult = Apollo.QueryResult<GetFunctionsLogsQuery, GetFunctionsLogsQueryVariables>;
-export function refetchGetFunctionsLogsQuery(variables: GetFunctionsLogsQueryVariables) {
-      return { query: GetFunctionsLogsDocument, variables: variables }
-    }
-export const GetFunctionLogDocument = gql`
-    query getFunctionLog($subdomain: String!, $functionPaths: [String!]) {
-  getFunctionLogs(subdomain: $subdomain, functionPaths: $functionPaths) {
-    functionPath
-    createdAt
-    message
-  }
-}
-    `;
-
-/**
- * __useGetFunctionLogQuery__
- *
- * To run a query within a React component, call `useGetFunctionLogQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetFunctionLogQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetFunctionLogQuery({
- *   variables: {
- *      subdomain: // value for 'subdomain'
- *      functionPaths: // value for 'functionPaths'
- *   },
- * });
- */
-export function useGetFunctionLogQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionLogQuery, GetFunctionLogQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetFunctionLogQuery, GetFunctionLogQueryVariables>(GetFunctionLogDocument, options);
-      }
-export function useGetFunctionLogLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionLogQuery, GetFunctionLogQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetFunctionLogQuery, GetFunctionLogQueryVariables>(GetFunctionLogDocument, options);
-        }
-export type GetFunctionLogQueryHookResult = ReturnType<typeof useGetFunctionLogQuery>;
-export type GetFunctionLogLazyQueryHookResult = ReturnType<typeof useGetFunctionLogLazyQuery>;
-export type GetFunctionLogQueryResult = Apollo.QueryResult<GetFunctionLogQuery, GetFunctionLogQueryVariables>;
-export function refetchGetFunctionLogQuery(variables: GetFunctionLogQueryVariables) {
-      return { query: GetFunctionLogDocument, variables: variables }
-    }
 export const GetGravatarSettingsDocument = gql`
     query getGravatarSettings($id: uuid!) {
   app(id: $id) {
@@ -22448,70 +22349,6 @@ export type TotalUsersByDateQueryResult = Apollo.QueryResult<TotalUsersByDateQue
 export function refetchTotalUsersByDateQuery(variables: TotalUsersByDateQueryVariables) {
       return { query: TotalUsersByDateDocument, variables: variables }
     }
-export const RestoreDatabaseBackupDocument = gql`
-    mutation restoreDatabaseBackup($appId: uuid!, $backupId: uuid!) {
-  restoreDatabaseBackup(appId: $appId, backupId: $backupId)
-}
-    `;
-export type RestoreDatabaseBackupMutationFn = Apollo.MutationFunction<RestoreDatabaseBackupMutation, RestoreDatabaseBackupMutationVariables>;
-
-/**
- * __useRestoreDatabaseBackupMutation__
- *
- * To run a mutation, you first call `useRestoreDatabaseBackupMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRestoreDatabaseBackupMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [restoreDatabaseBackupMutation, { data, loading, error }] = useRestoreDatabaseBackupMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      backupId: // value for 'backupId'
- *   },
- * });
- */
-export function useRestoreDatabaseBackupMutation(baseOptions?: Apollo.MutationHookOptions<RestoreDatabaseBackupMutation, RestoreDatabaseBackupMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RestoreDatabaseBackupMutation, RestoreDatabaseBackupMutationVariables>(RestoreDatabaseBackupDocument, options);
-      }
-export type RestoreDatabaseBackupMutationHookResult = ReturnType<typeof useRestoreDatabaseBackupMutation>;
-export type RestoreDatabaseBackupMutationResult = Apollo.MutationResult<RestoreDatabaseBackupMutation>;
-export type RestoreDatabaseBackupMutationOptions = Apollo.BaseMutationOptions<RestoreDatabaseBackupMutation, RestoreDatabaseBackupMutationVariables>;
-export const ScheduleRestoreDatabaseBackupDocument = gql`
-    mutation scheduleRestoreDatabaseBackup($appId: uuid!, $backupId: uuid!) {
-  scheduleRestoreDatabaseBackup(appId: $appId, backupId: $backupId)
-}
-    `;
-export type ScheduleRestoreDatabaseBackupMutationFn = Apollo.MutationFunction<ScheduleRestoreDatabaseBackupMutation, ScheduleRestoreDatabaseBackupMutationVariables>;
-
-/**
- * __useScheduleRestoreDatabaseBackupMutation__
- *
- * To run a mutation, you first call `useScheduleRestoreDatabaseBackupMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useScheduleRestoreDatabaseBackupMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [scheduleRestoreDatabaseBackupMutation, { data, loading, error }] = useScheduleRestoreDatabaseBackupMutation({
- *   variables: {
- *      appId: // value for 'appId'
- *      backupId: // value for 'backupId'
- *   },
- * });
- */
-export function useScheduleRestoreDatabaseBackupMutation(baseOptions?: Apollo.MutationHookOptions<ScheduleRestoreDatabaseBackupMutation, ScheduleRestoreDatabaseBackupMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ScheduleRestoreDatabaseBackupMutation, ScheduleRestoreDatabaseBackupMutationVariables>(ScheduleRestoreDatabaseBackupDocument, options);
-      }
-export type ScheduleRestoreDatabaseBackupMutationHookResult = ReturnType<typeof useScheduleRestoreDatabaseBackupMutation>;
-export type ScheduleRestoreDatabaseBackupMutationResult = Apollo.MutationResult<ScheduleRestoreDatabaseBackupMutation>;
-export type ScheduleRestoreDatabaseBackupMutationOptions = Apollo.BaseMutationOptions<ScheduleRestoreDatabaseBackupMutation, ScheduleRestoreDatabaseBackupMutationVariables>;
 export const UpdateRemoteAppUserDocument = gql`
     mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: {id: $id}, _set: $user) {

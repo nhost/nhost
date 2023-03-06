@@ -11,7 +11,7 @@ import {
 } from '@/utils/settings/resourceSettingsValidationSchema';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-export interface ResourceFormFragmentProps {
+export interface ServiceResourcesFormFragmentProps {
   /**
    * The title of the form fragment.
    */
@@ -36,12 +36,12 @@ export interface ResourceFormFragmentProps {
   >;
 }
 
-export default function ResourceFormFragment({
+export default function ServiceResourcesFormFragment({
   title,
   description,
   cpuKey,
   memoryKey,
-}: ResourceFormFragmentProps) {
+}: ServiceResourcesFormFragmentProps) {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
