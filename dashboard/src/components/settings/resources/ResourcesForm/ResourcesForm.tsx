@@ -9,14 +9,21 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
+import getServerError from '@/utils/settings/getServerError';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
-import { useGetResourcesQuery } from '@/utils/__generated__/graphql';
+import {
+  GetResourcesDocument,
+  useGetResourcesQuery,
+  useUpdateConfigMutation,
+} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 function getServiceResources(
@@ -37,6 +44,10 @@ export default function ResourcesForm() {
     variables: {
       appId: currentApplication?.id,
     },
+  });
+
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetResourcesDocument],
   });
 
   const databaseResources = getServiceResources(data, 'postgres');
@@ -73,7 +84,7 @@ export default function ResourcesForm() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
-  function handleSubmit(formValues: ResourceSettingsFormValues) {
+  async function handleSubmit(formValues: ResourceSettingsFormValues) {
     setValidationError(null);
 
     const { cpu: unallocatedCPU, memory: unallocatedMemory } =
@@ -82,7 +93,7 @@ export default function ResourcesForm() {
 
     if (hasUnusedResources) {
       const unusedResourceMessage = [
-        unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
+        unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
         unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
       ]
         .filter(Boolean)
@@ -97,7 +108,65 @@ export default function ResourcesForm() {
       return;
     }
 
-    console.log(formValues);
+    const updateConfigPromise = updateConfig({
+      variables: {
+        appId: currentApplication?.id,
+        config: {
+          postgres: {
+            resources: {
+              compute: {
+                cpu: formValues.databaseCPU * 1000,
+                memory: formValues.databaseMemory * 1024,
+              },
+              replicas: 1,
+            },
+          },
+          hasura: {
+            resources: {
+              compute: {
+                cpu: formValues.hasuraCPU * 1000,
+                memory: formValues.hasuraMemory * 1024,
+              },
+              replicas: 1,
+            },
+          },
+          auth: {
+            resources: {
+              compute: {
+                cpu: formValues.authCPU * 1000,
+                memory: formValues.authMemory * 1024,
+              },
+              replicas: 1,
+            },
+          },
+          storage: {
+            resources: {
+              compute: {
+                cpu: formValues.storageCPU * 1000,
+                memory: formValues.storageMemory * 1024,
+              },
+              replicas: 1,
+            },
+          },
+        },
+      },
+    });
+
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Updating resources...',
+          success: 'Resources have been updated successfully.',
+          error: getServerError(
+            'An error occurred while updating resources. Please try again.',
+          ),
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The error has already been handled by the toast.
+    }
   }
 
   if (loading) {
@@ -130,7 +199,10 @@ export default function ResourcesForm() {
           showSwitch
           switchId="enabled"
           slotProps={{
-            submitButton: { disabled: !enabled || !isDirty },
+            submitButton: {
+              disabled: !enabled || !isDirty,
+              loading: formState.isSubmitting,
+            },
             // Note: We need a custom footer because of the pricing
             // information
             footer: { className: 'hidden' },

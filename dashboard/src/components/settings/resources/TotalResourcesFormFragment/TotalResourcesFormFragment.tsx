@@ -60,7 +60,7 @@ export default function TotalResourcesFormFragment({
     Object.keys(dirtyFields).filter((key) => key !== 'enabled').length > 0;
   const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
-    unallocatedCPU > 0 ? `${unallocatedCPU} CPU` : '',
+    unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
     unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
   ]
     .filter(Boolean)
@@ -131,7 +131,7 @@ export default function TotalResourcesFormFragment({
                 max: MAX_TOTAL_CPU,
                 step: RESOURCE_CPU_STEP,
               }}
-              label="CPU:"
+              label="vCPUs:"
               variant="inline"
               slotProps={{
                 label: { className: 'text-base font-normal' },
@@ -168,7 +168,7 @@ export default function TotalResourcesFormFragment({
             onChange={(_event, value) => handleCPUChange(value.toString())}
             max={MAX_TOTAL_CPU}
             step={RESOURCE_CPU_STEP}
-            aria-label="Total Available CPU Slider"
+            aria-label="Total Available vCPU Slider"
           />
         </Box>
 
@@ -179,7 +179,7 @@ export default function TotalResourcesFormFragment({
           >
             {hasUnusedResources ? (
               <>
-                <strong>Please use all available CPU and Memory</strong>
+                <strong>Please use all the available vCPUs and Memory</strong>
 
                 <p>
                   You now have {unusedResourceMessage} unused. Allocate it to
@@ -191,7 +191,8 @@ export default function TotalResourcesFormFragment({
                 <strong>All Set!</strong>
 
                 <p>
-                  You have successfully allocated all available CPU and Memory.
+                  You have successfully allocated all the available vCPUs and
+                  Memory.
                 </p>
               </>
             )}

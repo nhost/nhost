@@ -109,7 +109,7 @@ export default function ServiceResourcesFormFragment({
       <Box className="grid grid-flow-row gap-2">
         <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
-            Allocated CPU:{' '}
+            Allocated vCPUs:{' '}
             <span className="font-medium">{formValues[cpuKey]}</span>
           </Text>
 
@@ -126,7 +126,7 @@ export default function ServiceResourcesFormFragment({
           max={MAX_SERVICE_CPU}
           step={RESOURCE_CPU_STEP}
           allowed={allowedCPU}
-          aria-label={`${title} CPU Slider`}
+          aria-label={`${title} vCPU Slider`}
           marks
         />
       </Box>
