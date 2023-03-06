@@ -2,7 +2,7 @@
   "name": "@nhost/docgen",
   "description": "Documentation generator for classes and functions",
   "private": true,
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",

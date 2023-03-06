@@ -1,5 +1,14 @@
 # @nhost/vue
 
+## 1.13.13
+
+### Patch Changes
+
+- 7eac17a1: chore(deps): bump `@xstate/inspect` to 0.8.0
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
 ## 1.13.12
 
 ### Patch Changes

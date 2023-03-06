@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.0.2
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
 ## 2.0.1
 
 ### Patch Changes
