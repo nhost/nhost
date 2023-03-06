@@ -1,4 +1,6 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
 import SettingsContainer from '@/components/settings/SettingsContainer';
@@ -12,6 +14,7 @@ import Text from '@/ui/v2/Text';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
 } from '@/utils/CONSTANTS';
 import getServerError from '@/utils/settings/getServerError';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
@@ -45,6 +48,7 @@ function getServiceResources(
 export default function ResourcesForm() {
   const [validationError, setValidationError] = useState<Error | null>(null);
 
+  const { openDialog, closeDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { data, error, loading } = useGetResourcesQuery({
     variables: {
@@ -90,30 +94,18 @@ export default function ResourcesForm() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
+  const { watch, formState } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  const enabled = watch('enabled');
+  const totalAvailableCPU = watch('totalAvailableCPU');
+
+  const initialPrice =
+    RESOURCE_VCPU_PRICE * totalCPU + currentApplication.plan.price;
+  const updatedPrice =
+    RESOURCE_VCPU_PRICE * totalAvailableCPU + currentApplication.plan.price;
+
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
-    setValidationError(null);
-
-    const { cpu: unallocatedCPU, memory: unallocatedMemory } =
-      getUnallocatedResources(formValues);
-    const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
-
-    if (hasUnusedResources) {
-      const unusedResourceMessage = [
-        unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
-        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
-      ]
-        .filter(Boolean)
-        .join(' and ');
-
-      setValidationError(
-        new Error(
-          `You now have ${unusedResourceMessage} unused. Allocate it to any of the services before saving.`,
-        ),
-      );
-
-      return;
-    }
-
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentApplication?.id,
@@ -175,6 +167,50 @@ export default function ResourcesForm() {
     }
   }
 
+  function handleConfirm(formValues: ResourceSettingsFormValues) {
+    setValidationError(null);
+
+    const { cpu: unallocatedCPU, memory: unallocatedMemory } =
+      getUnallocatedResources(formValues);
+    const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
+
+    if (hasUnusedResources) {
+      const unusedResourceMessage = [
+        unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
+        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
+      ]
+        .filter(Boolean)
+        .join(' and ');
+
+      setValidationError(
+        new Error(
+          `You now have ${unusedResourceMessage} unused. Allocate it to any of the services before saving.`,
+        ),
+      );
+
+      return;
+    }
+
+    openDialog({
+      title: 'Confirm Resources',
+      component: (
+        <ResourcesConfirmationDialog
+          updatedResources={{
+            cpu: formValues.totalAvailableCPU,
+            memory: formValues.totalAvailableMemory,
+          }}
+          onCancel={closeDialog}
+          onSubmit={() => handleSubmit(formValues)}
+        />
+      ),
+      props: {
+        titleProps: {
+          className: 'justify-center',
+        },
+      },
+    });
+  }
+
   if (loading) {
     return (
       <ActivityIndicator
@@ -189,15 +225,9 @@ export default function ResourcesForm() {
     throw error;
   }
 
-  const { watch, formState } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  const initialPrice = 50 * totalCPU + 25;
-  const updatedPrice = 50 * watch('totalAvailableCPU') + 25;
-  const enabled = watch('enabled');
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleConfirm}>
         <SettingsContainer
           title="Resources"
           description="See how much resources you have available and customise usage on this page."
@@ -264,7 +294,9 @@ export default function ResourcesForm() {
                 <Box className="flex flex-row items-center gap-4">
                   <Text>
                     Total cost:{' '}
-                    <span className="font-medium">${updatedPrice}/mo</span>
+                    <span className="font-medium">
+                      ${updatedPrice.toFixed(2)}/mo
+                    </span>
                   </Text>
 
                   <Button

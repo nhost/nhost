@@ -1,3 +1,4 @@
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
@@ -7,6 +8,7 @@ import Text from '@/ui/v2/Text';
 import {
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_MEMORY_RATIO,
+  RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
 } from '@/utils/CONSTANTS';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
@@ -36,6 +38,7 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
 export default function TotalResourcesFormFragment({
   initialPrice,
 }: TotalResourcesFormFragmentProps) {
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { dirtyFields } = useFormState<ResourceSettingsFormValues>();
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
@@ -51,7 +54,9 @@ export default function TotalResourcesFormFragment({
     formValues.authMemory +
     formValues.storageMemory;
 
-  const updatedPrice = 50 * formValues.totalAvailableCPU + 25;
+  const updatedPrice =
+    RESOURCE_VCPU_PRICE * formValues.totalAvailableCPU +
+    currentApplication.plan.price;
 
   const { cpu: unallocatedCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
@@ -110,11 +115,11 @@ export default function TotalResourcesFormFragment({
             {initialPrice !== updatedPrice && (
               <Text className="flex flex-row items-center justify-end gap-2">
                 <Text component="span" color="secondary">
-                  ${initialPrice}/mo
+                  ${initialPrice.toFixed(2)}/mo
                 </Text>
                 <ArrowRightIcon />
                 <Text component="span" className="font-medium">
-                  ${updatedPrice}/mo
+                  ${updatedPrice.toFixed(2)}/mo
                 </Text>
               </Text>
             )}

@@ -49,3 +49,10 @@ export const RESOURCE_VCPU_MULTIPLIER = 1000;
  * in GiB.
  */
 export const RESOURCE_MEMORY_MULTIPLIER = 1024;
+
+/**
+ * Price per vCPU.
+ *
+ * @remarks This will be moved to the backend in the future.
+ */
+export const RESOURCE_VCPU_PRICE = 50;

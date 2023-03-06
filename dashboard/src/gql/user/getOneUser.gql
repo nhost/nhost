@@ -37,6 +37,7 @@ fragment Project on apps {
     id
     name
     isFree
+    price
   }
   githubRepository {
     fullName
