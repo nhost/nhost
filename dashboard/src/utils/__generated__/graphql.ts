@@ -2275,6 +2275,7 @@ export type Apps = {
   /** An object relationship */
   plan: Plans;
   planId: Scalars['uuid'];
+  postgresPassword: Scalars['String'];
   providersUpdated?: Maybe<Scalars['Boolean']>;
   /** An object relationship */
   region: Regions;
@@ -2509,6 +2510,7 @@ export type Apps_Bool_Exp = {
   paused?: InputMaybe<Boolean_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planId?: InputMaybe<Uuid_Comparison_Exp>;
+  postgresPassword?: InputMaybe<String_Comparison_Exp>;
   providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -2577,6 +2579,7 @@ export type Apps_Insert_Input = {
   paused?: InputMaybe<Scalars['Boolean']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planId?: InputMaybe<Scalars['uuid']>;
+  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
@@ -2603,6 +2606,7 @@ export type Apps_Max_Fields = {
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
+  postgresPassword?: Maybe<Scalars['String']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
@@ -2625,6 +2629,7 @@ export type Apps_Max_Order_By = {
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
+  postgresPassword?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
@@ -2648,6 +2653,7 @@ export type Apps_Min_Fields = {
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
+  postgresPassword?: Maybe<Scalars['String']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
@@ -2670,6 +2676,7 @@ export type Apps_Min_Order_By = {
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
+  postgresPassword?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
@@ -2727,6 +2734,7 @@ export type Apps_Order_By = {
   paused?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planId?: InputMaybe<Order_By>;
+  postgresPassword?: InputMaybe<Order_By>;
   providersUpdated?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
@@ -2781,6 +2789,8 @@ export enum Apps_Select_Column {
   Paused = 'paused',
   /** column name */
   PlanId = 'planId',
+  /** column name */
+  PostgresPassword = 'postgresPassword',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
@@ -2841,6 +2851,7 @@ export type Apps_Set_Input = {
   /** whether or not this app is paused */
   paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
+  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -2910,6 +2921,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   /** whether or not this app is paused */
   paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
+  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -2963,6 +2975,8 @@ export enum Apps_Update_Column {
   Paused = 'paused',
   /** column name */
   PlanId = 'planId',
+  /** column name */
+  PostgresPassword = 'postgresPassword',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
