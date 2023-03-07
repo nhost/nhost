@@ -40,7 +40,7 @@ export class NhostFunctionsClient {
 
   async call<T = unknown, D = any>(
     url: string,
-    data: D,
+    data: D | null,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>>
 
