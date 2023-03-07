@@ -21,6 +21,7 @@ export default function createTheme(mode: PaletteMode) {
       },
       h2: {
         fontSize: '1.625rem',
+        lineHeight: '2.375rem',
         fontWeight: 500,
       },
       h3: {
@@ -30,6 +31,7 @@ export default function createTheme(mode: PaletteMode) {
       },
       h4: {
         fontSize: '1rem',
+        lineHeight: '1.375rem',
         fontWeight: 500,
       },
       subtitle1: {
