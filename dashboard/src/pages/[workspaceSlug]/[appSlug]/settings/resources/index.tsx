@@ -11,7 +11,7 @@ export default function ResourceSettingsPage() {
   if (currentApplication.plan.isFree) {
     return (
       <UnlockFeatureByUpgrading
-        message="Unlock SMTP settings by upgrading your project to the Pro plan."
+        message="Unlock Resource settings by upgrading your project to the Pro plan."
         className="mt-4"
       />
     );
