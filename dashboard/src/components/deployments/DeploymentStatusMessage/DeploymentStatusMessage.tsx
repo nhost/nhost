@@ -45,14 +45,14 @@ export default function DeploymentStatusMessage({
 
   if (!isDeployingToProduction && deployment?.deploymentEndedAt) {
     return (
-      <span className="flex flex-row">
+      <span className="grid grid-flow-col">
         <Avatar
           component="span"
           name={deployment.commitUserName}
           avatarUrl={deployment.commitUserAvatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
-        <Text component="span" className="self-center text-sm">
+        <Text component="span" className="self-center truncate text-sm">
           {deployment.commitUserName} deployed{' '}
           {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
             addSuffix: true,
