@@ -35,7 +35,10 @@ const StyledInnerSlider = styled(MaterialSlider)(({ theme }) => ({
     borderRadius: 0,
     border: 'none',
     height: 6,
-    backgroundColor: alpha(theme.palette.primary.main, 0.15),
+    backgroundColor:
+      theme.palette.mode === 'light'
+        ? alpha(theme.palette.primary.main, 0.1)
+        : alpha(theme.palette.primary.main, 0.15),
   },
   [`& .${materialSliderClasses.markActive}`]: {
     backgroundColor: alpha(theme.palette.primary.main, 0.5),
