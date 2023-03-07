@@ -94,10 +94,7 @@ export default function SMTPSettingsPage() {
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UnlockFeatureByUpgrading
-          message="Unlock SMTP settings by upgrading your project to the Pro plan."
-          className="mt-4"
-        />
+        <UnlockFeatureByUpgrading message="Unlock SMTP settings by upgrading your project to the Pro plan." />
       </Container>
     );
   }

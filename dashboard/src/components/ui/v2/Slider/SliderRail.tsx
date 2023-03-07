@@ -26,9 +26,6 @@ const StyledInnerSlider = styled(MaterialSlider)(({ theme }) => ({
   height: 6,
   padding: 0,
   color: theme.palette.primary.main,
-  [`& .${materialSliderClasses.thumb}`]: {
-    display: 'none',
-  },
   [`& .${materialSliderClasses.rail}`]: {
     height: 6,
     opacity: 1,
@@ -46,38 +43,21 @@ const StyledInnerSlider = styled(MaterialSlider)(({ theme }) => ({
   },
 }));
 
-export interface SliderRailProps extends MaterialSliderProps {
-  /**
-   * The maximum allowed value of the slider. The rail will be colored up to
-   * this value.
-   */
-  allowed?: number;
-  /**
-   * The minimum value of the slider.
-   */
-  min?: number;
-  /**
-   * The maximum value of the slider.
-   */
-  max?: number;
-}
+export interface SliderRailProps extends MaterialSliderProps {}
 
 export default function SliderRail({
-  allowed,
-  min,
-  max,
+  value,
   ...railAttributes
 }: SliderRailProps) {
   return function Rail(props: BoxProps) {
     return (
       <StyledRail component="span" {...props}>
-        {allowed > 0 && (
+        {value > 0 && (
           <StyledInnerSlider
-            min={min}
-            max={max}
-            value={allowed}
-            disabled
             {...railAttributes}
+            value={value}
+            disabled
+            components={{ Thumb: () => null }}
           />
         )}
       </StyledRail>

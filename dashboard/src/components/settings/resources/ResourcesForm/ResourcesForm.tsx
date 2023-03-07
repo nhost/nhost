@@ -31,6 +31,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { twMerge } from 'tailwind-merge';
 
 function getServiceResources(
   data: GetResourcesQuery,
@@ -300,7 +301,7 @@ export default function ResourcesForm() {
               )}
             </>
           ) : (
-            <Box className="px-4 pb-4">
+            <Box className={twMerge('px-4', (enabled || isDirty) && 'pb-4')}>
               <Alert className="text-left">
                 Enable this feature to access custom resource allocation for
                 your services.

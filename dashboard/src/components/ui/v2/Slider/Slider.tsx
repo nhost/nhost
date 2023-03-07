@@ -5,7 +5,6 @@ import MaterialSlider, {
 } from '@mui/material/Slider';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
-import type { SliderRailProps } from './SliderRail';
 import SliderRail from './SliderRail';
 
 export interface SliderProps
@@ -14,7 +13,7 @@ export interface SliderProps
    * The maximum allowed value of the slider. The rail will be colored up to
    * this value.
    */
-  allowed?: SliderRailProps['allowed'];
+  allowed?: number;
 }
 
 const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
@@ -45,22 +44,23 @@ const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
   },
   [`& .${materialSliderClasses.thumbColorPrimary}`]: {
     backgroundColor: theme.palette.primary.main,
-    '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
-      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
-    },
+    [`&:focus, &:hover, &.${materialSliderClasses.active}, &.${materialSliderClasses.focusVisible}`]:
+      {
+        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
+      },
   },
 }));
 
 function Slider(
   { allowed, components, ...props }: SliderProps,
-  ref: ForwardedRef<HTMLDivElement>,
+  ref: ForwardedRef<HTMLInputElement>,
 ) {
   return (
     <StyledSlider
       ref={ref}
       components={{
         Rail: SliderRail({
-          allowed,
+          value: allowed,
           max: props.max,
           marks: props.marks,
           step: props.step,
