@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.0.6
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
 ## 0.0.5
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [889ee658]
+- Updated dependencies [850a049c]
+  - @nhost/hasura-storage-js@2.0.3
+  - @nhost/graphql-js@0.0.5
+  - @nhost/hasura-auth-js@2.0.2
+
 ## 2.0.6
 
 ### Patch Changes
