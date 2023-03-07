@@ -25,6 +25,7 @@ export default function createTheme(mode: PaletteMode) {
       },
       h3: {
         fontSize: '1.125rem',
+        lineHeight: '1.5rem',
         fontWeight: 500,
       },
       h4: {
