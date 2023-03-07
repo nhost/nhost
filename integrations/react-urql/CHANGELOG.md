@@ -1,5 +1,13 @@
 # @nhost/react-urql
 
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
 ## 2.0.6
 
 ### Patch Changes

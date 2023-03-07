@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 0.12.3
+
+### Patch Changes
+
+- 2b1338f7: chore(dashboard): bump `turbo` to 1.8.3
+- 5223ee93: fix(dashboard): show correct deployment status on the main page
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nextjs@1.13.13
+  - @nhost/react-apollo@5.0.8
+
 ## 0.12.2
 
 ### Patch Changes
