@@ -76,7 +76,7 @@ module.exports = {
           },
           {
             group: ['@testing-library/react*'],
-            message: 'Please use @/utils/testUtils instead.',
+            message: 'Please use @/tests/testUtils instead.',
           },
         ],
       },

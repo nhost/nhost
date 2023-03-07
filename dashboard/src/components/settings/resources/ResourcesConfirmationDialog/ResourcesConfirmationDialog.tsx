@@ -35,7 +35,7 @@ export default function ResourcesConfirmationDialog({
   if (!currentApplication) {
     return (
       <Alert severity="error">
-        Couldn&apos;t be load the plan for this project. Please try again.
+        Couldn&apos;t load the plan for this project. Please try again.
       </Alert>
     );
   }

@@ -1,4 +1,4 @@
-import { render, screen } from '@/utils/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import type { Column } from 'react-table';
 import { expect, test } from 'vitest';
 import DataGrid from './DataGrid';

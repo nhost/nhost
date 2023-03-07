@@ -1,8 +1,8 @@
 import { UserDataProvider } from '@/context/workspace1-context';
+import { render, screen, waitForElementToBeRemoved } from '@/tests/testUtils';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import { render, screen, waitForElementToBeRemoved } from '@/utils/testUtils';
 import { graphql, rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';

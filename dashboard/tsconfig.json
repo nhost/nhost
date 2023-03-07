@@ -19,6 +19,7 @@
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "paths": {
+      "@/tests/*": ["tests/*"],
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
       "@/utils/*": ["utils/*"],
