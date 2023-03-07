@@ -51,7 +51,7 @@ beforeAll(() => {
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-test('should show a message that the feature must be enabled if no previous data is available', async () => {
+test('should show an empty state message that the feature must be enabled if no data is available', async () => {
   server.use(resourcesUnavailableQuery);
 
   render(<ResourcesForm />);
@@ -77,17 +77,15 @@ test('should show the sliders if the switch is enabled', async () => {
   expect(screen.getAllByRole('slider')).toHaveLength(9);
 });
 
-test('should not show the message if there is data available', async () => {
+test('should not show an empty state message if there is data available', async () => {
   render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(9);
-  expect(screen.getByRole('spinbutton', { name: /^vcpus:$/i })).toHaveValue(8);
-  expect(screen.getByRole('spinbutton', { name: /^memory:$/i })).toHaveValue(
-    16,
-  );
+  expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
+  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16 gib/i);
 });
 
 test('should show a warning message if not all the resources are allocated', async () => {
@@ -95,31 +93,18 @@ test('should show a warning message if not all the resources are allocated', asy
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
-  // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
-  fireEvent.change(
-    screen.getByRole('slider', {
-      name: /total available vcpu slider/i,
-    }),
-    { target: { value: 9 } },
-  );
+  const slider = screen.getByRole('slider', {
+    name: /total available vcpu slider/i,
+  });
 
-  expect(screen.getByRole('spinbutton', { name: /^vcpus:$/i })).toHaveValue(9);
-  expect(screen.getByRole('spinbutton', { name: /^memory:$/i })).toHaveValue(
-    18,
-  );
+  // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
+  fireEvent.input(slider, { target: { value: 9 } });
+  fireEvent.change(slider, { target: { value: 9 } });
+
+  expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 9/i);
+  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 18 gib/i);
+
   expect(
     screen.getByText(/you now have 1 vcpus and 2 gib of memory unused./i),
   ).toBeInTheDocument();
-
-  fireEvent.change(screen.getByRole('spinbutton', { name: /^vcpus:$/i }), {
-    target: { value: 8 },
-  });
-
-  expect(screen.getByRole('spinbutton', { name: /^vcpus:$/i })).toHaveValue(8);
-  expect(screen.getByRole('spinbutton', { name: /^memory:$/i })).toHaveValue(
-    16,
-  );
-  expect(
-    screen.getByRole('slider', { name: /total available vcpu slider/i }),
-  ).toHaveValue('8');
 });
