@@ -40,13 +40,14 @@ export const RESOURCE_MEMORY_STEP =
   RESOURCE_VCPU_STEP * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
- * The infrastructure uses a multiplier of 1000 to represent vCPU cores.
+ * The infrastructure uses a multiplier of 1000 to represent vCPU cores, but the
+ * vCPU values are displayed in smaller units.
  */
 export const RESOURCE_VCPU_MULTIPLIER = 1000;
 
 /**
- * The infrastructure uses MiB to represent memory, but this value is managed
- * in GiB.
+ * The infrastructure uses MiB to represent memory, but the memory values are
+ * displayed in GiB.
  */
 export const RESOURCE_MEMORY_MULTIPLIER = 1024;
 

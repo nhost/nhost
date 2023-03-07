@@ -189,7 +189,7 @@ export default function ResourcesForm() {
     if (hasUnusedResources) {
       const unusedResourceMessage = [
         unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
-        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
+        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of Memory` : '',
       ]
         .filter(Boolean)
         .join(' and ');
@@ -293,7 +293,7 @@ export default function ResourcesForm() {
                     severity="error"
                     className="flex flex-col gap-2 text-left"
                   >
-                    <strong>Please use all available CPU and Memory</strong>
+                    <strong>Please use all the available CPU and Memory</strong>
 
                     <p>{validationError.message}</p>
                   </Alert>

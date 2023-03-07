@@ -2,11 +2,9 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
-import Input from '@/ui/v2/Input';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import {
-  RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_MEMORY_RATIO,
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
@@ -14,7 +12,6 @@ import {
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
 import {
-  MAX_TOTAL_MEMORY,
   MAX_TOTAL_VCPU,
   MIN_TOTAL_MEMORY,
   MIN_TOTAL_VCPU,
@@ -87,22 +84,6 @@ export default function TotalResourcesFormFragment({
     setValue('totalSelectedMemory', updatedMemory, { shouldDirty: true });
   }
 
-  function handleMemoryChange(value: string) {
-    const updatedMemory = parseFloat(value);
-
-    if (
-      Number.isNaN(updatedMemory) ||
-      updatedMemory < Math.max(1, allocatedMemory)
-    ) {
-      return;
-    }
-
-    setValue('totalSelectedMemory', updatedMemory, { shouldDirty: true });
-    setValue('totalSelectedCPU', updatedMemory / RESOURCE_VCPU_MEMORY_RATIO, {
-      shouldDirty: true,
-    });
-  }
-
   return (
     <Box className="px-4 pb-4">
       <Box className="rounded-md border">
@@ -126,46 +107,19 @@ export default function TotalResourcesFormFragment({
           </Box>
 
           <Box className="flex flex-row items-center justify-start gap-4">
-            <Input
-              id="totalSelectedCPU"
-              value={formValues.totalSelectedCPU}
-              onChange={(event) => handleCPUChange(event.target.value)}
-              type="number"
-              inputProps={{
-                min: Math.max(MIN_TOTAL_VCPU, allocatedCPU),
-                max: MAX_TOTAL_VCPU,
-                step: RESOURCE_VCPU_STEP,
-              }}
-              label="vCPUs:"
-              variant="inline"
-              slotProps={{
-                label: { className: 'text-base font-normal' },
-                formControl: { className: 'flex flex-row gap-2' },
-                inputWrapper: { className: 'w-auto' },
-                input: { className: 'w-[100px]' },
-              }}
-            />
+            <Text color="secondary">
+              vCPUs:{' '}
+              <Text component="span" color="primary" className="font-medium">
+                {formValues.totalSelectedCPU}
+              </Text>
+            </Text>
 
-            <Input
-              id="totalSelectedMemory"
-              value={formValues.totalSelectedMemory}
-              onChange={(event) => handleMemoryChange(event.target.value)}
-              type="number"
-              inputProps={{
-                min: Math.max(MIN_TOTAL_MEMORY, allocatedMemory),
-                max: MAX_TOTAL_MEMORY,
-                step: RESOURCE_MEMORY_STEP,
-              }}
-              label="Memory:"
-              variant="inline"
-              slotProps={{
-                label: { className: 'text-base font-normal' },
-                formControl: { className: 'flex flex-row gap-2' },
-                inputWrapper: { className: 'w-auto' },
-                input: { className: 'w-[110px]' },
-              }}
-              endAdornment={<Text className="pr-2 font-medium">GiB</Text>}
-            />
+            <Text color="secondary">
+              Memory:{' '}
+              <Text component="span" color="primary" className="font-medium">
+                {formValues.totalSelectedMemory} GiB
+              </Text>
+            </Text>
           </Box>
 
           <StyledAvailableCpuSlider
@@ -180,7 +134,7 @@ export default function TotalResourcesFormFragment({
         {showAlert && (
           <Alert
             severity={hasUnusedResources ? 'warning' : 'info'}
-            className="flex flex-col gap-2 rounded-t-none rounded-b-[5px] text-left"
+            className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
           >
             {hasUnusedResources ? (
               <>
@@ -193,7 +147,7 @@ export default function TotalResourcesFormFragment({
               </>
             ) : (
               <>
-                <strong>All Set!</strong>
+                <strong>You&apos;re All Set</strong>
 
                 <p>
                   You have successfully allocated all the available vCPUs and

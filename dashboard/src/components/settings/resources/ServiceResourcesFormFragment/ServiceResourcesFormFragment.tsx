@@ -112,7 +112,7 @@ export default function ServiceResourcesFormFragment({
             <span className="font-medium">{formValues[cpuKey]}</span>
           </Text>
 
-          {remainingCPU > 0 && (
+          {remainingCPU > 0 && formValues[cpuKey] < MAX_SERVICE_VCPU && (
             <Text className="text-sm">
               <span className="font-medium">{remainingCPU} CPU</span> remaining
             </Text>
@@ -140,7 +140,7 @@ export default function ServiceResourcesFormFragment({
           {remainingMemory > 0 && formValues[memoryKey] < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">
               <span className="font-medium">
-                {remainingMemory} GiB of memory
+                {remainingMemory} GiB of Memory
               </span>{' '}
               remaining
             </Text>
