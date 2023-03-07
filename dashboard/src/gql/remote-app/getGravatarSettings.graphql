@@ -1,7 +1,0 @@
-query getGravatarSettings($id: uuid!) {
-  app(id: $id) {
-    authGravatarEnabled
-    authGravatarDefault
-    authGravatarRating
-  }
-}
