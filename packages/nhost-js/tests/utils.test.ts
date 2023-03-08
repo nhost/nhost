@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { buildUrl, LOCALHOST_REGEX, urlFromSubdomain } from '../src/utils/helpers'
 
 describe('urlFromParams', () => {
@@ -53,6 +53,38 @@ describe('urlFromParams', () => {
         const url = urlFromSubdomain({ subdomain: 'https://localhost:1337' }, 'auth')
 
         expect(url).toBe('https://localhost:1337/v1/auth')
+      })
+    })
+
+    describe('"local" without a custom port', () => {
+      it('should return the full authentication url', async () => {
+        const url = urlFromSubdomain({ subdomain: 'local' }, 'auth')
+
+        expect(url).toBe('https://local.auth.nhost.run/v1')
+      })
+
+      it('should return the full storage url', async () => {
+        const url = urlFromSubdomain({ subdomain: 'local' }, 'storage')
+
+        expect(url).toBe('https://local.storage.nhost.run/v1')
+      })
+
+      it('should return the full GraphQL url', async () => {
+        const url = urlFromSubdomain({ subdomain: 'local' }, 'graphql')
+
+        expect(url).toBe('https://local.graphql.nhost.run/v1')
+      })
+
+      it('should return the full functions url', async () => {
+        const url = urlFromSubdomain({ subdomain: 'local' }, 'functions')
+
+        expect(url).toBe('https://local.functions.nhost.run/v1')
+      })
+
+      it('should return the full Hasura url', async () => {
+        const url = urlFromSubdomain({ subdomain: 'local' }, 'hasura')
+
+        expect(url).toBe('https://local.hasura.nhost.run/v1')
       })
     })
 

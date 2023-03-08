@@ -12,7 +12,7 @@ import generateAppServiceUrl, {
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { LOCAL_HASURA_URL } from '@/utils/env';
+import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import Image from 'next/image';
 
 interface HasuraDataProps {
@@ -30,7 +30,7 @@ export function HasuraData({ close }: HasuraDataProps) {
 
   const hasuraUrl =
     process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
-      ? `${LOCAL_HASURA_URL}/console`
+      ? `${getHasuraConsoleServiceUrl()}`
       : generateAppServiceUrl(
           currentApplication?.subdomain,
           currentApplication?.region.awsName,
