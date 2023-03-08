@@ -10,11 +10,11 @@ import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettin
 export default function getUnallocatedResources(
   formValues: Partial<ResourceSettingsFormValues>,
 ) {
-  const allocatedCPU =
-    formValues.databaseCPU +
-    formValues.hasuraCPU +
-    formValues.authCPU +
-    formValues.storageCPU;
+  const allocatedVCPU =
+    formValues.databaseVCPU +
+    formValues.hasuraVCPU +
+    formValues.authVCPU +
+    formValues.storageVCPU;
 
   const allocatedMemory =
     formValues.databaseMemory +
@@ -23,7 +23,7 @@ export default function getUnallocatedResources(
     formValues.storageMemory;
 
   return {
-    cpu: formValues.totalSelectedCPU - allocatedCPU,
-    memory: formValues.totalSelectedMemory - allocatedMemory,
+    vcpu: formValues.totalAvailableVCPU - allocatedVCPU,
+    memory: formValues.totalAvailableMemory - allocatedMemory,
   };
 }

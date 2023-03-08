@@ -11,7 +11,7 @@ export interface ResourcesConfirmationDialogProps {
    * Price of the new plan.
    */
   updatedResources: {
-    cpu: number;
+    vcpu: number;
     memory: number;
   };
   /**
@@ -30,7 +30,7 @@ export default function ResourcesConfirmationDialog({
   onSubmit,
 }: ResourcesConfirmationDialogProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const updatedPrice = RESOURCE_VCPU_PRICE * updatedResources.cpu;
+  const updatedPrice = RESOURCE_VCPU_PRICE * updatedResources.vcpu;
 
   if (!currentApplication) {
     return (
@@ -58,7 +58,7 @@ export default function ResourcesConfirmationDialog({
           <Box className="grid grid-flow-row gap-0.5">
             <Text className="font-medium">Resources</Text>
             <Text className="text-xs" color="secondary">
-              {updatedResources.cpu} vCPUs + {updatedResources.memory} GiB of
+              {updatedResources.vcpu} vCPUs + {updatedResources.memory} GiB of
               Memory
             </Text>
           </Box>

@@ -41,10 +41,10 @@ export default function TotalResourcesFormFragment({
   const formValues = useWatch<ResourceSettingsFormValues>();
 
   const allocatedCPU =
-    formValues.databaseCPU +
-    formValues.hasuraCPU +
-    formValues.authCPU +
-    formValues.storageCPU;
+    formValues.databaseVCPU +
+    formValues.hasuraVCPU +
+    formValues.authVCPU +
+    formValues.storageVCPU;
   const allocatedMemory =
     formValues.databaseMemory +
     formValues.hasuraMemory +
@@ -52,17 +52,17 @@ export default function TotalResourcesFormFragment({
     formValues.storageMemory;
 
   const updatedPrice =
-    RESOURCE_VCPU_PRICE * formValues.totalSelectedCPU +
+    RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU +
     currentApplication.plan.price;
 
-  const { cpu: unallocatedCPU, memory: unallocatedMemory } =
+  const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
 
   const showAlert =
     Object.keys(dirtyFields).filter((key) => key !== 'enabled').length > 0;
-  const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
+  const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
-    unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
+    unallocatedVCPU > 0 ? `${unallocatedVCPU} vCPUs` : '',
     unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
   ]
     .filter(Boolean)
@@ -80,8 +80,8 @@ export default function TotalResourcesFormFragment({
       return;
     }
 
-    setValue('totalSelectedCPU', updatedCPU, { shouldDirty: true });
-    setValue('totalSelectedMemory', updatedMemory, { shouldDirty: true });
+    setValue('totalAvailableVCPU', updatedCPU, { shouldDirty: true });
+    setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
   }
 
   return (
@@ -110,20 +110,20 @@ export default function TotalResourcesFormFragment({
             <Text color="secondary">
               vCPUs:{' '}
               <Text component="span" color="primary" className="font-medium">
-                {formValues.totalSelectedCPU}
+                {formValues.totalAvailableVCPU}
               </Text>
             </Text>
 
             <Text color="secondary">
               Memory:{' '}
               <Text component="span" color="primary" className="font-medium">
-                {formValues.totalSelectedMemory} GiB
+                {formValues.totalAvailableMemory} GiB
               </Text>
             </Text>
           </Box>
 
           <StyledAvailableCpuSlider
-            value={formValues.totalSelectedCPU}
+            value={formValues.totalAvailableVCPU}
             onChange={(_event, value) => handleCPUChange(value.toString())}
             max={MAX_TOTAL_VCPU}
             step={RESOURCE_VCPU_STEP}

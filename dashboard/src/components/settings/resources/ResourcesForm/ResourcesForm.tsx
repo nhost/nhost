@@ -33,14 +33,14 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
-function getServiceResources(
+function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
   const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
 
   return {
-    cpu: (cpu || 0) / RESOURCE_VCPU_MULTIPLIER,
+    vcpu: (cpu || 0) / RESOURCE_VCPU_MULTIPLIER,
     memory: (memory || 0) / RESOURCE_MEMORY_MULTIPLIER,
   };
 }
@@ -61,36 +61,36 @@ export default function ResourcesForm() {
     refetchQueries: [GetResourcesDocument],
   });
 
-  const databaseResources = getServiceResources(data, 'postgres');
-  const hasuraResources = getServiceResources(data, 'hasura');
-  const authResources = getServiceResources(data, 'auth');
-  const storageResources = getServiceResources(data, 'storage');
+  const initialDatabaseResources = getInitialServiceResources(data, 'postgres');
+  const initialHasuraResources = getInitialServiceResources(data, 'hasura');
+  const initialAuthResources = getInitialServiceResources(data, 'auth');
+  const initialStorageResources = getInitialServiceResources(data, 'storage');
 
-  const totalCPU =
-    databaseResources.cpu +
-    hasuraResources.cpu +
-    authResources.cpu +
-    storageResources.cpu;
+  const totalInitialVCPU =
+    initialDatabaseResources.vcpu +
+    initialHasuraResources.vcpu +
+    initialAuthResources.vcpu +
+    initialStorageResources.vcpu;
 
-  const totalMemory =
-    databaseResources.memory +
-    hasuraResources.memory +
-    authResources.memory +
-    storageResources.memory;
+  const totalInitialMemory =
+    initialDatabaseResources.memory +
+    initialHasuraResources.memory +
+    initialAuthResources.memory +
+    initialStorageResources.memory;
 
   const form = useForm<ResourceSettingsFormValues>({
     values: {
-      enabled: totalCPU > 0 && totalMemory > 0,
-      totalSelectedCPU: totalCPU || 2,
-      totalSelectedMemory: totalMemory || 4,
-      databaseCPU: databaseResources.cpu || 0.5,
-      databaseMemory: databaseResources.memory || 1,
-      hasuraCPU: hasuraResources.cpu || 0.5,
-      hasuraMemory: hasuraResources.memory || 1,
-      authCPU: authResources.cpu || 0.5,
-      authMemory: authResources.memory || 1,
-      storageCPU: storageResources.cpu || 0.5,
-      storageMemory: storageResources.memory || 1,
+      enabled: totalInitialVCPU > 0 && totalInitialMemory > 0,
+      totalAvailableVCPU: totalInitialVCPU || 2,
+      totalAvailableMemory: totalInitialMemory || 4,
+      databaseVCPU: initialDatabaseResources.vcpu || 0.5,
+      databaseMemory: initialDatabaseResources.memory || 1,
+      hasuraVCPU: initialHasuraResources.vcpu || 0.5,
+      hasuraMemory: initialHasuraResources.memory || 1,
+      authVCPU: initialAuthResources.vcpu || 0.5,
+      authMemory: initialAuthResources.memory || 1,
+      storageVCPU: initialStorageResources.vcpu || 0.5,
+      storageMemory: initialStorageResources.memory || 1,
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
@@ -107,13 +107,12 @@ export default function ResourcesForm() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const enabled = watch('enabled');
-  const totalSelectedCPU = watch('totalSelectedCPU');
+  const totalAvailableVCPU = enabled ? watch('totalAvailableVCPU') : 0;
 
   const initialPrice =
-    RESOURCE_VCPU_PRICE * totalCPU + currentApplication.plan.price;
-  const updatedPrice = enabled
-    ? RESOURCE_VCPU_PRICE * totalSelectedCPU + currentApplication.plan.price
-    : currentApplication.plan.price;
+    RESOURCE_VCPU_PRICE * totalInitialVCPU + currentApplication.plan.price;
+  const updatedPrice =
+    RESOURCE_VCPU_PRICE * totalAvailableVCPU + currentApplication.plan.price;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -121,40 +120,51 @@ export default function ResourcesForm() {
         appId: currentApplication?.id,
         config: {
           postgres: {
-            resources: {
-              compute: {
-                cpu: formValues.databaseCPU * RESOURCE_VCPU_MULTIPLIER,
-                memory: formValues.databaseMemory * RESOURCE_MEMORY_MULTIPLIER,
-              },
-              replicas: 1,
-            },
+            resources: enabled
+              ? {
+                  compute: {
+                    cpu: formValues.databaseVCPU * RESOURCE_VCPU_MULTIPLIER,
+                    memory:
+                      formValues.databaseMemory * RESOURCE_MEMORY_MULTIPLIER,
+                  },
+                  replicas: 1,
+                }
+              : null,
           },
           hasura: {
-            resources: {
-              compute: {
-                cpu: formValues.hasuraCPU * RESOURCE_VCPU_MULTIPLIER,
-                memory: formValues.hasuraMemory * RESOURCE_MEMORY_MULTIPLIER,
-              },
-              replicas: 1,
-            },
+            resources: enabled
+              ? {
+                  compute: {
+                    cpu: formValues.hasuraVCPU * RESOURCE_VCPU_MULTIPLIER,
+                    memory:
+                      formValues.hasuraMemory * RESOURCE_MEMORY_MULTIPLIER,
+                  },
+                  replicas: 1,
+                }
+              : null,
           },
           auth: {
-            resources: {
-              compute: {
-                cpu: formValues.authCPU * RESOURCE_VCPU_MULTIPLIER,
-                memory: formValues.authMemory * RESOURCE_MEMORY_MULTIPLIER,
-              },
-              replicas: 1,
-            },
+            resources: enabled
+              ? {
+                  compute: {
+                    cpu: formValues.authVCPU * RESOURCE_VCPU_MULTIPLIER,
+                    memory: formValues.authMemory * RESOURCE_MEMORY_MULTIPLIER,
+                  },
+                  replicas: 1,
+                }
+              : null,
           },
           storage: {
-            resources: {
-              compute: {
-                cpu: formValues.storageCPU * RESOURCE_VCPU_MULTIPLIER,
-                memory: formValues.storageMemory * RESOURCE_MEMORY_MULTIPLIER,
-              },
-              replicas: 1,
-            },
+            resources: enabled
+              ? {
+                  compute: {
+                    cpu: formValues.storageVCPU * RESOURCE_VCPU_MULTIPLIER,
+                    memory:
+                      formValues.storageMemory * RESOURCE_MEMORY_MULTIPLIER,
+                  },
+                  replicas: 1,
+                }
+              : null,
           },
         },
       },
@@ -182,13 +192,13 @@ export default function ResourcesForm() {
   function handleConfirm(formValues: ResourceSettingsFormValues) {
     setValidationError(null);
 
-    const { cpu: unallocatedCPU, memory: unallocatedMemory } =
+    const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
       getUnallocatedResources(formValues);
-    const hasUnusedResources = unallocatedCPU > 0 || unallocatedMemory > 0;
+    const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
 
     if (hasUnusedResources) {
       const unusedResourceMessage = [
-        unallocatedCPU > 0 ? `${unallocatedCPU} vCPUs` : '',
+        unallocatedVCPU > 0 ? `${unallocatedVCPU} vCPUs` : '',
         unallocatedMemory > 0 ? `${unallocatedMemory} GiB of Memory` : '',
       ]
         .filter(Boolean)
@@ -208,8 +218,8 @@ export default function ResourcesForm() {
       component: (
         <ResourcesConfirmationDialog
           updatedResources={{
-            cpu: enabled ? formValues.totalSelectedCPU : 0,
-            memory: enabled ? formValues.totalSelectedMemory : 0,
+            vcpu: enabled ? formValues.totalAvailableVCPU : 0,
+            memory: enabled ? formValues.totalAvailableMemory : 0,
           }}
           onCancel={closeDialog}
           onSubmit={() => handleSubmit(formValues)}
@@ -263,28 +273,28 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="Database"
                 description="Manage how much resources you need for Database."
-                cpuKey="databaseCPU"
+                cpuKey="databaseVCPU"
                 memoryKey="databaseMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Hasura GraphQL"
                 description="Manage how much resources you need for Hasura GraphQL."
-                cpuKey="hasuraCPU"
+                cpuKey="hasuraVCPU"
                 memoryKey="hasuraMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Auth"
                 description="Manage how much resources you need for Auth."
-                cpuKey="authCPU"
+                cpuKey="authVCPU"
                 memoryKey="authMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Storage"
                 description="Manage how much resources you need for Storage."
-                cpuKey="storageCPU"
+                cpuKey="storageVCPU"
                 memoryKey="storageMemory"
               />
               {validationError && (
