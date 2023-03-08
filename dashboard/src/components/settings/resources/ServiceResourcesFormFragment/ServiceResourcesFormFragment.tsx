@@ -125,7 +125,7 @@ export default function ServiceResourcesFormFragment({
           max={MAX_SERVICE_VCPU}
           step={RESOURCE_VCPU_STEP}
           allowed={allowedCPU}
-          aria-label={`${title} vCPU Slider`}
+          aria-label={`${title} vCPU`}
           marks
         />
       </Box>
@@ -153,7 +153,7 @@ export default function ServiceResourcesFormFragment({
           max={MAX_SERVICE_MEMORY}
           step={RESOURCE_MEMORY_STEP}
           allowed={allowedMemory}
-          aria-label={`${title} Memory Slider`}
+          aria-label={`${title} Memory`}
           marks
         />
       </Box>

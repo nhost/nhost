@@ -51,7 +51,7 @@ export default function ResourcesConfirmationDialog({
           <Text className="font-medium">
             {currentApplication.plan.name} Plan
           </Text>
-          <Text>${currentApplication.plan.price.toFixed(2)}</Text>
+          <Text>${currentApplication.plan.price.toFixed(2)}/mo</Text>
         </Box>
 
         <Box className="grid grid-flow-col items-center justify-between gap-2">
@@ -62,7 +62,7 @@ export default function ResourcesConfirmationDialog({
               Memory
             </Text>
           </Box>
-          <Text>${updatedPrice.toFixed(2)}</Text>
+          <Text>${updatedPrice.toFixed(2)}/mo</Text>
         </Box>
 
         <Divider />
@@ -70,7 +70,7 @@ export default function ResourcesConfirmationDialog({
         <Box className="grid grid-flow-col justify-between gap-2">
           <Text className="font-medium">Total</Text>
           <Text>
-            ${(updatedPrice + currentApplication.plan.price).toFixed(2)}
+            ${(updatedPrice + currentApplication.plan.price).toFixed(2)}/mo
           </Text>
         </Box>
       </Box>

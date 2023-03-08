@@ -253,7 +253,7 @@ export default function ResourcesForm() {
             },
             // Note: We need a custom footer because of the pricing
             // information
-            footer: { className: 'hidden' },
+            footer: { className: 'hidden', 'aria-hidden': true },
           }}
         >
           {enabled ? (
@@ -293,7 +293,9 @@ export default function ResourcesForm() {
                     severity="error"
                     className="flex flex-col gap-2 text-left"
                   >
-                    <strong>Please use all the available CPU and Memory</strong>
+                    <strong>
+                      Please use all the available vCPUs and Memory
+                    </strong>
 
                     <p>{validationError.message}</p>
                   </Alert>

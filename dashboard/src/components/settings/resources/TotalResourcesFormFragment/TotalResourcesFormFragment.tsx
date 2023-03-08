@@ -127,7 +127,7 @@ export default function TotalResourcesFormFragment({
             onChange={(_event, value) => handleCPUChange(value.toString())}
             max={MAX_TOTAL_VCPU}
             step={RESOURCE_VCPU_STEP}
-            aria-label="Total Available vCPU Slider"
+            aria-label="Total Available vCPU"
           />
         </Box>
 

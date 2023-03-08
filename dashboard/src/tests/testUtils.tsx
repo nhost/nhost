@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-imports */
-import DialogProvider from '@/components/common/DialogProvider/DialogProvider';
+import DialogProvider from '@/components/common/DialogProvider';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
 import { WorkspaceProvider } from '@/context/workspace-context';

@@ -1,20 +1,38 @@
+import DialogProvider from '@/components/common/DialogProvider';
 import { UserDataProvider } from '@/context/workspace1-context';
 import { mockApplication, mockWorkspace } from '@/tests/mocks';
+import {
+  resourcesAvailableQuery,
+  resourcesUnavailableQuery,
+  resourcesUpdatedQuery,
+} from '@/tests/msw/mocks/graphql/resourceSettingsQuery';
+import updateConfigMutation from '@/tests/msw/mocks/graphql/updateConfigMutation';
 import {
   fireEvent,
   render,
   screen,
   waitForElementToBeRemoved,
+  within,
 } from '@/tests/testUtils';
-import {
-  resourcesAvailableQuery,
-  resourcesUnavailableQuery,
-} from '@/utils/msw/mocks/graphql/resourceSettingsQuery';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import type { ReactElement } from 'react';
 import { test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
+
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
 vi.mock('next/router', () => ({
   useRouter: vi.fn().mockReturnValue({
@@ -61,7 +79,8 @@ const renderWithProProject = (ui: ReactElement) =>
         },
       ]}
     >
-      {ui}
+      {/* Note: This is a workaround to make sure dialogs also see the application with the pro plan. */}
+      <DialogProvider>{ui}</DialogProvider>
     </UserDataProvider>,
   );
 
@@ -123,7 +142,7 @@ test('should show a warning message if not all the resources are allocated', asy
 
   changeSliderValue(
     screen.getByRole('slider', {
-      name: /total available vcpu slider/i,
+      name: /total available vcpu/i,
     }),
     9,
   );
@@ -141,16 +160,111 @@ test('should update the price when the top slider is changed', async () => {
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
-  expect(screen.queryByText(/\$200.00\/mo/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/\$200\.00\/mo/i)).not.toBeInTheDocument();
 
   changeSliderValue(
     screen.getByRole('slider', {
-      name: /total available vcpu slider/i,
+      name: /total available vcpu/i,
     }),
     9,
   );
 
-  expect(screen.getByText(/\$425.00\/mo/i)).toBeInTheDocument();
+  expect(screen.getByText(/\$425\.00\/mo/i)).toBeInTheDocument();
   // we display the final price in two places
-  expect(screen.getAllByText(/\$475.00\/mo/i)).toHaveLength(2);
+  expect(screen.getAllByText(/\$475\.00\/mo/i)).toHaveLength(2);
+});
+
+test('should show a validation error when the form is submitted when not everything is allocated', async () => {
+  const user = userEvent.setup();
+  renderWithProProject(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    9,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(
+    screen.getAllByText(/you now have 1 vcpus and 2 gib of memory unused./i),
+  ).toHaveLength(2);
+});
+
+test('should show a confirmation dialog when the form is submitted', async () => {
+  server.use(updateConfigMutation);
+
+  const user = userEvent.setup();
+  renderWithProProject(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    9,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /database vcpu/i }),
+    2.25,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
+    2.25,
+  );
+  changeSliderValue(screen.getByRole('slider', { name: /auth vcpu/i }), 2.25);
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage vcpu/i }),
+    2.25,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /database memory/i }),
+    4.5,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql memory/i }),
+    4.5,
+  );
+  changeSliderValue(screen.getByRole('slider', { name: /auth memory/i }), 4.5);
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage memory/i }),
+    4.5,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  expect(
+    within(screen.getByRole('dialog')).getByText(
+      /9 vcpus \+ 18 gib of memory/i,
+      { exact: true },
+    ),
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getByRole('dialog')).getByText(/\$475\.00\/mo/i, {
+      exact: true,
+    }),
+  ).toBeInTheDocument();
+
+  server.use(resourcesUpdatedQuery);
+
+  await user.click(screen.getByRole('button', { name: /confirm/i }));
+
+  await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
+  expect(
+    await screen.findByText(/resources have been updated successfully./i),
+  ).toBeInTheDocument();
+
+  expect(
+    screen.getByRole('slider', { name: /total available vcpu/i }),
+  ).toHaveValue('9');
+  expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
 });
