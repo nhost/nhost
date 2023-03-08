@@ -214,21 +214,23 @@ export default function ResourcesForm() {
     }
 
     openDialog({
-      title: 'Confirm Resources',
+      title: enabled
+        ? 'Confirm Dedicated Resources'
+        : 'Disable Dedicated Resources',
       component: (
         <ResourcesConfirmationDialog
           updatedResources={{
             vcpu: enabled ? formValues.totalAvailableVCPU : 0,
             memory: enabled ? formValues.totalAvailableMemory : 0,
           }}
+          isUpgrade={updatedPrice > initialPrice}
           onCancel={closeDialog}
           onSubmit={() => handleSubmit(formValues)}
         />
       ),
       props: {
-        titleProps: {
-          className: 'justify-center',
-        },
+        titleProps: { className: 'justify-center pb-0' },
+        primaryButtonColor: 'error',
       },
     });
   }

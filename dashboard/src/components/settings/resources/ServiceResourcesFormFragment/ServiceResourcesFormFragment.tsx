@@ -25,14 +25,14 @@ export interface ServiceResourcesFormFragmentProps {
    */
   cpuKey: Exclude<
     keyof ResourceSettingsFormValues,
-    'enabled' | 'totalSelectedCPU' | 'totalSelectedMemory'
+    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
   >;
   /**
    * Form field name for Memory.
    */
   memoryKey: Exclude<
     keyof ResourceSettingsFormValues,
-    'enabled' | 'totalSelectedCPU' | 'totalSelectedMemory'
+    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
   >;
 }
 
@@ -47,25 +47,26 @@ export default function ServiceResourcesFormFragment({
 
   // Total allocated CPU for all resources
   const totalAllocatedCPU = Object.keys(formValues)
-    .filter((key) => key.endsWith('CPU') && key !== 'totalSelectedCPU')
+    .filter((key) => key.endsWith('CPU') && key !== 'totalAvailableVCPU')
     .reduce((acc, key) => acc + formValues[key], 0);
 
   // Total allocated memory for all resources
   const totalAllocatedMemory = Object.keys(formValues)
-    .filter((key) => key.endsWith('Memory') && key !== 'totalSelectedMemory')
+    .filter((key) => key.endsWith('Memory') && key !== 'totalAvailableMemory')
     .reduce((acc, key) => acc + formValues[key], 0);
 
-  const remainingCPU = formValues.totalSelectedCPU - totalAllocatedCPU;
+  const remainingCPU = formValues.totalAvailableVCPU - totalAllocatedCPU;
   const allowedCPU = remainingCPU + formValues[cpuKey];
 
-  const remainingMemory = formValues.totalSelectedMemory - totalAllocatedMemory;
+  const remainingMemory =
+    formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + formValues[memoryKey];
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
     const exceedsAvailableCPU =
       updatedCPU + (totalAllocatedCPU - formValues[cpuKey]) >
-      formValues.totalSelectedCPU;
+      formValues.totalAvailableVCPU;
 
     if (
       Number.isNaN(updatedCPU) ||
@@ -82,7 +83,7 @@ export default function ServiceResourcesFormFragment({
     const updatedMemory = parseFloat(value);
     const exceedsAvailableMemory =
       updatedMemory + (totalAllocatedMemory - formValues[memoryKey]) >
-      formValues.totalSelectedMemory;
+      formValues.totalAvailableMemory;
 
     if (
       Number.isNaN(updatedMemory) ||

@@ -8,6 +8,10 @@ import { RESOURCE_VCPU_PRICE } from '@/utils/CONSTANTS';
 
 export interface ResourcesConfirmationDialogProps {
   /**
+   * Determines if the user is upgrading or downgrading the plan.
+   */
+  isUpgrade: boolean;
+  /**
    * Price of the new plan.
    */
   updatedResources: {
@@ -25,6 +29,7 @@ export interface ResourcesConfirmationDialogProps {
 }
 
 export default function ResourcesConfirmationDialog({
+  isUpgrade,
   updatedResources,
   onCancel,
   onSubmit,
@@ -42,9 +47,18 @@ export default function ResourcesConfirmationDialog({
 
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      <Text className="text-center">
-        Please allow some time for the additional resources to appear.
-      </Text>
+      {updatedResources.vcpu > 0 && (
+        <Text className="text-center">
+          Please allow some time for the additional resources to appear.
+        </Text>
+      )}
+
+      {updatedResources.vcpu === 0 && (
+        <Text className="text-center">
+          By confirming this you will go back to the original amount of
+          resources you had.
+        </Text>
+      )}
 
       <Box className="grid grid-flow-row gap-4">
         <Box className="grid grid-flow-col justify-between gap-2">
@@ -56,7 +70,7 @@ export default function ResourcesConfirmationDialog({
 
         <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Box className="grid grid-flow-row gap-0.5">
-            <Text className="font-medium">Resources</Text>
+            <Text className="font-medium">Dedicated Resources</Text>
             <Text className="text-xs" color="secondary">
               {updatedResources.vcpu} vCPUs + {updatedResources.memory} GiB of
               Memory
@@ -76,7 +90,9 @@ export default function ResourcesConfirmationDialog({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Button onClick={onSubmit}>Confirm</Button>
+        <Button color={isUpgrade ? 'primary' : 'error'} onClick={onSubmit}>
+          Confirm
+        </Button>
 
         <Button variant="borderless" color="secondary" onClick={onCancel}>
           Cancel
