@@ -1,5 +1,6 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -53,7 +54,7 @@ export default function useMetadataQuery(
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
+            ? getHasuraAdminSecret()
             : customAdminSecret ||
               currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),

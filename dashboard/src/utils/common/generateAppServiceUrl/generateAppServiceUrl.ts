@@ -1,3 +1,12 @@
+import {
+  getAuthServiceUrl,
+  getFunctionsServiceUrl,
+  getGraphqlServiceUrl,
+  getHasuraApiUrl,
+  getStorageServiceUrl,
+  isPlatform,
+} from '@/utils/env';
+
 export type NhostService =
   | 'auth'
   | 'graphql'
@@ -31,7 +40,8 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
 };
 
 /**
- * Generates a service specific URL for a project.
+ * Generates a service specific URL for a project. Provided `subdomain` is
+ * omitted if the dashboard is running in local mode.
  *
  * @param subdomain - The project's subdomain
  * @param region - The project's region
@@ -47,19 +57,30 @@ export default function generateAppServiceUrl(
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
-  if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return `http://localhost:${
-      process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT || 1337
-    }${localBackendSlugs[service]}`;
+  const IS_PLATFORM = isPlatform();
+
+  if (!IS_PLATFORM) {
+    const serviceUrls: Record<typeof service, string> = {
+      auth: getAuthServiceUrl(),
+      graphql: getGraphqlServiceUrl(),
+      storage: getStorageServiceUrl(),
+      functions: getFunctionsServiceUrl(),
+      hasura: getHasuraApiUrl(),
+    };
+
+    if (!serviceUrls[service]) {
+      throw new Error(
+        `Service URL for "${service}" is not defined. Please check your .env file.`,
+      );
+    }
+
+    return serviceUrls[service];
   }
 
+  // This is only used when running the dashboard locally against its own
+  // backend.
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return `${
-      process.env.NEXT_PUBLIC_NHOST_BACKEND_URL ||
-      `http://localhost:${
-        process.env.NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT || 1337
-      }`
-    }${localBackendSlugs[service]}`;
+    return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}${localBackendSlugs[service]}`;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {

@@ -12,6 +12,7 @@ import useBuckets from '@/hooks/useBuckets';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useFiles from '@/hooks/useFiles';
 import useFilesAggregate from '@/hooks/useFilesAggregate';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
@@ -261,7 +262,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       const { fileMetadata, error: fileError } = await appClient.storage
         .setAdminSecret(
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
+            ? getHasuraAdminSecret()
             : currentApplication.config?.hasura.adminSecret,
         )
         .upload({

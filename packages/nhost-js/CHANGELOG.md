@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.0.8
+
+### Patch Changes
+
+- 1d155559: fix(nhost-js): allow `null` as body and return JSON when `content-type` is `application/json`
+
 ## 2.0.7
 
 ### Patch Changes

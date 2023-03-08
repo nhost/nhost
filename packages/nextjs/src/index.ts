@@ -1,9 +1,7 @@
 import {
-  BackendUrl,
-  NhostAuthConstructorParams,
   NhostClient as ReactNhostClient,
   NhostProvider,
-  Subdomain
+  NhostReactClientConstructorParams
 } from '@nhost/react'
 import { setNhostSessionInCookie } from './utils'
 
@@ -18,12 +16,10 @@ export const NhostNextProvider: typeof NhostProvider = NhostProvider
 const isBrowser = typeof window !== 'undefined'
 
 export interface NhostNextClientConstructorParams
-  extends Partial<BackendUrl>,
-    Partial<Subdomain>,
-    Omit<
-      NhostAuthConstructorParams,
-      'url' | 'start' | 'client' | 'clientStorage' | 'clientStorageType'
-    > {}
+  extends Omit<
+    NhostReactClientConstructorParams,
+    'clientStorage' | 'clientStorageType' | 'clientStorageGetter' | 'clientStorageSetter'
+  > {}
 
 export class NhostClient extends ReactNhostClient {
   constructor(params: NhostNextClientConstructorParams) {

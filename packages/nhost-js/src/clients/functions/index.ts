@@ -40,7 +40,7 @@ export class NhostFunctionsClient {
 
   async call<T = unknown, D = any>(
     url: string,
-    data: D,
+    data: D | null,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>>
 
@@ -56,7 +56,7 @@ export class NhostFunctionsClient {
    */
   async call<T = unknown, D = any>(
     url: string,
-    body: D,
+    body: D | null,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>> {
     const headers: HeadersInit = {
@@ -69,7 +69,7 @@ export class NhostFunctionsClient {
 
     try {
       const result = await fetch(fullUrl, {
-        body: JSON.stringify(body),
+        body: body ? JSON.stringify(body) : null,
         headers,
         method: 'POST'
       })
@@ -80,7 +80,7 @@ export class NhostFunctionsClient {
 
       let data: T
 
-      if (result.headers.get('content-type') === 'application/json') {
+      if (result.headers.get('content-type')?.includes('application/json')) {
         data = await result.json()
       } else {
         data = (await result.text()) as unknown as T

@@ -1,7 +1,7 @@
 import { rest } from 'msw';
 
 const tableQuery = rest.post(
-  'http://localhost:1337/v2/query',
+  'http://localhost:8080/v2/query',
   async (req, res, ctx) => {
     const body = await req.json();
 

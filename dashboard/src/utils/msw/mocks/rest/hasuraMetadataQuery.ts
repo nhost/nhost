@@ -1,7 +1,7 @@
 import { rest } from 'msw';
 
 const hasuraMetadataQuery = rest.post(
-  'http://localhost:1337/v1/metadata',
+  'http://localhost:8080/v1/metadata',
   (_req, res, ctx) =>
     res(
       ctx.delay(250),
