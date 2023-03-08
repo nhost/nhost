@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-fixed stripe link
+refactor stripe invoices for workspaces
