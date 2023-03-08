@@ -19008,10 +19008,12 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
 
-export type GetPlansQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetPlansQueryVariables = Exact<{
+  where?: InputMaybe<Plans_Bool_Exp>;
+}>;
 
 
-export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, isDefault: boolean }>, regions: Array<{ __typename?: 'regions', id: any, isGdprCompliant: boolean, city: string, country: { __typename?: 'countries', name: string, continent: { __typename?: 'continents', name?: string | null } } }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any, cardBrand: string, cardLast4: string }> }> };
+export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
 
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -21701,34 +21703,12 @@ export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof use
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
 export const GetPlansDocument = gql`
-    query getPlans {
-  plans(order_by: {sort: asc}) {
+    query GetPlans($where: plans_bool_exp) {
+  plans(where: $where) {
     id
     name
     isFree
     price
-    isDefault
-  }
-  regions {
-    id
-    isGdprCompliant
-    city
-    country {
-      name
-      continent {
-        name
-      }
-    }
-  }
-  workspaces {
-    id
-    name
-    slug
-    paymentMethods {
-      id
-      cardBrand
-      cardLast4
-    }
   }
 }
     `;
@@ -21745,6 +21725,7 @@ export const GetPlansDocument = gql`
  * @example
  * const { data, loading, error } = useGetPlansQuery({
  *   variables: {
+ *      where: // value for 'where'
  *   },
  * });
  */

@@ -4,6 +4,7 @@ import ResourcesConfirmationDialog from '@/components/settings/resources/Resourc
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import useProPlan from '@/hooks/common/useProPlan';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -51,11 +52,21 @@ export default function ResourcesForm() {
   const { openDialog, closeDialog } = useDialog();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { data, error, loading } = useGetResourcesQuery({
+  const {
+    data,
+    loading,
+    error: resourcesError,
+  } = useGetResourcesQuery({
     variables: {
       appId: currentApplication?.id,
     },
   });
+
+  const {
+    data: proPlan,
+    loading: proPlanLoading,
+    error: proPlanError,
+  } = useProPlan();
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetResourcesDocument],
@@ -95,11 +106,21 @@ export default function ResourcesForm() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
-  if (!currentApplication.plan) {
+  if (!proPlan && !proPlanLoading) {
     return (
       <Alert severity="error">
         Couldn&apos;t load the plan for this project. Please try again.
       </Alert>
+    );
+  }
+
+  if (proPlanLoading) {
+    return (
+      <ActivityIndicator
+        label="Loading Pro plan..."
+        delay={1000}
+        className="mx-auto"
+      />
     );
   }
 
@@ -109,10 +130,8 @@ export default function ResourcesForm() {
   const enabled = watch('enabled');
   const totalAvailableVCPU = enabled ? watch('totalAvailableVCPU') : 0;
 
-  const initialPrice =
-    RESOURCE_VCPU_PRICE * totalInitialVCPU + currentApplication.plan.price;
-  const updatedPrice =
-    RESOURCE_VCPU_PRICE * totalAvailableVCPU + currentApplication.plan.price;
+  const initialPrice = RESOURCE_VCPU_PRICE * totalInitialVCPU + proPlan.price;
+  const updatedPrice = RESOURCE_VCPU_PRICE * totalAvailableVCPU + proPlan.price;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -223,14 +242,12 @@ export default function ResourcesForm() {
             vcpu: enabled ? formValues.totalAvailableVCPU : 0,
             memory: enabled ? formValues.totalAvailableMemory : 0,
           }}
-          isUpgrade={updatedPrice > initialPrice}
           onCancel={closeDialog}
           onSubmit={() => handleSubmit(formValues)}
         />
       ),
       props: {
-        titleProps: { className: 'justify-center pb-0' },
-        primaryButtonColor: 'error',
+        titleProps: { className: 'justify-center pb-1' },
       },
     });
   }
@@ -245,8 +262,8 @@ export default function ResourcesForm() {
     );
   }
 
-  if (error) {
-    throw error;
+  if (resourcesError || proPlanError) {
+    throw resourcesError || proPlanError;
   }
 
   return (

@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import useProPlan from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -7,10 +7,6 @@ import Text from '@/ui/v2/Text';
 import { RESOURCE_VCPU_PRICE } from '@/utils/CONSTANTS';
 
 export interface ResourcesConfirmationDialogProps {
-  /**
-   * Determines if the user is upgrading or downgrading the plan.
-   */
-  isUpgrade: boolean;
   /**
    * Price of the new plan.
    */
@@ -29,15 +25,14 @@ export interface ResourcesConfirmationDialogProps {
 }
 
 export default function ResourcesConfirmationDialog({
-  isUpgrade,
   updatedResources,
   onCancel,
   onSubmit,
 }: ResourcesConfirmationDialogProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { data: proPlan, loading, error } = useProPlan();
   const updatedPrice = RESOURCE_VCPU_PRICE * updatedResources.vcpu;
 
-  if (!currentApplication) {
+  if (!loading && !proPlan) {
     return (
       <Alert severity="error">
         Couldn&apos;t load the plan for this project. Please try again.
@@ -45,27 +40,27 @@ export default function ResourcesConfirmationDialog({
     );
   }
 
+  if (error) {
+    throw error;
+  }
+
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      {updatedResources.vcpu > 0 && (
+      {updatedResources.vcpu > 0 ? (
         <Text className="text-center">
           Please allow some time for the additional resources to appear.
         </Text>
-      )}
-
-      {updatedResources.vcpu === 0 && (
+      ) : (
         <Text className="text-center">
           By confirming this you will go back to the original amount of
-          resources you had.
+          resources of the {proPlan.name} plan.
         </Text>
       )}
 
       <Box className="grid grid-flow-row gap-4">
         <Box className="grid grid-flow-col justify-between gap-2">
-          <Text className="font-medium">
-            {currentApplication.plan.name} Plan
-          </Text>
-          <Text>${currentApplication.plan.price.toFixed(2)}/mo</Text>
+          <Text className="font-medium">{proPlan.name} Plan</Text>
+          <Text>${proPlan.price.toFixed(2)}/mo</Text>
         </Box>
 
         <Box className="grid grid-flow-col items-center justify-between gap-2">
@@ -83,14 +78,15 @@ export default function ResourcesConfirmationDialog({
 
         <Box className="grid grid-flow-col justify-between gap-2">
           <Text className="font-medium">Total</Text>
-          <Text>
-            ${(updatedPrice + currentApplication.plan.price).toFixed(2)}/mo
-          </Text>
+          <Text>${(updatedPrice + proPlan.price).toFixed(2)}/mo</Text>
         </Box>
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Button color={isUpgrade ? 'primary' : 'error'} onClick={onSubmit}>
+        <Button
+          color={updatedResources.vcpu > 0 ? 'primary' : 'error'}
+          onClick={onSubmit}
+        >
           Confirm
         </Button>
 

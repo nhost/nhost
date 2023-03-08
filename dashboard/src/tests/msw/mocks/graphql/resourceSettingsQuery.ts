@@ -1,5 +1,8 @@
 import nhostGraphQLLink from './nhostGraphQLLink';
 
+/**
+ * Use this handler to simulate the initial state of the allocated resources.
+ */
 export const resourcesUnavailableQuery = nhostGraphQLLink.query(
   'GetResources',
   (_req, res, ctx) =>
@@ -24,6 +27,9 @@ export const resourcesUnavailableQuery = nhostGraphQLLink.query(
     ),
 );
 
+/**
+ * Use this handler to simulate the initial state of the allocated resources.
+ */
 export const resourcesAvailableQuery = nhostGraphQLLink.query(
   'GetResources',
   (_req, res, ctx) =>

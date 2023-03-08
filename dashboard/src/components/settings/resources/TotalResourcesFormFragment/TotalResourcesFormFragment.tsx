@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import useProPlan from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
@@ -35,10 +35,26 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
 export default function TotalResourcesFormFragment({
   initialPrice,
 }: TotalResourcesFormFragmentProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const {
+    data: proPlan,
+    error: proPlanError,
+    loading: proPlanLoading,
+  } = useProPlan();
   const { dirtyFields } = useFormState<ResourceSettingsFormValues>();
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
+
+  if (!proPlan && !proPlanLoading) {
+    return (
+      <Alert severity="error">
+        Couldn&apos;t load the plan for this projectee. Please try again.
+      </Alert>
+    );
+  }
+
+  if (proPlanError) {
+    throw proPlanError;
+  }
 
   const allocatedCPU =
     formValues.databaseVCPU +
@@ -52,8 +68,7 @@ export default function TotalResourcesFormFragment({
     formValues.storageMemory;
 
   const updatedPrice =
-    RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU +
-    currentApplication.plan.price;
+    RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU + proPlan.price;
 
   const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);

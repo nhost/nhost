@@ -1,6 +1,4 @@
-import DialogProvider from '@/components/common/DialogProvider';
-import { UserDataProvider } from '@/context/workspace1-context';
-import { mockApplication, mockWorkspace } from '@/tests/mocks';
+import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
 import {
   resourcesAvailableQuery,
   resourcesUnavailableQuery,
@@ -16,7 +14,6 @@ import {
 } from '@/tests/testUtils';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
-import type { ReactElement } from 'react';
 import { test, vi } from 'vitest';
 import ResourcesForm from './ResourcesForm';
 
@@ -62,27 +59,7 @@ vi.mock('next/router', () => ({
   }),
 }));
 
-const server = setupServer(resourcesAvailableQuery);
-
-const renderWithProProject = (ui: ReactElement) =>
-  render(
-    <UserDataProvider
-      initialWorkspaces={[
-        {
-          ...mockWorkspace,
-          applications: [
-            {
-              ...mockApplication,
-              plan: { id: '2', name: 'Pro', isFree: false, price: 25 },
-            },
-          ],
-        },
-      ]}
-    >
-      {/* Note: This is a workaround to make sure dialogs also see the application with the pro plan. */}
-      <DialogProvider>{ui}</DialogProvider>
-    </UserDataProvider>,
-  );
+const server = setupServer(resourcesAvailableQuery, getProPlanOnlyQuery);
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -92,8 +69,8 @@ beforeAll(() => {
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
+// Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
 function changeSliderValue(slider: HTMLElement, value: number) {
-  // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
   fireEvent.input(slider, { target: { value } });
   fireEvent.change(slider, { target: { value } });
 }
@@ -101,7 +78,7 @@ function changeSliderValue(slider: HTMLElement, value: number) {
 test('should show an empty state message that the feature must be enabled if no data is available', async () => {
   server.use(resourcesUnavailableQuery);
 
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -112,7 +89,7 @@ test('should show the sliders if the switch is enabled', async () => {
   server.use(resourcesUnavailableQuery);
   const user = userEvent.setup();
 
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -125,7 +102,7 @@ test('should show the sliders if the switch is enabled', async () => {
 });
 
 test('should not show an empty state message if there is data available', async () => {
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -136,7 +113,7 @@ test('should not show an empty state message if there is data available', async 
 });
 
 test('should show a warning message if not all the resources are allocated', async () => {
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -156,7 +133,7 @@ test('should show a warning message if not all the resources are allocated', asy
 });
 
 test('should update the price when the top slider is changed', async () => {
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -176,7 +153,7 @@ test('should update the price when the top slider is changed', async () => {
 
 test('should show a validation error when the form is submitted when not everything is allocated', async () => {
   const user = userEvent.setup();
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
@@ -200,7 +177,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   server.use(updateConfigMutation);
 
   const user = userEvent.setup();
-  renderWithProProject(<ResourcesForm />);
+  render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
 
