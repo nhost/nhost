@@ -21,8 +21,7 @@ export function WorkspaceInvoices() {
       return;
     }
 
-    const jsonData = JSON.parse(res.data as string);
-    const url = jsonData.url as string;
+    const { url } = res.data;
 
     window.open(url, '_blank');
 
