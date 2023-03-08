@@ -1,5 +1,13 @@
 # @nhost/nextjs
 
+## 1.13.13
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
 ## 1.13.12
 
 ### Patch Changes
