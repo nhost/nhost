@@ -141,6 +141,7 @@ const ContainedButton = forwardRef(
           backgroundColor: 'error.dark',
         },
         '&:focus': {
+          backgroundColor: 'error.main',
           boxShadow: (theme) =>
             `0 0 0 2px ${alpha(theme.palette.error.main, 0.3)}`,
         },

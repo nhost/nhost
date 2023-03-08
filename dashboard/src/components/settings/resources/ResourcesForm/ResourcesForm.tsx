@@ -114,10 +114,10 @@ export default function ResourcesForm() {
     );
   }
 
-  if (proPlanLoading) {
+  if (loading || proPlanLoading) {
     return (
       <ActivityIndicator
-        label="Loading Pro plan..."
+        label="Loading resource settings..."
         delay={1000}
         className="mx-auto"
       />
@@ -202,7 +202,23 @@ export default function ResourcesForm() {
         getToastStyleProps(),
       );
 
-      form.reset();
+      if (!formValues.enabled) {
+        form.reset({
+          enabled: false,
+          totalAvailableVCPU: 2,
+          totalAvailableMemory: 4,
+          databaseVCPU: 0.5,
+          databaseMemory: 1,
+          hasuraVCPU: 0.5,
+          hasuraMemory: 1,
+          authVCPU: 0.5,
+          authMemory: 1,
+          storageVCPU: 0.5,
+          storageMemory: 1,
+        });
+      } else {
+        form.reset(null, { keepValues: true, keepDirty: false });
+      }
     } catch {
       // Note: The error has already been handled by the toast.
     }
@@ -243,23 +259,15 @@ export default function ResourcesForm() {
             memory: enabled ? formValues.totalAvailableMemory : 0,
           }}
           onCancel={closeDialog}
-          onSubmit={() => handleSubmit(formValues)}
+          onSubmit={async () => {
+            await handleSubmit(formValues);
+          }}
         />
       ),
       props: {
         titleProps: { className: 'justify-center pb-1' },
       },
     });
-  }
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        label="Loading resource settings..."
-        delay={1000}
-        className="mx-auto"
-      />
-    );
   }
 
   if (resourcesError || proPlanError) {

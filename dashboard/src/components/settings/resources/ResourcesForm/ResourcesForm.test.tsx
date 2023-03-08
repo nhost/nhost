@@ -9,6 +9,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
@@ -105,6 +106,11 @@ test('should not show an empty state message if there is data available', async 
   render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  await waitFor(() =>
+    expect(
+      screen.queryByRole('slider', { name: /total available vcpu/i }),
+    ).toBeInTheDocument(),
+  );
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(9);
@@ -180,6 +186,11 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   render(<ResourcesForm />);
 
   await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  await waitFor(() =>
+    expect(
+      screen.queryByRole('slider', { name: /total available vcpu/i }),
+    ).toBeInTheDocument(),
+  );
 
   changeSliderValue(
     screen.getByRole('slider', {
@@ -220,6 +231,11 @@ test('should show a confirmation dialog when the form is submitted', async () =>
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
   expect(
+    within(screen.getByRole('dialog')).getByRole('heading', {
+      name: /confirm dedicated resources/i,
+    }),
+  ).toBeInTheDocument();
+  expect(
     within(screen.getByRole('dialog')).getByText(
       /9 vcpus \+ 18 gib of memory/i,
       { exact: true },
@@ -231,6 +247,8 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     }),
   ).toBeInTheDocument();
 
+  // we need to mock the query again because the mutation updated the resources
+  // and we need to return the updated values
   server.use(resourcesUpdatedQuery);
 
   await user.click(screen.getByRole('button', { name: /confirm/i }));
@@ -244,4 +262,53 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     screen.getByRole('slider', { name: /total available vcpu/i }),
   ).toHaveValue('9');
   expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+});
+
+test('should display a red button when custom resources are disabled', async () => {
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  await user.click(screen.getByRole('checkbox'));
+
+  expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
+  expect(screen.getByText(/total cost:/i)).toHaveTextContent(
+    /total cost: \$25\.00\/mo/i,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+  expect(
+    screen.getByRole('heading', { name: /disable dedicated resources/i }),
+  ).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /confirm/i })).toHaveStyle({
+    'background-color': '#f13154',
+  });
+});
+
+test('should hide the footer when custom resource allocation is disabled', async () => {
+  server.use(updateConfigMutation);
+
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  await user.click(screen.getByRole('checkbox'));
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+  server.use(resourcesUnavailableQuery);
+
+  await user.click(screen.getByRole('button', { name: /confirm/i }));
+
+  await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
+
+  expect(screen.queryByText(/total cost:/i)).not.toBeInTheDocument();
 });

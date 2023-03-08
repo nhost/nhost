@@ -21,7 +21,7 @@ export interface ResourcesConfirmationDialogProps {
   /**
    * Function to be called when the user clicks the confirm button.
    */
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
 }
 
 export default function ResourcesConfirmationDialog({
@@ -48,7 +48,7 @@ export default function ResourcesConfirmationDialog({
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
       {updatedResources.vcpu > 0 ? (
         <Text className="text-center">
-          Please allow some time for the additional resources to appear.
+          Please allow some time for the selected resources to take effect.
         </Text>
       ) : (
         <Text className="text-center">
@@ -86,6 +86,7 @@ export default function ResourcesConfirmationDialog({
         <Button
           color={updatedResources.vcpu > 0 ? 'primary' : 'error'}
           onClick={onSubmit}
+          autoFocus
         >
           Confirm
         </Button>
