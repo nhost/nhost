@@ -76,7 +76,7 @@ function OverviewDeploymentList() {
 
   if (!deployments?.length) {
     return (
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-48 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -86,7 +86,7 @@ function OverviewDeploymentList() {
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
-          <Text variant="subtitle1" className="text-center">
+          <Text variant="subtitle1" className="max-w-md text-center">
             We&apos;ll deploy changes automatically when you push to the
             deployment branch in your connected GitHub repository
           </Text>
@@ -166,14 +166,14 @@ export default function OverviewDeployments() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-48 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
-          <Text variant="subtitle1" className="text-center">
+          <Text variant="subtitle1" className="max-w-sm text-center">
             Connect your project with a GitHub repository to create your first
             deployment
           </Text>
