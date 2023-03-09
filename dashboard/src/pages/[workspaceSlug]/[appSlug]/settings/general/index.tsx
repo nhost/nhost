@@ -6,6 +6,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import {
+  GetOneUserDocument,
   useDeleteApplicationMutation,
   useUpdateAppMutation,
 } from '@/generated/graphql';
@@ -15,7 +16,6 @@ import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
@@ -42,6 +42,7 @@ export default function SettingsGeneralPage() {
   const client = useApolloClient();
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentApplication?.id },
+    refetchQueries: [GetOneUserDocument],
   });
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
@@ -134,7 +135,6 @@ export default function SettingsGeneralPage() {
       getToastStyleProps(),
     );
     await router.push('/');
-    await updateOwnCache(client);
   };
 
   return (
