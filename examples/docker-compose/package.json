@@ -6,7 +6,7 @@
     "e2e": "vitest run"
   },
   "devDependencies": {
-    "@nhost/nhost-js": "workspace:*",
+    "@nhost/nhost-js": "*",
     "cross-fetch": "^3.1.5",
     "graphql": "16.6.0"
   }
