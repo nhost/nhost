@@ -1,5 +1,13 @@
 # @nhost/nextjs
 
+## 1.13.15
+
+### Patch Changes
+
+- f375eacc: fix(nextjs): accept service URLs
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
 ## 1.13.14
 
 ### Patch Changes

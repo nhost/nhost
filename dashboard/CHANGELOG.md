@@ -1,5 +1,24 @@
 # @nhost/dashboard
 
+## 0.13.1
+
+### Patch Changes
+
+- cbb1fc5b: chore(dashboard): cleanup GraphQL operations
+
+## 0.13.0
+
+### Minor Changes
+
+- 088584e7: feat(dashboard): add support for custom local subdomains
+
+### Patch Changes
+
+- 2ac90dfd: fix(dashboard): improve mobile responsive layout
+- Updated dependencies [f375eacc]
+  - @nhost/nextjs@1.13.15
+  - @nhost/react-apollo@5.0.10
+
 ## 0.12.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.0.9
+
+### Patch Changes
+
+- 088584e7: feat(nhost-js): add support for `local` as a special subdomain
+
 ## 2.0.8
 
 ### Patch Changes
