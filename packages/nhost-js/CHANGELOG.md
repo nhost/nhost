@@ -1,5 +1,28 @@
 # @nhost/nhost-js
 
+## 2.0.9
+
+### Patch Changes
+
+- 088584e7: feat(nhost-js): add support for `local` as a special subdomain
+
+## 2.0.8
+
+### Patch Changes
+
+- 1d155559: fix(nhost-js): allow `null` as body and return JSON when `content-type` is `application/json`
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [889ee658]
+- Updated dependencies [850a049c]
+  - @nhost/hasura-storage-js@2.0.3
+  - @nhost/graphql-js@0.0.5
+  - @nhost/hasura-auth-js@2.0.2
+
 ## 2.0.6
 
 ### Patch Changes

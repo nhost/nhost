@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.12.2",
+  "version": "0.13.1",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -116,6 +116,7 @@
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "csstype": "^3.0.10",
+    "encoding": "^0.1.13",
     "eslint": "^8.28.0",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-airbnb-typescript": "^17.0.0",

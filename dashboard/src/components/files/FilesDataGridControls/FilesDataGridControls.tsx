@@ -12,6 +12,7 @@ import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import type { PropsWithoutRef } from 'react';
@@ -71,7 +72,7 @@ export default function FilesDataGridControls({
     try {
       const storageWithAdminSecret = appClient.storage.setAdminSecret(
         process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? 'nhost-admin-secret'
+          ? getHasuraAdminSecret()
           : currentApplication.config?.hasura.adminSecret,
       );
 

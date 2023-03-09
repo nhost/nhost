@@ -1,8 +1,8 @@
+import DeploymentStatusMessage from '@/components/deployments/DeploymentStatusMessage';
 import { FindOldApps } from '@/components/home';
 import type { UserData } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { Avatar } from '@/ui/Avatar';
 import StateBadge from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
@@ -10,58 +10,10 @@ import Divider from '@/ui/v2/Divider';
 import Link from '@/ui/v2/Link';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { formatDistance } from 'date-fns';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
-
-function ApplicationCreatedAt({ createdAt }: any) {
-  return (
-    <Text component="span" className="text-sm">
-      created{' '}
-      {formatDistance(new Date(createdAt), new Date(), {
-        addSuffix: true,
-      })}
-    </Text>
-  );
-}
-
-function LastSuccessfulDeployment({ deployment }: any) {
-  return (
-    <span className="flex flex-row">
-      <Avatar
-        component="span"
-        name={deployment.commitUserName}
-        avatarUrl={deployment.commitUserAvatarUrl}
-        className="mr-1 h-4 w-4 self-center"
-      />
-      <Text component="span" className="self-center text-sm">
-        {deployment.commitUserName} deployed{' '}
-        {formatDistance(new Date(deployment.deploymentEndedAt), new Date(), {
-          addSuffix: true,
-        })}
-      </Text>
-    </span>
-  );
-}
-
-function CurrentDeployment({ deployment }: any) {
-  return (
-    <span className="flex flex-row">
-      <Avatar
-        component="span"
-        name={deployment.commitUserName}
-        avatarUrl={deployment.commitUserAvatarUrl}
-        className="mr-1 h-4 w-4 self-center"
-      />
-      <Text component="span" className="self-center text-sm">
-        {deployment.commitUserName} updated just now
-      </Text>
-    </span>
-  );
-}
 
 export function checkStatusOfTheApplication(
   stateHistory: ApplicationState[] | [],
@@ -141,27 +93,23 @@ export function RenderWorkspacesWithApps({
               </NavLink>
               <List className="grid grid-flow-row border-y">
                 {workspaceProjects.map((app, index) => {
-                  const isDeployingToProduction = app.deployments[0]
-                    ? ['SCHEDULED', 'PENDING', 'DEPLOYING'].includes(
-                        app.deployments[0].deploymentStatus,
-                      )
-                    : false;
+                  const [latestDeployment] = app.deployments;
 
                   return (
                     <Fragment key={app.slug}>
                       <ListItem.Root
                         secondaryAction={
                           <div className="grid grid-flow-col gap-px">
-                            {app.deployments[0] && (
+                            {latestDeployment && (
                               <div className="mr-2 flex self-center align-middle">
                                 <StatusCircle
                                   status={
-                                    app.deployments[0]
-                                      .deploymentStatus as DeploymentStatus
+                                    latestDeployment.deploymentStatus as DeploymentStatus
                                   }
                                 />
                               </div>
                             )}
+
                             <StateBadge
                               status={checkStatusOfTheApplication(
                                 app.appStates,
@@ -192,27 +140,10 @@ export function RenderWorkspacesWithApps({
                             <ListItem.Text
                               primary={app.name}
                               secondary={
-                                <>
-                                  {isDeployingToProduction && (
-                                    <CurrentDeployment
-                                      deployment={app.deployments[0]}
-                                    />
-                                  )}
-
-                                  {!isDeployingToProduction &&
-                                    app.deployments[0] && (
-                                      <LastSuccessfulDeployment
-                                        deployment={app.deployments[0]}
-                                      />
-                                    )}
-
-                                  {!isDeployingToProduction &&
-                                    !app.deployments[0] && (
-                                      <ApplicationCreatedAt
-                                        createdAt={app.createdAt}
-                                      />
-                                    )}
-                                </>
+                                <DeploymentStatusMessage
+                                  appCreatedAt={app.createdAt}
+                                  deployment={latestDeployment}
+                                />
                               }
                             />
                           </ListItem.Button>

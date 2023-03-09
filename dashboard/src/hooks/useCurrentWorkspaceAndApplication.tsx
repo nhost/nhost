@@ -2,6 +2,7 @@ import { useUserDataContext } from '@/context/workspace1-context';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useIsPlatform from './common/useIsPlatform';
@@ -40,7 +41,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
           },
         ],
         deployments: [],
-        subdomain: 'localhost',
+        subdomain: 'local',
         region: {
           id: null,
           countryCode: null,
@@ -57,7 +58,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         plan: null,
         config: {
           hasura: {
-            adminSecret: 'nhost-admin-secret',
+            adminSecret: getHasuraAdminSecret(),
           },
         },
       };

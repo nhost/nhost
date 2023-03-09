@@ -1,5 +1,28 @@
 # @nhost/react
 
+## 2.0.9
+
+### Patch Changes
+
+- f375eacc: fix(react): accept service URLs
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 2.0.8
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
 ## 2.0.6
 
 ### Patch Changes

@@ -1,5 +1,29 @@
 # @nhost/react-apollo
 
+## 5.0.10
+
+### Patch Changes
+
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+  - @nhost/apollo@5.0.9
+
+## 5.0.9
+
+### Patch Changes
+
+- @nhost/apollo@5.0.8
+- @nhost/react@2.0.8
+
+## 5.0.8
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/apollo@5.0.7
+  - @nhost/react@2.0.7
+
 ## 5.0.7
 
 ### Patch Changes

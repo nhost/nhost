@@ -553,8 +553,7 @@ export function NewProjectPageContent({
             <Text className="font-medium">Warning</Text>{' '}
             <Text className="font-medium">
               {submitState.error &&
-                getErrorMessage(submitState.error, 'application')}{' '}
-              asdsda
+                getErrorMessage(submitState.error, 'application')}
             </Text>
           </Alert>
         )}

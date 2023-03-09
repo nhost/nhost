@@ -33,11 +33,10 @@ export function UnlockFeatureByUpgrading({
               title: 'Upgrade your plan.',
               payload: <ChangePlanModal />,
               props: {
-                PaperProps: { className: 'p-0' },
+                PaperProps: { className: 'p-0 max-w-xl w-full' },
                 hidePrimaryAction: true,
                 hideSecondaryAction: true,
                 hideTitle: true,
-                maxWidth: 'lg',
               },
             });
           }}

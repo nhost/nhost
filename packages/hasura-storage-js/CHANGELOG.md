@@ -1,5 +1,12 @@
 # @nhost/hasura-storage-js
 
+## 2.0.3
+
+### Patch Changes
+
+- 889ee658: added tests
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
 ## 2.0.2
 
 ### Patch Changes
