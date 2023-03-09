@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 2.0.9
+
+### Patch Changes
+
+- f375eacc: fix(react): accept service URLs
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
 ## 2.0.8
 
 ### Patch Changes
