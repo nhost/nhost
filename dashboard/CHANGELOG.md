@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.13.1
+
+### Patch Changes
+
+- cbb1fc5b: chore(dashboard): cleanup GraphQL operations
+
 ## 0.13.0
 
 ### Minor Changes
