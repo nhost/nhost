@@ -16390,6 +16390,15 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 
 export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
+
+export type GetResourcesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
+
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
 export type GetRolesPermissionsQueryVariables = Exact<{
@@ -16633,10 +16642,12 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
 
-export type GetPlansQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetPlansQueryVariables = Exact<{
+  where?: InputMaybe<Plans_Bool_Exp>;
+}>;
 
 
-export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, isDefault: boolean }>, regions: Array<{ __typename?: 'regions', id: any, isGdprCompliant: boolean, city: string, country: { __typename?: 'countries', name: string, continent: { __typename?: 'continents', name?: string | null } } }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any, cardBrand: string, cardLast4: string }> }> };
+export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
 
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -16784,14 +16795,14 @@ export type GetAvatarQueryVariables = Exact<{
 
 export type GetAvatarQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, avatarUrl: string } | null };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
 
 export type GetOneUserQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
+export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
 
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17047,6 +17058,42 @@ export const JwtSecretFragmentDoc = gql`
   allowed_skew
 }
     `;
+export const ServiceResourcesFragmentDoc = gql`
+    fragment ServiceResources on ConfigConfig {
+  auth {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  hasura {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  postgres {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  storage {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+}
+    `;
 export const PermissionVariableFragmentDoc = gql`
     fragment PermissionVariable on ConfigAuthsessionaccessTokenCustomClaims {
   id: key
@@ -17201,6 +17248,7 @@ export const ProjectFragmentDoc = gql`
     id
     name
     isFree
+    price
   }
   githubRepository {
     fullName
@@ -17894,6 +17942,44 @@ export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGe
 export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
 export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
       return { query: GetEnvironmentVariablesDocument, variables: variables }
+    }
+export const GetResourcesDocument = gql`
+    query GetResources($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    ...ServiceResources
+  }
+}
+    ${ServiceResourcesFragmentDoc}`;
+
+/**
+ * __useGetResourcesQuery__
+ *
+ * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResourcesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+      }
+export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+        }
+export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
+export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
+export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
+export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
+      return { query: GetResourcesDocument, variables: variables }
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
@@ -19196,34 +19282,12 @@ export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof use
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
 export const GetPlansDocument = gql`
-    query getPlans {
-  plans(order_by: {sort: asc}) {
+    query GetPlans($where: plans_bool_exp) {
+  plans(where: $where) {
     id
     name
     isFree
     price
-    isDefault
-  }
-  regions {
-    id
-    isGdprCompliant
-    city
-    country {
-      name
-      continent {
-        name
-      }
-    }
-  }
-  workspaces {
-    id
-    name
-    slug
-    paymentMethods {
-      id
-      cardBrand
-      cardLast4
-    }
   }
 }
     `;
@@ -19240,6 +19304,7 @@ export const GetPlansDocument = gql`
  * @example
  * const { data, loading, error } = useGetPlansQuery({
  *   variables: {
+ *      where: // value for 'where'
  *   },
  * });
  */
