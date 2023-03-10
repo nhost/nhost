@@ -1,16 +1,20 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-// TODO: Use a correct test application
+const testUrl = process.env.NHOST_TEST_URL;
 
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
 
-  await page.goto('https://staging.app.nhost.io/');
-  await page.getByRole('link', { name: /<project>/i }).click();
-  await page.waitForURL('https://staging.app.nhost.io/<workspace>/<project>');
+  await page.goto(testUrl);
+  await page
+    .getByRole('link', { name: /nhost automation test project/i })
+    .click();
+  await page.waitForURL(
+    `${testUrl}/nhost-automation-test-workspace/nhost-automation-test-project`,
+  );
 });
 
 test.afterAll(async () => {
@@ -36,15 +40,23 @@ test('should show a sidebar with menu items', async () => {
 });
 
 test('should show a header with a logo, the workspace name, and the project name', async () => {
-  // TODO: Once the UI changes are deployed to staging, make sure to change the
-  // locators to page.getByRole('banner').getByRole('link', ...)
+  await expect(
+    page
+      .getByRole('banner')
+      .getByRole('link', { name: /nhost automation test workspace/i }),
+  ).toBeVisible();
 
-  await expect(page.getByRole('link', { name: /<workspace>/i })).toBeVisible();
-  await expect(page.getByRole('link', { name: /<project>/i })).toBeVisible();
+  await expect(
+    page
+      .getByRole('banner')
+      .getByRole('link', { name: /nhost automation test project/i }),
+  ).toBeVisible();
 });
 
 test("should show the project's name, the Upgrade button and the Settings button", async () => {
-  await expect(page.getByRole('heading', { name: /<project>/i })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /nhost automation test project/i }),
+  ).toBeVisible();
   await expect(page.getByText(/free plan/i)).toBeVisible();
   await expect(page.getByRole('button', { name: /upgrade/i })).toBeVisible();
   await expect(
@@ -53,8 +65,8 @@ test("should show the project's name, the Upgrade button and the Settings button
 });
 
 test("should show the project's region and subdomain", async () => {
-  await expect(page.getByText('<region>')).toBeVisible();
-  await expect(page.getByText('<subdomain>')).toBeVisible();
+  await expect(page.getByText('Frankfurt (eu-central-1)')).toBeVisible();
+  await expect(page.getByText('opilfmysdgrreaslqvlb')).toBeVisible();
 });
 
 test('should not have a GitHub repository connected', async () => {

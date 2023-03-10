@@ -123,6 +123,7 @@ pnpm e2e
 Some of the tests require access to the Nhost test account. To run these tests, you need to set the following environment variables in `.env.test`:
 
 ```
+NHOST_TEST_URL=<dashboard_test_url>
 NHOST_TEST_ACCOUNT_EMAIL=<test_account_email>
 NHOST_TEST_ACCOUNT_PASSWORD=<test_account_password>
 ```
