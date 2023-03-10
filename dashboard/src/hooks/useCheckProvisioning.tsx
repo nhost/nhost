@@ -1,4 +1,7 @@
-import { useGetApplicationStateQuery } from '@/generated/graphql';
+import {
+  GetOneUserDocument,
+  useGetApplicationStateQuery,
+} from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { useCallback, useEffect, useState } from 'react';
@@ -30,7 +33,7 @@ export function useCheckProvisioning() {
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: ['getOneUser'],
+      include: [GetOneUserDocument],
     });
   }
 
