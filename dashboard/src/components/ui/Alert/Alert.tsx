@@ -32,7 +32,7 @@ export function Alert({
         },
         severity === 'warning' && {
           backgroundColor: 'warning.light',
-          color: 'warning.dark',
+          color: 'text.primary',
         },
         severity === 'success' && {
           backgroundColor: 'success.light',
