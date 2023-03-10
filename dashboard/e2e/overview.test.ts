@@ -1,19 +1,22 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-
-const testUrl = process.env.NHOST_TEST_URL;
+import {
+  TEST_DASHBOARD_URL,
+  TEST_PROJECT_NAME,
+  TEST_PROJECT_SLUG,
+  TEST_WORKSPACE_NAME,
+  TEST_WORKSPACE_SLUG,
+} from './env';
 
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
 
-  await page.goto(testUrl);
-  await page
-    .getByRole('link', { name: /nhost automation test project/i })
-    .click();
+  await page.goto(TEST_DASHBOARD_URL);
+  await page.getByRole('link', { name: TEST_PROJECT_NAME }).click();
   await page.waitForURL(
-    `${testUrl}/nhost-automation-test-workspace/nhost-automation-test-project`,
+    `${TEST_DASHBOARD_URL}/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}`,
   );
 });
 
@@ -27,35 +30,45 @@ test('should show a sidebar with menu items', async () => {
   await expect(navLocator.getByRole('list').getByRole('listitem')).toHaveCount(
     10,
   );
-  await expect(navLocator.getByText(/overview/i)).toBeVisible();
-  await expect(navLocator.getByText(/database/i)).toBeVisible();
-  await expect(navLocator.getByText(/graphql/i)).toBeVisible();
-  await expect(navLocator.getByText(/hasura/i)).toBeVisible();
-  await expect(navLocator.getByText(/auth/i)).toBeVisible();
-  await expect(navLocator.getByText(/storage/i)).toBeVisible();
-  await expect(navLocator.getByText(/deployments/i)).toBeVisible();
-  await expect(navLocator.getByText(/backups/i)).toBeVisible();
-  await expect(navLocator.getByText(/logs/i)).toBeVisible();
-  await expect(navLocator.getByText(/settings/i)).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /overview/i }),
+  ).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /database/i }),
+  ).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /graphql/i }),
+  ).toBeVisible();
+  await expect(navLocator.getByRole('link', { name: /hasura/i })).toBeVisible();
+  await expect(navLocator.getByRole('link', { name: /auth/i })).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /storage/i }),
+  ).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /deployments/i }),
+  ).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /backups/i }),
+  ).toBeVisible();
+  await expect(navLocator.getByRole('link', { name: /logs/i })).toBeVisible();
+  await expect(
+    navLocator.getByRole('link', { name: /settings/i }),
+  ).toBeVisible();
 });
 
 test('should show a header with a logo, the workspace name, and the project name', async () => {
   await expect(
-    page
-      .getByRole('banner')
-      .getByRole('link', { name: /nhost automation test workspace/i }),
+    page.getByRole('banner').getByRole('link', { name: TEST_WORKSPACE_NAME }),
   ).toBeVisible();
 
   await expect(
-    page
-      .getByRole('banner')
-      .getByRole('link', { name: /nhost automation test project/i }),
+    page.getByRole('banner').getByRole('link', { name: TEST_PROJECT_NAME }),
   ).toBeVisible();
 });
 
 test("should show the project's name, the Upgrade button and the Settings button", async () => {
   await expect(
-    page.getByRole('heading', { name: /nhost automation test project/i }),
+    page.getByRole('heading', { name: TEST_PROJECT_NAME }),
   ).toBeVisible();
   await expect(page.getByText(/free plan/i)).toBeVisible();
   await expect(page.getByRole('button', { name: /upgrade/i })).toBeVisible();
@@ -65,8 +78,12 @@ test("should show the project's name, the Upgrade button and the Settings button
 });
 
 test("should show the project's region and subdomain", async () => {
-  await expect(page.getByText('Frankfurt (eu-central-1)')).toBeVisible();
-  await expect(page.getByText('opilfmysdgrreaslqvlb')).toBeVisible();
+  await expect(
+    page.locator('div:has-text("Project Info") > div', {
+      has: page.getByText(/region/i, { exact: true }),
+    }),
+  ).toHaveText(/frankfurt \(eu-central-1\)/i);
+  await expect(page.getByText(/subdomain/i)).toHaveText(/[a-z]{20}/i);
 });
 
 test('should not have a GitHub repository connected', async () => {
@@ -75,4 +92,16 @@ test('should not have a GitHub repository connected', async () => {
   ).toBeVisible();
 });
 
-// TODO: Add tests to check the Usage section (needs some UI changes)
+test('should show proper limits for the free project', async () => {
+  // Limit for Database
+  await expect(page.getByText(/of 500 MB/i)).toBeVisible();
+
+  // Limit for Storage
+  await expect(page.getByText(/of 1 GB/i)).toBeVisible();
+
+  // Limit for Users
+  await expect(page.getByText(/of 10000/i)).toBeVisible();
+
+  // Limit for Functions
+  await expect(page.getByText(/of 10$/i, { exact: true })).toBeVisible();
+});

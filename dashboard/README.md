@@ -120,10 +120,12 @@ End-to-end tests are written using [Playwright](https://playwright.dev/). To run
 pnpm e2e
 ```
 
-Some of the tests require access to the Nhost test account. To run these tests, you need to set the following environment variables in `.env.test`:
+Most of the tests require access to the Nhost test user. To run these tests, you need to set the following environment variables in `.env.test`:
 
 ```
-NHOST_TEST_URL=<dashboard_test_url>
-NHOST_TEST_ACCOUNT_EMAIL=<test_account_email>
-NHOST_TEST_ACCOUNT_PASSWORD=<test_account_password>
+NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
+NHOST_TEST_USER_EMAIL=<test_user_email>
+NHOST_TEST_USER_PASSWORD=<test_user_password>
+NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
+NHOST_TEST_PROJECT_NAME=<test_project_name>
 ```
