@@ -1,5 +1,78 @@
 # @nhost/react-urql
 
+## 2.0.9
+
+### Patch Changes
+
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
+## 2.0.8
+
+### Patch Changes
+
+- @nhost/react@2.0.8
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/react@2.0.6
+
+## 2.0.5
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
+## 2.0.2
+
+### Patch Changes
+
+- @nhost/react@2.0.2
+
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/react@2.0.1
+
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+
 ## 1.0.5
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @nhost/docgen
 
+## 0.1.8
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
+## 0.1.7
+
+### Patch Changes
+
+- 8bb097c9: chore(deps): bump `vitest`
+
 ## 0.1.6
 
 ### Patch Changes

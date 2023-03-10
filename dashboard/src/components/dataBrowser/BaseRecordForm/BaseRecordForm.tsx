@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import DatabaseRecordInputGroup from '@/components/dataBrowser/DatabaseRecordInputGroup';
+import type { DialogFormProps } from '@/types/common';
 import type {
   ColumnInsertOptions,
   DataBrowserGridColumn,
@@ -10,7 +11,7 @@ import Button from '@/ui/v2/Button';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export interface BaseRecordFormProps {
+export interface BaseRecordFormProps extends DialogFormProps {
   /**
    * The columns of the table.
    */
@@ -36,6 +37,7 @@ export default function BaseRecordForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
   const { requiredColumns, optionalColumns } = columns.reduce(
@@ -70,8 +72,8 @@ export default function BaseRecordForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   // Stores columns in a map to have constant time lookup. This is necessary
   // for tables with many columns.

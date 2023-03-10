@@ -1,14 +1,15 @@
 import { useUserDataContext } from '@/context/workspace1-context';
-import type { Application } from '@/types/application';
+import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import useIsPlatform from './common/useIsPlatform';
 
 export interface UseCurrentWorkspaceAndApplicationReturnType {
   currentWorkspace: Workspace | null;
-  currentApplication: Application | null;
+  currentApplication: Project | null;
 }
 
 export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndApplicationReturnType {
@@ -19,7 +20,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
   const [currentWorkspaceAndApplication, setCurrentWorkspaceAndApplication] =
     useState<{
       currentWorkspace: Workspace | null;
-      currentApplication: Application | null;
+      currentApplication: Project | null;
     }>({
       currentWorkspace: null,
       currentApplication: null,
@@ -27,11 +28,10 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
 
   useEffect(() => {
     if (!isPlatform) {
-      const localApplication: Application = {
+      const localApplication: Project = {
         id: 'local',
         slug: 'local',
         name: 'local',
-        hasuraGraphqlAdminSecret: 'nhost-admin-secret',
         appStates: [
           {
             id: 'local',
@@ -41,7 +41,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
           },
         ],
         deployments: [],
-        subdomain: 'localhost',
+        subdomain: 'local',
         region: {
           id: null,
           countryCode: null,
@@ -53,6 +53,14 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
         desiredState: ApplicationStatus.Live,
         featureFlags: [],
         providersUpdated: true,
+        repositoryProductionBranch: null,
+        nhostBaseFolder: null,
+        plan: null,
+        config: {
+          hasura: {
+            adminSecret: getHasuraAdminSecret(),
+          },
+        },
       };
 
       setCurrentWorkspaceAndApplication({
@@ -81,7 +89,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
       (x) => x.slug === workspaceSlug,
     )[0];
 
-    let currentApplication: Application;
+    let currentApplication: Project;
     if (!appSlug || !currentWorkspace || !currentWorkspace.applications) {
       currentApplication = undefined;
     } else {
@@ -102,7 +110,7 @@ export function useCurrentWorkspaceAndApplication(): UseCurrentWorkspaceAndAppli
     const currentWorkspace = userContext.workspaces.filter(
       (x) => x.slug === workspaceSlug,
     )[0];
-    let currentApplication: Application;
+    let currentApplication: Project;
     if (!appSlug || !currentWorkspace || !currentWorkspace.applications) {
       currentApplication = undefined;
     } else {

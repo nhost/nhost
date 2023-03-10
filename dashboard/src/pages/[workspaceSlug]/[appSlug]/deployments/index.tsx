@@ -2,6 +2,7 @@ import AppDeployments from '@/components/applications/AppDeployments';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import { useUI } from '@/context/UIContext';
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
@@ -14,10 +15,11 @@ export default function DeploymentsPage() {
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const { workspaceContext } = useWorkspaceContext();
+  const { maintenanceActive } = useUI();
 
   if (!workspaceContext.repository) {
     return (
-      <Container className="mt-12 max-w-3xl text-center antialiased grid grid-flow-row gap-4">
+      <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
@@ -40,7 +42,11 @@ export default function DeploymentsPage() {
           href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
           passHref
         >
-          <Button variant="borderless" className="mx-auto font-medium">
+          <Button
+            variant="borderless"
+            className="mx-auto font-medium"
+            disabled={maintenanceActive}
+          >
             Connect your Project to GitHub
           </Button>
         </NavLink>

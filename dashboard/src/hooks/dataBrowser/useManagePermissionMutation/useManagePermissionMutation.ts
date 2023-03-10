@@ -1,6 +1,7 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -56,8 +57,9 @@ export default function useManagePermissionMutation({
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
-            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+            ? getHasuraAdminSecret()
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (dataSourceSlug as string),

@@ -6,11 +6,12 @@ import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
-import getPermissionVariablesArray from '@/utils/settings/getPermissionVariablesArray';
-import { useGetAppCustomClaimsQuery } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -116,8 +117,8 @@ export default function RuleValueInput({
     data,
     loading,
     error: customClaimsError,
-  } = useGetAppCustomClaimsQuery({
-    variables: { id: currentApplication?.id },
+  } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
     skip: !isHasuraInput || !currentApplication?.id,
   });
 
@@ -199,8 +200,8 @@ export default function RuleValueInput({
     );
   }
 
-  const availableHasuraPermissionVariables = getPermissionVariablesArray(
-    data?.app?.authJwtCustomClaims,
+  const availableHasuraPermissionVariables = getAllPermissionVariables(
+    data?.config?.auth?.session?.accessToken?.customClaims,
   ).map(({ key }) => ({
     value: `X-Hasura-${key}`,
     label: `X-Hasura-${key}`,
@@ -211,12 +212,13 @@ export default function RuleValueInput({
     <ControlledAutocomplete
       disabled={disabled}
       freeSolo={!isHasuraInput}
-      autoSelect={!isHasuraInput}
       autoHighlight={isHasuraInput}
-      open
-      isOptionEqualToValue={(option, value) => {
-        if (typeof value === 'string') {
-          return option.value.toLowerCase() === (value as string).toLowerCase();
+      isOptionEqualToValue={(
+        option,
+        value: string | number | AutocompleteOption<string>,
+      ) => {
+        if (typeof value !== 'object') {
+          return option.value.toLowerCase() === value?.toString().toLowerCase();
         }
 
         return option.value.toLowerCase() === value.value.toLowerCase();

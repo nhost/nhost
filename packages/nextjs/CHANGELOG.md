@@ -1,5 +1,80 @@
 # @nhost/nextjs
 
+## 1.13.15
+
+### Patch Changes
+
+- f375eacc: fix(nextjs): accept service URLs
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
+## 1.13.14
+
+### Patch Changes
+
+- @nhost/react@2.0.8
+
+## 1.13.13
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
+## 1.13.12
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/react@2.0.6
+
+## 1.13.11
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- @nhost/react@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/react@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+
 ## 1.13.5
 
 ### Patch Changes

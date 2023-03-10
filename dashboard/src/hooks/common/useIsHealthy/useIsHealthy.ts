@@ -1,5 +1,6 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useNhostClient } from '@nhost/nextjs';
+import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -7,12 +8,19 @@ import { useQuery } from '@tanstack/react-query';
  */
 export default function useIsHealthy() {
   const isPlatform = useIsPlatform();
-  const client = useNhostClient();
+  const { currentApplication } = useCurrentWorkspaceAndApplication();
+
+  const appUrl = generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region?.awsName,
+    'auth',
+  );
+
   const { failureCount, status } = useQuery(
     ['/healthz'],
-    () => fetch(`${client.auth.url}/healthz`),
+    () => fetch(`${appUrl}/healthz`),
     {
-      enabled: !isPlatform,
+      enabled: !isPlatform && !!currentApplication,
       retry: true,
       retryDelay: 5000,
       cacheTime: 0,

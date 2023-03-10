@@ -32,12 +32,12 @@ function Plan({
   return (
     <button
       type="button"
-      className="my-4 grid w-full grid-flow-col items-center justify-between px-1"
+      className="my-4 grid w-full grid-flow-col items-center justify-between gap-2 px-1"
       onClick={setPlan}
       tabIndex={-1}
     >
       <div className="grid grid-flow-row gap-y-0.5">
-        <div className="flex flex-row items-center">
+        <div className="grid grid-flow-col items-center justify-start gap-2">
           <Checkbox
             onChange={setPlan}
             checked={selectedPlanId === planId}
@@ -47,12 +47,13 @@ function Plan({
           <Text
             variant="h3"
             component="p"
-            className="ml-2 self-center font-medium"
+            className="self-center text-left font-medium"
           >
             {currentPlan.price > price ? 'Downgrade' : 'Upgrade'} to {planName}
           </Text>
         </div>
-        <Text variant="subtitle2" className="w-64 text-start">
+
+        <Text variant="subtitle2" className="w-full max-w-[256px] text-start">
           {planDescriptions[planName]}
         </Text>
       </div>
@@ -142,7 +143,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   };
 
   return (
-    <Box className="w-welcome rounded-lg p-6 text-left">
+    <Box className="w-full max-w-xl rounded-lg p-6 text-left">
       <Modal
         showModal={paymentModal}
         close={closePaymentModal}

@@ -10,6 +10,7 @@ import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
@@ -58,12 +59,12 @@ export default function DeploymentListItem({
   return (
     <ListItem.Root>
       <ListItem.Button
-        className="grid grid-flow-col items-center justify-between gap-2 rounded-none px-2 py-2"
+        className="grid grid-flow-col items-center justify-between gap-2 rounded-none p-2"
         component={NavLink}
         href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments/${deployment.id}`}
         aria-label={commitMessage || 'No commit message'}
       >
-        <div className="flex cursor-pointer flex-row items-center justify-center space-x-2 self-center">
+        <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
           <ListItem.Avatar>
             <Avatar
               name={deployment.commitUserName}
@@ -84,7 +85,7 @@ export default function DeploymentListItem({
           />
         </div>
 
-        <div className="grid grid-flow-col items-center gap-2">
+        <div className="grid grid-flow-col items-center justify-end gap-2">
           {showRedeploy && (
             <Tooltip
               title={
@@ -122,7 +123,9 @@ export default function DeploymentListItem({
                     {
                       loading: 'Scheduling deployment...',
                       success: 'Deployment has been scheduled successfully.',
-                      error: 'An error occurred when scheduling deployment.',
+                      error: getServerError(
+                        'An error occurred when scheduling deployment.',
+                      ),
                     },
                     getToastStyleProps(),
                   );
@@ -139,16 +142,16 @@ export default function DeploymentListItem({
           )}
 
           {isLive && (
-            <div className="flex w-12 justify-end">
+            <div className="hidden w-12 justify-end sm:flex">
               <Chip size="small" color="success" label="Live" />
             </div>
           )}
 
-          <div className="w-16 text-right font-mono text-sm- font-medium">
+          <div className="hidden w-16 text-right font-mono text-sm- font-medium sm:block">
             {deployment.commitSHA.substring(0, 7)}
           </div>
 
-          <div className="w-[80px] text-right font-mono text-sm- font-medium">
+          <div className="text-right font-mono text-sm- font-medium sm:w-20">
             <AppDeploymentDuration
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}

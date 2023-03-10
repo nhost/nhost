@@ -10,14 +10,10 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 
 interface SignInEmailPasswordHandler {
   (email: string, password: string): Promise<SignInEmailPasswordHandlerResult>
-  /** @deprecated */
-  (email?: unknown, password?: string): Promise<SignInEmailPasswordHandlerResult>
 }
 
 interface SendMfaOtpHander {
   (otp: string): Promise<SignInMfaTotpHandlerResult>
-  /** @deprecated */
-  (otp?: unknown): Promise<SignInMfaTotpHandlerResult>
 }
 
 export interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
@@ -27,8 +23,6 @@ export interface SignInEmailPasswordHookResult extends SignInEmailPasswordState 
 
 interface SignInEmailPasswordHook {
   (): SignInEmailPasswordHookResult
-  /** @deprecated */
-  (email?: string, password?: string, otp?: string): SignInEmailPasswordHookResult
 }
 
 // TODO: Add MFA example once MFA is available at Nhost Cloud.
@@ -50,24 +44,12 @@ interface SignInEmailPasswordHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-in-email-password
  */
-export const useSignInEmailPassword: SignInEmailPasswordHook = (
-  stateEmail?: string,
-  statePassword?: string,
-  stateOtp?: string
-) => {
+export const useSignInEmailPassword: SignInEmailPasswordHook = () => {
   const service = useAuthInterpreter()
-  const signInEmailPassword: SignInEmailPasswordHandler = (
-    valueEmail?: string | unknown,
-    valuePassword?: string
-  ) =>
-    signInEmailPasswordPromise(
-      service,
-      typeof valueEmail === 'string' ? valueEmail : stateEmail!,
-      typeof valuePassword === 'string' ? valuePassword : statePassword!
-    )
+  const signInEmailPassword: SignInEmailPasswordHandler = (email, password) =>
+    signInEmailPasswordPromise(service, email, password)
 
-  const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) =>
-    signInMfaTotpPromise(service, typeof valueOtp === 'string' ? valueOtp : stateOtp!)
+  const sendMfaOtp: SendMfaOtpHander = (otp) => signInMfaTotpPromise(service, otp)
 
   const user = useSelector(
     service,

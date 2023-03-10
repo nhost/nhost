@@ -1,5 +1,55 @@
 # @nhost/hasura-auth-js
 
+## 2.0.2
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
+## 2.0.1
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove the deprecated `AuthCookieClient` and `AuthClientSSR` constructors
+
+  Use the `clientStorageType` option instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'cookie' })
+  ```
+
+- 19b11d40: Remove the deprecated `nhost.auth.getJWTToken` method
+
+  Use `nhost.auth.getAccessToken()` instead.
+
+- 19b11d40: Remove the deprecated `autoLogin` option
+
+  Use `autoSignIn` instead:
+
+  ```ts
+  const nhost = new NhostClient({ autoSignIn: true })
+  ```
+
+- 19b11d40: Remove the deprecated `clientStorageGetter` and `clientStorageSetter` options
+
+  Use `clientStorageType` and `clientStorage` instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'custom', clientStorage: TODO })
+  ```
+
+### Minor Changes
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
 ## 1.12.4
 
 ### Patch Changes

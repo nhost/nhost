@@ -1,5 +1,85 @@
 # @nhost/vue
 
+## 1.13.15
+
+### Patch Changes
+
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 1.13.14
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 1.13.13
+
+### Patch Changes
+
+- 7eac17a1: chore(deps): bump `@xstate/inspect` to 0.8.0
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
+## 1.13.12
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
+## 1.13.11
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
 ## 1.13.5
 
 ### Patch Changes

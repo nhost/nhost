@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "1.13.2",
+  "version": "2.0.3",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -59,13 +59,12 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "axios": "^1.2.0",
     "form-data": "^4.0.0",
+    "isomorphic-unfetch": "^3.1.0",
     "xstate": "^4.33.5"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "cross-fetch": "^3.1.5",
     "jpeg-js": "^0.4.4",
     "pixelmatch": "^5.3.0",
     "start-server-and-test": "^1.15.2",

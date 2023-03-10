@@ -1,5 +1,89 @@
 # @nhost/react-apollo
 
+## 5.0.10
+
+### Patch Changes
+
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+  - @nhost/apollo@5.0.9
+
+## 5.0.9
+
+### Patch Changes
+
+- @nhost/apollo@5.0.8
+- @nhost/react@2.0.8
+
+## 5.0.8
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/apollo@5.0.7
+  - @nhost/react@2.0.7
+
+## 5.0.7
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/apollo@5.0.6
+  - @nhost/react@2.0.6
+
+## 5.0.6
+
+### Patch Changes
+
+- @nhost/apollo@5.0.5
+- @nhost/react@2.0.5
+
+## 5.0.5
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/apollo@5.0.4
+  - @nhost/react@2.0.4
+
+## 5.0.4
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- 445d8ef4: chore(deps): bump `@nhost/apollo` to 5.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/apollo@5.0.3
+  - @nhost/react@2.0.3
+
+## 5.0.3
+
+### Patch Changes
+
+- @nhost/apollo@5.0.2
+- @nhost/react@2.0.2
+
+## 5.0.2
+
+### Patch Changes
+
+- @nhost/apollo@5.0.1
+- @nhost/react@2.0.1
+
+## 5.0.1
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+  - @nhost/apollo@5.0.0
+
 ## 4.13.5
 
 ### Patch Changes

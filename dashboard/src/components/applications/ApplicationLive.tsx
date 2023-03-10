@@ -1,3 +1,4 @@
+import MaintenanceAlert from '@/components/common/MaintenanceAlert';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import { features } from '@/components/overview/features';
@@ -52,6 +53,7 @@ export default function ApplicationLive() {
 
   return (
     <Container>
+      <MaintenanceAlert />
       <OverviewTopBar />
 
       <div className="grid grid-cols-1 gap-12 pt-3 lg:grid-cols-3">

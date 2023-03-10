@@ -46,7 +46,7 @@ export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDat
 
 export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: Error }
+  | { fileMetadata: null; error: ErrorPayload }
 
 export interface StorageImageTransformationParams {
   /** Image width, in pixels */
@@ -83,7 +83,7 @@ export interface StorageDeleteResponse {
   error: Error | null
 }
 
-interface FileResponse {
+export interface FileResponse {
   id: string
   name: string
   size: number
@@ -91,6 +91,9 @@ interface FileResponse {
   etag: string
   createdAt: string
   bucketId: string
+  isUploaded: true
+  updatedAt: string
+  uploadedByUserId: string
 }
 
 export interface ApiUploadParams {
@@ -99,10 +102,6 @@ export interface ApiUploadParams {
   name?: string
   bucketId?: string
 }
-
-export type ApiUploadResponse =
-  | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: Error }
 
 // TODO not implemented yet in hasura-storage
 // export interface ApiGetPresignedUrlParams extends StorageImageTransformationParams {
@@ -122,7 +121,7 @@ export interface ApiDeleteResponse {
   error: Error | null
 }
 
-export interface UploadHeaders {
+export type UploadHeaders = HeadersInit & {
   'x-nhost-bucket-id'?: string
   'x-nhost-file-id'?: string
   'x-nhost-file-name'?: string

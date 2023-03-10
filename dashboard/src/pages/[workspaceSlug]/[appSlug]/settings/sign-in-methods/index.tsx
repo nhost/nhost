@@ -17,7 +17,7 @@ import TwitterProviderSettings from '@/components/settings/signInMethods/Twitter
 import WebAuthnSettings from '@/components/settings/signInMethods/WebAuthnSettings';
 import WindowsLiveProviderSettings from '@/components/settings/signInMethods/WindowsLiveProviderSettings';
 import WorkOsProviderSettings from '@/components/settings/signInMethods/WorkOsProviderSettings';
-import { useSignInMethodsQuery } from '@/generated/graphql';
+import { useGetSignInMethodsQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
@@ -25,10 +25,8 @@ import type { ReactElement } from 'react';
 export default function SettingsSignInMethodsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const { loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'network-only',
   });
 

@@ -12,6 +12,7 @@ import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import type { PropsWithoutRef } from 'react';
@@ -71,8 +72,8 @@ export default function FilesDataGridControls({
     try {
       const storageWithAdminSecret = appClient.storage.setAdminSecret(
         process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? 'nhost-admin-secret'
-          : currentApplication.hasuraGraphqlAdminSecret,
+          ? getHasuraAdminSecret()
+          : currentApplication.config?.hasura.adminSecret,
       );
 
       // note: this is not an optimal solution, but we don't have a better way
@@ -120,7 +121,7 @@ export default function FilesDataGridControls({
       {...props}
     >
       {numberOfSelectedFiles > 0 ? (
-        <div className="mx-auto h-[40px] grid grid-flow-col justify-start items-center gap-2">
+        <div className="mx-auto grid h-[40px] grid-flow-col items-center justify-start gap-2">
           <Chip
             color="info"
             size="small"

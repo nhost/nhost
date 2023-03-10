@@ -12,7 +12,7 @@ import generateAppServiceUrl, {
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { LOCAL_HASURA_URL } from '@/utils/env';
+import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import Image from 'next/image';
 
 interface HasuraDataProps {
@@ -22,17 +22,15 @@ interface HasuraDataProps {
 export function HasuraData({ close }: HasuraDataProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const isPlatform = useIsPlatform();
+  const projectAdminSecret = currentApplication?.config?.hasura.adminSecret;
 
-  if (
-    !currentApplication?.subdomain ||
-    !currentApplication?.hasuraGraphqlAdminSecret
-  ) {
+  if (!currentApplication?.subdomain || !projectAdminSecret) {
     return <LoadingScreen />;
   }
 
   const hasuraUrl =
     process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
-      ? `${LOCAL_HASURA_URL}/console`
+      ? `${getHasuraConsoleServiceUrl()}`
       : generateAppServiceUrl(
           currentApplication?.subdomain,
           currentApplication?.region.awsName,
@@ -71,18 +69,11 @@ export function HasuraData({ close }: HasuraDataProps) {
 
             <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
               <Text className="font-medium" variant="subtitle2">
-                {Array(currentApplication.hasuraGraphqlAdminSecret.length)
-                  .fill('•')
-                  .join('')}
+                {Array(projectAdminSecret.length).fill('•').join('')}
               </Text>
 
               <IconButton
-                onClick={() =>
-                  copy(
-                    currentApplication.hasuraGraphqlAdminSecret,
-                    'Hasura admin secret',
-                  )
-                }
+                onClick={() => copy(projectAdminSecret, 'Hasura admin secret')}
                 variant="borderless"
                 color="secondary"
                 className="min-w-0 p-1"

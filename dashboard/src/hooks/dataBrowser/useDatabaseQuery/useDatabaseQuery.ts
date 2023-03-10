@@ -1,5 +1,6 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -51,14 +52,15 @@ export default function useDatabaseQuery(
         appUrl: customAppUrl || appUrl,
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
-            : customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+            ? getHasuraAdminSecret()
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {
       ...queryOptions,
       enabled:
-        currentApplication?.hasuraGraphqlAdminSecret && isReady
+        currentApplication?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
     },

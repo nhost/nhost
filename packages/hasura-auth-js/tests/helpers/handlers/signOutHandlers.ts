@@ -35,7 +35,7 @@ export const signOutHandler = rest.post(
       )
     }
 
-    return res(ctx.status(200))
+    return res(ctx.status(200), ctx.json('OK'))
   }
 )
 

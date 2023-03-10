@@ -1,5 +1,145 @@
 # @nhost/dashboard
 
+## 0.13.2
+
+### Patch Changes
+
+- beed2eba: Fix docker entrypoint for dashboard
+- 2c8559a3: fix(dashboard): refresh project list after deleting a project
+- 4329d048: chore(dashboard): bump `graphiql` dependencies
+
+## 0.13.1
+
+### Patch Changes
+
+- cbb1fc5b: chore(dashboard): cleanup GraphQL operations
+
+## 0.13.0
+
+### Minor Changes
+
+- 088584e7: feat(dashboard): add support for custom local subdomains
+
+### Patch Changes
+
+- 2ac90dfd: fix(dashboard): improve mobile responsive layout
+- Updated dependencies [f375eacc]
+  - @nhost/nextjs@1.13.15
+  - @nhost/react-apollo@5.0.10
+
+## 0.12.4
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.9
+- @nhost/nextjs@1.13.14
+
+## 0.12.3
+
+### Patch Changes
+
+- 2b1338f7: chore(dashboard): bump `turbo` to 1.8.3
+- 5223ee93: fix(dashboard): show correct deployment status on the main page
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nextjs@1.13.13
+  - @nhost/react-apollo@5.0.8
+
+## 0.12.2
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/react-apollo@5.0.7
+  - @nhost/nextjs@1.13.12
+
+## 0.12.1
+
+### Patch Changes
+
+- c96d7ccd: fix(dashboard): fix docker builds
+
+## 0.12.0
+
+### Minor Changes
+
+- d1671210: feat(dashboard): use mimir to manage project configuration
+
+### Patch Changes
+
+- f65e4de9: chore(deps): bump @graphql-codegen monorepo to v3
+
+## 0.11.20
+
+### Patch Changes
+
+- 4b4f0d01: chore(dashboard): improve dialog management
+
+## 0.11.19
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.6
+- @nhost/nextjs@1.13.11
+
+## 0.11.18
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react-apollo@5.0.5
+  - @nhost/nextjs@1.13.10
+
+## 0.11.17
+
+### Patch Changes
+
+- f673adea: fix(dashboard): set correct Content-Type for user creation
+- 445d8ef4: chore(deps): bump `@nhost/react-apollo` to 5.0.4
+- 445d8ef4: chore(deps): bump `@nhost/nextjs` to 1.13.9
+- 0368663d: fix(dashboard): allow permission editing for auth and storage schemas
+- Updated dependencies [445d8ef4]
+- Updated dependencies [445d8ef4]
+  - @nhost/react-apollo@5.0.4
+  - @nhost/nextjs@1.13.9
+
+## 0.11.16
+
+### Patch Changes
+
+- b755e908: fix(dashboard): use correct date for last seen
+- 2d9145f9: chore(deps): revert GraphQL client
+- 1ddf704c: fix(dashboard): don't show false positive message for failed user creation
+  - @nhost/react-apollo@5.0.3
+  - @nhost/nextjs@1.13.8
+
+## 0.11.15
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.2
+- @nhost/nextjs@1.13.7
+
+## 0.11.14
+
+### Patch Changes
+
+- 2cc18dcb: fix(dashboard): prevent permission editor dropdown from being always open
+
+## 0.11.13
+
+### Patch Changes
+
+- 3343a363: chore(dashboard): bump `@testing-library/react` to v14 and `@testing-library/dom` to v9
+  - @nhost/react-apollo@5.0.1
+  - @nhost/nextjs@1.13.6
+
 ## 0.11.12
 
 ### Patch Changes

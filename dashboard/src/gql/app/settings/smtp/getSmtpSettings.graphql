@@ -1,0 +1,18 @@
+query GetSmtpSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    provider {
+      id: __typename
+      __typename
+      smtp {
+        host
+        method
+        port
+        secure
+        sender
+        user
+      }
+    }
+  }
+}

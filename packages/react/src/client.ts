@@ -1,17 +1,13 @@
 import {
-  BackendUrl,
-  NhostAuthConstructorParams,
   NhostClient as _VanillaNhostClient,
-  Subdomain
+  NhostClientConstructorParams as VanillaNhostClientConstructorParams
 } from '@nhost/nhost-js'
 
 /** @internal */
 export const VanillaNhostClient = _VanillaNhostClient
 
 export interface NhostReactClientConstructorParams
-  extends Partial<BackendUrl>,
-    Partial<Subdomain>,
-    Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'> {}
+  extends Omit<VanillaNhostClientConstructorParams, 'start' | 'client'> {}
 
 export class NhostClient extends VanillaNhostClient {
   constructor(params: NhostReactClientConstructorParams) {

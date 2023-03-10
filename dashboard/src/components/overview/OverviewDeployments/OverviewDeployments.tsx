@@ -1,6 +1,7 @@
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -75,7 +76,7 @@ function OverviewDeploymentList() {
 
   if (!deployments?.length) {
     return (
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-48 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -85,7 +86,7 @@ function OverviewDeploymentList() {
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
-          <Text variant="subtitle1" className="text-center">
+          <Text variant="subtitle1" className="max-w-md text-center">
             We&apos;ll deploy changes automatically when you push to the
             deployment branch in your connected GitHub repository
           </Text>
@@ -146,6 +147,7 @@ function OverviewDeploymentList() {
 export default function OverviewDeployments() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const { openGitHubModal } = useGitHubModal();
+  const { maintenanceActive } = useUI();
 
   const { githubRepository } = currentApplication || {};
 
@@ -164,14 +166,14 @@ export default function OverviewDeployments() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-48 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
           <Text className="text-center font-medium" variant="h3">
             No Deployments
           </Text>
-          <Text variant="subtitle1" className="text-center">
+          <Text variant="subtitle1" className="max-w-sm text-center">
             Connect your project with a GitHub repository to create your first
             deployment
           </Text>
@@ -183,6 +185,7 @@ export default function OverviewDeployments() {
             color="primary"
             className="w-full"
             onClick={openGitHubModal}
+            disabled={maintenanceActive}
           >
             <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub

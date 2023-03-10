@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
 import Button from '@/ui/v2/Button';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
 import Text from '@/ui/v2/Text';
@@ -16,7 +17,7 @@ export function WorkspaceSection() {
         variant="borderless"
         color="secondary"
         onClick={() => {
-          openDialog('EDIT_WORKSPACE_NAME', {
+          openDialog({
             title: (
               <span className="grid grid-flow-row">
                 <span>New Workspace</span>
@@ -26,6 +27,7 @@ export function WorkspaceSection() {
                 </Text>
               </span>
             ),
+            component: <EditWorkspaceNameForm />,
           });
         }}
         startIcon={<PlusCircleIcon />}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/index.ts"
+  ],
+  "exclude": "*.(spec|test).tsx?",
+  "sort": [
+    "source-order"
+  ],
+  "json": "./.docgen/graphql.json",
+  "name": "GraphQL",
+  "readme": "none",
+  "githubPages": false,
+  "cleanOutputDir": false,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "compilerOptions": {
+    "rootDir": "../..",
+    "paths": {
+      "@nhost/apollo": [
+        "../../integrations/apollo/src/index.ts"
+      ],
+      "@nhost/hasura-auth-js": [
+        "../hasura-auth-js/src/index.ts"
+      ],
+      "@nhost/hasura-storage-js": [
+        "../hasura-storage-js/src/index.ts"
+      ],
+      "@nhost/graphql-js": [
+        "../graphql-js/src/index.ts"
+      ],
+      "@nhost/nextjs": [
+        "../nextjs/src/index.ts"
+      ],
+      "@nhost/nhost-js": [
+        "../nhost-js/src/index.ts"
+      ],
+      "@nhost/react": [
+        "../react/src/index.ts"
+      ],
+      "@nhost/react-apollo": [
+        "../../integrations/react-apollo/src/index.ts"
+      ]
+    }
+  }
+}

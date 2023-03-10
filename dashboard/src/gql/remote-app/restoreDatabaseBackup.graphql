@@ -1,7 +1,0 @@
-mutation restoreDatabaseBackup($appId: uuid!, $backupId: uuid!) {
-  restoreDatabaseBackup(appId: $appId, backupId: $backupId)
-}
-
-mutation scheduleRestoreDatabaseBackup($appId: uuid!, $backupId: uuid!) {
-  scheduleRestoreDatabaseBackup(appId: $appId, backupId: $backupId)
-}

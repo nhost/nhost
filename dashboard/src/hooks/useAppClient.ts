@@ -1,7 +1,13 @@
-import { LOCAL_SUBDOMAIN } from '@/utils/env';
+import {
+  getAuthServiceUrl,
+  getFunctionsServiceUrl,
+  getGraphqlServiceUrl,
+  getStorageServiceUrl,
+} from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
+import useIsPlatform from './common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 export type UseAppClientOptions = NhostNextClientConstructorParams;
@@ -17,11 +23,22 @@ export type UseAppClientReturn = NhostClient;
 export function useAppClient(
   options?: UseAppClientOptions,
 ): UseAppClientReturn {
+  const isPlatform = useIsPlatform();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
+
+  if (!isPlatform) {
+    return new NhostClient({
+      authUrl: getAuthServiceUrl(),
+      graphqlUrl: getGraphqlServiceUrl(),
+      storageUrl: getStorageServiceUrl(),
+      functionsUrl: getFunctionsServiceUrl(),
+      ...options,
+    });
+  }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
     return new NhostClient({
-      subdomain: LOCAL_SUBDOMAIN,
+      subdomain: 'local',
       ...options,
     });
   }

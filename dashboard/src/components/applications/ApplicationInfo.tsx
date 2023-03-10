@@ -1,4 +1,7 @@
-import { useDeleteApplicationMutation } from '@/generated/graphql';
+import {
+  GetOneUserDocument,
+  useDeleteApplicationMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
@@ -12,7 +15,9 @@ import { useRouter } from 'next/router';
 
 export default function ApplicationInfo() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [deleteApplication, { client }] = useDeleteApplicationMutation();
+  const [deleteApplication, { client }] = useDeleteApplicationMutation({
+    refetchQueries: [GetOneUserDocument],
+  });
   const router = useRouter();
 
   async function handleClickRemove() {

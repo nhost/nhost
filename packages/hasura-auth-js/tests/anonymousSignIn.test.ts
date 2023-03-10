@@ -10,7 +10,6 @@ import {
   invalidDeamonymisationEmailError
 } from './helpers/handlers'
 import { fakeAnonymousUser } from './helpers/mocks/user'
-
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 
@@ -51,7 +50,7 @@ describe('Anonymous Sign-in', () => {
     expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
-        "error": "OK",
+        "error": "network",
         "message": "Network Error",
         "status": 0,
       },

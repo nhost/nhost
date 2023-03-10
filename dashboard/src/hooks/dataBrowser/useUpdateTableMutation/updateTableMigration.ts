@@ -10,7 +10,7 @@ import type {
 } from '@/types/dataBrowser';
 import { getEmptyDownMigrationMessage } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { LOCAL_MIGRATIONS_URL } from '@/utils/env';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableMigrationVariables {
@@ -57,7 +57,7 @@ export default async function updateTableMigration({
     return;
   }
 
-  const response = await fetch(`${LOCAL_MIGRATIONS_URL}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

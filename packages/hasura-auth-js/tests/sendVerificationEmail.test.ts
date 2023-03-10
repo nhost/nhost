@@ -51,7 +51,7 @@ test(`should fail if there is a network error`, async () => {
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
-      "error": "OK",
+      "error": "network",
       "message": "Network Error",
       "status": 0,
     }

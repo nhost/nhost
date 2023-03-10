@@ -1,3 +1,4 @@
+import { useUI } from '@/context/UIContext';
 import Button from '@/ui/v2/Button';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
 import SearchIcon from '@/ui/v2/icons/SearchIcon';
@@ -11,6 +12,8 @@ interface IndexHeaderAppsProps {
 }
 
 export function IndexHeaderApps({ query, setQuery }: IndexHeaderAppsProps) {
+  const { maintenanceActive } = useUI();
+
   return (
     <div className="mx-auto mb-6 grid w-full grid-flow-col place-content-between items-center py-2">
       <Text variant="h2" component="h1" className="hidden md:block">
@@ -36,6 +39,7 @@ export function IndexHeaderApps({ query, setQuery }: IndexHeaderAppsProps) {
           variant="outlined"
           color="secondary"
           startIcon={<PlusCircleIcon />}
+          disabled={maintenanceActive}
         >
           New Project
         </Button>

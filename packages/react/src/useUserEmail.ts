@@ -20,8 +20,3 @@ export const useUserEmail = (): string | undefined => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserEmail} instead */
-export const useEmail = useUserEmail

@@ -1,10 +1,7 @@
-import fetch from 'cross-fetch';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import type { ManagePermissionOptions } from './managePermission';
 import managePermission from './managePermission';
-
-global.fetch = fetch;
 
 const defaultParameters: ManagePermissionOptions = {
   dataSource: 'default',

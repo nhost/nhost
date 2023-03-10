@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import HighlightedText from '@/components/common/HighlightedText';
 import useManagePermissionMutation from '@/hooks/dataBrowser/useManagePermissionMutation';
+import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAction,
   HasuraMetadataPermission,
@@ -13,6 +14,7 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import convertToHasuraPermissions from '@/utils/dataBrowser/convertToHasuraPermissions';
 import convertToRuleGroup from '@/utils/dataBrowser/convertToRuleGroup';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
@@ -72,7 +74,7 @@ export interface RolePermissionEditorFormValues {
   computedFields?: string[];
 }
 
-export interface RolePermissionEditorFormProps {
+export interface RolePermissionEditorFormProps extends DialogFormProps {
   /**
    * Determines whether or not the form is disabled.
    */
@@ -169,6 +171,7 @@ export default function RolePermissionEditorForm({
   onCancel,
   permission,
   disabled,
+  location,
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
   const {
@@ -214,8 +217,8 @@ export default function RolePermissionEditorForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'drawer');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: RolePermissionEditorFormValues) {
     const managePermissionPromise = managePermission({
@@ -245,7 +248,7 @@ export default function RolePermissionEditorForm({
             : permission?.check,
         backend_only: values.backendOnly,
         computed_fields:
-          permission?.computed_fields.length > 0
+          permission?.computed_fields?.length > 0
             ? permission?.computed_fields
             : null,
       },
@@ -256,12 +259,12 @@ export default function RolePermissionEditorForm({
       {
         loading: 'Saving permission...',
         success: 'Permission has been saved successfully.',
-        error: 'An error occurred while saving the permission.',
+        error: getServerError('An error occurred while saving the permission.'),
       },
       getToastStyleProps(),
     );
 
-    onDirtyStateChange(false, 'drawer');
+    onDirtyStateChange(false, location);
     onSubmit?.();
   }
 
@@ -270,7 +273,7 @@ export default function RolePermissionEditorForm({
       openDirtyConfirmation({
         props: {
           onPrimaryAction: () => {
-            onDirtyStateChange(false, 'drawer');
+            onDirtyStateChange(false, location);
             onCancel?.();
           },
         },
@@ -295,12 +298,14 @@ export default function RolePermissionEditorForm({
       {
         loading: 'Deleting permission...',
         success: 'Permission has been deleted successfully.',
-        error: 'An error occurred while deleting the permission.',
+        error: getServerError(
+          'An error occurred while deleting the permission.',
+        ),
       },
       getToastStyleProps(),
     );
 
-    onDirtyStateChange(false, 'drawer');
+    onDirtyStateChange(false, location);
     onSubmit?.();
   }
 

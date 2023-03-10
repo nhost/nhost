@@ -1,5 +1,5 @@
 import type { WorkspaceMembers } from '@/utils/__generated__/graphql';
-import type { Application } from './application';
+import type { Project } from './application';
 
 export type Workspace = {
   id: string;
@@ -7,6 +7,6 @@ export type Workspace = {
   slug: string;
   creatorUserId?: string;
   members: WorkspaceMembers[];
-  applications: Application[];
+  applications: Project[];
   default?: boolean;
 };

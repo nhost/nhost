@@ -7,7 +7,7 @@ import type {
   QueryResult,
 } from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
-import { LOCAL_MIGRATIONS_URL } from '@/utils/env';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 export interface ManagePermissionMigrationVariables {
   /**
@@ -113,7 +113,7 @@ export default async function managePermissionMigration({
     };
   }
 
-  const response = await fetch(`${LOCAL_MIGRATIONS_URL}/apis/migrate`, {
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
     method: 'POST',
     headers: {
       'x-hasura-admin-secret': adminSecret,

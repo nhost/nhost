@@ -45,7 +45,8 @@
       "cache": false
     },
     "docgen": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["^build"]
     },
     "lint": {
       "dependsOn": ["^build"],

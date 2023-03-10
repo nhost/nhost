@@ -20,8 +20,3 @@ export const useUserDisplayName = (): string | undefined => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserDisplayName} instead */
-export const useDisplayName = useUserDisplayName

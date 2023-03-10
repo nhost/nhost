@@ -5,6 +5,7 @@ import DataGridDateCell from '@/components/common/DataGridDateCell';
 import DataGridNumericCell from '@/components/common/DataGridNumericCell';
 import DataGridTextCell from '@/components/common/DataGridTextCell';
 import { useDialog } from '@/components/common/DialogProvider';
+import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import InlineCode from '@/components/common/InlineCode';
 import DataBrowserEmptyState from '@/components/dataBrowser/DataBrowserEmptyState';
 import DataBrowserGridControls from '@/components/dataBrowser/DataBrowserGridControls';
@@ -28,8 +29,24 @@ import {
 } from '@/utils/dataBrowser/postgresqlConstants';
 import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
 import { useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+const CreateColumnForm = dynamic(
+  () => import('@/components/dataBrowser/CreateColumnForm'),
+  { ssr: false, loading: () => <FormActivityIndicator /> },
+);
+
+const EditColumnForm = dynamic(
+  () => import('@/components/dataBrowser/EditColumnForm'),
+  { ssr: false, loading: () => <FormActivityIndicator /> },
+);
+
+const CreateRecordForm = dynamic(
+  () => import('@/components/dataBrowser/CreateRecordForm'),
+  { ssr: false, loading: () => <FormActivityIndicator /> },
+);
 
 export interface DataBrowserGridProps extends Partial<DataGridProps<any>> {}
 
@@ -273,33 +290,36 @@ export default function DataBrowserGrid({
   const memoizedData = useMemo(() => rows, [rows]);
 
   async function handleInsertRowClick() {
-    openDrawer('CREATE_RECORD', {
+    openDrawer({
       title: 'Insert a New Row',
-      payload: {
-        columns: memoizedColumns,
-        onSubmit: refetch,
-      },
+      component: (
+        <CreateRecordForm
+          // TODO: Create proper typings for data browser columns
+          columns={memoizedColumns as unknown as DataBrowserGridColumn[]}
+          onSubmit={refetch}
+        />
+      ),
     });
   }
 
   async function handleInsertColumnClick() {
-    openDrawer('CREATE_COLUMN', {
+    openDrawer({
       title: 'Insert a New Column',
-      payload: {
-        onSubmit: refetch,
-      },
+      component: <CreateColumnForm onSubmit={refetch} />,
     });
   }
 
   async function handleEditColumnClick(
     column: DataBrowserGridColumn<NormalizedQueryDataRow>,
   ) {
-    openDrawer('EDIT_COLUMN', {
+    openDrawer({
       title: 'Edit Column',
-      payload: {
-        column,
-        onSubmit: () => queryClient.refetchQueries([currentTablePath]),
-      },
+      component: (
+        <EditColumnForm
+          column={column}
+          onSubmit={() => queryClient.refetchQueries([currentTablePath])}
+        />
+      ),
     });
   }
 
