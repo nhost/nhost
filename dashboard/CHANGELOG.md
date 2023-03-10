@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.13.2
+
+### Patch Changes
+
+- beed2eba: Fix docker entrypoint for dashboard
+- 2c8559a3: fix(dashboard): refresh project list after deleting a project
+- 4329d048: chore(dashboard): bump `graphiql` dependencies
+
 ## 0.13.1
 
 ### Patch Changes
