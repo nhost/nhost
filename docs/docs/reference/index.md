@@ -10,7 +10,7 @@ In this section:
 - [Overview](/reference/javascript)
 - [Authentication](/reference/javascript/auth)
 - [Storage](/reference/javascript/storage)
-- [Functions](/reference/javascript/functions)
+- [Functions](/reference/javascript/nhost-js/functions)
 - [GraphQL](/reference/javascript/graphql)
 
 ### React

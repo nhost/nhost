@@ -99,7 +99,6 @@ export function InviteAnnounce() {
         workspaceMemberInviteId: inviteId,
         isAccepted: false,
       },
-      { useAxios: false },
     );
 
     if (ignoreError) {
