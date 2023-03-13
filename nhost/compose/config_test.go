@@ -38,6 +38,14 @@ func TestConfig_dashboardService(t *testing.T) {
 
 	svc := c.dashboardService()
 	assert.Equal("dashboard", svc.Name)
+	assert.Equal([]types.ServicePortConfig{
+		{
+			Mode:      "ingress",
+			Target:    3000,
+			Published: "3030",
+			Protocol:  "tcp",
+		},
+	}, svc.Ports)
 	assert.Equal(types.NewMappingWithEquals([]string{
 		"FOO=BAR",
 		"BAR=BAZ",
