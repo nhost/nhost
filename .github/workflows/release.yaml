@@ -7,6 +7,9 @@ name: release
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
       -
         uses: actions/checkout@v3.3.0
@@ -19,6 +22,15 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::796351718684:role/github-actions-nhost-cli
+          aws-region: eu-central-1
+      - name: fetch let's encrypt cert
+        shell: bash
+        run: |
+          .github/cert.sh
       -
         name: GoReleaser
         uses: goreleaser/goreleaser-action@v4.1.0

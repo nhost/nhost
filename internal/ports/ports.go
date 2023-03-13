@@ -6,33 +6,35 @@ import (
 )
 
 const (
-	FlagPortProxy            = "port"
+	FlagPortProxy            = "port" // deprecated
+	FlagSSLPortProxy         = "ssl-port"
 	FlagPortDB               = "db-port"
 	FlagPortGraphQL          = "graphql-port"
 	FlagPortHasuraConsole    = "console-port"
 	FlagPortHasuraConsoleAPI = "console-api-port"
 	FlagPortSMTP             = "smtp-port"
 	FlagPortMinioS3          = "minio-s3-port"
-	FlagPortMailhog          = "mailhog-port"
 	FlagPortDashboard        = "dashboard-port"
+	FlagPortMailhog          = "mailhog-port"
 )
 
 type Ports struct {
 	p map[string]uint32
 }
 
-func NewPorts(proxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort, minioS3Port, mailhogPort, dashboardPort uint32) *Ports {
+func NewPorts(proxyPort, sslProxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort, minioS3Port, dashboardPort, mailhogPort uint32) *Ports {
 	return &Ports{
 		p: map[string]uint32{
 			FlagPortProxy:            proxyPort,
+			FlagSSLPortProxy:         sslProxyPort,
 			FlagPortDB:               dbPort,
 			FlagPortGraphQL:          graphqlPort,
 			FlagPortHasuraConsole:    consolePort,
 			FlagPortHasuraConsoleAPI: consoleAPIPort,
 			FlagPortSMTP:             smtpPort,
 			FlagPortMinioS3:          minioS3Port,
-			FlagPortMailhog:          mailhogPort,
 			FlagPortDashboard:        dashboardPort,
+			FlagPortMailhog:          mailhogPort,
 		},
 	}
 }
@@ -49,6 +51,10 @@ func (p Ports) EnsurePortsAvailable() error {
 
 func (p Ports) Proxy() uint32 {
 	return p.get(FlagPortProxy)
+}
+
+func (p Ports) SSLProxy() uint32 {
+	return p.get(FlagSSLPortProxy)
 }
 
 func (p Ports) DB() uint32 {
@@ -75,12 +81,12 @@ func (p Ports) MinioS3() uint32 {
 	return p.get(FlagPortMinioS3)
 }
 
-func (p Ports) Mailhog() uint32 {
-	return p.get(FlagPortMailhog)
-}
-
 func (p Ports) Dashboard() uint32 {
 	return p.get(FlagPortDashboard)
+}
+
+func (p Ports) Mailhog() uint32 {
+	return p.get(FlagPortMailhog)
 }
 
 func (p Ports) get(name string) uint32 {

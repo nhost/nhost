@@ -66,6 +66,16 @@ nhost up --ui nhost
 - [Nhost CLI](https://docs.nhost.io/platform/cli)
 - [Reference](https://docs.nhost.io/reference/cli)
 
+## Build from source
+Make sure you have [Go](https://golang.org/doc/install) 1.18 or later installed.
+
+The source code includes a self-signed certificate for testing purposes 
+Nhost workers with configured access to AWS may use `cert.sh` script to generate a real certificate from Let's Encrypt.
+
+`go build -o /usr/local/bin/nhost` will build the binary available as `nhost` command in terminal.
+
+```
+
 ## Dependencies
 
 - [Docker](https://docs.docker.com/get-docker/)
