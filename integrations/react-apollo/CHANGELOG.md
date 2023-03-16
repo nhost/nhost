@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- @nhost/apollo@6.0.0
+- @nhost/apollo@5.1.0
 - @nhost/react@2.0.10
 
 ## 5.0.10
