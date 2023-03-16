@@ -9,7 +9,7 @@ import {
   GetOneUserDocument,
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
-  useUpdateApplicationMutation
+  useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Input from '@/ui/v2/Input';
@@ -42,12 +42,12 @@ export default function SettingsGeneralPage() {
   const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
   const [pauseApplication] = usePauseApplicationMutation({
-    variables: {
-      appId: currentApplication?.id,
-    },
+    variables: { appId: currentApplication?.id },
+    refetchQueries: [GetOneUserDocument],
   });
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentApplication?.id },
+    refetchQueries: [GetOneUserDocument],
   });
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
@@ -120,7 +120,8 @@ export default function SettingsGeneralPage() {
       await client.refetchQueries({ include: [GetOneUserDocument] });
     } catch (error) {
       await discordAnnounce(
-        error.message || 'An error occurred while trying to update application cache.',
+        error.message ||
+          'An error occurred while trying to update application cache.',
       );
     }
   }
@@ -154,7 +155,6 @@ export default function SettingsGeneralPage() {
       getToastStyleProps(),
     );
 
-    await client.refetchQueries({ include: [GetOneUserDocument] });
     await router.push('/');
   }
 

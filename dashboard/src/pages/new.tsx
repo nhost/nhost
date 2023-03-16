@@ -63,7 +63,6 @@ export function NewProjectPageContent({
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
-  console.log(nrOfFreeAppsCreatedByUser);
   const { maintenanceActive } = useUI();
   const router = useRouter();
   // pre hook
@@ -584,8 +583,6 @@ export default function NewProjectPage() {
     },
     fetchPolicy: 'cache-and-network',
   });
-
-  console.log(data);
 
   if (error) {
     throw error;
