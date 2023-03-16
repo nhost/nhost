@@ -113,7 +113,7 @@ importers:
       '@storybook/manager-webpack5': ^6.5.14
       '@storybook/react': ^6.5.14
       '@storybook/testing-library': ^0.0.13
-      '@stripe/react-stripe-js': ^1.10.0
+      '@stripe/react-stripe-js': ^2.0.0
       '@stripe/stripe-js': ^1.35.0
       '@tailwindcss/forms': ^0.5.3
       '@tanstack/react-query': ^4.16.1
@@ -224,7 +224,7 @@ importers:
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/react-apollo': link:../integrations/react-apollo
       '@segment/snippet': 4.15.3
-      '@stripe/react-stripe-js': 1.14.2_mljfwq7caaxrtdqn7u72ntpebq
+      '@stripe/react-stripe-js': 2.0.0_mljfwq7caaxrtdqn7u72ntpebq
       '@stripe/stripe-js': 1.44.1
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.2.1
       '@tanstack/react-query': 4.16.1_biqbaboplfbrettd7655fr4n2y
@@ -11548,10 +11548,10 @@ packages:
       resolve-from: 5.0.0
     dev: true
 
-  /@stripe/react-stripe-js/1.14.2_mljfwq7caaxrtdqn7u72ntpebq:
-    resolution: {integrity: sha512-8dGBdSFldq6dyiYgv3r4tOwS5PGAO/446hodegSKlmWg7NkAl0McopszXJd11A9otGi47v5OzCsljyfHJgnLhw==}
+  /@stripe/react-stripe-js/2.0.0_mljfwq7caaxrtdqn7u72ntpebq:
+    resolution: {integrity: sha512-JEzZlVdJaU9g3sZIcgCUXfHqvmDGF2pBqDVWxTJLAhSBNARp5kyFEoTFQzeCdPwrq3D4ZMJVgc6i6mbUgiXsgQ==}
     peerDependencies:
-      '@stripe/stripe-js': ^1.42.1
+      '@stripe/stripe-js': ^1.44.1
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
@@ -15043,7 +15043,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.4
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -20303,19 +20303,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: false
-
-  /follow-redirects/1.15.2_debug@4.3.4:
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.4
-    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
