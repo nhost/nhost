@@ -1678,6 +1678,11 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['String']>;
 };
 
+export type UnpauseApp = {
+  __typename?: 'UnpauseApp';
+  id?: Maybe<Scalars['String']>;
+};
+
 /** columns and relationships of "app_state_history" */
 export type AppStateHistory = {
   __typename?: 'appStateHistory';
@@ -9159,6 +9164,7 @@ export type Mutation_Root = {
   migrateRDSToPostgres: Scalars['Boolean'];
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  unpauseApp: UnpauseApp;
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
   /** update single row of the table: "app_states" */
@@ -10188,6 +10194,12 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootUnpauseAppArgs = {
+  appId: Scalars['String'];
 };
 
 
@@ -16439,12 +16451,10 @@ export type PrefetchNewAppPlansFragment = { __typename?: 'plans', id: any, name:
 
 export type PrefetchNewAppWorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> };
 
-export type PrefetchNewAppQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
+export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }>, apps: Array<{ __typename?: 'apps', id: any }> };
+export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
 
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -16527,6 +16537,13 @@ export type UpdateConfigMutationVariables = Exact<{
 
 
 export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig' } };
+
+export type UnpauseApplicationMutationVariables = Exact<{
+  appId: Scalars['String'];
+}>;
+
+
+export type UnpauseApplicationMutation = { __typename?: 'mutation_root', unpauseApp: { __typename?: 'UnpauseApp', id?: string | null } };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -16857,6 +16874,13 @@ export type GetAvatarQueryVariables = Exact<{
 
 
 export type GetAvatarQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, avatarUrl: string } | null };
+
+export type GetFreeAndActiveProjectsQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type GetFreeAndActiveProjectsQuery = { __typename?: 'query_root', freeAndActiveProjects: Array<{ __typename?: 'apps', id: any }> };
 
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
 
@@ -17881,7 +17905,7 @@ export type PauseApplicationMutationHookResult = ReturnType<typeof usePauseAppli
 export type PauseApplicationMutationResult = Apollo.MutationResult<PauseApplicationMutation>;
 export type PauseApplicationMutationOptions = Apollo.BaseMutationOptions<PauseApplicationMutation, PauseApplicationMutationVariables>;
 export const PrefetchNewAppDocument = gql`
-    query PrefetchNewApp($userId: uuid!) {
+    query PrefetchNewApp {
   regions(order_by: {city: asc}) {
     ...PrefetchNewAppRegions
   }
@@ -17890,9 +17914,6 @@ export const PrefetchNewAppDocument = gql`
   }
   workspaces {
     ...PrefetchNewAppWorkspace
-  }
-  apps(where: {creatorUserId: {_eq: $userId}, plan: {isFree: {_eq: true}}}) {
-    id
   }
 }
     ${PrefetchNewAppRegionsFragmentDoc}
@@ -17911,11 +17932,10 @@ ${PrefetchNewAppWorkspaceFragmentDoc}`;
  * @example
  * const { data, loading, error } = usePrefetchNewAppQuery({
  *   variables: {
- *      userId: // value for 'userId'
  *   },
  * });
  */
-export function usePrefetchNewAppQuery(baseOptions: Apollo.QueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
+export function usePrefetchNewAppQuery(baseOptions?: Apollo.QueryHookOptions<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>(PrefetchNewAppDocument, options);
       }
@@ -17926,7 +17946,7 @@ export function usePrefetchNewAppLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type PrefetchNewAppQueryHookResult = ReturnType<typeof usePrefetchNewAppQuery>;
 export type PrefetchNewAppLazyQueryHookResult = ReturnType<typeof usePrefetchNewAppLazyQuery>;
 export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>;
-export function refetchPrefetchNewAppQuery(variables: PrefetchNewAppQueryVariables) {
+export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
 export const GetAuthenticationSettingsDocument = gql`
@@ -18469,6 +18489,39 @@ export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
 export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
 export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
+export const UnpauseApplicationDocument = gql`
+    mutation UnpauseApplication($appId: String!) {
+  unpauseApp(appId: $appId) {
+    id
+  }
+}
+    `;
+export type UnpauseApplicationMutationFn = Apollo.MutationFunction<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>;
+
+/**
+ * __useUnpauseApplicationMutation__
+ *
+ * To run a mutation, you first call `useUnpauseApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnpauseApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unpauseApplicationMutation, { data, loading, error }] = useUnpauseApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useUnpauseApplicationMutation(baseOptions?: Apollo.MutationHookOptions<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>(UnpauseApplicationDocument, options);
+      }
+export type UnpauseApplicationMutationHookResult = ReturnType<typeof useUnpauseApplicationMutation>;
+export type UnpauseApplicationMutationResult = Apollo.MutationResult<UnpauseApplicationMutation>;
+export type UnpauseApplicationMutationOptions = Apollo.BaseMutationOptions<UnpauseApplicationMutation, UnpauseApplicationMutationVariables>;
 export const UpdateAppDocument = gql`
     mutation updateApp($id: uuid!, $app: apps_set_input!) {
   updateApp(pk_columns: {id: $id}, _set: $app) {
@@ -20226,6 +20279,46 @@ export type GetAvatarLazyQueryHookResult = ReturnType<typeof useGetAvatarLazyQue
 export type GetAvatarQueryResult = Apollo.QueryResult<GetAvatarQuery, GetAvatarQueryVariables>;
 export function refetchGetAvatarQuery(variables: GetAvatarQueryVariables) {
       return { query: GetAvatarDocument, variables: variables }
+    }
+export const GetFreeAndActiveProjectsDocument = gql`
+    query GetFreeAndActiveProjects($userId: uuid!) {
+  freeAndActiveProjects: apps(
+    where: {creatorUserId: {_eq: $userId}, plan: {isFree: {_eq: true}}, desiredState: {_eq: 5}}
+  ) {
+    id
+  }
+}
+    `;
+
+/**
+ * __useGetFreeAndActiveProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetFreeAndActiveProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFreeAndActiveProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFreeAndActiveProjectsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetFreeAndActiveProjectsQuery(baseOptions: Apollo.QueryHookOptions<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>(GetFreeAndActiveProjectsDocument, options);
+      }
+export function useGetFreeAndActiveProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>(GetFreeAndActiveProjectsDocument, options);
+        }
+export type GetFreeAndActiveProjectsQueryHookResult = ReturnType<typeof useGetFreeAndActiveProjectsQuery>;
+export type GetFreeAndActiveProjectsLazyQueryHookResult = ReturnType<typeof useGetFreeAndActiveProjectsLazyQuery>;
+export type GetFreeAndActiveProjectsQueryResult = Apollo.QueryResult<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>;
+export function refetchGetFreeAndActiveProjectsQuery(variables: GetFreeAndActiveProjectsQueryVariables) {
+      return { query: GetFreeAndActiveProjectsDocument, variables: variables }
     }
 export const GetOneUserDocument = gql`
     query getOneUser($userId: uuid!) {

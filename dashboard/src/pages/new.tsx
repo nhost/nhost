@@ -37,6 +37,7 @@ import type {
 } from '@/utils/__generated__/graphql';
 import {
   useCreateNewAppMutation,
+  useGetFreeAndActiveProjectsQuery,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
@@ -50,7 +51,7 @@ type NewAppPageProps = {
   regions: PrefetchNewAppRegionsFragment[];
   plans: PrefetchNewAppPlansFragment[];
   workspaces: PrefetchNewAppWorkspaceFragment[];
-  nrOfFreeAppsCreatedByUser: number;
+  numberOfFreeAndLiveProjects: number;
   preSelectedWorkspace: PrefetchNewAppWorkspaceFragment;
   preSelectedRegion: PrefetchNewAppRegionsFragment;
 };
@@ -59,7 +60,7 @@ export function NewProjectPageContent({
   regions,
   plans,
   workspaces,
-  nrOfFreeAppsCreatedByUser,
+  numberOfFreeAndLiveProjects,
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
@@ -95,7 +96,7 @@ export function NewProjectPageContent({
     if (!plan.isFree) {
       return true;
     }
-    return nrOfFreeAppsCreatedByUser < MAX_FREE_PROJECTS;
+    return numberOfFreeAndLiveProjects < MAX_FREE_PROJECTS;
   });
 
   const [plan, setPlan] = useState(defaultSelectedPlan);
@@ -472,7 +473,7 @@ export function NewProjectPageContent({
                 {plans.map((currentPlan) => {
                   const disabledPlan =
                     currentPlan.isFree &&
-                    nrOfFreeAppsCreatedByUser >= MAX_FREE_PROJECTS;
+                    numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
                   return (
                     <Tooltip
@@ -577,25 +578,28 @@ export default function NewProjectPage() {
   const router = useRouter();
   const user = useUserData();
 
-  const { data, loading, error } = usePrefetchNewAppQuery({
-    variables: {
-      userId: user.id,
-    },
+  const { data, loading, error } = usePrefetchNewAppQuery();
+
+  const {
+    data: freeAndActiveProjectsData,
+    loading: freeAndActiveProjectsLoading,
+    error: freeAndActiveProjectsError,
+  } = useGetFreeAndActiveProjectsQuery({
+    variables: { userId: user?.id },
     fetchPolicy: 'cache-and-network',
   });
 
-  if (error) {
-    throw error;
+  if (error || freeAndActiveProjectsError) {
+    throw error || freeAndActiveProjectsError;
   }
 
-  if (loading) {
+  if (loading || freeAndActiveProjectsLoading) {
     return (
       <ActivityIndicator delay={500} label="Loading plans and regions..." />
     );
   }
 
   const { workspace } = router.query;
-
   const { regions, plans, workspaces } = data;
 
   // get pre-selected workspace
@@ -606,15 +610,14 @@ export default function NewProjectPage() {
 
   const preSelectedRegion = regions.find((region) => region.active);
 
-  // the `apps` property is filtered by the GraphQL query
-  const nrOfFreeAppsCreatedByUser = data.apps.length;
-
   return (
     <NewProjectPageContent
       regions={regions}
       plans={plans}
       workspaces={workspaces}
-      nrOfFreeAppsCreatedByUser={nrOfFreeAppsCreatedByUser}
+      numberOfFreeAndLiveProjects={
+        freeAndActiveProjectsData?.freeAndActiveProjects.length
+      }
       preSelectedWorkspace={preSelectedWorkspace}
       preSelectedRegion={preSelectedRegion}
     />

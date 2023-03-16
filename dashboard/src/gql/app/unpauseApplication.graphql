@@ -1,0 +1,5 @@
+mutation UnpauseApplication($appId: String!) {
+  unpauseApp(appId: $appId) {
+    id
+  }
+}
