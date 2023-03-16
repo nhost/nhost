@@ -46,11 +46,7 @@ function AddPaymentMethodForm({
 
   const [insertNewPaymentMethod] = useInsertNewPaymentMethodMutation({
     refetchQueries: [
-      refetchPrefetchNewAppQuery({
-        userId: {
-          _eq: user.id,
-        },
-      }),
+      refetchPrefetchNewAppQuery(),
       refetchGetPaymentMethodsQuery({
         workspaceId,
       }),
