@@ -6,7 +6,7 @@ import { NhostClientConstructorParams } from '../utils/types'
 /**
  * Creates a client for Storage from either a subdomain or a URL
  */
-export function createStorageClient(params: NhostClientConstructorParams<undefined>) {
+export function createStorageClient(params: NhostClientConstructorParams) {
   const storageUrl =
     'subdomain' in params || 'backendUrl' in params
       ? urlFromSubdomain(params, 'storage')

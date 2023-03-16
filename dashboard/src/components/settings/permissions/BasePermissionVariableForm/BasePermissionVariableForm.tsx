@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
@@ -7,18 +8,7 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface BasePermissionVariableFormValues {
-  /**
-   * Permission variable key.
-   */
-  key: string;
-  /**
-   * Permission variable value.
-   */
-  value: string;
-}
-
-export interface BasePermissionVariableFormProps {
+export interface BasePermissionVariableFormProps extends DialogFormProps {
   /**
    * Function to be called when the form is submitted.
    */
@@ -36,14 +26,19 @@ export interface BasePermissionVariableFormProps {
 }
 
 export const basePermissionVariableValidationSchema = Yup.object({
-  key: Yup.string().required('This field is required.'),
-  value: Yup.string().required('This field is required.'),
+  key: Yup.string().label('Field Name').nullable().required(),
+  value: Yup.string().label('Path').nullable().required(),
 });
+
+export type BasePermissionVariableFormValues = Yup.InferType<
+  typeof basePermissionVariableValidationSchema
+>;
 
 export default function BasePermissionVariableForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: BasePermissionVariableFormProps) {
   const { onDirtyStateChange } = useDialog();
   const form = useFormContext<BasePermissionVariableFormValues>();
@@ -56,8 +51,8 @@ export default function BasePermissionVariableForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   return (
     <div className="grid grid-flow-row gap-2 px-6 pb-6">

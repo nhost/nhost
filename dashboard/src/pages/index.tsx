@@ -1,4 +1,5 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
+import MaintenanceAlert from '@/components/common/MaintenanceAlert';
 import { Applications } from '@/components/home/Applications';
 import Sidebar from '@/components/home/Sidebar';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
@@ -10,6 +11,7 @@ import type { ReactElement } from 'react';
 
 export default function IndexPage() {
   useFetchFirstWorkspace();
+
   const { loading } = useGetAllUserWorkspacesAndApplications(false);
   const { userContext } = useUserDataContext();
 
@@ -18,10 +20,16 @@ export default function IndexPage() {
   }
 
   return (
-    <Container className="flex flex-col md:flex-row">
-      <Applications />
-      <Sidebar />
-    </Container>
+    <div className="flex w-full flex-col px-4">
+      <Container className="py-0">
+        <MaintenanceAlert />
+      </Container>
+
+      <Container className="flex flex-col md:flex-row">
+        <Applications />
+        <Sidebar />
+      </Container>
+    </div>
   );
 }
 

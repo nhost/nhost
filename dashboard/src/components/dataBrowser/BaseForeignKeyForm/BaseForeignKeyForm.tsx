@@ -2,6 +2,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import useDatabaseQuery from '@/hooks/dataBrowser/useDatabaseQuery';
+import type { DialogFormProps } from '@/types/common';
 import type { DatabaseColumn, ForeignKeyRelation } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -23,7 +24,7 @@ export interface BaseForeignKeyFormValues extends ForeignKeyRelation {
   disableOriginColumn?: boolean;
 }
 
-export interface BaseForeignKeyFormProps {
+export interface BaseForeignKeyFormProps extends DialogFormProps {
   /**
    * Available columns in the table.
    */
@@ -64,6 +65,7 @@ export function BaseForeignKeyForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  location,
 }: BaseForeignKeyFormProps) {
   const { onDirtyStateChange } = useDialog();
 
@@ -86,8 +88,8 @@ export function BaseForeignKeyForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
-  }, [isDirty, onDirtyStateChange]);
+    onDirtyStateChange(isDirty, location);
+  }, [isDirty, location, onDirtyStateChange]);
 
   return (
     <Form

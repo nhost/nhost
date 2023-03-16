@@ -1,0 +1,107 @@
+query GetSignInMethods($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    provider {
+      id: __typename
+      __typename
+      sms {
+        accountSid
+        authToken
+        messagingServiceId
+        provider
+      }
+    }
+    auth {
+      id: __typename
+      __typename
+      method {
+        emailPassword {
+          emailVerificationRequired
+          hibpEnabled
+        }
+        emailPasswordless {
+          enabled
+        }
+        smsPasswordless {
+          enabled
+        }
+        anonymous {
+          enabled
+        }
+        webauthn {
+          enabled
+        }
+        oauth {
+          apple {
+            enabled
+            clientId
+            keyId
+            teamId
+            privateKey
+          }
+          discord {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          facebook {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          github {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          google {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          linkedin {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          spotify {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          twitch {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          twitter {
+            enabled
+            consumerKey
+            consumerSecret
+          }
+          windowslive {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          workos {
+            enabled
+            clientId
+            clientSecret
+            connection
+            organization
+          }
+        }
+      }
+    }
+  }
+}

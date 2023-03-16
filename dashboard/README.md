@@ -35,7 +35,16 @@ You can connect the Nhost Dashboard to your locally running backend by setting t
 ```bash
 NEXT_PUBLIC_ENV=dev
 NEXT_PUBLIC_NHOST_PLATFORM=false
+NEXT_PUBLIC_NHOST_AUTH_URL=https://local.auth.nhost.run/v1
+NEXT_PUBLIC_NHOST_FUNCTIONS_URL=https://local.functions.nhost.run/v1
+NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1
+NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1
+NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run
+NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run/v1/migrations
+NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run
 ```
+
+This will connect the Nhost Dashboard to your locally running Nhost backend.
 
 ### Storybook
 
@@ -45,20 +54,39 @@ Components are documented using [Storybook](https://storybook.js.org/). To run S
 pnpm storybook
 ```
 
-### Full list of environment variables
+### General Environment Variables
 
-| Name                                      | Description                                                                                                                                          |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_ENV`                         | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                                                                    |
-| `NEXT_PUBLIC_NHOST_PLATFORM`              | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. Setting this to `true` turns off local development. |
-| `NEXT_PUBLIC_NHOST_LOCAL_MIGRATIONS_PORT` | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `9693`                                                   |
-| `NEXT_PUBLIC_NHOST_LOCAL_HASURA_PORT`     | Custom port that was passed to the CLI. Used only if local development is enabled and `NEXT_PUBLIC_ENV` is `dev`. Default: `9695`                    |
-| `NEXT_PUBLIC_NHOST_LOCAL_BACKEND_PORT`    | Custom port that was passed to the CLI. Used only if local development is enabled. Default: `1337`                                                   |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`           | Backend URL. Not necessary for local development.                                                                                                    |
-| `NEXT_PUBLIC_STRIPE_PK`                   | Stripe public key. Not necessary for local development.                                                                                              |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`      | URL of the GitHub application. Not necessary for local development.                                                                                  |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`         | Analytics key. Not necessary for local development.                                                                                                  |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`       | URL of the Bragi websocket. Not necessary for local development.                                                                                     |
+| Name                             | Description                                                                                                                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_ENV`                | `dev`, `staging` or `prod`. This should be set to `dev` in most cases.                                                                                                                                               |
+| `NEXT_PUBLIC_NHOST_ADMIN_SECRET` | Admin secret for Hasura. Default: `nhost-admin-secret`                                                                                                                                                               |
+| `NEXT_PUBLIC_NHOST_PLATFORM`     | This should be set to `false` to connect the Nhost Dashboard to a locally running or a self-hosted Nhost backend. Setting this to `true` will connect the Nhost Dashboard to the cloud environment. Default: `false` |
+
+### Environment Variables for Local Development and Self-Hosting
+
+| Name | Description |
+| ---- | ----------- |
+
+| `NEXT_PUBLIC_NHOST_AUTH_URL` | The URL of the Auth service. When working locally, point it to the Auth service started by the CLI. When self-hosting, point it to the self-hosted Auth service. |
+| `NEXT_PUBLIC_NHOST_FUNCTIONS_URL` | The URL of the Functions service. When working locally, point it to the Functions service started by the CLI. When self-hosting, point it to the self-hosted Functions service. |
+| `NEXT_PUBLIC_NHOST_GRAPHQL_URL` | The URL of the GraphQL service. When working locally, point it to the GraphQL service started by the CLI. When self-hosting, point it to the self-hosted GraphQL service. |
+| `NEXT_PUBLIC_NHOST_STORAGE_URL` | The URL of the Storage service. When working locally, point it to the Storage service started by the CLI. When self-hosting, point it to the self-hosted Storage service. |
+| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL` | The URL of the Hasura Console. When working locally, point it to the Hasura Console started by the CLI. When self-hosting, point it to the self-hosted Hasura Console. |
+| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI. |
+| `NEXT_PUBLIC_NHOST_HASURA_API_URL` | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
+
+### Other Environment Variables
+
+| Name                                    | Description                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`         | Backend URL. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                   |
+| `NEXT_PUBLIC_STRIPE_PK`                 | Stripe public key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.             |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`    | URL of the GitHub application. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`. |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`       | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`     | URL of the Bragi websocket. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.    |
+| `NEXT_PUBLIC_MAINTENANCE_ACTIVE`        | Determines whether or not maintenance mode is active.                                       |
+| `NEXT_PUBLIC_MAINTENANCE_END_DATE`      | Date when maintenance mode will end.                                                        |
+| `NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET` | Secret that can be used to bypass maintenance mode.                                         |
 
 ## ESLint Rules
 

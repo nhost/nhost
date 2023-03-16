@@ -1,4 +1,5 @@
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
@@ -58,7 +59,7 @@ export default function useFiles({
 
   return {
     files:
-      currentApplication?.hasuraGraphqlAdminSecret && cachedOrFetchedFiles
+      currentApplication?.config?.hasura.adminSecret && cachedOrFetchedFiles
         ? cachedOrFetchedFiles.map((file) => ({
             ...file,
             preview: {
@@ -92,8 +93,8 @@ export default function useFiles({
                     headers: {
                       'x-hasura-admin-secret':
                         process.env.NEXT_PUBLIC_ENV === 'dev'
-                          ? 'nhost-admin-secret'
-                          : currentApplication?.hasuraGraphqlAdminSecret,
+                          ? getHasuraAdminSecret()
+                          : currentApplication?.config?.hasura.adminSecret,
                     },
                     mode: 'cors',
                     ...init,

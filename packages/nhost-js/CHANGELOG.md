@@ -1,5 +1,59 @@
 # @nhost/nhost-js
 
+## 2.1.0
+
+### Minor Changes
+
+- bfb4c1a6: chore(sdk): remove deprecated `useAxios` property
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/graphql-js@0.1.0
+
+## 2.0.9
+
+### Patch Changes
+
+- 088584e7: feat(nhost-js): add support for `local` as a special subdomain
+
+## 2.0.8
+
+### Patch Changes
+
+- 1d155559: fix(nhost-js): allow `null` as body and return JSON when `content-type` is `application/json`
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [889ee658]
+- Updated dependencies [850a049c]
+  - @nhost/hasura-storage-js@2.0.3
+  - @nhost/graphql-js@0.0.5
+  - @nhost/hasura-auth-js@2.0.2
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/graphql-js@0.0.4
+  - @nhost/hasura-auth-js@2.0.1
+  - @nhost/hasura-storage-js@2.0.2
+
+## 2.0.5
+
+### Patch Changes
+
+- 3c7cf92e: fixing generating the correct URL for function calls
+
 ## 2.0.4
 
 ### Patch Changes

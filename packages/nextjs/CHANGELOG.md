@@ -1,5 +1,51 @@
 # @nhost/nextjs
 
+## 1.13.16
+
+### Patch Changes
+
+- ce1ee40d: fix(nextjs): allow `subdomain`, `region` and service URLs
+  - @nhost/react@2.0.10
+
+## 1.13.15
+
+### Patch Changes
+
+- f375eacc: fix(nextjs): accept service URLs
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
+## 1.13.14
+
+### Patch Changes
+
+- @nhost/react@2.0.8
+
+## 1.13.13
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
+## 1.13.12
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/react@2.0.6
+
+## 1.13.11
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
 ## 1.13.10
 
 ### Patch Changes

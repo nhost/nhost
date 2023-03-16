@@ -1,5 +1,102 @@
 # @nhost/dashboard
 
+## 0.13.3
+
+### Patch Changes
+
+- bfb4c1a6: chore(dashboard): remove `useAxios` property
+- d8d8394b: Dashboard: allow to override hasura admin secret in docker
+- Updated dependencies [ce1ee40d]
+  - @nhost/nextjs@1.13.16
+  - @nhost/react-apollo@5.0.11
+
+## 0.13.2
+
+### Patch Changes
+
+- beed2eba: Fix docker entrypoint for dashboard
+- 2c8559a3: fix(dashboard): refresh project list after deleting a project
+- 4329d048: chore(dashboard): bump `graphiql` dependencies
+
+## 0.13.1
+
+### Patch Changes
+
+- cbb1fc5b: chore(dashboard): cleanup GraphQL operations
+
+## 0.13.0
+
+### Minor Changes
+
+- 088584e7: feat(dashboard): add support for custom local subdomains
+
+### Patch Changes
+
+- 2ac90dfd: fix(dashboard): improve mobile responsive layout
+- Updated dependencies [f375eacc]
+  - @nhost/nextjs@1.13.15
+  - @nhost/react-apollo@5.0.10
+
+## 0.12.4
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.9
+- @nhost/nextjs@1.13.14
+
+## 0.12.3
+
+### Patch Changes
+
+- 2b1338f7: chore(dashboard): bump `turbo` to 1.8.3
+- 5223ee93: fix(dashboard): show correct deployment status on the main page
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nextjs@1.13.13
+  - @nhost/react-apollo@5.0.8
+
+## 0.12.2
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/react-apollo@5.0.7
+  - @nhost/nextjs@1.13.12
+
+## 0.12.1
+
+### Patch Changes
+
+- c96d7ccd: fix(dashboard): fix docker builds
+
+## 0.12.0
+
+### Minor Changes
+
+- d1671210: feat(dashboard): use mimir to manage project configuration
+
+### Patch Changes
+
+- f65e4de9: chore(deps): bump @graphql-codegen monorepo to v3
+
+## 0.11.20
+
+### Patch Changes
+
+- 4b4f0d01: chore(dashboard): improve dialog management
+
+## 0.11.19
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.6
+- @nhost/nextjs@1.13.11
+
 ## 0.11.18
 
 ### Patch Changes

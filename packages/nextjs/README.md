@@ -70,7 +70,10 @@ import {
 } from '@nhost/nextjs'
 
 export async function getServerSideProps(context: NextPageContext) {
-  const nhostSession = await getNhostSession('<Your Nhost Backend URL>', context)
+  const nhostSession = await getNhostSession(
+    { subdomain: '<project_subdomain>', region: '<project_region>' },
+    context
+  )
 
   return {
     props: {

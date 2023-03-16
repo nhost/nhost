@@ -1,5 +1,53 @@
 # @nhost/react
 
+## 2.0.10
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/nhost-js@2.1.0
+
+## 2.0.9
+
+### Patch Changes
+
+- f375eacc: fix(react): accept service URLs
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 2.0.8
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
+## 2.0.5
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
 ## 2.0.4
 
 ### Patch Changes

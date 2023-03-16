@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "1.13.10",
+  "version": "1.13.16",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@vitejs/plugin-vue": "^4.0.0",
-    "@xstate/inspect": "^0.7.0",
+    "@xstate/inspect": "^0.8.0",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6",
     "ws": "^8.10.0",

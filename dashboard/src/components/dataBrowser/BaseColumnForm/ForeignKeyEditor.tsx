@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import type { BaseForeignKeyFormValues } from '@/components/dataBrowser/BaseForeignKeyForm';
+import CreateForeignKeyForm from '@/components/dataBrowser/CreateForeignKeyForm';
+import EditForeignKeyForm from '@/components/dataBrowser/EditForeignKeyForm';
 import type { DatabaseColumn } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -29,7 +30,7 @@ const ForeignKeyEditorInput = forwardRef(
   ) => {
     const { openDialog } = useDialog();
     const { setValue } = useFormContext();
-    const column = useWatch<Partial<DatabaseColumn>>();
+    const column = useWatch() as DatabaseColumn;
     const { foreignKeyRelation } = column;
 
     if (!column.foreignKeyRelation) {
@@ -39,8 +40,8 @@ const ForeignKeyEditorInput = forwardRef(
           className="py-1"
           disabled={!column.name || !column.type}
           ref={ref}
-          onClick={() =>
-            openDialog('CREATE_FOREIGN_KEY', {
+          onClick={() => {
+            openDialog({
               title: (
                 <span className="grid grid-flow-row">
                   <span>Add a Foreign Key Relation</span>
@@ -51,16 +52,18 @@ const ForeignKeyEditorInput = forwardRef(
                   </Text>
                 </span>
               ),
-              payload: {
-                selectedColumn: column.name,
-                availableColumns: [column],
-                onSubmit: (values: BaseForeignKeyFormValues) => {
-                  setValue('foreignKeyRelation', values);
-                  onCreateSubmit();
-                },
-              },
-            })
-          }
+              component: (
+                <CreateForeignKeyForm
+                  selectedColumn={column.name}
+                  availableColumns={[column]}
+                  onSubmit={(values) => {
+                    setValue('foreignKeyRelation', values);
+                    onCreateSubmit();
+                  }}
+                />
+              ),
+            });
+          }}
         >
           Add Foreign Key
         </Button>
@@ -86,20 +89,22 @@ const ForeignKeyEditorInput = forwardRef(
         <div className="grid grid-flow-col">
           <Button
             ref={ref}
-            onClick={() =>
-              openDialog('EDIT_FOREIGN_KEY', {
+            onClick={() => {
+              openDialog({
                 title: 'Edit Foreign Key Relation',
-                payload: {
-                  foreignKeyRelation,
-                  availableColumns: [column],
-                  selectedColumn: column.name,
-                  onSubmit: (values: BaseForeignKeyFormValues) => {
-                    setValue('foreignKeyRelation', values);
-                    onEditSubmit();
-                  },
-                },
-              })
-            }
+                component: (
+                  <EditForeignKeyForm
+                    foreignKeyRelation={foreignKeyRelation}
+                    selectedColumn={column.name}
+                    availableColumns={[column]}
+                    onSubmit={(values) => {
+                      setValue('foreignKeyRelation', values);
+                      onEditSubmit();
+                    }}
+                  />
+                ),
+              });
+            }}
             variant="borderless"
             className="min-w-[initial] py-1 px-2"
           >

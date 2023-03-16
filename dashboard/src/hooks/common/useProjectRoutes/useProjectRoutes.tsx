@@ -1,3 +1,4 @@
+import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import CloudIcon from '@/ui/v2/icons/CloudIcon';
 import CogIcon from '@/ui/v2/icons/CogIcon';
@@ -52,6 +53,7 @@ export interface ProjectRoute {
 
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
+  const { maintenanceActive } = useUI();
 
   const nhostRoutes: ProjectRoute[] = [
     {
@@ -81,7 +83,7 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Settings',
       icon: <CogIcon />,
-      disabled: !isPlatform,
+      disabled: !isPlatform || maintenanceActive,
     },
   ];
 

@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface EditColumnFormProps
-  extends Pick<BaseColumnFormProps, 'onCancel'> {
+  extends Pick<BaseColumnFormProps, 'onCancel' | 'location'> {
   /**
    * Column to be edited.
    */

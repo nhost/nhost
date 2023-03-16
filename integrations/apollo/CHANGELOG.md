@@ -1,5 +1,51 @@
 # @nhost/apollo
 
+## 5.1.0
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/nhost-js@2.1.0
+
+## 5.0.9
+
+### Patch Changes
+
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 5.0.8
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 5.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
+## 5.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
+## 5.0.5
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
 ## 5.0.4
 
 ### Patch Changes

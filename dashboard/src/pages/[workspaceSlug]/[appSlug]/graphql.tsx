@@ -255,7 +255,7 @@ export default function GraphQLPage() {
 
   if (
     !currentApplication?.subdomain ||
-    !currentApplication?.hasuraGraphqlAdminSecret
+    !currentApplication?.config?.hasura.adminSecret
   ) {
     return <LoadingScreen />;
   }
@@ -272,7 +272,7 @@ export default function GraphQLPage() {
 
   const headers = {
     'content-type': 'application/json',
-    'x-hasura-admin-secret': currentApplication.hasuraGraphqlAdminSecret,
+    'x-hasura-admin-secret': currentApplication.config?.hasura.adminSecret,
     ...userHeaders,
   };
 

@@ -1,5 +1,48 @@
 # @nhost/react-urql
 
+## 2.0.10
+
+### Patch Changes
+
+- @nhost/react@2.0.10
+
+## 2.0.9
+
+### Patch Changes
+
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
+## 2.0.8
+
+### Patch Changes
+
+- @nhost/react@2.0.8
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/react@2.0.6
+
+## 2.0.5
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
 ## 2.0.4
 
 ### Patch Changes

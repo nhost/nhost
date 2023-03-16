@@ -8,17 +8,20 @@ import BaseRoleForm, {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetRolesQuery,
-  useUpdateAppMutation,
+  GetRolesPermissionsDocument,
+  useGetRolesPermissionsQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-export interface EditRoleFormProps extends Pick<BaseRoleFormProps, 'onCancel'> {
+export interface EditRoleFormProps
+  extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
   /**
    * The role to be edited.
    */
@@ -35,10 +38,13 @@ export default function EditRoleForm({
   ...props
 }: EditRoleFormProps) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, loading, error } = useGetRolesQuery({
-    variables: { id: currentApplication?.id },
+  const { data, loading, error } = useGetRolesPermissionsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { allowed: allowedRoles, default: defaultRole } =
+    data?.config?.auth?.user?.roles || {};
 
   const form = useForm<BaseRoleFormValues>({
     defaultValues: {
@@ -48,8 +54,8 @@ export default function EditRoleForm({
     resolver: yupResolver(baseRoleFormValidationSchema),
   });
 
-  const [updateApp] = useUpdateAppMutation({
-    refetchQueries: ['getRoles'],
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetRolesPermissionsDocument],
   });
 
   if (loading) {
@@ -61,7 +67,7 @@ export default function EditRoleForm({
   }
 
   const { setError } = form;
-  const availableRoles = getUserRoles(data?.app?.authUserDefaultAllowedRoles);
+  const availableRoles = getUserRoles(allowedRoles);
 
   async function handleSubmit({ name }: BaseRoleFormValues) {
     if (
@@ -74,47 +80,55 @@ export default function EditRoleForm({
       return;
     }
 
-    const defaultAllowedRolesList =
-      data?.app?.authUserDefaultAllowedRoles.split(',') || [];
+    const defaultAllowedRolesList = allowedRoles || [];
 
     const originalRoleIndex = defaultAllowedRolesList.findIndex(
       (role) => role.trim() === originalRole.name,
     );
 
-    const updatedDefaultAllowedRoles = defaultAllowedRolesList
-      .map((role, index) => {
+    const updatedDefaultAllowedRoles = defaultAllowedRolesList.map(
+      (role, index) => {
         if (index === originalRoleIndex) {
           return name;
         }
 
         return role;
-      })
-      .join(',');
+      },
+    );
 
-    const updateAppPromise = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication?.id,
-        app: {
-          authUserDefaultRole:
-            data?.app?.authUserDefaultRole === originalRole.name
-              ? name
-              : data?.app?.authUserDefaultRole,
-          authUserDefaultAllowedRoles: updatedDefaultAllowedRoles,
+        appId: currentApplication?.id,
+        config: {
+          auth: {
+            user: {
+              roles: {
+                default: defaultRole === originalRole.name ? name : defaultRole,
+                allowed: updatedDefaultAllowedRoles,
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppPromise,
-      {
-        loading: 'Updating role...',
-        success: 'Role has been updated successfully.',
-        error: 'An error occurred while trying to update the role.',
-      },
-      getToastStyleProps(),
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: 'Updating role...',
+          success: 'Role has been updated successfully.',
+          error: getServerError(
+            'An error occurred while trying to update the role.',
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    await onSubmit?.();
+      onSubmit?.();
+    } catch (updateConfigError) {
+      console.error(updateConfigError);
+    }
   }
 
   return (

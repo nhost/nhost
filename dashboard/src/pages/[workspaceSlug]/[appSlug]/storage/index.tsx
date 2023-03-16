@@ -4,6 +4,7 @@ import FilesDataGrid from '@/components/files/FilesDataGrid';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
 
@@ -25,8 +26,8 @@ export default function StoragePage() {
       headers={{
         'x-hasura-admin-secret':
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
-            : currentApplication.hasuraGraphqlAdminSecret,
+            ? getHasuraAdminSecret()
+            : currentApplication.config?.hasura.adminSecret,
       }}
     >
       <div className="h-full pb-25 xs+:pb-[53px]">

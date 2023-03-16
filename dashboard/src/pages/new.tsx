@@ -1,6 +1,7 @@
 import { BillingPaymentMethodForm } from '@/components/billing-payment-method/BillingPaymentMethodForm';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import Container from '@/components/layout/Container';
+import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { useLazyRefetchUserData } from '@/hooks/useLazyRefetchUserData';
@@ -62,6 +63,7 @@ export function NewProjectPageContent({
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
+  const { maintenanceActive } = useUI();
   const router = useRouter();
   // pre hook
   useGetAllUserWorkspacesAndApplications();
@@ -559,7 +561,9 @@ export function NewProjectPageContent({
             <Button
               type="submit"
               loading={submitState.loading}
-              disabled={!!submitState.error || !!passwordError}
+              disabled={
+                !!submitState.error || !!passwordError || maintenanceActive
+              }
               id="create-app"
             >
               Create Project

@@ -1,5 +1,5 @@
-import fetch from 'cross-fetch'
-import { urlFromSubdomain } from '../../utils/helpers'
+import fetch from 'isomorphic-unfetch'
+import { buildUrl, urlFromSubdomain } from '../../utils/helpers'
 import { NhostClientConstructorParams } from '../../utils/types'
 import {
   NhostFunctionCallConfig,
@@ -38,12 +38,6 @@ export class NhostFunctionsClient {
     this.adminSecret = adminSecret
   }
 
-  async call<T = unknown, D = any>(
-    url: string,
-    data: D,
-    config?: NhostFunctionCallConfig
-  ): Promise<NhostFunctionCallResponse<T>>
-
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
    *
@@ -56,7 +50,7 @@ export class NhostFunctionsClient {
    */
   async call<T = unknown, D = any>(
     url: string,
-    body: D,
+    body: D | null,
     config?: NhostFunctionCallConfig
   ): Promise<NhostFunctionCallResponse<T>> {
     const headers: HeadersInit = {
@@ -65,12 +59,11 @@ export class NhostFunctionsClient {
       ...config?.headers
     }
 
-    const backendUrl = this.url
-    const functionUrl = url.startsWith('/') ? url : `/${url}`
+    const fullUrl = buildUrl(this.url, url)
 
     try {
-      const result = await fetch(`${backendUrl}/${functionUrl}`, {
-        body: JSON.stringify(body),
+      const result = await fetch(fullUrl, {
+        body: body ? JSON.stringify(body) : null,
         headers,
         method: 'POST'
       })
@@ -81,7 +74,7 @@ export class NhostFunctionsClient {
 
       let data: T
 
-      if (result.headers.get('content-type') === 'application/json') {
+      if (result.headers.get('content-type')?.includes('application/json')) {
         data = await result.json()
       } else {
         data = (await result.text()) as unknown as T
@@ -123,7 +116,7 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {
+  generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {
     if (this.adminSecret) {
       return {
         'x-hasura-admin-secret': this.adminSecret

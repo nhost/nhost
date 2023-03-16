@@ -1,5 +1,25 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.8
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [7eac17a1]
+- Updated dependencies [850a049c]
+  - @nhost/vue@1.13.13
+  - @nhost/apollo@5.0.7
+
+## 0.0.7
+
+### Patch Changes
+
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/apollo@5.0.6
+  - @nhost/vue@1.13.12
+
 ## 0.0.6
 
 ### Patch Changes
