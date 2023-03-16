@@ -12,8 +12,8 @@ export function WorkspaceInvoices() {
 
   return (
     <div className="mt-18">
-      <div className="mx-auto max-w-3xl font-display grid grid-flow-row gap-2 justify-start">
-        <Text className="font-medium text-lg">Invoices</Text>
+      <div className="mx-auto grid max-w-3xl grid-flow-row justify-start gap-2 font-display">
+        <Text className="text-lg font-medium">Invoices</Text>
 
         <Button
           variant="outlined"
@@ -23,7 +23,6 @@ export function WorkspaceInvoices() {
             const { res, error } = await nhost.functions.call(
               '/stripe-create-portal',
               { workspaceId: currentWorkspace.id },
-              { useAxios: false },
             );
 
             if (error) {

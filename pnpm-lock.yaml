@@ -1020,6 +1020,7 @@ importers:
 
   packages/nhost-js:
     specifiers:
+      '@nhost/docgen': workspace:*
       '@nhost/graphql-js': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
@@ -1031,6 +1032,7 @@ importers:
       '@nhost/hasura-storage-js': link:../hasura-storage-js
       isomorphic-unfetch: 3.1.0
     devDependencies:
+      '@nhost/docgen': link:../docgen
       graphql: 16.6.0
 
   packages/react:
