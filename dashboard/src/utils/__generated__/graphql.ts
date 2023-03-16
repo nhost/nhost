@@ -16426,6 +16426,13 @@ export type InsertApplicationMutationVariables = Exact<{
 
 export type InsertApplicationMutation = { __typename?: 'mutation_root', insertApp?: { __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } } | null };
 
+export type PauseApplicationMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type PauseApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
+
 export type PrefetchNewAppRegionsFragment = { __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } };
 
 export type PrefetchNewAppPlansFragment = { __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number };
@@ -17840,6 +17847,39 @@ export function useInsertApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type InsertApplicationMutationHookResult = ReturnType<typeof useInsertApplicationMutation>;
 export type InsertApplicationMutationResult = Apollo.MutationResult<InsertApplicationMutation>;
 export type InsertApplicationMutationOptions = Apollo.BaseMutationOptions<InsertApplicationMutation, InsertApplicationMutationVariables>;
+export const PauseApplicationDocument = gql`
+    mutation PauseApplication($appId: uuid!) {
+  updateApp(pk_columns: {id: $appId}, _set: {desiredState: 6}) {
+    id
+  }
+}
+    `;
+export type PauseApplicationMutationFn = Apollo.MutationFunction<PauseApplicationMutation, PauseApplicationMutationVariables>;
+
+/**
+ * __usePauseApplicationMutation__
+ *
+ * To run a mutation, you first call `usePauseApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePauseApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pauseApplicationMutation, { data, loading, error }] = usePauseApplicationMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function usePauseApplicationMutation(baseOptions?: Apollo.MutationHookOptions<PauseApplicationMutation, PauseApplicationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PauseApplicationMutation, PauseApplicationMutationVariables>(PauseApplicationDocument, options);
+      }
+export type PauseApplicationMutationHookResult = ReturnType<typeof usePauseApplicationMutation>;
+export type PauseApplicationMutationResult = Apollo.MutationResult<PauseApplicationMutation>;
+export type PauseApplicationMutationOptions = Apollo.BaseMutationOptions<PauseApplicationMutation, PauseApplicationMutationVariables>;
 export const PrefetchNewAppDocument = gql`
     query PrefetchNewApp($userId: uuid!) {
   regions(order_by: {city: asc}) {

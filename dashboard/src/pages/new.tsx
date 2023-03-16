@@ -22,7 +22,7 @@ import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { MAX_FREE_APPS } from '@/utils/CONSTANTS';
+import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
@@ -63,6 +63,7 @@ export function NewProjectPageContent({
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
+  console.log(nrOfFreeAppsCreatedByUser);
   const { maintenanceActive } = useUI();
   const router = useRouter();
   // pre hook
@@ -95,7 +96,7 @@ export function NewProjectPageContent({
     if (!plan.isFree) {
       return true;
     }
-    return nrOfFreeAppsCreatedByUser < MAX_FREE_APPS;
+    return nrOfFreeAppsCreatedByUser < MAX_FREE_PROJECTS;
   });
 
   const [plan, setPlan] = useState(defaultSelectedPlan);
@@ -472,24 +473,24 @@ export function NewProjectPageContent({
                 {plans.map((currentPlan) => {
                   const disabledPlan =
                     currentPlan.isFree &&
-                    nrOfFreeAppsCreatedByUser >= MAX_FREE_APPS;
+                    nrOfFreeAppsCreatedByUser >= MAX_FREE_PROJECTS;
 
                   return (
                     <Tooltip
                       visible={disabledPlan}
-                      title={`You can only have ${MAX_FREE_APPS} live free project`}
+                      title="Only one free project can be active at any given time. Please pause your active free project before creating a new one."
                       key={currentPlan.id}
+                      slotProps={{
+                        tooltip: { className: '!max-w-xs w-full text-center' },
+                      }}
                     >
                       <Box className="w-full rounded-md border">
                         <Radio
-                          className=""
                           slotProps={{
                             formControl: {
-                              className: 'p-3 w-full ',
+                              className: 'p-3 w-full',
                               slotProps: {
-                                typography: {
-                                  className: 'w-full',
-                                },
+                                typography: { className: 'w-full' },
                               },
                             },
                           }}
@@ -561,9 +562,7 @@ export function NewProjectPageContent({
             <Button
               type="submit"
               loading={submitState.loading}
-              disabled={
-                !!submitState.error || !!passwordError || maintenanceActive
-              }
+              disabled={!!passwordError || maintenanceActive}
               id="create-app"
             >
               Create Project
@@ -583,7 +582,10 @@ export default function NewProjectPage() {
     variables: {
       userId: user.id,
     },
+    fetchPolicy: 'cache-and-network',
   });
+
+  console.log(data);
 
   if (error) {
     throw error;

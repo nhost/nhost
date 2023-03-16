@@ -80,7 +80,8 @@ function AddPaymentMethodForm({
 
       if (createPaymentMethodError) {
         throw new Error(
-          createPaymentMethodError.message || 'Unknown error occurred.',
+          createPaymentMethodError.message ||
+            'An unknown error occurred. Please try again.',
         );
       }
 
@@ -94,7 +95,10 @@ function AddPaymentMethodForm({
       );
 
       if (attachPaymentMethodError) {
-        throw Error((attachPaymentMethodError as any).response.data);
+        throw new Error(
+          (attachPaymentMethodError as any)?.response?.data ||
+            'An unknown error occurred. Please try again.',
+        );
       }
 
       // update workspace with new country code in database
