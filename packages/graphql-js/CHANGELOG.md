@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.0
+
+### Minor Changes
+
+- bfb4c1a6: chore(sdk): remove deprecated `useAxios` property
+
 ## 0.0.5
 
 ### Patch Changes

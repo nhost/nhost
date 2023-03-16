@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.13.3
+
+### Patch Changes
+
+- bfb4c1a6: chore(dashboard): remove `useAxios` property
+- d8d8394b: Dashboard: allow to override hasura admin secret in docker
+- Updated dependencies [ce1ee40d]
+  - @nhost/nextjs@1.13.16
+  - @nhost/react-apollo@5.0.11
+
 ## 0.13.2
 
 ### Patch Changes

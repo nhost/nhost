@@ -1,5 +1,15 @@
 # @nhost-examples/nextjs
 
+## 0.1.8
+
+### Patch Changes
+
+- ce1ee40d: fix(nextjs): allow `subdomain`, `region` and service URLs
+- Updated dependencies [ce1ee40d]
+  - @nhost/nextjs@1.13.16
+  - @nhost/react@2.0.10
+  - @nhost/react-apollo@5.0.11
+
 ## 0.1.7
 
 ### Patch Changes

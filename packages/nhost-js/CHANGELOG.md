@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 2.1.0
+
+### Minor Changes
+
+- bfb4c1a6: chore(sdk): remove deprecated `useAxios` property
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/graphql-js@0.1.0
+
 ## 2.0.9
 
 ### Patch Changes
