@@ -54,8 +54,7 @@ export default function ApplicationPaused() {
         unpauseApplication({ variables: { appId: currentApplication.id } }),
         {
           loading: 'Waking up...',
-          success: () =>
-            `${currentApplication.name} has successfully woken up.`,
+          success: `${currentApplication.name} has successfully woken up.`,
           error: getServerError(
             `An error occurred while trying to wake up ${currentApplication.name}.`,
           ),
