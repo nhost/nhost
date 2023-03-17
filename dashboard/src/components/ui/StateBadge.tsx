@@ -5,7 +5,11 @@ export interface StateBadgeProps {
   /**
    * This is the current state of the application.
    */
-  status: ApplicationStatus;
+  state: ApplicationStatus;
+  /**
+   * This is the desired state of the application.
+   */
+  desiredState: ApplicationStatus;
   /**
    * The title to show on the application state badge.
    */
@@ -24,20 +28,28 @@ function getNormalizedTitle(title: string) {
   return title;
 }
 
-export default function StateBadge({ title, status }: StateBadgeProps) {
+export default function StateBadge({
+  title,
+  state,
+  desiredState,
+}: StateBadgeProps) {
+  if (
+    desiredState === ApplicationStatus.Paused &&
+    state === ApplicationStatus.Live
+  ) {
+    return <Chip size="small" color="default" label="Pausing" />;
+  }
+
   const normalizedTitle = getNormalizedTitle(title);
 
   if (
-    status === ApplicationStatus.Empty ||
-    status === ApplicationStatus.Unpausing
+    state === ApplicationStatus.Empty ||
+    state === ApplicationStatus.Unpausing
   ) {
     return <Chip size="small" label={normalizedTitle} color="warning" />;
   }
 
-  if (
-    status === ApplicationStatus.Errored ||
-    status === ApplicationStatus.Live
-  ) {
+  if (state === ApplicationStatus.Errored || state === ApplicationStatus.Live) {
     return <Chip size="small" label={normalizedTitle} color="success" />;
   }
 

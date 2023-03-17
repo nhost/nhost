@@ -45,6 +45,7 @@ export default function ApplicationPaused() {
   });
 
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
+  const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
     setChangingApplicationStateLoading(true);
@@ -103,47 +104,42 @@ export default function ApplicationPaused() {
 
           <Text>
             Starter projects stop responding to API calls after 7 days of
-            inactivity. Upgarde to Pro to avoid autosleep.
+            inactivity. Upgrade to Pro to avoid autosleep.
           </Text>
         </Box>
 
         <Box className="grid grid-flow-row gap-2">
-          {currentApplication.plan.isFree && (
-            <Button
-              className="mx-auto w-full max-w-[280px]"
-              onClick={() => {
-                openAlertDialog({
-                  title: 'Upgrade your plan.',
-                  payload: <ChangePlanModal />,
-                  props: {
-                    PaperProps: { className: 'p-0' },
-                    hidePrimaryAction: true,
-                    hideSecondaryAction: true,
-                    hideTitle: true,
-                    maxWidth: 'lg',
-                  },
-                });
-              }}
-            >
-              Upgrade to Pro
-            </Button>
-          )}
+          <Button
+            className="mx-auto w-full max-w-[280px]"
+            onClick={() => {
+              openAlertDialog({
+                title: 'Upgrade your plan.',
+                payload: <ChangePlanModal />,
+                props: {
+                  PaperProps: { className: 'p-0' },
+                  hidePrimaryAction: true,
+                  hideSecondaryAction: true,
+                  hideTitle: true,
+                  maxWidth: 'lg',
+                },
+              });
+            }}
+          >
+            Upgrade to Pro
+          </Button>
 
           <div className="grid grid-flow-row gap-2">
             <Button
               variant="borderless"
               className="mx-auto w-full max-w-[280px]"
               loading={changingApplicationStateLoading}
-              disabled={
-                changingApplicationStateLoading ||
-                numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS
-              }
+              disabled={changingApplicationStateLoading || wakeUpDisabled}
               onClick={handleTriggerUnpausing}
             >
               Wake Up
             </Button>
 
-            {numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS && (
+            {wakeUpDisabled && (
               <Alert severity="warning" className="mx-auto max-w-xs text-left">
                 Note: Only one free project can be active at any given time.
                 Please pause your active free project before unpausing{' '}

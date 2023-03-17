@@ -111,9 +111,8 @@ export function RenderWorkspacesWithApps({
                             )}
 
                             <StateBadge
-                              status={checkStatusOfTheApplication(
-                                app.appStates,
-                              )}
+                              state={checkStatusOfTheApplication(app.appStates)}
+                              desiredState={app.desiredState}
                               title={getApplicationStatusString(
                                 checkStatusOfTheApplication(app.appStates),
                               )}

@@ -192,29 +192,31 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      <SettingsContainer
-        title="Pause Project"
-        description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-        submitButtonText="Pause"
-        slotProps={{
-          submitButton: {
-            type: 'button',
-            color: 'primary',
-            variant: 'contained',
-            disabled: maintenanceActive,
-            onClick: () => {
-              openAlertDialog({
-                title: 'Pause Project?',
-                payload:
-                  'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
-                props: {
-                  onPrimaryAction: handlePauseApplication,
-                },
-              });
+      {currentApplication.plan.isFree && (
+        <SettingsContainer
+          title="Pause Project"
+          description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+          submitButtonText="Pause"
+          slotProps={{
+            submitButton: {
+              type: 'button',
+              color: 'primary',
+              variant: 'contained',
+              disabled: maintenanceActive,
+              onClick: () => {
+                openAlertDialog({
+                  title: 'Pause Project?',
+                  payload:
+                    'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
+                  props: {
+                    onPrimaryAction: handlePauseApplication,
+                  },
+                });
+              },
             },
-          },
-        }}
-      />
+          }}
+        />
+      )}
 
       <SettingsContainer
         title="Delete Project"
