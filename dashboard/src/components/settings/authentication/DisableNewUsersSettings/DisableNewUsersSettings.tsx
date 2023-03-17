@@ -35,7 +35,7 @@ export default function DisableNewUsersSettings() {
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      disabled: !!data?.config?.auth?.signUp?.enabled,
+      disabled: !data?.config?.auth?.signUp?.enabled,
     },
   });
 
