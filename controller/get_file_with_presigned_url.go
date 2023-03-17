@@ -64,9 +64,18 @@ func (ctrl *Controller) getFileWithPresignedURLParse(ctx *gin.Context) (GetFileW
 		return GetFileWithPresignedURLRequest{}, apiErr //nolint: exhaustruct
 	}
 
+	signature := make(url.Values, len(ctx.Request.URL.Query()))
+	for k, v := range ctx.Request.URL.Query() {
+		switch k {
+		case "w", "h", "q", "b":
+		default:
+			signature[k] = v
+		}
+	}
+
 	return GetFileWithPresignedURLRequest{
 		fileID:    ctx.Param("id"),
-		signature: ctx.Request.URL.RawQuery,
+		signature: signature.Encode(),
 		headers:   headers,
 		Expires:   expires,
 	}, nil
