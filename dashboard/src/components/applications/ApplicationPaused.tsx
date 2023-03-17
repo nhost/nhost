@@ -16,8 +16,8 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
-import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -54,11 +54,21 @@ export default function ApplicationPaused() {
       await toast.promise(
         unpauseApplication({ variables: { appId: currentApplication.id } }),
         {
-          loading: 'Waking up...',
-          success: `${currentApplication.name} has successfully woken up.`,
-          error: getServerError(
-            `An error occurred while trying to wake up ${currentApplication.name}.`,
-          ),
+          loading: 'Starting the project...',
+          success: `The project has been started successfully.`,
+          error: (arg: ApolloError) => {
+            // we need to get the internal error message from the GraphQL error
+            const { internal } = arg.graphQLErrors[0]?.extensions || {};
+            const { message } = (internal as Record<string, any>)?.error || {};
+
+            // we use the default Apollo error message if we can't find the
+            // internal error message
+            return (
+              message ||
+              arg.message ||
+              'An error occurred while waking up the project. Please try again.'
+            );
+          },
         },
         getToastStyleProps(),
       );

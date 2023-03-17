@@ -1619,12 +1619,6 @@ export type ConfigUserRoleComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
-export type CreateNewApp = {
-  __typename?: 'CreateNewApp';
-  id?: Maybe<Scalars['String']>;
-  slug?: Maybe<Scalars['String']>;
-};
-
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Int']>;
@@ -1676,11 +1670,6 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars['String']>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['String']>;
-};
-
-export type UnpauseApp = {
-  __typename?: 'UnpauseApp';
-  id?: Maybe<Scalars['String']>;
 };
 
 /** columns and relationships of "app_state_history" */
@@ -8916,7 +8905,6 @@ export type Mutation_Root = {
   __typename?: 'mutation_root';
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
-  createNewApp: CreateNewApp;
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -9164,7 +9152,6 @@ export type Mutation_Root = {
   migrateRDSToPostgres: Scalars['Boolean'];
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
-  unpauseApp: UnpauseApp;
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
   /** update single row of the table: "app_states" */
@@ -9354,16 +9341,6 @@ export type Mutation_Root = {
 /** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootCreateNewAppArgs = {
-  name: Scalars['String'];
-  planId: Scalars['String'];
-  postgresPassword?: InputMaybe<Scalars['String']>;
-  regionId: Scalars['String'];
-  workspaceId: Scalars['String'];
 };
 
 
@@ -10194,12 +10171,6 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootUnpauseAppArgs = {
-  appId: Scalars['String'];
 };
 
 
@@ -11988,7 +11959,6 @@ export type Query_Root = {
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
   /** fetch data from the table: "github_repositories" using primary key columns */
   githubRepository?: Maybe<GithubRepositories>;
-  healthCheckTest: Scalars['Boolean'];
   /**
    * Returns logs for a given application. If `service` is not provided all services are returned.
    * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
@@ -16356,17 +16326,6 @@ export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
 
 export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
 
-export type CreateNewAppMutationVariables = Exact<{
-  name: Scalars['String'];
-  planId: Scalars['String'];
-  workspaceId: Scalars['String'];
-  regionId: Scalars['String'];
-  postgresPassword?: InputMaybe<Scalars['String']>;
-}>;
-
-
-export type CreateNewAppMutation = { __typename?: 'mutation_root', createNewApp: { __typename?: 'CreateNewApp', id?: string | null, slug?: string | null } };
-
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -16539,11 +16498,11 @@ export type UpdateConfigMutationVariables = Exact<{
 export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig' } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
-  appId: Scalars['String'];
+  appId: Scalars['uuid'];
 }>;
 
 
-export type UnpauseApplicationMutation = { __typename?: 'mutation_root', unpauseApp: { __typename?: 'UnpauseApp', id?: string | null } };
+export type UnpauseApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
 
 export type UpdateAppMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -17416,50 +17375,6 @@ export type GetAppPlanAndGlobalPlansQueryResult = Apollo.QueryResult<GetAppPlanA
 export function refetchGetAppPlanAndGlobalPlansQuery(variables: GetAppPlanAndGlobalPlansQueryVariables) {
       return { query: GetAppPlanAndGlobalPlansDocument, variables: variables }
     }
-export const CreateNewAppDocument = gql`
-    mutation CreateNewApp($name: String!, $planId: String!, $workspaceId: String!, $regionId: String!, $postgresPassword: String) {
-  createNewApp(
-    name: $name
-    planId: $planId
-    workspaceId: $workspaceId
-    regionId: $regionId
-    postgresPassword: $postgresPassword
-  ) {
-    id
-    slug
-  }
-}
-    `;
-export type CreateNewAppMutationFn = Apollo.MutationFunction<CreateNewAppMutation, CreateNewAppMutationVariables>;
-
-/**
- * __useCreateNewAppMutation__
- *
- * To run a mutation, you first call `useCreateNewAppMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateNewAppMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createNewAppMutation, { data, loading, error }] = useCreateNewAppMutation({
- *   variables: {
- *      name: // value for 'name'
- *      planId: // value for 'planId'
- *      workspaceId: // value for 'workspaceId'
- *      regionId: // value for 'regionId'
- *      postgresPassword: // value for 'postgresPassword'
- *   },
- * });
- */
-export function useCreateNewAppMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewAppMutation, CreateNewAppMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateNewAppMutation, CreateNewAppMutationVariables>(CreateNewAppDocument, options);
-      }
-export type CreateNewAppMutationHookResult = ReturnType<typeof useCreateNewAppMutation>;
-export type CreateNewAppMutationResult = Apollo.MutationResult<CreateNewAppMutation>;
-export type CreateNewAppMutationOptions = Apollo.BaseMutationOptions<CreateNewAppMutation, CreateNewAppMutationVariables>;
 export const DeleteApplicationDocument = gql`
     mutation deleteApplication($appId: uuid!) {
   deleteApp(id: $appId) {
@@ -18490,8 +18405,8 @@ export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMu
 export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
 export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
 export const UnpauseApplicationDocument = gql`
-    mutation UnpauseApplication($appId: String!) {
-  unpauseApp(appId: $appId) {
+    mutation UnpauseApplication($appId: uuid!) {
+  updateApp(pk_columns: {id: $appId}, _set: {desiredState: 5}) {
     id
   }
 }

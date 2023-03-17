@@ -29,6 +29,7 @@ import { getCurrentEnvironment } from '@/utils/helpers';
 import { planDescriptions } from '@/utils/planDescriptions';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
@@ -36,15 +37,18 @@ import type {
   PrefetchNewAppWorkspaceFragment,
 } from '@/utils/__generated__/graphql';
 import {
-  useCreateNewAppMutation,
   useGetFreeAndActiveProjectsQuery,
+  useInsertApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
+import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import slugify from 'slugify';
 import { twMerge } from 'tailwind-merge';
 
 type NewAppPageProps = {
@@ -106,7 +110,8 @@ export function NewProjectPageContent({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // graphql mutations
-  const [createNewApp] = useCreateNewAppMutation();
+
+  const [insertApp] = useInsertApplicationMutation({});
   const { refetchUserData } = useLazyRefetchUserData();
 
   // options
@@ -177,35 +182,52 @@ export function NewProjectPageContent({
       }
     }
 
-    let projectSlug = '';
+    const slug = slugify(name, { lower: true, strict: true });
 
     try {
-      const { data } = await createNewApp({
-        variables: {
-          name,
-          planId: plan.id,
-          workspaceId: selectedWorkspace.id,
-          regionId: selectedRegion.id,
-          postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
-            ? databasePassword
-            : undefined,
+      await toast.promise(
+        insertApp({
+          variables: {
+            app: {
+              name,
+              slug,
+              planId: plan.id,
+              workspaceId: selectedWorkspace.id,
+              regionId: selectedRegion.id,
+              postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
+                ? databasePassword
+                : undefined,
+            },
+          },
+        }),
+        {
+          loading: 'Creating the project...',
+          success: 'The project has been created successfully.',
+          error: (arg: ApolloError) => {
+            // we need to get the internal error message from the GraphQL error
+            const { internal } = arg.graphQLErrors[0]?.extensions || {};
+            const { message } = (internal as Record<string, any>)?.error || {};
+
+            // we use the default Apollo error message if we can't find the
+            // internal error message
+            return (
+              message ||
+              arg.message ||
+              'An error occurred while creating the project. Please try again.'
+            );
+          },
         },
-      });
+        getToastStyleProps(),
+      );
 
-      projectSlug = data.createNewApp.slug;
-
-      triggerToast(`New project ${name} created`);
+      await refetchUserData();
+      await router.push(`/${selectedWorkspace.slug}/${slug}`);
     } catch (error) {
       setSubmitState({
-        error: Error(getErrorMessage(error, 'application')),
+        error: null,
         loading: false,
       });
-
-      return;
     }
-
-    await refetchUserData();
-    router.push(`/${selectedWorkspace.slug}/${projectSlug}`);
   };
 
   if (!selectedWorkspace) {
