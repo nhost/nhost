@@ -1,0 +1,85 @@
+directive @hasAppVisibility on ARGUMENT_DEFINITION
+directive @isAdmin on ARGUMENT_DEFINITION
+
+scalar uuid
+
+
+type ConfigAppConfig {
+    appID: uuid!
+    config: ConfigConfig!
+}
+
+type ConfigAppSecrets {
+    appID: uuid!
+    secrets: [ConfigEnvironmentVariable!]!
+}
+
+type ConfigAppSystemConfig {
+    appID: uuid!
+    systemConfig: ConfigSystemConfig!
+}
+
+type ConfigInsertConfigResponse {
+    config: ConfigConfig!
+    systemConfig: ConfigSystemConfig!
+    secrets: [ConfigEnvironmentVariable!]!
+}
+
+type Query {
+    config(
+        appID: uuid! @hasAppVisibility(),
+        resolve: Boolean!,
+    ):ConfigConfig
+    configs(
+        resolve: Boolean!,
+        where: ConfigConfigComparisonExp @isAdmin(),
+    ): [ConfigAppConfig!]!
+
+    appSecrets(
+        appID: uuid! @hasAppVisibility(),
+    ): [ConfigEnvironmentVariable!]!
+
+    appsSecrets: [ConfigAppSecrets!]
+
+    systemConfig(
+        appID: uuid! @hasAppVisibility(),
+    ):ConfigSystemConfig
+    systemConfigs(
+        where: ConfigSystemConfigComparisonExp @isAdmin(),
+    ): [ConfigAppSystemConfig!]!
+}
+
+
+type Mutation {
+    updateConfig(
+        appID: uuid! @hasAppVisibility(),
+        config: ConfigConfigUpdateInput!,
+    ): ConfigConfig!
+    insertConfig(
+        appID: uuid! @hasAppVisibility(),
+        config: ConfigConfigInsertInput!,
+        systemConfig: ConfigSystemConfigInsertInput!,
+        secrets: [ConfigEnvironmentVariableInsertInput!],
+    ): ConfigInsertConfigResponse!
+    deleteConfig(
+        appID: uuid! @hasAppVisibility(),
+    ): ConfigConfig
+
+    insertSecret(
+        appID: uuid! @hasAppVisibility(),
+        secret: ConfigEnvironmentVariableInsertInput!,
+    ): ConfigEnvironmentVariable!
+    updateSecret(
+        appID: uuid! @hasAppVisibility(),
+        secret: ConfigEnvironmentVariableInsertInput!,
+    ): ConfigEnvironmentVariable!
+    deleteSecret(
+        appID: uuid! @hasAppVisibility(),
+        key: String!,
+    ): ConfigEnvironmentVariable!
+
+    updateSystemConfig(
+        appID: uuid! @hasAppVisibility(), @isAdmin(),
+        systemConfig: ConfigSystemConfigUpdateInput!,
+    ): ConfigSystemConfig!
+}
