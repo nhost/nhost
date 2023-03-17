@@ -46,7 +46,7 @@ const (
 	// --
 
 	// default docker images
-	svcDashboardDefaultImage = "nhost/dashboard:0.13.2"
+	svcDashboardDefaultImage = "nhost/dashboard:0.13.3"
 	svcPostgresDefaultImage  = "nhost/postgres:14.5-20230104-1"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.19.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.3.0"
