@@ -28,16 +28,15 @@ export default function ApplicationPaused() {
   const { openAlertDialog } = useDialog();
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
-  const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
-    useState(false);
   const { id } = useUserData();
   const isOwner = currentWorkspace.members.some(
     ({ userId, type }) => userId === id && type === 'owner',
   );
   const [showDeletingModal, setShowDeletingModal] = useState(false);
-  const [unpauseApplication] = useUnpauseApplicationMutation({
-    refetchQueries: [GetOneUserDocument],
-  });
+  const [unpauseApplication, { loading: changingApplicationStateLoading }] =
+    useUnpauseApplicationMutation({
+      refetchQueries: [GetOneUserDocument],
+    });
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({
     variables: { userId: id },
@@ -48,8 +47,6 @@ export default function ApplicationPaused() {
   const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
-    setChangingApplicationStateLoading(true);
-
     try {
       await toast.promise(
         unpauseApplication({ variables: { appId: currentApplication.id } }),
@@ -75,8 +72,6 @@ export default function ApplicationPaused() {
     } catch {
       // Note: The toast will handle the error.
     }
-
-    setChangingApplicationStateLoading(false);
   }
 
   if (loading) {
