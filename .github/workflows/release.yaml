@@ -36,7 +36,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v4.1.0
         with:
           version: latest
-          args: release
+          args: release --skip-validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       -
