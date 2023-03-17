@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) Nhost
+# Copyright (c) Nhost
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,13 +34,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//  envCmd represents the env command
+// envCmd represents the env command
 var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Manage your Nhost env vars",
 }
 
-//  lsCmd getches env vars from remote
+// lsCmd getches env vars from remote
 var lsCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
@@ -87,8 +87,8 @@ var lsCmd = &cobra.Command{
 
 		fmt.Fprintln(w, "key\t\tvalue")
 		fmt.Fprintln(w, "---\t\t-----")
-		for _, envRow := range savedProject.EnvVars {
-			fmt.Fprintf(w, "%v\t\t%v", envRow.Name, envRow.Value)
+		for _, envRow := range savedProject.Config.GetGlobal().GetEnvironment() {
+			fmt.Fprintf(w, "%v\t\t%v", envRow.GetName(), envRow.GetValue())
 			fmt.Fprintln(w)
 		}
 		w.Flush()
@@ -98,7 +98,7 @@ var lsCmd = &cobra.Command{
 	},
 }
 
-//  pullCmd syncs env vars from remote with local environment
+// pullCmd syncs env vars from remote with local environment
 var envPullCmd = &cobra.Command{
 	Use:   "pull",
 	Short: "Sync env vars from remote with local env",
@@ -154,16 +154,17 @@ var envPullCmd = &cobra.Command{
 			})
 		}
 
-		for _, remote := range savedProject.EnvVars {
+		for _, remote := range savedProject.Config.GetGlobal().GetEnvironment() {
+			envVar := nhost.EnvVar{Name: remote.GetName(), Value: remote.GetValue()}
 			added := false
 			for index, local := range existingVars {
-				if remote.Name == local.Name {
-					existingVars[index].Value = remote.Value
+				if remote.GetName() == local.Name {
+					existingVars[index].Value = remote.GetValue()
 					added = true
 				}
 			}
 			if !added {
-				existingVars = append(existingVars, remote)
+				existingVars = append(existingVars, envVar)
 			}
 		}
 

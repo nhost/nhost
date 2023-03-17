@@ -240,7 +240,7 @@ in the following manner:
 			}
 
 			hasuraEndpoint := fmt.Sprintf("https://%s.hasura.%s.%s", selectedProject.Subdomain, selectedProject.Region.AwsName, nhost.DOMAIN)
-			adminSecret := selectedProject.GraphQLAdminSecret
+			adminSecret := selectedProject.Config.GetHasura().GetAdminSecret()
 
 			//  create new hasura client
 			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, viper.GetString(userDefinedHasuraCliFlag), nil)
@@ -258,8 +258,8 @@ in the following manner:
 
 			//  write ENV variables to .env.development
 			var envArray []string
-			for _, row := range selectedProject.EnvVars {
-				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row.Name, row.Value))
+			for _, row := range selectedProject.Config.GetGlobal().GetEnvironment() {
+				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row.GetName(), row.GetValue()))
 			}
 
 			envData := strings.Join(envArray, "\n")

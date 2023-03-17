@@ -84,10 +84,8 @@ var (
 	LOCATIONS Required
 )
 
-//	Initialize Nhost variables for runtime
+// Initialize Nhost variables for runtime
 func Init() {
-	DOMAIN = "nhost.run"
-
 	API = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
 
 	//  fetch current working directory

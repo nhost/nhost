@@ -256,7 +256,8 @@ var linkCmd = &cobra.Command{
 }
 
 func updateNhostProject(app nhost.App) error {
-
+	// do not dump configuration
+	app.Config = nil
 	//  create .nhost, if it doesn't exists
 	if util.PathExists(nhost.INFO_PATH) {
 

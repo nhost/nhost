@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/docker/docker/api/types/container"
+	"github.com/nhost/be/services/mimir/model"
 )
 
 type (
@@ -31,13 +32,12 @@ type (
 	}
 
 	App struct {
-		ID                 string   `json:"id,omitempty"`
-		Name               string   `json:"name,omitempty"`
-		GraphQLAdminSecret string   `json:"hasuraGraphqlAdminSecret,omitempty"`
-		Subdomain          string   `json:"subdomain,omitempty"`
-		EnvVars            []EnvVar `json:"environmentVariables,omitempty"`
-		Region             Region   `json:"region"`
-		Workspace          string   `json:"workspace,omitempty"`
+		ID        string              `json:"id,omitempty"`
+		Name      string              `json:"name,omitempty"`
+		Subdomain string              `json:"subdomain,omitempty"`
+		Region    Region              `json:"region"`
+		Config    *model.ConfigConfig `json:"config"`
+		Workspace string              `json:"workspace,omitempty"`
 	}
 
 	Region struct {
