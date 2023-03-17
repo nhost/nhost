@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.13.4
+
+### Patch Changes
+
+- b48bc034: fix(dashboard): disable new users
+- 798e591b: fix(dashboard): show correct date in data grid
+
 ## 0.13.3
 
 ### Patch Changes
