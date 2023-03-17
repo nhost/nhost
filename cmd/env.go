@@ -25,6 +25,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/nhost/be/services/mimir/schema"
+	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -81,13 +83,24 @@ var lsCmd = &cobra.Command{
 			}
 		}
 
+		sch, err := schema.New()
+		if err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to initialize config schema")
+		}
+		resolvedConf, err := appconfig.Config(sch, savedProject.Config, savedProject.AppSecrets)
+		if err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to resolve config")
+		}
+
 		//  print the filtered env vars
 		fmt.Println()
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 
 		fmt.Fprintln(w, "key\t\tvalue")
 		fmt.Fprintln(w, "---\t\t-----")
-		for _, envRow := range savedProject.Config.GetGlobal().GetEnvironment() {
+		for _, envRow := range resolvedConf.GetGlobal().GetEnvironment() {
 			fmt.Fprintf(w, "%v\t\t%v", envRow.GetName(), envRow.GetValue())
 			fmt.Fprintln(w)
 		}
@@ -154,7 +167,18 @@ var envPullCmd = &cobra.Command{
 			})
 		}
 
-		for _, remote := range savedProject.Config.GetGlobal().GetEnvironment() {
+		sch, err := schema.New()
+		if err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to initialize config schema")
+		}
+		resolvedConf, err := appconfig.Config(sch, savedProject.Config, savedProject.AppSecrets)
+		if err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to resolve config")
+		}
+
+		for _, remote := range resolvedConf.GetGlobal().GetEnvironment() {
 			envVar := nhost.EnvVar{Name: remote.GetName(), Value: remote.GetValue()}
 			added := false
 			for index, local := range existingVars {

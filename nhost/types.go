@@ -32,12 +32,13 @@ type (
 	}
 
 	App struct {
-		ID        string              `json:"id,omitempty"`
-		Name      string              `json:"name,omitempty"`
-		Subdomain string              `json:"subdomain,omitempty"`
-		Region    Region              `json:"region"`
-		Config    *model.ConfigConfig `json:"config"`
-		Workspace string              `json:"workspace,omitempty"`
+		ID         string              `json:"id,omitempty"`
+		Name       string              `json:"name,omitempty"`
+		Subdomain  string              `json:"subdomain,omitempty"`
+		Region     Region              `json:"region"`
+		AppSecrets model.Secrets       `json:"appSecrets,omitempty"`
+		Config     *model.ConfigConfig `json:"config"`
+		Workspace  string              `json:"workspace,omitempty"`
 	}
 
 	Region struct {

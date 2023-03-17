@@ -39,6 +39,9 @@ import (
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/nhost/be/services/mimir/schema"
+	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
 var (
@@ -239,8 +242,19 @@ in the following manner:
 				status.Fatal("Failed to save app configuration")
 			}
 
+			sch, err := schema.New()
+			if err != nil {
+				log.Debug(err)
+				status.Fatal("Failed to initialize config schema")
+			}
+			resolvedConf, err := appconfig.Config(sch, selectedProject.Config, selectedProject.AppSecrets)
+			if err != nil {
+				log.Debug(err)
+				status.Fatal("Failed to resolve config")
+			}
+
 			hasuraEndpoint := fmt.Sprintf("https://%s.hasura.%s.%s", selectedProject.Subdomain, selectedProject.Region.AwsName, nhost.DOMAIN)
-			adminSecret := selectedProject.Config.GetHasura().GetAdminSecret()
+			adminSecret := resolvedConf.GetHasura().GetAdminSecret()
 
 			//  create new hasura client
 			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, viper.GetString(userDefinedHasuraCliFlag), nil)
@@ -258,7 +272,7 @@ in the following manner:
 
 			//  write ENV variables to .env.development
 			var envArray []string
-			for _, row := range selectedProject.Config.GetGlobal().GetEnvironment() {
+			for _, row := range resolvedConf.GetGlobal().GetEnvironment() {
 				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row.GetName(), row.GetValue()))
 			}
 
