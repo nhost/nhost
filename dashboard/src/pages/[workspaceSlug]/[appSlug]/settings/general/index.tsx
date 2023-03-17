@@ -147,7 +147,7 @@ export default function SettingsGeneralPage() {
       pauseApplication(),
       {
         loading: `Pausing ${currentApplication.name}...`,
-        success: `${currentApplication.name} has been paused successfully.`,
+        success: `${currentApplication.name} will be paused, but please note that it may take some time to complete the process.`,
         error: getServerError(
           `An error occurred while trying to pause the project "${currentApplication.name}". Please try again.`,
         ),
