@@ -47,6 +47,7 @@
     "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
     "ci:test": "vitest run",
     "e2e:backend": "nhost dev --no-browser",
+    "test": "vitest --config ./vite.unit.config.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
