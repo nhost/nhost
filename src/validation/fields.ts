@@ -85,17 +85,24 @@ export const redirectTo = Joi.string()
         return helper.error('redirectTo');
       }
     }
-    
-    // check that the value URL hostname matches the client URL hostname
-    const authClientUrl = new URL(ENV.AUTH_CLIENT_URL);
-    const valueUrl = new URL(value);
-    if (authClientUrl.hostname !== valueUrl.hostname) {
-      return helper.error('redirectTo');
-    }
-    
+
     // * We allow any sub-path of the client url
-    if (new RegExp(`^${ENV.AUTH_CLIENT_URL}`).test(value)) {
+    // * With optional hash and query params 
+    if (new RegExp(`^${ENV.AUTH_CLIENT_URL}(\/.*)?([?].*)?([#].*)?$`).test(value)) {
       return value;
+    }
+
+    // * Check if the value's hostname matches any allowed hostname 
+    // * Required to avoid shadowing domains
+    const hostnames = ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map(
+      (allowed) => {
+        return new URL(allowed).hostname
+      }
+    );
+
+    const valueUrl = new URL(value);
+    if (!micromatch.isMatch(valueUrl.hostname, hostnames, {nocase: true})) {
+      return helper.error('redirectTo')
     }
 
     // * We allow any sub-path of the allowed redirect urls.
@@ -120,8 +127,9 @@ export const redirectTo = Joi.string()
 
     try {
       // * Don't take the query parameters into account
-      const valuePathName = valueUrl.pathname
-      const match = micromatch.isMatch(valuePathName, expressions, {
+      // * And replace `.` with `/` because of micromatch
+      const urlWithoutParams = `${valueUrl.origin}${valueUrl.pathname}`.replace(/[.]/g, '/');
+      const match = micromatch.isMatch(urlWithoutParams, expressions, {
         nocase: true,
       });
       if (match) return value;
