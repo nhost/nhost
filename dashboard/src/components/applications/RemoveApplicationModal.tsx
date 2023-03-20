@@ -6,7 +6,10 @@ import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { useDeleteApplicationMutation } from '@/utils/__generated__/graphql';
+import {
+  GetOneUserDocument,
+  useDeleteApplicationMutation,
+} from '@/utils/__generated__/graphql';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -42,7 +45,9 @@ export function RemoveApplicationModal({
   description,
   className,
 }: RemoveApplicationModalProps) {
-  const [deleteApplication, { client }] = useDeleteApplicationMutation();
+  const [deleteApplication] = useDeleteApplicationMutation({
+    refetchQueries: [GetOneUserDocument],
+  });
   const [loadingRemove, setLoadingRemove] = useState(false);
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
@@ -73,9 +78,6 @@ export function RemoveApplicationModal({
     }
     close();
     await router.push('/');
-    await client.refetchQueries({
-      include: ['getOneUser'],
-    });
     triggerToast(`${currentApplication.name} deleted`);
   }
 

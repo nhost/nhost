@@ -9,28 +9,39 @@ import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
+import getServerError from '@/utils/settings/getServerError';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
+import { toast } from 'react-hot-toast';
 
 export default function ApplicationInfo() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [deleteApplication, { client }] = useDeleteApplicationMutation({
+  const [deleteApplication] = useDeleteApplicationMutation({
     refetchQueries: [GetOneUserDocument],
   });
   const router = useRouter();
 
   async function handleClickRemove() {
-    await deleteApplication({
-      variables: {
-        appId: currentApplication.id,
-      },
-    });
-    await router.push('/');
-    await client.refetchQueries({
-      include: ['getOneUser'],
-    });
-    triggerToast(`${currentApplication.name} deleted`);
+    try {
+      await toast.promise(
+        deleteApplication({
+          variables: {
+            appId: currentApplication.id,
+          },
+        }),
+        {
+          loading: 'Deleting project...',
+          success: 'The project has been deleted successfully.',
+          error: getServerError(
+            'An error occurred while deleting the project. Please try again.',
+          ),
+        },
+      );
+
+      await router.push('/');
+    } catch {
+      // Note: The toast will handle the error.
+    }
   }
 
   return (

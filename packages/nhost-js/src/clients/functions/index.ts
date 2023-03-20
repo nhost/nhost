@@ -38,12 +38,6 @@ export class NhostFunctionsClient {
     this.adminSecret = adminSecret
   }
 
-  async call<T = unknown, D = any>(
-    url: string,
-    data: D | null,
-    config?: NhostFunctionCallConfig
-  ): Promise<NhostFunctionCallResponse<T>>
-
   /**
    * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
    *

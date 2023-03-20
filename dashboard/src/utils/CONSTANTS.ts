@@ -22,3 +22,8 @@ export const READ_ONLY_SCHEMAS = ['auth', 'storage'];
  * Key used to store the color preference in local storage.
  */
 export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
+
+/**
+ * Maximum number of free projects a user is allowed to have.
+ */
+export const MAX_FREE_PROJECTS = 1;

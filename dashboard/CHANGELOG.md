@@ -1,5 +1,35 @@
 # @nhost/dashboard
 
+## 0.13.6
+
+### Patch Changes
+
+- 253dd235: using new mutation to create projects + refactor Create Project page.
+
+## 0.13.5
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.12
+- @nhost/nextjs@1.13.17
+
+## 0.13.4
+
+### Patch Changes
+
+- b48bc034: fix(dashboard): disable new users
+- 798e591b: fix(dashboard): show correct date in data grid
+
+## 0.13.3
+
+### Patch Changes
+
+- bfb4c1a6: chore(dashboard): remove `useAxios` property
+- d8d8394b: Dashboard: allow to override hasura admin secret in docker
+- Updated dependencies [ce1ee40d]
+  - @nhost/nextjs@1.13.16
+  - @nhost/react-apollo@5.0.11
+
 ## 0.13.2
 
 ### Patch Changes
