@@ -30,7 +30,7 @@
     "@graphiql/toolkit": "^0.8.2",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
-    "@hookform/resolvers": "^2.9.10",
+    "@hookform/resolvers": "^3.0.0",
     "@mui/base": "^5.0.0-alpha.106",
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
