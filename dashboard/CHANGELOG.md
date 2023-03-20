@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.13.6
+
+### Patch Changes
+
+- 253dd235: using new mutation to create projects + refactor Create Project page.
+
 ## 0.13.5
 
 ### Patch Changes
