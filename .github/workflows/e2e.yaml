@@ -9,11 +9,27 @@ env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+  NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_WORKSPACE_NAME: ${{ vars.NHOST_TEST_WORKSPACE_NAME }}
+  NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
 
 jobs:
+  wait-for-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for CI build
+        uses: lewagon/wait-on-check-action@v0.2
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Build @nhost packages'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 60
+
   e2e:
     name: 'E2E (Package: ${{ matrix.package.path }})'
-    needs: build
+    needs: wait-for-build
     if: ${{ needs.build.outputs.matrix != '[]' && needs.build.outputs.matrix != '' }}
     strategy:
       # * Don't cancel other matrices when one fails
@@ -54,7 +70,7 @@ jobs:
 
   dashboard-e2e:
     name: 'Dashboard E2E'
-    needs: build
+    needs: wait-for-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

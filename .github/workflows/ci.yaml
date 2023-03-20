@@ -22,7 +22,6 @@ env:
 
 jobs:
   build:
-    id: build
     name: Build @nhost packages
     runs-on: ubuntu-latest
     steps:
