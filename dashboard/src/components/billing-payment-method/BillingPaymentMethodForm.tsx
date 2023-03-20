@@ -76,7 +76,8 @@ function AddPaymentMethodForm({
 
       if (createPaymentMethodError) {
         throw new Error(
-          createPaymentMethodError.message || 'Unknown error occurred.',
+          createPaymentMethodError.message ||
+            'An unknown error occurred. Please try again.',
         );
       }
 
@@ -90,7 +91,10 @@ function AddPaymentMethodForm({
       );
 
       if (attachPaymentMethodError) {
-        throw Error((attachPaymentMethodError as any).response.data);
+        throw new Error(
+          (attachPaymentMethodError as any)?.response?.data ||
+            'An unknown error occurred. Please try again.',
+        );
       }
 
       // update workspace with new country code in database
@@ -151,7 +155,7 @@ function AddPaymentMethodForm({
   };
 
   return (
-    <Box className="w-modal2 px-6 pt-6 pb-6 text-left rounded-lg">
+    <Box className="w-modal2 rounded-lg px-6 pt-6 pb-6 text-left">
       <div className="flex flex-col">
         <form onSubmit={handleSubmit}>
           <Text className="text-center text-lg font-medium">
@@ -203,7 +207,7 @@ function AddPaymentMethodForm({
 
 type BillingPaymentMethodFormProps = {
   close: () => void;
-  onPaymentMethodAdded?: () => Promise<void>;
+  onPaymentMethodAdded?: (e?: any) => Promise<void>;
   workspaceId: string;
 };
 

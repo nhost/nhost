@@ -11,7 +11,7 @@ export default function useNotFoundRedirect() {
   const router = useRouter();
   const {
     query: { workspaceSlug, appSlug, updating },
-  } = useRouter();
+  } = router;
 
   const notIn404Already = router.pathname !== '/404';
   const noResolvedWorkspace = workspaceSlug && currentWorkspace === undefined;

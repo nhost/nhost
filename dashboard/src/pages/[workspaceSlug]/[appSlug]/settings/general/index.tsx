@@ -8,7 +8,8 @@ import { useUI } from '@/context/UIContext';
 import {
   GetOneUserDocument,
   useDeleteApplicationMutation,
-  useUpdateAppMutation,
+  usePauseApplicationMutation,
+  useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Input from '@/ui/v2/Input';
@@ -37,9 +38,13 @@ export type ProjectNameValidationSchema = Yup.InferType<
 
 export default function SettingsGeneralPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { openDialog, closeDialog } = useDialog();
-  const [updateApp] = useUpdateAppMutation();
+  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
+  const [pauseApplication] = usePauseApplicationMutation({
+    variables: { appId: currentApplication?.id },
+    refetchQueries: [GetOneUserDocument],
+  });
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentApplication?.id },
     refetchQueries: [GetOneUserDocument],
@@ -61,7 +66,7 @@ export default function SettingsGeneralPage() {
 
   const { register, formState } = form;
 
-  const handleProjectNameChange = async (data: ProjectNameValidationSchema) => {
+  async function handleProjectNameChange(data: ProjectNameValidationSchema) {
     // In this bit of code we spread the props of the current path (e.g. /workspace/...) and add one key-value pair: `updating: true`.
     // We want to indicate that the currently we're in the process of running a mutation state that will affect the routing behaviour of the website
     // i.e. redirecting to 404 if there's no workspace/project with that slug.
@@ -83,7 +88,7 @@ export default function SettingsGeneralPage() {
 
     const updateAppMutation = updateApp({
       variables: {
-        id: currentApplication.id,
+        appId: currentApplication.id,
         app: {
           name: data.name,
           slug: newProjectSlug,
@@ -108,34 +113,50 @@ export default function SettingsGeneralPage() {
     }
 
     try {
-      await client.refetchQueries({
-        include: ['getOneUser'],
-      });
       form.reset(undefined, { keepValues: true, keepDirty: false });
       await router.push(
         `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
       );
+      await client.refetchQueries({ include: [GetOneUserDocument] });
     } catch (error) {
       await discordAnnounce(
-        error.message || 'Error while trying to update application cache',
+        error.message ||
+          'An error occurred while trying to update application cache.',
       );
     }
-  };
+  }
 
-  const handleDeleteApplication = async () => {
+  async function handleDeleteApplication() {
     await toast.promise(
       deleteApplication(),
       {
         loading: `Deleting ${currentApplication.name}...`,
-        success: `${currentApplication.name} deleted`,
+        success: `${currentApplication.name} has been deleted successfully.`,
         error: getServerError(
-          `Error while trying to ${currentApplication.name} project name`,
+          `An error occurred while trying to delete the project "${currentApplication.name}". Please try again.`,
         ),
       },
       getToastStyleProps(),
     );
+
     await router.push('/');
-  };
+  }
+
+  async function handlePauseApplication() {
+    await toast.promise(
+      pauseApplication(),
+      {
+        loading: `Pausing ${currentApplication.name}...`,
+        success: `${currentApplication.name} will be paused, but please note that it may take some time to complete the process.`,
+        error: getServerError(
+          `An error occurred while trying to pause the project "${currentApplication.name}". Please try again.`,
+        ),
+      },
+      getToastStyleProps(),
+    );
+
+    await router.push('/');
+  }
 
   return (
     <Container
@@ -170,6 +191,32 @@ export default function SettingsGeneralPage() {
           </SettingsContainer>
         </Form>
       </FormProvider>
+
+      {currentApplication.plan.isFree && (
+        <SettingsContainer
+          title="Pause Project"
+          description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+          submitButtonText="Pause"
+          slotProps={{
+            submitButton: {
+              type: 'button',
+              color: 'primary',
+              variant: 'contained',
+              disabled: maintenanceActive,
+              onClick: () => {
+                openAlertDialog({
+                  title: 'Pause Project?',
+                  payload:
+                    'Are you sure you want to pause this project? It will not be accessible until you unpause it.',
+                  props: {
+                    onPrimaryAction: handlePauseApplication,
+                  },
+                });
+              },
+            },
+          }}
+        />
+      )}
 
       <SettingsContainer
         title="Delete Project"
