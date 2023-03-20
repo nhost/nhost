@@ -165,7 +165,7 @@ export default function CreateUserForm({
           </Alert>
         )}
         <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             Create
           </Button>
 

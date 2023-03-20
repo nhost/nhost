@@ -111,3 +111,21 @@ pnpm storybook
 | `@typescript-eslint/consistent-type-imports` | Enforces `import type { Type } from 'module'` syntax. It prevents false positive circular dependency errors.                                                 |
 | `@typescript-eslint/naming-convention`       | Enforces a consistent naming convention.                                                                                                                     |
 | `no-restricted-imports`                      | Enforces absolute imports and consistent import paths for components from `src/components/ui` folder.                                                        |
+
+### End-to-End Tests
+
+End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+
+```bash
+pnpm e2e
+```
+
+Most of the tests require access to the Nhost test user. To run these tests, you need to set the following environment variables in `.env.test`:
+
+```
+NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
+NHOST_TEST_USER_EMAIL=<test_user_email>
+NHOST_TEST_USER_PASSWORD=<test_user_password>
+NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
+NHOST_TEST_PROJECT_NAME=<test_project_name>
+```

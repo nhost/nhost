@@ -14,7 +14,8 @@
     "nhost:dev": "nhost dev -d",
     "format": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,md}\" --plugin-search-dir=.",
     "storybook": "start-storybook -p 6006 -s public",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.7.3",
@@ -87,6 +88,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.1",
     "@next/bundle-analyzer": "^12.3.1",
+    "@playwright/test": "^1.30.0",
     "@storybook/addon-actions": "^6.5.14",
     "@storybook/addon-essentials": "^6.5.14",
     "@storybook/addon-interactions": "^6.5.14",
@@ -116,6 +118,7 @@
     "babel-loader": "^8.3.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "csstype": "^3.0.10",
+    "dotenv": "^16.0.3",
     "encoding": "^0.1.13",
     "eslint": "^8.28.0",
     "eslint-config-airbnb": "19.0.4",

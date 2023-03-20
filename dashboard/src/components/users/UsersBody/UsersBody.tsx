@@ -242,7 +242,11 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
             secondaryAction={
               <Dropdown.Root>
                 <Dropdown.Trigger asChild hideChevron>
-                  <IconButton variant="borderless" color="secondary">
+                  <IconButton
+                    variant="borderless"
+                    color="secondary"
+                    aria-label={`More options for ${user.displayName}`}
+                  >
                     <DotsHorizontalIcon />
                   </IconButton>
                 </Dropdown.Trigger>
@@ -282,6 +286,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
             <ListItem.Button
               className="grid h-full w-full grid-cols-1 py-2.5 lg:grid-cols-6"
               onClick={() => handleViewUser(user)}
+              aria-label={`View ${user.displayName}`}
             >
               <div className="col-span-2 grid grid-flow-col place-content-start gap-4">
                 <Avatar

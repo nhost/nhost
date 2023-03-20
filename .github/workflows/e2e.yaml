@@ -1,0 +1,83 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+  NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_WORKSPACE_NAME: ${{ vars.NHOST_TEST_WORKSPACE_NAME }}
+  NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+
+jobs:
+  wait-for-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for CI build
+        uses: lewagon/wait-on-check-action@v0.2
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Build @nhost packages'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 60
+
+  e2e:
+    name: 'E2E (Package: ${{ matrix.package.path }})'
+    needs: wait-for-build
+    if: ${{ needs.build.outputs.matrix != '[]' && needs.build.outputs.matrix != '' }}
+    strategy:
+      # * Don't cancel other matrices when one fails
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.build.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      # * Install Nhost CLI if a `nhost/config.yaml` file is found
+      - name: Install Nhost CLI
+        if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
+        uses: ./.github/actions/nhost-cli
+      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
+      - name: Run e2e test
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e
+      - id: file-name
+        if: ${{ failure() }}
+        name: Tranform package name into a valid file name
+        run: |
+          PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
+          echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
+      # * Run this step only if the previous step failed, and some Cypress screenshots/videos exist
+      - name: Upload Cypress videos and screenshots
+        if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-${{ steps.file-name.outputs.fileName }}
+          path: |
+            ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
+            ${{format('{0}/cypress/videos/**', matrix.package.path)}}
+
+  dashboard-e2e:
+    name: 'Dashboard E2E'
+    needs: wait-for-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Run E2E tests
+        run: pnpm e2e:dashboard
