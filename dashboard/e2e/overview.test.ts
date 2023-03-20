@@ -78,12 +78,12 @@ test("should show the project's name, the Upgrade button and the Settings button
 });
 
 test("should show the project's region and subdomain", async () => {
+  await expect(page.locator('p:has-text("Region") + div p').nth(0)).toHaveText(
+    /frankfurt \(eu-central-1\)/i,
+  );
   await expect(
-    page.locator('div:has-text("Project Info") > div', {
-      has: page.getByText(/region/i, { exact: true }),
-    }),
-  ).toHaveText(/frankfurt \(eu-central-1\)/i);
-  await expect(page.getByText(/subdomain/i)).toHaveText(/[a-z]{20}/i);
+    page.locator('p:has-text("Subdomain") + div p').nth(0),
+  ).toHaveText(/[a-z]{20}/i);
 });
 
 test('should not have a GitHub repository connected', async () => {

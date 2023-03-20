@@ -67,7 +67,6 @@ test('should delete a user', async () => {
     page.getByRole('button', { name: /view testuser@example.com/i }),
   ).toBeVisible();
 
-  // TODO: Should find a better name for this menu item
   await page
     .getByRole('button', { name: /more options for testuser@example.com/i })
     .click();
