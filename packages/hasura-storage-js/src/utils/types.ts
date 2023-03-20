@@ -65,9 +65,7 @@ export interface StorageGetUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
-// TODO not implemented yet in hasura-storage
-// export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
-export interface StorageGetPresignedUrlParams {
+export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 

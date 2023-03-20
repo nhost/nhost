@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.0.4
+
+### Patch Changes
+
+- 614f213e: fix(hasura-storage-js): allow image transformation parameters in `getPresignedUrl`
+
 ## 2.0.3
 
 ### Patch Changes

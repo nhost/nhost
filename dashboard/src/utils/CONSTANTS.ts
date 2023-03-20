@@ -57,3 +57,8 @@ export const RESOURCE_MEMORY_MULTIPLIER = 1024;
  * @remarks This will be moved to the backend in the future.
  */
 export const RESOURCE_VCPU_PRICE = 50;
+
+/**
+ * Maximum number of free projects a user is allowed to have.
+ */
+export const MAX_FREE_PROJECTS = 1;
