@@ -34,7 +34,9 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
-        run: pnpm test:dashboard
+        run: |
+          pnpm test:dashboard
+          pnpm e2e:dashboard
 
   lint:
     name: Lint
