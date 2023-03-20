@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.19.1
+
+### Patch Changes
+
+- 73b7642: Introduce support for using wildcards with redirect URLs
+
 ## 0.19.0
 
 ### Minor Changes
