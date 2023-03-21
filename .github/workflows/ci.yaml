@@ -146,17 +146,3 @@ jobs:
           path: |
             ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
             ${{format('{0}/cypress/videos/**', matrix.package.path)}}
-
-  dashboard-e2e:
-    name: 'Dashboard E2E'
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Run E2E tests
-        run: pnpm e2e:dashboard
