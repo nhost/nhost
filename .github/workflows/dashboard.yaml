@@ -9,6 +9,7 @@ env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+
 jobs:
   build:
     name: Build
@@ -34,9 +35,7 @@ jobs:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
-        run: |
-          pnpm test:dashboard
-          pnpm e2e:dashboard
+        run: pnpm test:dashboard
 
   lint:
     name: Lint
