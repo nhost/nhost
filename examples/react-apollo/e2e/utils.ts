@@ -20,6 +20,8 @@ export async function getUserData(page: Page) {
  * Returns a promise that resolves when the sign up flow is completed.
  *
  * @param page - The page to sign up with.
+ * @param email - The email address to sign up with.
+ * @param password - The password to sign up with.
  */
 export async function signUpWithEmailAndPassword({
   page,
@@ -46,24 +48,26 @@ export async function signUpWithEmailAndPassword({
  * the magic link in the email.
  *
  * @param email - The email address to reset the password for.
+ * @param page - The page to click the magic link in.
  * @param context - The browser context.
  * @returns A promise that resolves to a new page.
  */
 export async function verifyMagicLink({
   email,
+  page,
   context
 }: {
   email: string
+  page: Page
   context: BrowserContext
 }) {
-  const mailhogPage = await context.newPage()
-  await mailhogPage.goto(mailhogURL)
-  await mailhogPage.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
+  await page.goto(mailhogURL)
+  await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
 
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
   const authenticatedPagePromise = context.waitForEvent('page')
 
-  await mailhogPage
+  await page
     .frameLocator('#preview-html')
     .getByRole('link', { name: /sign in/i })
     .click()
@@ -79,24 +83,26 @@ export async function verifyMagicLink({
  * the reset password link in the email.
  *
  * @param email - The email address to reset the password for.
+ * @param page - The page to click the reset password link in.
  * @param context - The browser context.
  * @returns A promise that resolves to a new page.
  */
 export async function resetPassword({
   email,
+  page,
   context
 }: {
   email: string
+  page: Page
   context: BrowserContext
 }) {
-  const mailhogPage = await context.newPage()
-  await mailhogPage.goto(mailhogURL)
-  await mailhogPage.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
+  await page.goto(mailhogURL)
+  await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
 
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
   const authenticatedPagePromise = context.waitForEvent('page')
 
-  await mailhogPage
+  await page
     .frameLocator('#preview-html')
     .getByRole('link', { name: /reset password/i })
     .click()
@@ -112,18 +118,26 @@ export async function resetPassword({
  * the verify email link in the email.
  *
  * @param email - The email address to verify.
+ * @param page - The page to click the verify email link in.
  * @param context - The browser context.
  * @returns A promise that resolves to a new page.
  */
-export async function verifyEmail({ email, context }: { email: string; context: BrowserContext }) {
-  const mailhogPage = await context.newPage()
-  await mailhogPage.goto(mailhogURL)
-  await mailhogPage.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
+export async function verifyEmail({
+  email,
+  page,
+  context
+}: {
+  email: string
+  page: Page
+  context: BrowserContext
+}) {
+  await page.goto(mailhogURL)
+  await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
 
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
   const authenticatedPagePromise = context.waitForEvent('page')
 
-  await mailhogPage
+  await page
     .frameLocator('#preview-html')
     .getByRole('link', { name: /verify email/i })
     .click()

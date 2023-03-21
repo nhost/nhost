@@ -19,7 +19,7 @@ test('should reset password', async ({ page, context }) => {
   await page.getByPlaceholder('Email Address').type(email)
   await page.getByRole('button', { name: /reset your password/i }).click()
 
-  const authenticatedPage = await resetPassword({ context, email })
+  const authenticatedPage = await resetPassword({ page, context, email })
 
   await authenticatedPage.waitForLoadState()
   await authenticatedPage.getByRole('button', { name: /profile/i }).click()
