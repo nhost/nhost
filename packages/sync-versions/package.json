@@ -30,7 +30,7 @@
     "@types/glob": "^8.1.0",
     "@types/node": "^16.11.7",
     "@types/object-path": "^0.11.1",
-    "typescript": "^4.8.4"
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "@pnpm/find-workspace-dir": "^5.0.0",
