@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.13.7
+
+### Patch Changes
+
+- 9130ab12: chore(dashboard): bump `yup` to v1 and `@hookform/resolvers` to v3
+
 ## 0.13.6
 
 ### Patch Changes
