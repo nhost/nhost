@@ -103,7 +103,7 @@ importers:
       '@next/bundle-analyzer': ^12.3.1
       '@nhost/nextjs': workspace:*
       '@nhost/react-apollo': workspace:*
-      '@playwright/test': ^1.30.0
+      '@playwright/test': ^1.31.2
       '@segment/snippet': ^4.15.3
       '@storybook/addon-actions': ^6.5.14
       '@storybook/addon-essentials': ^6.5.14
@@ -275,7 +275,7 @@ importers:
       '@graphql-codegen/typescript-operations': 3.0.1_rjjjs2nwgns3bcvnnqb5eu5nry
       '@graphql-codegen/typescript-react-apollo': 3.3.4_h5id4k276q7jixaqo46vuuayz4
       '@next/bundle-analyzer': 12.3.1
-      '@playwright/test': 1.30.0
+      '@playwright/test': 1.31.2
       '@storybook/addon-actions': 6.5.14_biqbaboplfbrettd7655fr4n2y
       '@storybook/addon-essentials': 6.5.14_2d2r642xwmvaauuvastzobrbwe
       '@storybook/addon-interactions': 6.5.14_o2w7dvvbfxaohzk6den2xlbkgq
@@ -9412,13 +9412,15 @@ packages:
       tslib: 2.5.0
       webcrypto-core: 1.7.5
 
-  /@playwright/test/1.30.0:
-    resolution: {integrity: sha512-SVxkQw1xvn/Wk/EvBnqWIq6NLo1AppwbYOjNLmyU0R1RoQ3rLEBtmjTnElcnz8VEtn11fptj1ECxK0tgURhajw==}
+  /@playwright/test/1.31.2:
+    resolution: {integrity: sha512-BYVutxDI4JeZKV1+ups6dt5WiqKhjBtIYowyZIJ3kBDmJgsuPKsqqKNIMFbUePLSCmp2cZu+BDL427RcNKTRYw==}
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
-      '@types/node': 18.11.17
-      playwright-core: 1.30.0
+      '@types/node': 16.18.11
+      playwright-core: 1.31.2
+    optionalDependencies:
+      fsevents: 2.3.2
     dev: true
 
   /@pmmmwh/react-refresh-webpack-plugin/0.5.9_ohj47mxwagpoxvu7nhhwxzphqm:
@@ -13466,7 +13468,7 @@ packages:
       c8: 7.13.0
       picocolors: 1.0.0
       std-env: 3.3.2
-      vitest: 0.29.1
+      vitest: 0.29.1_jsdom@21.0.0
     dev: true
 
   /@vitest/expect/0.29.1:
@@ -25682,8 +25684,8 @@ packages:
       find-up: 3.0.0
     dev: false
 
-  /playwright-core/1.30.0:
-    resolution: {integrity: sha512-7AnRmTCf+GVYhHbLJsGUtskWTE33SwMZkybJ0v6rqR1boxq2x36U7p1vDRV7HO2IwTZgmycracLxPEJI49wu4g==}
+  /playwright-core/1.31.2:
+    resolution: {integrity: sha512-a1dFgCNQw4vCsG7bnojZjDnPewZcw7tZUNFN0ZkcLYKj+mPmXvg4MpaaKZ5SgqPsOmqIf2YsVRkgqiRDxD+fDQ==}
     engines: {node: '>=14'}
     hasBin: true
     dev: true
