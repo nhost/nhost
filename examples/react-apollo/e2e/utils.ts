@@ -44,6 +44,29 @@ export async function signUpWithEmailAndPassword({
 }
 
 /**
+ * Returns a promise that resolves when the sign in flow is completed.
+ *
+ * @param page - The page to sign in with.
+ * @param email - The email address to sign in with.
+ * @param password - The password to sign in with.
+ */
+export async function signInWithEmailAndPassword({
+  page,
+  email,
+  password
+}: {
+  page: Page
+  email: string
+  password: string
+}) {
+  await page.getByRole('button', { name: /home/i }).click()
+  await page.getByRole('button', { name: /continue with email \+ password/i }).click()
+  await page.getByPlaceholder(/email address/i).type(email)
+  await page.getByPlaceholder(/password/i).type(password)
+  await page.getByRole('button', { name: /sign in/i }).click()
+}
+
+/**
  * Returns a promise that resolves when the sign up flow is completed.
  *
  * @param page - The page to sign up with.
