@@ -418,7 +418,7 @@ github.com/mitchellh/mapstructure
 # github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de
 ## explicit
 github.com/mpvl/unique
-# github.com/nhost/be v0.0.0-20230317140525-6466fc4bac00
+# github.com/nhost/be v0.0.0-20230320195828-d204df29c46c
 ## explicit; go 1.20
 github.com/nhost/be/services/mimir/model
 github.com/nhost/be/services/mimir/schema

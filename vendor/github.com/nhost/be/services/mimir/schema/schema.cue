@@ -51,7 +51,7 @@ import (
 }
 
 #Storage: {
-	version:    "0.2.3" | "0.3.0" | "0.3.1" | *"0.3.3"
+	version:    "0.2.3" | "0.3.0" | "0.3.1" | "0.3.3" | *"0.3.4"
 	resources?: #Resources
 }
 
