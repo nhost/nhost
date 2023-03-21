@@ -1,7 +1,18 @@
 name: 'Dashboard'
 
 on:
-  workflow_call:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
