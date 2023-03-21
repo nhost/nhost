@@ -589,6 +589,7 @@ importers:
       '@nhost/react': '*'
       '@nhost/react-apollo': '*'
       '@nuintun/qrcode': ^3.3.0
+      '@playwright/test': ^1.31.2
       '@testing-library/cypress': ^8.0.3
       '@types/react': ^18.0.25
       '@types/react-dom': ^18.0.9
@@ -597,6 +598,7 @@ importers:
       '@xstate/inspect': ^0.6.2
       cypress: ^10.7.0
       cypress-mailhog: ^1.6.0
+      dotenv: ^16.0.3
       graphql: 16.6.0
       react: ^18.2.0
       react-dom: ^18.2.0
@@ -630,6 +632,7 @@ importers:
       '@faker-js/faker': 7.6.0
       '@graphql-codegen/cli': 2.13.6_wd5f2ibzrubrgidvrmdkykexam
       '@nuintun/qrcode': 3.3.0
+      '@playwright/test': 1.31.2
       '@testing-library/cypress': 8.0.3_cypress@10.10.0
       '@types/react': 18.0.25
       '@types/react-dom': 18.0.9
@@ -638,6 +641,7 @@ importers:
       '@xstate/inspect': 0.6.5_ws@8.9.0+xstate@4.33.6
       cypress: 10.10.0
       cypress-mailhog: 1.6.0
+      dotenv: 16.0.3
       start-server-and-test: 1.15.2
       totp-generator: 0.0.13
       typescript: 4.8.3
@@ -13392,7 +13396,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6_@babel+core@7.20.5
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2_@types+node@16.18.11
+      vite: 4.0.2
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -13469,7 +13473,7 @@ packages:
       c8: 7.13.0
       picocolors: 1.0.0
       std-env: 3.3.2
-      vitest: 0.29.1_jsdom@21.0.0
+      vitest: 0.29.1
     dev: true
 
   /@vitest/expect/0.29.1:
@@ -15051,7 +15055,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2
+      follow-redirects: 1.15.2_debug@4.3.4
     transitivePeerDependencies:
       - debug
     dev: true
@@ -16394,6 +16398,7 @@ packages:
   /commander/9.4.1:
     resolution: {integrity: sha512-5EEkTNyHNGFPD2H+c/dXXfQZYa/scCKasxWcXJaWnNJ99pnQN9Vnmqow+p+PlFPE63Q6mThaZws1T+HxfpgtPw==}
     engines: {node: ^12.20.0 || >=14}
+    requiresBuild: true
     dev: true
 
   /common-path-prefix/3.0.0:
@@ -20309,6 +20314,19 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+    dev: false
+
+  /follow-redirects/1.15.2_debug@4.3.4:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.3.4
+    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
