@@ -1,18 +1,7 @@
 name: 'Dashboard'
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - 'assets/**'
-      - '**.md'
-      - 'LICENSE'
-  pull_request:
-    types: [opened, synchronize]
-    paths-ignore:
-      - 'assets/**'
-      - '**.md'
-      - 'LICENSE'
+  workflow_call:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -20,11 +9,6 @@ env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
-  NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
-  NHOST_TEST_WORKSPACE_NAME: ${{ vars.NHOST_TEST_WORKSPACE_NAME }}
-  NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
-  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
-  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
 
 jobs:
   build:
@@ -52,14 +36,6 @@ jobs:
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
         run: pnpm test:dashboard
-      - name: Run E2E tests
-        run: pnpm e2e:dashboard
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
 
   lint:
     name: Lint

@@ -1,7 +1,18 @@
 name: E2E Tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -9,6 +20,11 @@ env:
   NEXT_PUBLIC_ENV: dev
   NEXT_TELEMETRY_DISABLED: 1
   NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+  NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_WORKSPACE_NAME: ${{ vars.NHOST_TEST_WORKSPACE_NAME }}
+  NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
 
 jobs:
   wait-for-build:
@@ -62,3 +78,17 @@ jobs:
           path: |
             ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
             ${{format('{0}/cypress/videos/**', matrix.package.path)}}
+
+  dashboard-e2e:
+    name: 'Dashboard E2E'
+    needs: wait-for-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Run E2E tests
+        run: pnpm e2e:dashboard
