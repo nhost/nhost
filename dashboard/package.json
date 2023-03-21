@@ -77,7 +77,7 @@
     "tailwind-merge": "^1.8.0",
     "utility-types": "^3.10.0",
     "validator": "^13.7.0",
-    "yup": "^0.32.11",
+    "yup": "^1.0.2",
     "yup-password": "^0.2.2"
   },
   "devDependencies": {

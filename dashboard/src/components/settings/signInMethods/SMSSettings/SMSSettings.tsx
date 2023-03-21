@@ -22,19 +22,23 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  accountSid: Yup.string().label('Account SID').when('enabled', {
-    is: true,
-    then: Yup.string().required(),
-  }),
-  authToken: Yup.string().label('Auth Token').when('enabled', {
-    is: true,
-    then: Yup.string().required(),
-  }),
+  accountSid: Yup.string()
+    .label('Account SID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  authToken: Yup.string()
+    .label('Auth Token')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
   messagingServiceId: Yup.string()
     .label('Messaging Service ID')
     .when('enabled', {
       is: true,
-      then: Yup.string().required(),
+      then: (schema) => schema.required(),
     }),
   enabled: Yup.boolean().label('Enabled'),
 });
