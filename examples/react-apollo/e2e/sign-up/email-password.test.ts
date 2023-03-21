@@ -34,11 +34,11 @@ test('should raise an error when trying to sign up with an existing email', asyn
 
 test('should fail when network is not available', async ({ page }) => {
   await page.goto(baseURL)
-  await page.route('**', (route) => route.abort('internetdisconnected'))
 
   const email = faker.internet.email()
   const password = faker.internet.password()
 
+  await page.route('**', (route) => route.abort('internetdisconnected'))
   await signUpWithEmailAndPassword({ page, email, password })
 
   await expect(page.getByText(/network error/i)).toBeVisible()

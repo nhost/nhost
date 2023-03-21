@@ -44,6 +44,20 @@ export async function signUpWithEmailAndPassword({
 }
 
 /**
+ * Returns a promise that resolves when the sign up flow is completed.
+ *
+ * @param page - The page to sign up with.
+ * @param email - The email address to sign up with.
+ */
+export async function signUpWithEmailPasswordless({ page, email }: { page: Page; email: string }) {
+  await page.getByRole('button', { name: /home/i }).click()
+  await page.getByRole('link', { name: /sign up/i }).click()
+  await page.getByRole('button', { name: /continue with a magic link/i }).click()
+  await page.getByPlaceholder(/email address/i).fill(email)
+  await page.getByRole('button', { name: /continue with email/i }).click()
+}
+
+/**
  * Returns a promise that resolves to a new page that is opened after clicking
  * the magic link in the email.
  *

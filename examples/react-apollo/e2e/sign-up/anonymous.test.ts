@@ -1,7 +1,13 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
 import { baseURL } from '../config'
-import { getUserData, signUpWithEmailAndPassword, verifyEmail, verifyMagicLink } from '../utils'
+import {
+  getUserData,
+  signUpWithEmailAndPassword,
+  signUpWithEmailPasswordless,
+  verifyEmail,
+  verifyMagicLink
+} from '../utils'
 
 test('should deanonymize with email and password', async ({ page, context }) => {
   await page.goto(`${baseURL}/sign-in`)
@@ -33,11 +39,7 @@ test('should deanonymize with a magic link', async ({ page, context }) => {
   const userData = await getUserData(page)
   const email = faker.internet.email()
 
-  await page.getByRole('button', { name: /home/i }).click()
-  await page.getByRole('link', { name: /sign up/i }).click()
-  await page.getByRole('button', { name: /continue with a magic link/i }).click()
-  await page.getByPlaceholder(/email address/i).fill(email)
-  await page.getByRole('button', { name: /continue with email/i }).click()
+  await signUpWithEmailPasswordless({ page, email })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const authenticatedPage = await verifyMagicLink({ page, context, email })
