@@ -39,17 +39,17 @@ const ruleGroupSchema = Yup.object().shape({
 
 const baseValidationSchema = Yup.object().shape({
   filter: ruleGroupSchema.nullable().required('Please select a filter type.'),
-  columns: Yup.array().of(Yup.string()).nullable(true),
+  columns: Yup.array().of(Yup.string()).nullable(),
 });
 
 const selectValidationSchema = baseValidationSchema.shape({
   limit: Yup.number()
     .label('Limit')
     .min(0, 'Limit must not be negative.')
-    .nullable(true),
-  allowAggregations: Yup.boolean().nullable(true),
-  queryRootFields: Yup.array().of(Yup.string()).nullable(true),
-  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(true),
+    .nullable(),
+  allowAggregations: Yup.boolean().nullable(),
+  queryRootFields: Yup.array().of(Yup.string()).nullable(),
+  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(),
 });
 
 const columnPresetSchema = Yup.object().shape({
@@ -88,17 +88,17 @@ const columnPresetSchema = Yup.object().shape({
 });
 
 const insertValidationSchema = baseValidationSchema.shape({
-  backendOnly: Yup.boolean().nullable(true),
-  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+  backendOnly: Yup.boolean().nullable(),
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(),
 });
 
 const updateValidationSchema = baseValidationSchema.shape({
-  backendOnly: Yup.boolean().nullable(true),
-  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+  backendOnly: Yup.boolean().nullable(),
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(),
 });
 
 const deleteValidationSchema = baseValidationSchema.shape({
-  columnPresets: Yup.array().of(columnPresetSchema).nullable(true),
+  columnPresets: Yup.array().of(columnPresetSchema).nullable(),
 });
 
 const validationSchemas: Record<DatabaseAction, Yup.ObjectSchema<any>> = {

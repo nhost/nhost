@@ -30,7 +30,7 @@
     "@graphiql/toolkit": "^0.8.2",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
-    "@hookform/resolvers": "^2.9.10",
+    "@hookform/resolvers": "^3.0.0",
     "@mui/base": "^5.0.0-alpha.106",
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
@@ -77,7 +77,7 @@
     "tailwind-merge": "^1.8.0",
     "utility-types": "^3.10.0",
     "validator": "^13.7.0",
-    "yup": "^0.32.11",
+    "yup": "^1.0.2",
     "yup-password": "^0.2.2"
   },
   "devDependencies": {

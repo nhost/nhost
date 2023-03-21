@@ -95,7 +95,7 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.3.1
       '@headlessui/react': ^1.6.5
       '@heroicons/react': ^1.0.6
-      '@hookform/resolvers': ^2.9.10
+      '@hookform/resolvers': ^3.0.0
       '@mui/base': ^5.0.0-alpha.106
       '@mui/material': ^5.10.14
       '@mui/system': ^5.10.14
@@ -203,7 +203,7 @@ importers:
       vite-tsconfig-paths: ^4.0.3
       vitest: ^0.29.0
       webpack: ^5.75.0
-      yup: ^0.32.11
+      yup: ^1.0.2
       yup-password: ^0.2.2
     dependencies:
       '@apollo/client': 3.7.7_xe4twbeoqswbn2uas4ov5melbq
@@ -218,7 +218,7 @@ importers:
       '@graphiql/toolkit': 0.8.2_7fbl5omhlrpwpn5f5culy6mafe
       '@headlessui/react': 1.7.4_biqbaboplfbrettd7655fr4n2y
       '@heroicons/react': 1.0.6_react@18.2.0
-      '@hookform/resolvers': 2.9.10_react-hook-form@7.42.1
+      '@hookform/resolvers': 3.0.0_react-hook-form@7.42.1
       '@mui/base': 5.0.0-alpha.106_zula6vjvt3wdocc4mwcxqa6nzi
       '@mui/material': 5.10.14_acl7mc3llczqccvmbrsweq6vga
       '@mui/system': 5.10.14_teoksulxetwanny5ohzazahldq
@@ -265,7 +265,7 @@ importers:
       tailwind-merge: 1.8.0
       utility-types: 3.10.0
       validator: 13.7.0
-      yup: 0.32.11
+      yup: 1.0.2
       yup-password: 0.2.2
     devDependencies:
       '@babel/core': 7.20.2
@@ -8249,8 +8249,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@hookform/resolvers/2.9.10_react-hook-form@7.42.1:
-    resolution: {integrity: sha512-JIL1DgJIlH9yuxcNGtyhsWX/PgNltz+5Gr6+8SX9fhXc/hPbEIk6wPI82nhgvp3uUb6ZfAM5mqg/x7KR7NAb+A==}
+  /@hookform/resolvers/3.0.0_react-hook-form@7.42.1:
+    resolution: {integrity: sha512-SQPefakODpyq25b/phHXDKCdRrEfPcCXV7B4nAa139wE1DxufYbbNAjeo0T04ZXBokRxZ+wD8iA1kkVMa3QwjQ==}
     peerDependencies:
       react-hook-form: ^7.0.0
     dependencies:
@@ -12408,6 +12408,7 @@ packages:
 
   /@types/lodash/4.14.188:
     resolution: {integrity: sha512-zmEmF5OIM3rb7SbLCFYoQhO4dGt2FRM9AMkxvA3LaADOF1n8in/zGJlWji9fmafLoNyz+FoL6FE0SLtGIArD7w==}
+    dev: true
 
   /@types/long/4.0.2:
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
@@ -13466,7 +13467,7 @@ packages:
       c8: 7.13.0
       picocolors: 1.0.0
       std-env: 3.3.2
-      vitest: 0.29.1
+      vitest: 0.29.1_jsdom@21.0.0
     dev: true
 
   /@vitest/expect/0.29.1:
@@ -24478,10 +24479,6 @@ packages:
     dev: true
     optional: true
 
-  /nanoclone/0.2.1:
-    resolution: {integrity: sha512-wynEP02LmIbLpcYw8uBKpcfF6dmg2vcpKqxeH5UcoKEYdExslsdUA4ugFauuaeYdTB76ez6gJW8XAZ6CgkXYxA==}
-    dev: false
-
   /nanoid/3.3.4:
     resolution: {integrity: sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -29597,6 +29594,10 @@ packages:
       setimmediate: 1.0.5
     dev: true
 
+  /tiny-case/1.0.3:
+    resolution: {integrity: sha512-Eet/eeMhkO6TX8mnUteS9zgPbUMQa4I6Kkp5ORiBD5476/m+PIRiumP5tmh5ioJpH7k51Kehawy2UDfsnxxY8Q==}
+    dev: false
+
   /tiny-invariant/1.2.0:
     resolution: {integrity: sha512-1Uhn/aqw5C6RI4KejVeTg6mIS7IqxnLJ8Mv2tV5rTc0qWobay7pDUz6Wi392Cnc8ak1H0F2cjoRzb2/AW4+Fvg==}
     dev: false
@@ -32536,17 +32537,13 @@ packages:
     resolution: {integrity: sha512-2PHfqGWtbXg4OfDV7VKFIb3hyEaYgTYpEORnFqgGAYqzENWmGzWMoeGvJg2Ohmq6maTRxhJzLZpNTITrqlZTrA==}
     dev: false
 
-  /yup/0.32.11:
-    resolution: {integrity: sha512-Z2Fe1bn+eLstG8DRR6FTavGD+MeAwyfmouhHsIUgaADz8jvFKbO/fXc2trJKZg+5EBjh4gGm3iU/t3onKlXHIg==}
-    engines: {node: '>=10'}
+  /yup/1.0.2:
+    resolution: {integrity: sha512-Lpi8nITFKjWtCoK3yQP8MUk78LJmHWqbFd0OOMXTar+yjejlQ4OIIoZgnTW1bnEUKDw6dZBcy3/IdXnt2KDUow==}
     dependencies:
-      '@babel/runtime': 7.19.4
-      '@types/lodash': 4.14.188
-      lodash: 4.17.21
-      lodash-es: 4.17.21
-      nanoclone: 0.2.1
       property-expr: 2.0.5
+      tiny-case: 1.0.3
       toposort: 2.0.2
+      type-fest: 2.19.0
     dev: false
 
   /z-schema/5.0.5:
