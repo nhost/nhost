@@ -52,9 +52,7 @@ jobs:
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Run tests
         run: pnpm test:dashboard
-      - name: Install playwright browsers
-        run: npx playwright install --with-deps
-      - name: Run e2e tests
+      - name: Run E2E tests
         run: pnpm e2e:dashboard
       - uses: actions/upload-artifact@v3
         if: always()

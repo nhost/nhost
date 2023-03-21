@@ -15,7 +15,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,md}\" --plugin-search-dir=.",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook",
-    "e2e": "playwright test"
+    "e2e": "npx playwright install --with-deps && playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.7.3",

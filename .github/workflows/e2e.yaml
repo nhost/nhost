@@ -79,7 +79,5 @@ jobs:
         with:
           TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
           TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Install playwright browsers
-        run: npx playwright install --with-deps
       - name: Run E2E tests
         run: pnpm e2e:dashboard
