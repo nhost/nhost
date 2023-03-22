@@ -117,7 +117,7 @@ test('should create a table with nullable columns', async () => {
   ).toBeVisible();
 });
 
-test.only('should create a table with an identity column', async () => {
+test('should create a table with an identity column', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
