@@ -170,16 +170,19 @@ export async function resetPassword({
  * @param email - The email address to verify.
  * @param page - The page to click the verify email link in.
  * @param context - The browser context.
+ * @param linkText - The text of the link to click.
  * @returns A promise that resolves to a new page.
  */
 export async function verifyEmail({
   email,
   page,
-  context
+  context,
+  linkText = /verify email/i
 }: {
   email: string
   page: Page
   context: BrowserContext
+  linkText?: string | RegExp
 }) {
   await page.goto(mailhogURL)
   await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
@@ -187,10 +190,7 @@ export async function verifyEmail({
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
   const authenticatedPagePromise = context.waitForEvent('page')
 
-  await page
-    .frameLocator('#preview-html')
-    .getByRole('link', { name: /verify email/i })
-    .click()
+  await page.frameLocator('#preview-html').getByRole('link', { name: linkText }).click()
 
   const authenticatedPage = await authenticatedPagePromise
   await authenticatedPage.waitForLoadState()
