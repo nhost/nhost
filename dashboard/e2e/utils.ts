@@ -25,14 +25,14 @@ export async function openProject({
 }
 
 /**
- * Create a new table in the database.
+ * Prepares a table by filling out the form.
  *
  * @param page - The Playwright page object.
  * @param name - The name of the table to create.
  * @param columns - The columns to create in the table.
- * @returns A promise that resolves when the table is created.
+ * @returns A promise that resolves when the table is prepared.
  */
-export async function createTable({
+export async function prepareTable({
   page,
   name: tableName,
   primaryKey,
@@ -110,7 +110,4 @@ export async function createTable({
   // select the first column as primary key
   await page.getByRole('button', { name: /primary key/i }).click();
   await page.getByRole('option', { name: primaryKey, exact: true }).click();
-
-  // create table
-  await page.getByRole('button', { name: /create/i }).click();
 }
