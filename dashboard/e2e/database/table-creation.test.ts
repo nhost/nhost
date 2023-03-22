@@ -117,7 +117,39 @@ test('should create a table with nullable columns', async () => {
   ).toBeVisible();
 });
 
-test.only('should create table with foreign key constraint', async () => {
+test.only('should create a table with an identity column', async () => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const tableName = faker.random.word().toLowerCase();
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKey: 'id',
+    columns: [
+      { name: 'id', type: 'int4' },
+      { name: 'title', type: 'text', nullable: true },
+      { name: 'description', type: 'text', nullable: true },
+    ],
+  });
+
+  await page.getByRole('button', { name: /identity/i }).click();
+  await page.getByRole('option', { name: /id/i }).click();
+
+  // create table
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+  );
+
+  await expect(
+    page.getByRole('link', { name: tableName, exact: true }),
+  ).toBeVisible();
+});
+
+test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
@@ -195,5 +227,50 @@ test.only('should create table with foreign key constraint', async () => {
 
   await expect(
     page.getByRole('link', { name: secondTableName, exact: true }),
+  ).toBeVisible();
+});
+
+test('should not be able to create a table with a name that already exists', async () => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const tableName = faker.random.word().toLowerCase();
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKey: 'id',
+    columns: [
+      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'name', type: 'text' },
+    ],
+  });
+
+  // create table
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+  );
+
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  await prepareTable({
+    page,
+    name: tableName,
+    primaryKey: 'id',
+    columns: [
+      { name: 'id', type: 'uuid', defaultValue: 'gen_random_uuid()' },
+      { name: 'title', type: 'text' },
+      { name: 'author_id', type: 'uuid' },
+    ],
+  });
+
+  // create table
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await expect(
+    page.getByText(/error: a table with this name already exists/i),
   ).toBeVisible();
 });
