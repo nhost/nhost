@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import {
   getUserData,
   signInAnonymously,
@@ -14,7 +13,7 @@ test('should deanonymize with email and password', async ({ page, context }) => 
   const email = faker.internet.email()
   const password = faker.internet.password(8)
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInAnonymously({ page })
   await page.getByRole('button', { name: /profile/i }).click()
@@ -35,7 +34,7 @@ test('should deanonymize with email and password', async ({ page, context }) => 
 test('should deanonymize with a magic link', async ({ page, context }) => {
   const email = faker.internet.email()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInAnonymously({ page })
   await page.getByRole('button', { name: /profile/i }).click()

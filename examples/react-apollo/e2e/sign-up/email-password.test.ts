@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import { signUpWithEmailAndPassword, verifyEmail } from '../utils'
 
 test('should sign up with email and password', async ({ page, context }) => {
-  page.goto(baseURL)
+  page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()
@@ -17,7 +16,7 @@ test('should sign up with email and password', async ({ page, context }) => {
 })
 
 test('should raise an error when trying to sign up with an existing email', async ({ page }) => {
-  page.goto(baseURL)
+  page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()
@@ -33,7 +32,7 @@ test('should raise an error when trying to sign up with an existing email', asyn
 })
 
 test('should fail when network is not available', async ({ page }) => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()

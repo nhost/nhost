@@ -1,13 +1,12 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import { signUpWithEmailAndPassword, verifyEmail } from '../utils'
 
 test('should upload a single file', async ({ page }) => {
   const email = faker.internet.email()
   const password = faker.internet.password()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
@@ -31,7 +30,7 @@ test('should upload two files using the same single file uploader', async ({ pag
   const email = faker.internet.email()
   const password = faker.internet.password()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
@@ -62,11 +61,11 @@ test('should upload two files using the same single file uploader', async ({ pag
   await expect(newPage.getByText(/successfully uploaded/i)).toBeVisible()
 })
 
-test.only('should upload multiple files at once', async ({ page }) => {
+test('should upload multiple files at once', async ({ page }) => {
   const email = faker.internet.email()
   const password = faker.internet.password()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()

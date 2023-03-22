@@ -4,7 +4,7 @@ import { baseURL } from '../config'
 import { resetPassword, signUpWithEmailAndPassword } from '../utils'
 
 test('should reset password', async ({ page, context }) => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password(8)

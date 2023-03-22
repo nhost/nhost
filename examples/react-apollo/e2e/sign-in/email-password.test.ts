@@ -20,7 +20,7 @@ test.describe.configure({ mode: 'serial' })
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
 
-  await page.goto(baseURL)
+  await page.goto('/')
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
@@ -40,7 +40,7 @@ test.afterAll(() => {
 })
 
 test('should sign in with email and password', async () => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/you are authenticated/i)).toBeVisible()
@@ -49,7 +49,7 @@ test('should sign in with email and password', async () => {
 // TODO: Create email verification test
 
 test('should activate and sign in with MFA', async () => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInWithEmailAndPassword({ page, email, password })
   await page.waitForURL(baseURL)

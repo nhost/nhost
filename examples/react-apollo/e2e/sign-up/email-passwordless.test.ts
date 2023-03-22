@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import { signUpWithEmailPasswordless, verifyMagicLink } from '../utils'
 
 test('should sign up with a magic link', async ({ page, context }) => {
-  page.goto(baseURL)
+  page.goto('/')
 
   const email = faker.internet.email()
 
@@ -17,7 +16,7 @@ test('should sign up with a magic link', async ({ page, context }) => {
 })
 
 test('should fail when network is not available', async ({ page }) => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   const email = faker.internet.email()
 

@@ -9,7 +9,7 @@ import {
 } from '../utils'
 
 test('should sign in automatically with a refresh token', async ({ page }) => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()
@@ -39,7 +39,7 @@ test('should sign in automatically with a refresh token', async ({ page }) => {
 })
 
 test('should fail automatic sign-in when network is not available', async ({ page }) => {
-  await page.goto(baseURL)
+  await page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()

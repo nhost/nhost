@@ -1,13 +1,12 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import { signInWithEmailAndPassword, signUpWithEmailAndPassword, verifyEmail } from '../utils'
 
 test('should be able to change password', async ({ page }) => {
   const email = faker.internet.email()
   const password = faker.internet.password()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
@@ -31,7 +30,7 @@ test('should not accept an invalid email', async ({ page }) => {
   const email = faker.internet.email()
   const password = faker.internet.password()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()

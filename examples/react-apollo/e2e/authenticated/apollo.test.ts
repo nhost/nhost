@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { baseURL } from '../config'
 import { signInAnonymously, signUpWithEmailAndPassword, verifyEmail } from '../utils'
 
 test('should add an item to the todo list when authenticated with email and password', async ({
@@ -10,7 +9,7 @@ test('should add an item to the todo list when authenticated with email and pass
   const password = faker.internet.password()
   const sentence = faker.lorem.sentence()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
@@ -26,7 +25,7 @@ test('should add an item to the todo list when authenticated with email and pass
 test('should add an item to the todo list when authenticated anonymously', async ({ page }) => {
   const sentence = faker.lorem.sentence()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInAnonymously({ page })
   await page.getByRole('button', { name: /apollo/i }).click()
@@ -39,7 +38,7 @@ test('should add an item to the todo list when authenticated anonymously', async
 test('should fail when network is not available', async ({ page }) => {
   const sentence = faker.lorem.sentence()
 
-  await page.goto(baseURL)
+  await page.goto('/')
 
   await signInAnonymously({ page })
   await page.getByRole('button', { name: /apollo/i }).click()
