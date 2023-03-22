@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.13.8
+
+### Patch Changes
+
+- 7c127372: chore(dashboard): bump `react-error-boundary` to v4
+
 ## 0.13.7
 
 ### Patch Changes
