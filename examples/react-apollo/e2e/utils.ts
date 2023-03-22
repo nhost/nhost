@@ -3,7 +3,7 @@ import type { User } from '@nhost/react'
 import type { BrowserContext, Page } from '@playwright/test'
 import jsQR from 'jsqr'
 import { PNG } from 'pngjs'
-import { mailhogURL } from './config'
+import { baseURL, mailhogURL } from './config'
 
 /**
  * Returns the user data from the profile page.
@@ -66,6 +66,17 @@ export async function signInWithEmailAndPassword({
   await page.getByPlaceholder(/email address/i).type(email)
   await page.getByPlaceholder(/password/i).type(password)
   await page.getByRole('button', { name: /sign in/i }).click()
+}
+
+/**
+ * Returns a promise that resolves when the sign in flow is completed.
+ *
+ * @param page - The page to sign in with.
+ */
+export async function signInAnonymously({ page }: { page: Page }) {
+  await page.getByRole('button', { name: /home/i }).click()
+  await page.getByRole('link', { name: /sign in anonymously/i }).click()
+  await page.waitForURL(baseURL)
 }
 
 /**

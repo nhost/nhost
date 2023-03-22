@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { baseURL } from '../config'
 import {
   getUserData,
+  signInAnonymously,
   signUpWithEmailAndPassword,
   signUpWithEmailPasswordless,
   verifyEmail,
@@ -10,14 +11,15 @@ import {
 } from '../utils'
 
 test('should deanonymize with email and password', async ({ page, context }) => {
-  await page.goto(`${baseURL}/sign-in`)
-  await page.getByRole('link', { name: /sign in anonymously/i }).click()
-  await page.waitForURL(baseURL)
+  const email = faker.internet.email()
+  const password = faker.internet.password(8)
+
+  await page.goto(baseURL)
+
+  await signInAnonymously({ page })
   await page.getByRole('button', { name: /profile/i }).click()
 
   const userData = await getUserData(page)
-  const email = faker.internet.email()
-  const password = faker.internet.password(8)
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
@@ -31,13 +33,14 @@ test('should deanonymize with email and password', async ({ page, context }) => 
 })
 
 test('should deanonymize with a magic link', async ({ page, context }) => {
-  await page.goto(`${baseURL}/sign-in`)
-  await page.getByRole('link', { name: /sign in anonymously/i }).click()
-  await page.waitForURL(baseURL)
+  const email = faker.internet.email()
+
+  await page.goto(baseURL)
+
+  await signInAnonymously({ page })
   await page.getByRole('button', { name: /profile/i }).click()
 
   const userData = await getUserData(page)
-  const email = faker.internet.email()
 
   await signUpWithEmailPasswordless({ page, email })
   await expect(page.getByText(/verification email sent/i)).toBeVisible()

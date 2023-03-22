@@ -8,7 +8,7 @@ import {
   verifyEmail
 } from '../utils'
 
-test.only('should sign in automatically with a refresh token', async ({ page }) => {
+test('should sign in automatically with a refresh token', async ({ page }) => {
   await page.goto(baseURL)
 
   const email = faker.internet.email()
@@ -38,7 +38,7 @@ test.only('should sign in automatically with a refresh token', async ({ page }) 
   await expect(newPage.getByText(/profile page/i)).toBeVisible()
 })
 
-test.only('should fail automatic sign-in when network is not available', async ({ page }) => {
+test('should fail automatic sign-in when network is not available', async ({ page }) => {
   await page.goto(baseURL)
 
   const email = faker.internet.email()
