@@ -137,12 +137,10 @@ jobs:
         run: |
           PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
           echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
-      # * Run this step only if the previous step failed, and some Cypress screenshots/videos exist
-      - name: Upload Cypress videos and screenshots
-        if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
+      # * Run this step only if the previous step failed, and Playwright generated a report
+      - name: Upload Playwright Report
+        if: ${{ failure() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
         uses: actions/upload-artifact@v3
         with:
-          name: cypress-${{ steps.file-name.outputs.fileName }}
-          path: |
-            ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
-            ${{format('{0}/cypress/videos/**', matrix.package.path)}}
+          name: playwright-${{ steps.file-name.outputs.fileName }}
+          path: ${{format('{0}/playwright-report/**', matrix.package.path)}}
