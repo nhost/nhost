@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker'
-import { Decoder } from '@nuintun/qrcode'
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import totp from 'totp-generator'
 import { baseURL } from '../config'
-import { signInWithEmailAndPassword, signUpWithEmailAndPassword, verifyEmail } from '../utils'
+import {
+  decodeQRCode,
+  signInWithEmailAndPassword,
+  signUpWithEmailAndPassword,
+  verifyEmail
+} from '../utils'
 
 const email = faker.internet.email()
 const password = faker.internet.password()
@@ -44,8 +48,7 @@ test('should sign in with email and password', async () => {
 
 // TODO: Create email verification test
 
-// TODO: `Decoder` is not working in a Node environment properly
-test.skip('should activate and sign in with MFA', async () => {
+test('should activate and sign in with MFA', async () => {
   await page.goto(baseURL)
 
   await signInWithEmailAndPassword({ page, email, password })
@@ -56,10 +59,8 @@ test.skip('should activate and sign in with MFA', async () => {
   const image = page.getByAltText(/qrcode/i)
   const src = await image.getAttribute('src')
 
-  // note: we are decoding MFA here
-  const result = await new Decoder().scan(src || '')
-  const [, params] = result.data.split('?')
-  const { secret, algorithm, digits, period } = Object.fromEntries(new URLSearchParams(params))
+  const { secret, algorithm, digits, period } = decodeQRCode(src)
+
   const code = totp(secret, {
     algorithm: algorithm.replace('SHA1', 'SHA-1'),
     digits: parseInt(digits),
@@ -71,7 +72,7 @@ test.skip('should activate and sign in with MFA', async () => {
   await expect(page.getByText(/mfa has been activated/i)).toBeVisible()
   await page.getByRole('button', { name: /sign out/i }).click()
 
-  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.getByRole('button', { name: /continue with email \+ password/i }).click()
   await signInWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/send 2-step verification code/i)).toBeVisible()
 

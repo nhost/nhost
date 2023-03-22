@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker'
 import type { User } from '@nhost/react'
 import type { BrowserContext, Page } from '@playwright/test'
+import jsQR from 'jsqr'
+import { PNG } from 'pngjs'
 import { mailhogURL } from './config'
 
 /**
@@ -183,4 +185,70 @@ export async function verifyEmail({
   await authenticatedPage.waitForLoadState()
 
   return authenticatedPage
+}
+
+/**
+ * Returns decoded data from a QR code.
+ *
+ * @param base64String - The base64 encoded string of the QR code.
+ * @returns The decoded data.
+ */
+export function decodeQRCode(base64String?: string | null) {
+  if (!base64String) {
+    return {
+      secret: '',
+      algorithm: '',
+      digits: '',
+      period: ''
+    }
+  }
+
+  const buffer = Buffer.from(base64String.replace('data:image/png;base64,', ''), 'base64')
+  const pngData = PNG.sync.read(buffer)
+
+  const decoded = jsQR(Uint8ClampedArray.from(pngData.data), pngData.width, pngData.height)
+  const params = decoded?.data?.split('?').at(-1)
+
+  // note: we are decoding MFA here
+  const { secret, algorithm, digits, period } = Object.fromEntries(new URLSearchParams(params))
+
+  return { secret, algorithm, digits, period }
+}
+
+/**
+ * Clears the local and session storage for a page.
+ *
+ * @param page - The page to clear the storage for.
+ */
+export async function clearStorage({ page }: { page: Page }) {
+  await page.evaluate(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+}
+
+/**
+ * Returns a promise that resolves to the value of a key in local storage.
+ *
+ * @param page - The page to get the value from.
+ * @param origin - The origin of the local storage.
+ * @param key - The key to get the value for.
+ * @returns The value of the key in local storage.
+ */
+export async function getValueFromLocalStorage({
+  page,
+  origin: externalOrigin,
+  key
+}: {
+  page: Page
+  origin: string
+  key: string
+}) {
+  const storageState = await page.context().storageState()
+  const localStorage = storageState.origins.find(
+    ({ origin }) => origin === externalOrigin
+  )?.localStorage
+  const value = localStorage?.find(({ name }) => name === key)?.value
+
+  return value || null
 }
