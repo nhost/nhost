@@ -1,23 +1,25 @@
-import type { Page } from '@playwright/test';
-import { expect, test } from '@playwright/test';
 import {
-  TEST_DASHBOARD_URL,
   TEST_PROJECT_NAME,
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_NAME,
   TEST_WORKSPACE_SLUG,
-} from './env';
+} from '@/e2e/env';
+import { openProject } from '@/e2e/utils';
+import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
 
-  await page.goto(TEST_DASHBOARD_URL);
-  await page.getByRole('link', { name: TEST_PROJECT_NAME }).click();
-  await page.waitForURL(
-    `${TEST_DASHBOARD_URL}/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}`,
-  );
+  await page.goto('/');
+  await openProject({
+    page,
+    projectName: TEST_PROJECT_NAME,
+    workspaceSlug: TEST_WORKSPACE_SLUG,
+    projectSlug: TEST_PROJECT_SLUG,
+  });
 });
 
 test.afterAll(async () => {

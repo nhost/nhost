@@ -19,6 +19,7 @@
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "paths": {
+      "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
       "@/utils/*": ["utils/*"],
