@@ -23,7 +23,7 @@
     "dev": "vite --host localhost --port 3000",
     "generate": "graphql-codegen --config graphql.config.yaml",
     "e2e": "start-test e2e:start-backend http-get://localhost:9695 e2e:test",
-    "e2e:test": "npx playwright test",
+    "e2e:test": "npx playwright@1.31.2 install --with-deps && playwright test",
     "e2e:start-backend": "nhost dev --no-browser",
     "e2e:start-ui": "run-s build preview",
     "build": "vite build",
