@@ -81,22 +81,6 @@ function AddPaymentMethodForm({
         );
       }
 
-      // attach new payment method to workspace
-      const { error: attachPaymentMethodError } = await nhost.functions.call(
-        '/stripe-attach-payment-method',
-        {
-          workspaceId,
-          paymentMethodId: paymentMethod.id,
-        },
-      );
-
-      if (attachPaymentMethodError) {
-        throw new Error(
-          (attachPaymentMethodError as any)?.response?.data ||
-            'An unknown error occurred. Please try again.',
-        );
-      }
-
       // update workspace with new country code in database
       await updateWorkspace({
         variables: {
