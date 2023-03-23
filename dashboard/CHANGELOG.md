@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.13.9
+
+### Patch Changes
+
+- 912ed76c: chore(dashboard): bump `@apollo/client` to 3.7.10
+- Updated dependencies [912ed76c]
+  - @nhost/react-apollo@5.0.13
+
 ## 0.13.8
 
 ### Patch Changes
