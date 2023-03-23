@@ -7,7 +7,7 @@ import { useAuthenticationStatus } from '../useAuthenticationStatus'
  *
  * @example
  * ```tsx
- * import { NhostProvider, SignedOut } from "@nhost/react";
+ * import { NhostProvider, SignedIn } from "@nhost/react";
  * import { nhost } from '@/utils/nhost';
  *
  * function Page() {
