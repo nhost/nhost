@@ -63,14 +63,14 @@
     "@nhost/apollo": "workspace:*"
   },
   "peerDependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.7.10",
     "@nhost/react": "workspace:*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.7.1",
+    "@apollo/client": "^3.7.10",
     "@nhost/react": "workspace:*",
     "@types/react": "^18.0.25",
     "graphql": "16.6.0",
