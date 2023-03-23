@@ -1,5 +1,13 @@
 # @nhost/react-apollo
 
+## 5.0.13
+
+### Patch Changes
+
+- 912ed76c: fix(apollo): retry subscriptions on error
+- Updated dependencies [912ed76c]
+  - @nhost/apollo@5.1.2
+
 ## 5.0.12
 
 ### Patch Changes

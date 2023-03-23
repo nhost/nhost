@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 5.1.2
+
+### Patch Changes
+
+- 912ed76c: fix(apollo): retry subscriptions on error
+
 ## 5.1.1
 
 ### Patch Changes
