@@ -51,7 +51,7 @@ export const decorators = [
   (Story) => (
     <NhostApolloProvider
       fetchPolicy="cache-first"
-      graphqlUrl="http://localhost:1337/v1/graphql"
+      graphqlUrl="https://local.graphql.nhost.run/v1"
     >
       <Story />
     </NhostApolloProvider>

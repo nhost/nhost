@@ -22,9 +22,7 @@ export const NhostApolloProvider: React.FC<PropsWithChildren<NhostApolloClientOp
     if (!client) {
       setClient(createApolloClient(options))
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [client, options])
 
   return <ApolloProvider client={client || mockApolloClient}>{children}</ApolloProvider>
 }
