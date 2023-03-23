@@ -25,6 +25,8 @@ export default (req: Request, res: Response) => {
   res.status(200).send(`Hello ${req.query.name}!`)
 }
 ```
+    
+The same [environment variables that are used to configure event triggers](https://docs.nhost.io/database/event-triggers#format) can be used to authenticate regular serverless functions.
 
 :::info
 
