@@ -128,12 +128,25 @@ jobs:
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         uses: ./.github/actions/nhost-cli
+      - name: Wait for Dashboard Preview URL
+        id: fetch-vercel-preview-url
+        uses: zentered/vercel-preview-url@v1.1.9
+        env:
+          VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          GITHUB_REF: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        with:
+          vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+          vercel_state: BUILDING,READY,QUEUED,INITIALIZING
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
+        env:
+          NHOST_TEST_DASHBOARD_URL: 'https://${{ steps.fetch-vercel-preview-url.outputs.preview_url }}'
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
-        name: Tranform package name into a valid file name
+        name: Transform package name into a valid file name
         run: |
           PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
           echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
