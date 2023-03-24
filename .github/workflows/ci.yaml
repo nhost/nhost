@@ -137,7 +137,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
           vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          vercel_project_id: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+          vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         env:
