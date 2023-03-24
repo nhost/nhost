@@ -1,24 +1,27 @@
-import fs from 'fs'
-import { describe, expect, it } from 'vitest'
-import { v4 as uuidv4 } from 'uuid'
-
-import { storage } from './utils/helpers'
 import FormData from 'form-data'
+import fs from 'fs'
+import fetch from 'isomorphic-unfetch'
+import { v4 as uuidv4 } from 'uuid'
+import { describe, expect, it } from 'vitest'
+import { storage } from './utils/helpers'
 
 describe('test get presigned url of file', () => {
   it('should be able to get presigned url of file', async () => {
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const formData = new FormData()
+    formData.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
 
-    const { fileMetadata } = await storage.upload({
-      formData: fd
-    })
+    const { fileMetadata } = await storage.upload({ formData })
 
-    const { error } = await storage.getPresignedUrl({
+    const { presignedUrl, error } = await storage.getPresignedUrl({
       fileId: fileMetadata?.id as string
     })
 
+    expect(presignedUrl).not.toBeNull()
     expect(error).toBeNull()
+
+    const imageResponse = await fetch(presignedUrl!.url)
+
+    expect(imageResponse.ok).toBeTruthy()
   })
 
   it('should fail to get presigned url of file that does not exist', async () => {
