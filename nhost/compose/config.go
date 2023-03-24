@@ -2,9 +2,10 @@ package compose
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nhost/cli/internal/ports"
 	"gopkg.in/yaml.v3"
-	"strings"
 
 	"github.com/compose-spec/compose-go/types"
 	"github.com/nhost/cli/nhost"
@@ -198,6 +199,10 @@ func (c Config) PublicHasuraConsoleRedirectURL() string {
 
 func (c Config) PublicStorageConnectionString() string {
 	return fmt.Sprintf("%s/v1", StorageHostname(c.ports.SSLProxy()))
+}
+
+func (c Config) httpStorageEnvPublicURL() string {
+	return HTTPStorageHostname(c.ports.Proxy())
 }
 
 func (c Config) storageEnvPublicURL() string {

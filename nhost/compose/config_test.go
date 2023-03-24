@@ -2,12 +2,13 @@ package compose
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/compose-spec/compose-go/types"
 	"github.com/nhost/cli/internal/ports"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func testPorts(t *testing.T) *ports.Ports {
@@ -160,7 +161,7 @@ func TestConfig_storageServiceEnvs(t *testing.T) {
 				nhostConfig: tt.nhostConfig,
 				ports:       tt.ports,
 			}
-			assert.Equalf(t, tt.want, c.storageServiceEnvs(tt.apiRootPrefix), "storageServiceEnvs()")
+			assert.Equalf(t, tt.want, c.storageServiceEnvs(tt.apiRootPrefix, "https://local.storage.nhost.run"), "storageServiceEnvs()")
 		})
 	}
 }

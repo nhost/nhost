@@ -52,6 +52,10 @@ func AuthHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalAuthNhostRun, port)
 }
 
+func HTTPStorageHostname(port uint32) string {
+	return httpHostnameWithPort(HostLocalDashboardNhostRun, port)
+}
+
 func StorageHostname(port uint32) string {
 	return sslHostnameWithPort(HostLocalStorageNhostRun, port)
 }

@@ -2,11 +2,12 @@ package compose
 
 import (
 	"fmt"
+
 	"github.com/compose-spec/compose-go/types"
 	"github.com/nhost/cli/util"
 )
 
-func (c Config) storageServiceEnvs(apiRootPrefix string) env {
+func (c Config) storageServiceEnvs(apiRootPrefix, publicURL string) env {
 	minioEnv := c.minioServiceEnvs()
 	s3Endpoint := "http://minio:9000"
 
@@ -19,7 +20,7 @@ func (c Config) storageServiceEnvs(apiRootPrefix string) env {
 	e := env{
 		"DEBUG":                       "true",
 		"BIND":                        ":8576",
-		"PUBLIC_URL":                  c.storageEnvPublicURL(),
+		"PUBLIC_URL":                  publicURL,
 		"API_ROOT_PREFIX":             apiRootPrefix,
 		"POSTGRES_MIGRATIONS":         "1",
 		"HASURA_METADATA":             "1",
@@ -56,7 +57,7 @@ func (c Config) httpStorageService() *types.ServiceConfig {
 		Name:        "http-" + SvcStorage,
 		Restart:     types.RestartPolicyAlways,
 		Image:       c.serviceDockerImage(SvcStorage, svcStorageDefaultImage),
-		Environment: c.storageServiceEnvs("/v1/storage").dockerServiceConfigEnv(),
+		Environment: c.storageServiceEnvs("/v1/storage", c.httpStorageEnvPublicURL()).dockerServiceConfigEnv(),
 		Labels:      httpLabels.AsMap(),
 		Command:     []string{"serve"},
 	}
@@ -75,7 +76,7 @@ func (c Config) storageService() *types.ServiceConfig {
 		Name:        SvcStorage,
 		Restart:     types.RestartPolicyAlways,
 		Image:       c.serviceDockerImage(SvcStorage, svcStorageDefaultImage),
-		Environment: c.storageServiceEnvs("").dockerServiceConfigEnv(),
+		Environment: c.storageServiceEnvs("", c.storageEnvPublicURL()).dockerServiceConfigEnv(),
 		Labels:      sslLabels.AsMap(),
 		Command:     []string{"serve"},
 	}
