@@ -132,7 +132,7 @@ jobs:
         id: fetch-vercel-preview-url
         uses: zentered/vercel-preview-url@v1.1.9
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
           GITHUB_REF: ${{ github.ref_name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         with:
