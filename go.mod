@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-colorable v0.1.13
-	github.com/nhost/be v0.0.0-20230320195828-d204df29c46c
+	github.com/nhost/be v0.0.0-20230324111224-9d455f8b0652
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1

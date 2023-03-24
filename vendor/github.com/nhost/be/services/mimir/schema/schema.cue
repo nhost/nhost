@@ -37,7 +37,7 @@ import (
 }
 
 #Hasura: {
-	version: "v2.10.1" | *"v2.15.2"
+	version: string | *"v2.15.2"
 
 	jwtSecrets: [#JWTSecret]
 	adminSecret:   string
@@ -47,11 +47,19 @@ import (
 		enableRemoteSchemaPermissions: bool | *false
 	}
 
+    logs: {
+        level: "debug"| "info" | "error" | *"warn"
+    }
+
+    events: {
+        httpPoolSize: uint32 & >=1 & <=100 | *100
+    }
+
 	resources?: #Resources
 }
 
 #Storage: {
-	version:    "0.2.3" | "0.3.0" | "0.3.1" | "0.3.3" | *"0.3.4"
+	version:    string | *"0.3.4"
 	resources?: #Resources
 }
 
@@ -62,7 +70,7 @@ import (
 }
 
 #Postgres: {
-	version: "14.5-20221009-1" | *"14.5-20230104-1"
+	version: string | *"14.5-20230104-1"
 
 	resources?: #Resources & {
 		replicas: 1
@@ -70,7 +78,7 @@ import (
 }
 
 #Auth: {
-	version: =~"sha-.*" | "0.13.2" | "0.16.2" | "0.17.0" | *"0.19.0"
+	version: string | *"0.19.1"
 
 	resources?: #Resources
 

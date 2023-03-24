@@ -1031,6 +1031,8 @@ type ConfigHasura {
     adminSecret: String!
     webhookSecret: String!
     settings: ConfigHasuraSettings
+    logs: ConfigHasuraLogs
+    events: ConfigHasuraEvents
     resources: ConfigResources
 }
 
@@ -1040,6 +1042,8 @@ input ConfigHasuraUpdateInput {
     adminSecret: String
     webhookSecret: String
     settings: ConfigHasuraSettingsUpdateInput
+    logs: ConfigHasuraLogsUpdateInput
+    events: ConfigHasuraEventsUpdateInput
     resources: ConfigResourcesUpdateInput
 }
 
@@ -1049,6 +1053,8 @@ input ConfigHasuraInsertInput {
     adminSecret: String!
     webhookSecret: String!
     settings: ConfigHasuraSettingsInsertInput
+    logs: ConfigHasuraLogsInsertInput
+    events: ConfigHasuraEventsInsertInput
     resources: ConfigResourcesInsertInput
 }
 
@@ -1061,7 +1067,47 @@ input ConfigHasuraComparisonExp {
     adminSecret: ConfigStringComparisonExp
     webhookSecret: ConfigStringComparisonExp
     settings: ConfigHasuraSettingsComparisonExp
+    logs: ConfigHasuraLogsComparisonExp
+    events: ConfigHasuraEventsComparisonExp
     resources: ConfigResourcesComparisonExp
+}
+
+type ConfigHasuraEvents {
+    httpPoolSize: ConfigUint32
+}
+
+input ConfigHasuraEventsUpdateInput {
+    httpPoolSize: ConfigUint32
+}
+
+input ConfigHasuraEventsInsertInput {
+    httpPoolSize: ConfigUint32
+}
+
+input ConfigHasuraEventsComparisonExp {
+    _and: [ConfigHasuraEventsComparisonExp!]
+    _not: ConfigHasuraEventsComparisonExp
+    _or: [ConfigHasuraEventsComparisonExp!]
+    httpPoolSize: ConfigUint32ComparisonExp
+}
+
+type ConfigHasuraLogs {
+    level: String
+}
+
+input ConfigHasuraLogsUpdateInput {
+    level: String
+}
+
+input ConfigHasuraLogsInsertInput {
+    level: String
+}
+
+input ConfigHasuraLogsComparisonExp {
+    _and: [ConfigHasuraLogsComparisonExp!]
+    _not: ConfigHasuraLogsComparisonExp
+    _or: [ConfigHasuraLogsComparisonExp!]
+    level: ConfigStringComparisonExp
 }
 
 type ConfigHasuraSettings {

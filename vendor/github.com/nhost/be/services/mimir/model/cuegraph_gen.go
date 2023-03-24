@@ -8825,6 +8825,8 @@ type ConfigHasura struct {
 	AdminSecret   string                `json:"adminSecret" toml:"adminSecret"`
 	WebhookSecret string                `json:"webhookSecret" toml:"webhookSecret"`
 	Settings      *ConfigHasuraSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+	Logs          *ConfigHasuraLogs     `json:"logs,omitempty" toml:"logs,omitempty"`
+	Events        *ConfigHasuraEvents   `json:"events,omitempty" toml:"events,omitempty"`
 	Resources     *ConfigResources      `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
@@ -8840,6 +8842,12 @@ func (o *ConfigHasura) MarshalJSON() ([]byte, error) {
 	m["webhookSecret"] = o.WebhookSecret
 	if o.Settings != nil {
 		m["settings"] = o.Settings
+	}
+	if o.Logs != nil {
+		m["logs"] = o.Logs
+	}
+	if o.Events != nil {
+		m["events"] = o.Events
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
@@ -8882,6 +8890,20 @@ func (o *ConfigHasura) GetSettings() *ConfigHasuraSettings {
 	return o.Settings
 }
 
+func (o *ConfigHasura) GetLogs() *ConfigHasuraLogs {
+	if o == nil {
+		return nil
+	}
+	return o.Logs
+}
+
+func (o *ConfigHasura) GetEvents() *ConfigHasuraEvents {
+	if o == nil {
+		return nil
+	}
+	return o.Events
+}
+
 func (o *ConfigHasura) GetResources() *ConfigResources {
 	if o == nil {
 		return nil
@@ -8900,6 +8922,10 @@ type ConfigHasuraUpdateInput struct {
 	IsSetWebhookSecret bool                             `json:"-"`
 	Settings           *ConfigHasuraSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
 	IsSetSettings      bool                             `json:"-"`
+	Logs               *ConfigHasuraLogsUpdateInput     `json:"logs,omitempty" toml:"logs,omitempty"`
+	IsSetLogs          bool                             `json:"-"`
+	Events             *ConfigHasuraEventsUpdateInput   `json:"events,omitempty" toml:"events,omitempty"`
+	IsSetEvents        bool                             `json:"-"`
 	Resources          *ConfigResourcesUpdateInput      `json:"resources,omitempty" toml:"resources,omitempty"`
 	IsSetResources     bool                             `json:"-"`
 }
@@ -8989,6 +9015,26 @@ func (o *ConfigHasuraUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetSettings = true
 	}
+	if x, ok := m["logs"]; ok {
+		if x != nil {
+			t := &ConfigHasuraLogsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Logs = t
+		}
+		o.IsSetLogs = true
+	}
+	if x, ok := m["events"]; ok {
+		if x != nil {
+			t := &ConfigHasuraEventsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Events = t
+		}
+		o.IsSetEvents = true
+	}
 	if x, ok := m["resources"]; ok {
 		if x != nil {
 			t := &ConfigResourcesUpdateInput{}
@@ -9045,6 +9091,20 @@ func (o *ConfigHasuraUpdateInput) GetSettings() *ConfigHasuraSettingsUpdateInput
 	return o.Settings
 }
 
+func (o *ConfigHasuraUpdateInput) GetLogs() *ConfigHasuraLogsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Logs
+}
+
+func (o *ConfigHasuraUpdateInput) GetEvents() *ConfigHasuraEventsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Events
+}
+
 func (o *ConfigHasuraUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 	if o == nil {
 		return nil
@@ -9091,6 +9151,26 @@ func (s *ConfigHasura) Update(v *ConfigHasuraUpdateInput) {
 			s.Settings.Update(v.Settings)
 		}
 	}
+	if v.IsSetLogs || v.Logs != nil {
+		if v.Logs == nil {
+			s.Logs = nil
+		} else {
+			if s.Logs == nil {
+				s.Logs = &ConfigHasuraLogs{}
+			}
+			s.Logs.Update(v.Logs)
+		}
+	}
+	if v.IsSetEvents || v.Events != nil {
+		if v.Events == nil {
+			s.Events = nil
+		} else {
+			if s.Events == nil {
+				s.Events = &ConfigHasuraEvents{}
+			}
+			s.Events.Update(v.Events)
+		}
+	}
 	if v.IsSetResources || v.Resources != nil {
 		if v.Resources == nil {
 			s.Resources = nil
@@ -9109,6 +9189,8 @@ type ConfigHasuraInsertInput struct {
 	AdminSecret   string                           `json:"adminSecret,omitempty" toml:"adminSecret,omitempty"`
 	WebhookSecret string                           `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
 	Settings      *ConfigHasuraSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	Logs          *ConfigHasuraLogsInsertInput     `json:"logs,omitempty" toml:"logs,omitempty"`
+	Events        *ConfigHasuraEventsInsertInput   `json:"events,omitempty" toml:"events,omitempty"`
 	Resources     *ConfigResourcesInsertInput      `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
@@ -9147,6 +9229,20 @@ func (o *ConfigHasuraInsertInput) GetSettings() *ConfigHasuraSettingsInsertInput
 	return o.Settings
 }
 
+func (o *ConfigHasuraInsertInput) GetLogs() *ConfigHasuraLogsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Logs
+}
+
+func (o *ConfigHasuraInsertInput) GetEvents() *ConfigHasuraEventsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Events
+}
+
 func (o *ConfigHasuraInsertInput) GetResources() *ConfigResourcesInsertInput {
 	if o == nil {
 		return nil
@@ -9172,6 +9268,18 @@ func (s *ConfigHasura) Insert(v *ConfigHasuraInsertInput) {
 		}
 		s.Settings.Insert(v.Settings)
 	}
+	if v.Logs != nil {
+		if s.Logs == nil {
+			s.Logs = &ConfigHasuraLogs{}
+		}
+		s.Logs.Insert(v.Logs)
+	}
+	if v.Events != nil {
+		if s.Events == nil {
+			s.Events = &ConfigHasuraEvents{}
+		}
+		s.Events.Insert(v.Events)
+	}
 	if v.Resources != nil {
 		if s.Resources == nil {
 			s.Resources = &ConfigResources{}
@@ -9196,6 +9304,8 @@ func (s *ConfigHasura) Clone() *ConfigHasura {
 	v.AdminSecret = s.AdminSecret
 	v.WebhookSecret = s.WebhookSecret
 	v.Settings = s.Settings.Clone()
+	v.Logs = s.Logs.Clone()
+	v.Events = s.Events.Clone()
 	v.Resources = s.Resources.Clone()
 	return v
 }
@@ -9209,6 +9319,8 @@ type ConfigHasuraComparisonExp struct {
 	AdminSecret   *ConfigStringComparisonExp         `json:"adminSecret,omitempty"`
 	WebhookSecret *ConfigStringComparisonExp         `json:"webhookSecret,omitempty"`
 	Settings      *ConfigHasuraSettingsComparisonExp `json:"settings,omitempty"`
+	Logs          *ConfigHasuraLogsComparisonExp     `json:"logs,omitempty"`
+	Events        *ConfigHasuraEventsComparisonExp   `json:"events,omitempty"`
 	Resources     *ConfigResourcesComparisonExp      `json:"resources,omitempty"`
 }
 
@@ -9221,6 +9333,8 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 		o = &ConfigHasura{
 			JwtSecrets: []*ConfigJWTSecret{},
 			Settings:   &ConfigHasuraSettings{},
+			Logs:       &ConfigHasuraLogs{},
+			Events:     &ConfigHasuraEvents{},
 			Resources:  &ConfigResources{},
 		}
 	}
@@ -9248,7 +9362,277 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 	if !exp.Settings.Matches(o.Settings) {
 		return false
 	}
+	if !exp.Logs.Matches(o.Logs) {
+		return false
+	}
+	if !exp.Events.Matches(o.Events) {
+		return false
+	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigHasuraEvents struct {
+	HttpPoolSize *uint32 `json:"httpPoolSize" toml:"httpPoolSize"`
+}
+
+func (o *ConfigHasuraEvents) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.HttpPoolSize != nil {
+		m["httpPoolSize"] = o.HttpPoolSize
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigHasuraEvents) GetHttpPoolSize() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraEvents{}
+	}
+	return o.HttpPoolSize
+}
+
+type ConfigHasuraEventsUpdateInput struct {
+	HttpPoolSize      *uint32 `json:"httpPoolSize,omitempty" toml:"httpPoolSize,omitempty"`
+	IsSetHttpPoolSize bool    `json:"-"`
+}
+
+func (o *ConfigHasuraEventsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["httpPoolSize"]; ok {
+		if v == nil {
+			o.HttpPoolSize = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.HttpPoolSize = &x
+		}
+		o.IsSetHttpPoolSize = true
+	}
+
+	return nil
+}
+
+func (o *ConfigHasuraEventsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigHasuraEventsUpdateInput) GetHttpPoolSize() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraEventsUpdateInput{}
+	}
+	return o.HttpPoolSize
+}
+
+func (s *ConfigHasuraEvents) Update(v *ConfigHasuraEventsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetHttpPoolSize || v.HttpPoolSize != nil {
+		s.HttpPoolSize = v.HttpPoolSize
+	}
+}
+
+type ConfigHasuraEventsInsertInput struct {
+	HttpPoolSize *uint32 `json:"httpPoolSize,omitempty" toml:"httpPoolSize,omitempty"`
+}
+
+func (o *ConfigHasuraEventsInsertInput) GetHttpPoolSize() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraEventsInsertInput{}
+	}
+	return o.HttpPoolSize
+}
+
+func (s *ConfigHasuraEvents) Insert(v *ConfigHasuraEventsInsertInput) {
+	s.HttpPoolSize = v.HttpPoolSize
+}
+
+func (s *ConfigHasuraEvents) Clone() *ConfigHasuraEvents {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigHasuraEvents{}
+	v.HttpPoolSize = s.HttpPoolSize
+	return v
+}
+
+type ConfigHasuraEventsComparisonExp struct {
+	And          []*ConfigHasuraEventsComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigHasuraEventsComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigHasuraEventsComparisonExp `json:"_or,omitempty"`
+	HttpPoolSize *ConfigUint32ComparisonExp         `json:"httpPoolSize,omitempty"`
+}
+
+func (exp *ConfigHasuraEventsComparisonExp) Matches(o *ConfigHasuraEvents) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigHasuraEvents{}
+	}
+	if o.HttpPoolSize != nil && !exp.HttpPoolSize.Matches(*o.HttpPoolSize) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigHasuraLogs struct {
+	Level *string `json:"level" toml:"level"`
+}
+
+func (o *ConfigHasuraLogs) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Level != nil {
+		m["level"] = o.Level
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigHasuraLogs) GetLevel() *string {
+	if o == nil {
+		o = &ConfigHasuraLogs{}
+	}
+	return o.Level
+}
+
+type ConfigHasuraLogsUpdateInput struct {
+	Level      *string `json:"level,omitempty" toml:"level,omitempty"`
+	IsSetLevel bool    `json:"-"`
+}
+
+func (o *ConfigHasuraLogsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["level"]; ok {
+		if v == nil {
+			o.Level = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Level = &x
+		}
+		o.IsSetLevel = true
+	}
+
+	return nil
+}
+
+func (o *ConfigHasuraLogsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigHasuraLogsUpdateInput) GetLevel() *string {
+	if o == nil {
+		o = &ConfigHasuraLogsUpdateInput{}
+	}
+	return o.Level
+}
+
+func (s *ConfigHasuraLogs) Update(v *ConfigHasuraLogsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetLevel || v.Level != nil {
+		s.Level = v.Level
+	}
+}
+
+type ConfigHasuraLogsInsertInput struct {
+	Level *string `json:"level,omitempty" toml:"level,omitempty"`
+}
+
+func (o *ConfigHasuraLogsInsertInput) GetLevel() *string {
+	if o == nil {
+		o = &ConfigHasuraLogsInsertInput{}
+	}
+	return o.Level
+}
+
+func (s *ConfigHasuraLogs) Insert(v *ConfigHasuraLogsInsertInput) {
+	s.Level = v.Level
+}
+
+func (s *ConfigHasuraLogs) Clone() *ConfigHasuraLogs {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigHasuraLogs{}
+	v.Level = s.Level
+	return v
+}
+
+type ConfigHasuraLogsComparisonExp struct {
+	And   []*ConfigHasuraLogsComparisonExp `json:"_and,omitempty"`
+	Not   *ConfigHasuraLogsComparisonExp   `json:"_not,omitempty"`
+	Or    []*ConfigHasuraLogsComparisonExp `json:"_or,omitempty"`
+	Level *ConfigStringComparisonExp       `json:"level,omitempty"`
+}
+
+func (exp *ConfigHasuraLogsComparisonExp) Matches(o *ConfigHasuraLogs) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigHasuraLogs{}
+	}
+	if o.Level != nil && !exp.Level.Matches(*o.Level) {
 		return false
 	}
 

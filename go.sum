@@ -86,6 +86,7 @@ github.com/cloudflare/circl v1.1.0/go.mod h1:prBCrKB9DV4poKZY1l9zBXg2QJY7mvgRvtM
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
+github.com/cockroachdb/apd v1.1.0 h1:3LFP3629v+1aKXU5Q37mxmRxX/pIu1nijXydLShEq5I=
 github.com/cockroachdb/apd/v2 v2.0.2 h1:weh8u7Cneje73dDh+2tEVLUvyBc89iwepWCD8b8034E=
 github.com/cockroachdb/apd/v2 v2.0.2/go.mod h1:DDxRlzC2lo3/vSlmSoS7JkqbbrARPuFOGr0B9pvN3Gw=
 github.com/compose-spec/compose-go v1.8.2 h1:sUQvDxnPgpcOyoxC/lz7mFTrTlHeZ6LWyuASYetkOqw=
@@ -284,6 +285,8 @@ github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de h1:D5x39vF5KCwKQaw+OC9
 github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de/go.mod h1:kJun4WP5gFuHZgRjZUWWuH1DTxCtxbHDOIJsudS8jzY=
 github.com/nhost/be v0.0.0-20230320195828-d204df29c46c h1:BRNr8h0BXTA58RXTxby0QrC2bhizEd+2BzWHyIA/sJA=
 github.com/nhost/be v0.0.0-20230320195828-d204df29c46c/go.mod h1:lnOnNtf6h/gYX9C97wSEDCmRTImTygWJTjoQzL5xVR4=
+github.com/nhost/be v0.0.0-20230324111224-9d455f8b0652 h1:G/6oWQeK46GBE8EAFvAYAPcZREYQs0teJ5VS95emo4w=
+github.com/nhost/be v0.0.0-20230324111224-9d455f8b0652/go.mod h1:lnOnNtf6h/gYX9C97wSEDCmRTImTygWJTjoQzL5xVR4=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
