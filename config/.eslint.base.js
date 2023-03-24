@@ -23,8 +23,8 @@ module.exports = {
     'e2e/**/*.ts',
     'e2e/**/*.d.ts'
   ],
-  plugins: ['@typescript-eslint', 'cypress'],
-  extends: ['plugin:cypress/recommended'],
+  plugins: ['@typescript-eslint'],
+  extends: [],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module'

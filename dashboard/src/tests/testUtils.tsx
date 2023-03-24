@@ -55,7 +55,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
               <NhostApolloProvider
                 nhost={nhost}
                 link={createHttpLink({
-                  uri: 'http://localhost:1337/v1/graphql',
+                  uri: 'https://local.graphql.nhost.run/v1',
                 })}
               >
                 <WorkspaceProvider>

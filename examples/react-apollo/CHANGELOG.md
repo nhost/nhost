@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 0.1.10
+
+### Patch Changes
+
+- caba147b: chore(examples): improve tests of the React Apollo example
+
 ## 0.1.9
 
 ### Patch Changes

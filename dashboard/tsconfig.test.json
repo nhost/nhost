@@ -5,6 +5,7 @@
     "types": ["vitest/globals"],
     "paths": {
       "@/tests/*": ["tests/*"],
+      "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
       "@/utils/*": ["utils/*"],

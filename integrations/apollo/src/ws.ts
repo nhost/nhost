@@ -3,7 +3,6 @@ import { Client, ClientOptions, createClient } from 'graphql-ws'
 
 export interface RestartableClient extends Client {
   restart(): void
-  started(): boolean
 }
 
 export function createRestartableClient(options: ClientOptions): RestartableClient {
@@ -11,18 +10,41 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
   let restart = () => {
     restartRequested = true
   }
-  let _started = false
-  const started = () => _started
+  let socket: WebSocket
+  let timedOut: NodeJS.Timeout
 
   const client = createClient({
     ...options,
     on: {
       ...options.on,
-      connected: () => {
-        _started = true
+      error: (error) => {
+        console.error(error)
+        options.on?.error?.(error)
+
+        restart()
+      },
+      ping: (received) => {
+        if (!received /* sent */) {
+          timedOut = setTimeout(() => {
+            // a close event `4499: Terminated` is issued to the current WebSocket and an
+            // artificial `{ code: 4499, reason: 'Terminated', wasClean: false }` close-event-like
+            // object is immediately emitted without waiting for the one coming from `WebSocket.onclose`
+            //
+            // calling terminate is not considered fatal and a connection retry will occur as expected
+            //
+            // see: https://github.com/enisdenjo/graphql-ws/discussions/290
+            client.terminate()
+            restart()
+          }, 5_000)
+        }
+      },
+      pong: (received) => {
+        if (received) {
+          clearTimeout(timedOut)
+        }
       },
       opened: (originalSocket) => {
-        const socket = originalSocket as WebSocket
+        socket = originalSocket as WebSocket
         options.on?.opened?.(socket)
 
         restart = () => {
@@ -47,7 +69,6 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
 
   return {
     ...client,
-    restart: () => restart(),
-    started
+    restart: () => restart()
   }
 }

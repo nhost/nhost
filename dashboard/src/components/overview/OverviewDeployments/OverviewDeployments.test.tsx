@@ -1,9 +1,10 @@
 import { UserDataProvider } from '@/context/workspace1-context';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { render, screen, waitForElementToBeRemoved } from '@/tests/testUtils';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import { graphql, rest } from 'msw';
+import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
 import OverviewDeployments from '.';
@@ -73,13 +74,11 @@ const mockWorkspace: Workspace = {
   applications: [mockApplication],
 };
 
-const mockGraphqlLink = graphql.link('http://localhost:1337/v1/graphql');
-
 const server = setupServer(
-  rest.get('http://localhost:1337/v1/graphql', (req, res, ctx) =>
+  rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
-  mockGraphqlLink.operation(async (req, res, ctx) =>
+  nhostGraphQLLink.operation(async (_req, res, ctx) =>
     res(
       ctx.data({
         deployments: [],
@@ -143,7 +142,7 @@ test('should render an empty state when GitHub is connected, but there are no de
 
 test('should render a list of deployments', async () => {
   server.use(
-    mockGraphqlLink.operation(async (req, res, ctx) => {
+    nhostGraphQLLink.operation(async (req, res, ctx) => {
       const requestPayload = await req.json();
 
       if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
@@ -193,7 +192,7 @@ test('should render a list of deployments', async () => {
 
 test('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
-    mockGraphqlLink.operation(async (req, res, ctx) => {
+    nhostGraphQLLink.operation(async (req, res, ctx) => {
       const requestPayload = await req.json();
 
       if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {

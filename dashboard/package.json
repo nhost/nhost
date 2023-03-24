@@ -1,6 +1,6 @@
 {
   "name": "@nhost/dashboard",
-  "version": "0.13.6",
+  "version": "0.13.9",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -15,10 +15,10 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,md}\" --plugin-search-dir=.",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook",
-    "e2e": "playwright test"
+    "e2e": "npx playwright@1.31.2 install --with-deps && playwright test"
   },
   "dependencies": {
-    "@apollo/client": "^3.7.3",
+    "@apollo/client": "^3.7.10",
     "@codemirror/language": "^6.3.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",
@@ -30,7 +30,7 @@
     "@graphiql/toolkit": "^0.8.2",
     "@headlessui/react": "^1.6.5",
     "@heroicons/react": "^1.0.6",
-    "@hookform/resolvers": "^2.9.10",
+    "@hookform/resolvers": "^3.0.0",
     "@mui/base": "^5.0.0-alpha.106",
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
@@ -63,7 +63,7 @@
     "prettysize": "^2.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-error-boundary": "^3.1.4",
+    "react-error-boundary": "^4.0.0",
     "react-hook-form": "^7.42.1",
     "react-hot-toast": "^2.4.0",
     "react-is": "18.2.0",
@@ -77,18 +77,19 @@
     "tailwind-merge": "^1.8.0",
     "utility-types": "^3.10.0",
     "validator": "^13.7.0",
-    "yup": "^0.32.11",
+    "yup": "^1.0.2",
     "yup-password": "^0.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",
+    "@faker-js/faker": "^7.6.0",
     "@graphql-codegen/cli": "^3.0.0",
     "@graphql-codegen/typescript": "^3.0.0",
     "@graphql-codegen/typescript-graphql-request": "^4.5.1",
     "@graphql-codegen/typescript-operations": "^3.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.1",
     "@next/bundle-analyzer": "^12.3.1",
-    "@playwright/test": "^1.30.0",
+    "@playwright/test": "^1.31.2",
     "@storybook/addon-actions": "^6.5.14",
     "@storybook/addon-essentials": "^6.5.14",
     "@storybook/addon-interactions": "^6.5.14",

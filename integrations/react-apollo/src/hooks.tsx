@@ -9,7 +9,10 @@ import {
 } from '@apollo/client'
 import { useAuthenticated } from '@nhost/react'
 
-export function useAuthQuery<TData = any, TVariables = OperationVariables>(
+export function useAuthQuery<
+  TData = any,
+  TVariables extends OperationVariables = OperationVariables
+>(
   query: DocumentNode | TypedDocumentNode<TData, TVariables>,
   options?: QueryHookOptions<TData, TVariables>
 ) {
@@ -18,7 +21,10 @@ export function useAuthQuery<TData = any, TVariables = OperationVariables>(
   return useQuery(query, newOptions)
 }
 
-export function useAuthSubscription<TData = any, TVariables = OperationVariables>(
+export function useAuthSubscription<
+  TData = any,
+  TVariables extends OperationVariables = OperationVariables
+>(
   subscription: DocumentNode | TypedDocumentNode<TData, TVariables>,
   options?: SubscriptionHookOptions<TData, TVariables>
 ) {

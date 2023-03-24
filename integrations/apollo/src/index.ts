@@ -1,6 +1,5 @@
 import {
   ApolloClient,
-  ApolloClientOptions,
   createHttpLink,
   from,
   InMemoryCache,
@@ -38,16 +37,19 @@ export const createApolloClient = ({
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError,
   link: customLink
-}: NhostApolloClientOptions): ApolloClient<any> => {
-  let backendUrl = graphqlUrl || nhost?.graphql.getUrl()
+}: NhostApolloClientOptions) => {
+  const backendUrl = graphqlUrl || nhost?.graphql.httpUrl
+
   if (!backendUrl) {
     throw Error("Can't initialize the Apollo Client: no backend Url has been provided")
   }
+
+  const uri = backendUrl
   const interpreter = nhost?.auth.client.interpreter
 
   let token: string | null = null
 
-  const getAuthHeaders = () => {
+  function getAuthHeaders() {
     // add headers
     const resHeaders = {
       ...headers,
@@ -66,33 +68,28 @@ export const createApolloClient = ({
     return resHeaders
   }
 
-  const uri = backendUrl
-
-  const wsClient =
-    isBrowser &&
-    createRestartableClient({
-      url: uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws'),
-      connectionParams: () => ({
-        headers: {
-          ...headers,
-          ...getAuthHeaders()
-        }
+  const wsClient = isBrowser
+    ? createRestartableClient({
+        url: uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws'),
+        shouldRetry: () => true,
+        retryAttempts: 10,
+        connectionParams: () => ({
+          headers: {
+            ...headers,
+            ...getAuthHeaders()
+          }
+        })
       })
-    })
-  const wsLink = wsClient && new GraphQLWsLink(wsClient)
+    : null
 
-  const httpLink = setContext((_, { headers }) => {
-    return {
-      headers: {
-        ...headers,
-        ...getAuthHeaders()
-      }
+  const wsLink = wsClient ? new GraphQLWsLink(wsClient) : null
+
+  const httpLink = setContext((_, { headers }) => ({
+    headers: {
+      ...headers,
+      ...getAuthHeaders()
     }
-  }).concat(
-    createHttpLink({
-      uri
-    })
-  )
+  })).concat(createHttpLink({ uri }))
 
   const link = wsLink
     ? split(
@@ -112,7 +109,7 @@ export const createApolloClient = ({
       )
     : httpLink
 
-  const apolloClientOptions: ApolloClientOptions<any> = {
+  const client = new ApolloClient({
     cache: cache || new InMemoryCache(),
     ssrMode: !isBrowser,
     defaultOptions: {
@@ -120,34 +117,35 @@ export const createApolloClient = ({
         fetchPolicy
       }
     },
-    connectToDevTools
-  }
-
-  // add link
-  if (customLink) {
-    apolloClientOptions.link = from([customLink])
-  } else {
-    apolloClientOptions.link = typeof onError === 'function' ? from([onError, link]) : from([link])
-  }
-
-  const client = new ApolloClient(apolloClientOptions)
+    connectToDevTools,
+    link: customLink
+      ? from([customLink])
+      : from(typeof onError === 'function' ? [onError, link] : [link])
+  })
 
   interpreter?.onTransition(async (state, event) => {
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
-      const newToken = state.context.accessToken.value
-      token = newToken
       if (event.type === 'SIGNOUT') {
+        token = null
+
         try {
           await client.resetStore()
         } catch (error) {
           console.error('Error resetting Apollo client cache')
           console.error(error)
         }
-      } else {
-        if (isBrowser && wsClient && wsClient.started()) {
-          wsClient.restart()
-        }
+
+        return
       }
+
+      // update token
+      token = state.context.accessToken.value
+
+      if (!isBrowser) {
+        return
+      }
+
+      wsClient?.restart()
     }
   })
 

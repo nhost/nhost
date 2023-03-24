@@ -1,5 +1,25 @@
 # @nhost/dashboard
 
+## 0.13.9
+
+### Patch Changes
+
+- 912ed76c: chore(dashboard): bump `@apollo/client` to 3.7.10
+- Updated dependencies [912ed76c]
+  - @nhost/react-apollo@5.0.13
+
+## 0.13.8
+
+### Patch Changes
+
+- 7c127372: chore(dashboard): bump `react-error-boundary` to v4
+
+## 0.13.7
+
+### Patch Changes
+
+- 9130ab12: chore(dashboard): bump `yup` to v1 and `@hookform/resolvers` to v3
+
 ## 0.13.6
 
 ### Patch Changes
