@@ -2,7 +2,7 @@ import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import AnonymousSignInSettings from '@/components/settings/signInMethods/AnonymousSignInSettings';
 import AppleProviderSettings from '@/components/settings/signInMethods/AppleProviderSettings';
-import AzureADProviderSettings from '@/components/settings/signInMethods/AzureADProviderSettings ';
+import AzureADProviderSettings from '@/components/settings/signInMethods/AzureADProviderSettings';
 import DiscordProviderSettings from '@/components/settings/signInMethods/DiscordProviderSettings';
 import EmailAndPasswordSettings from '@/components/settings/signInMethods/EmailAndPasswordSettings';
 import FacebookProviderSettings from '@/components/settings/signInMethods/FacebookProviderSettings';
