@@ -1,26 +1,53 @@
+import {
+  AuthMachine,
+  NhostClient,
+  NhostReactClientConstructorParams,
+  NhostSession,
+  NHOST_REFRESH_TOKEN_KEY,
+  VanillaNhostClient
+} from '@nhost/react'
 import Cookies from 'js-cookie'
 import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { NHOST_SESSION_KEY } from './utils'
 
-import { AuthMachine, NHOST_REFRESH_TOKEN_KEY } from '@nhost/core'
-import { NhostClient } from '@nhost/nhost-js'
+export type CreateServerSideClientParams = Pick<
+  NhostReactClientConstructorParams,
+  'subdomain' | 'region' | 'authUrl' | 'functionsUrl' | 'graphqlUrl' | 'storageUrl'
+>
 
 /**
  * Creates an Nhost client that runs on the server side.
  * It will try to get the refesh token in cookies, or from the request URL
  * If a refresh token is found, it uses it to get an up to date access token (JWT) and a user session
  * This method resolves when the authentication status is known eventually
- * @param backendUrl
- * @param context
+ * @param config - An object containing connection information
+ * @param context - Server side context
  * @returns instance of `NhostClient` that is ready to use on the server side (signed in or signed out)
  */
 export const createServerSideClient = async (
-  backendUrl: string,
+  params: string | CreateServerSideClientParams,
   context: GetServerSidePropsContext
-) => {
-  const nhost = new NhostClient({
-    backendUrl,
+): Promise<NhostClient> => {
+  let clientParams: NhostReactClientConstructorParams
+
+  if (typeof params === 'string') {
+    console.warn(
+      'Deprecation Notice: Backend URL is no longer supported. Please use subdomain + region or individual service URLs.'
+    )
+
+    clientParams = {
+      backendUrl: params
+    }
+  } else {
+    clientParams = {
+      ...params
+    }
+  }
+
+  const nhost = new VanillaNhostClient({
+    ...clientParams,
     clientStorageType: 'custom',
     clientStorage: {
       getItem: (key) => {
@@ -44,11 +71,17 @@ export const createServerSideClient = async (
         Cookies.remove(key)
       }
     },
-    start: true,
+    start: false,
     autoRefreshToken: false,
     autoSignIn: true
   })
 
+  const strSession = context.req.cookies[NHOST_SESSION_KEY]
+  const refreshToken = context.req.cookies[NHOST_REFRESH_TOKEN_KEY]
+  const initialSession: NhostSession = strSession &&
+    refreshToken && { ...JSON.parse(strSession), refreshToken }
+
+  nhost.auth.client.start({ initialSession })
   await waitFor(
     nhost.auth.client.interpreter!,
     (state: StateFrom<AuthMachine>) => !state.hasTag('loading')

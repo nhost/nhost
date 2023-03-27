@@ -6,10 +6,11 @@ import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Modal } from '@/ui';
-import DelayedLoading from '@/ui/DelayedLoading';
-import Status, { StatusEnum } from '@/ui/Status';
-import { Text } from '@/ui/Text/Text';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
+import Text from '@/ui/v2/Text';
 import { formatDistanceStrict, formatISO9075 } from 'date-fns';
 import prettysize from 'prettysize';
 import type { ReactElement } from 'react';
@@ -27,17 +28,16 @@ function BackupsHeader() {
   return (
     <div className="flex flex-row place-content-between">
       <div>
-        <Text color="greyscaleDark" className="font-medium" size="big">
+        <Text className="text-2xl font-medium" variant="h1">
           Backups
         </Text>
       </div>
-      <div className="relative top-1.5 mr-2 self-center align-middle">
-        {plan.isFree ? (
-          <Status status={StatusEnum.Closed}>Off</Status>
-        ) : (
-          <Status status={StatusEnum.Live}>Live</Status>
-        )}
-      </div>
+
+      <Chip
+        color={plan.isFree ? 'default' : 'success'}
+        label={plan.isFree ? 'Off' : 'Live'}
+        size="small"
+      />
     </div>
   );
 }
@@ -57,26 +57,14 @@ function BackupRow({ backup }: any) {
           data={{ id, createdAt }}
         />
       )}
-      <div className="flex flex-row place-content-between py-3">
-        <Text
-          color="greyscaleDark"
-          size="tiny"
-          className="w-drop self-center font-medium"
-        >
+      <Box className="flex flex-row place-content-between py-3">
+        <Text className="w-drop self-center font-medium text-xs">
           {formatISO9075(new Date(createdAt))}
         </Text>
-        <Text
-          color="greyscaleDark"
-          size="tiny"
-          className="w-drop self-center font-medium"
-        >
+        <Text className="w-drop self-center font-medium text-xs">
           {prettysize(size)}
         </Text>
-        <Text
-          color="greyscaleDark"
-          size="tiny"
-          className="w-drop self-center font-medium"
-        >
+        <Text className="w-drop self-center font-medium text-xs">
           {formatDistanceStrict(new Date(createdAt), new Date(), {
             addSuffix: true,
           })}
@@ -89,7 +77,7 @@ function BackupRow({ backup }: any) {
             Restore
           </Button>
         </div>
-      </div>
+      </Box>
     </>
   );
 }
@@ -102,7 +90,13 @@ function BackupsTable() {
   });
 
   if (loading) {
-    return <DelayedLoading className="my-5" delay={500} />;
+    return (
+      <ActivityIndicator
+        delay={500}
+        className="my-5"
+        label="Loading backups..."
+      />
+    );
   }
 
   if (error) {
@@ -113,24 +107,16 @@ function BackupsTable() {
 
   return (
     <>
-      <div className="flex flex-row place-content-between border-b-1 py-2">
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
-          Backup
-        </Text>
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
-          Size
-        </Text>
-        <Text color="greyscaleDark" size="tiny" className="w-drop font-bold">
-          Backed Up
-        </Text>
+      <Box className="flex flex-row place-content-between border-b-1 py-2">
+        <Text className="w-drop font-bold text-xs">Backup</Text>
+        <Text className="w-drop font-bold text-xs">Size</Text>
+        <Text className="w-drop font-bold text-xs">Backed Up</Text>
         <div className="w-20" />
-      </div>
-      <div className="border-b-1">
+      </Box>
+      <Box className="border-b-1">
         {backups.length === 0 ? (
           <div className="flex flex-row px-1 py-4">
-            <Text size="tiny" className="self-center" color="greyscaleGrey">
-              No backups yet.
-            </Text>
+            <Text className="text-xs">No backups yet.</Text>
           </div>
         ) : (
           <div className="divide divide-y-1">
@@ -139,7 +125,7 @@ function BackupsTable() {
             ))}
           </div>
         )}
-      </div>
+      </Box>
     </>
   );
 }
@@ -147,10 +133,8 @@ function BackupsTable() {
 function SectionContainer({ title }: any) {
   return (
     <div className="mt-6 w-full">
-      <Text color="greyscaleDark" className="font-medium" size="large">
-        {title}
-      </Text>
-      <Text color="greyscaleDark" className="my-2 font-normal" size="normal">
+      <Text className="font-medium text-lg">{title}</Text>
+      <Text className="font-normal">
         The database backup includes database schema, database data and Hasura
         metadata. It does not include the actual files in Storage.
       </Text>

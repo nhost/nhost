@@ -1,0 +1,161 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: nhost
+  NEXT_PUBLIC_ENV: dev
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_NHOST_BACKEND_URL: http://localhost:1337
+  NHOST_TEST_DASHBOARD_URL: ${{ vars.NHOST_TEST_DASHBOARD_URL }}
+  NHOST_TEST_WORKSPACE_NAME: ${{ vars.NHOST_TEST_WORKSPACE_NAME }}
+  NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
+  NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
+  NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+
+jobs:
+  build:
+    name: Build @nhost packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # * Install Node and dependencies. Package downloads will be cached for the next jobs.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+          BUILD: 'all'
+      - name: Check if the pnpm lockfile changed
+        id: changed-lockfile
+        uses: tj-actions/changed-files@v35
+        with:
+          files: pnpm-lock.yaml
+      # * Determine a pnpm filter argument for packages that have been modified.
+      # * If the lockfile has changed, we don't filter anything in order to run all the e2e tests.
+      - name: filter packages
+        id: filter-packages
+        if: steps.changed-lockfile.outputs.any_changed != 'true' && github.event_name == 'pull_request'
+        run: echo "filter=${{ format('--filter=...[origin/{0}]', github.base_ref) }}" >> $GITHUB_OUTPUT
+      # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
+      # * In a PR, only include packages that have been modified, and their dependencies
+      - name: List examples with an e2e script
+        id: set-matrix
+        run: |
+          PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter='!nhost-root' ${{ steps.filter-packages.outputs.filter }} \
+            | xargs -I@ realpath --relative-to=$PWD @ \
+            | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
+            | awk "!/null/" \
+            | jq -c --slurp 'map(select(length > 0))')
+          echo "matrix=$PACKAGES" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  unit:
+    name: Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      # * Run every `test` script in the workspace . Dependencies build is cached by Turborepo
+      - name: Run unit tests
+        run: pnpm run test:all
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: '**/coverage/coverage-final.json'
+          name: codecov-umbrella
+      - name: Create summary
+        run: |
+          echo '### Code coverage' >> $GITHUB_STEP_SUMMARY
+          echo 'Visit [codecov](https://app.codecov.io/gh/nhost/nhost/) to see the code coverage reports' >> $GITHUB_STEP_SUMMARY
+
+  lint:
+    name: Lint
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      # * Run every `lint` script in the workspace . Dependencies build is cached by Turborepo
+      - name: Lint
+        run: pnpm run lint:all
+
+  e2e:
+    name: 'E2E (Package: ${{ matrix.package.path }})'
+    needs: build
+    if: ${{ needs.build.outputs.matrix != '[]' && needs.build.outputs.matrix != '' }}
+    strategy:
+      # * Don't cancel other matrices when one fails
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.build.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      # * Install Nhost CLI if a `nhost/config.yaml` file is found
+      - name: Install Nhost CLI
+        if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
+        uses: ./.github/actions/nhost-cli
+      - name: Fetch Dashboard Preview URL
+        id: fetch-dashboard-preview-url
+        uses: zentered/vercel-preview-url@v1.1.9
+        if: github.ref_name != 'main'
+        env:
+          VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          GITHUB_REF: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        with:
+          vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+          vercel_state: BUILDING,READY,INITIALIZING
+      - name: Set Dashboard Preview URL
+        if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
+        run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
+      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
+      - name: Run e2e tests
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e
+      - id: file-name
+        if: ${{ failure() }}
+        name: Transform package name into a valid file name
+        run: |
+          PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
+          echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT
+      # * Run this step only if the previous step failed, and Playwright generated a report
+      - name: Upload Playwright Report
+        if: ${{ failure() && hashFiles(format('{0}/playwright-report/**', matrix.package.path)) != ''}}
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-${{ steps.file-name.outputs.fileName }}
+          path: ${{format('{0}/playwright-report/**', matrix.package.path)}}

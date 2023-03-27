@@ -11,7 +11,7 @@ In this section:
 - [Authentication](/reference/javascript/auth)
 - [Storage](/reference/javascript/storage)
 - [Functions](/reference/javascript/nhost-js/functions)
-- [GraphQL](/reference/javascript/nhost-js/graphql)
+- [GraphQL](/reference/javascript/graphql)
 
 ### React
 

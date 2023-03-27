@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.8.2",
+  "version": "1.13.17",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -63,24 +63,21 @@
     "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "workspace:*",
-    "@nhost/nhost-js": "workspace:*",
-    "cross-fetch": "^3.1.5",
+    "@nhost/react": "workspace:*",
+    "isomorphic-unfetch": "^3.1.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.33.5"
   },
   "peerDependencies": {
-    "@nhost/react": "workspace:*",
-    "next": "^12.0.10",
+    "next": "^12.0.10 || ^13.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@nhost/react": "workspace:*",
     "@types/js-cookie": "^3.0.2",
-    "next": "12.0.10",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "next": "12.3.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

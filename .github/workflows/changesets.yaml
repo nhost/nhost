@@ -13,11 +13,12 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  TURBO_TEAM: nhost
   DASHBOARD_PACKAGE: '@nhost/dashboard'
 
 jobs:
   version:
+    name: Version
     runs-on: ubuntu-latest
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
@@ -30,8 +31,8 @@ jobs:
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
         with:
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
       - name: Create PR or Publish release
         id: changesets
         uses: changesets/action@v1
@@ -60,7 +61,8 @@ jobs:
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
 
-  publish:
+  publish-docker:
+    name: Publish to Docker Hub
     runs-on: ubuntu-latest
     needs:
       - test
@@ -96,7 +98,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push to Docker Hub
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         timeout-minutes: 60
         with:
           context: .
@@ -120,3 +122,59 @@ jobs:
       - name: Remove tag on failure
         if: failure()
         run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
+
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - publish-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel
+      - name: Trigger a Vercel deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+
+  bump-cli:
+    name: Bump Dashboard version in the Nhost CLI
+    runs-on: ubuntu-latest
+    needs:
+      - version
+      - publish-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: nhost/cli
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+      - name: Bump version in source code
+        run: |
+          IMAGE=$(echo ${{ env.DASHBOARD_PACKAGE }} | sed 's/@\(.\+\)\/\(.\+\)/\1\\\/\2/g')
+          VERSION="${{ needs.version.outputs.dashboardVersion }}"
+          EXPRESSION='s/"'$IMAGE':[0-9]\+\.[0-9]\+\.[0-9]\+"/"'$IMAGE':'$VERSION'"/g'
+          find ./ -type f -exec sed -i -e $EXPRESSION {} \;
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          commit-message: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
+          branch: bump-dashboard-version
+          delete-branch: true
+          title: 'chore: bump nhost/dashboard to ${{ needs.version.outputs.dashboardVersion }}'
+          body: |
+            This PR bumps the Nhost Dashboard Docker image to version ${{ needs.version.outputs.dashboardVersion }}.

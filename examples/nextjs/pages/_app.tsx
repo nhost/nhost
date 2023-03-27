@@ -1,16 +1,12 @@
-import type { AppProps } from 'next/app'
-import Head from 'next/head'
-
 import { AppShell, Header, MantineProvider } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
-import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
+import { NhostClient, NhostProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
-
+import type { AppProps } from 'next/app'
+import Head from 'next/head'
 import NavBar from '../components/NavBar'
-import { BACKEND_URL } from '../helpers'
-
-import '../styles/globals.css'
+import '../styles/globals.css?inline'
 
 const devTools = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_DEBUG
 if (devTools) {
@@ -19,13 +15,13 @@ if (devTools) {
     iframe: false
   })
 }
-const nhost = new NhostClient({ backendUrl: BACKEND_URL })
+const nhost = new NhostClient({ subdomain: 'localhost', devTools })
 const title = 'Nhost with NextJs'
 function MyApp({ Component, pageProps }: AppProps) {
   // * Monorepo-related. See: https://stackoverflow.com/questions/71843247/react-nextjs-type-error-component-cannot-be-used-as-a-jsx-component
   // const AnyComponent = Component as any
   return (
-    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider nhost={nhost}>
         <Head>
           <title>{title}</title>
@@ -61,7 +57,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           </NotificationsProvider>
         </MantineProvider>
       </NhostApolloProvider>
-    </NhostNextProvider>
+    </NhostProvider>
   )
 }
 

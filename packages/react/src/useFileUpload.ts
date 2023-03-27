@@ -1,5 +1,3 @@
-import { InterpreterFrom } from 'xstate'
-
 import {
   createFileUploadMachine,
   FileItemRef,
@@ -8,9 +6,9 @@ import {
   StorageUploadFileParams,
   UploadFileHandlerResult,
   uploadFilePromise
-} from '@nhost/hasura-storage-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { InterpreterFrom } from 'xstate'
 import { useNhostClient } from './useNhostClient'
 
 export interface FileUploadHookResult extends FileUploadState {
@@ -72,12 +70,15 @@ export const useFileUploadItem = (
   }
 
   const upload = (params: Partial<StorageUploadFileParams>) =>
-    uploadFilePromise(nhost, ref, {
-      file: params.file,
-      bucketId: params.bucketId || bucketId,
-      id,
-      name
-    })
+    uploadFilePromise(
+      {
+        url: nhost.storage.url,
+        accessToken: nhost.auth.getAccessToken(),
+        adminSecret: nhost.adminSecret,
+        ...params
+      },
+      ref
+    )
 
   const cancel = () => {
     ref.send('CANCEL')

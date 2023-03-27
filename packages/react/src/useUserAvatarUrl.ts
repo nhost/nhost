@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-avatar-url
  */
-export const useUserAvatarUrl = () => {
+export const useUserAvatarUrl = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -20,8 +20,3 @@ export const useUserAvatarUrl = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserAvatarUrl} instead */
-export const useAvatarUrl = useUserAvatarUrl

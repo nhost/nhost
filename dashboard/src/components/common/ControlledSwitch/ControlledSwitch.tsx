@@ -42,13 +42,16 @@ function ControlledSwitch(
       {...props}
       {...field}
       ref={mergeRefs([field.ref, ref])}
-      onChange={(e) => {
-        setValue(controllerProps?.name || name, e.target.checked, {
+      onChange={(event) => {
+        setValue(controllerProps?.name || name, event.target.checked, {
           shouldDirty: true,
         });
+
+        if (props.onChange) {
+          props.onChange(event);
+        }
       }}
       checked={field.value || false}
-      {...props}
     />
   );
 }

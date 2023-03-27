@@ -1,4 +1,5 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { FetchProjectDatabaseSizeReturnType } from './fetchProjectDatabaseSize';
@@ -22,11 +23,15 @@ export default function useDatabaseSizeOfApplication(
     () =>
       fetchProjectDatabaseSize({
         subdomain: currentApplication?.subdomain,
-        adminSecret: currentApplication?.hasuraGraphqlAdminSecret,
+        region: currentApplication?.region?.awsName,
+        adminSecret:
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? getHasuraAdminSecret()
+            : currentApplication?.config?.hasura.adminSecret,
       }),
     {
       ...queryOptions,
-      enabled: currentApplication?.hasuraGraphqlAdminSecret
+      enabled: currentApplication?.config?.hasura.adminSecret
         ? queryOptions?.enabled
         : false,
     },

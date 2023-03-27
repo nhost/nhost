@@ -1,6 +1,9 @@
-import { signUpEmailPasswordPromise, SignUpEmailPasswordState, SignUpOptions } from '@nhost/core'
+import {
+  signUpEmailPasswordPromise,
+  SignUpEmailPasswordState,
+  SignUpOptions
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>
@@ -9,12 +12,6 @@ interface SignUpEmailPasswordHandler {
   (
     email: string,
     password: string,
-    options?: SignUpOptions
-  ): Promise<SignUpEmailPasswordHandlerResult>
-  /** @deprecated */
-  (
-    email?: unknown,
-    password?: string,
     options?: SignUpOptions
   ): Promise<SignUpEmailPasswordHandlerResult>
 }
@@ -26,8 +23,6 @@ export interface SignUpEmailPasswordHookResult extends SignUpEmailPasswordState 
 
 interface SignUpEmailPasswordHook {
   (options?: SignUpOptions): SignUpEmailPasswordHookResult
-  /** @deprecated */
-  (email?: string, password?: string, options?: SignUpOptions): SignUpEmailPasswordHookResult
 }
 
 /**
@@ -48,15 +43,7 @@ interface SignUpEmailPasswordHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-up-email-password
  */
-export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
-  a?: string | SignUpOptions,
-  b?: string,
-  c?: SignUpOptions
-) => {
-  const stateEmail: string | undefined = typeof a === 'string' ? a : undefined
-  const statePassword: string | undefined = typeof b === 'string' ? b : undefined
-  const stateOptions = c || (typeof a !== 'string' ? a : undefined)
-
+export const useSignUpEmailPassword: SignUpEmailPasswordHook = (options) => {
   const service = useAuthInterpreter()
   const isError = useSelector(service, (state) => !!state.context.errors.registration)
 
@@ -80,16 +67,10 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   )
 
   const signUpEmailPassword: SignUpEmailPasswordHandler = (
-    valueEmail?: string | unknown,
-    valuePassword = statePassword,
-    valueOptions = stateOptions
-  ) =>
-    signUpEmailPasswordPromise(
-      service,
-      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
-      valuePassword as string,
-      valueOptions
-    )
+    email,
+    password,
+    valueOptions = options
+  ) => signUpEmailPasswordPromise(service, email, password as string, valueOptions)
 
   const user = useSelector(
     service,

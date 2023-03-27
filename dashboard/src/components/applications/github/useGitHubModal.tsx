@@ -1,6 +1,3 @@
-// ConnectGitHubModal and EditRepositorySettings form a dependency cycle which
-// needs to be fixed
-// eslint-disable-next-line import/no-cycle
 import ConnectGithubModal from '@/components/applications/ConnectGithubModal';
 import { useDialog } from '@/components/common/DialogProvider';
 

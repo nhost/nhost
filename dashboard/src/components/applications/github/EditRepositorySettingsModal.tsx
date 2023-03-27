@@ -4,8 +4,8 @@ import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { Text } from '@/ui/Text';
 import Button from '@/ui/v2/Button';
+import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { updateOwnCache } from '@/utils/updateOwnCache';
@@ -79,27 +79,16 @@ export function EditRepositorySettingsModal({
     <div className="px-1">
       <div className="flex flex-col">
         <div className="mx-auto h-8 w-8">
-          <GithubIcon className="h-8 w-8 text-greyscaleDark" />
+          <GithubIcon className="h-8 w-8" />
         </div>
-        <Text
-          variant="subHeading"
-          color="greyscaleDark"
-          size="large"
-          className="mt-1.5 text-center"
-        >
+        <Text className="mt-1.5 text-center text-lg font-medium">
           {selectedRepoId
             ? 'Configure your GitHub integration'
             : 'Edit your GitHub integration'}
         </Text>
-        <Text
-          variant="body"
-          color="greyscaleDark"
-          size="small"
-          className="text-center font-normal"
-        >
-          {selectedRepoId
-            ? `We'll deploy changes automatically when you push to the deployment branch.            `
-            : `We'll deploy changes automatically when you push to the deployment branch.`}
+        <Text className="text-center text-xs">
+          We&apos;ll deploy changes automatically when you push to the
+          deployment branch.
         </Text>
         <div>
           <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
@@ -107,9 +96,8 @@ export function EditRepositorySettingsModal({
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
-              <div className="">
-                <RepoAndBranch />
-              </div>
+              <RepoAndBranch />
+
               <div className="mt-2 flex flex-col">
                 <Button
                   type="submit"

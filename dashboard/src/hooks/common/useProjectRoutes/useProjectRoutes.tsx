@@ -1,3 +1,4 @@
+import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import CloudIcon from '@/ui/v2/icons/CloudIcon';
 import CogIcon from '@/ui/v2/icons/CogIcon';
@@ -6,11 +7,11 @@ import FileTextIcon from '@/ui/v2/icons/FileTextIcon';
 import GraphQLIcon from '@/ui/v2/icons/GraphQLIcon';
 import HasuraIcon from '@/ui/v2/icons/HasuraIcon';
 import HomeIcon from '@/ui/v2/icons/HomeIcon';
-import LambdaIcon from '@/ui/v2/icons/LambdaIcon';
 import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import StorageIcon from '@/ui/v2/icons/StorageIcon';
+import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
 import UserIcon from '@/ui/v2/icons/UserIcon';
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 
 export interface ProjectRoute {
   /**
@@ -43,7 +44,7 @@ export interface ProjectRoute {
   /**
    * Icon to display for the route.
    */
-  icon?: ReactNode;
+  icon?: ReactElement<SvgIconProps>;
   /**
    * Determines whether the route should be disabled.
    */
@@ -52,15 +53,9 @@ export interface ProjectRoute {
 
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
+  const { maintenanceActive } = useUI();
 
   const nhostRoutes: ProjectRoute[] = [
-    {
-      relativePath: '/functions',
-      exact: false,
-      label: 'Functions',
-      icon: <LambdaIcon />,
-      disabled: !isPlatform,
-    },
     {
       relativePath: '/deployments',
       exact: false,
@@ -88,7 +83,7 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Settings',
       icon: <CogIcon />,
-      disabled: !isPlatform,
+      disabled: !isPlatform || maintenanceActive,
     },
   ];
 

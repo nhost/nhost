@@ -7,9 +7,10 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getEmptyDownMigrationMessage } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableMigrationVariables {
@@ -56,32 +57,29 @@ export default async function updateTableMigration({
     return;
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_NHOST_MIGRATIONS_URL}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `alter_table_${schema}_${originalTable.table_name}`,
-        down: [
-          {
-            type: 'run_sql',
-            args: {
-              cascade: false,
-              read_only: false,
-              source: '',
-              sql: getEmptyDownMigrationMessage(args),
-            },
-          },
-        ],
-        up: args,
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `alter_table_${schema}_${originalTable.table_name}`,
+      down: [
+        {
+          type: 'run_sql',
+          args: {
+            cascade: false,
+            read_only: false,
+            source: '',
+            sql: getEmptyDownMigrationMessage(args),
+          },
+        },
+      ],
+      up: args,
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

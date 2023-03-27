@@ -1,14 +1,14 @@
-import { App, warn } from 'vue'
-
-import { removeParameterFromWindow } from '@nhost/core'
 import {
   BackendUrl,
   NhostAuthConstructorParams,
   NhostClient as VanillaClient,
+  removeParameterFromWindow,
   Subdomain
 } from '@nhost/nhost-js'
-
+import { App, warn } from 'vue'
 import { DefaultNhostClient } from './useNhostClient'
+
+export type { BackendUrl, ErrorPayload, NhostSession, Subdomain, User } from '@nhost/nhost-js'
 
 export interface NhostVueClientConstructorParams
   extends Partial<BackendUrl>,

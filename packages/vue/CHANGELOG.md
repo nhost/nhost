@@ -1,5 +1,215 @@
 # @nhost/vue
 
+## 1.13.17
+
+### Patch Changes
+
+- @nhost/nhost-js@2.1.1
+
+## 1.13.16
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/nhost-js@2.1.0
+
+## 1.13.15
+
+### Patch Changes
+
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 1.13.14
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 1.13.13
+
+### Patch Changes
+
+- 7eac17a1: chore(deps): bump `@xstate/inspect` to 0.8.0
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
+## 1.13.12
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
+## 1.13.11
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
+## 1.13.5
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+  - @nhost/nhost-js@1.13.4
+
+## 1.13.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.3
+
+## 1.13.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.2
+
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/nhost-js@1.13.1
+
+## 1.13.1
+
+### Patch Changes
+
+- c2706c7d: Export commonly used types
+
+  `BackendUrl`, `ErrorPayload`, `NhostSession`, `Subdomain`, and `User` are now exported in all our SDKs
+
+- d42c27ae: Add explicit reutrn types to Vue composables
+
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+  - @nhost/nhost-js@1.12.1
+
+## 1.12.0
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Remove unused immer dependency
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+- Updated dependencies [1a9e1fde]
+- Updated dependencies [5be9abb0]
+- Updated dependencies [54df0df4]
+  - @nhost/nhost-js@1.12.0
+
+## 0.7.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/hasura-storage-js@0.8.0
+  - @nhost/nhost-js@1.7.0
+
+## 0.6.2
+
+### Patch Changes
+
+- b030eae9: chore(deps): update dependency @xstate/inspect to ^0.7.0
+
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/hasura-storage-js@0.7.4
+  - @nhost/nhost-js@1.6.2
+
+## 0.6.0
+
+### Minor Changes
+
+- f6d2042a: `useFileUpload` composable to upload a file useFileUpload composable
+
+### Patch Changes
+
+- 843087cb: Make `useUserRoles` reactive
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/hasura-storage-js@0.7.3
+  - @nhost/nhost-js@1.6.1
+
 ## 0.5.2
 
 ### Patch Changes

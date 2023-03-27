@@ -4,8 +4,9 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 export interface TrackForeignKeyRelationsMigrationVariables {
@@ -45,23 +46,20 @@ export default async function trackForeignKeyRelationsMigration({
     foreignKeyRelations,
   });
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_NHOST_MIGRATIONS_URL}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `track_foreign_key_relations_${schema}_${table}`,
-        down: [],
-        up: creatableRelationships,
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `track_foreign_key_relations_${schema}_${table}`,
+      down: [],
+      up: creatableRelationships,
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

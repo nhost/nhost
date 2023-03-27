@@ -60,6 +60,19 @@ Open your terminal, and run the following command:
 npx degit nhost/vue-quickstart my-nhost-app
 ```
 
+<br />
+
+:::note Sidebar
+A completed quickstart example can be be found in the [examples](https://github.com/nhost/nhost/tree/main/examples/vue-quickstart) directory.
+
+Run the following command in your terminal to create a local copy the example project:
+
+```bash
+npx degit nhost/nhost/examples/vue-quickstart my-nhost-app
+````
+:::
+
+
 You can now go into your project directory, install dependencies, and start the development server:
 
 <Tabs groupId="package-manager">
@@ -136,8 +149,8 @@ The Nhost Vue SDK comes with a `NhostClient` that can be loaded into the Vue app
 It makes the authentication state and all the provided Vue composables available in our
 application.
 
-Use the following code to instantiate a new Nhost client and link it to your
-Nhost backend:
+Ensure the hightlighted code below is present to instantiate a new Nhost client
+and link it to your Nhost backend:
 
 ```tsx title="src/main.ts"
 import { createApp } from 'vue'
@@ -168,11 +181,12 @@ app
   .use(router)
   // highlight-start
   .use(nhost)
-// highlight-end
-app.mount('#app')
+  // highlight-end
+  .mount('#app')
 ```
 
-Finally, store the environment variables for `subdomain` and `region` in `.env`:
+Finally, rename the existing `.env.example` file as `.env` or `.env.development` and store
+the environment variables for `subdomain` and `region` in the file like this:
 
 ```yaml title=".env.development"
 VITE_NHOST_SUBDOMAIN=[subdomain]
@@ -218,7 +232,8 @@ Let's create a new page in your project using the following code:
     const { isSuccess } = await signUpEmailPassword(email, password, {
       metadata: { firstName, lastName }
     })
-    if (isSuccess) router.push('/')
+    if (isSuccess)
+      router.push('/')
   }
 </script>
 
@@ -228,12 +243,18 @@ Let's create a new page in your project using the following code:
   </p>
 
   <form v-else @submit="handleSubmit">
-    <input v-model="firstName" placeholder="First name" class="input" /><br />
-    <input v-model="lastName" placeholder="Last name" class="input" /><br />
-    <input v-model="email" type="email" placeholder="Email" class="input" /><br />
-    <input v-model="password" type="password" placeholder="Password" class="input" /><br />
+    <input v-model="firstName" placeholder="First name" class="input" />
+    <br />
+    <input v-model="lastName" placeholder="Last name" class="input" />
+    <br />
+    <input v-model="email" type="email" placeholder="Email" class="input" />
+    <br />
+    <input v-model="password" type="password" placeholder="Password" class="input" />
+    <br />
 
-    <button class="btn-submit" type="submit">Sign up</button>
+    <button class="btn-submit" type="submit">
+      Sign up
+    </button>
   </form>
 </template>
 ```
@@ -244,13 +265,16 @@ Now that new users can sign up for our application, let's see how to allow
 existing users to sign in with email and password.
 
 For that, we will use the Nhost composable named `useSignInEmailPassword` inside a new
-`sign-in` page the same way we did with our `sign-up` page. Let's create a `src/pages/sign-in.vue` component:
+`sign-in` page the same way we did with our `sign-up` page.
+
+Let's create a `src/pages/sign-in.vue` component:
 
 ```markup title="src/pages/sign-in.vue"
 <script setup lang="ts">
   import { ref } from 'vue'
   import { useSignInEmailPassword } from '@nhost/vue'
   import { useRouter } from 'vue-router'
+
   const { signInEmailPassword, needsEmailVerification } = useSignInEmailPassword()
   const router = useRouter()
   const email = ref('')
@@ -258,22 +282,26 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
   const handleSubmit = async (event: Event) => {
     event.preventDefault()
     const { isSuccess } = await signInEmailPassword(email, password)
-    if (isSuccess) router.push('/')
+    if (isSuccess)
+      router.push('/')
   }
 </script>
 
 <template>
   <p v-if="needsEmailVerification">
-    Your email is not yet verified. Please check your mailbox and follow the verification link
-    finish registration.
+    Your email is not yet verified. Please check your mailbox and
+    follow the verification link to finish registration.
   </p>
 
   <form v-else @submit="handleSubmit">
-    <input v-model="email" type="email" placeholder="Email" class="input" /><br />
-    <input v-model="password" type="password" placeholder="Password" class="input" /><br />
+    <input v-model="email" type="email" placeholder="Email" class="input" />
+    <br />
+    <input v-model="password" type="password" placeholder="Password" class="input" />
+    <br />
 
-    <button class="btn-submit" type="submit">Sign in</button>
-    <p>No account yet? <router-link to="/sign-up"> Sign up </router-link></p>
+    <button class="btn-submit" type="submit">
+      Sign in
+    </button>
   </form>
 </template>
 ```
@@ -291,22 +319,30 @@ Let's also add links to sign up and sign in in our index page.
       <em text-sm op75>Quickstart</em>
     </p>
     <div py-4 />
-    <router-link class="btn" to="/sign-up"> Sign Up </router-link><br />
-    <router-link class="btn" to="/sign-in"> Sign In </router-link>
+    <!-- highlight-start -->
+    <router-link class="btn" to="/sign-up">
+      Sign Up
+    </router-link>
+    <br />
+    <router-link class="btn" to="/sign-in">
+      Sign In
+    </router-link>
+    <!-- highlight-end -->
   </div>
 </template>
 ```
 
 #### 4. Sign-out
 
-Finally, to allow the users to sign out from the app, we can use the Nhost
-`useSignOut` composable. We'll also use `useAuthenticationStatus` to show the button only when the user is authenticated:
+Finally, to allow the users to sign out from the app, we can use the Nhost `useSignOut` composable.
+We'll also use `useAuthenticationStatus` to show the button only when the user is authenticated:
 
 ```markup title="src/components/Footer.vue"
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
   import { useAuthenticated, useSignOut } from '@nhost/vue'
   import { isDark, toggleDark } from '~/composables'
+
   const isAuthenticated = useAuthenticated()
   const { signOut } = useSignOut()
   const router = useRouter()
@@ -335,7 +371,8 @@ Finally, to allow the users to sign out from the app, we can use the Nhost
 Now that we have implemented authentication, we can easily decide who can access
 certain parts of our application.
 
-Let's create a profile page that will be only accessible to authenticated users. If an unauthenticated user attempts to load it, it will redirect them to the `/sign-up` page:
+Let's create a profile page that will be only accessible to authenticated users.
+If an unauthenticated user attempts to load it, it will redirect them to the `/sign-up` page:
 
 ```markup title="src/pages/profile.vue"
 <template>
@@ -346,7 +383,7 @@ Let's create a profile page that will be only accessible to authenticated users.
 </template>
 ```
 
-Then, we can use a [beforeEach navigation guqes](https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards) in our `main.ts` file:
+Then, we can use a [beforeEach navigation guard](https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards) in our `main.ts` file:
 
 ```tsx title="src/main.ts"
 import { createApp } from 'vue'
@@ -360,7 +397,8 @@ import './styles/main.css'
 import 'uno.css'
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
+  region: import.meta.env.VITE_NHOST_REGION
 })
 
 const app = createApp(App)
@@ -378,11 +416,13 @@ router.beforeEach(async (to) => {
 })
 // highlight-end
 
-app.use(router).use(nhost)
-app.mount('#app')
+app
+  .use(router)
+  .use(nhost)
+  .mount('#app')
 ```
 
-Let's finally add a link to the profile page in the index page `/`:
+Add a link to the profile page in the index page `/`:
 
 ```markup title="src/pages/index.vue"
 <template>
@@ -394,21 +434,33 @@ Let's finally add a link to the profile page in the index page `/`:
     </p>
     <div py-4 />
     <!-- highlight-start -->
-    <router-link class="btn" to="/profile"> Profile </router-link><br />
+    <router-link class="btn" to="/profile">
+      Profile
+    </router-link>
+    <br />
     <!-- highlight-end -->
-    <router-link class="btn" to="/sign-up"> Sign Up </router-link><br />
-    <router-link class="btn" to="/sign-in"> Sign In </router-link>
+    <router-link class="btn" to="/sign-up">
+      Sign Up
+    </router-link>
+    <br />
+    <router-link class="btn" to="/sign-in">
+      Sign In
+    </router-link>
   </div>
 </template>
 ```
 
 ### Retrieve user data
 
-Finally, let's display the information of the authenticated user throughout his
+Finally, let's display the information of the authenticated user throughout their
 dashboard to make the app more personalized.
 
-Getting the current authenticated user data is quite easy. Indeed, we
-can use the `useUserData` composable provided by Nhost to do it. When the user is authenticated, it returns the information fetched from the `users` table, such as the display name, the email, or the user's roles. This composable returns `null` until the user is effectively authenticated.
+Getting the current authenticated user data is quite easy. Indeed, we can
+use the `useUserData` composable provided by Nhost to do it.
+
+When the user is authenticated, it returns the information fetched from the `users` table,
+such as the display name, the email, or the user's roles. This composable returns `null`
+until the user is effectively authenticated.
 
 Let's update the profile page to use it:
 
@@ -423,27 +475,29 @@ Let's update the profile page to use it:
   <div>
     <div i-carbon-home text-4xl inline-block />
     <p>Profile page</p>
+    <!-- highlight-start -->
     <p>
       <em text-sm op75>Quickstart</em>
     </p>
-    <!-- highlight-start -->
     <div v-if="user" py-4>
-      <p>Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.</p>
-      <!-- highlight-end -->
+      <p my-4>
+        Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.
+      </p>
     </div>
+    <!-- highlight-end -->
   </div>
 </template>
 ```
 
 ### Update user data
 
-Nhost provides a GraphQL API through Hasura so that we can query and mutate our
-data instantly.
+Nhost provides a GraphQL API through Hasura so that we can query and mutate our data instantly.
 
 In this tutorial, we'll use [Vue Apollo v4](https://v4.apollo.vuejs.org) for interacting with
-this GraphQL API. Nhost comes with a custom Apollo client that syncs the Apollo client with the authentication status of your users.
+this GraphQL API. Nhost comes with a custom Apollo client that syncs the Apollo client with
+the authentication status of your users.
 
-So, start by installing the following dependencies:
+So, we start by installing the following dependencies:
 
 <Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
@@ -487,7 +541,8 @@ import './styles/main.css'
 import 'uno.css'
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
+  region: import.meta.env.VITE_NHOST_REGION
 })
 
 const app = createApp(App)
@@ -521,12 +576,16 @@ composable to execute that query when the user submits the form from the profile
 
 ```markup title="src/pages/profile.vue"
 <script setup lang="ts">
+  // highlight-start
   import { gql } from '@apollo/client/core'
   import { useNhostClient, useUserData } from '@nhost/vue'
   import { useMutation } from '@vue/apollo-composable'
   import { ref } from 'vue'
+  // highlight-end
   const user = useUserData()
+  // highlight-start
   const { nhost } = useNhostClient()
+
   const UPDATE_USER_MUTATION = gql`
     mutation ($id: uuid!, $displayName: String!, $metadata: jsonb) {
       updateUser(
@@ -554,9 +613,10 @@ composable to execute that query when the user submits the form from the profile
           lastName: lastName.value
         }
       })
-      await client.auth.refreshSession()
+      await nhost.auth.refreshSession()
     }
   }
+  // highlight-end
 </script>
 
 <template>
@@ -567,30 +627,45 @@ composable to execute that query when the user submits the form from the profile
       <em text-sm op75>Quickstart</em>
     </p>
     <div v-if="user" py-4>
-      <p>Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.</p>
+      <p my-4>
+        Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.
+      </p>
+      <!-- highlight-start -->
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" class="input" /><br />
-        <input v-model="lastName" placeholder="Last name" class="input" /><br />
-        <button className="m-3 text-sm btn" :disabled="loading">Save</button>
-        <div v-if="error">{{ error.message }}</div>
+        <input v-model="firstName" placeholder="First name" class="input" />
+        <br />
+        <input v-model="lastName" placeholder="Last name" class="input" />
+        <br />
+        <button className="m-3 text-sm btn" :disabled="loading">
+          Save
+        </button>
+        <div v-if="error">
+          {{ error.message }}
+        </div>
       </form>
+      <!-- highlight-end -->
     </div>
   </div>
 </template>
 ```
 
 :::tip
-You probably have noticed that we are calling `client.auth.refreshSession()` after we updated the user using the GraphQL mutation. The Nhost client only extracts user information from the access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information has been updated, we force an access token refresh so it is kept up to date.
+You probably have noticed that we are calling `nhost.auth.refreshSession()` after we updated the
+user using the GraphQL mutation. The Nhost client only extracts user information from the
+access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information
+has been updated, we force an access token refresh so it is kept up to date.
 :::
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
 set any permissions yet, our GraphQL mutations would fail.
 
-So, open the Hasura console from the **Data** tab of your project from [your Nhost dashboard](https://app.nhost.io/). Then, go to the **permissions** tab of the `users` table, type in `user` in the role cell, and click the edit icon on the `select` operation:
+So, open the Hasura console from the **Data** tab of your project from [your Nhost dashboard](https://app.nhost.io/). Then, go to the **permissions** tab of the `users` table, type in `user` in the role cell,
+and click the edit icon on the `select` operation:
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-1.png)
 
-To restrict the user to read his own data only, specify a condition with the user's ID and the `X-Hasura-User-ID` session variable, which is passed with each requests.
+To restrict the user to read his own data only, specify a condition with the user's ID and
+the `X-Hasura-User-ID` session variable, which is passed with each requests.
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-2.png)
 
@@ -599,16 +674,42 @@ Next, select the columns you'd like the users to have access to, and click
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-3.png)
 
+:::tip Important
 Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
+:::
 
-Finally, to add real-time caching, synchronizing, and updating server state in your Vue app, let's refactor the user data fetching using the Apollo client and our GraphQL API instead.
+### Adding Real-time synchronizing
 
-First add the following GraphQL subscription to retrieve the current user data component:
+To add real-time caching, synchronizing, and updating server state in your Vue app,
+let's refactor the user data fetching using the Apollo client and our GraphQL API instead.
+
+First, update the profile page, and replace the `useUserData` composable with the `useUserId`
+composable to retrieve the current user's ID.
 
 ```ts title="src/pages/profile.vue"
-import { gql } from '@apollo/client/core'
+// replace `import { useNhostClient, useUserData } from '@nhost/vue'`
+import { useNhostClient, useUserId } from '@nhost/vue'
 
+// replace `const user = useUserData()`
+const id = useUserId()
+```
+
+Then import the `computed()` function from Vue.
+
+```ts title="src/pages/profile.vue"
+// replace `import { ref } from 'vue'`
+import { computed, ref } from 'vue'
+```
+
+Then and add the highlighted code below to add a GraphQL subscription that retrieves the
+current user data component:
+
+```ts title="src/pages/profile.vue"
+// snip...
+const { nhost } = useNhostClient()
+
+// highlight-start
 const GET_USER_SUBSCRIPTION = gql`
   subscription GetUser($id: uuid!) {
     user(id: $id) {
@@ -620,17 +721,25 @@ const GET_USER_SUBSCRIPTION = gql`
     }
   }
 `
-```
-
-Then, replace the `useUserData` composable with the `useUserId` composable to retrieve the current user's ID.
-
-```ts title="src/pages/profile.vue"
-import { useUserId } from '@nhost/vue'
+// highlight-end
 
 const id = useUserId()
+
+// highlight-start
+const { result } = useSubscription(
+  GET_USER_SUBSCRIPTION,
+  computed(() => ({ id: id.value }))
+)
+const user = computed(() => result.value?.user)
+// highlight-end
+
+// snip...
 ```
 
-Finally, we can run our GraphQL subscription using the `useSubscription` composable and the current user's ID. Here is the full `profile.vue` page:
+We can now run our GraphQL subscription using the `useSubscription` composable and retrieve
+the current user's ID.
+
+The completed `profile.vue` page should look like this:
 
 ```markup title="src/pages/profile.vue"
 <script setup lang="ts">
@@ -640,6 +749,7 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
   import { computed, ref } from 'vue'
 
   const { nhost } = useNhostClient()
+
   const GET_USER_SUBSCRIPTION = gql`
     subscription GetUser($id: uuid!) {
       user(id: $id) {
@@ -699,12 +809,20 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
       <em text-sm op75>Quickstart</em>
     </p>
     <div v-if="user" py-4>
-      <p>Hello, {{ user.displayName }}. Your email is {{ user.email }}.</p>
+      <p my-4>
+        Hello, {{ user.displayName }}. Your email is {{ user.email }}.
+      </p>
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" class="input" /><br />
-        <input v-model="lastName" placeholder="Last name" class="input" /><br />
-        <button className="m-3 text-sm btn" :disabled="loading">Save</button>
-        <div v-if="error">{{ error.message }}</div>
+        <input v-model="firstName" placeholder="First name" class="input" />
+        <br />
+        <input v-model="lastName" placeholder="Last name" class="input" />
+        <br />
+        <button className="m-3 text-sm btn" :disabled="loading">
+          Save
+        </button>
+        <div v-if="error">
+          {{ error.message }}
+        </div>
       </form>
     </div>
   </div>

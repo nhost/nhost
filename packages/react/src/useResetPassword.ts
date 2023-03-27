@@ -1,20 +1,16 @@
-import { useMemo } from 'react'
-
 import {
   createResetPasswordMachine,
   ResetPasswordHandlerResult,
   ResetPasswordOptions,
   resetPasswordPromise,
   ResetPasswordState
-} from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface ResetPasswordHandler {
   (email: string, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
-  /** @deprecated */
-  (email?: unknown, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
 }
 
 export interface ResetPasswordHookResult extends ResetPasswordState {
@@ -26,8 +22,6 @@ export interface ResetPasswordHookResult extends ResetPasswordState {
 
 interface ResetPasswordHook {
   (options?: ResetPasswordOptions): ResetPasswordHookResult
-  /** @deprecated */
-  (email?: string, options?: ResetPasswordOptions): ResetPasswordHookResult
 }
 
 /**
@@ -50,12 +44,7 @@ interface ResetPasswordHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-reset-password
  */
-export const useResetPassword: ResetPasswordHook = (
-  a?: string | ResetPasswordOptions,
-  b?: ResetPasswordOptions
-) => {
-  const stateEmail = typeof a === 'string' ? a : undefined
-  const stateOptions = typeof a !== 'string' ? a : b
+export const useResetPassword: ResetPasswordHook = (options) => {
   const nhost = useNhostClient()
   const machine = useMemo(() => createResetPasswordMachine(nhost.auth.client), [nhost])
   const service = useInterpret(machine)
@@ -65,15 +54,8 @@ export const useResetPassword: ResetPasswordHook = (
   const isError = useSelector(service, (state) => state.matches('idle.error'))
   const isSent = useSelector(service, (state) => state.matches('idle.success'))
 
-  const resetPassword: ResetPasswordHandler = (
-    valueEmail?: string | unknown,
-    valueOptions = stateOptions
-  ) =>
-    resetPasswordPromise(
-      service,
-      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
-      valueOptions
-    )
+  const resetPassword: ResetPasswordHandler = (valueEmail, valueOptions = options) =>
+    resetPasswordPromise(service, valueEmail, valueOptions)
 
   return { resetPassword, isLoading, isSent, isError, error }
 }

@@ -1,5 +1,138 @@
 # @nhost/hasura-auth-js
 
+## 2.0.2
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
+## 2.0.1
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove the deprecated `AuthCookieClient` and `AuthClientSSR` constructors
+
+  Use the `clientStorageType` option instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'cookie' })
+  ```
+
+- 19b11d40: Remove the deprecated `nhost.auth.getJWTToken` method
+
+  Use `nhost.auth.getAccessToken()` instead.
+
+- 19b11d40: Remove the deprecated `autoLogin` option
+
+  Use `autoSignIn` instead:
+
+  ```ts
+  const nhost = new NhostClient({ autoSignIn: true })
+  ```
+
+- 19b11d40: Remove the deprecated `clientStorageGetter` and `clientStorageSetter` options
+
+  Use `clientStorageType` and `clientStorage` instead:
+
+  ```ts
+  const nhost = new NhostClient({ clientStorageType: 'custom', clientStorage: TODO })
+  ```
+
+### Minor Changes
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
+## 1.12.4
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+
+## 1.12.3
+
+### Patch Changes
+
+- 5880f0cd: chore(hasura-auth-js): bump `msw` version to `1.0.1`
+
+## 1.12.2
+
+### Patch Changes
+
+- 12ff6313: Set limits to refreshing the token on error
+
+  When starting, the client was trying to refresh the token five times every second, then indefinitely every five seconds.
+  It is now limited to 5 attempts at the following intervals: 5, 10, 20, 40, and 80 seconds. If all these attempts fail, the user state is signed out.
+
+  Similarly, when refreshing the token failed, the client was attempting to refresh the token every second.
+  It is now limited to 5 attempts at the following intervals: 5, 10, 20, 40, and 80 seconds.
+
+## 1.12.1
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+
+## 1.12.0
+
+### Minor Changes
+
+- 19cca7f4: Deprecate Axios
+
+  Axios will be replaced by cross-fetch in the near future.
+
+  To prepare for the transition, we are deprecating the old signature for the following methods:
+
+  - `nhost.functions.call()`
+  - `nhost.graphql.request()`
+
+  Both methods now accept an optional `useAxios` parameter that can be used to opt-in (`{ useAxios: false }`) to the new method signature. By default, `useAxios` is set to `true` so you can update it on your own time.
+
+  When using `useAxios: false`:
+
+  - the only allowed option is `headers: Record<string,string>`
+  - the returned value matches values foreseen in the next major version:
+    - `nhost.functions.call`:
+      - `error` is using the same standard error type as in `hasura-auth-js` and `hasura-storage-js`
+      - `res` is using `{ status: number; statusText: string; data: T }`
+    - `nhost.graphql.request`:
+      - `error` is either using the standard error type, or `GraphQlError[]`
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+
+## 1.7.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+## 1.6.4
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+  - @nhost/core@0.9.4
+
+## 1.6.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+
 ## 1.6.2
 
 ### Patch Changes

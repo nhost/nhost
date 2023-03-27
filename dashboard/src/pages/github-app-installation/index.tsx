@@ -1,7 +1,7 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import DelayedLoading from '@/ui/DelayedLoading';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { nhost } from '@/utils/nhost';
-import { useAuthenticationStatus } from '@nhost/react';
+import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
@@ -12,13 +12,11 @@ export function authProtected<P>(Comp: ComponentType<P>) {
     const { isAuthenticated, isLoading } = useAuthenticationStatus();
 
     useEffect(() => {
-      if (!isLoading) {
-        if (!isAuthenticated && router.pathname === '/') {
-          router.push('/signup');
-        } else if (!isAuthenticated) {
-          router.push('/signin');
-        }
+      if (isLoading || isAuthenticated) {
+        return;
       }
+
+      router.push('/signin');
     }, [isLoading, isAuthenticated, router]);
 
     if (isLoading) {
@@ -66,7 +64,7 @@ function Page() {
   }, [installationId]);
 
   if (state.loading) {
-    return <DelayedLoading delay={500} />;
+    return <ActivityIndicator delay={500} label="Loading..." />;
   }
 
   if (state.error) {

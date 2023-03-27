@@ -6,8 +6,10 @@ export default defineConfig({
   // @ts-ignore
   plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
   test: {
+    testTimeout: 5000,
     environment: 'jsdom',
     globals: true,
     setupFiles: 'src/setupTests.ts',
+    include: ['src/**/*.(spec|test).{js,jsx,ts,tsx}'],
   },
 });

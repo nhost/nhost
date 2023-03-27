@@ -16,8 +16,6 @@ import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
-import { triggerToast } from '@/utils/toast';
-import { twMerge } from 'tailwind-merge';
 
 export default function DatabaseSettingsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
@@ -28,7 +26,7 @@ export default function DatabaseSettingsPage() {
 
   const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
     variables: {
-      id: currentApplication?.id,
+      appId: currentApplication?.id,
     },
   });
 
@@ -43,7 +41,11 @@ export default function DatabaseSettingsPage() {
   }
 
   if (error) {
-    triggerToast('Error loading database connection info');
+    throw new Error(
+      `Error: ${
+        error.message || 'An unknown error occurred. Please try again.'
+      }`,
+    );
   }
 
   const settingsDatabaseCustomInputs: InputProps[] = [
@@ -62,7 +64,7 @@ export default function DatabaseSettingsPage() {
     {
       name: 'postgresDatabase',
       label: 'Database Name',
-      value: data.app.postgresDatabase,
+      value: data?.systemConfig?.postgres.database,
       className: 'col-span-6',
     },
     {
@@ -74,38 +76,30 @@ export default function DatabaseSettingsPage() {
     {
       name: 'connectiongString',
       label: 'Connection String',
-      value: `postgres://postgres:[YOUR-PASSWORD]@${postgresHost}:5432/${data.app.postgresDatabase}`,
+      value: `postgres://postgres:[YOUR-PASSWORD]@${postgresHost}:5432/${data?.systemConfig?.postgres.database}`,
       className: 'col-span-6',
     },
   ];
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-fafafa"
-      wrapperClassName="bg-fafafa"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      rootClassName="bg-transparent"
     >
       <SettingsContainer
         title="Connection Info"
         description="Connect directly to the Postgres database with this information."
-        primaryActionButtonProps={{ disabled: true, className: 'invisible' }}
+        slotProps={{ submitButton: { disabled: true, className: 'invisible' } }}
         className="grid grid-cols-6 gap-4"
       >
         {settingsDatabaseCustomInputs.map(
-          ({ name, label, className, disabled, value: inputValue }) => (
+          ({ name, label, className, value: inputValue }) => (
             <Input
               key={name}
               label={label}
               required
               disabled
               value={inputValue}
-              componentsProps={{
-                label: {
-                  className: 'text-sm+ font-medium text-greyscaleDark pb-2',
-                },
-                inputRoot: {
-                  className: twMerge(disabled && 'cursor-pointer'),
-                },
-              }}
               className={className}
               fullWidth
               hideEmptyHelperText
@@ -136,13 +130,5 @@ export default function DatabaseSettingsPage() {
 }
 
 DatabaseSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

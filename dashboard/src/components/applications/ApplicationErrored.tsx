@@ -58,7 +58,7 @@ export default function ApplicationErrored() {
   const { currentDate } = useCurrentDate();
   const user = useUserData();
   const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === user.id && type === 'owner',
+    ({ userId, type }) => userId === user?.id && type === 'owner',
   );
 
   const { appCreatedAt } = useAppCreatedAt();

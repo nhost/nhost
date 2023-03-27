@@ -1,45 +1,43 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  useGetAuthSettingsQuery,
-  useUpdateAppMutation,
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface DisableNewUsersFormValues {
-  /**
-   * Disable new users from signing up to this project
-   */
-  authDisableNewUsers: boolean;
-}
+const validationSchema = Yup.object({
+  disabled: Yup.boolean(),
+});
+
+export type DisableNewUsersFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DisableNewUsersSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
+  });
 
-  const { data, loading, error } = useGetAuthSettingsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
   });
 
   const form = useForm<DisableNewUsersFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authDisableNewUsers: data?.app?.authDisableNewUsers,
+      disabled: !data?.config?.auth?.signUp?.enabled,
     },
   });
-
-  useEffect(() => {
-    form.reset(() => ({
-      authDisableNewUsers: data?.app?.authDisableNewUsers,
-    }));
-  }, [data?.app?.authDisableNewUsers, form, form.reset]);
 
   if (loading) {
     return (
@@ -55,32 +53,41 @@ export default function DisableNewUsersSettings() {
     throw error;
   }
 
-  const { formState, watch } = form;
-  const authDisableNewUsers = watch('authDisableNewUsers');
+  const { formState } = form;
 
   const handleDisableNewUsersChange = async (
     values: DisableNewUsersFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            signUp: {
+              enabled: !values.disabled,
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Disabling new user sign ups...`,
-        success: `New user sign ups have been disabled successfully.`,
-        error: `An error occurred while trying to disable new user sign ups.`,
-      },
-      { ...toastStyleProps },
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Disabling new user sign ups...`,
+          success: `New user sign ups have been disabled successfully.`,
+          error: getServerError(
+            `An error occurred while trying to disable new user sign ups.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -88,14 +95,15 @@ export default function DisableNewUsersSettings() {
       <Form onSubmit={handleDisableNewUsersChange}>
         <SettingsContainer
           title="Disable New Users"
-          description="If set, newly registered users are disabled and won’t be able to sign in."
-          docsLink="https://docs.nhost.io/platform/authentication"
-          switchId="authDisableNewUsers"
+          description="If set, newly registered users are disabled and won't be able to sign in."
+          docsLink="https://docs.nhost.io/authentication#disable-new-users"
+          switchId="disabled"
           showSwitch
-          enabled={authDisableNewUsers}
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           className="hidden"
         />

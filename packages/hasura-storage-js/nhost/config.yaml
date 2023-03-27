@@ -1,13 +1,13 @@
 metadata_directory: metadata
 services:
   hasura:
-    image: hasura/graphql-engine:v2.10.1
+    image: hasura/graphql-engine:v2.15.2
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    image: nhost/hasura-auth:0.15.0
+    image: nhost/hasura-auth:0.16.2
   storage:
-    image: nhost/hasura-storage:0.2.5
+    image: nhost/hasura-storage:0.3.0
 auth:
   access_control:
     email:

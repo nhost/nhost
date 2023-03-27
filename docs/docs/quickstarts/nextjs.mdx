@@ -103,14 +103,14 @@ You can install the Nhost Next.js SDK with:
   <TabItem value="npm" label="npm" default>
 
 ```bash
-npm install @nhost/react @nhost/nextjs graphql
+npm install @nhost/nextjs graphql
 ```
 
   </TabItem>
   <TabItem value="yarn" label="Yarn">
 
 ```bash
-yarn add @nhost/react @nhost/nextjs graphql
+yarn add @nhost/nextjs graphql
 ```
 
   </TabItem>
@@ -118,7 +118,7 @@ yarn add @nhost/react @nhost/nextjs graphql
 
 Next, open your `_app.js` file as we'll now configure Nhost inside our app.
 
-The Nhost Next.js SDK comes with a React provider named `NhostNextProvider` that
+The Nhost Next.js SDK comes with a React provider named `NhostProvider` that
 makes the authentication state and all the provided React hooks available in our
 application.
 
@@ -128,7 +128,7 @@ Nhost backend:
 ```jsx title="pages/_app.js"
 import { UserProvider } from '../UserProvider';
 // highlight-start
-import { NhostNextProvider, NhostClient } from '@nhost/nextjs';
+import { NhostProvider, NhostClient } from '@nhost/nextjs';
 // highlight-end
 
 // highlight-start
@@ -141,12 +141,12 @@ const nhost = new NhostClient({
 function MyApp({ Component, pageProps }) {
   return (
     {/* highlight-next-line */}
-    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <UserProvider>
         {/* ... */}
       </UserProvider>
     {/* highlight-next-line */}
-    </NhostNextProvider>
+    </NhostProvider>
   );
 }
 ```
@@ -561,9 +561,9 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 
 function MyApp({ Component, pageProps }) {
   return (
-    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider nhost={nhost}>{/* ... */}</NhostApolloProvider>
-    </NhostNextProvider>
+    </NhostProvider>
   )
 }
 ```

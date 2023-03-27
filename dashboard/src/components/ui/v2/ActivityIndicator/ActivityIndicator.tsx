@@ -63,7 +63,9 @@ function ActivityIndicator({
     // We are rendering a span instead of null in order to keep the layout
     // intact in certain cases (e.g. when elements have a "space-between"
     // position).
-    return <span />;
+    return (
+      <span role="progressbar" aria-label="Activity indicator placeholder" />
+    );
   }
 
   return (

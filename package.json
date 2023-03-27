@@ -35,10 +35,12 @@
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
+    "test:all": "turbo run test",
     "test:dashboard": "turbo run test --filter=@nhost/dashboard",
+    "e2e:dashboard": "turbo run e2e --filter=@nhost/dashboard",
     "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",
-    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :",
+    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && pnpm i && turbo run docgen --filter=!@nhost/docgen --filter=@nhost/* && :",
     "sync-versions": "turbo run start --filter=@nhost/sync-versions --no-deps"
   },
   "workspaces": [
@@ -55,41 +57,40 @@
     "@babel/plugin-transform-react-jsx": "^7.19.0",
     "@changesets/cli": "^2.25.2",
     "@faker-js/faker": "^7.6.0",
-    "@types/node": "^17.0.45",
+    "@rollup/plugin-replace": "^5.0.1",
+    "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
-    "@vitejs/plugin-react": "^2.2.0",
-    "@vitest/coverage-c8": "^0.25.0",
+    "@vitejs/plugin-react": "^3.0.0",
+    "@vitest/coverage-c8": "^0.29.0",
     "eslint": "^8.26.0",
-    "eslint-plugin-cypress": "^2.12.1",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.31.10",
-    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-simple-import-sort": "^7.0.0",
-    "eslint-plugin-vue": "^8.7.1",
+    "eslint-plugin-vue": "^9.0.0",
     "husky": "^8.0.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
-    "turbo": "1.6.3",
+    "turbo": "1.8.5",
     "typedoc": "^0.22.18",
-    "typescript": "4.5.5",
-    "vite": "^3.2.2",
-    "vite-plugin-dts": "^1.6.6",
-    "vite-tsconfig-paths": "^3.5.2",
-    "vitest": "^0.24.5"
+    "typescript": "4.9.5",
+    "vite": "^4.0.2",
+    "vite-plugin-dts": "^2.0.0",
+    "vite-tsconfig-paths": "^4.0.3",
+    "vitest": "^0.29.0"
   },
   "resolutions": {
-    "graphql": "15.7.2"
+    "graphql": "16.6.0"
   },
-  "packageManager": "pnpm@7.9.1",
+  "packageManager": "pnpm@7.17.0",
   "engines": {
-    "node": ">=14 <17",
-    "pnpm": ">=7.9.1"
+    "node": ">=16 <17",
+    "pnpm": ">=7.17.0"
   },
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"

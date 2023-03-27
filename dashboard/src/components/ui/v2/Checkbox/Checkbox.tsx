@@ -2,12 +2,12 @@ import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
 import FormControlLabel from '@/ui/v2/FormControlLabel';
 import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import MinusIcon from '@/ui/v2/icons/MinusIcon';
-import { alpha, lighten, styled } from '@mui/material';
+import { svgIconClasses as materialSvgIconClasses } from '@/ui/v2/icons/SvgIcon';
+import { alpha, styled } from '@mui/material';
 import type { CheckboxProps as MaterialCheckboxProps } from '@mui/material/Checkbox';
 import MaterialCheckbox, {
   checkboxClasses as materialCheckboxClasses,
 } from '@mui/material/Checkbox';
-import { svgIconClasses as materialSvgIconClasses } from '@mui/material/SvgIcon';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 
@@ -39,8 +39,13 @@ const StyledCheckbox = styled(MaterialCheckbox)(({ theme }) => ({
   backgroundColor: 'transparent',
   borderRadius: 3,
   color: theme.palette.grey[400],
+  transition: theme.transitions.create([
+    'color',
+    'box-shadow',
+    'background-color',
+  ]),
   [`&.${materialCheckboxClasses.disabled}`]: {
-    backgroundColor: lighten(theme.palette.grey[200], 0.1),
+    backgroundColor: theme.palette.grey[200],
   },
   [`&.${materialCheckboxClasses.checked}, &.${materialCheckboxClasses.indeterminate}`]:
     {
@@ -50,11 +55,15 @@ const StyledCheckbox = styled(MaterialCheckbox)(({ theme }) => ({
   [`&.${materialCheckboxClasses.checked}.${materialCheckboxClasses.disabled}, &.${materialCheckboxClasses.indeterminate}.${materialCheckboxClasses.disabled}`]:
     {
       color: alpha(theme.palette.common.white, 0.4),
-      backgroundColor: theme.palette.text.disabled,
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? theme.palette.grey[400]
+          : theme.palette.grey[500],
     },
   [`&.${materialCheckboxClasses.checked}:focus-within, &.${materialCheckboxClasses.indeterminate}:focus-within`]:
     {
       backgroundColor: theme.palette.primary.dark,
+      boxShadow: `inset 0 0 0 1.5px ${theme.palette.primary.main}`,
     },
   [`&.${materialCheckboxClasses.checked} .${materialSvgIconClasses.root}, &.${materialCheckboxClasses.indeterminate} .${materialSvgIconClasses.root}`]:
     {
@@ -63,11 +72,11 @@ const StyledCheckbox = styled(MaterialCheckbox)(({ theme }) => ({
     },
   [`&:not(.${materialCheckboxClasses.checked}, .${materialCheckboxClasses.indeterminate})`]:
     {
-      boxShadow: `inset 0 0 0 1px ${theme.palette.grey[400]}`,
+      boxShadow: `inset 0 0 0 1.5px ${theme.palette.grey[400]}`,
     },
   [`&:not(.${materialCheckboxClasses.checked}, .${materialCheckboxClasses.indeterminate}):focus-within`]:
     {
-      boxShadow: `inset 0 0 0 1px ${theme.palette.grey[700]}`,
+      boxShadow: `inset 0 0 0 1.5px ${theme.palette.primary.main}`,
     },
   [`&:not(.${materialCheckboxClasses.checked}, .${materialCheckboxClasses.indeterminate}) .${materialSvgIconClasses.root}`]:
     {

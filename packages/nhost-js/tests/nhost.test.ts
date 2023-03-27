@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createNhostClient } from '../src'
 
 const cloud = 'goiqxsyjxufxlprgiprm'
@@ -28,7 +28,9 @@ describe('NhostClient', () => {
       })
 
       it('should have the right graphql endpoint set', () => {
-        expect(nhostCloud.graphql.url).toBe(`https://${cloud}.graphql.eu-central-1.nhost.run/v1`)
+        expect(nhostCloud.graphql.httpUrl).toBe(
+          `https://${cloud}.graphql.eu-central-1.nhost.run/v1`
+        )
       })
 
       it('should have the right functions endpoint set', () => {
@@ -70,7 +72,7 @@ describe('NhostClient', () => {
       })
 
       it('should have the right graphql endpoint set', () => {
-        expect(nhostLocal.graphql.url).toBe('http://localhost:1337/v1/graphql')
+        expect(nhostLocal.graphql.httpUrl).toBe('http://localhost:1337/v1/graphql')
       })
 
       it('should have the right functions endpoint set', () => {
@@ -91,7 +93,7 @@ describe('NhostClient', () => {
 
       it('should use the value in NHOST_GRAPHQL_URL if set', () => {
         const nhostLocal = createNhostClient({ subdomain: local })
-        expect(nhostLocal.graphql.url).toBe('http://traefik:1337/v1/graphql')
+        expect(nhostLocal.graphql.httpUrl).toBe('http://traefik:1337/v1/graphql')
       })
 
       it('should use the value in NHOST_FUNCTIONS_URL if set', () => {
@@ -111,7 +113,7 @@ describe('NhostClient', () => {
       })
       expect(nhost.auth.url).toBe('http://localhost:1337/v1/auth')
       expect(nhost.storage.url).toBe('http://localhost:1337/v1/storage')
-      expect(nhost.graphql.url).toBe('http://localhost:1337/v1/graphql')
+      expect(nhost.graphql.httpUrl).toBe('http://localhost:1337/v1/graphql')
       expect(nhost.functions.url).toBe('http://localhost:1337/v1/functions')
     })
   })

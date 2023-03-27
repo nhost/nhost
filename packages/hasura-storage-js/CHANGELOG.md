@@ -1,5 +1,128 @@
 # @nhost/hasura-storage-js
 
+## 2.0.4
+
+### Patch Changes
+
+- 614f213e: fix(hasura-storage-js): allow image transformation parameters in `getPresignedUrl`
+
+## 2.0.3
+
+### Patch Changes
+
+- 889ee658: added tests
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+
+## 2.0.2
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+
+## 2.0.1
+
+### Patch Changes
+
+- 445d8ef4: fix(hasura-storage-js): fix forbidden error when uploading
+
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove the deprecated `nhost.storage.getUrl` method
+
+  Use `nhost.storage.getPublicUrl` instead.
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
+  `@nhost/hasura-storage-js` now uses `cross-fetch` instead of `axios`.
+  When in a browser, it uploads files using `XMLHttpRequest` to be able to track upload progress (feature available in React and Vue)
+
+  **Breaking Changes**
+
+  The error returned in `const { error } = nhost.storage.upload()` is not a JavaScript `Error`, but an object of type `{ error: string; status: number; message: string}`.
+
+## 1.13.2
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+
+## 1.13.1
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+
+## 1.13.0
+
+### Minor Changes
+
+- 83e0a4d3: Image transformation parameters
+
+  It is now possible to pass on image transformation parameters in `nhost.storage.getPublicUrl()`.
+  Available parameters:
+
+  - height
+  - width
+  - blur
+  - quality
+
+  For instance:
+
+  ```ts
+  const url = nhost.storage.getPublicUrl({
+    fileId: 'cd8eaca3-30a9-460e-b4d7-b4b7afc759c1',
+    width: 800,
+    blur: 20
+  })
+  ```
+
+### Patch Changes
+
+- 13876ed5: Convert non ISO-8859-1 file names
+
+  It is now possible to upload files with names that are not ISO-8859-1 compliant.
+  In that case, file names will be converted using `encodeURIComponent`.
+
+## 1.12.1
+
+### Patch Changes
+
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+
+## 1.12.0
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+
+## 0.8.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+## 0.7.4
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+  - @nhost/core@0.9.4
+
+## 0.7.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+
 ## 0.7.2
 
 ### Patch Changes

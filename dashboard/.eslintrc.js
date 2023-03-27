@@ -1,3 +1,4 @@
+/** @type {import('eslint').Linter.Config} */
 module.exports = {
   root: true,
   extends: ['next', 'airbnb', 'airbnb-typescript', 'airbnb/hooks', 'prettier'],
@@ -7,7 +8,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: './tsconfig.json',
   },
-  ignorePatterns: ['**/.eslintrc.js'],
+  ignorePatterns: ['**/.eslintrc.js', '**/prettier.config.js'],
   rules: {
     'react/react-in-jsx-scope': 'off',
     'react/jsx-props-no-spreading': 'off',
@@ -29,6 +30,7 @@ module.exports = {
       'error',
       { ignoreTypeReferences: true },
     ],
+    'no-console': ['warn', { allow: ['error'] }],
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',

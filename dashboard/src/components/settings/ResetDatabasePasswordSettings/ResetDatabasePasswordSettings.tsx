@@ -1,5 +1,6 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
@@ -11,11 +12,11 @@ import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword/generateRandomDatabasePassword';
+import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useUserData } from '@nhost/react';
+import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -28,6 +29,7 @@ export interface ResetDatabasePasswordFormValues {
 
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
+  const { maintenanceActive } = useUI();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -44,11 +46,10 @@ export default function ResetDatabasePasswordSettings() {
     setValue,
     getValues,
     register,
-    formState: { errors },
+    formState: { errors, isDirty, isSubmitting },
   } = form;
 
-  const [resetPostgresPasswordMutation, { loading }] =
-    useResetPostgresPasswordMutation();
+  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
   const user = useUserData();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
@@ -99,12 +100,16 @@ export default function ResetDatabasePasswordSettings() {
           title="Reset Password"
           description="This password is used for accessing your database."
           submitButtonText="Reset"
-          rootClassName="border-[#F87171]"
-          primaryActionButtonProps={{
-            variant: 'contained',
-            color: 'error',
-            disabled: Boolean(errors?.databasePassword),
-            loading,
+          slotProps={{
+            root: {
+              sx: { borderColor: (theme) => theme.palette.error.main },
+            },
+            submitButton: {
+              variant: 'contained',
+              color: 'error',
+              disabled: !isDirty || maintenanceActive,
+              loading: isSubmitting,
+            },
           }}
           className="grid grid-flow-row pb-4"
         >
@@ -117,7 +122,7 @@ export default function ResetDatabasePasswordSettings() {
             error={Boolean(errors?.databasePassword)}
             fullWidth
             hideEmptyHelperText
-            componentsProps={{
+            slotProps={{
               input: { className: 'lg:w-1/2' },
               helperText: { component: 'div' },
             }}

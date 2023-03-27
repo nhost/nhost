@@ -1,6 +1,13 @@
 // TODO: We should infer the types from GraphQL Codegens and never manually create types like this.
 // It's too easy to get types out-of-sync which will generate bugs down the line
 
+import type {
+  EnvironmentVariableFragment,
+  PermissionVariableFragment,
+  ProjectFragment,
+  SecretFragment,
+} from '@/utils/__generated__/graphql';
+
 /**
  * The current state of the application.
  */
@@ -55,29 +62,16 @@ export type FeatureFlag = {
   value: string;
 };
 
-export type Application = {
-  id: string;
-  slug: string;
+export type Project = ProjectFragment;
+
+export interface PermissionVariable extends PermissionVariableFragment {
+  isSystemVariable?: boolean;
+}
+
+export type Role = {
   name: string;
-  appStates: ApplicationState[];
-  hasuraGraphqlAdminSecret: string;
-  subdomain: string;
-  isProvisioned: boolean;
-  githubRepository?: { fullName: string } | null;
-  storageSize?: string;
-  repositoryProductionBranch?: string;
-  plan?: { name: string; id: string; isFree?: boolean };
-  createdAt: string;
-  region: { awsName: string; countryCode: string; city: string; id: string };
-  users?: number;
-  deployments: Deployment[];
-  desiredState: DesiredState;
-  nhostBaseFolder?: string;
-  featureFlags: FeatureFlag[];
+  isSystemRole?: boolean;
 };
 
-export type CustomClaim = {
-  key: string;
-  value: string;
-  system?: boolean;
-};
+export type EnvironmentVariable = EnvironmentVariableFragment;
+export type Secret = SecretFragment;

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.14.2",
+  "version": "2.0.11",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -61,17 +61,14 @@
     "docgen": "pnpm typedoc && docgen --config ./react.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^3.0.1",
-    "immer": "^9.0.15",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.33.5"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@types/react": "^18.0.24",
+    "@types/react": "^18.0.25",
     "react": "^18.2.0"
   },
   "peerDependencies": {

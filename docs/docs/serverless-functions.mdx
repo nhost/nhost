@@ -11,9 +11,9 @@ With Nhost, you can deploy Serverless Functions to execute custom code. Each Ser
 
 Serverless functions can be used to handle [event triggers](/database/event-triggers), form submissions, integrations (e.g. Stripe, Slack, etc), and more.
 
-## Creating a Serverless Function
+## Create a Serverless Function
 
-Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder of your Nhost project is its own Serverless Function.
+Every `.ts` (TypeScript) and `.js` (JavaScript) file in the `functions/` folder of your Nhost project is its own Serverless Function.
 
 <Tabs groupId="language">
   <TabItem value="ts" label="TypeScript" default>
@@ -31,11 +31,11 @@ export default (req: Request, res: Response) => {
 To get the `Request`, and `Response` types you can install the `@types/express` package.
 
 ```bash
-npm install -d @types/express
+npm install -D @types/express
 # or yarn
-yarn add -d @types/express
+yarn add -D @types/express
 # or pnpm
-pnpm add -d @types/express
+pnpm add -D @types/express
 ```
 
 :::
@@ -86,7 +86,7 @@ older (`functions/_utils/<utils-files>.js`).
 
 ## Examples
 
-We have multiple examples of Serverless Functions in our [Nhost repository](https://github.com/nhost/nhost/tree/main/examples/serverless-functions).
+We have multiple examples of Serverless Functions in our [Nhost repository](https://github.com/nhost/nhost/tree/main/examples/serverless-functions/functions).
 
 ## Billing
 

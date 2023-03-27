@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-display-name
  */
-export const useUserDisplayName = () => {
+export const useUserDisplayName = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -20,8 +20,3 @@ export const useUserDisplayName = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserDisplayName} instead */
-export const useDisplayName = useUserDisplayName

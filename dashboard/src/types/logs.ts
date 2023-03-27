@@ -9,6 +9,7 @@ export enum AvailableLogsServices {
   AUTH = 'hasura-auth',
   STORAGE = 'hasura-storage',
   HASURA = 'hasura',
+  FUNCTIONS = 'functions',
 }
 
 export type LogsCustomInterval = {

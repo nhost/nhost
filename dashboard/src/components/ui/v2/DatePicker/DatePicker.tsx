@@ -67,9 +67,8 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
 
   '& .MuiPickersArrowSwitcher-button': {
     color: theme.palette.text.secondary,
-
     '&:disabled': {
-      color: theme.palette.grey[400],
+      color: theme.palette.text.disabled,
       borderWidth: 1,
       fontWeight: 400,
       cursor: 'not-allowed',
@@ -83,13 +82,17 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
     },
   },
 
+  [`& .${pickersCalendarHeaderClasses.switchViewIcon}`]: {
+    color: theme.palette.text.secondary,
+  },
+
   '& button': {
     fontSize: '13.5px',
     lineHeight: '1.3rem',
   },
 
   '& button.Mui-selected': {
-    background: theme.palette.primary.main,
+    backgroundColor: theme.palette.primary.main,
   },
 
   [`& .${dayPickerClasses.header}`]: {
@@ -124,7 +127,7 @@ const CustomStaticDatePicker = styled(StaticDatePicker)(({ theme }) => ({
     gap: '3px',
 
     '&:disabled': {
-      color: theme.palette.grey[400],
+      color: theme.palette.text.disabled,
       borderWidth: 1,
       fontWeight: 400,
       cursor: 'not-allowed',

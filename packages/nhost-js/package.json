@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.6.0",
+  "version": "2.1.1",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -49,9 +49,6 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
-    "ci:test": "vitest run --config vite.config.e2e.js",
-    "e2e:backend": "nhost dev --no-browser",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -63,16 +60,14 @@
     "docgen": "pnpm typedoc && docgen --config ./nhost-js.docgen.json"
   },
   "dependencies": {
+    "@nhost/graphql-js": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
     "@nhost/hasura-storage-js": "workspace:*",
-    "axios": "^1.1.3",
-    "jwt-decode": "^3.1.2",
-    "query-string": "^7.0.1"
+    "isomorphic-unfetch": "^3.1.0"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "15.7.2",
-    "start-server-and-test": "^1.14.0"
+    "graphql": "16.6.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

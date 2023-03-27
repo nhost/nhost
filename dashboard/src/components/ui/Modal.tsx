@@ -1,4 +1,6 @@
+import Box from '@/ui/v2/Box';
 import { Dialog, Transition } from '@headlessui/react';
+import { alpha, useTheme } from '@mui/material';
 import clsx from 'clsx';
 import type { CSSProperties, ReactChild } from 'react';
 import { Fragment } from 'react';
@@ -32,6 +34,8 @@ export function Modal({
   dialogClassName,
   dialogStyle,
 }: ModalProps) {
+  const theme = useTheme();
+
   return (
     <ClientOnlyPortal selector="#modal">
       <Transition.Root show={showModal} as="div">
@@ -62,7 +66,15 @@ export function Modal({
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
-              <Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+              <Dialog.Overlay
+                className="fixed inset-0 transition-opacity"
+                style={{
+                  backgroundColor:
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.black, 0.5)
+                      : alpha(theme.palette.grey[400], 0.3),
+                }}
+              />
             </Transition.Child>
             <span className="hidden" aria-hidden="true">
               &#8203;
@@ -76,18 +88,19 @@ export function Modal({
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <div
+              <Box
                 className={clsx(
                   className ||
-                    'mt-14 inline-block transform rounded-md bg-white shadow-xl transition-all',
+                    'mt-14 inline-block transform rounded-md shadow-xl transition-all',
                 )}
+                sx={{ backgroundColor: 'transparent' }}
               >
                 {!children ? (
                   <Component close={close} handler={handler} data={data} />
                 ) : (
                   children
                 )}
-              </div>
+              </Box>
             </Transition.Child>
           </div>
         </Dialog>

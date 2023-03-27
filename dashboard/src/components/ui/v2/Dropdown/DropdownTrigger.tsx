@@ -1,21 +1,14 @@
+import type { BoxProps } from '@/ui/v2/Box';
 import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
 import ChevronUpIcon from '@/ui/v2/icons/ChevronUpIcon';
 import callAll from '@/utils/callAll';
 import { styled } from '@mui/material';
-import type {
-  DetailedHTMLProps,
-  ForwardedRef,
-  HTMLProps,
-  MouseEvent,
-} from 'react';
+import type { ForwardedRef, MouseEvent } from 'react';
 import { Children, cloneElement, forwardRef, isValidElement } from 'react';
 import useDropdown from './useDropdown';
 
 export interface DropdownTriggerProps
-  extends Omit<
-    DetailedHTMLProps<HTMLProps<HTMLButtonElement>, HTMLButtonElement>,
-    'as'
-  > {
+  extends Omit<BoxProps<'button'>, 'color'> {
   /**
    * Render the dropdown trigger as the given child element.
    */
@@ -34,12 +27,19 @@ export interface DropdownTriggerProps
   hideChevron?: boolean;
 }
 
-const StyledButton = styled('button')({
+const StyledButton = styled('button')(({ theme }) => ({
   display: 'grid',
   gridAutoFlow: 'column',
   alignItems: 'center',
   justifyContent: 'space-between',
-});
+  backgroundColor: theme.palette.background.paper,
+  [`&:not([disabled]):hover`]: {
+    backgroundColor: theme.palette.action.hover,
+  },
+  [`&:not([disabled]):focus`]: {
+    backgroundColor: theme.palette.action.focus,
+  },
+}));
 
 function ChevronIcon({ open }: { open: boolean }) {
   if (open) {
@@ -70,7 +70,7 @@ function DropdownTrigger(
     handleOpen(event);
   }
 
-  const sharedProps: DetailedHTMLProps<HTMLProps<HTMLElement>, HTMLElement> = {
+  const sharedProps = {
     ref,
     type,
     'aria-describedby': id,
@@ -98,6 +98,7 @@ function DropdownTrigger(
 
   return (
     <StyledButton
+      component="button"
       ref={ref}
       type={type}
       aria-describedby={id}

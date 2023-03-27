@@ -1,6 +1,7 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -36,7 +37,11 @@ export default function useCreateTableMutation({
   } = useRouter();
 
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const appUrl = generateRemoteAppUrl(currentApplication?.subdomain);
+  const appUrl = generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region.awsName,
+    'hasura',
+  );
   const mutationFn = isPlatform ? createTable : createTableMigration;
 
   const mutation = useMutation(
@@ -45,7 +50,10 @@ export default function useCreateTableMutation({
         ...variables,
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? getHasuraAdminSecret()
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
       }),

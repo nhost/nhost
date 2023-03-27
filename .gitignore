@@ -26,6 +26,7 @@ tmp/
 .pnpm-store
 .turbo
 .env
+out/
 
 # Custom
 *.min.js
@@ -48,6 +49,10 @@ todo.md
 .netlify
 .monorepo-example
 
+# Local Vercel folder
+.vercel
+
+# Next.js build output
 .next
 
 # TypeDoc output

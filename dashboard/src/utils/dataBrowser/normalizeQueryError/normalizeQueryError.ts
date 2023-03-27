@@ -1,4 +1,4 @@
-import type { QueryError } from '@/types/data-browser';
+import type { QueryError } from '@/types/dataBrowser';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';
 
 /**
@@ -7,7 +7,7 @@ import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants'
  * @param responseData The response data from a Hasura query.
  * @returns The normalized error message.
  */
-export default function normalizeQueryError(responseData: any) {
+export default function normalizeQueryError(responseData: any): string {
   const unknownErrorMessage = 'Unknown error occurred.';
 
   if ('internal' in responseData) {

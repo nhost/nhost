@@ -1,13 +1,13 @@
 metadata_directory: metadata
 services:
   hasura:
-    image: hasura/graphql-engine:v2.10.1
+    image: hasura/graphql-engine:v2.15.2
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    image: nhost/hasura-auth:0.15.0
+    image: nhost/hasura-auth:0.16.2
   storage:
-    image: nhost/hasura-storage:0.2.5
+    image: nhost/hasura-storage:0.3.0
 auth:
   access_control:
     email:
@@ -20,6 +20,7 @@ auth:
   client_url: http://localhost:3000
   disable_new_users: false
   email:
+    signin_email_verified_required: false
     passwordless:
       enabled: true
     template_fetch_url: ''
@@ -123,7 +124,6 @@ auth:
     allowed_roles: user,me
     default_allowed_roles: user,me
     default_role: user
-    signin_email_verified_required: true
   mfa:
     enabled: true
     issuer: nhost

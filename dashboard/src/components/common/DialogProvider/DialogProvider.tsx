@@ -1,14 +1,21 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { CreateForeignKeyForm } from '@/components/data-browser/CreateForeignKeyForm';
-import { EditForeignKeyForm } from '@/components/data-browser/EditForeignKeyForm';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import AlertDialog from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import Drawer from '@/ui/v2/Drawer';
-import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
-import { useCallback, useMemo, useReducer, useRef, useState } from 'react';
-import type { DialogConfig, DialogType } from './DialogContext';
+import {
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import { twMerge } from 'tailwind-merge';
+import type { DialogConfig, OpenDialogOptions } from './DialogContext';
 import DialogContext from './DialogContext';
 import {
   alertDialogReducer,
@@ -16,52 +23,11 @@ import {
   drawerReducer,
 } from './dialogReducers';
 
-function LoadingComponent() {
-  return (
-    <div className="grid items-center justify-center px-6 py-4">
-      <ActivityIndicator
-        circularProgressProps={{ className: 'w-5 h-5' }}
-        label="Loading form..."
-        delay={500}
-      />
-    </div>
-  );
-}
-
-const CreateRecordForm = dynamic(
-  () => import('@/components/data-browser/CreateRecordForm'),
-  { ssr: false, loading: LoadingComponent },
-);
-
-const CreateColumnForm = dynamic(
-  () => import('@/components/data-browser/CreateColumnForm'),
-  { ssr: false, loading: LoadingComponent },
-);
-
-const EditColumnForm = dynamic(
-  () => import('@/components/data-browser/EditColumnForm'),
-  { ssr: false, loading: LoadingComponent },
-);
-
-const CreateTableForm = dynamic(
-  () => import('@/components/data-browser/CreateTableForm'),
-  { ssr: false, loading: LoadingComponent },
-);
-
-const EditTableForm = dynamic(
-  () => import('@/components/data-browser/EditTableForm'),
-  { ssr: false, loading: LoadingComponent },
-);
-
 function DialogProvider({ children }: PropsWithChildren<unknown>) {
+  const router = useRouter();
+
   const [
-    {
-      open: dialogOpen,
-      activeDialogType,
-      dialogProps,
-      title: dialogTitle,
-      payload: dialogPayload,
-    },
+    { open: dialogOpen, title: dialogTitle, activeDialog, dialogProps },
     dialogDispatch,
   ] = useReducer(dialogReducer, {
     open: false,
@@ -70,10 +36,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const [
     {
       open: drawerOpen,
-      activeDialogType: activeDrawerType,
-      dialogProps: drawerProps,
       title: drawerTitle,
-      payload: drawerPayload,
+      activeDialog: activeDrawer,
+      dialogProps: drawerProps,
     },
     drawerDispatch,
   ] = useReducer(drawerReducer, {
@@ -96,12 +61,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const isDialogDirty = useRef(false);
   const [showDirtyConfirmation, setShowDirtyConfirmation] = useState(false);
 
-  const openDialog = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      dialogDispatch({ type: 'OPEN_DIALOG', payload: { type, config } });
-    },
-    [],
-  );
+  const openDialog = useCallback((options: OpenDialogOptions) => {
+    dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
+  }, []);
 
   const closeDialog = useCallback(() => {
     dialogDispatch({ type: 'HIDE_DIALOG' });
@@ -112,12 +74,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     dialogDispatch({ type: 'CLEAR_DIALOG_CONTENT' });
   }, []);
 
-  const openDrawer = useCallback(
-    <TConfig,>(type: DialogType, config?: DialogConfig<TConfig>) => {
-      drawerDispatch({ type: 'OPEN_DRAWER', payload: { type, config } });
-    },
-    [],
-  );
+  const openDrawer = useCallback((options: OpenDialogOptions) => {
+    drawerDispatch({ type: 'OPEN_DRAWER', payload: options });
+  }, []);
 
   const closeDrawer = useCallback(() => {
     drawerDispatch({ type: 'HIDE_DRAWER' });
@@ -141,46 +100,53 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     alertDialogDispatch({ type: 'CLEAR_ALERT_CONTENT' });
   }
 
-  function openDirtyConfirmation(config?: Partial<DialogConfig<string>>) {
-    const { props, ...restConfig } = config || {};
+  const openDirtyConfirmation = useCallback(
+    (config?: Partial<DialogConfig<string>>) => {
+      const { props, ...restConfig } = config || {};
 
-    openAlertDialog({
-      ...config,
-      title: 'Unsaved changes',
-      payload:
-        'You have unsaved local changes. Are you sure you want to discard them?',
-      props: {
-        ...props,
-        primaryButtonText: 'Discard',
-        primaryButtonColor: 'error',
-      },
-      ...restConfig,
-    });
-  }
-
-  function closeDrawerWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDrawerDirty.current && event?.type !== 'submit') {
       setShowDirtyConfirmation(true);
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
-      return;
-    }
+      openAlertDialog({
+        ...config,
+        title: 'Unsaved changes',
+        payload:
+          'You have unsaved local changes. Are you sure you want to discard them?',
+        props: {
+          ...props,
+          primaryButtonText: 'Discard',
+          primaryButtonColor: 'error',
+        },
+        ...restConfig,
+      });
+    },
+    [],
+  );
 
-    closeDrawer();
-  }
+  const closeDrawerWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDrawerDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDrawer } });
+        return;
+      }
 
-  function closeDialogWithDirtyGuard(event?: BaseSyntheticEvent) {
-    if (isDialogDirty.current && event?.type !== 'submit') {
-      setShowDirtyConfirmation(true);
-      openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
-      return;
-    }
+      closeDrawer();
+    },
+    [closeDrawer, openDirtyConfirmation],
+  );
 
-    closeDialog();
-  }
+  const closeDialogWithDirtyGuard = useCallback(
+    (event?: BaseSyntheticEvent) => {
+      if (isDialogDirty.current && event?.type !== 'submit') {
+        setShowDirtyConfirmation(true);
+        openDirtyConfirmation({ props: { onPrimaryAction: closeDialog } });
+        return;
+      }
 
-  // We are coupling this logic with the location of the dialog content which is
-  // not ideal. We shoule figure out a better logic for tracking the dirty
-  // state in the future.
+      closeDialog();
+    },
+    [closeDialog, openDirtyConfirmation],
+  );
+
   const onDirtyStateChange = useCallback(
     (dirty: boolean, location: 'drawer' | 'dialog' = 'drawer') => {
       if (location === 'dialog') {
@@ -203,11 +169,49 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       openAlertDialog,
       closeDialog,
       closeDrawer,
+      closeDialogWithDirtyGuard,
+      closeDrawerWithDirtyGuard,
       closeAlertDialog,
       onDirtyStateChange,
+      openDirtyConfirmation,
     }),
-    [closeDialog, closeDrawer, onDirtyStateChange, openDialog, openDrawer],
+    [
+      closeDialog,
+      closeDialogWithDirtyGuard,
+      closeDrawer,
+      closeDrawerWithDirtyGuard,
+      onDirtyStateChange,
+      openDialog,
+      openDirtyConfirmation,
+      openDrawer,
+    ],
   );
+
+  useEffect(() => {
+    function handleCloseDrawerAndDialog() {
+      if (isDrawerDirty.current || isDialogDirty.current) {
+        openDirtyConfirmation({
+          props: {
+            onPrimaryAction: () => {
+              closeDialog();
+              closeDrawer();
+            },
+          },
+        });
+
+        throw new Error('Unsaved changes');
+      }
+
+      closeDrawer();
+      closeDialog();
+    }
+
+    router?.events?.on?.('routeChangeStart', handleCloseDrawerAndDialog);
+
+    return () => {
+      router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
+    };
+  }, [closeDialog, closeDrawer, openDirtyConfirmation, router.events]);
 
   return (
     <DialogContext.Provider value={contextValue}>
@@ -249,106 +253,64 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
         open={dialogOpen}
         onClose={closeDialogWithDirtyGuard}
         TransitionProps={{ onExited: clearDialogContent, unmountOnExit: false }}
-        PaperProps={{ className: 'max-w-md w-full' }}
+        PaperProps={{
+          ...dialogProps?.PaperProps,
+          className: twMerge(
+            'max-w-md w-full',
+            dialogProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'pt-0 pb-5 px-6' }}
         >
-          {activeDialogType === 'CREATE_FOREIGN_KEY' && (
-            <CreateForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
-          )}
-
-          {activeDialogType === 'EDIT_FOREIGN_KEY' && (
-            <EditForeignKeyForm
-              {...dialogPayload}
-              onSubmit={async (values) => {
-                await dialogPayload?.onSubmit(values);
-
-                closeDialog();
-              }}
-              onCancel={closeDialogWithDirtyGuard}
-            />
-          )}
+          {isValidElement(activeDialog)
+            ? cloneElement(activeDialog, {
+                ...activeDialog.props,
+                location: 'dialog',
+                onSubmit: async (values?: any) => {
+                  await activeDialog?.props?.onSubmit?.(values);
+                  closeDialog();
+                },
+                onCancel: () => {
+                  activeDialog?.props?.onCancel?.();
+                  closeDialogWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </BaseDialog>
 
       <Drawer
+        anchor="right"
         {...drawerProps}
         title={drawerTitle}
         open={drawerOpen}
         onClose={closeDrawerWithDirtyGuard}
         SlideProps={{ onExited: clearDrawerContent, unmountOnExit: false }}
-        anchor="right"
-        PaperProps={{ className: 'max-w-2.5xl w-full' }}
+        PaperProps={{
+          ...drawerProps?.PaperProps,
+          className: twMerge(
+            'max-w-2.5xl w-full',
+            drawerProps?.PaperProps?.className,
+          ),
+        }}
       >
         <RetryableErrorBoundary>
-          {activeDrawerType === 'CREATE_RECORD' && (
-            <CreateRecordForm
-              columns={drawerPayload?.columns}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_COLUMN' && (
-            <CreateColumnForm
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_COLUMN' && (
-            <EditColumnForm
-              column={drawerPayload?.column}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
-          )}
-
-          {activeDrawerType === 'CREATE_TABLE' && (
-            <CreateTableForm
-              schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
-          )}
-
-          {activeDrawerType === 'EDIT_TABLE' && (
-            <EditTableForm
-              table={drawerPayload?.table}
-              schema={drawerPayload?.schema}
-              onSubmit={async () => {
-                await drawerPayload?.onSubmit();
-
-                closeDrawer();
-              }}
-              onCancel={closeDrawerWithDirtyGuard}
-            />
-          )}
+          {isValidElement(activeDrawer)
+            ? cloneElement(activeDrawer, {
+                ...activeDrawer.props,
+                location: 'drawer',
+                onSubmit: async (values?: any) => {
+                  await activeDrawer?.props?.onSubmit?.(values);
+                  closeDrawer();
+                },
+                onCancel: () => {
+                  activeDrawer?.props?.onCancel?.();
+                  closeDrawerWithDirtyGuard();
+                },
+              })
+            : null}
         </RetryableErrorBoundary>
       </Drawer>
 

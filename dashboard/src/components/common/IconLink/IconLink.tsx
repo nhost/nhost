@@ -1,14 +1,15 @@
 import type { NavLinkProps } from '@/components/common/NavLink';
 import NavLink from '@/components/common/NavLink';
-import type { ForwardedRef, ReactNode } from 'react';
+import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
+import type { ForwardedRef, PropsWithoutRef, ReactElement } from 'react';
 import { cloneElement, forwardRef, isValidElement } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface IconLinkProps extends Omit<NavLinkProps, 'ref'> {
+export interface IconLinkProps extends PropsWithoutRef<NavLinkProps> {
   /**
    * The icon to display.
    */
-  icon?: ReactNode;
+  icon?: ReactElement<SvgIconProps>;
   /**
    * Determines if the content should be displayed in the primary color.
    */
@@ -16,7 +17,7 @@ export interface IconLinkProps extends Omit<NavLinkProps, 'ref'> {
 }
 
 function IconLink(
-  { className, children, icon, active, ...props }: IconLinkProps,
+  { className, children, icon, active, href, ...props }: IconLinkProps,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   if (props.disabled) {
@@ -31,6 +32,28 @@ function IconLink(
           ? cloneElement(icon, {
               ...icon.props,
               className: twMerge('w-4 h-4', icon.props.className),
+              sx: [
+                ...(Array.isArray(icon.props?.sx)
+                  ? icon.props.sx
+                  : [icon.props?.sx]),
+                {
+                  color: (theme) => {
+                    if (props.disabled) {
+                      return theme.palette.mode === 'dark'
+                        ? 'text.secondary'
+                        : 'text.primary';
+                    }
+
+                    if (active) {
+                      return 'primary.main';
+                    }
+
+                    return theme.palette.mode === 'dark'
+                      ? 'text.secondary'
+                      : 'text.primary';
+                  },
+                },
+              ],
             })
           : null}
 
@@ -42,17 +65,43 @@ function IconLink(
   return (
     <NavLink
       ref={ref}
+      href={href}
+      underline="none"
       className={twMerge(
-        'grid grid-flow-row justify-items-center gap-1 rounded-md py-2.5 px-0.5 text-center text-[10px] font-medium motion-safe:transition-colors',
-        active ? 'bg-lightBlue bg-opacity-10 text-blue' : 'hover:bg-gray-100',
+        'grid grid-flow-row justify-items-center gap-1 rounded-md py-2.5 px-0.5 text-center font-medium motion-safe:transition-colors',
         className,
       )}
+      sx={{
+        fontSize: (theme) => theme.typography.pxToRem(10),
+        lineHeight: (theme) => theme.typography.pxToRem(15),
+        backgroundColor: active ? 'primary.light' : 'transparent',
+        color: active ? 'primary.main' : 'text.primary',
+        [`&:hover`]: {
+          backgroundColor: active ? 'primary.light' : 'action.hover',
+        },
+      }}
       {...props}
     >
       {isValidElement(icon)
         ? cloneElement(icon, {
             ...icon.props,
             className: twMerge('w-4 h-4', icon.props.className),
+            sx: [
+              ...(Array.isArray(icon.props?.sx)
+                ? icon.props.sx
+                : [icon.props?.sx]),
+              {
+                color: (theme) => {
+                  if (active) {
+                    return 'primary.main';
+                  }
+
+                  return theme.palette.mode === 'dark'
+                    ? 'text.secondary'
+                    : 'text.primary';
+                },
+              },
+            ],
           })
         : null}
 

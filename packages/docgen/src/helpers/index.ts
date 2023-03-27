@@ -1,3 +1,5 @@
+export * from './codifyValue'
+export { default as codifyText } from './codifyValue'
 export * from './findNestedParametersByReferenceId'
 export { default as findNestedParametersByReferenceId } from './findNestedParametersByReferenceId'
 export * from './getExamplesFromSignature'

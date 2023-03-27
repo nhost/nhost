@@ -1,4 +1,4 @@
-import type { DataBrowserGridColumn } from '@/types/data-browser';
+import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import * as yup from 'yup';
 
 export interface ColumnDetails {
@@ -7,7 +7,7 @@ export interface ColumnDetails {
   hasDefaultValue: boolean;
 }
 
-function createGenericValidationSchema<T extends yup.BaseSchema>(
+function createGenericValidationSchema<T extends yup.Schema>(
   genericSchema: T,
   { isNullable, hasDefaultValue, isIdentity }: ColumnDetails,
 ): T {
@@ -136,7 +136,10 @@ export function createDynamicValidationSchema(
       };
     }
 
-    if (column.type === 'text' && column.specificType === 'jsonb') {
+    if (
+      column.type === 'text' &&
+      (column.specificType === 'jsonb' || column.specificType === 'json')
+    ) {
       return {
         ...schema,
         [column.id]: createJSONValidationSchema(details),

@@ -3,7 +3,7 @@ import type { SwitchProps } from './Switch';
 import Switch from './Switch';
 
 export default {
-  title: 'Switch',
+  title: 'UI Library / Switch',
   component: Switch,
   argTypes: {},
 } as ComponentMeta<typeof Switch>;
@@ -11,7 +11,7 @@ export default {
 const Template: ComponentStory<typeof Switch> = function Template(
   args: SwitchProps,
 ) {
-  return <Switch {...args} />;
+  return <Switch label="Accept Rules" {...args} />;
 };
 
 export const Default = Template.bind({});

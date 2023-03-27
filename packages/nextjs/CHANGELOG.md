@@ -1,5 +1,255 @@
 # @nhost/nextjs
 
+## 1.13.17
+
+### Patch Changes
+
+- @nhost/react@2.0.11
+
+## 1.13.16
+
+### Patch Changes
+
+- ce1ee40d: fix(nextjs): allow `subdomain`, `region` and service URLs
+  - @nhost/react@2.0.10
+
+## 1.13.15
+
+### Patch Changes
+
+- f375eacc: fix(nextjs): accept service URLs
+- Updated dependencies [f375eacc]
+  - @nhost/react@2.0.9
+
+## 1.13.14
+
+### Patch Changes
+
+- @nhost/react@2.0.8
+
+## 1.13.13
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/react@2.0.7
+
+## 1.13.12
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+  - @nhost/react@2.0.6
+
+## 1.13.11
+
+### Patch Changes
+
+- @nhost/react@2.0.5
+
+## 1.13.10
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/react@2.0.4
+
+## 1.13.9
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/react` to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/react@2.0.3
+
+## 1.13.8
+
+### Patch Changes
+
+- @nhost/react@2.0.2
+
+## 1.13.7
+
+### Patch Changes
+
+- @nhost/react@2.0.1
+
+## 1.13.6
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+  - @nhost/react@2.0.0
+
+## 1.13.5
+
+### Patch Changes
+
+- bf1e4071: chore(deps): bump `react` to v18
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+- Updated dependencies [bf1e4071]
+  - @nhost/react@1.13.5
+
+## 1.13.4
+
+### Patch Changes
+
+- @nhost/react@1.13.4
+
+## 1.13.3
+
+### Patch Changes
+
+- @nhost/react@1.13.3
+
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/react@1.13.2
+
+## 1.13.1
+
+### Patch Changes
+
+- d42c27ae: Add explicit return types to React hooks
+- 927be4a2: Store the session in a cookie so there is no need for an SSR page to ask for a new access token
+- Updated dependencies [c2706c7d]
+- Updated dependencies [d42c27ae]
+  - @nhost/react@1.13.1
+
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/react@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- Updated dependencies [1be6d324]
+- Updated dependencies [2e8f73df]
+- Updated dependencies [85683547]
+  - @nhost/react@1.12.1
+
+## 1.12.0
+
+### Minor Changes
+
+- 65687bee: Remove `@nhost/react` from `peerDepencencies`
+
+  The contents of the `@nhost/react` package are now exported by `@nhost/nextjs`. As a result,
+  It is not required to install `@nhost/react` alongside `@nhost/nextjs`.
+
+  Before:
+
+  ```
+  yarn add @nhost/react @nhost/nextjs graphql
+  ```
+
+  After:
+
+  ```
+  yarn add @nhost/nextjs graphql
+  ```
+
+  Closes [#1335](https://github.com/nhost/nhost/issues/1335)
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Use initial session sent from the server
+
+  When running a SSR page, the session was correctly created from the refresh token on the server side and was sent to the client side, but was not used correctly on the client side.
+  As a result, the client was refreshing the access token when loading the page, rather than using the access token sent by the server.
+  The client now uses the session sent from the server.
+
+- Updated dependencies [b21222b3]
+- Updated dependencies [54df0df4]
+- Updated dependencies [54df0df4]
+- Updated dependencies [65687bee]
+  - @nhost/react@1.12.0
+
+## 1.11.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/nhost-js@1.7.0
+  - @nhost/react@0.17.0
+
+## 1.10.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+### Patch Changes
+
+- Updated dependencies [7f251111]
+  - @nhost/react@0.16.0
+
+## 1.9.3
+
+### Patch Changes
+
+- Updated dependencies [132a4f4b]
+  - @nhost/react@0.15.2
+
+## 1.9.2
+
+### Patch Changes
+
+- 82124329: chore(deps): update dependency next to v12.3.4
+
+## 1.9.1
+
+### Patch Changes
+
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/nhost-js@1.6.2
+  - @nhost/react@0.15.1
+
+## 1.9.0
+
+### Patch Changes
+
+- Updated dependencies [4601d84e]
+- Updated dependencies [843087cb]
+  - @nhost/react@0.15.0
+
+## 1.8.3
+
+### Patch Changes
+
+- 53bdc294: Allow NextJs 13 as peer dependency
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/react@0.14.3
+  - @nhost/nhost-js@1.6.1
+
 ## 1.8.2
 
 ### Patch Changes

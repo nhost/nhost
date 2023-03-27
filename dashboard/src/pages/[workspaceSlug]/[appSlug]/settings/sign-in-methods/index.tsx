@@ -4,12 +4,13 @@ import AnonymousSignInSettings from '@/components/settings/signInMethods/Anonymo
 import AppleProviderSettings from '@/components/settings/signInMethods/AppleProviderSettings';
 import AzureADProviderSettings from '@/components/settings/signInMethods/AzureADProviderSettings ';
 import DiscordProviderSettings from '@/components/settings/signInMethods/DiscordProviderSettings';
-import EmailSettings from '@/components/settings/signInMethods/EmailSettings';
+import EmailAndPasswordSettings from '@/components/settings/signInMethods/EmailAndPasswordSettings';
 import FacebookProviderSettings from '@/components/settings/signInMethods/FacebookProviderSettings';
 import GitHubProviderSettings from '@/components/settings/signInMethods/GitHubProviderSettings';
 import GoogleProviderSettings from '@/components/settings/signInMethods/GoogleProviderSettings';
 import LinkedInProviderSettings from '@/components/settings/signInMethods/LinkedInProviderSettings';
 import MagicLinkSettings from '@/components/settings/signInMethods/MagicLinkSettings';
+import ProvidersUpdatedAlert from '@/components/settings/signInMethods/ProvidersUpdatedAlert';
 import SMSSettings from '@/components/settings/signInMethods/SMSSettings';
 import SpotifyProviderSettings from '@/components/settings/signInMethods/SpotifyProviderSettings';
 import TwitchProviderSettings from '@/components/settings/signInMethods/TwitchProviderSettings';
@@ -17,7 +18,7 @@ import TwitterProviderSettings from '@/components/settings/signInMethods/Twitter
 import WebAuthnSettings from '@/components/settings/signInMethods/WebAuthnSettings';
 import WindowsLiveProviderSettings from '@/components/settings/signInMethods/WindowsLiveProviderSettings';
 import WorkOsProviderSettings from '@/components/settings/signInMethods/WorkOsProviderSettings';
-import { useSignInMethodsQuery } from '@/generated/graphql';
+import { useGetSignInMethodsQuery } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
@@ -25,10 +26,8 @@ import type { ReactElement } from 'react';
 export default function SettingsSignInMethodsPage() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  const { loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const { loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'network-only',
   });
 
@@ -36,7 +35,7 @@ export default function SettingsSignInMethodsPage() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Sign-In Methods Settings..."
+        label="Loading sign-in method settings..."
         className="justify-center"
       />
     );
@@ -48,24 +47,25 @@ export default function SettingsSignInMethodsPage() {
 
   return (
     <Container
-      className="max-w-5xl space-y-8 bg-fafafa"
-      wrapperClassName="bg-fafafa"
+      className="max-w-5xl space-y-8 bg-transparent"
+      rootClassName="bg-transparent"
     >
-      <EmailSettings />
+      <EmailAndPasswordSettings />
       <MagicLinkSettings />
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
-      <GoogleProviderSettings />
-      <GitHubProviderSettings />
-      <LinkedInProviderSettings />
+      {!currentApplication.providersUpdated && <ProvidersUpdatedAlert />}
       <AppleProviderSettings />
-      <WindowsLiveProviderSettings />
+      <DiscordProviderSettings />
       <FacebookProviderSettings />
+      <GitHubProviderSettings />
+      <GoogleProviderSettings />
+      <LinkedInProviderSettings />
       <SpotifyProviderSettings />
       <TwitchProviderSettings />
-      <DiscordProviderSettings />
       <TwitterProviderSettings />
+      <WindowsLiveProviderSettings />
       <WorkOsProviderSettings />
       <AzureADProviderSettings />
     </Container>
@@ -73,13 +73,5 @@ export default function SettingsSignInMethodsPage() {
 }
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <SettingsLayout
-      mainContainerProps={{
-        className: 'bg-fafafa',
-      }}
-    >
-      {page}
-    </SettingsLayout>
-  );
+  return <SettingsLayout>{page}</SettingsLayout>;
 };

@@ -42,6 +42,12 @@ import './product'
 import './tax-rate'
 import './test-clock'
 import './billing-portal-session'
+import './payment-intent'
+import './payment-intents'
+import './charges'
+import './charge'
+import './connectedAccount'
+import './connectedAccounts'
 
 import { builder } from '../builder'
 

@@ -12,13 +12,14 @@ Nhost allows you to automatically deploy your Nhost project when you do changes 
 
 Support GitLab, BitBucket, and other Git providers are on our roadmap.
 
-## How It Works
+## Deployment
 
 The following things are deployed:
 
 - Database migrations
 - Hasura metadata
 - Serverless Functions
+- Email Templates
 
 :::caution
 Settings in `nhost/config.yaml` are **not** deployed. That means you need to manually sync settings between local and remote environments between the CLI and Nhost Cloud.
@@ -40,20 +41,14 @@ Settings in `nhost/config.yaml` are **not** deployed. That means you need to man
 
 ## Deployment Branch
 
-Nhost only deploys your **deployment branch**. By default, your deployment branch matches the default branch set on GitHub (usually `main`).
+Nhost only deploys changes from the **Deployment Branch**. By default, your deployment branch matches the default branch (usually `main`).
 
-You can change the deployment branch by clicking **Edit** next to the repository in your Nhost project's Overview.
+You can change the Deployment Branch on the **Git** page in the **Settings** section.
 
-You can have multiple Nhost projects connected to the same GitHub repository and use different deployment branches (e.g., `main` and `staging`).
-
-<center>
-  <img src="/img/github-integration/deployment-branch.png" alt="drawing" width="50%" />
-</center>
+It's possible to have multiple Nhost projects connected to the same Git repository and use different Deployment Branches (e.g., `main` and `staging`). Learn more about [multiple environments](/platform/multiple-environments).
 
 ## Base Directory
 
-If your Nhost project is not at the root of your git repository (typically when using a monorepo), you can set a custom base directory. The base directory is where the `nhost` directory is located. In other words, the base directory is the **parent directory** of the `nhost` folder.
+If your Nhost project is not located at the root of your Git repository, which is typically the case when using a monorepo, it's possible to set a custom Base Directory. The Base Directory is where the `nhost/` directory is located. In other words, the Base Directory is the **parent directory** of the `nhost/` directory.
 
-<center>
-  <img src="/img/github-integration/base-directory.png" alt="drawing" width="50%" />
-</center>
+You can change the Base Directory on the **Git** page in the **Settings** section.

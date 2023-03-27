@@ -3,7 +3,7 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 
 export interface FetchDatabaseOptions

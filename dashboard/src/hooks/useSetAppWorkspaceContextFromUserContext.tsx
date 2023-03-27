@@ -1,5 +1,6 @@
 import { useWorkspaceContext } from '@/context/workspace-context';
 import { useUserDataContext } from '@/context/workspace1-context';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
@@ -39,8 +40,8 @@ export const useSetAppWorkspaceContextFromUserContext = () => {
       appIsProvisioned: currentApplication.isProvisioned,
       appAdminSecret:
         process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? 'nhost-admin-secret'
-          : currentApplication.hasuraGraphqlAdminSecret,
+          ? getHasuraAdminSecret()
+          : currentApplication.config?.hasura.adminSecret,
       repository: currentApplication.githubRepository,
       provisioning:
         workspaceContext.provisioning || !currentApplication.isProvisioned,

@@ -1,6 +1,6 @@
 import type Stripe from 'stripe'
 
-import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
+import type { CORSOptions, YogaInitialContext } from 'graphql-yoga'
 
 export type StripeGraphQLContext = {
   isAllowed: (stripeCustomerId: string, context: Context) => boolean | Promise<boolean>
@@ -31,6 +31,16 @@ export type StripeInvoice = Stripe.Invoice & {
   id: string
   customer: string
   default_payment_method: StripePaymentMethod | null
+  payment_intent: any
+}
+
+export type StripePaymentIntent = Stripe.PaymentIntent & {
+  customer: string
+}
+
+export type StripeCharge = Stripe.Charge & {
+  customer: string
+  payment_intent: string | null
 }
 
 export type UserHasuraClaims = {

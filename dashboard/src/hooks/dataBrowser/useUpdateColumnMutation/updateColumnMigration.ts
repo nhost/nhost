@@ -4,9 +4,10 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getEmptyDownMigrationMessage } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 
 export interface UpdateColumnMigrationVariables {
@@ -65,22 +66,19 @@ export default async function updateColumnMigration({
     ];
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_NHOST_MIGRATIONS_URL}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `alter_table_${schema}_${table}_alter_column_${originalColumn.name}`,
-        down: columnUpdateDownMigration,
-        up: columnUpdateUpMigration,
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `alter_table_${schema}_${table}_alter_column_${originalColumn.name}`,
+      down: columnUpdateDownMigration,
+      up: columnUpdateUpMigration,
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

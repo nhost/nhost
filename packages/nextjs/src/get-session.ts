@@ -1,8 +1,6 @@
+import { NhostSession } from '@nhost/react'
 import { GetServerSidePropsContext } from 'next'
-
-import { NhostSession } from '@nhost/core'
-
-import { createServerSideClient } from './create-server-side-client'
+import { createServerSideClient, CreateServerSideClientParams } from './create-server-side-client'
 
 /**
  * Refreshes the access token if there is any and returns the Nhost session.
@@ -12,7 +10,10 @@ import { createServerSideClient } from './create-server-side-client'
  *
  * ```js
  * export const getServerSideProps: GetServerSideProps = async (context) => {
- *   const nhostSession = await getNhostSession(BACKEND_URL, context)
+ *   const nhostSession = await getNhostSession(
+ *     { subdomain: '<project_subdomain>', region: '<project_region>' },
+ *     context
+ *   )
  *
  *   return {
  *     props: {
@@ -27,7 +28,10 @@ import { createServerSideClient } from './create-server-side-client'
  *
  * ```js
  * export async function getServerSideProps(context: GetServerSidePropsContext) { // or NextPageContext
- *   const nhostSession = await getNhostSession(BACKEND_URL, context)
+ *   const nhostSession = await getNhostSession(
+ *     { subdomain: '<project_subdomain>', region: '<project_region>' },
+ *     context
+ *   )
  *
  *   return {
  *     props: {
@@ -42,11 +46,11 @@ import { createServerSideClient } from './create-server-side-client'
  * @returns Nhost session
  */
 export const getNhostSession = async (
-  backendUrl: string,
+  params: string | CreateServerSideClientParams,
   context: GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
-  const nhost = await createServerSideClient(backendUrl, context)
-  const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.state.context
+  const nhost = await createServerSideClient(params, context)
+  const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.getSnapshot().context
   return nhost.auth.isAuthenticated()
     ? {
         accessToken: accessToken.value!,

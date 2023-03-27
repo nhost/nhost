@@ -1,15 +1,16 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
-import { useWorkspaceContext } from '@/context/workspace-context';
-import { useUserDataContext } from '@/context/workspace1-context';
+import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/ui/Avatar';
 import { Modal } from '@/ui/Modal';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
+import PowerIcon from '@/ui/v2/icons/PowerIcon';
 import Text from '@/ui/v2/Text';
-import { emptyWorkspace } from '@/utils/helpers';
 import { nhost } from '@/utils/nhost';
+import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
-import Image from 'next/image';
+import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -22,34 +23,12 @@ function AccountMenuContent({
 }: AccountMenuContentProps) {
   const user = useUserData();
   const router = useRouter();
-  const [clicked, setClicked] = useState(false);
-  const { setWorkspaceContext } = useWorkspaceContext();
-  const { setUserContext } = useUserDataContext();
+  const client = useApolloClient();
   const { handleClose } = useDropdown();
+  const { publicRuntimeConfig } = getConfig();
 
   return (
-    <div className="relative grid w-account grid-flow-row gap-5 p-6">
-      <Button
-        variant="borderless"
-        color="secondary"
-        className="absolute top-6 right-4 grid grid-flow-col items-center gap-1 self-start font-medium"
-        onClick={async () => {
-          setWorkspaceContext(emptyWorkspace());
-          setUserContext({ workspaces: [] });
-          nhost.auth.signOut();
-          router.push('/signin');
-        }}
-        aria-label="Sign Out"
-      >
-        Sign Out
-        <Image
-          src="/assets/Power.svg"
-          alt="Power icon"
-          width={16}
-          height={16}
-        />
-      </Button>
-
+    <Box className="relative grid w-full grid-flow-row gap-5 p-6">
       <div className="grid grid-flow-row justify-center">
         <Avatar
           className="mx-auto mb-2 h-16 w-16 rounded-full"
@@ -66,33 +45,42 @@ function AccountMenuContent({
         </Text>
       </div>
 
-      {!clicked ? (
+      <div className="grid grid-flow-row gap-2">
         <Button
           variant="outlined"
           color="secondary"
-          onClick={() => setClicked(!clicked)}
+          onClick={() => {
+            onChangePasswordClick();
+            handleClose();
+          }}
         >
-          Account Options
+          Change Password
         </Button>
-      ) : (
-        <div className="grid grid-flow-row gap-2">
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              onChangePasswordClick();
-              handleClose();
-            }}
-          >
-            Change Password
-          </Button>
 
-          <Button color="error" disabled>
-            Remove Account
-          </Button>
-        </div>
-      )}
-    </div>
+        <Button color="error" disabled>
+          Remove Account
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={async () => {
+            await nhost.auth.signOut();
+            router.push('/signin');
+            await client.resetStore();
+          }}
+          endIcon={<PowerIcon className="mr-1 h-4 w-4" />}
+        >
+          Sign Out
+        </Button>
+      </div>
+
+      <ThemeSwitcher label="Theme" />
+
+      <Text className="text-center text-xs" color="disabled">
+        Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+      </Text>
+    </Box>
   );
 }
 
@@ -116,7 +104,7 @@ export function AccountMenu() {
       </Modal>
 
       <Dropdown.Root>
-        <Dropdown.Trigger hideChevron>
+        <Dropdown.Trigger hideChevron className="rounded-full">
           <Avatar
             className="h-7 w-7 self-center rounded-full"
             name={user?.displayName}
@@ -124,7 +112,7 @@ export function AccountMenu() {
           />
         </Dropdown.Trigger>
 
-        <Dropdown.Content>
+        <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full' }}>
           <AccountMenuContent
             onChangePasswordClick={() => setChangePasswordModal(true)}
           />

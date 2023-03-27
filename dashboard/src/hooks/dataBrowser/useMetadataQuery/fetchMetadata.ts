@@ -3,12 +3,16 @@ import type {
   HasuraMetadataSource,
   MutationOrQueryBaseOptions,
   QueryError,
-} from '@/types/data-browser';
-import fetch from 'cross-fetch';
+} from '@/types/dataBrowser';
 
 export interface FetchMetadataOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}
-export interface FetchMetadataReturnType extends HasuraMetadataSource {}
+export interface FetchMetadataReturnType extends Partial<HasuraMetadataSource> {
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+}
 
 /**
  * Fetch Hasura metadata using the Metadata API.
@@ -33,8 +37,9 @@ export default async function fetchMetadata({
     }),
   });
 
-  const responseData: Record<string, HasuraMetadata> | QueryError =
-    await response.json();
+  const responseData:
+    | { metadata: HasuraMetadata; resource_version: number }
+    | QueryError = await response.json();
 
   if (!response.ok || 'error' in responseData) {
     if ('internal' in responseData) {
@@ -48,9 +53,11 @@ export default async function fetchMetadata({
     }
   }
 
-  const { metadata } = responseData;
+  const { metadata, resource_version: resourceVersion } = responseData;
+  const currentSource =
+    metadata?.sources?.find((source) => source.name === dataSource) || null;
 
-  return (
-    metadata?.sources?.find((source) => source.name === dataSource) || null
-  );
+  return currentSource
+    ? { ...currentSource, resourceVersion }
+    : { resourceVersion };
 }

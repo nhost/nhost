@@ -6,7 +6,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';
 import prepareUpdateForeignKeyConstraintQuery from '@/utils/dataBrowser/prepareUpdateForeignKeyRelationQuery/prepareUpdateForeignKeyRelationQuery';
@@ -184,7 +184,7 @@ export default function prepareUpdateTableQuery({
           );
 
           return [
-            ...args,
+            ...updatedArgs,
             ...prepareUpdateForeignKeyConstraintQuery({
               ...baseVariables,
               originalForeignKeyRelation,

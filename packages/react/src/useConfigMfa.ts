@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import {
   ActivateMfaHandlerResult,
   activateMfaPromise,
@@ -8,9 +6,9 @@ import {
   GenerateQrCodeHandlerResult,
   generateQrCodePromise,
   GenerateQrCodeState
-} from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useMemo } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {

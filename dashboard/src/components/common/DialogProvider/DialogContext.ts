@@ -1,18 +1,7 @@
+import type { DialogFormProps } from '@/types/common';
 import type { CommonDialogProps } from '@/ui/v2/Dialog';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
-
-/**
- * Available dialog types.
- */
-export type DialogType =
-  | 'CREATE_RECORD'
-  | 'CREATE_COLUMN'
-  | 'EDIT_COLUMN'
-  | 'CREATE_TABLE'
-  | 'EDIT_TABLE'
-  | 'CREATE_FOREIGN_KEY'
-  | 'EDIT_FOREIGN_KEY';
 
 export interface DialogConfig<TPayload = unknown> {
   /**
@@ -29,21 +18,36 @@ export interface DialogConfig<TPayload = unknown> {
   payload?: TPayload;
 }
 
+export interface OpenDialogOptions {
+  /**
+   * Title of the dialog.
+   */
+  title: ReactNode;
+  /**
+   * Component to render inside the dialog skeleton.
+   */
+  component: ReactElement<{
+    location?: 'drawer' | 'dialog';
+    onCancel?: () => void;
+    onSubmit?: (args?: any) => Promise<any> | void;
+  }>;
+  /**
+   * Props to pass to the root dialog component.
+   */
+  props?: Partial<CommonDialogProps>;
+}
+
 export interface DialogContextProps {
   /**
-   * Call this function to open a dialog.
+   * Call this function to open a dialog. It will automatically apply the
+   * necessary functionality to the dialog.
    */
-  openDialog: <TPayload = unknown>(
-    type: DialogType,
-    config?: DialogConfig<TPayload>,
-  ) => void;
+  openDialog: (options: OpenDialogOptions) => void;
   /**
-   * Call this function to open a drawer.
+   * Call this function to open a drawer. It will automatically apply the
+   * necessary functionality to the drawer.
    */
-  openDrawer: <TPayload = unknown>(
-    type: DialogType,
-    config?: DialogConfig<TPayload>,
-  ) => void;
+  openDrawer: (options: OpenDialogOptions) => void;
   /**
    * Call this function to open an alert dialog.
    */
@@ -57,6 +61,16 @@ export interface DialogContextProps {
    */
   closeDrawer: VoidFunction;
   /**
+   * Call this function to check if the form is dirty and close the active dialog
+   * if the form is pristine.
+   */
+  closeDialogWithDirtyGuard: VoidFunction;
+  /**
+   * Call this function to check if the form is dirty and close the active drawer
+   * if the form is pristine.
+   */
+  closeDrawerWithDirtyGuard: VoidFunction;
+  /**
    * Call this function to close the active alert dialog.
    */
   closeAlertDialog: VoidFunction;
@@ -65,8 +79,12 @@ export interface DialogContextProps {
    */
   onDirtyStateChange: (
     isDirty: boolean,
-    location?: 'drawer' | 'dialog',
+    location?: DialogFormProps['location'],
   ) => void;
+  /**
+   * Call this function to open a dirty confirmation dialog.
+   */
+  openDirtyConfirmation: (config?: Partial<DialogConfig<string>>) => void;
 }
 
 export default createContext<DialogContextProps>({
@@ -75,6 +93,9 @@ export default createContext<DialogContextProps>({
   openAlertDialog: () => {},
   closeDialog: () => {},
   closeDrawer: () => {},
+  closeDialogWithDirtyGuard: () => {},
+  closeDrawerWithDirtyGuard: () => {},
   closeAlertDialog: () => {},
   onDirtyStateChange: () => {},
+  openDirtyConfirmation: () => {},
 });

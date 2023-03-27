@@ -1,7 +1,9 @@
 import { styled } from '@mui/material';
 import Box from '@mui/material/Box';
 import type { TooltipProps as MaterialTooltipProps } from '@mui/material/Tooltip';
-import MaterialTooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import MaterialTooltip, {
+  tooltipClasses as materialTooltipClasses,
+} from '@mui/material/Tooltip';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
@@ -21,10 +23,13 @@ export interface TooltipProps extends MaterialTooltipProps {
 }
 
 const StyledTooltip = styled(Box)(({ theme }) => ({
-  [`&.${tooltipClasses.tooltip}`]: {
+  [`&.${materialTooltipClasses.tooltip}`]: {
     fontSize: '0.9375rem',
     lineHeight: '1.375rem',
-    backgroundColor: theme.palette.text.primary,
+    backgroundColor:
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[300]
+        : theme.palette.grey[700],
     color: theme.palette.common.white,
     padding: theme.spacing(0.5, 1),
     borderRadius: theme.shape.borderRadius,
@@ -33,9 +38,23 @@ const StyledTooltip = styled(Box)(({ theme }) => ({
       '0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1)',
     maxWidth: '17.5rem',
   },
-  [`&.${tooltipClasses.tooltipPlacementBottom}`]: {
+  [`& .${materialTooltipClasses.arrow}`]: {
+    color:
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[300]
+        : theme.palette.grey[700],
+  },
+  [`&.${materialTooltipClasses.tooltipPlacementBottom}`]: {
     marginTop: `${theme.spacing(0.75)} !important`,
   },
+  [`&.${materialTooltipClasses.tooltipPlacementBottom} .${materialTooltipClasses.arrow}`]:
+    {
+      marginTop: `${theme.spacing(-0.5)} !important`,
+      color:
+        theme.palette.mode === 'dark'
+          ? theme.palette.grey[300]
+          : theme.palette.grey[700],
+    },
 }));
 
 function Tooltip(
@@ -65,6 +84,8 @@ function Tooltip(
     </MaterialTooltip>
   );
 }
+
+export { materialTooltipClasses as tooltipClasses };
 
 Tooltip.displayName = 'NhostTooltip';
 

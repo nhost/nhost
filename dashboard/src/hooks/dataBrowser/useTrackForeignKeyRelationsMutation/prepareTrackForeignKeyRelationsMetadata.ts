@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { singular } from 'pluralize';
 
 export type ForeignKeyMetadataOperation =
@@ -152,7 +152,12 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
         type: 'pg_drop_relationship',
         args: {
           source: dataSource,
-          table: foreignKeyRelation.referencedTable,
+          table: foreignKeyRelation.referencedSchema
+            ? {
+                name: foreignKeyRelation.referencedTable,
+                schema: foreignKeyRelation.referencedSchema,
+              }
+            : foreignKeyRelation.referencedTable,
           relationship: oneToManyRelationshipName,
           cascade: false,
         },

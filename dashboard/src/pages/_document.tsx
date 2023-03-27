@@ -11,8 +11,8 @@ export default class MyDocument extends Document {
 
   render() {
     const meta = {
-      title: 'Nhost 2.0 | Console',
-      description: 'Nhost Console 2.0',
+      title: 'Dashboard - Nhost',
+      description: 'Nhost Dashboard',
       image: '/assets/splash.png',
     };
 

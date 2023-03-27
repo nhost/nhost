@@ -1,11 +1,12 @@
 # GraphQL Code Generator Example with React and Apollo Client
 
-This is an example repo for how to use GraphQL Code Generator together with:
+Todo app to show how to use:
 
-- [TypeScript](https://www.typescriptlang.org/)
+- [Nhost](https://nhost.io/)
 - [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [GraphQL Code Generator](https://the-guild.dev/graphql/codegen)
 - [Apollo Client](https://www.apollographql.com/docs/react/)
-- [Nhost](http://nhost.io/)
 
 This repo is a reference repo for the blog post: [How to use GraphQL Code Generator with React and Apollo](https://nhost.io/blog/how-to-use-graphql-code-generator-with-react-and-apollo).
 
@@ -13,42 +14,42 @@ This repo is a reference repo for the blog post: [How to use GraphQL Code Genera
 
 1. Clone the repository
 
-```
+```sh
 git clone https://github.com/nhost/nhost
 cd nhost
 ```
 
 2. Install and build dependencies
 
-```
+```sh
 pnpm install
-pnpm build
+pnpm run build
 ```
 
-3. Go to the Codegen React Apollo example folder
+3. Go to the example folder
 
-```
-cd examples/codegen-react-apollo
+```sh
+cd examples/codegen-react-urql
 ```
 
 4. Terminal 1: Start Nhost
 
-> Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
-
 ```sh
-nhost up
+nhost up -d
 ```
 
-5. Terminal 2: Run GraphQL Codegen
+5. Terminal 2: Start the React application
+
+```sh
+pnpm run dev
+```
+
+## GraphQL Code Generators
+
+To re-run the GraphQL Code Generators, run the following:
 
 ```
 pnpm codegen -w
 ```
 
 > `-w` runs [codegen in watch mode](https://www.the-guild.dev/graphql/codegen/docs/getting-started/development-workflow#watch-mode).
-
-6. Terminal 3: Start the React application
-
-```sh
-pnpm dev
-```

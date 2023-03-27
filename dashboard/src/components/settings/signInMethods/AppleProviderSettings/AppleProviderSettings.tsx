@@ -1,8 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
-  useSignInMethodsQuery,
-  useUpdateAppMutation,
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -10,62 +12,80 @@ import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface AppleProviderFormValues {
-  authAppleEnabled: boolean;
-  authAppleTeamId: string;
-  authAppleKeyId: string;
-  authAppleClientId: string;
-  authApplePrivateKey: string;
-  authAppleScope: string;
-}
+const validationSchema = Yup.object({
+  teamId: Yup.string()
+    .label('Team ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  keyId: Yup.string()
+    .label('Key ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  clientId: Yup.string()
+    .label('Client ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  privateKey: Yup.string()
+    .label('Private Key')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  enabled: Yup.boolean(),
+});
+
+export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AppleProviderSettings() {
+  const theme = useTheme();
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
-  const {
-    data: {
-      app: {
-        authAppleEnabled,
-        authAppleTeamId,
-        authAppleKeyId,
-        authAppleClientId,
-        authApplePrivateKey,
-        authAppleScope,
-      },
-    },
-    loading,
-    error,
-  } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, enabled, keyId, privateKey, teamId } =
+    data?.config?.auth?.method?.oauth?.apple || {};
 
   const form = useForm<AppleProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAppleTeamId,
-      authAppleKeyId,
-      authAppleClientId,
-      authApplePrivateKey,
-      authAppleScope,
-      authAppleEnabled,
+      teamId: teamId || '',
+      keyId: keyId || '',
+      clientId: clientId || '',
+      privateKey: privateKey || '',
+      enabled: enabled || false,
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Apple settings..."
+        label="Loading settings for Apple..."
         className="justify-center"
       />
     );
@@ -76,29 +96,44 @@ export default function AppleProviderSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authEnabled = watch('authAppleEnabled');
+  const authEnabled = watch('enabled');
 
   const handleProviderUpdate = async (values: AppleProviderFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                apple: {
+                  ...values,
+                  scope: [],
+                },
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Apple settings are being updated...`,
-        success: `Apple settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Apple settings.`,
-      },
-      { ...toastStyleProps },
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Apple settings are being updated...`,
+          success: `Apple settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Apple settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -106,68 +141,85 @@ export default function AppleProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Apple"
-          description="Allows users to sign in with Apple."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          description="Allow users to sign in with Apple."
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-apple"
           docsTitle="how to sign in users with Apple"
-          icon="/logos/Apple.svg"
-          switchId="authAppleEnabled"
+          icon={
+            theme.palette.mode === 'dark'
+              ? '/assets/brands/light/apple.svg'
+              : '/assets/brands/apple.svg'
+          }
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
             'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
           <Input
-            {...register(`authAppleTeamId`)}
-            name="authAppleTeamId"
-            id="authAppleTeamId"
+            {...register('teamId')}
+            name="teamId"
+            id="teamId"
             label="Team ID"
             placeholder="Apple Team ID"
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.teamId}
+            helperText={formState.errors?.teamId?.message}
           />
           <Input
-            {...register('authAppleScope')}
-            name="authAppleScope"
-            id="authAppleScope"
+            {...register('clientId')}
+            name="clientId"
+            id="clientId"
             label="Service ID"
             placeholder="Apple Service ID"
             className="col-span-1"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.clientId}
+            helperText={formState.errors?.clientId?.message}
           />
           <Input
-            {...register('authAppleKeyId')}
-            name="authAppleKeyId"
-            id="authAppleKeyId"
+            {...register('keyId')}
+            name="keyId"
+            id="keyId"
             label="Key ID"
             placeholder="Apple Key ID"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.keyId}
+            helperText={formState.errors?.keyId?.message}
           />
           <Input
-            {...register('authApplePrivateKey')}
+            {...register('privateKey')}
             multiline
             rows={4}
-            name="authApplePrivateKey"
-            id="authApplePrivateKey"
+            name="privateKey"
+            id="privateKey"
             label="Private Key"
             placeholder="Paste Private Key here"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
+            error={!!formState.errors?.privateKey}
+            helperText={formState.errors?.privateKey?.message}
           />
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            placeholder={`https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`}
+            defaultValue={`${generateAppServiceUrl(
+              currentApplication.subdomain,
+              currentApplication.region.awsName,
+              'auth',
+            )}/signin/provider/apple/callback`}
             className="col-span-2"
             fullWidth
             hideEmptyHelperText
@@ -182,7 +234,11 @@ export default function AppleProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `https://${currentApplication.subdomain}.nhost.run/auth/signin/provider/apple/callback`,
+                      `${generateAppServiceUrl(
+                        currentApplication.subdomain,
+                        currentApplication.region.awsName,
+                        'auth',
+                      )}/signin/provider/apple/callback`,
                       'Redirect URL',
                     );
                   }}

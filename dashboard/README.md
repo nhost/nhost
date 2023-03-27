@@ -1,6 +1,6 @@
 # Nhost Dashboard
 
-This is the Nhost Dashboard, a web application that allows you to manage your Nhost project.
+This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
 To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
 ```bash
@@ -30,31 +30,63 @@ First, you need to run the following command to start your backend locally:
 cd <your_nhost_project> && nhost dev
 ```
 
-Two environment variables are required to connect the Nhost Dashboard to your local backend:
+You can connect the Nhost Dashboard to your locally running backend by setting the following environment variables in `.env.development.local`:
 
-- `NEXT_PUBLIC_NHOST_PLATFORM` should be set to `false`, because otherwise the Nhost Dashboard will try to connect to the Nhost platform.
-- `NEXT_PUBLIC_NHOST_MIGRATIONS_URL` should be set to `http://localhost:9693` unless Hasura is configured to run on a different port. This is the URL of Hasura's migrations endpoint.
-
-Example:
-
-```
+```bash
+NEXT_PUBLIC_ENV=dev
 NEXT_PUBLIC_NHOST_PLATFORM=false
-NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
+NEXT_PUBLIC_NHOST_AUTH_URL=https://local.auth.nhost.run/v1
+NEXT_PUBLIC_NHOST_FUNCTIONS_URL=https://local.functions.nhost.run/v1
+NEXT_PUBLIC_NHOST_GRAPHQL_URL=https://local.graphql.nhost.run/v1
+NEXT_PUBLIC_NHOST_STORAGE_URL=https://local.storage.nhost.run/v1
+NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL=https://local.hasura.nhost.run
+NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=https://local.hasura.nhost.run/v1/migrations
+NEXT_PUBLIC_NHOST_HASURA_API_URL=https://local.hasura.nhost.run
 ```
 
-### Full list of environment variables
+This will connect the Nhost Dashboard to your locally running Nhost backend.
 
-| Name                                 | Description                                                                                      |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_NHOST_PLATFORM`         | This should be set to `false` to connect the Nhost Dashboard to a locally running Nhost backend. |
-| `NEXT_PUBLIC_NHOST_MIGRATIONS_URL`   | URL of Hasura's migrations endpoint. Used only if local development is enabled.                  |
-| `NEXT_PUBLIC_NHOST_HASURA_URL`       | URL of the Hasura Console. Used only when `NEXT_PUBLIC_ENV` is `dev`.                            |
-| `NEXT_PUBLIC_ENV`                    | `dev`, `staging` or `prod`. Should be set to `dev` in most cases.                                |
-| `NEXT_PUBLIC_NHOST_BACKEND_URL`      | Backend URL. Not necessary for local development.                                                |
-| `NEXT_PUBLIC_STRIPE_PK`              | Stripe public key. Not necessary for local development.                                          |
-| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL` | URL of the GitHub application. Not necessary for local development.                              |
-| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`    | Analytics key. Not necessary for local development.                                              |
-| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`  | URL of the Bragi websocket. Not necessary for local development.                                 |
+### Storybook
+
+Components are documented using [Storybook](https://storybook.js.org/). To run Storybook, run the following command:
+
+```bash
+pnpm storybook
+```
+
+### General Environment Variables
+
+| Name                             | Description                                                                                                                                                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_ENV`                | `dev`, `staging` or `prod`. This should be set to `dev` in most cases.                                                                                                                                               |
+| `NEXT_PUBLIC_NHOST_ADMIN_SECRET` | Admin secret for Hasura. Default: `nhost-admin-secret`                                                                                                                                                               |
+| `NEXT_PUBLIC_NHOST_PLATFORM`     | This should be set to `false` to connect the Nhost Dashboard to a locally running or a self-hosted Nhost backend. Setting this to `true` will connect the Nhost Dashboard to the cloud environment. Default: `false` |
+
+### Environment Variables for Local Development and Self-Hosting
+
+| Name | Description |
+| ---- | ----------- |
+
+| `NEXT_PUBLIC_NHOST_AUTH_URL` | The URL of the Auth service. When working locally, point it to the Auth service started by the CLI. When self-hosting, point it to the self-hosted Auth service. |
+| `NEXT_PUBLIC_NHOST_FUNCTIONS_URL` | The URL of the Functions service. When working locally, point it to the Functions service started by the CLI. When self-hosting, point it to the self-hosted Functions service. |
+| `NEXT_PUBLIC_NHOST_GRAPHQL_URL` | The URL of the GraphQL service. When working locally, point it to the GraphQL service started by the CLI. When self-hosting, point it to the self-hosted GraphQL service. |
+| `NEXT_PUBLIC_NHOST_STORAGE_URL` | The URL of the Storage service. When working locally, point it to the Storage service started by the CLI. When self-hosting, point it to the self-hosted Storage service. |
+| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL` | The URL of the Hasura Console. When working locally, point it to the Hasura Console started by the CLI. When self-hosting, point it to the self-hosted Hasura Console. |
+| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI. |
+| `NEXT_PUBLIC_NHOST_HASURA_API_URL` | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
+
+### Other Environment Variables
+
+| Name                                    | Description                                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_NHOST_BACKEND_URL`         | Backend URL. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                   |
+| `NEXT_PUBLIC_STRIPE_PK`                 | Stripe public key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.             |
+| `NEXT_PUBLIC_GITHUB_APP_INSTALL_URL`    | URL of the GitHub application. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`. |
+| `NEXT_PUBLIC_ANALYTICS_WRITE_KEY`       | Analytics key. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.                 |
+| `NEXT_PUBLIC_NHOST_BRAGI_WEBSOCKET`     | URL of the Bragi websocket. This is only used if `NEXT_PUBLIC_NHOST_PLATFORM` is `true`.    |
+| `NEXT_PUBLIC_MAINTENANCE_ACTIVE`        | Determines whether or not maintenance mode is active.                                       |
+| `NEXT_PUBLIC_MAINTENANCE_END_DATE`      | Date when maintenance mode will end.                                                        |
+| `NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET` | Secret that can be used to bypass maintenance mode.                                         |
 
 ## ESLint Rules
 
@@ -67,6 +99,7 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 | `import/extensions`                          | JS / TS files should be imported without file extensions.                                                                                                    |
 | `react/jsx-filename-extension`               | JSX should only appear in `.jsx` and `.tsx` files.                                                                                                           |
 | `react/jsx-no-bind`                          | Further investigation must be made on the performance impact of functions directly passed as props to components.                                            |
+| `import/order`                               | Until we have a better auto-formatter, we disable this rule.                                                                                                 |
 | `import/no-extraneous-dependencies`          | `devDependencies` should be excluded from the list of disallowed imports.                                                                                    |
 | `curly`                                      | By default it only enforces curly braces for multi-line blocks, but it should be enforced for single-line blocks as well.                                    |
 | `no-restricted-exports`                      | `export { default } from './module'` is used heavily in `@/ui/v2` which is a restricted export by default.                                                   |
@@ -78,3 +111,21 @@ NEXT_PUBLIC_NHOST_MIGRATIONS_URL=http://localhost:9693
 | `@typescript-eslint/consistent-type-imports` | Enforces `import type { Type } from 'module'` syntax. It prevents false positive circular dependency errors.                                                 |
 | `@typescript-eslint/naming-convention`       | Enforces a consistent naming convention.                                                                                                                     |
 | `no-restricted-imports`                      | Enforces absolute imports and consistent import paths for components from `src/components/ui` folder.                                                        |
+
+### End-to-End Tests
+
+End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+
+```bash
+pnpm e2e
+```
+
+Most of the tests require access to the Nhost test user. To run these tests, you need to set the following environment variables in `.env.test`:
+
+```
+NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
+NHOST_TEST_USER_EMAIL=<test_user_email>
+NHOST_TEST_USER_PASSWORD=<test_user_password>
+NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
+NHOST_TEST_PROJECT_NAME=<test_project_name>
+```

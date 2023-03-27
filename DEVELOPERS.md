@@ -2,6 +2,8 @@
 
 ## Requirements
 
+- This repository works with **Node 16**
+
 - We use [pnpm](https://pnpm.io/) as a package manager to speed up development and builds, and as a basis for our monorepo. You need to make sure it's installed on your machine. There are [several ways to install it](https://pnpm.io/installation), but the easiest way is with `npm`:
 
 ```sh
@@ -96,6 +98,7 @@ You can take a look at the changeset documentation: [How to add a changeset](htt
 ## Committing changes
 
 You'll notice that `git commit` takes a few seconds to run. We set a commit hook that scans the changes in the code, automatically generates documentation from the inline [TSDoc](https://tsdoc.org/) annotations, and adds these generated documentation files to the commit. They automatically update the [reference documentation](https://docs.nhost.io/reference).
+
 
 <!-- ## Good practices
 - lint

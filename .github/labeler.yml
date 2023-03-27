@@ -1,0 +1,25 @@
+dashboard:
+  - dashboard/**/*
+
+documentation:
+  - any:
+      - docs/**/*
+      - '!docs/docs/reference/docgen/**/*'
+
+examples:
+  - examples/**/*
+
+sdk:
+  - packages/**/*
+
+integrations:
+  - integrations/**/*
+
+react:
+  - '{packages,examples,integrations}/*react*/**/*'
+
+nextjs:
+  - '{packages,examples}/*next*/**/*'
+
+vue:
+  - '{packages,examples,integrations}/*vue*/**/*'

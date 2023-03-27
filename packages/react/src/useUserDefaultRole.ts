@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-default-role
  */
-export const useUserDefaultRole = () => {
+export const useUserDefaultRole = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -20,8 +20,3 @@ export const useUserDefaultRole = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserDefaultRole} instead */
-export const useDefaultRole = useUserDefaultRole

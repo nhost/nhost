@@ -15,7 +15,7 @@ import {
   useInsertFeatureFlagMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
-import { useUserEmail } from '@nhost/react';
+import { useUserEmail } from '@nhost/nextjs';
 import { useEffect, useState } from 'react';
 
 /**
@@ -122,7 +122,7 @@ function MigrationDialog() {
 
   return (
     <div className="grid grid-flow-row gap-2 px-6">
-      <Text className="text-greyscaleDark">
+      <Text>
         Cancelling this migration will revert your project to use the shared
         Postgres instance.
       </Text>

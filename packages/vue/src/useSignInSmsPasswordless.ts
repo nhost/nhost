@@ -1,5 +1,3 @@
-import { ref, ToRefs, unref } from 'vue'
-
 import {
   PasswordlessOptions,
   SignInSmsPasswordlessHandlerResult,
@@ -7,9 +5,9 @@ import {
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   SignInSmsPasswordlessState
-} from '@nhost/core'
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/vue'
-
+import { ref, ToRefs, unref } from 'vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 

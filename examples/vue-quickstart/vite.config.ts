@@ -16,7 +16,7 @@ export default defineConfig({
   },
   plugins: [
     Vue({
-      reactivityTransform: true
+      reactivityTransform: path.resolve(__dirname, 'src'),
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -24,7 +24,7 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
-      imports: ['vue/macros', 'vue-router', '@vueuse/core'],
+      imports: ['vue-router', '@vueuse/core'],
       dts: true
     }),
 

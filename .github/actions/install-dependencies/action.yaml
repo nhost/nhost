@@ -5,12 +5,16 @@ inputs:
     description: 'Turborepo token'
   TURBO_TEAM:
     description: 'Turborepo team'
+  BUILD:
+    description: 'Build packages'
+    default: 'default'
+
 runs:
   using: 'composite'
   steps:
     - uses: pnpm/action-setup@v2.2.4
       with:
-        version: 7.9.1
+        version: 7.17.0
         run_install: false
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
@@ -19,9 +23,7 @@ runs:
     - uses: actions/cache@v3
       id: pnpm-cache
       with:
-        path: |
-          ${{ steps.pnpm-cache-dir.outputs.dir }}
-          ~/.cache/Cypress
+        path: ${{ steps.pnpm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: ${{ runner.os }}-node-
     - name: Use Node.js 16
@@ -35,7 +37,15 @@ runs:
     # * They are reused through the Turborepo cache
     - shell: bash
       name: Build packages
-      run: pnpm build
+      if: ${{ inputs.BUILD == 'all' }}
+      run: pnpm run build:all
+      env:
+        TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+        TURBO_TEAM: ${{ inputs.TURBO_TEAM }}
+    - shell: bash
+      name: Build everything in the monorepo
+      if: ${{ inputs.BUILD == 'default' }}
+      run: pnpm run build
       env:
         TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
         TURBO_TEAM: ${{ inputs.TURBO_TEAM }}

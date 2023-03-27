@@ -20,6 +20,31 @@ query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
   }
 }
 
+subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
+  deployments(
+    where: { deploymentStatus: { _in: ["SCHEDULED"] }, appId: { _eq: $appId } }
+  ) {
+    ...DeploymentRow
+  }
+}
+
+subscription LatestLiveDeploymentSub($appId: uuid!) {
+  deployments(
+    where: { deploymentStatus: { _eq: "DEPLOYED" }, appId: { _eq: $appId } }
+    order_by: { deploymentEndedAt: desc }
+    limit: 1
+    offset: 0
+  ) {
+    ...DeploymentRow
+  }
+}
+
+mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
+    ...DeploymentRow
+  }
+}
+
 subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: { appId: { _eq: $id } }

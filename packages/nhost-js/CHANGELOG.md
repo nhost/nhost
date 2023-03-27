@@ -1,5 +1,258 @@
 # @nhost/nhost-js
 
+## 2.1.1
+
+### Patch Changes
+
+- Updated dependencies [614f213e]
+  - @nhost/hasura-storage-js@2.0.4
+
+## 2.1.0
+
+### Minor Changes
+
+- bfb4c1a6: chore(sdk): remove deprecated `useAxios` property
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/graphql-js@0.1.0
+
+## 2.0.9
+
+### Patch Changes
+
+- 088584e7: feat(nhost-js): add support for `local` as a special subdomain
+
+## 2.0.8
+
+### Patch Changes
+
+- 1d155559: fix(nhost-js): allow `null` as body and return JSON when `content-type` is `application/json`
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [889ee658]
+- Updated dependencies [850a049c]
+  - @nhost/hasura-storage-js@2.0.3
+  - @nhost/graphql-js@0.0.5
+  - @nhost/hasura-auth-js@2.0.2
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- 35d52aab: chore(deps): replace `cross-fetch` with `isomorphic-unfetch`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/graphql-js@0.0.4
+  - @nhost/hasura-auth-js@2.0.1
+  - @nhost/hasura-storage-js@2.0.2
+
+## 2.0.5
+
+### Patch Changes
+
+- 3c7cf92e: fixing generating the correct URL for function calls
+
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(nhost-js): bump `@nhost/hasura-storage-js` to 2.0.1
+- Updated dependencies [445d8ef4]
+  - @nhost/hasura-storage-js@2.0.1
+
+## 2.0.2
+
+### Patch Changes
+
+- 2d9145f9: chore(deps): revert GraphQL client
+- Updated dependencies [2d9145f9]
+  - @nhost/graphql-js@0.0.3
+
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [2200a0ed]
+- Updated dependencies [3b48a627]
+  - @nhost/graphql-js@0.0.2
+
+## 2.0.0
+
+### Major Changes
+
+- 80bbd3a1: Replace `axios` by `cross-fetch`
+
+  **Breaking Changes**
+
+  - The `config` type of `nhost.functions.call(url, data, config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
+
+  - The `config` type of `nhost.graphql.request(document, [variables], config)` is not `AxiosRequestConfig` anymore, and deprecates the `useAxios: false` option.
+
+### Minor Changes
+
+- c9d2d31a: Add new getters `nhost.graphql.httpUrl` and `nhost.graphql.wsUrl`
+
+  `nhost.graphql.getUrl()` is now deprecated.
+
+- 80bbd3a1: Improve type inference of `nhost.graphql.request`
+
+  The method `nhost.graphql.request` is now set to infer result and variables types from [typed document nodes](https://github.com/dotansimha/graphql-typed-document-node).
+
+- 2949ff0f: Introduce typed `nhost.graphql.query` and `nhost.graphql.mutation`
+
+### Patch Changes
+
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [19b11d40]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [19b11d40]
+  - @nhost/hasura-storage-js@2.0.0
+  - @nhost/hasura-auth-js@2.0.0
+  - @nhost/graphql-js@0.0.1
+
+## 1.13.4
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- Updated dependencies [5013213b]
+  - @nhost/hasura-auth-js@1.12.4
+  - @nhost/hasura-storage-js@1.13.2
+
+## 1.13.3
+
+### Patch Changes
+
+- Updated dependencies [5880f0cd]
+  - @nhost/hasura-auth-js@1.12.3
+
+## 1.13.2
+
+### Patch Changes
+
+- Updated dependencies [12ff6313]
+  - @nhost/hasura-auth-js@1.12.2
+
+## 1.13.1
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/hasura-auth-js@1.12.1
+  - @nhost/hasura-storage-js@1.13.1
+
+## 1.13.0
+
+### Patch Changes
+
+- Updated dependencies [13876ed5]
+- Updated dependencies [83e0a4d3]
+  - @nhost/hasura-storage-js@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- Updated dependencies [85683547]
+  - @nhost/hasura-storage-js@1.12.1
+
+## 1.12.0
+
+### Minor Changes
+
+- 19cca7f4: Deprecate Axios
+
+  Axios will be replaced by cross-fetch in the near future.
+
+  To prepare for the transition, we are deprecating the old signature for the following methods:
+
+  - `nhost.functions.call()`
+  - `nhost.graphql.request()`
+
+  Both methods now accept an optional `useAxios` parameter that can be used to opt-in (`{ useAxios: false }`) to the new method signature. By default, `useAxios` is set to `true` so you can update it on your own time.
+
+  When using `useAxios: false`:
+
+  - the only allowed option is `headers: Record<string,string>`
+  - the returned value matches values foreseen in the next major version:
+    - `nhost.functions.call`:
+      - `error` is using the same standard error type as in `hasura-auth-js` and `hasura-storage-js`
+      - `res` is using `{ status: number; statusText: string; data: T }`
+    - `nhost.graphql.request`:
+      - `error` is either using the standard error type, or `GraphQlError[]`
+
+- 65687bee: Remove `@nhost/hasura-auth-js` and `@nhost/hasura-storage-js` from `peerDepencencies`
+
+  The contents of both clients are now available from `@nhost/nhost-js`.
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+- 1a9e1fde: Remove unused query-string dependency
+- 5be9abb0: Allow custom values for the `Accept-Encoding` header in `nhost.graphql.request`
+- 54df0df4: Use initial session sent from the server
+
+  When running a SSR page, the session was correctly created from the refresh token on the server side and was sent to the client side, but was not used correctly on the client side.
+  As a result, the client was refreshing the access token when loading the page, rather than using the access token sent by the server.
+  The client now uses the session sent from the server.
+
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [54df0df4]
+  - @nhost/hasura-auth-js@1.12.0
+  - @nhost/hasura-storage-js@1.12.0
+
+## 1.7.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/hasura-auth-js@1.7.0
+  - @nhost/hasura-storage-js@0.8.0
+
+## 1.6.2
+
+### Patch Changes
+
+- 66b4f3d0: Bump axios to v1.2.0
+- ef117c28: Distribute the access token to all the sub-clients
+- aebb8225: chore(nhost-js): expose `url` in Functions and GraphQL client
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+  - @nhost/hasura-auth-js@1.6.4
+  - @nhost/hasura-storage-js@0.7.4
+
+## 1.6.1
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.6.3
+- @nhost/hasura-storage-js@0.7.3
+
 ## 1.6.0
 
 ### Minor Changes

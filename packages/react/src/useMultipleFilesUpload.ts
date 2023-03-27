@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {
   createMultipleFilesUploadMachine,
   FileItemRef,
@@ -7,9 +5,9 @@ import {
   MultipleFilesUploadState,
   UploadMultipleFilesActionParams,
   uploadMultipleFilesPromise
-} from '@nhost/hasura-storage-js'
+} from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/react'
-
+import { useState } from 'react'
 import { useNhostClient } from './useNhostClient'
 
 export interface MultipleFilesHookResult extends MultipleFilesUploadState {
@@ -35,7 +33,7 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
 }
 
 /**
- * Use the hook `useFileUpload` to upload multiple files.
+ * Use the hook `useMultipleFilesUpload` to upload multiple files.
  *
  * @example
  * ```tsx
@@ -72,7 +70,15 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   }
 
   const upload = (params?: UploadMultipleFilesActionParams) =>
-    uploadMultipleFilesPromise(nhost, service, params)
+    uploadMultipleFilesPromise(
+      {
+        url: nhost.storage.url,
+        accessToken: nhost.auth.getAccessToken(),
+        adminSecret: nhost.adminSecret,
+        ...params
+      },
+      service
+    )
 
   const cancel = () => {
     service.send('CANCEL')

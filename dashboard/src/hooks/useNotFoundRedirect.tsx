@@ -10,8 +10,8 @@ export default function useNotFoundRedirect() {
     useCurrentWorkspaceAndApplication();
   const router = useRouter();
   const {
-    query: { workspaceSlug, appSlug },
-  } = useRouter();
+    query: { workspaceSlug, appSlug, updating },
+  } = router;
 
   const notIn404Already = router.pathname !== '/404';
   const noResolvedWorkspace = workspaceSlug && currentWorkspace === undefined;
@@ -25,18 +25,28 @@ export default function useNotFoundRedirect() {
   const inSettingsDatabasePage = router.pathname.includes('/settings/database');
 
   useEffect(() => {
+    // This code is checking if the URL has a query of the form `?updating=true`
+    // If it does (`updating` is true) this useEffect will immediately exit without executing
+    //  any further statements (e.g. the page will show a loader until `updating` is false).
+    // This is to prevent the user from being redirected to the 404 page while we are updating
+    // either the workspace slug or application slug.
+    if (updating) {
+      return;
+    }
+
     if (noResolvedWorkspace && notIn404Already) {
-      router.push('/404');
+      router.replace('/404');
     }
 
     if (noResolvedApplication && notIn404Already) {
-      router.push('/404');
+      router.replace('/404');
     }
 
     if (isProjectUsingRDS && inSettingsDatabasePage) {
-      router.push('/404');
+      router.replace('/404');
     }
   }, [
+    updating,
     currentApplication,
     currentWorkspace,
     noResolvedApplication,

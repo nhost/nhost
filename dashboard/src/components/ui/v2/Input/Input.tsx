@@ -1,6 +1,6 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
 import FormControl from '@/ui/v2/FormControl';
-import { darken, lighten, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
@@ -8,7 +8,7 @@ import { forwardRef } from 'react';
 import mergeRefs from 'react-merge-refs';
 
 export interface InputProps
-  extends Omit<MaterialInputBaseProps, 'componentsProps'>,
+  extends Omit<MaterialInputBaseProps, 'componentsProps' | 'slotProps'>,
     Pick<
       FormControlProps,
       | 'label'
@@ -19,22 +19,34 @@ export interface InputProps
       | 'inlineInputProportion'
     > {
   /**
-   * Props passed to the form control component.
-   *
-   * @deprecated Use `componentsProps` instead.
-   */
-  formControlProps?: FormControlProps;
-  /**
    * Props for component slots.
    */
-  componentsProps?: {
+  slotProps?: {
+    /**
+     * Props passed to MUI's `<Input />` component.
+     */
     input?: Partial<MaterialInputBaseProps>;
+    /**
+     * Props passed to the `<Box />` component wrapping the input.
+     */
     inputWrapper?: Partial<FormControlProps['inputWrapperProps']>;
+    /**
+     * Props passed to the native `<input />` element.
+     */
     inputRoot?: Partial<
       DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>
     >;
+    /**
+     * Props passed to the label in the `<FormControl />` component.
+     */
     label?: Partial<FormControlProps['labelProps']>;
+    /**
+     * Props passed to the `<FormControl />` component.
+     */
     formControl?: Partial<FormControlProps>;
+    /**
+     * Props passed to the helper text in the `<FormControl />` component.
+     */
     helperText?: Partial<FormControlProps['helperTextProps']>;
   };
 }
@@ -42,14 +54,23 @@ export interface InputProps
 const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   border: `1px solid ${theme.palette.grey[400]}`,
   borderRadius: theme.shape.borderRadius,
-  transition: theme.transitions.create(['border-color', 'box-shadow']),
+  overflow: 'hidden',
+  transition: theme.transitions.create([
+    'border-color',
+    'box-shadow',
+    'background-color',
+  ]),
   [`& .${inputBaseClasses.input}`]: {
-    fontSize: '0.9375rem',
-    lineHeight: '1.375rem',
+    fontSize: theme.typography.pxToRem(15),
+    lineHeight: theme.typography.pxToRem(22),
     padding: theme.spacing(1, 1.25),
     color: theme.palette.text.primary,
     outline: 'none',
-    backgroundColor: 'transparent',
+    backgroundColor: theme.palette.background.paper,
+  },
+  [`& .${inputBaseClasses.input}::placeholder`]: {
+    color: theme.palette.grey[500],
+    opacity: 0.6,
   },
   [`&.${inputBaseClasses.multiline}`]: {
     padding: 0,
@@ -59,14 +80,13 @@ const StyledInputBase = styled(MaterialInputBase)(({ theme }) => ({
   },
   [`&.${inputBaseClasses.disabled}`]: {
     color: theme.palette.grey[600],
-    borderColor: darken(theme.palette.grey[300], 0.1),
-    backgroundColor: lighten(theme.palette.action.disabled, 0.75),
+    borderColor: theme.palette.grey[400],
   },
-  [`&:not(.${inputBaseClasses.disabled}):hover`]: {
-    borderColor: theme.palette.grey[600],
+  [`&.${inputBaseClasses.disabled} .${inputBaseClasses.input}`]: {
+    backgroundColor: theme.palette.grey[200],
   },
   [`&.${inputBaseClasses.focused}`]: {
-    borderColor: theme.palette.grey[700],
+    borderColor: theme.palette.primary.main,
     outline: 'none',
     boxShadow: 'none',
   },
@@ -89,11 +109,7 @@ function Input(
     hideEmptyHelperText,
     inlineInputProportion,
     variant = 'normal',
-    formControlProps: {
-      sx: deprecatedFormControlSx,
-      ...deprecatedFormControlProps
-    } = {},
-    componentsProps,
+    slotProps,
     className,
     'aria-label': ariaLabel,
     ...props
@@ -108,21 +124,18 @@ function Input(
     label: labelSlotProps,
     helperText: helperTextSlotProps,
   } = {
-    inputWrapper: componentsProps?.inputWrapper || {},
-    input: componentsProps?.input || {},
-    inputRoot: componentsProps?.inputRoot || {},
-    formControl: componentsProps?.formControl || {},
-    label: componentsProps?.label || {},
-    helperText: componentsProps?.helperText || {},
+    inputWrapper: slotProps?.inputWrapper || {},
+    input: slotProps?.input || {},
+    inputRoot: slotProps?.inputRoot || {},
+    formControl: slotProps?.formControl || {},
+    label: slotProps?.label || {},
+    helperText: slotProps?.helperText || {},
   };
 
   return (
     <FormControl
       sx={[
         { alignItems: props.multiline ? 'start' : 'center' },
-        ...(Array.isArray(deprecatedFormControlSx)
-          ? deprecatedFormControlSx
-          : [deprecatedFormControlSx]),
         ...(Array.isArray(formControlSx) ? formControlSx : [formControlSx]),
       ]}
       className={className}
@@ -140,7 +153,6 @@ function Input(
       fullWidth={props.fullWidth}
       error={props.error}
       inlineInputProportion={inlineInputProportion}
-      {...deprecatedFormControlProps}
       {...formControlSlotProps}
     >
       <StyledInputBase
@@ -159,5 +171,7 @@ function Input(
 }
 
 Input.displayName = 'NhostInput';
+
+export { inputBaseClasses as inputClasses } from '@mui/material/InputBase';
 
 export default forwardRef(Input);

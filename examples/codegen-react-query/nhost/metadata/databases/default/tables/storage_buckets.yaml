@@ -9,6 +9,8 @@ configuration:
       custom_name: createdAt
     download_expiration:
       custom_name: downloadExpiration
+    id:
+      custom_name: id
     max_upload_file_size:
       custom_name: maxUploadFileSize
     min_upload_file_size:
@@ -21,6 +23,7 @@ configuration:
     cache_control: cacheControl
     created_at: createdAt
     download_expiration: downloadExpiration
+    id: id
     max_upload_file_size: maxUploadFileSize
     min_upload_file_size: minUploadFileSize
     presigned_urls_enabled: presignedUrlsEnabled

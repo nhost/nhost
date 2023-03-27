@@ -18,11 +18,14 @@ export default function useProjectRedirectWhenReady(
   options: UseProjectRedirectWhenReadyOptions = {},
 ) {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { data, client, ...rest } = useGetApplicationStateQuery({
-    pollInterval: 2000,
+  const { data, client, startPolling, ...rest } = useGetApplicationStateQuery({
     ...options,
     variables: { ...options.variables, appId: currentApplication.id },
   });
+
+  useEffect(() => {
+    startPolling(options.pollInterval || 2000);
+  }, [options.pollInterval, startPolling]);
 
   useEffect(() => {
     async function updateOwnCache() {

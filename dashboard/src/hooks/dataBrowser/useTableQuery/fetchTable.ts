@@ -5,7 +5,7 @@ import type {
   OrderBy,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import extractForeignKeyRelation from '@/utils/dataBrowser/extractForeignKeyRelation';
 import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import { POSTGRESQL_ERROR_CODES } from '@/utils/dataBrowser/postgresqlConstants';
@@ -26,6 +26,10 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
    * @default []
    */
   orderBy?: OrderBy[];
+  /**
+   * Determines whether the query should fetch the rows or not.
+   */
+  preventRowFetching?: boolean;
 }
 
 export interface FetchTableReturnType {
@@ -67,10 +71,13 @@ export default async function fetchTable({
   limit,
   offset,
   orderBy,
+  preventRowFetching,
 }: FetchTableOptions): Promise<FetchTableReturnType> {
   let limitAndOffsetClause = '';
 
-  if (limit && offset) {
+  if (preventRowFetching) {
+    limitAndOffsetClause = `LIMIT 0`;
+  } else if (limit && offset) {
     limitAndOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
   } else if (limit) {
     limitAndOffsetClause = `LIMIT ${limit}`;
@@ -310,6 +317,6 @@ export default async function fetchTable({
       JSON.parse(rawRow),
     ) as NormalizedQueryDataRow[],
     foreignKeyRelations: flatForeignKeyRelations,
-    numberOfRows: parseInt(rawAggregate, 10),
+    numberOfRows: rawAggregate ? parseInt(rawAggregate, 10) : 0,
   };
 }

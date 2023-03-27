@@ -1,6 +1,6 @@
 import InlineCode from '@/components/common/InlineCode';
-import DataBrowserEmptyState from '@/components/data-browser/DataBrowserEmptyState';
-import DataBrowserLayout from '@/components/data-browser/DataBrowserLayout';
+import DataBrowserEmptyState from '@/components/dataBrowser/DataBrowserEmptyState';
+import DataBrowserLayout from '@/components/dataBrowser/DataBrowserLayout';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 
@@ -16,7 +16,7 @@ export default function DataBrowserDatabaseDetailsPage() {
         description={
           <span>
             Database{' '}
-            <InlineCode className="max-h-[32px] bg-gray-200 bg-opacity-80 px-1.5 text-sm">
+            <InlineCode className="bg-gray-200 bg-opacity-80 px-1.5 text-sm">
               {dataSourceSlug}
             </InlineCode>{' '}
             does not exist.

@@ -24,7 +24,7 @@ services:
     ports:
       - '5432:5432'
   graphql-engine:
-    image: hasura/graphql-engine:v2.2.0
+    image: hasura/graphql-engine:v2.15.2
     depends_on:
       - 'postgres'
     restart: always
@@ -42,7 +42,7 @@ services:
       - "traefik.http.routers.hasura.rule=Host(`localhost`) && PathPrefix(`/`)"
       - "traefik.http.routers.hasura.entrypoints=web"
   auth:
-    image: nhost/hasura-auth:latest
+    image: nhost/hasura-auth:0.16.2
     depends_on:
       - postgres
       - graphql-engine
@@ -63,8 +63,6 @@ services:
       AUTH_SMTP_SENDER: mail@example.com
     expose: 
       - 4000
-    healthcheck:
-      disable: true
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
@@ -72,7 +70,7 @@ services:
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
-    image: nhost/hasura-storage:0.2.1
+    image: nhost/hasura-storage:0.3.1
     depends_on:
       - postgres
       - graphql-engine
@@ -80,8 +78,6 @@ services:
     restart: always
     expose:
       - 8000
-    healthcheck:
-      disable: true
     environment:
       PUBLIC_URL: http://localhost:${PROXY_PORT:-1337}
       HASURA_METADATA: 1
@@ -103,7 +99,7 @@ services:
       - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
   functions:
-    image: nhost/functions:latest
+    image: nhost/functions:0.1.8
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
@@ -113,8 +109,6 @@ services:
     restart: always
     expose: 
       - 3000
-    healthcheck:
-      disable: true
     volumes:
       - .:/opt/project
       - functions_node_modules:/opt/project/node_modules
@@ -145,5 +139,9 @@ services:
       - 8025:8025
     volumes:
       - ./data/mailhog:/maildir
+  dashboard:
+    image: nhost/dashboard:0.7.4
+    ports:
+      - "3030:3000"
 volumes:
   functions_node_modules:

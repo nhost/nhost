@@ -1,12 +1,14 @@
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
-import CheckIcon from '@/ui/v2/icons/CheckIcon';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -19,19 +21,8 @@ export interface BaseDirectoryFormValues {
   nhostBaseFolder: string;
 }
 
-export const toastStyleProps = {
-  style: {
-    minWidth: '300px',
-    backgroundColor: 'rgb(33 50 75)',
-    color: '#fff',
-  },
-  success: {
-    duration: 5000,
-    icon: <CheckIcon className="h-4 w-4 bg-transparent" />,
-  },
-};
-
 export default function BaseDirectorySettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -66,9 +57,11 @@ export default function BaseDirectorySettings() {
       {
         loading: `The base directory is being updated...`,
         success: `The base directory has been updated successfully.`,
-        error: `An error occurred while trying to update the project's base directory.`,
+        error: getServerError(
+          `An error occurred while trying to update the project's base directory.`,
+        ),
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -96,9 +89,11 @@ export default function BaseDirectorySettings() {
               <InlineCode className="text-xs">nhost</InlineCode> folder.
             </>
           }
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/github-integration#base-directory"
           className="grid grid-flow-row lg:grid-cols-5"

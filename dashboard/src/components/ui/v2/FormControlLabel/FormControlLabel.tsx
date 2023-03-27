@@ -29,4 +29,5 @@ function FormControlLabel(
 
 FormControlLabel.displayName = 'NhostFormControlLabel';
 
+export { formControlLabelClasses } from '@mui/material/FormControlLabel';
 export default forwardRef(FormControlLabel);

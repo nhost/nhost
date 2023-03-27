@@ -1,4 +1,5 @@
-import { createServer, YogaInitialContext } from '@graphql-yoga/node'
+import { createServer } from 'node:http'
+import { createYoga, YogaInitialContext } from 'graphql-yoga'
 
 import { schema } from './schema'
 import { Context, CreateServerProps } from './types'
@@ -45,12 +46,15 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
     }
   }
 
-  return createServer({
+  const yoga = createYoga({
     cors,
     graphiql,
     context,
-    schema
+    schema,
+    graphqlEndpoint: '*'
   })
+
+  return createServer(yoga)
 }
 
 export { createStripeGraphQLServer, schema }

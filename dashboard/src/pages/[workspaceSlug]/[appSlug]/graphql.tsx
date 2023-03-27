@@ -9,7 +9,7 @@ import PlayIcon from '@/ui/v2/icons/PlayIcon';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Tooltip from '@/ui/v2/Tooltip';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,
@@ -255,25 +255,29 @@ export default function GraphQLPage() {
 
   if (
     !currentApplication?.subdomain ||
-    !currentApplication?.hasuraGraphqlAdminSecret
+    !currentApplication?.config?.hasura.adminSecret
   ) {
     return <LoadingScreen />;
   }
 
-  const appUrl = generateRemoteAppUrl(currentApplication.subdomain);
+  const appUrl = generateAppServiceUrl(
+    currentApplication.subdomain,
+    currentApplication.region.awsName,
+    'graphql',
+  );
 
   const subscriptionUrl = `${appUrl
     .replace('https', 'wss')
-    .replace('http', 'ws')}/v1/graphql`;
+    .replace('http', 'ws')}`;
 
   const headers = {
     'content-type': 'application/json',
-    'x-hasura-admin-secret': currentApplication.hasuraGraphqlAdminSecret,
+    'x-hasura-admin-secret': currentApplication.config?.hasura.adminSecret,
     ...userHeaders,
   };
 
   const fetcher = createGraphiQLFetcher({
-    url: `${appUrl}/v1/graphql`,
+    url: appUrl,
     headers,
     wsClient: createClient({
       url: subscriptionUrl,
@@ -314,7 +318,39 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout mainContainerProps={{ className: 'flex flex-col' }}>
+    <ProjectLayout
+      mainContainerProps={{
+        className: 'flex flex-col',
+        sx: {
+          [`& .graphiql-container`]: {
+            [`& .graphiql-main, & .graphiql-sessions`]: {
+              backgroundColor: 'background.default',
+            },
+            [`& .graphiql-editors, & .graphiql-editor, & .CodeMirror, & .CodeMirror-gutters, & .graphiql-container .graphiql-doc-explorer, & .graphiql-doc-explorer-search-input + div > ul, & .cm-searching`]:
+              {
+                backgroundColor: 'background.paper',
+              },
+            [`& .CodeMirror-linenumber, & .CodeMirror-line, & .graphiql-tabs button.graphiql-tab, & .graphiql-editor-tools-tabs button`]:
+              {
+                color: 'text.disabled',
+              },
+            [`& .graphiql-editor-tools-tabs button.active, & .graphiql-tabs button.graphiql-tab-active, & .graphiql-markdown-description, & .graphiql-doc-explorer-section-title`]:
+              {
+                color: 'text.secondary',
+              },
+            [`& .graphiql-doc-explorer .graphiql-doc-explorer-header`]: {
+              color: 'text.primary',
+            },
+            [`& .graphiql-tabs button`]: {
+              outline: 'none',
+            },
+            [`& .CodeMirror-hint`]: {
+              borderColor: `grey.300`,
+            },
+          },
+        },
+      }}
+    >
       {page}
     </ProjectLayout>
   );

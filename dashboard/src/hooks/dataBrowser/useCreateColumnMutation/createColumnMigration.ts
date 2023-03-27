@@ -4,9 +4,10 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/data-browser';
+} from '@/types/dataBrowser';
 import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
 import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 
 export interface CreateColumnMigrationVariables {
@@ -33,30 +34,27 @@ export default async function createColumnMigration({
     column,
   });
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_NHOST_MIGRATIONS_URL}/apis/migrate`,
-    {
-      method: 'POST',
-      headers: {
-        'x-hasura-admin-secret': adminSecret,
-      },
-      body: JSON.stringify({
-        dataSource,
-        skip_execution: false,
-        name: `alter_table_${schema}_${table}_add_column_${column.name}`,
-        down: [
-          getPreparedHasuraQuery(
-            dataSource,
-            'ALTER TABLE %I.%I DROP COLUMN IF EXISTS %I',
-            schema,
-            table,
-            column.name,
-          ),
-        ],
-        up: args,
-      }),
+  const response = await fetch(`${getHasuraMigrationsApiUrl()}/apis/migrate`, {
+    method: 'POST',
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
     },
-  );
+    body: JSON.stringify({
+      dataSource,
+      skip_execution: false,
+      name: `alter_table_${schema}_${table}_add_column_${column.name}`,
+      down: [
+        getPreparedHasuraQuery(
+          dataSource,
+          'ALTER TABLE %I.%I DROP COLUMN IF EXISTS %I',
+          schema,
+          table,
+          column.name,
+        ),
+      ],
+      up: args,
+    }),
+  });
 
   const responseData: [AffectedRowsResult, QueryResult<string[]>] | QueryError =
     await response.json();

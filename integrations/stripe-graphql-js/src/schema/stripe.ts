@@ -1,12 +1,41 @@
 import Stripe from 'stripe'
 
-import { GraphQLYogaError } from '@graphql-yoga/node'
+import { GraphQLError } from 'graphql'
 
 import { builder } from '../builder'
 import { stripe } from '../utils'
 
 builder.objectType('Stripe', {
   fields: (t) => ({
+    connectedAccounts: t.field({
+      type: 'StripeConnectedAccounts',
+      resolve: async (_parent, _, context) => {
+        const { isAdmin } = context
+
+        if (!isAdmin) throw new GraphQLError('Not allowed')
+
+        const connectedAccounts = await stripe.accounts.list()
+
+        return connectedAccounts
+      }
+    }),
+    connectedAccount: t.field({
+      type: 'StripeConnectedAccount',
+      args: {
+        id: t.arg.string({
+          required: true
+        })
+      },
+      resolve: async (_parent, { id }, context) => {
+        const { isAdmin } = context
+
+        if (!isAdmin) throw new GraphQLError('Not allowed')
+
+        const connectedAccount = await stripe.accounts.retrieve(id)
+
+        return connectedAccount
+      }
+    }),
     customer: t.field({
       type: 'StripeCustomer',
       args: {
@@ -17,14 +46,14 @@ builder.objectType('Stripe', {
       resolve: async (_parent, { id }, context) => {
         const { isAllowed } = context
 
-        if (!await isAllowed(id, context)) {
-          throw new GraphQLYogaError('Not allowed')
+        if (!(await isAllowed(id, context))) {
+          throw new GraphQLError('Not allowed')
         }
 
         const customer = await stripe.customers.retrieve(id)
 
         if (customer.deleted) {
-          throw new GraphQLYogaError('The Stripe customer is deleted')
+          throw new GraphQLError('The Stripe customer is deleted')
         }
 
         return customer
@@ -100,8 +129,8 @@ builder.objectType('StripeMutations', {
       resolve: async (_, { customer, configuration, locale, returnUrl }, context) => {
         const { isAllowed } = context
 
-        if (!await isAllowed(customer, context)) {
-          throw new GraphQLYogaError('Not allowed')
+        if (!(await isAllowed(customer, context))) {
+          throw new GraphQLError('Not allowed')
         }
 
         const session = await stripe.billingPortal.sessions.create({

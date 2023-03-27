@@ -1,8 +1,6 @@
+import { AuthMachine } from '@nhost/nhost-js'
 import { computed, Ref } from 'vue'
 import { InterpreterFrom } from 'xstate'
-
-import { AuthMachine } from '@nhost/core'
-
 import { useNhostClient } from './useNhostClient'
 
 /** @internal */

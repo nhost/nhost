@@ -92,13 +92,11 @@ update_permissions:
 delete_permissions:
   - role: anonymous
     permission:
-      backend_only: false
       filter:
         user_id:
           _eq: X-Hasura-User-Id
   - role: user
     permission:
-      backend_only: false
       filter:
         user_id:
           _eq: X-Hasura-User-Id

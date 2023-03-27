@@ -11,19 +11,28 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
+import Table from '@/ui/v2/Table';
+import TableBody from '@/ui/v2/TableBody';
+import TableCell from '@/ui/v2/TableCell';
+import TableContainer from '@/ui/v2/TableContainer';
+import TableHead from '@/ui/v2/TableHead';
+import TableRow from '@/ui/v2/TableRow';
 import Text from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
+import { useTheme } from '@mui/material';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 function CheckCircle() {
+  const theme = useTheme();
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
-      fill="currentColor"
-      className="h-6 w-6 fill-lightBlue"
+      fill={theme.palette.primary.main}
+      className="h-6 w-6"
     >
       <path
         fillRule="evenodd"
@@ -120,19 +129,23 @@ export default function WorkspacePaymentMethods() {
       <div className="mx-auto max-w-3xl font-display">
         <Text variant="h3">Payment Methods</Text>
 
-        <div className="mt-4 w-full">
-          <table className="w-full">
-            <thead className="border-b-1">
-              <tr>
-                <th className="text-left">Brand</th>
-                <th className="text-left">Default</th>
-                <th className="text-left">Last 4</th>
-                <th className="text-left">Exp. Date</th>
-                <th className="text-left">Card Added</th>
-                <th className="text-left"> </th>
-              </tr>
-            </thead>
-            <tbody>
+        <TableContainer
+          className="mt-4 w-full"
+          sx={{ backgroundColor: 'background.paper' }}
+        >
+          <Table className="w-full">
+            <TableHead className="border-b-1">
+              <TableRow>
+                <TableCell className="text-left">Brand</TableCell>
+                <TableCell className="text-left">Default</TableCell>
+                <TableCell className="text-left">Last 4</TableCell>
+                <TableCell className="text-left">Exp. Date</TableCell>
+                <TableCell className="text-left">Card Added</TableCell>
+                <TableCell className="text-left"> </TableCell>
+                <TableCell className="text-left"> </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {paymentMethods.map((paymentMethod) => {
                 const {
                   id,
@@ -145,19 +158,19 @@ export default function WorkspacePaymentMethods() {
                 } = paymentMethod;
 
                 return (
-                  <tr key={id} className="border-b-1">
-                    <td className="py-3">{cardBrand}</td>
-                    <td>{isDefault && <CheckCircle />}</td>
-                    <td>{cardLast4}</td>
-                    <td>
+                  <TableRow key={id} className="border-b-1">
+                    <TableCell className="py-3">{cardBrand}</TableCell>
+                    <TableCell>{isDefault && <CheckCircle />}</TableCell>
+                    <TableCell>{cardLast4}</TableCell>
+                    <TableCell>
                       {cardExpMonth}/{cardExpYear}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {formatDistanceToNowStrict(new Date(createdAt), {
                         addSuffix: true,
                       })}
-                    </td>
-                    <td className="text-center">
+                    </TableCell>
+                    <TableCell className="text-center">
                       {!isDefault && (
                         <Button
                           color="secondary"
@@ -184,8 +197,8 @@ export default function WorkspacePaymentMethods() {
                           Set Default
                         </Button>
                       )}
-                    </td>
-                    <td className="text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
                         color="error"
                         size="small"
@@ -205,13 +218,13 @@ export default function WorkspacePaymentMethods() {
                       >
                         Delete
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
         <div className="my-6">
           {!maxPaymentMethodsReached && (
             <Button
@@ -225,11 +238,11 @@ export default function WorkspacePaymentMethods() {
             </Button>
           )}
           {maxPaymentMethodsReached && (
-            <div className="my-2 text-sm text-red">
+            <Text className="my-2 text-sm" color="error">
               You can have at most three payment methods per workspace. To add a
               new payment method, please first delete one of your existing
               payment methods.
-            </div>
+            </Text>
           )}
           {showAddPaymentMethodModal && (
             <Modal

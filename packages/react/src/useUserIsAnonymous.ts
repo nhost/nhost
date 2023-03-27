@@ -12,7 +12,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * @docs https://docs.nhost.io/reference/react/use-user-is-anonymous
  */
-export const useUserIsAnonymous = () => {
+export const useUserIsAnonymous = (): boolean | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -20,8 +20,3 @@ export const useUserIsAnonymous = () => {
     (a, b) => a === b
   )
 }
-
-/**
- * @internal
- * @deprecated use {@link useUserIsAnonymous} instead */
-export const useIsAnonymous = useUserIsAnonymous

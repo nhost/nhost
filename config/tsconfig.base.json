@@ -28,22 +28,47 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "typeRoots": [
-      "./node_modules/@types", "**/*/dist", "**/*/build", "**/*/.next", "**/*/umd"
+      "./node_modules/@types",
+      "**/*/dist",
+      "**/*/build",
+      "**/*/.next",
+      "**/*/umd"
     ],
     "paths": {
-      "@nhost/apollo": ["../packages/apollo/src/index.ts"],
-      "@nhost/core": ["../packages/core/src/index.ts"],
-      "@nhost/docgen": ["../packages/docgen/src/index.ts"],
-      "@nhost/hasura-auth-js": ["../packages/hasura-auth-js/src/index.ts"],
-      "@nhost/hasura-storage-js": ["../packages/hasura-storage-js/src/index.ts"],
-      "@nhost/nextjs": ["../packages/nextjs/src/index.ts"],
-      "@nhost/nhost-js": ["../packages/nhost-js/src/index.ts"],
-      "@nhost/react": ["../packages/react/src/index.ts"],
-      "@nhost/react-apollo": ["../packages/react-apollo/src/index.ts"],
-      "@nhost/react-auth": ["../packages/react-auth/src/index.ts"],
-      "@nhost/vue": ["../packages/vue/src/index.ts"]
+      "@nhost/apollo": [
+        "../integrations/apollo/src/index.ts"
+      ],
+      "@nhost/docgen": [
+        "../packages/docgen/src/index.ts"
+      ],
+      "@nhost/graphql-js": [
+        "../packages/graphql-js/src/index.ts"
+      ],
+      "@nhost/hasura-auth-js": [
+        "../packages/hasura-auth-js/src/index.ts"
+      ],
+      "@nhost/hasura-storage-js": [
+        "../packages/hasura-storage-js/src/index.ts"
+      ],
+      "@nhost/nextjs": [
+        "../packages/nextjs/src/index.ts"
+      ],
+      "@nhost/nhost-js": [
+        "../packages/nhost-js/src/index.ts"
+      ],
+      "@nhost/react": [
+        "../packages/react/src/index.ts"
+      ],
+      "@nhost/react-apollo": [
+        "../integrations/react-apollo/src/index.ts"
+      ],
+      "@nhost/vue": [
+        "../packages/vue/src/index.ts"
+      ]
     }
   },
   "exclude": [

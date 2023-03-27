@@ -1,6 +1,7 @@
 import FormData from 'form-data'
-
+import { HasuraStorageApi } from './hasura-storage-api'
 import {
+  appendImageTransformationParameters,
   StorageDeleteParams,
   StorageDeleteResponse,
   StorageGetPresignedUrlParams,
@@ -10,10 +11,9 @@ import {
   StorageUploadFormDataParams,
   StorageUploadParams,
   StorageUploadResponse
-} from './utils/types'
-import { HasuraStorageApi } from './hasura-storage-api'
+} from './utils'
 
-interface NhostStorageConstructorParams {
+export interface NhostStorageConstructorParams {
   /**
    * Storage endpoint.
    */
@@ -85,26 +85,10 @@ export class HasuraStorageClient {
       formData = params.formData
     }
 
-    const { fileMetadata, error } = await this.api.upload({
+    return this.api.upload({
       ...params,
-      formData: formData
+      formData
     })
-    if (error) {
-      return { fileMetadata: null, error }
-    }
-
-    if (!fileMetadata) {
-      return { fileMetadata: null, error: new Error('Invalid file returned') }
-    }
-
-    return { fileMetadata, error: null }
-  }
-
-  /**
-   * @deprecated Use `nhost.storage.getPublicUrl()` instead.
-   */
-  getUrl(params: StorageGetUrlParams): string {
-    return this.getPublicUrl(params)
   }
 
   /**
@@ -118,8 +102,11 @@ export class HasuraStorageClient {
    * @docs https://docs.nhost.io/reference/javascript/storage/get-public-url
    */
   getPublicUrl(params: StorageGetUrlParams): string {
-    const { fileId } = params
-    return `${this.url}/files/${fileId}`
+    const { fileId, ...imageTransformationParams } = params
+    return appendImageTransformationParameters(
+      `${this.url}/files/${fileId}`,
+      imageTransformationParams
+    )
   }
 
   /**
@@ -142,6 +129,7 @@ export class HasuraStorageClient {
   async getPresignedUrl(
     params: StorageGetPresignedUrlParams
   ): Promise<StorageGetPresignedUrlResponse> {
+    const { fileId, ...imageTransformationParams } = params
     const { presignedUrl, error } = await this.api.getPresignedUrl(params)
     if (error) {
       return { presignedUrl: null, error }
@@ -151,7 +139,18 @@ export class HasuraStorageClient {
       return { presignedUrl: null, error: new Error('Invalid file id') }
     }
 
-    return { presignedUrl, error: null }
+    const urlWithTransformationParams = appendImageTransformationParameters(
+      presignedUrl.url,
+      imageTransformationParams
+    )
+
+    return {
+      presignedUrl: {
+        ...presignedUrl,
+        url: urlWithTransformationParams
+      },
+      error: null
+    }
   }
 
   /**

@@ -1,5 +1,6 @@
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { generateRemoteAppUrl } from '@/utils/helpers';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -38,7 +39,11 @@ export default function useDatabaseQuery(
     isReady,
   } = useRouter();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const appUrl = generateRemoteAppUrl(currentApplication?.subdomain);
+  const appUrl = generateAppServiceUrl(
+    currentApplication?.subdomain,
+    currentApplication?.region.awsName,
+    'hasura',
+  );
 
   const query = useQuery<FetchDatabaseReturnType>(
     queryKey,
@@ -46,13 +51,16 @@ export default function useDatabaseQuery(
       fetchDatabase({
         appUrl: customAppUrl || appUrl,
         adminSecret:
-          customAdminSecret || currentApplication?.hasuraGraphqlAdminSecret,
+          process.env.NEXT_PUBLIC_ENV === 'dev'
+            ? getHasuraAdminSecret()
+            : customAdminSecret ||
+              currentApplication?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {
       ...queryOptions,
       enabled:
-        currentApplication?.hasuraGraphqlAdminSecret && isReady
+        currentApplication?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
     },

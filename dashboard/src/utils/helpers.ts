@@ -1,14 +1,14 @@
-import type {
-  FinalFunction,
-  Func,
-} from '@/components/applications/functions/normalizeFunctionMetadata';
 import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
-import type { NextRouter } from 'next/router';
+import { getLocalBackendUrl } from '@/utils/env';
 import slugify from 'slugify';
 import type { DeploymentRowFragment } from './__generated__/graphql';
 
-export function getLastLiveDeployment(deployments: DeploymentRowFragment[]) {
+export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
+  if (!deployments) {
+    return '';
+  }
+
   return (
     deployments.find((deployment) => deployment.deploymentStatus === 'DEPLOYED')
       ?.id || ''
@@ -57,11 +57,11 @@ export function getCurrentEnvironment(): Environment {
 
 export function generateRemoteAppUrl(subdomain: string): string {
   if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return 'http://localhost:1337';
+    return getLocalBackendUrl();
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || 'http://localhost:1337';
+    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL;
   }
 
   if (process.env.NEXT_PUBLIC_ENV === 'staging') {
@@ -86,26 +86,6 @@ export function emptyWorkspace() {
     repository: '',
     provisioning: false,
   };
-}
-
-export function yieldFunction(
-  functionsToSearch: FinalFunction[],
-  router: NextRouter,
-): Func {
-  let functionToReturn: Func = null;
-
-  functionsToSearch.forEach((currentFolder) => {
-    currentFolder.funcs.forEach((currentFunction) => {
-      if (
-        !functionToReturn &&
-        currentFunction.functionName === router.query.functionId
-      ) {
-        functionToReturn = currentFunction;
-      }
-    });
-  });
-
-  return functionToReturn;
 }
 
 /**

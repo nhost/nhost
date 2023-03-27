@@ -1,5 +1,293 @@
 # @nhost/react
 
+## 2.0.11
+
+### Patch Changes
+
+- @nhost/nhost-js@2.1.1
+
+## 2.0.10
+
+### Patch Changes
+
+- Updated dependencies [bfb4c1a6]
+  - @nhost/nhost-js@2.1.0
+
+## 2.0.9
+
+### Patch Changes
+
+- f375eacc: fix(react): accept service URLs
+- Updated dependencies [088584e7]
+  - @nhost/nhost-js@2.0.9
+
+## 2.0.8
+
+### Patch Changes
+
+- Updated dependencies [1d155559]
+  - @nhost/nhost-js@2.0.8
+
+## 2.0.7
+
+### Patch Changes
+
+- 850a049c: chore(deps): update docker/build-push-action action to v4
+- Updated dependencies [850a049c]
+  - @nhost/nhost-js@2.0.7
+
+## 2.0.6
+
+### Patch Changes
+
+- 4bf40995: chore(deps): bump `typescript` to `4.9.5`
+- 8bb097c9: chore(deps): bump `vitest`
+- Updated dependencies [4bf40995]
+- Updated dependencies [8bb097c9]
+- Updated dependencies [35d52aab]
+  - @nhost/nhost-js@2.0.6
+
+## 2.0.5
+
+### Patch Changes
+
+- Updated dependencies [3c7cf92e]
+  - @nhost/nhost-js@2.0.5
+
+## 2.0.4
+
+### Patch Changes
+
+- 01318860: fix(nhost-js): use correct URL for functions requests
+- Updated dependencies [01318860]
+  - @nhost/nhost-js@2.0.4
+
+## 2.0.3
+
+### Patch Changes
+
+- 445d8ef4: chore(deps): bump `@nhost/nhost-js` version to 2.0.3
+- Updated dependencies [445d8ef4]
+  - @nhost/nhost-js@2.0.3
+
+## 2.0.2
+
+### Patch Changes
+
+- Updated dependencies [2d9145f9]
+  - @nhost/nhost-js@2.0.2
+
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@2.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- 19b11d40: Remove deprecated signatures in React hooks
+
+  It is now not possible to send the input values of the following hooks when creating them:
+
+  - `useChangeEmail`
+  - `useChangePassword`
+  - `useResetPassword`
+  - `useSendVerificationEmail`
+  - `useSignInEmailPassword`
+  - `useSignInEmailPasswordless`
+  - `useSignUpEmailPassword`
+
+  For instance, it is not possible to do the following:
+
+  ```tsx
+  const [email, setEmail] = useState('')
+  const { changeEmail } = useChangeEmail(email)
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      await changeEmail()
+  }
+
+  return <form onSubmit={ handleSubmit }>
+              <input value={email} onChange={onChange={(event) => setEmail(event.target.value)}}  />
+         </form>
+  ```
+
+  Instead, write:
+
+  ```tsx
+  const [email, setEmail] = useState('')
+  const { changeEmail } = useChangeEmail()
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      await changeEmail(email)
+  }
+
+  return <form onSubmit={ handleSubmit }>
+              <input value={email} onChange={onChange={(event) => setEmail(event.target.value)}}  />
+         </form>
+
+  ```
+
+- 19b11d40: Remove deprecated hooks
+
+  - `useNhostAuth`: use `useNhostClient` instead
+  - `useAuthLoading`: use `useAuthenticationStatus` instead
+  - `useAvatarUrl`: use `useUserAvatarUrl` instead.
+  - `useDefaultRole`: use `useUserDefaultRole` instead.
+  - `useDisplayName`: use `useUserDisplayName` instead.
+  - `useEmail`: use `useUserEmail` instead.
+  - `useIsAnonymous`: use `useUserIsAnonymous` instead.
+  - `useNhostBackendUrl`: use `useNhostClient` instead, then the urls in the respective `nhost.<auth,storage,graphql,functions>` clients
+
+### Patch Changes
+
+- Updated dependencies [c9d2d31a]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [80bbd3a1]
+- Updated dependencies [2949ff0f]
+  - @nhost/nhost-js@2.0.0
+
+## 1.13.5
+
+### Patch Changes
+
+- 5013213b: chore(deps): update dependency @nhost/docgen to 0.1.6
+- bf1e4071: chore(react): fix exports for `@nhost/nextjs`
+- Updated dependencies [5013213b]
+  - @nhost/nhost-js@1.13.4
+
+## 1.13.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.3
+
+## 1.13.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.2
+
+## 1.13.2
+
+### Patch Changes
+
+- 200e9f77: chore(deps): update dependency @types/react-dom to v18.0.10
+- Updated dependencies [200e9f77]
+  - @nhost/nhost-js@1.13.1
+
+## 1.13.1
+
+### Patch Changes
+
+- c2706c7d: Export commonly used types
+
+  `BackendUrl`, `ErrorPayload`, `NhostSession`, `Subdomain`, and `User` are now exported in all our SDKs
+
+- d42c27ae: Add explicit return types to React hooks
+
+## 1.13.0
+
+### Patch Changes
+
+- @nhost/nhost-js@1.13.0
+
+## 1.12.1
+
+### Patch Changes
+
+- 1be6d324: Only export what is required by the user or `@nhost/nextjs`
+- 2e8f73df: Improve the error message when the application is not wrapped in `<NhostProvider></NhostProvider>`
+- 85683547: Allow `useFileUpload` to be reused
+  Once a file were uploaded with `useFileUpload`, it was not possible to reuse it as the returned file id were kept in memory and sent again to hasura-storage, leading to a conflict error.
+  File upload now makes sure to clear the metadata information from the first file before uploading the second file.
+  - @nhost/nhost-js@1.12.1
+
+## 1.12.0
+
+### Minor Changes
+
+- 65687bee: Remove `@nhost/nhost-js` from `peerDepencencies`
+
+  The contents of the `@nhost/nhost-js` package are now exported by `@nhost/react`.
+
+### Patch Changes
+
+- b21222b3: chore(deps): update dependency @types/node to v16
+- 54df0df4: Remove unused immer dependency
+- 54df0df4: Improve the initialisation of the internal authentication state to support React 18 strict mode
+- Updated dependencies [b21222b3]
+- Updated dependencies [19cca7f4]
+- Updated dependencies [65687bee]
+- Updated dependencies [54df0df4]
+- Updated dependencies [1a9e1fde]
+- Updated dependencies [5be9abb0]
+- Updated dependencies [54df0df4]
+  - @nhost/nhost-js@1.12.0
+
+## 0.17.0
+
+### Minor Changes
+
+- 57db5b83: Refactor: remove dependency to `@nhost/core`
+
+### Patch Changes
+
+- Updated dependencies [57db5b83]
+  - @nhost/hasura-auth-js@1.7.0
+  - @nhost/hasura-storage-js@0.8.0
+  - @nhost/nhost-js@1.7.0
+
+## 0.16.0
+
+### Minor Changes
+
+- 7f251111: Use `NhostProvider` instead of `NhostReactProvider` and `NhostNextProvider`
+
+  `NhostReactProvider` and `NhostNextProvider` are now deprecated
+
+## 0.15.2
+
+### Patch Changes
+
+- 132a4f4b: chore(deps): synchronize @types/react-dom and @types/react versions
+
+## 0.15.1
+
+### Patch Changes
+
+- 2e6923dc: Refactoring: use xstate's `interpreter.getSnapshot()` instead of `interpreter.state`
+- Updated dependencies [66b4f3d0]
+- Updated dependencies [2e6923dc]
+- Updated dependencies [ef117c28]
+- Updated dependencies [aebb8225]
+  - @nhost/core@0.9.4
+  - @nhost/hasura-storage-js@0.7.4
+  - @nhost/nhost-js@1.6.2
+
+## 0.15.0
+
+### Minor Changes
+
+- 4601d84e: Adding `<SignedIn />` and `<SignedOut />` components.
+
+### Patch Changes
+
+- 843087cb: Make `useUserRoles` reactive
+
+## 0.14.3
+
+### Patch Changes
+
+- Updated dependencies [f2aaff05]
+  - @nhost/core@0.9.3
+  - @nhost/hasura-storage-js@0.7.3
+  - @nhost/nhost-js@1.6.1
+
 ## 0.14.2
 
 ### Patch Changes

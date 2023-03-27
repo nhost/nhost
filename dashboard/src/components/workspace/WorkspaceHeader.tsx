@@ -1,4 +1,5 @@
-import ChangeWorkspaceName from '@/components/applications/ChangeWorkspaceName';
+import { useDialog } from '@/components/common/DialogProvider';
+import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
 import { useUI } from '@/context/UIContext';
 import { useGetWorkspace } from '@/hooks/use-GetWorkspace';
@@ -13,7 +14,6 @@ import { copy } from '@/utils/copy';
 import { nhost } from '@/utils/nhost';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 export default function WorkspaceHeader() {
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
@@ -21,13 +21,13 @@ export default function WorkspaceHeader() {
     query: { workspaceSlug },
   } = useRouter();
 
-  const [changeWorkspaceNameModal, setChangeWorkspaceNameModal] =
-    useState(false);
   const {
     openDeleteWorkspaceModal,
     closeDeleteWorkspaceModal,
     deleteWorkspaceModal,
   } = useUI();
+
+  const { openDialog } = useDialog();
 
   const { data } = useGetWorkspace(workspaceSlug);
 
@@ -45,11 +45,6 @@ export default function WorkspaceHeader() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
-      <Modal
-        showModal={changeWorkspaceNameModal}
-        close={() => setChangeWorkspaceNameModal(!changeWorkspaceNameModal)}
-        Component={ChangeWorkspaceName}
-      />
       <Modal
         showModal={deleteWorkspaceModal}
         close={closeDeleteWorkspaceModal}
@@ -76,12 +71,13 @@ export default function WorkspaceHeader() {
           )}
 
           <div className="flex flex-col items-start pl-3">
-            <h1 className="font-display text-3xl font-medium">
+            <Text variant="h1" className="font-display text-3xl font-medium">
               {currentWorkspace.name}
-            </h1>
-            <button
-              type="button"
-              className="cursor-pointer py-1 pl-1 font-display text-xs font-medium"
+            </Text>
+            <Button
+              variant="borderless"
+              color="secondary"
+              className="py-1 pl-1 font-display text-xs font-medium"
               onClick={() =>
                 copy(
                   `https://app.nhost.io/${currentWorkspace.slug}`,
@@ -89,9 +85,15 @@ export default function WorkspaceHeader() {
                 )
               }
             >
-              <span className="text-grayscale">app.nhost.io/</span>
+              <Text
+                component="span"
+                className="text-xs font-medium"
+                color="secondary"
+              >
+                app.nhost.io/
+              </Text>
               {currentWorkspace.slug}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -112,9 +114,25 @@ export default function WorkspaceHeader() {
               >
                 <Dropdown.Item
                   className="py-2"
-                  onClick={() =>
-                    setChangeWorkspaceNameModal(!changeWorkspaceNameModal)
-                  }
+                  onClick={() => {
+                    openDialog({
+                      title: (
+                        <span className="grid grid-flow-row">
+                          <span>Change Workspace Name</span>
+                          <Text variant="subtitle1" component="span">
+                            Changing the workspace name will also affect the URL
+                            of the workspace.
+                          </Text>
+                        </span>
+                      ),
+                      component: (
+                        <EditWorkspaceNameForm
+                          currentWorkspaceId={currentWorkspace.id}
+                          currentWorkspaceName={currentWorkspace.name}
+                        />
+                      ),
+                    });
+                  }}
                 >
                   Change workspace name
                 </Dropdown.Item>
@@ -122,15 +140,17 @@ export default function WorkspaceHeader() {
                 <Divider component="li" sx={{ margin: 0 }} />
 
                 <Dropdown.Item
-                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium text-red"
+                  className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium"
                   disabled={!noApplications}
                   onClick={openDeleteWorkspaceModal}
+                  sx={{ color: 'error.main' }}
                 >
                   I want to remove this workspace
                   {!noApplications && (
                     <Text
                       variant="caption"
-                      className="font-medium text-greyscaleGrey"
+                      className="font-medium"
+                      color="disabled"
                     >
                       You can&apos;t remove this workspace because you have apps
                       running. Remove all apps first.

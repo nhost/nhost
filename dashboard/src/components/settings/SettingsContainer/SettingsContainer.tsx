@@ -1,4 +1,6 @@
 import ControlledSwitch from '@/components/common/ControlledSwitch';
+import type { BoxProps } from '@/ui/v2/Box';
+import Box from '@/ui/v2/Box';
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
@@ -8,7 +10,6 @@ import Switch from '@/ui/v2/Switch';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
-
 import { twMerge } from 'tailwind-merge';
 
 export interface SettingsContainerProps
@@ -31,7 +32,7 @@ export interface SettingsContainerProps
   /**
    * The description for the section.
    */
-  description: string | ReactNode;
+  description?: string | ReactNode;
   /**
    * Link to the documentation.
    *
@@ -40,6 +41,8 @@ export interface SettingsContainerProps
   docsLink?: string;
   /**
    * Props for the primary action.
+   *
+   * @deprecated Use `slotProps.submitButton` instead.
    */
   primaryActionButtonProps?: ButtonProps;
   /**
@@ -75,9 +78,26 @@ export interface SettingsContainerProps
    */
   className?: string;
   /**
-   * Props to be passed to the Switch component.
+   * Props to be passed to different slots inside the component.
    */
-  switchProps?: SwitchProps;
+  slotProps?: {
+    /**
+     * Props to be passed to the root element.
+     */
+    root?: BoxProps;
+    /**
+     * Props to be passed to the `<Switch />` component.
+     */
+    switch?: SwitchProps;
+    /**
+     * Props to be passed to the footer element.
+     */
+    submitButton?: ButtonProps;
+    /**
+     * Props to be passed to the footer element.
+     */
+    footer?: BoxProps;
+  };
 }
 
 export default function SettingsContainer({
@@ -94,26 +114,22 @@ export default function SettingsContainer({
   switchId,
   showSwitch = false,
   rootClassName,
-  switchProps,
   docsTitle,
+  slotProps: { root, switch: switchSlot, submitButton, footer } = {},
 }: SettingsContainerProps) {
   return (
-    <div
+    <Box
+      {...root}
       className={twMerge(
-        'grid grid-flow-row gap-4 rounded-lg border-1 border-gray-200 bg-white py-4',
-        rootClassName,
+        'grid grid-flow-row gap-4 rounded-lg border-1 py-4',
+        root?.className || rootClassName,
       )}
     >
       <div className="grid grid-flow-col place-content-between gap-3 px-4">
         <div className="grid grid-flow-col gap-4">
           {(typeof icon === 'string' && (
             <div className="flex items-center self-center justify-self-center align-middle">
-              <Image
-                src={icon}
-                alt={`icon of ${title}`}
-                width={32}
-                height={32}
-              />
+              <Image src={icon} alt={icon} width={32} height={32} />
             </div>
           )) ||
             icon}
@@ -121,9 +137,7 @@ export default function SettingsContainer({
           <div className="grid grid-flow-row gap-1">
             <Text className="text-lg font-semibold">{title}</Text>
 
-            {description && (
-              <Text className="text-greyscaleMedium">{description}</Text>
-            )}
+            {description && <Text color="secondary">{description}</Text>}
           </div>
         </div>
         {!switchId && showSwitch && (
@@ -131,14 +145,14 @@ export default function SettingsContainer({
             checked={enabled}
             onChange={(e) => onEnabledChange(e.target.checked)}
             className="self-center"
-            {...switchProps}
+            {...switchSlot}
           />
         )}
         {switchId && showSwitch && (
           <ControlledSwitch
             className="self-center"
             name={switchId}
-            {...switchProps}
+            {...switchSlot}
           />
         )}
       </div>
@@ -147,10 +161,12 @@ export default function SettingsContainer({
         {children}
       </div>
 
-      <div
+      <Box
+        {...footer}
         className={twMerge(
-          'grid grid-flow-col items-center gap-x-2 border-t border-gray-200 px-4 pt-3.5',
+          'grid grid-flow-col items-center gap-x-2 border-t px-4 pt-3.5',
           docsLink ? 'place-content-between' : 'justify-end',
+          footer?.className,
         )}
       >
         {docsLink && (
@@ -173,15 +189,21 @@ export default function SettingsContainer({
 
         <Button
           variant={
-            primaryActionButtonProps?.disabled ? 'outlined' : 'contained'
+            (submitButton || primaryActionButtonProps)?.disabled
+              ? 'outlined'
+              : 'contained'
           }
-          color={primaryActionButtonProps?.disabled ? 'secondary' : 'primary'}
+          color={
+            (submitButton || primaryActionButtonProps)?.disabled
+              ? 'secondary'
+              : 'primary'
+          }
           type="submit"
-          {...primaryActionButtonProps}
+          {...(submitButton || primaryActionButtonProps)}
         >
           {submitButtonText}
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

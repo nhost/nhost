@@ -1,7 +1,10 @@
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/nhost-js'
 import { reactive } from 'vue'
-
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
-
 import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
@@ -29,7 +32,9 @@ import { useNhostClient } from './useNhostClient'
  * };
  * ```
  */
-export const useProviderLink = (options?: NestedRefOfValue<ProviderOptions | undefined>) => {
+export const useProviderLink = (
+  options?: NestedRefOfValue<ProviderOptions | undefined>
+): Record<Provider, string> => {
   const { nhost } = useNhostClient()
   return reactive(
     new Proxy({} as Record<Provider, string>, {

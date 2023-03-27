@@ -27,7 +27,7 @@ yarn add @nhost/react @nhost/react-apollo @apollo/client graphql
 
 ## Initializing
 
-Wrap the React app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostReactProvider`.
+Wrap the React app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostProvider`.
 
 This way, the correct authentication headers are set automatically for GraphQL requests being made by Apollo.
 
@@ -36,7 +36,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostApolloProvider } from '@nhost/react-apollo'
-import { NhostClient, NhostReactProvider } from '@nhost/react'
+import { NhostClient, NhostProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
   subdomain: '<app-subdomain>',
@@ -45,11 +45,11 @@ const nhost = new NhostClient({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostReactProvider nhost={nhost}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
-    </NhostReactProvider>
+    </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )

@@ -10,7 +10,9 @@ import {
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
 import { planDescriptions } from '@/utils/planDescriptions';
 import { triggerToast } from '@/utils/toast';
@@ -30,30 +32,28 @@ function Plan({
   return (
     <button
       type="button"
-      className="my-4 grid w-full grid-flow-col items-center justify-between px-1"
+      className="my-4 grid w-full grid-flow-col items-center justify-between gap-2 px-1"
       onClick={setPlan}
       tabIndex={-1}
     >
       <div className="grid grid-flow-row gap-y-0.5">
-        <div className="flex flex-row">
-          <input
-            id="plan"
-            aria-describedby="plan"
-            name="plan"
-            type="checkbox"
-            className="h-4.5 w-4.5 cursor-pointer self-center rounded border-gray-300 text-blue focus:ring-blue"
+        <div className="grid grid-flow-col items-center justify-start gap-2">
+          <Checkbox
             onChange={setPlan}
             checked={selectedPlanId === planId}
+            aria-label={planName}
           />
+
           <Text
             variant="h3"
             component="p"
-            className="ml-2 self-center font-medium"
+            className="self-center text-left font-medium"
           >
             {currentPlan.price > price ? 'Downgrade' : 'Upgrade'} to {planName}
           </Text>
         </div>
-        <Text variant="subtitle2" className="w-64 text-start">
+
+        <Text variant="subtitle2" className="w-full max-w-[256px] text-start">
           {planDescriptions[planName]}
         </Text>
       </div>
@@ -143,7 +143,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   };
 
   return (
-    <div className="w-welcome p-6 text-left">
+    <Box className="w-full max-w-xl rounded-lg p-6 text-left">
       <Modal
         showModal={paymentModal}
         close={closePaymentModal}
@@ -211,7 +211,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           </Button>
         </div>
       </div>
-    </div>
+    </Box>
   );
 }
 

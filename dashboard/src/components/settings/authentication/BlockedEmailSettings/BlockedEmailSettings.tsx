@@ -1,45 +1,57 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
-import { useGetAppQuery, useUpdateAppMutation } from '@/generated/graphql';
+import { useUI } from '@/context/UIContext';
+import {
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
-import { useState } from 'react';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface BlockedEmailFormValues {
-  /**
-   * Set of emails that are blocked from registering to the user's project.
-   */
-  authAccessControlBlockedEmails: string;
-  /**
-   * Set of email domains that are blocked from registering to the user's project.
-   */
-  authAccessControlBlockedEmailDomains: string;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean().label('Enabled'),
+  blockedEmails: Yup.string().label('Blocked Emails'),
+  blockedEmailDomains: Yup.string().label('Blocked Email Domains'),
+});
+
+export type BlockedEmailFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function BlockedEmailSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-  const [enabled, setEnabled] = useState(false);
-
-  const { data, loading, error } = useGetAppQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const { email, emailDomains } = data?.config?.auth?.user || {};
 
   const form = useForm<BlockedEmailFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAccessControlBlockedEmails: data?.app?.authAccessControlBlockedEmails,
-      authAccessControlBlockedEmailDomains:
-        data?.app?.authAccessControlBlockedEmailDomains,
+      enabled: email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
+      blockedEmails: email?.blocked?.join(', ') || '',
+      blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
     },
+    resolver: yupResolver(validationSchema),
   });
+
+  const { register, formState, watch } = form;
+  const enabled = watch('enabled');
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   if (loading) {
     return (
@@ -55,31 +67,66 @@ export default function BlockedEmailSettings() {
     throw error;
   }
 
-  const { register, formState } = form;
-
   const handleAllowedEmailDomainsChange = async (
     values: BlockedEmailFormValues,
   ) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            user: {
+              email: {
+                allowed: email.allowed,
+                blocked:
+                  values.enabled && values.blockedEmails
+                    ? [
+                        ...new Set(
+                          values.blockedEmails
+                            .split(',')
+                            .map((blockedEmail) => blockedEmail.trim()),
+                        ),
+                      ]
+                    : [],
+              },
+              emailDomains: {
+                allowed: emailDomains.allowed,
+                blocked:
+                  values.enabled && values.blockedEmailDomains
+                    ? [
+                        ...new Set(
+                          values.blockedEmailDomains
+                            .split(',')
+                            .map((blockedEmailDomain) =>
+                              blockedEmailDomain.trim(),
+                            ),
+                        ),
+                      ]
+                    : [],
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Blocked email and domain settings are being updated...`,
-        success: `Blocked email and domain settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's blocked email and domain settings.`,
-      },
-      toastStyleProps,
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Blocked email and domain settings are being updated...`,
+          success: `Blocked email and domain settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's blocked email and domain settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -88,13 +135,14 @@ export default function BlockedEmailSettings() {
         <SettingsContainer
           title="Blocked Emails and Domains"
           description="Block specific email addresses and domains to sign up."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
-          enabled={enabled}
-          onEnabledChange={setEnabled}
+          docsLink="https://docs.nhost.io/authentication#blocked-emails-and-domains"
+          switchId="enabled"
           showSwitch
           className={twMerge(
             'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
@@ -102,9 +150,9 @@ export default function BlockedEmailSettings() {
           )}
         >
           <Input
-            {...register('authAccessControlBlockedEmails')}
-            name="authAccessControlBlockedEmails"
-            id="authAccessControlBlockedEmails"
+            {...register('blockedEmails')}
+            name="blockedEmails"
+            id="blockedEmails"
             placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
             className="col-span-2"
             label="Blocked Emails (comma separated)"
@@ -112,9 +160,9 @@ export default function BlockedEmailSettings() {
             hideEmptyHelperText
           />
           <Input
-            {...register('authAccessControlBlockedEmailDomains')}
-            name="authAccessControlBlockedEmailDomains"
-            id="authAccessControlBlockedEmailDomains"
+            {...register('blockedEmailDomains')}
+            name="blockedEmailDomains"
+            id="blockedEmailDomains"
             label="Blocked Email Domains (comma sepated list)"
             placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
             className="col-span-2"

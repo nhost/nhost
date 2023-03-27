@@ -1,4 +1,4 @@
-import type { HasuraMetadata } from '@/types/data-browser';
+import type { HasuraMetadata } from '@/types/dataBrowser';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
@@ -237,7 +237,10 @@ test('should drop existing relationships and prepare a new one-to-many relations
         "cascade": false,
         "relationship": "books",
         "source": "default",
-        "table": "authors",
+        "table": {
+          "name": "authors",
+          "schema": "public",
+        },
       },
       "type": "pg_drop_relationship",
     }

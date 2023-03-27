@@ -1,64 +1,62 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import {
-  useGetGravatarSettingsQuery,
-  useUpdateAppMutation,
+  GetAuthenticationSettingsDocument,
+  useGetAuthenticationSettingsQuery,
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
+import getServerError from '@/utils/settings/getServerError';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
-  toastStyleProps,
+  getToastStyleProps,
 } from '@/utils/settings/settingsConstants';
-import { useEffect } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface GravatarFormValues {
-  /**
-   * Gravatar image to use as default.
-   */
-  authGravatarDefault: string;
-  /**
-   * Gravatar image rating.
-   */
-  authGravatarRating: string;
-  /**
-   * Enable Gravatar for this project
-   */
-  authGravatarEnabled: boolean;
-}
+const validationSchema = Yup.object({
+  enabled: Yup.boolean().label('Enabled'),
+  default: Yup.string().label('Default Gravatar'),
+  rating: Yup.string().label('Gravatar Rating'),
+});
+
+export type GravatarFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function GravatarSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
-
-  const { data, loading, error } = useGetGravatarSettingsQuery({
-    variables: {
-      id: currentApplication?.id,
-    },
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetAuthenticationSettingsDocument],
   });
+
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+    variables: { appId: currentApplication?.id },
+    fetchPolicy: 'cache-only',
+  });
+
+  const {
+    default: defaultGravatar,
+    rating,
+    enabled,
+  } = data?.config?.auth?.user?.gravatar || {};
 
   const form = useForm<GravatarFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authGravatarDefault: data?.app?.authGravatarDefault || '',
-      authGravatarRating: data?.app?.authGravatarRating || '',
-      authGravatarEnabled: data?.app?.authGravatarEnabled || false,
+      default: defaultGravatar || '',
+      rating: rating || '',
+      enabled: enabled || false,
     },
+    resolver: yupResolver(validationSchema),
   });
-
-  useEffect(() => {
-    form.reset(() => ({
-      authGravatarDefault: data?.app?.authGravatarDefault || '',
-      authGravatarRating: data?.app?.authGravatarRating || '',
-      authGravatarEnabled: data?.app?.authGravatarEnabled || false,
-    }));
-  }, [data?.app, form, form.reset]);
 
   if (loading) {
     return (
@@ -75,29 +73,39 @@ export default function GravatarSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authGravatarEnabled = watch('authGravatarEnabled');
+  const gravatarEnabled = watch('enabled') ?? false;
 
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
-    const updateAppMutation = updateApp({
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            user: {
+              gravatar: values,
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Gravatar settings are being updated...`,
-        success: `Gravatar settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Gravatar settings.`,
-      },
-      { ...toastStyleProps },
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `Gravatar settings are being updated...`,
+          success: `Gravatar settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's Gravatar settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
@@ -106,22 +114,23 @@ export default function GravatarSettings() {
         <SettingsContainer
           title="Gravatar"
           description="Use Gravatars for avatar URLs for users."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication"
-          switchId="authGravatarEnabled"
+          docsLink="https://docs.nhost.io/authentication#gravatar"
+          switchId="enabled"
           showSwitch
-          enabled={authGravatarEnabled}
           className={twMerge(
             'grid grid-flow-col grid-cols-5 grid-rows-2 gap-y-6',
-            !authGravatarEnabled && 'hidden',
+            !gravatarEnabled && 'hidden',
           )}
         >
           <ControlledSelect
-            {...register('authGravatarDefault')}
-            id="authGravatarDefault"
+            {...register('default')}
+            id="default"
             className="col-span-5 lg:col-span-2"
             placeholder="Default Gravatar"
             hideEmptyHelperText
@@ -135,8 +144,8 @@ export default function GravatarSettings() {
             ))}
           </ControlledSelect>
           <ControlledSelect
-            {...register('authGravatarRating')}
-            id="authGravatarRating"
+            {...register('rating')}
+            id="rating"
             className="col-span-5 lg:col-span-2"
             placeholder="Gravatar Rating"
             hideEmptyHelperText

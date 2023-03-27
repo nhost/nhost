@@ -1,4 +1,7 @@
-import { useGetApplicationStateQuery } from '@/generated/graphql';
+import {
+  GetOneUserDocument,
+  useGetApplicationStateQuery,
+} from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { useCallback, useEffect, useState } from 'react';
@@ -21,19 +24,24 @@ export function useCheckProvisioning() {
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
-  const { data, stopPolling, client } = useGetApplicationStateQuery({
-    variables: { appId: currentApplication.id },
-    pollInterval: 2000,
-    skip: !isPlatform,
-  });
+
+  const { data, startPolling, stopPolling, client } =
+    useGetApplicationStateQuery({
+      variables: { appId: currentApplication?.id },
+      skip: !isPlatform || !currentApplication?.id,
+    });
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: ['getOneUser'],
+      include: [GetOneUserDocument],
     });
   }
 
   const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
+
+  useEffect(() => {
+    startPolling(2000);
+  }, [startPolling]);
 
   useEffect(() => {
     if (!data) {
@@ -81,7 +89,13 @@ export function useCheckProvisioning() {
       stopPolling();
       memoizedUpdateCache();
     }
-  }, [data, stopPolling, memoizedUpdateCache, currentApplication.id]);
+  }, [
+    data,
+    stopPolling,
+    memoizedUpdateCache,
+    currentApplication.id,
+    currentApplicationState.state,
+  ]);
 
   return currentApplicationState;
 }

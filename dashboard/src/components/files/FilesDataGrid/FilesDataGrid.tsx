@@ -12,6 +12,7 @@ import useBuckets from '@/hooks/useBuckets';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useFiles from '@/hooks/useFiles';
 import useFilesAggregate from '@/hooks/useFilesAggregate';
+import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
@@ -37,7 +38,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     parseInt(router.query.page as string, 10) - 1 || 0,
   );
   const [sortBy, setSortBy] = useState<SortingRule<StoredFile>[]>();
-  const limit = 25;
+  const limit = 10;
   const emptyStateMessage = searchString
     ? 'No search results found.'
     : 'No files are uploaded yet.';
@@ -261,8 +262,8 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       const { fileMetadata, error: fileError } = await appClient.storage
         .setAdminSecret(
           process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? 'nhost-admin-secret'
-            : currentApplication.hasuraGraphqlAdminSecret,
+            ? getHasuraAdminSecret()
+            : currentApplication.config?.hasura.adminSecret,
         )
         .upload({
           file,
@@ -277,7 +278,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
       }
 
       if (fileError) {
-        throw fileError;
+        throw new Error(fileError.message);
       }
 
       triggerToast(`File has been uploaded successfully (${fileMetadata?.id})`);

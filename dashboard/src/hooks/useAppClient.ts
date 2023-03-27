@@ -1,9 +1,16 @@
+import {
+  getAuthServiceUrl,
+  getFunctionsServiceUrl,
+  getGraphqlServiceUrl,
+  getStorageServiceUrl,
+} from '@/utils/env';
 import { isDevOrStaging } from '@/utils/helpers';
-import type { NhostClientConstructorParams } from '@nhost/nhost-js';
-import { NhostClient } from '@nhost/nhost-js';
+import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
+import { NhostClient } from '@nhost/nextjs';
+import useIsPlatform from './common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
-export type UseAppClientOptions = NhostClientConstructorParams;
+export type UseAppClientOptions = NhostNextClientConstructorParams;
 export type UseAppClientReturn = NhostClient;
 
 /**
@@ -16,12 +23,22 @@ export type UseAppClientReturn = NhostClient;
 export function useAppClient(
   options?: UseAppClientOptions,
 ): UseAppClientReturn {
+  const isPlatform = useIsPlatform();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
+  if (!isPlatform) {
     return new NhostClient({
-      subdomain: 'localhost:1337',
-      start: false,
+      authUrl: getAuthServiceUrl(),
+      graphqlUrl: getGraphqlServiceUrl(),
+      storageUrl: getStorageServiceUrl(),
+      functionsUrl: getFunctionsServiceUrl(),
+      ...options,
+    });
+  }
+
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
+    return new NhostClient({
+      subdomain: 'local',
       ...options,
     });
   }
@@ -31,7 +48,6 @@ export function useAppClient(
     region: isDevOrStaging()
       ? `${currentApplication.region.awsName}.staging`
       : currentApplication.region.awsName,
-    start: false,
     ...options,
   });
 }

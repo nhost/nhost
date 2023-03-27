@@ -1,63 +1,69 @@
 import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
-
 import {
-  addSecurityKeyPromise,
-  AuthClient,
+  EMAIL_NEEDS_VERIFICATION,
+  INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
+  NO_REFRESH_TOKEN,
+  TOKEN_REFRESHER_RUNNING_ERROR
+} from './errors'
+import { AuthClient } from './internal-client'
+import {
   AuthInterpreter,
-  changeEmailPromise,
-  ChangeEmailResponse,
-  changePasswordPromise,
-  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  DeanonymizeResponse,
-  EMAIL_NEEDS_VERIFICATION,
-  encodeQueryParameters,
-  ErrorPayload,
-  INVALID_REFRESH_TOKEN,
-  INVALID_SIGN_IN_METHOD,
-  JWTClaims,
-  JWTHasuraClaims,
-  NhostSessionResponse,
-  NO_REFRESH_TOKEN,
+  createSendVerificationEmailMachine
+} from './machines'
+import {
+  addSecurityKeyPromise,
+  changeEmailPromise,
+  changePasswordPromise,
   resetPasswordPromise,
-  ResetPasswordResponse,
-  rewriteRedirectTo,
-  SecurityKey,
   sendVerificationEmailPromise,
-  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
-  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
-  SignOutResponse,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  SignUpResponse,
-  TOKEN_REFRESHER_RUNNING_ERROR
-} from '@nhost/core'
-
-import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
+  signUpEmailSecurityKeyPromise
+} from './promises'
 import {
   AuthChangedFunction,
   ChangeEmailParams,
+  ChangeEmailResponse,
   ChangePasswordParams,
+  ChangePasswordResponse,
   DeanonymizeParams,
+  DeanonymizeResponse,
+  ErrorPayload,
+  JWTClaims,
+  JWTHasuraClaims,
   NhostAuthConstructorParams,
+  NhostSessionResponse,
   OnTokenChangedFunction,
   ResetPasswordParams,
+  ResetPasswordResponse,
+  SecurityKey,
   SendVerificationEmailParams,
+  SendVerificationEmailResponse,
   SignInParams,
-  SignUpParams
-} from './utils/types'
+  SignInResponse,
+  SignOutResponse,
+  SignUpParams,
+  SignUpResponse
+} from './types'
+import {
+  encodeQueryParameters,
+  getAuthenticationResult,
+  getSession,
+  isBrowser,
+  rewriteRedirectTo
+} from './utils'
 
 /**
  * @alias Auth
@@ -69,11 +75,8 @@ export class HasuraAuthClient {
     url,
     autoRefreshToken = true,
     autoSignIn = true,
-    autoLogin,
     clientStorage,
     clientStorageType,
-    clientStorageGetter,
-    clientStorageSetter,
     refreshIntervalTime,
     start = true
   }: NhostAuthConstructorParams) {
@@ -82,12 +85,10 @@ export class HasuraAuthClient {
       backendUrl: url,
       clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
       autoRefreshToken,
-      autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
+      autoSignIn,
       start,
       clientStorage,
       clientStorageType,
-      clientStorageGetter,
-      clientStorageSetter,
       refreshIntervalTime
     })
   }
@@ -427,26 +428,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'TOKEN_CHANGED') {
           fn(getSession(context))
         }
       })
-
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**
@@ -462,25 +451,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/on-auth-state-changed
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    const listen = (interpreter: AuthInterpreter) =>
-      interpreter.onTransition(({ event, context }) => {
+    return this._client.subscribe(() => {
+      const subscription = this._client.interpreter?.onTransition(({ event, context }) => {
         if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT') {
           fn(event.type, getSession(context))
         }
       })
-    if (this._client.interpreter) {
-      const subscription = listen(this._client.interpreter)
-      return () => subscription.stop()
-    } else {
-      this._client.onStart((client) => {
-        listen(client.interpreter as AuthInterpreter)
-      })
-      return () => {
-        console.log(
-          'onAuthStateChanged was added before the interpreter started. Cannot unsubscribe listener.'
-        )
-      }
-    }
+      return () => subscription?.stop()
+    })
   }
 
   /**
@@ -504,7 +482,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/is-authenticated
    */
   isAuthenticated(): boolean {
-    return !!this._client.interpreter?.state.matches({ authentication: 'signedIn' })
+    return !!this._client.interpreter?.getSnapshot().matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -526,7 +504,7 @@ export class HasuraAuthClient {
    */
   async isAuthenticatedAsync(): Promise<boolean> {
     const interpreter = await this.waitUntilReady()
-    return interpreter.state.matches({ authentication: 'signedIn' })
+    return interpreter.getSnapshot().matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -570,16 +548,6 @@ export class HasuraAuthClient {
   }
 
   /**
-   * @internal
-   * @deprecated Use `nhost.auth.getAccessToken()` instead.
-   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
-   */
-
-  getJWTToken(): string | undefined {
-    return this.getAccessToken()
-  }
-
-  /**
    * Use `nhost.auth.getAccessToken` to get the access token of the user.
    *
    * @example
@@ -590,7 +558,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
   getAccessToken(): string | undefined {
-    return this._client.interpreter?.state.context.accessToken.value ?? undefined
+    return this._client.interpreter?.getSnapshot().context.accessToken.value ?? undefined
   }
 
   /**
@@ -666,7 +634,7 @@ export class HasuraAuthClient {
     try {
       const interpreter = await this.waitUntilReady()
       return new Promise((resolve) => {
-        const token = refreshToken || interpreter.state.context.refreshToken.value
+        const token = refreshToken || interpreter.getSnapshot().context.refreshToken.value
         if (!token) {
           return resolve({ session: null, error: NO_REFRESH_TOKEN })
         }
@@ -704,7 +672,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-session
    */
   getSession() {
-    return getSession(this._client.interpreter?.state?.context)
+    return getSession(this._client.interpreter?.getSnapshot()?.context)
   }
 
   /**
@@ -719,7 +687,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/get-user
    */
   getUser() {
-    return this._client.interpreter?.state?.context?.user || null
+    return this._client.interpreter?.getSnapshot()?.context?.user || null
   }
 
   /**
@@ -732,7 +700,7 @@ export class HasuraAuthClient {
     if (!interpreter) {
       throw Error('Auth interpreter not set')
     }
-    if (!interpreter.state.hasTag('loading')) {
+    if (!interpreter.getSnapshot().hasTag('loading')) {
       return Promise.resolve(interpreter)
     }
     return new Promise((resolve, reject) => {
@@ -750,7 +718,7 @@ export class HasuraAuthClient {
   }
 
   private isReady() {
-    return !this._client.interpreter?.state?.hasTag('loading')
+    return !this._client.interpreter?.getSnapshot()?.hasTag('loading')
   }
 
   get client() {

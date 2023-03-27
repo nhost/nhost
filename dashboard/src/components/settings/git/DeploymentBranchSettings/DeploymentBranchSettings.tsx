@@ -1,11 +1,13 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -19,6 +21,7 @@ export interface DeploymentBranchFormValues {
 }
 
 export default function DeploymentBranchSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
@@ -57,9 +60,11 @@ export default function DeploymentBranchSettings() {
       {
         loading: `The deployment branch is being updated...`,
         success: `The deployment branch has been updated successfully.`,
-        error: `An error occurred while trying to update the project's deployment branch.`,
+        error: getServerError(
+          `An error occurred while trying to update the project's deployment branch.`,
+        ),
       },
-      { ...toastStyleProps },
+      getToastStyleProps(),
     );
 
     form.reset(values);
@@ -79,9 +84,11 @@ export default function DeploymentBranchSettings() {
         <SettingsContainer
           title="Deployment Branch"
           description="All commits pushed to this deployment branch will trigger a deployment. You can switch to a different branch here."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
           docsLink="https://docs.nhost.io/platform/github-integration#deployment-branch"
           className="grid grid-flow-row lg:grid-cols-5"

@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import { PropType, ref, watchEffect } from 'vue'
 
-import { ErrorPayload } from '@nhost/core'
+import { ErrorPayload } from '@nhost/vue'
 
 const props = defineProps({
   error: Object as PropType<ErrorPayload | null>

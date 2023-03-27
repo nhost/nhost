@@ -1,20 +1,22 @@
 import {
+  ActionErrorState,
+  ActionLoadingState,
+  ActionSuccessState,
   PasswordlessOptions,
   SignInEmailPasswordlessHandlerResult,
-  SignInEmailPasswordState
-} from '@nhost/core'
-import { signInEmailPasswordlessPromise } from '@nhost/core'
+  signInEmailPasswordlessPromise
+} from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
-
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
-  /** @deprecated */
-  (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
-export interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordState {
+export interface SignInEmailPasswordlessHookResult
+  extends ActionLoadingState,
+    ActionSuccessState,
+    ActionErrorState {
   /** Sends a magic link to the given email */
   signInEmailPasswordless: SignInEmailPasswordlessHandler
 }
@@ -39,33 +41,13 @@ export interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordSt
  */
 export function useSignInEmailPasswordless(
   options?: PasswordlessOptions
-): SignInEmailPasswordlessHookResult
-
-/**
- * @deprecated
- */
-export function useSignInEmailPasswordless(
-  email?: string,
-  options?: PasswordlessOptions
-): SignInEmailPasswordlessHookResult
-
-export function useSignInEmailPasswordless(
-  a?: string | PasswordlessOptions,
-  b?: PasswordlessOptions
-) {
-  const stateEmail = typeof a === 'string' ? a : undefined
-  const stateOptions = typeof a === 'string' ? b : a
+): SignInEmailPasswordlessHookResult {
   const service = useAuthInterpreter()
 
   const signInEmailPasswordless: SignInEmailPasswordlessHandler = (
-    valueEmail?: string | unknown,
-    valueOptions = stateOptions
-  ) =>
-    signInEmailPasswordlessPromise(
-      service,
-      (typeof valueEmail === 'string' ? valueEmail : stateEmail) as string,
-      valueOptions
-    )
+    valueEmail,
+    valueOptions = options
+  ) => signInEmailPasswordlessPromise(service, valueEmail, valueOptions)
 
   const error = useSelector(
     service,

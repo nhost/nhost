@@ -1,7 +1,10 @@
+import {
+  encodeQueryParameters,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/nhost-js'
 import { useContext, useEffect, useState } from 'react'
-
-import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
-
 import { NhostReactContext } from './provider'
 
 /**
@@ -28,7 +31,7 @@ import { NhostReactContext } from './provider'
  * };
  * ```
  */
-export const useProviderLink = (options?: ProviderOptions) => {
+export const useProviderLink = (options?: ProviderOptions): Record<Provider, string> => {
   /**
    * @internal When using Nextjs or any SSR framework, nhost.auth.client.clientUrl will be set to `undefined`
    * as its value is set to window.location.origin.

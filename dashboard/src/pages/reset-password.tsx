@@ -1,32 +1,67 @@
+import Form from '@/components/common/Form';
+import NavLink from '@/components/common/NavLink';
 import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
-import { Button, Input, Text } from '@/ui';
-import { useResetPassword } from '@nhost/react';
-import Image from 'next/image';
-import Link from 'next/link';
+import Box from '@/ui/v2/Box';
+import Button from '@/ui/v2/Button';
+import Input, { inputClasses } from '@/ui/v2/Input';
+import Text from '@/ui/v2/Text';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { styled } from '@mui/material';
+import { useResetPassword } from '@nhost/nextjs';
 import type { ReactElement } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-type ResetPasswordFormProps = {
-  email: string;
-};
+const validationSchema = Yup.object({
+  email: Yup.string().label('Email').email().required(),
+});
 
-function ResetPasswordForm() {
-  const { resetPassword, isSent, isLoading, isError, error } =
-    useResetPassword();
+export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
-  const { register, handleSubmit, setValue, getValues } =
-    useForm<ResetPasswordFormProps>({
-      reValidateMode: 'onSubmit',
-      defaultValues: {
-        email: '',
-      },
-    });
+const StyledInput = styled(Input)({
+  backgroundColor: 'transparent',
+  [`& .${inputClasses.input}`]: {
+    backgroundColor: 'transparent !important',
+  },
+});
 
-  const onSubmit = async (data: ResetPasswordFormProps) => {
-    const { email } = data;
+export default function ResetPasswordPage() {
+  const { resetPassword, error, isSent } = useResetPassword();
 
-    await resetPassword(email);
-  };
+  const form = useForm<ResetPasswordFormValues>({
+    reValidateMode: 'onSubmit',
+    defaultValues: {
+      email: '',
+    },
+    resolver: yupResolver(validationSchema),
+  });
+
+  const { register, formState, getValues } = form;
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    toast.error(
+      error?.message || 'An error occurred while signing in. Please try again.',
+      getToastStyleProps(),
+    );
+  }, [error]);
+
+  async function handleSubmit({ email }: ResetPasswordFormValues) {
+    try {
+      await resetPassword(email);
+    } catch {
+      toast.error(
+        'An error occurred while signing up. Please try again.',
+        getToastStyleProps(),
+      );
+    }
+  }
 
   if (isSent) {
     return (
@@ -38,112 +73,54 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex max-w-2xl flex-col items-center">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex w-full flex-col space-y-3"
+    <>
+      <Text
+        variant="h2"
+        component="h1"
+        className="text-center text-3.5xl font-semibold lg:text-4.5xl"
       >
-        <div>
-          <Text
-            color="greyscaleDark"
-            className="self-center font-medium"
-            size="normal"
+        Reset Password
+      </Text>
+
+      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+        <FormProvider {...form}>
+          <Form
+            onSubmit={handleSubmit}
+            className="grid grid-flow-row gap-4 bg-transparent"
           >
-            Email
-          </Text>
-          <div className="flex w-full">
-            <Input
+            <StyledInput
               {...register('email')}
-              onChange={(v) => {
-                setValue('email', v);
-              }}
-              autoFocus
-              id="email"
-              placeholder="Email"
-              required
-              minLength={2}
-              maxLength={128}
-              spellCheck="false"
-              aria-label="email"
-              autoCapitalize="none"
               type="email"
+              id="email"
+              label="Email"
+              placeholder="Email"
+              fullWidth
+              autoFocus
+              inputProps={{ min: 2, max: 128 }}
+              error={!!formState.errors.email}
+              helperText={formState.errors.email?.message}
             />
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={isLoading}
-            loading={isLoading}
-          >
-            Send Reset Instructions
-          </Button>
-        </div>
-      </form>
 
-      {isError && (
-        <div className="my-3">
-          <Text variant="item" size="small" className="font-medium text-red">
-            Error: {error.message}
-          </Text>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex max-w-3xl flex-col">
-        <div className="z-30 mb-8 flex justify-center">
-          <a href="https://nhost.io" tabIndex={-1}>
-            <Image
-              src="/assets/Logo.svg"
-              alt="Nhost Logo"
-              width={185}
-              height={64}
-            />
-          </a>
-        </div>
-        <div className="flex items-center justify-center">
-          <div className="z-30">
-            <div
-              className="rounded-lg border border-gray-300 bg-white px-12 py-4"
-              style={{ width: '480px' }}
+            <Button
+              className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+              size="large"
+              type="submit"
+              disabled={formState.isSubmitting}
+              loading={formState.isSubmitting}
             >
-              <div className="my-4">
-                <div className="mb-4 flex justify-center text-lg font-semibold">
-                  Reset your password
-                </div>
-                <ResetPasswordForm />
-              </div>
-            </div>
-            <div className="mt-3 flex justify-center">
-              <div className="text-sm text-gray-700">
-                Is your password okay?{' '}
-                <Link href="/signin" passHref>
-                  <a href="signin" className="text-btn hover:underline">
-                    Sign in
-                  </a>
-                </Link>
-              </div>
-            </div>
-          </div>
+              Send Reset Instructions
+            </Button>
+          </Form>
+        </FormProvider>
+      </Box>
 
-          <div className="absolute z-0 w-full max-w-[887px]">
-            <Image
-              src="/assets/signup/bg-gradient.svg"
-              alt="Gradient background"
-              width={887}
-              height={620}
-              layout="responsive"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      <Text color="secondary" className="text-center text-base lg:text-lg">
+        Is your password okay?{' '}
+        <NavLink href="/signin/email" color="white" className="font-medium">
+          Sign In
+        </NavLink>
+      </Text>
+    </>
   );
 }
 

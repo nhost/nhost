@@ -5,7 +5,7 @@ import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
-import { useUserData } from '@nhost/react';
+import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
@@ -18,7 +18,7 @@ export default function ApplicationUnknown() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const user = useUserData();
   const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === user.id && type === 'owner',
+    ({ userId, type }) => userId === user?.id && type === 'owner',
   );
 
   return (

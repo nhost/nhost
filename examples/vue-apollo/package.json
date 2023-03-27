@@ -1,10 +1,10 @@
 {
   "name": "@nhost-examples/vue-apollo",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.7",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -22,20 +22,20 @@
     "graphql": "15.7.2",
     "graphql-tag": "^2.12.6",
     "roboto-fontface": "*",
-    "vite-plugin-vuetify": "^1.0.0",
+    "vite-plugin-vuetify": "^1.0.1",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6",
     "vuetify": "3.0.0-beta.10",
     "webfontloader": "^1.0.0"
   },
   "devDependencies": {
-    "@nhost/core": "*",
+    "@nhost/hasura-auth-js": "*",
     "@types/webfontloader": "^1.6.35",
-    "@vitejs/plugin-vue": "^2.3.4",
+    "@vitejs/plugin-vue": "^4.0.0",
     "@xstate/inspect": "^0.6.2",
     "sass": "1.32.0",
-    "typescript": "^4.8.4",
-    "vite": "^3.2.2",
+    "typescript": "4.9.4",
+    "vite": "^4.0.2",
     "vue-tsc": "^0.38.9"
   },
   "eslintConfig": {

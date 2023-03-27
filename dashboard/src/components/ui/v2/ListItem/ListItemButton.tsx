@@ -34,10 +34,10 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(),
   [`&.${getListItemButtonUtilityClass('dense')}`]: {
-    padding: theme.spacing(0.75, 1.25),
+    padding: theme.spacing(1, 1.25),
   },
   [`&.${listItemButtonClasses.selected}`]: {
-    backgroundColor: `#ebf3ff`,
+    backgroundColor: theme.palette.primary.light,
     color: theme.palette.primary.main,
   },
   [`&.${listItemButtonClasses.selected} > .${listItemTextClasses.root}`]: {
@@ -50,7 +50,7 @@ const StyledListItemButton = styled(MaterialListItemButton)(({ theme }) => ({
     color: theme.palette.primary.main,
   },
   [`&.${listItemButtonClasses.selected}:hover`]: {
-    backgroundColor: `#ebf3ff`,
+    backgroundColor: theme.palette.primary.light,
   },
 }));
 

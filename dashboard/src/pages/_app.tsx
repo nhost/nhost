@@ -8,7 +8,8 @@ import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import defaultTheme from '@/theme/default';
+import ThemeProvider from '@/ui/v2/ThemeProvider';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import type { EmotionCache } from '@emotion/react';
@@ -19,9 +20,7 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/500.css';
-import { ThemeProvider } from '@mui/material';
-import CssBaseline from '@mui/material/CssBaseline';
-import { NhostNextProvider } from '@nhost/nextjs';
+import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import * as snippet from '@segment/snippet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -89,7 +88,7 @@ function MyApp({
 
       <QueryClientProvider client={queryClient}>
         <CacheProvider value={emotionCache}>
-          <NhostNextProvider nhost={nhost}>
+          <NhostProvider nhost={nhost}>
             <NhostApolloProvider
               fetchPolicy="cache-first"
               nhost={nhost}
@@ -107,10 +106,10 @@ function MyApp({
                       />
                     )}
 
-                    <ThemeProvider theme={defaultTheme}>
+                    <ThemeProvider
+                      colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+                    >
                       <DialogProvider>
-                        <CssBaseline />
-
                         {getLayout(<Component {...pageProps} />)}
                       </DialogProvider>
                     </ThemeProvider>
@@ -118,7 +117,7 @@ function MyApp({
                 </UserDataProvider>
               </WorkspaceProvider>
             </NhostApolloProvider>
-          </NhostNextProvider>
+          </NhostProvider>
         </CacheProvider>
       </QueryClientProvider>
     </ErrorBoundary>
