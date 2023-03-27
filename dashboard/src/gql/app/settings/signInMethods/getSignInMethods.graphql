@@ -100,6 +100,13 @@ query GetSignInMethods($appId: uuid!) {
             connection
             organization
           }
+          azuread {
+            enabled
+            clientId
+            clientSecret
+            tenantId
+            scope
+          }
         }
       }
     }
