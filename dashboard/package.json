@@ -71,7 +71,7 @@
     "react-merge-refs": "^1.1.0",
     "react-syntax-highlighter": "^15.4.5",
     "react-table": "^7.8.0",
-    "sharp": "^0.31.2",
+    "sharp": "^0.32.0",
     "slugify": "^1.6.5",
     "stripe": "^10.17.0",
     "tailwind-merge": "^1.8.0",
