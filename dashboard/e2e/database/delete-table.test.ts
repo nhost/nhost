@@ -3,10 +3,11 @@ import {
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
-import { openProject, prepareTable } from '@/e2e/utils';
+import { deleteTable, openProject, prepareTable } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
+import { snakeCase } from 'snake-case';
 
 let page: Page;
 
@@ -32,7 +33,7 @@ test.afterAll(async () => {
 });
 
 test('should delete a table', async () => {
-  const tableName = faker.random.word().toLowerCase();
+  const tableName = snakeCase(faker.random.words(3));
 
   await page.getByRole('button', { name: /new table/i }).click();
 
@@ -52,25 +53,10 @@ test('should delete a table', async () => {
     `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
-  const tableLink = page.getByRole('link', {
+  await deleteTable({
+    page,
     name: tableName,
-    exact: true,
   });
-
-  await tableLink.hover();
-  await page
-    .getByRole('listitem')
-    .filter({ hasText: tableName })
-    .getByRole('button')
-    .click();
-
-  await page.getByRole('menuitem', { name: /delete table/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /delete table/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /delete/i }).click();
 
   // navigate to next URL
   await page.waitForURL(
@@ -86,7 +72,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const firstTableName = faker.random.word().toLowerCase();
+  const firstTableName = snakeCase(faker.random.words(3));
 
   await prepareTable({
     page,
@@ -108,7 +94,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const secondTableName = faker.random.word().toLowerCase();
+  const secondTableName = snakeCase(faker.random.words(3));
 
   await prepareTable({
     page,
@@ -163,25 +149,10 @@ test('should not be able to delete a table if other tables have foreign keys ref
   ).toBeVisible();
 
   // try to delete the first table that is referenced by the second table
-  const tableLink = page.getByRole('link', {
+  await deleteTable({
+    page,
     name: firstTableName,
-    exact: true,
   });
-
-  await tableLink.hover();
-  await page
-    .getByRole('listitem')
-    .filter({ hasText: firstTableName })
-    .getByRole('button')
-    .click();
-
-  await page.getByRole('menuitem', { name: /delete table/i }).click();
-
-  await expect(
-    page.getByRole('heading', { name: /delete table/i }),
-  ).toBeVisible();
-
-  await page.getByRole('button', { name: /delete/i }).click();
 
   await expect(
     page.getByText(
