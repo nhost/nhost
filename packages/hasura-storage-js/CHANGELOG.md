@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.0.5
+
+### Patch Changes
+
+- 43c86fef: chore: improve presignedUrl test
+
 ## 2.0.4
 
 ### Patch Changes

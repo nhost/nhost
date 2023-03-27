@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.0.7
+
+### Patch Changes
+
+- 4713cecf: chore(deps): bump `@pnpm/find-workspace-dir` to v6
+
 ## 0.0.6
 
 ### Patch Changes
