@@ -66,18 +66,25 @@ export async function prepareTable({
 
         // set type
         await page
+          .getByRole('table')
           .getByRole('combobox', { name: /type/i })
           .nth(index)
-          .fill(type);
-        await page.getByRole('option', { name: type }).first().click();
+          .type(type);
+        await page
+          .getByRole('table')
+          .getByRole('option', { name: type })
+          .first()
+          .click();
 
         // optionally set default value
         if (defaultValue) {
           await page
+            .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
             .nth(index)
-            .fill(defaultValue);
+            .type(defaultValue);
           await page
+            .getByRole('table')
             .getByRole('option', { name: defaultValue })
             .first()
             .click();

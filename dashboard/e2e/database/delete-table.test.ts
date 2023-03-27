@@ -13,6 +13,9 @@ let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
+});
+
+test.beforeEach(async () => {
   await page.goto('/');
 
   await openProject({
@@ -33,7 +36,7 @@ test.afterAll(async () => {
 });
 
 test('should delete a table', async () => {
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await page.getByRole('button', { name: /new table/i }).click();
 
@@ -72,7 +75,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const firstTableName = snakeCase(faker.random.words(3));
+  const firstTableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -94,7 +97,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const secondTableName = snakeCase(faker.random.words(3));
+  const secondTableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,

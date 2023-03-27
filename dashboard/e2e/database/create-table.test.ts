@@ -13,6 +13,9 @@ let page: Page;
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
+});
+
+test.beforeEach(async () => {
   await page.goto('/');
 
   await openProject({
@@ -36,7 +39,7 @@ test('should create a simple table', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -64,7 +67,7 @@ test('should create a table with unique constraints', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -93,7 +96,7 @@ test('should create a table with nullable columns', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -122,7 +125,7 @@ test('should create a table with an identity column', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -154,7 +157,7 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const firstTableName = snakeCase(faker.random.words(3));
+  const firstTableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -176,7 +179,7 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const secondTableName = snakeCase(faker.random.words(3));
+  const secondTableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
@@ -235,7 +238,7 @@ test('should not be able to create a table with a name that already exists', asy
   await page.getByRole('button', { name: /new table/i }).click();
   await expect(page.getByText(/create a new table/i)).toBeVisible();
 
-  const tableName = snakeCase(faker.random.words(3));
+  const tableName = snakeCase(faker.lorem.words(3));
 
   await prepareTable({
     page,
