@@ -1,8 +1,11 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import { useUI } from '@/context/UIContext';
 import {
-  useSignInMethodsQuery,
-  useUpdateAppMutation
+  GetSignInMethodsDocument,
+  useGetSignInMethodsQuery,
+  useUpdateConfigMutation
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -10,46 +13,73 @@ import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import { generateRemoteAppUrl } from '@/utils/helpers';
-import { toastStyleProps } from '@/utils/settings/settingsConstants';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
-export interface AzureADProviderFormValues{
-  authAzureADEnabled: boolean;
-  authAzureADClientId: string;
-  authAzureADClientSecret: string;
-  authAzureADTenantId: string;
-}
+const validationSchema = Yup.object({
+  clientId: Yup.string()
+    .label('Client ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  clientSecret: Yup.string()
+    .label('Client Secret')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  tenantId: Yup.string()
+    .label('Tenant ID')
+    .when('enabled', {
+      is: true,
+      then: (schema) => schema.required(),
+    }),
+  enabled: Yup.boolean(),
+  scope: Yup.string(),
+});
+
+export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AzureADProviderSettings() {
+  const { maintenanceActive } = useUI();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    refetchQueries: [GetSignInMethodsDocument],
+  });
 
-  const { data, loading, error } = useSignInMethodsQuery({
-    variables: {
-      id: currentApplication.id,
-    },
+  const { data, loading, error } = useGetSignInMethodsQuery({
+    variables: { appId: currentApplication?.id },
     fetchPolicy: 'cache-only',
   });
+
+  const { clientId, clientSecret, tenantId, enabled, scope } =
+    data?.config?.auth?.method?.oauth?.azuread || {};
 
   const form = useForm<AzureADProviderFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      authAzureADClientId: data?.app?.authAzureADClientId,
-      authAzureADClientSecret: data?.app?.authAzureADClientSecret,
-      authAzureADTenantId: data?.app?.authAzureADTenantId,
-      authAzureADEnabled: data?.app?.authAzureADEnabled,
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      tenantId: tenantId || '',
+      enabled: enabled || false,
+      scope: scope || 'openid profile email',
     },
+    resolver: yupResolver(validationSchema),
   });
 
   if (loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading AzureAD Settings..."
+        label="Loading settings for AzureAD..."
         className="justify-center"
       />
     );
@@ -60,93 +90,102 @@ export default function AzureADProviderSettings() {
   }
 
   const { register, formState, watch } = form;
-  const authEnabled = watch('authAzureADEnabled');
+  const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (
-    values: AzureADProviderFormValues
-  ) => {
-    const updateAppMutation = updateApp({
+  const handleProviderUpdate = async (values: AzureADProviderFormValues) => {
+    const updateConfigPromise = updateConfig({
       variables: {
-        id: currentApplication.id,
-        app: {
-          ...values,
+        appId: currentApplication.id,
+        config: {
+          auth: {
+            method: {
+              oauth: {
+                azuread: values,
+              },
+            },
+          },
         },
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `Azure AD settings are being updated...`,
-        success: `Azure AD settings have been updated successfully.`,
-        error: `An error occurred while trying to update the project's Azure AD settings.`,
-      },
-      { ...toastStyleProps },
-    );
+    try {
+      await toast.promise(
+        updateConfigPromise,
+        {
+          loading: `AzureAD settings are being updated...`,
+          success: `AzureAD settings have been updated successfully.`,
+          error: getServerError(
+            `An error occurred while trying to update the project's AzureAD settings.`,
+          ),
+        },
+        getToastStyleProps(),
+      );
 
-    form.reset(values);
+      form.reset(values);
+    } catch {
+      // Note: The toast will handle the error.
+    }
   };
 
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
-          title="Azure AD"
-          description="Allows users to sign in with Azure AD."
-          primaryActionButtonProps={{
-            disabled: !formState.isValid || !formState.isDirty,
-            loading: formState.isSubmitting,
+          title="AzureAD"
+          description="Allows users to sign in with AzureAD."
+          slotProps={{
+            submitButton: {
+              disabled: !formState.isDirty || maintenanceActive,
+              loading: formState.isSubmitting,
+            },
           }}
-          docsTitle="how to sign in users with Azure AD"
+          docsLink="https://docs.nhost.io/authentication/sign-in-with-azuread"
+          docsTitle="how to sign in users with AzureAD"
           icon="/logos/AzureAD.svg"
-          switchId="authAzureADEnabled"
+          switchId="enabled"
           showSwitch
-          enabled={authEnabled}
           className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
+            'grid grid-flow-row grid-cols-2 gap-y-4 gap-x-3 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >
+          <BaseProviderSettings providerName="azuread" />
           <Input
-          {...register('authAzureADClientId')}
-          name="authAzureADClientId"
-          id="authAzureADClientId"
-          label="Azure AD Client ID"
-          placeholder="Azure AD Client ID"
-          className="col-span-3"
-          fullWidth
-          hideEmptyHelperText
+            {...register('tenantId')}
+            name="tenantId"
+            id="tenantId"
+            label="Tenant ID"
+            placeholder="Tenant ID"
+            className="col-span-1"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.tenantId}
+            helperText={formState.errors?.tenantId?.message}
           />
           <Input
-          {...register('authAzureADClientSecret')}
-          name="authAzureADClientSecret"
-          id="authAzureADClientSecret"
-          label="Azure AD Client Secret"
-          placeholder="Azure AD Client Secret"
-          className="col-span-1"
-          fullWidth
-          hideEmptyHelperText
-          />
-          <Input
-          {...register('authAzureADTenantId')}
-          name="authAzureADTenantId"
-          id="authAzureADTenantId"
-          label="Azure AD Tenant ID"
-          placeholder="Azure AD Tenant ID"
-          className="col-span-1"
-          fullWidth
-          hideEmptyHelperText
+            {...register('scope')}
+            name="scope"
+            id="scope"
+            label="Scope"
+            placeholder="Scope"
+            className="col-span-1"
+            fullWidth
+            hideEmptyHelperText
+            error={!!formState.errors?.scope}
+            helperText={formState.errors?.scope?.message}
           />
           <Input
             name="redirectUrl"
             id="redirectUrl"
-            className="col-span-1"
+            defaultValue={`${generateAppServiceUrl(
+              currentApplication.subdomain,
+              currentApplication.region.awsName,
+              'auth',
+            )}/signin/provider/azuread/callback`}
+            className="col-span-2"
             fullWidth
             hideEmptyHelperText
             label="Redirect URL"
-            defaultValue={`${generateRemoteAppUrl(
-              currentApplication.subdomain,
-            )}.nhost.run/v1/auth/signin/provider/azuread/callback`}
             disabled
             endAdornment={
               <InputAdornment position="end" className="absolute right-2">
@@ -157,9 +196,11 @@ export default function AzureADProviderSettings() {
                   onClick={(e) => {
                     e.stopPropagation();
                     copy(
-                      `${generateRemoteAppUrl(
+                      `${generateAppServiceUrl(
                         currentApplication.subdomain,
-                      )}.nhost.run/v1/auth/signin/provider/azuread/callback`,
+                        currentApplication.region.awsName,
+                        'auth',
+                      )}/signin/provider/azuread/callback`,
                       'Redirect URL',
                     );
                   }}
