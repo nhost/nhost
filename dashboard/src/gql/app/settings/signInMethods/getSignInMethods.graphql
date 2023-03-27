@@ -104,8 +104,7 @@ query GetSignInMethods($appId: uuid!) {
             enabled
             clientId
             clientSecret
-            tenantId
-            scope
+            tenant
           }
         }
       }

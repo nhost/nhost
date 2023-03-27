@@ -57,6 +57,7 @@ export default function SettingsSignInMethodsPage() {
       <SMSSettings />
       {!currentApplication.providersUpdated && <ProvidersUpdatedAlert />}
       <AppleProviderSettings />
+      <AzureADProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />
       <GitHubProviderSettings />
@@ -67,7 +68,6 @@ export default function SettingsSignInMethodsPage() {
       <TwitterProviderSettings />
       <WindowsLiveProviderSettings />
       <WorkOsProviderSettings />
-      <AzureADProviderSettings />
     </Container>
   );
 }

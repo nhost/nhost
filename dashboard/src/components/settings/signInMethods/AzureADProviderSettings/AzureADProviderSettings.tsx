@@ -5,7 +5,7 @@ import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateConfigMutation
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -36,14 +36,13 @@ const validationSchema = Yup.object({
       is: true,
       then: (schema) => schema.required(),
     }),
-  tenantId: Yup.string()
-    .label('Tenant ID')
+  tenant: Yup.string()
+    .label('Tenant')
     .when('enabled', {
       is: true,
       then: (schema) => schema.required(),
     }),
   enabled: Yup.boolean(),
-  scope: Yup.string(),
 });
 
 export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
@@ -60,7 +59,7 @@ export default function AzureADProviderSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { clientId, clientSecret, tenantId, enabled, scope } =
+  const { clientId, clientSecret, tenant, enabled } =
     data?.config?.auth?.method?.oauth?.azuread || {};
 
   const form = useForm<AzureADProviderFormValues>({
@@ -68,9 +67,8 @@ export default function AzureADProviderSettings() {
     defaultValues: {
       clientId: clientId || '',
       clientSecret: clientSecret || '',
-      tenantId: tenantId || '',
+      tenant: tenant || '',
       enabled: enabled || false,
-      scope: scope || 'openid profile email',
     },
     resolver: yupResolver(validationSchema),
   });
@@ -141,7 +139,7 @@ export default function AzureADProviderSettings() {
           }}
           docsLink="https://docs.nhost.io/authentication/sign-in-with-azuread"
           docsTitle="how to sign in users with AzureAD"
-          icon="/logos/AzureAD.svg"
+          icon="/assets/brands/azuread.svg"
           switchId="enabled"
           showSwitch
           className={twMerge(
@@ -151,28 +149,16 @@ export default function AzureADProviderSettings() {
         >
           <BaseProviderSettings providerName="azuread" />
           <Input
-            {...register('tenantId')}
-            name="tenantId"
-            id="tenantId"
+            {...register('tenant')}
+            name="tenant"
+            id="tenant"
             label="Tenant ID"
             placeholder="Tenant ID"
-            className="col-span-1"
+            className="col-span-2"
             fullWidth
             hideEmptyHelperText
-            error={!!formState.errors?.tenantId}
-            helperText={formState.errors?.tenantId?.message}
-          />
-          <Input
-            {...register('scope')}
-            name="scope"
-            id="scope"
-            label="Scope"
-            placeholder="Scope"
-            className="col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.scope}
-            helperText={formState.errors?.scope?.message}
+            error={!!formState.errors?.tenant}
+            helperText={formState.errors?.tenant?.message}
           />
           <Input
             name="redirectUrl"
