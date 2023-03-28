@@ -66,18 +66,25 @@ export async function prepareTable({
 
         // set type
         await page
+          .getByRole('table')
           .getByRole('combobox', { name: /type/i })
           .nth(index)
-          .fill(type);
-        await page.getByRole('option', { name: type }).first().click();
+          .type(type);
+        await page
+          .getByRole('table')
+          .getByRole('option', { name: type })
+          .first()
+          .click();
 
         // optionally set default value
         if (defaultValue) {
           await page
+            .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
-            .first()
-            .fill(defaultValue);
+            .nth(index)
+            .type(defaultValue);
           await page
+            .getByRole('table')
             .getByRole('option', { name: defaultValue })
             .first()
             .click();
@@ -110,4 +117,34 @@ export async function prepareTable({
   // select the first column as primary key
   await page.getByRole('button', { name: /primary key/i }).click();
   await page.getByRole('option', { name: primaryKey, exact: true }).click();
+}
+
+/**
+ * Deletes a table with the given name.
+ *
+ * @param page - The Playwright page object.
+ * @param name - The name of the table to delete.
+ * @returns A promise that resolves when the table is deleted.
+ */
+export async function deleteTable({
+  page,
+  name,
+}: {
+  page: Page;
+  name: string;
+}) {
+  const tableLink = page.getByRole('link', {
+    name,
+    exact: true,
+  });
+
+  await tableLink.hover();
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: name })
+    .getByRole('button')
+    .click();
+
+  await page.getByRole('menuitem', { name: /delete table/i }).click();
+  await page.getByRole('button', { name: /delete/i }).click();
 }
