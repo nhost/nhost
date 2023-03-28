@@ -37,7 +37,8 @@ async function globalTeardown() {
 
   const adminSecretInput = hasuraPage.getByPlaceholder(/enter admin-secret/i);
 
-  // paste from clipboard
+  // note: a more ideal way would be to paste from clipboard, but Playwright
+  // doesn't support that yet
   await adminSecretInput.fill(TEST_PROJECT_ADMIN_SECRET);
   await adminSecretInput.press('Enter');
 
