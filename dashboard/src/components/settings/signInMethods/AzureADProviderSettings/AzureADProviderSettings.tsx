@@ -130,7 +130,7 @@ export default function AzureADProviderSettings() {
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
           title="Azure AD"
-          description="Allows users to sign in with Azure AD."
+          description="Allow users to sign in with Azure AD."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
