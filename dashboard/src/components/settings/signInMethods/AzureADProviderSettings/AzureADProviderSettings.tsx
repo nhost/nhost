@@ -5,7 +5,7 @@ import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateConfigMutation,
+  useUpdateConfigMutation
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -137,8 +137,6 @@ export default function AzureADProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/authentication/sign-in-with-azuread"
-          docsTitle="how to sign in users with AzureAD"
           icon="/assets/brands/azuread.svg"
           switchId="enabled"
           showSwitch
