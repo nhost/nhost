@@ -13,7 +13,7 @@ services:
       postgres_password: postgres
       postgres_user: postgres
   auth:
-    image: nhost/hasura-auth:0.16.1
+    image: nhost/hasura-auth:0.16.2
   storage:
     image: nhost/hasura-storage:0.3.0
 auth:
