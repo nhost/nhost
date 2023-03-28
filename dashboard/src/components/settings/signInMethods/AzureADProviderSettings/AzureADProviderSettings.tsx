@@ -5,7 +5,7 @@ import { useUI } from '@/context/UIContext';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
-  useUpdateConfigMutation
+  useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -77,7 +77,7 @@ export default function AzureADProviderSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading settings for AzureAD..."
+        label="Loading settings for Azure AD..."
         className="justify-center"
       />
     );
@@ -110,10 +110,10 @@ export default function AzureADProviderSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `AzureAD settings are being updated...`,
-          success: `AzureAD settings have been updated successfully.`,
+          loading: `Azure AD settings are being updated...`,
+          success: `Azure AD settings have been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update the project's AzureAD settings.`,
+            `An error occurred while trying to update the project's Azure AD settings.`,
           ),
         },
         getToastStyleProps(),
@@ -129,8 +129,8 @@ export default function AzureADProviderSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleProviderUpdate}>
         <SettingsContainer
-          title="AzureAD"
-          description="Allows users to sign in with AzureAD."
+          title="Azure AD"
+          description="Allows users to sign in with Azure AD."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
