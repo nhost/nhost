@@ -190,6 +190,7 @@ importers:
       require-from-string: ^2.0.2
       sharp: ^0.32.0
       slugify: ^1.6.5
+      snake-case: ^3.0.4
       storybook-addon-next-router: ^4.0.1
       stripe: ^10.17.0
       tailwind-merge: ^1.8.0
@@ -327,6 +328,7 @@ importers:
       prettier-plugin-tailwindcss: 0.2.0_prettier@2.7.1
       react-date-fns-hooks: 0.9.4_3pf3ktbrffvgnzxoo2eotyjcpi
       require-from-string: 2.0.2
+      snake-case: 3.0.4
       storybook-addon-next-router: 4.0.1_tu4orvw3rpr5ktbmb2kplp4vty
       tailwindcss: 3.2.1_v776zzvn44o7tpgzieipaairwm
       ts-node: 10.9.1_@types+node@16.18.11

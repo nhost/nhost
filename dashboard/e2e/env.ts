@@ -32,6 +32,12 @@ export const TEST_PROJECT_SLUG = slugify(TEST_PROJECT_NAME, {
 });
 
 /**
+ * Hasura admin secret of the test project to use.
+ */
+export const TEST_PROJECT_ADMIN_SECRET =
+  process.env.NHOST_TEST_PROJECT_ADMIN_SECRET;
+
+/**
  * Email of the test account to use.
  */
 export const TEST_USER_EMAIL = process.env.NHOST_TEST_USER_EMAIL;
