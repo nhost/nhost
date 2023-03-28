@@ -25,7 +25,9 @@ export type Scalars = {
   bpchar: any;
   bytea: any;
   citext: any;
+  float64: any;
   jsonb: any;
+  labels: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -1035,7 +1037,9 @@ export type ConfigGlobalUpdateInput = {
 export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   adminSecret: Scalars['String'];
+  events?: Maybe<ConfigHasuraEvents>;
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+  logs?: Maybe<ConfigHasuraLogs>;
   resources?: Maybe<ConfigResources>;
   settings?: Maybe<ConfigHasuraSettings>;
   version?: Maybe<Scalars['String']>;
@@ -1047,20 +1051,64 @@ export type ConfigHasuraComparisonExp = {
   _not?: InputMaybe<ConfigHasuraComparisonExp>;
   _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   adminSecret?: InputMaybe<ConfigStringComparisonExp>;
+  events?: InputMaybe<ConfigHasuraEventsComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  logs?: InputMaybe<ConfigHasuraLogsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   settings?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
   webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+export type ConfigHasuraEvents = {
+  __typename?: 'ConfigHasuraEvents';
+  httpPoolSize?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigHasuraEventsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraEventsComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraEventsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraEventsComparisonExp>>;
+  httpPoolSize?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigHasuraEventsInsertInput = {
+  httpPoolSize?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigHasuraEventsUpdateInput = {
+  httpPoolSize?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 export type ConfigHasuraInsertInput = {
   adminSecret: Scalars['String'];
+  events?: InputMaybe<ConfigHasuraEventsInsertInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
+  logs?: InputMaybe<ConfigHasuraLogsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   settings?: InputMaybe<ConfigHasuraSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
+};
+
+export type ConfigHasuraLogs = {
+  __typename?: 'ConfigHasuraLogs';
+  level?: Maybe<Scalars['String']>;
+};
+
+export type ConfigHasuraLogsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraLogsComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraLogsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraLogsComparisonExp>>;
+  level?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigHasuraLogsInsertInput = {
+  level?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigHasuraLogsUpdateInput = {
+  level?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigHasuraSettings = {
@@ -1085,7 +1133,9 @@ export type ConfigHasuraSettingsUpdateInput = {
 
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
+  events?: InputMaybe<ConfigHasuraEventsUpdateInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
+  logs?: InputMaybe<ConfigHasuraLogsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -1637,6 +1687,24 @@ export type Log = {
   log: Scalars['String'];
   service: Scalars['String'];
   timestamp: Scalars['Timestamp'];
+};
+
+export type Metrics = {
+  __typename?: 'Metrics';
+  rows: Array<RowMetric>;
+};
+
+export type RowMetric = {
+  __typename?: 'RowMetric';
+  labels?: Maybe<Scalars['labels']>;
+  time: Scalars['Timestamp'];
+  value?: Maybe<Scalars['float64']>;
+};
+
+export type StatsLiveApps = {
+  __typename?: 'StatsLiveApps';
+  appID: Array<Scalars['uuid']>;
+  count: Scalars['Int'];
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -4878,6 +4946,7 @@ export type Backups = {
   appId: Scalars['uuid'];
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt: Scalars['timestamptz'];
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id: Scalars['uuid'];
   size: Scalars['bigint'];
 };
@@ -4965,6 +5034,7 @@ export type Backups_Bool_Exp = {
   appId?: InputMaybe<Uuid_Comparison_Exp>;
   completedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   size?: InputMaybe<Bigint_Comparison_Exp>;
 };
@@ -4986,6 +5056,7 @@ export type Backups_Insert_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -4996,6 +5067,7 @@ export type Backups_Max_Fields = {
   appId?: Maybe<Scalars['uuid']>;
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   size?: Maybe<Scalars['bigint']>;
 };
@@ -5005,6 +5077,7 @@ export type Backups_Max_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5015,6 +5088,7 @@ export type Backups_Min_Fields = {
   appId?: Maybe<Scalars['uuid']>;
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   size?: Maybe<Scalars['bigint']>;
 };
@@ -5024,6 +5098,7 @@ export type Backups_Min_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5050,6 +5125,7 @@ export type Backups_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5068,6 +5144,8 @@ export enum Backups_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
   Id = 'id',
   /** column name */
   Size = 'size'
@@ -5078,6 +5156,7 @@ export type Backups_Set_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -5128,6 +5207,7 @@ export type Backups_Stream_Cursor_Value_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -5151,6 +5231,8 @@ export enum Backups_Update_Column {
   CompletedAt = 'completedAt',
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
   /** column name */
   Id = 'id',
   /** column name */
@@ -9150,6 +9232,7 @@ export type Mutation_Root = {
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
   migrateRDSToPostgres: Scalars['Boolean'];
+  pauseInactiveApps: Array<Scalars['String']>;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
   /** update single row of the table: "apps" */
@@ -9339,8 +9422,15 @@ export type Mutation_Root = {
 
 
 /** mutation root */
+export type Mutation_RootBackupAllApplicationsDatabaseArgs = {
+  expireInDays?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
+  expireInDays?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -11947,6 +12037,41 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
+  /**
+   * Returns CPU metrics for a given application.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * CPU usage is calculated as the average CPU usage over the period of 1m.
+   *
+   * Unit returned is millicores.
+   */
+  getCPUMetrics: Metrics;
+  /**
+   * Returns memory metrics for a given application.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Memory usage is returned in MiB.
+   */
+  getMemoryMetrics: Metrics;
+  /**
+   * Returns disk capacity for the volume used by postgres to store the database.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Disk usage is returned in MiB.
+   */
+  getPostgresVolumeCapacity: Metrics;
+  /**
+   * Returns disk usage for the volume used by postgres to store the database.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Disk usage is returned in MiB.
+   */
+  getPostgresVolumeUsage: Metrics;
+  /**
+   * Return requests per second for a given application by service.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getRequestsPerSecond: Metrics;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -11982,6 +12107,13 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  /**
+   * Returns lists of apps that have some live traffic in the give time range.
+   * From defaults to 24 hours ago and to defaults to now.
+   *
+   * Requests that returned a 4xx or 5xx status code are not counted as live traffic.
+   */
+  statsLiveApps: StatsLiveApps;
   systemConfig?: Maybe<ConfigSystemConfig>;
   systemConfigs: Array<ConfigAppSystemConfig>;
   /** fetch data from the table: "auth.users" using primary key columns */
@@ -12511,6 +12643,41 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
+export type Query_RootGetCpuMetricsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetMemoryMetricsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPostgresVolumeCapacityArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPostgresVolumeUsageArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetRequestsPerSecondArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
@@ -12631,6 +12798,12 @@ export type Query_RootRegions_AggregateArgs = {
 
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootStatsLiveAppsArgs = {
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -16480,7 +16653,7 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } | null };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null, azuread?: { __typename?: 'ConfigAuthMethodOauthAzuread', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null } | null } | null } | null } | null };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -18281,6 +18454,12 @@ export const GetSignInMethodsDocument = gql`
             clientSecret
             connection
             organization
+          }
+          azuread {
+            enabled
+            clientId
+            clientSecret
+            tenant
           }
         }
       }
