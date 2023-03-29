@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 0.14.0
+
+### Minor Changes
+
+- 6e1f03ea: feat(dashboard): add support for the Azure AD provider
+
+### Patch Changes
+
+- 1bd2c373: chore(deps): bump `turbo` to 1.8.6
+- d329b621: chore(deps): bump `@types/react` to 18.0.30
+- cb248f0d: fix(tests): avoid name collision in database tests
+- 867c8076: chore(deps): bump `@types/react` to 18.0.29
+
 ## 0.13.10
 
 ### Patch Changes
