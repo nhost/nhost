@@ -603,11 +603,20 @@ export default function PricingPage() {
 
           <ul className="divide-y divide-divider">
             <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">Do I pick one plan per app?</h3>
+              <h3 className="text-xl">Do I pick one plan per project?</h3>
 
               <p className="text-base">
-                Yes. When creating an app, you will be asked about which plan
+                Yes. When creating a project, you will be asked about which plan
                 you want for your backend.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">
+                How many free Starter projects can I have?
+              </h3>
+
+              <p className="text-base">
+                You can have maximum 1 Starter project.
               </p>
             </li>
             <li className="grid grid-flow-row gap-4 py-6">
@@ -638,7 +647,7 @@ export default function PricingPage() {
               <h3 className="text-xl">What happens if I exceed the limits?</h3>
 
               <p className="text-base">
-                We never shut down service without warning. Your app will
+                We never shut down service without warning. Your project will
                 continue to work, and we will contact you and resolve the
                 situation.
               </p>
