@@ -19,17 +19,17 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today we’re launching an open source Stripe GraphQL API that makes it possible to query data from your database and Stripe account in a single GraphQL query. You can start using it today with our official npm package, `@nhost/stripe-graphql-js`, and get a ready-to-use Stripe GraphQL API server.
+Today we're launching an open source Stripe GraphQL API that makes it possible to query data from your database and Stripe account in a single GraphQL query. You can start using it today with our official npm package, `@nhost/stripe-graphql-js`, and get a ready-to-use Stripe GraphQL API server.
 
 ![Stripe GrahQL API](/images/blog/open-source-stripe-graphql-api/stripe-graphql-api.png)
 
-> Note: `@nhost/stripe-graphql-js` creates an **unofficial open-source** Stripe GraphQL API. [The source code is available on GitHub](https://github.com/nhost/nhost/tree/main/packages/stripe-graphql-js).
+> Note: `@nhost/stripe-graphql-js` creates an **unofficial open-source** Stripe GraphQL API. [The source code is available on GitHub](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js).
 
 ## How does it work?
 
 The generated Stripe GraphQL API can be hosted using a [Serverless Function](https://docs.nhost.io/platform/serverless-functions) and added as a [Hasura Remote Schema](https://hasura.io/docs/latest/remote-schemas/index/). After that, a GraphQL relationship is created between your data in Postgres and Stripe using [Hasura Data Federation](https://hasura.io/docs/latest/data-federation/data-federation-types/#database-to-remote-schema-relationships).
 
-We’ll explain how it works in more detail. But first…
+We'll explain how it works in more detail. But first…
 
 ## Why did we build this?
 
@@ -45,9 +45,9 @@ Well, now we can!
 
 ![Workspace Example](/images/blog/open-source-stripe-graphql-api/workspace-example.png)
 
-With GraphQL, it’s possible to query data from _any_ data source. Not only a database.
+With GraphQL, it's possible to query data from _any_ data source. Not only a database.
 
-Now, with the package being introduced, it’s possible to get data from both the Postgres database and Stripe using a single GraphQL query.
+Now, with the package being introduced, it's possible to get data from both the Postgres database and Stripe using a single GraphQL query.
 
 This is called Data Federation and is a powerful concept to unify data through a single GraphQL API.
 
@@ -59,7 +59,7 @@ This is how you get started.
 
 ## Serverless Function
 
-First, create a Serverless Function to host and scale the Stripe GraphQL API. Here’s a minimal example of the Stripe GraphQL server:
+First, create a Serverless Function to host and scale the Stripe GraphQL API. Here's a minimal example of the Stripe GraphQL server:
 
 `functions/graphql/stripe.ts`
 
@@ -71,7 +71,7 @@ const server = createStripeGraphQLServer()
 export default server
 ```
 
-That’s it. The GraphQL API is ready to be added as a Remote Schema.
+That's it. The GraphQL API is ready to be added as a Remote Schema.
 
 ### Remote Schema in Hasura
 
@@ -105,9 +105,9 @@ Usually, you would have a `stripe_customer_id` column in some table and from tha
   />
 </video>
 
-You now have the Stripe GraphQL API set up and configured. It’s added as a Remote Schema in Hasura, and there is a relationship between the `stripe_customer_id` column and the customer id in Stripe.
+You now have the Stripe GraphQL API set up and configured. It's added as a Remote Schema in Hasura, and there is a relationship between the `stripe_customer_id` column and the customer id in Stripe.
 
-Almost like magic, it’s now possible to make GraphQL queries to get data from both the database and Stripe.
+Almost like magic, it's now possible to make GraphQL queries to get data from both the database and Stripe.
 
 <video width="99%" autoPlay loop muted controls>
   <source
@@ -126,9 +126,9 @@ The following GraphQL object types are available:
 - [Invoices](https://stripe.com/docs/api/invoices)
 - [Billing Portal Session](https://stripe.com/docs/api/customer_portal)
 
-At the moment, not all fields are available on all objects, but most are. We’ll continue the work to make the Stripe GraphQL API as complete as possible.
+At the moment, not all fields are available on all objects, but most are. We'll continue the work to make the Stripe GraphQL API as complete as possible.
 
-If you want to help us, [the code is open source and available on GitHub](https://github.com/nhost/nhost/tree/main/packages/stripe-graphql-js) - we would be more than happy to accept contributions.
+If you want to help us, [the code is open source and available on GitHub](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js) - we would be more than happy to accept contributions.
 
 ## Examples
 
@@ -179,7 +179,7 @@ query {
 }
 ```
 
-**Example:** Get all subscriptions and the subscription’s items (product name and cost) for a customer:
+**Example:** Get all subscriptions and the subscription's items (product name and cost) for a customer:
 
 ```graphql
 {
@@ -236,12 +236,12 @@ Permissions are managed in two ways:
 
 The `isAllowed` function checks if a current operation is allowed, like interacting with a customer in Stripe.
 
-Here’s an example that uses the `isAllowed` function and does the following:
+Here's an example that uses the `isAllowed` function and does the following:
 
 1. If the request is made with a valid admin secret, `isAdmin` is `true`, we allow all operations.
-2. Get the user’s id.
+2. Get the user's id.
 3. Get user information from the database.
-4. Loop over the user’s workspaces to see if the user belongs to a workspace with the same stripe customer id as the `stripeCustomerId` for the operation.
+4. Loop over the user's workspaces to see if the user belongs to a workspace with the same stripe customer id as the `stripeCustomerId` for the operation.
 
 ```jsx
 import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'
@@ -307,22 +307,22 @@ Permissions were possible because of:
 - Hasura Remote Schema that forwards all headers from the client. Specifically the `Authorization` header.
 - System environment variables make the `NHOST_JWT_SECRET` available in all Serverless Functions to verify the access token from the `Authorization` header request header.
 
-This way, it’s possible to identify and verify the user making the request and write custom code to manage permissions.
+This way, it's possible to identify and verify the user making the request and write custom code to manage permissions.
 
 ## Alternatives
 
-What would developers have to do to solve this issue if it wasn’t for this new Stripe GraphQL API?
+What would developers have to do to solve this issue if it wasn't for this new Stripe GraphQL API?
 
 There are two alternatives:
 
 1. Webhook (duplicated data)
 2. Direct Access using REST
 
-Let’s go a bit deeper into both of these alternatives to understand their drawbacks.
+Let's go a bit deeper into both of these alternatives to understand their drawbacks.
 
 ### Webhook (duplicated data)
 
-It’s possible to set up a webhook and have Stripe send a webhook if anything changes at Stripe. For E.g. if a new customer is created, a subscription is deleted, or a payment method is updated.
+It's possible to set up a webhook and have Stripe send a webhook if anything changes at Stripe. For E.g. if a new customer is created, a subscription is deleted, or a payment method is updated.
 
 Once anything changes in Stripe, you must receive that event via a webhook and store the information in your database. Effectively duplicating the data in Stripe.
 
@@ -331,15 +331,15 @@ Duplicating data is generally a bad idea and leads to synchronization problems.
 - What if your webhook is down?
 - How do you get the initial set of your Stripe data?
 
-Also, if you sync Stripe’s data to your database now, you’re responsible for data format, backups, scaling, etc. Things that Stripe is probably handling better.
+Also, if you sync Stripe's data to your database now, you're responsible for data format, backups, scaling, etc. Things that Stripe is probably handling better.
 
 ### Direct Access using REST
 
-One alternative is to get the data from Stripe using Stripe’s REST API whenever necessary. The problem is that if your app uses GraphQL, you now have two ways of interacting with your data.
+One alternative is to get the data from Stripe using Stripe's REST API whenever necessary. The problem is that if your app uses GraphQL, you now have two ways of interacting with your data.
 
-With REST, you need a separate client, and it’s impossible to create relationships between your data in GraphQL and Stripe.
+With REST, you need a separate client, and it's impossible to create relationships between your data in GraphQL and Stripe.
 
-Here’s a short example of how you would have to combine GraphQL and Stripe REST:
+Here's a short example of how you would have to combine GraphQL and Stripe REST:
 
 ```jsx
 const GET_CUSTOMER = `
@@ -431,13 +431,13 @@ return (
 );
 ```
 
-## What’s next
+## What's next
 
 The `@nhost/stripe-graphql-js` package makes it easier for developers building SaaS applications to integrate Stripe and payments into their applications.
 
-We’ll continue to make the Stripe GraphQL API package as complete as possible. [The code is open source and available on GitHub](https://github.com/nhost/nhost/tree/main/packages/stripe-graphql-js), and it’s easy to contribute. The [Stripe API](https://stripe.com/docs/api) is extensive, so there is a lot of work still left to do.
+We'll continue to make the Stripe GraphQL API package as complete as possible. [The code is open source and available on GitHub](https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js), and it's easy to contribute. The [Stripe API](https://stripe.com/docs/api) is extensive, so there is a lot of work still left to do.
 
-We’ll also work on making it easier to build custom GraphQL APIs for your application with Serverless Functions and Hasura Remote Schema. Something that we’ve only scratched the surface off.
+We'll also work on making it easier to build custom GraphQL APIs for your application with Serverless Functions and Hasura Remote Schema. Something that we've only scratched the surface off.
 
 ## PS. Support our Open Source work
 
