@@ -2,7 +2,7 @@ import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
@@ -13,9 +13,8 @@ import Link from 'next/link';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-  const isPro = !currentApplication?.plan?.isFree;
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const isPro = !currentProject?.plan.isFree;
   const { openAlertDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
@@ -44,20 +43,30 @@ export default function OverviewTopBar() {
 
   return (
     <div className="grid items-center gap-4 pb-5 md:grid-flow-col md:place-content-between md:py-5">
-      <div className="grid items-center gap-2 md:grid-flow-col">
+      <div className="grid items-center gap-4 md:grid-flow-col">
         <div className="grid grid-flow-col items-center justify-start gap-2">
           <div className="h-10 w-10 overflow-hidden rounded-lg">
             <Image
               src="/logos/new.svg"
               alt="Nhost Logo"
-              width={40}
-              height={40}
+              width={56}
+              height={56}
             />
           </div>
 
-          <Text variant="h2" component="h1">
-            {currentApplication.name}
-          </Text>
+          <div className="grid grid-flow-row">
+            <Text variant="h2" component="h1">
+              {currentProject.name}
+            </Text>
+
+            {currentProject.creator && (
+              <Text color="secondary" className="text-sm">
+                Created by{' '}
+                {currentProject.creator?.displayName ||
+                  currentProject.creator?.email}
+              </Text>
+            )}
+          </div>
         </div>
 
         <Box className="grid grid-flow-col items-center justify-start gap-2">
@@ -100,7 +109,7 @@ export default function OverviewTopBar() {
         </Box>
       </div>
       <Link
-        href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/general`}
+        href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
         passHref
       >
         <Button

@@ -1,0 +1,26 @@
+fragment Workspace on workspaces {
+  id
+  name
+  slug
+  workspaceMembers {
+    id
+    user {
+      id
+      email
+      displayName
+    }
+    type
+  }
+  projects: apps {
+    ...Project
+  }
+}
+
+query GetWorkspaceAndProject($workspaceSlug: String!, $projectSlug: String) {
+  workspaces(where: { slug: { _eq: $workspaceSlug } }) {
+    ...Workspace
+  }
+  projects: apps(where: { slug: { _eq: $projectSlug } }) {
+    ...Project
+  }
+}
