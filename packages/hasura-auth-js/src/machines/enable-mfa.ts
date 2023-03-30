@@ -1,11 +1,11 @@
 import { assign, createMachine, send } from 'xstate'
 import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
-import { ErrorPayload } from '../types'
+import { AuthErrorPayload } from '../types'
 import { getFetch, postFetch } from '../utils'
 
 export type EnableMfaContext = {
-  error: ErrorPayload | null
+  error: AuthErrorPayload | null
   imageUrl: string | null
   secret: string | null
 }
@@ -20,9 +20,9 @@ export type EnableMfaEvents =
       activeMfaType: 'totp'
     }
   | { type: 'GENERATED' }
-  | { type: 'GENERATED_ERROR'; error: ErrorPayload | null }
+  | { type: 'GENERATED_ERROR'; error: AuthErrorPayload | null }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; error: ErrorPayload | null }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
 
 export type EnableMfadMachine = ReturnType<typeof createEnableMfaMachine>
 

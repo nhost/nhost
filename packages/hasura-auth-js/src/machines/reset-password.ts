@@ -1,12 +1,12 @@
 import { assign, createMachine, send } from 'xstate'
 import { INVALID_EMAIL_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
-import { ErrorPayload, ResetPasswordOptions, ResetPasswordResponse } from '../types'
+import { AuthErrorPayload, ResetPasswordOptions, ResetPasswordResponse } from '../types'
 import { postFetch, rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../utils/validators'
 
 export type ResetPasswordContext = {
-  error: ErrorPayload | null
+  error: AuthErrorPayload | null
 }
 export type ResetPasswordEvents =
   | {
@@ -15,7 +15,7 @@ export type ResetPasswordEvents =
       options?: ResetPasswordOptions
     }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; error: ErrorPayload | null }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
 
 export type ResetPasswordServices = {
   requestChange: { data: ResetPasswordResponse }

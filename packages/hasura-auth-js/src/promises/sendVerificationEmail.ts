@@ -3,15 +3,15 @@ import { InterpreterFrom } from 'xstate'
 import { SendVerificationEmailMachine } from '../machines'
 import { SendVerificationEmailOptions } from '../types'
 
-import { ActionErrorState, ActionLoadingState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState } from './types'
 
-export interface SendVerificationEmailHandlerResult extends ActionErrorState {
+export interface SendVerificationEmailHandlerResult extends AuthActionErrorState {
   /** Returns `true` when a new verification email has been sent */
   isSent: boolean
 }
 
 export interface SendVerificationEmailState
-  extends ActionLoadingState,
+  extends AuthActionLoadingState,
     SendVerificationEmailHandlerResult {}
 
 export const sendVerificationEmailPromise = (

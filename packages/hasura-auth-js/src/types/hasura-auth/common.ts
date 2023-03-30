@@ -1,5 +1,5 @@
 // TODO shared with other packages
-export type ErrorPayload = {
+export type AuthErrorPayload = {
   error: string
   status: number
   message: string

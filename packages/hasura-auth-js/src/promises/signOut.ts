@@ -1,10 +1,10 @@
 import { USER_UNAUTHENTICATED } from '../errors'
 import { AuthInterpreter } from '../machines'
 
-import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState, AuthActionSuccessState } from './types'
 
-export interface SignOutlessHandlerResult extends ActionErrorState, ActionSuccessState {}
-export interface SignOutlessState extends SignOutlessHandlerResult, ActionLoadingState {}
+export interface SignOutlessHandlerResult extends AuthActionErrorState, AuthActionSuccessState {}
+export interface SignOutlessState extends SignOutlessHandlerResult, AuthActionLoadingState {}
 
 export const signOutPromise = async (
   interpreter: AuthInterpreter,

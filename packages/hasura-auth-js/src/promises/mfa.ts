@@ -2,9 +2,9 @@ import { InterpreterFrom } from 'xstate'
 
 import { EnableMfadMachine } from '../machines'
 
-import { ActionErrorState } from './types'
+import { AuthActionErrorState } from './types'
 
-export interface GenerateQrCodeHandlerResult extends ActionErrorState {
+export interface GenerateQrCodeHandlerResult extends AuthActionErrorState {
   qrCodeDataUrl: string
   isGenerated: boolean
 }
@@ -12,7 +12,7 @@ export interface GenerateQrCodeHandlerResult extends ActionErrorState {
 export interface GenerateQrCodeState extends GenerateQrCodeHandlerResult {
   isGenerating: boolean
 }
-export interface ActivateMfaHandlerResult extends ActionErrorState {
+export interface ActivateMfaHandlerResult extends AuthActionErrorState {
   isActivated: boolean
 }
 

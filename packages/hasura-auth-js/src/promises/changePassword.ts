@@ -2,11 +2,11 @@ import { InterpreterFrom } from 'xstate'
 
 import { ChangePasswordMachine } from '../machines'
 
-import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState, AuthActionSuccessState } from './types'
 
-export interface ChangePasswordState extends ChangePasswordHandlerResult, ActionLoadingState {}
+export interface ChangePasswordState extends ChangePasswordHandlerResult, AuthActionLoadingState {}
 
-export interface ChangePasswordHandlerResult extends ActionErrorState, ActionSuccessState {}
+export interface ChangePasswordHandlerResult extends AuthActionErrorState, AuthActionSuccessState {}
 
 export const changePasswordPromise = async (
   interpreter: InterpreterFrom<ChangePasswordMachine>,

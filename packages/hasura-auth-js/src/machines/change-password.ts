@@ -1,12 +1,12 @@
 import { assign, createMachine, send } from 'xstate'
 import { INVALID_PASSWORD_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
-import { ChangePasswordResponse, ErrorPayload } from '../types'
+import { AuthErrorPayload, ChangePasswordResponse } from '../types'
 import { postFetch } from '../utils'
 import { isValidPassword } from '../utils/validators'
 
 export type ChangePasswordContext = {
-  error: ErrorPayload | null
+  error: AuthErrorPayload | null
 }
 export type ChangePasswordEvents =
   | {
@@ -15,7 +15,7 @@ export type ChangePasswordEvents =
       ticket?: string
     }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; error: ErrorPayload | null }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
 
 export type ChangePasswordServices = {
   requestChange: { data: ChangePasswordResponse }

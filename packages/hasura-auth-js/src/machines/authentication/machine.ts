@@ -24,9 +24,9 @@ import {
 } from '../../errors'
 import { localStorageGetter, localStorageSetter } from '../../local-storage'
 import {
+  AuthErrorPayload,
   AuthOptions,
   DeanonymizeResponse,
-  ErrorPayload,
   NhostSession,
   NhostSessionResponse,
   PasswordlessEmailResponse,
@@ -856,7 +856,7 @@ export const createAuthMachine = ({
               error: null
             }
           }
-          let error: ErrorPayload | null = null
+          let error: AuthErrorPayload | null = null
           if (autoSignIn) {
             const urlToken = getParameterByName('refreshToken') || null
             if (urlToken) {
@@ -866,7 +866,7 @@ export const createAuthMachine = ({
                 })
                 return { session, error: null }
               } catch (exception) {
-                error = (exception as { error: ErrorPayload }).error
+                error = (exception as { error: AuthErrorPayload }).error
               }
             } else {
               const error = getParameterByName('error')
@@ -890,7 +890,7 @@ export const createAuthMachine = ({
               })
               return { session, error: null }
             } catch (exception) {
-              error = (exception as { error: ErrorPayload }).error
+              error = (exception as { error: AuthErrorPayload }).error
             }
           }
           if (error) {
