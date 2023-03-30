@@ -68,7 +68,7 @@ test('should be able to delete a user', async () => {
   ).not.toBeVisible();
 });
 
-test.only('should be able to delete a user from the details page', async () => {
+test('should be able to delete a user from the details page', async () => {
   const email = faker.internet.email();
   const password = faker.internet.password();
 
