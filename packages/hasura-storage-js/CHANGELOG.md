@@ -1,5 +1,15 @@
 # @nhost/hasura-storage-js
 
+## 2.1.0
+
+### Minor Changes
+
+- a0e093d7: fix(exports): don't use conflicting names in exports
+
+### Patch Changes
+
+- bb8803a1: fix(presigned-url): don't alter URL when no transformation params were provided
+
 ## 2.0.5
 
 ### Patch Changes
