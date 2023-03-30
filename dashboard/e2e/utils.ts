@@ -148,3 +148,30 @@ export async function deleteTable({
   await page.getByRole('menuitem', { name: /delete table/i }).click();
   await page.getByRole('button', { name: /delete/i }).click();
 }
+
+/**
+ * Creates a new user.
+ *
+ * @param page - The Playwright page object.
+ * @param email - The email of the user to create.
+ * @param password - The password of the user to create.
+ * @returns A promise that resolves when the user is created.
+ */
+export async function createUser({
+  page,
+  email,
+  password,
+}: {
+  page: Page;
+  email: string;
+  password: string;
+}) {
+  await page
+    .getByRole('button', { name: /create user/i })
+    .first()
+    .click();
+
+  await page.getByRole('textbox', { name: /email/i }).fill(email);
+  await page.getByRole('textbox', { name: /password/i }).fill(password);
+  await page.getByRole('button', { name: /create/i, exact: true }).click();
+}

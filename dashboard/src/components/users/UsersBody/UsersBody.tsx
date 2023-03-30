@@ -151,7 +151,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       updateUserMutationPromise,
       {
         loading: `Updating user's settings...`,
-        success: 'User settings updated successfully.',
+        success: 'User settings have been updated successfully.',
         error: getServerError(
           `An error occurred while trying to update this user's settings.`,
         ),

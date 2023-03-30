@@ -3,17 +3,18 @@ import {
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
-import { openProject } from '@/e2e/utils';
+import { createUser, openProject } from '@/e2e/utils';
+import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 let page: Page;
 
-test.describe.configure({ mode: 'serial' });
-
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
+});
 
+test.beforeEach(async () => {
   await page.goto('/');
 
   await openProject({
@@ -36,40 +37,45 @@ test.afterAll(async () => {
 });
 
 test('should create a user', async () => {
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  await createUser({ page, email, password });
+
   await expect(
-    page.getByRole('heading', { name: /there are no users yet/i }),
+    page.getByRole('button', { name: `View ${email}`, exact: true }),
+  ).toBeVisible();
+});
+
+test('should not be able to create a user with an existing email', async () => {
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  await createUser({ page, email, password });
+
+  await expect(
+    page.getByRole('button', { name: `View ${email}`, exact: true }),
   ).toBeVisible();
 
-  await page
-    .getByRole('button', { name: /create user/i })
-    .first()
-    .click();
-
-  await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: /create user/i }),
-  ).toBeVisible();
-
-  await page
-    .getByRole('textbox', { name: /email/i })
-    .fill('testuser@example.com');
-  await page.getByRole('textbox', { name: /password/i }).fill('test.password');
-  await page.getByRole('button', { name: /create/i, exact: true }).click();
-
-  await expect(page.getByRole('dialog')).not.toBeVisible();
+  await createUser({ page, email, password });
 
   await expect(
-    page.getByRole('button', { name: /view testuser@example.com/i }),
+    page.getByRole('dialog').getByText(/email already in use/i),
   ).toBeVisible();
 });
 
 test('should delete a user', async () => {
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  await createUser({ page, email, password });
+
   await expect(
-    page.getByRole('button', { name: /view testuser@example.com/i }),
+    page.getByRole('button', { name: `View ${email}`, exact: true }),
   ).toBeVisible();
 
   await page
-    .getByRole('button', { name: /more options for testuser@example.com/i })
+    .getByRole('button', { name: `More options for ${email}`, exact: true })
     .click();
   await page.getByRole('menuitem', { name: /delete user/i }).click();
 
@@ -78,9 +84,7 @@ test('should delete a user', async () => {
     page.getByRole('heading', { name: /delete user/i }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      /are you sure you want to delete the "testuser@example.com" user?/i,
-    ),
+    page.getByText(`Are you sure you want to delete the "${email}" user?`),
   ).toBeVisible();
 
   await page.getByRole('button', { name: /delete/i, exact: true }).click();
@@ -88,6 +92,62 @@ test('should delete a user', async () => {
   await expect(page.getByRole('dialog')).not.toBeVisible();
 
   await expect(
-    page.getByRole('heading', { name: /there are no users yet/i }),
+    page.getByRole('button', { name: `View ${email}`, exact: true }),
+  ).not.toBeVisible();
+});
+
+test('should be able to ban and unban a user', async () => {
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  await createUser({ page, email, password });
+
+  await page
+    .getByRole('button', { name: `View ${email}`, exact: true })
+    .click();
+  await page.getByRole('button', { name: /actions/i }).click();
+  await page.getByRole('menuitem', { name: /ban user/i }).click();
+
+  await expect(
+    page.getByText(/user has been banned successfully./i),
   ).toBeVisible();
+  await expect(page.locator('form').getByText(/^banned$/i)).toBeVisible();
+
+  await page.getByRole('button', { name: /actions/i }).click();
+  await page.getByRole('menuitem', { name: /unban user/i }).click();
+
+  await expect(
+    page.getByText(/user has been unbanned successfully./i),
+  ).toBeVisible();
+  await expect(page.locator('form').getByText(/^banned$/i)).not.toBeVisible();
+});
+
+test('should be able to verify the email of a user', async () => {
+  const email = faker.internet.email();
+  const password = faker.internet.password();
+
+  await createUser({ page, email, password });
+
+  await page
+    .getByRole('button', { name: `View ${email}`, exact: true })
+    .click();
+
+  await expect(
+    page.getByRole('checkbox', { name: /email verified/i }),
+  ).not.toBeChecked();
+  await page.getByRole('checkbox', { name: /email verified/i }).check();
+
+  await page.getByRole('button', { name: /save/i }).click();
+
+  await expect(
+    page.getByText(/user settings have been updated successfully./i),
+  ).toBeVisible();
+
+  await page
+    .getByRole('button', { name: `View ${email}`, exact: true })
+    .click();
+
+  await expect(
+    page.getByRole('checkbox', { name: /email verified/i }),
+  ).toBeChecked();
 });
