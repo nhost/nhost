@@ -12,8 +12,12 @@ import { StorageImageTransformationParams } from '../types'
  */
 export default function appendImageTransformationParameters(
   url: string,
-  params: StorageImageTransformationParams
+  params?: StorageImageTransformationParams
 ): string {
+  if (!params || Object.keys(params).length === 0) {
+    return url
+  }
+
   const urlObject = new URL(url)
 
   // create an object with the transformation parameters by using the first
