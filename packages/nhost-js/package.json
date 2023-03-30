@@ -44,7 +44,8 @@
   },
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
-    "build": "run-p build:lib build:umd",
+    "build": "run-p typecheck build:lib build:umd",
+    "typecheck": "tsc --noEmit",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run",
