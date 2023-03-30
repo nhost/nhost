@@ -13,7 +13,7 @@ async function globalTeardown() {
 
   const context = await browser.newContext({
     baseURL: TEST_DASHBOARD_URL,
-    storageState: 'storageState.json',
+    storageState: 'e2e/.auth/user.json',
   });
 
   const page = await context.newPage();
