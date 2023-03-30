@@ -34,13 +34,13 @@ import {
 } from './promises'
 import {
   AuthChangedFunction,
+  AuthErrorPayload,
   ChangeEmailParams,
   ChangeEmailResponse,
   ChangePasswordParams,
   ChangePasswordResponse,
   DeanonymizeParams,
   DeanonymizeResponse,
-  ErrorPayload,
   JWTClaims,
   JWTHasuraClaims,
   NhostAuthConstructorParams,
@@ -411,7 +411,7 @@ export class HasuraAuthClient {
    */
   async addSecurityKey(
     nickname?: string
-  ): Promise<{ error: ErrorPayload | null; key?: SecurityKey }> {
+  ): Promise<{ error: AuthErrorPayload | null; key?: SecurityKey }> {
     const { error, key } = await addSecurityKeyPromise(this._client, nickname)
     return { error, key }
   }
