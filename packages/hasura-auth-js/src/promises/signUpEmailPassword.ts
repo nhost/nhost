@@ -3,7 +3,7 @@ import { AuthInterpreter } from '../machines'
 import { SignUpOptions } from '../types'
 
 import {
-  ActionLoadingState,
+  AuthActionLoadingState,
   NeedsEmailVerificationState,
   SessionActionHandlerResult
 } from './types'
@@ -14,7 +14,7 @@ export interface SignUpEmailPasswordHandlerResult
 
 export interface SignUpEmailPasswordState
   extends SignUpEmailPasswordHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
 export const signUpEmailPasswordPromise = (
   interpreter: AuthInterpreter,

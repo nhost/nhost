@@ -2,7 +2,7 @@ import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 
 import {
-  ActionLoadingState,
+  AuthActionLoadingState,
   NeedsEmailVerificationState,
   SessionActionHandlerResult
 } from './types'
@@ -13,7 +13,7 @@ export interface SignInSecurityKeyPasswordlessHandlerResult
 
 export interface SignInSecurityKeyPasswordlessState
   extends SignInSecurityKeyPasswordlessHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
 export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, email: string) =>
   new Promise<SignInSecurityKeyPasswordlessHandlerResult>((resolve) => {

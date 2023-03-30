@@ -1,12 +1,12 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 
-import { ActionLoadingState, SessionActionHandlerResult } from './types'
+import { AuthActionLoadingState, SessionActionHandlerResult } from './types'
 
 export interface SignInSmsPasswordlessOtpHandlerResult extends SessionActionHandlerResult {}
 export interface SignInSmsPasswordlessOtpState
   extends SignInSmsPasswordlessOtpHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
 export const signInSmsPasswordlessOtpPromise = (
   interpreter: AuthInterpreter,
