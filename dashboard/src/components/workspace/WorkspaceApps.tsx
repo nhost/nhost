@@ -1,14 +1,15 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
-import Status, { StatusEnum } from '@/ui/Status';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
+import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
@@ -61,16 +62,27 @@ function AllWorkspaceApps() {
                   <ListItem.Text
                     primary={project.name}
                     secondary={
-                      project.creator
-                        ? `Created by ${
+                      project.creator ? (
+                        <span>
+                          {`Created by ${
                             project.creator.displayName || project.creator.email
-                          }`
-                        : undefined
+                          } ${formatDistanceToNowStrict(
+                            parseISO(project.createdAt),
+                          )} ago`}
+                        </span>
+                      ) : undefined
                     }
+                    secondaryTypographyProps={{
+                      className: 'text-xs',
+                    }}
                   />
                 </div>
 
-                <Status status={StatusEnum.Plan}>{project.plan.name}</Status>
+                <Chip
+                  size="small"
+                  label={project.plan.isFree ? 'Starter' : 'Pro'}
+                  color={project.plan.isFree ? 'default' : 'primary'}
+                />
               </ListItem.Button>
             </NavLink>
           </ListItem.Root>
@@ -87,7 +99,7 @@ export default function WorkspaceApps() {
   return (
     <div className="mt-9">
       <div className="mx-auto max-w-3xl font-display">
-        <div className="mb-4 flex flex-row place-content-between">
+        <div className="mb-4 grid grid-flow-col items-center justify-between gap-2">
           <Text className="text-lg font-medium">Projects</Text>
 
           {!loading && (
