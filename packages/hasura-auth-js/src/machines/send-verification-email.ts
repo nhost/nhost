@@ -1,12 +1,16 @@
 import { assign, createMachine, send } from 'xstate'
 import { INVALID_EMAIL_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
-import { ErrorPayload, SendVerificationEmailOptions, SendVerificationEmailResponse } from '../types'
+import {
+  AuthErrorPayload,
+  SendVerificationEmailOptions,
+  SendVerificationEmailResponse
+} from '../types'
 import { postFetch, rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../utils/validators'
 
 export type SendVerificationEmailContext = {
-  error: ErrorPayload | null
+  error: AuthErrorPayload | null
 }
 
 export type SendVerificationEmailEvents =
@@ -16,7 +20,7 @@ export type SendVerificationEmailEvents =
       options?: SendVerificationEmailOptions
     }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; error: ErrorPayload | null }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
 
 export type SendVerificationEmailServices = {
   request: { data: SendVerificationEmailResponse }

@@ -1,11 +1,11 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 
-import { ActionLoadingState, SessionActionHandlerResult } from './types'
+import { AuthActionLoadingState, SessionActionHandlerResult } from './types'
 
 export interface SignInMfaTotpHandlerResult extends SessionActionHandlerResult {}
 
-export interface SignInMfaTotpState extends SignInMfaTotpHandlerResult, ActionLoadingState {}
+export interface SignInMfaTotpState extends SignInMfaTotpHandlerResult, AuthActionLoadingState {}
 
 export const signInMfaTotpPromise = (interpreter: AuthInterpreter, otp: string, ticket?: string) =>
   new Promise<SignInMfaTotpHandlerResult>((resolve) => {

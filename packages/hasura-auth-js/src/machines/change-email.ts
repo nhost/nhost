@@ -1,12 +1,12 @@
 import { assign, createMachine, send } from 'xstate'
 import { INVALID_EMAIL_ERROR } from '../errors'
 import { AuthClient } from '../internal-client'
-import { ChangeEmailOptions, ChangeEmailResponse, ErrorPayload } from '../types'
+import { AuthErrorPayload, ChangeEmailOptions, ChangeEmailResponse } from '../types'
 import { postFetch, rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../utils/validators'
 
 export type ChangeEmailContext = {
-  error: ErrorPayload | null
+  error: AuthErrorPayload | null
 }
 
 export type ChangeEmailEvents =
@@ -16,7 +16,7 @@ export type ChangeEmailEvents =
       options?: ChangeEmailOptions
     }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; error: ErrorPayload | null }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
 
 export type ChangeEmailServices = {
   request: { data: ChangeEmailResponse }

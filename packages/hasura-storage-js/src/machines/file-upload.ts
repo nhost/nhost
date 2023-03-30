@@ -1,12 +1,12 @@
 import FormData from 'form-data'
 import { assign, createMachine } from 'xstate'
-import { ErrorPayload, FileUploadConfig } from '../utils'
+import { FileUploadConfig, StorageErrorPayload } from '../utils'
 import { fetchUpload } from '../utils/upload'
 
 export type FileUploadContext = {
   progress: number | null
   loaded: number
-  error: ErrorPayload | null
+  error: StorageErrorPayload | null
   id?: string
   bucketId?: string
   file?: File
@@ -24,7 +24,7 @@ export type FileUploadEvents =
     } & FileUploadConfig)
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
-  | { type: 'UPLOAD_ERROR'; error: ErrorPayload }
+  | { type: 'UPLOAD_ERROR'; error: StorageErrorPayload }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 

@@ -3,7 +3,7 @@ import { AuthInterpreter } from '../machines'
 import { SignUpSecurityKeyOptions } from '../types'
 
 import {
-  ActionLoadingState,
+  AuthActionLoadingState,
   NeedsEmailVerificationState,
   SessionActionHandlerResult
 } from './types'
@@ -14,7 +14,7 @@ export interface SignUpSecurityKeyHandlerResult
 
 export interface SignUpSecurityKeyState
   extends SignUpSecurityKeyHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
 export const signUpEmailSecurityKeyPromise = (
   interpreter: AuthInterpreter,

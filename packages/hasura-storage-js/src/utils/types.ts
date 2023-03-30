@@ -1,21 +1,21 @@
 import FormData from 'form-data'
 
 // TODO shared with other packages
-export type ErrorPayload = {
+export type StorageErrorPayload = {
   error: string
   status: number
   message: string
 }
 
 // TODO shared with other packages
-export interface ActionErrorState {
+export interface StorageActionErrorState {
   /**
    * @return `true` if an error occurred
    * @depreacted use `!isSuccess` or `!!error` instead
    * */
   isError: boolean
   /** Provides details about the error */
-  error: ErrorPayload | null
+  error: StorageErrorPayload | null
 }
 
 // * Avoid circular references and broken links in docusaurus generated docs
@@ -46,7 +46,7 @@ export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDat
 
 export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
-  | { fileMetadata: null; error: ErrorPayload }
+  | { fileMetadata: null; error: StorageErrorPayload }
 
 export interface StorageImageTransformationParams {
   /** Image width, in pixels */

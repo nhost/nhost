@@ -1,6 +1,6 @@
 import FormData from 'form-data'
 import fetch from 'isomorphic-unfetch'
-import { ErrorPayload, StorageUploadResponse } from './types'
+import { StorageErrorPayload, StorageUploadResponse } from './types'
 
 /** Convert any string into ISO-8859-1 */
 export const toIso88591 = (fileName: string) => {
@@ -59,7 +59,7 @@ export const fetchUpload = async (
       })
 
       if (!response.ok) {
-        const error: ErrorPayload = {
+        const error: StorageErrorPayload = {
           status: response.status,
           message: await response.text(),
           // * errors from hasura-storage are not codified
@@ -70,7 +70,7 @@ export const fetchUpload = async (
       const fileMetadata = await response.json()
       return { fileMetadata, error: null }
     } catch (e) {
-      const error: ErrorPayload = {
+      const error: StorageErrorPayload = {
         status: 0,
         message: (e as Error).message,
         error: (e as Error).message

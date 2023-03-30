@@ -1,7 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
 import { FileItemRef, FileUploadMachine } from '../machines'
-import { ActionErrorState, FileUploadConfig, StorageUploadFileParams } from '../utils'
+import { FileUploadConfig, StorageActionErrorState, StorageUploadFileParams } from '../utils'
 
 export interface UploadProgressState {
   /**
@@ -14,7 +14,7 @@ export interface UploadProgressState {
   progress: number | null
 }
 
-export interface UploadFileHandlerResult extends ActionErrorState {
+export interface UploadFileHandlerResult extends StorageActionErrorState {
   /**
    * Returns `true` when the file has been successfully uploaded.
    */

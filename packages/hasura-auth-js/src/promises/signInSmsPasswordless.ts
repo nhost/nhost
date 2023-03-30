@@ -2,13 +2,15 @@ import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 import { PasswordlessOptions } from '../types'
 
-import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState, AuthActionSuccessState } from './types'
 
 export interface SignInSmsPasswordlessState
   extends SignInSmsPasswordlessHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
-export interface SignInSmsPasswordlessHandlerResult extends ActionErrorState, ActionSuccessState {
+export interface SignInSmsPasswordlessHandlerResult
+  extends AuthActionErrorState,
+    AuthActionSuccessState {
   /**
    * Returns true when the one-time password has been sent over by SMS, and the user needs to send it back to complete sign-in.
    */
