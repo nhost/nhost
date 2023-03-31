@@ -3,12 +3,9 @@ import {
   TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
-import { chromium } from '@playwright/test';
+import { test as setup } from '@playwright/test';
 
-async function globalSetup() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage({ baseURL: TEST_DASHBOARD_URL });
-
+setup('authenticate user', async ({ page }) => {
   await page.goto('/');
   await page.waitForURL('/signin');
   await page.getByRole('link', { name: /continue with email/i }).click();
@@ -19,9 +16,5 @@ async function globalSetup() {
   await page.getByRole('button', { name: /sign in/i }).click();
 
   await page.waitForURL(TEST_DASHBOARD_URL);
-  await page.context().storageState({ path: 'storageState.json' });
-
-  await browser.close();
-}
-
-export default globalSetup;
+  await page.context().storageState({ path: 'e2e/.auth/user.json' });
+});

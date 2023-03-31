@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.0
+
+### Minor Changes
+
+- a0e093d7: fix(exports): don't use conflicting names in exports
+
 ## 2.0.2
 
 ### Patch Changes

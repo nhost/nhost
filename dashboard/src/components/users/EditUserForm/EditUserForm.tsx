@@ -19,6 +19,7 @@ import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import getReadableProviderName from '@/utils/common/getReadableProviderName';
 import { copy } from '@/utils/copy';
+import getServerError from '@/utils/settings/getServerError';
 import getUserRoles from '@/utils/settings/getUserRoles';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
@@ -168,11 +169,13 @@ export default function EditUserForm({
       {
         loading: shouldBan ? 'Banning user...' : 'Unbanning user...',
         success: shouldBan
-          ? 'User banned successfully'
-          : 'User unbanned successfully.',
-        error: shouldBan
-          ? 'An error occurred while trying to ban the user.'
-          : 'An error occurred while trying to unban the user.',
+          ? 'User has been banned successfully.'
+          : 'User has been unbanned successfully.',
+        error: getServerError(
+          shouldBan
+            ? 'An error occurred while trying to ban the user.'
+            : 'An error occurred while trying to unban the user.',
+        ),
       },
       getToastStyleProps(),
     );
@@ -213,7 +216,7 @@ export default function EditUserForm({
                     Actions
                   </Button>
                 </Dropdown.Trigger>
-                <Dropdown.Content menu disablePortal className="h-full w-full">
+                <Dropdown.Content menu className="h-full w-full">
                   <Dropdown.Item
                     className="font-medium"
                     sx={{ color: 'error.main' }}
@@ -316,6 +319,7 @@ export default function EditUserForm({
                     id="emailVerified"
                     name="emailVerified"
                     label="Verified"
+                    aria-label="Email Verified"
                   />
                 )
               }
@@ -354,6 +358,7 @@ export default function EditUserForm({
                     id="phoneNumberVerified"
                     name="phoneNumberVerified"
                     label="Verified"
+                    aria-label="Phone Number Verified"
                     disabled={!form.watch('phoneNumber')}
                   />
                 )

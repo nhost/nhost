@@ -1,5 +1,12 @@
 # @nhost/react
 
+## 2.0.13
+
+### Patch Changes
+
+- Updated dependencies [a0e093d7]
+  - @nhost/nhost-js@2.2.0
+
 ## 2.0.12
 
 ### Patch Changes
