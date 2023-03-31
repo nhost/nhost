@@ -84,7 +84,7 @@ jobs:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       -
         name: GoReleaser
-        uses: goreleaser/goreleaser-action@v4.1.0
+        uses: goreleaser/goreleaser-action@v4.2.0
         with:
           version: latest
           args: build --snapshot
