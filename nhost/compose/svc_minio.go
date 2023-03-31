@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/compose-spec/compose-go/types"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/nhost/envvars"
 )
 
 const (
@@ -11,36 +12,19 @@ const (
 	envMinioRootPassword = "MINIO_ROOT_PASSWORD"
 )
 
-func (c Config) minioServiceEnvs() env {
-	e := env{
-		envMinioRootUser:     nhost.MINIO_USER,
-		envMinioRootPassword: nhost.MINIO_PASSWORD,
-	}
-	e.merge(c.serviceConfigEnvs(SvcMinio))
-	e.mergeWithSlice(c.dotenv)
-	return e
-}
-
-func (c Config) RunMinioService() bool {
-	if conf, ok := c.nhostConfig.Services[SvcMinio]; ok && conf != nil {
-		if conf.NoContainer {
-			return false
-		}
-	}
-
-	return true
+func (c Config) minioServiceEnvs() envvars.Env {
+	return envvars.Env{
+		envMinioRootUser:     escapeDollarSignForDockerCompose(nhost.MINIO_USER),
+		envMinioRootPassword: escapeDollarSignForDockerCompose(nhost.MINIO_PASSWORD),
+	}.Merge(c.nhostSystemEnvs(), c.globalEnvs)
 }
 
 func (c Config) minioService() *types.ServiceConfig {
-	if !c.RunMinioService() {
-		return nil
-	}
-
 	return &types.ServiceConfig{
 		Name:        SvcMinio,
-		Environment: c.minioServiceEnvs().dockerServiceConfigEnv(),
+		Environment: c.minioServiceEnvs().ToDockerServiceConfigEnv(),
 		Restart:     types.RestartPolicyAlways,
-		Image:       c.serviceDockerImage(SvcMinio, svcMinioDefaultImage),
+		Image:       "minio/minio:RELEASE.2022-07-08T00-05-23Z",
 		Command:     []string{"server", "/data", "--address", "0.0.0.0:9000", "--console-address", "0.0.0.0:8484"},
 		Ports: []types.ServicePortConfig{
 			{

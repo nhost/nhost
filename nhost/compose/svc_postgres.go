@@ -3,6 +3,8 @@ package compose
 import (
 	"fmt"
 	"github.com/compose-spec/compose-go/types"
+	"github.com/nhost/cli/internal/generichelper"
+	"github.com/nhost/cli/nhost/envvars"
 	"time"
 )
 
@@ -19,18 +21,13 @@ const (
 	envPostgresDataDefaultValue     = "/var/lib/postgresql/data/pgdata"
 )
 
-func (c Config) postgresServiceEnvs() env {
-	e := env{
+func (c Config) postgresServiceEnvs() envvars.Env {
+	return envvars.Env{
 		envPostgresData:     envPostgresDataDefaultValue,
-		envPostgresUser:     envPostgresUserDefaultValue,
-		envPostgresPassword: envPostgresPasswordDefaultValue,
+		envPostgresUser:     escapeDollarSignForDockerCompose(envPostgresUserDefaultValue),
+		envPostgresPassword: escapeDollarSignForDockerCompose(envPostgresPasswordDefaultValue),
 		envPostgresDb:       envPostgresDbDefaultValue,
-	}
-
-	e.merge(c.serviceConfigEnvs(SvcPostgres))
-	e.mergeWithSlice(c.dotenv)
-
-	return e
+	}.Merge(c.nhostSystemEnvs(), c.globalEnvs)
 }
 
 func (c Config) postgresServiceHealthcheck(interval, startPeriod time.Duration) *types.HealthCheckConfig {
@@ -52,9 +49,9 @@ func (c Config) postgresService() *types.ServiceConfig {
 	return &types.ServiceConfig{
 		Name: SvcPostgres,
 		// keep in mind that the provided postgres image should create schemas and triggers like in https://github.com/nhost/postgres/blob/ea53451b6df9f4b10ce515a2cefbd9ddfdfadb25/v12/db/0001-create-schema.sql
-		Image:       c.serviceDockerImage(SvcPostgres, svcPostgresDefaultImage),
+		Image:       "nhost/postgres:" + generichelper.DerefPtr(c.nhostConfig.GetPostgres().GetVersion()),
 		Restart:     types.RestartPolicyAlways,
-		Environment: c.postgresServiceEnvs().dockerServiceConfigEnv(),
+		Environment: c.postgresServiceEnvs().ToDockerServiceConfigEnv(),
 		HealthCheck: c.postgresServiceHealthcheck(time.Second*3, time.Minute*2),
 		Command: []string{
 			"postgres",

@@ -62,9 +62,6 @@ var (
 	//  path for local git directory
 	GIT_DIR string
 
-	//  path for .env.development
-	ENV_FILE string
-
 	//  path for config.yaml file
 	CONFIG_PATH string
 
@@ -128,11 +125,8 @@ func Init() {
 	//  path for local git directory
 	GIT_DIR = filepath.Join(util.WORKING_DIR, ".git")
 
-	//  path for .env.development
-	ENV_FILE = filepath.Join(util.WORKING_DIR, ".env.development")
-
-	//  path for .config.yaml file
-	CONFIG_PATH = filepath.Join(NHOST_DIR, "config.yaml")
+	//  path for .nhost.toml file
+	CONFIG_PATH = filepath.Join(NHOST_DIR, "nhost.toml")
 
 	//  path for .gitignore file
 	GITIGNORE = filepath.Join(util.WORKING_DIR, ".gitignore")
@@ -156,7 +150,6 @@ func Init() {
 		},
 		Files: []*string{
 			&CONFIG_PATH,
-			&ENV_FILE,
 			&GITIGNORE,
 			&INFO_PATH,
 		},

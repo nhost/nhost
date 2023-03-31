@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
-	"github.com/nhost/cli/nhost/compose"
 	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
@@ -23,7 +22,7 @@ import (
 	"github.com/nhost/cli/util"
 )
 
-//  initialize the binary path
+// initialize the binary path
 var status = &util.Writer
 var log = &logger.Log
 
@@ -67,19 +66,14 @@ func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
 	return existing.LessThan(expected), nil
 }
 
-//  if the required binary exists in $HOME/.nhost
-//  this function returns it's exact path
-//  and if the binary doesn't exist,
-//  it downloads it from specifically supplied URL
-//  based on user's OS and ARCH
-func Binary(customBinary string) (string, error) {
-	cliVersion, err := compose.HasuraCliVersion()
-	if err != nil {
-		return "", err
-	}
-
+// if the required binary exists in $HOME/.nhost
+// this function returns it's exact path
+// and if the binary doesn't exist,
+// it downloads it from specifically supplied URL
+// based on user's OS and ARCH
+func Binary(hasuraVersion, customBinary string) (string, error) {
 	if customBinary != "" {
-		outdated, err := cliIsOutdated(customBinary, cliVersion)
+		outdated, err := cliIsOutdated(customBinary, hasuraVersion)
 		if err != nil {
 			return "", err
 		}
@@ -93,7 +87,7 @@ func Binary(customBinary string) (string, error) {
 
 	//  search for installed binary
 	if pathExists(binaryPath) {
-		outdated, err := cliIsOutdated(binaryPath, cliVersion)
+		outdated, err := cliIsOutdated(binaryPath, hasuraVersion)
 		if err != nil {
 			return "", err
 		}
@@ -109,13 +103,13 @@ func Binary(customBinary string) (string, error) {
 
 	log.WithFields(logrus.Fields{
 		"type":    binary,
-		"version": cliVersion,
+		"version": hasuraVersion,
 	}).Debug("Fetching binary")
 
 	//	Use AMD architecture instead of ARM
 	architecture := runtime.GOARCH
 
-	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", cliVersion, runtime.GOOS, architecture)
+	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", hasuraVersion, runtime.GOOS, architecture)
 
 	//  create the binary path
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
@@ -163,7 +157,7 @@ func Binary(customBinary string) (string, error) {
 	return binaryPath, nil
 }
 
-//  validates whether a given folder/file path exists or not
+// validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil
@@ -195,13 +189,16 @@ func (c *Client) GetSchemas() ([]string, error) {
 
 	defer resp.Body.Close()
 
-	body, err = ioutil.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return response, err
 	}
 
 	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
+	err = json.Unmarshal(body, &responseData)
+	if err != nil {
+		return response, err
+	}
 
 	//  Remove the first row/head and filter schemas from following rows
 	//  Following is a sample result:
@@ -618,7 +615,7 @@ func GetTablesFromLocalMetadata() ([]TableEntry, error) {
 	return response, nil
 }
 
-//  check whether source array contains value or not
+// check whether source array contains value or not
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

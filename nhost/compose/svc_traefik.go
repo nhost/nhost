@@ -8,7 +8,7 @@ import (
 func (c Config) traefikService() *types.ServiceConfig {
 	return &types.ServiceConfig{
 		Name:    SvcTraefik,
-		Image:   c.serviceDockerImage(SvcTraefik, svcTraefikDefaultImage),
+		Image:   "traefik:v2.8",
 		Restart: types.RestartPolicyAlways,
 		Ports: []types.ServicePortConfig{
 			{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nhost/be/services/mimir/model"
 	nhostssl "github.com/nhost/cli/internal/ssl"
 	"net/http"
 	"os"
@@ -37,8 +38,8 @@ type Manager interface {
 	Endpoints() *Endpoints
 }
 
-func NewDockerComposeManager(cert *nhostssl.SSLCert, c *nhost.Configuration, workdir string, hc *hasura.Client, p *ports.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
-	dcConf := compose.NewConfig(c, p, env, gitBranch, projectName)
+func NewDockerComposeManager(cert *nhostssl.SSLCert, c *model.ConfigConfig, workdir string, hc *hasura.Client, p *ports.Ports, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
+	dcConf := compose.NewConfig(c, p, gitBranch, projectName)
 	w, err := compose.InitWrapper(workdir, cert, gitBranch, dcConf)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,6 @@ func NewDockerComposeManager(cert *nhostssl.SSLCert, c *nhost.Configuration, wor
 		ports:         p,
 		hc:            hc,
 		debug:         debug,
-		env:           env,
 		branch:        gitBranch,
 		projectName:   projectName,
 		nhostConfig:   c,
@@ -66,11 +66,10 @@ type dockerComposeManager struct {
 	debug         bool
 	branch        string
 	projectName   string
-	nhostConfig   *nhost.Configuration
+	nhostConfig   *model.ConfigConfig
 	composeConfig *compose.Config
 	status        *util.Status
 	l             logrus.FieldLogger
-	env           []string
 	dcWrapper     *compose.Wrapper
 }
 
@@ -215,10 +214,6 @@ func (m *dockerComposeManager) startPostgresGraphql(ctx context.Context, ds *com
 }
 
 func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
-	if !m.composeConfig.RunMinioService() {
-		return nil
-	}
-
 	m.l.Debug("Ensuring S3 bucket exists")
 	const bucketName = "nhost"
 

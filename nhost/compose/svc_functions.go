@@ -2,27 +2,12 @@ package compose
 
 import (
 	"github.com/compose-spec/compose-go/types"
-	"github.com/nhost/cli/util"
+	"github.com/nhost/cli/nhost/envvars"
 	"time"
 )
 
-func (c Config) functionsServiceEnvs() env {
-	e := env{}
-	e.merge(env{
-		"NHOST_BACKEND_URL":    c.envValueNhostBackendUrl(),
-		"NHOST_SUBDOMAIN":      SubdomainLocal,
-		"NHOST_REGION":         "",
-		"NHOST_HASURA_URL":     c.envValueNhostHasuraURL(),
-		"NHOST_GRAPHQL_URL":    c.PublicHasuraGraphqlEndpoint(),
-		"NHOST_AUTH_URL":       c.PublicAuthConnectionString(),
-		"NHOST_STORAGE_URL":    c.PublicStorageConnectionString(),
-		"NHOST_FUNCTIONS_URL":  c.PublicFunctionsConnectionString(),
-		"NHOST_ADMIN_SECRET":   util.ADMIN_SECRET,
-		"NHOST_WEBHOOK_SECRET": util.WEBHOOK_SECRET,
-		"NHOST_JWT_SECRET":     c.envValueHasuraGraphqlJwtSecret(),
-	})
-	e.mergeWithSlice(c.dotenv)
-	return e
+func (c Config) functionsServiceEnvs() envvars.Env {
+	return c.nhostSystemEnvs().Merge(c.globalEnvs)
 }
 
 func (c Config) functionsServiceHealthcheck(interval, startPeriod time.Duration) *types.HealthCheckConfig {
@@ -54,10 +39,10 @@ func (c Config) functionsService() *types.ServiceConfig {
 
 	return &types.ServiceConfig{
 		Name:        SvcFunctions,
-		Image:       c.serviceDockerImage(SvcFunctions, svcFunctionsDefaultImage),
+		Image:       "nhost/functions:0.1.8",
 		Labels:      mergeTraefikServiceLabels(sslLabels, httpLabels).AsMap(),
 		Restart:     types.RestartPolicyAlways,
-		Environment: c.functionsServiceEnvs().dockerServiceConfigEnv(),
+		Environment: c.functionsServiceEnvs().ToDockerServiceConfigEnv(),
 		HealthCheck: c.functionsServiceHealthcheck(time.Second*1, time.Minute*30), // 30 minutes is the maximum allowed time for a "functions" service to start, see more below
 		// Probe failure during that period will not be counted towards the maximum number of retries
 		// However, if a health check succeeds during the start period, the container is considered started and all

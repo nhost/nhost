@@ -27,6 +27,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/config"
+	"github.com/nhost/cli/internal/generichelper"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,9 +42,6 @@ import (
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/nhost/be/services/mimir/schema"
-	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
 var (
@@ -93,6 +93,8 @@ in the following manner:
 
 		var err error
 		var selectedProject nhost.App
+		var appSecrets model.Secrets
+		var conf *model.ConfigConfig
 
 		//	Read project ID from arguments, if remote is true
 		if remote && len(args) > 0 {
@@ -174,9 +176,14 @@ in the following manner:
 				selectedProject = projects[index]
 			}
 
+			appSecrets = selectedProject.AppSecrets
+			conf = selectedProject.Config
 			location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 		} else {
-
+			conf, appSecrets, err = config.DefaultConfigAndSecrets()
+			if err != nil {
+				status.Fatal("Failed to build default config")
+			}
 			if name == "" {
 				prompt := promptui.Prompt{
 					Label: "Name of your new app",
@@ -208,14 +215,26 @@ in the following manner:
 			status.Errorln(err.Error())
 		}
 
-		//  generate Nhost configuration
-		//  which will contain the information for GraphQL, Minio and other services
-		nhostConfig := nhost.GenerateConfig(selectedProject)
+		confData, err := config.MarshalFunc(conf)
+		if err != nil {
+			status.Fatal("Failed to marshal config")
+		}
 
 		//  save the Nhost configuration
-		if err := nhostConfig.Save(); err != nil {
+		if err := os.WriteFile(nhost.CONFIG_PATH, confData, 0644); err != nil {
+			log.WithError(err).Fatal("Failed to save Nhost configuration")
+		}
+
+		// save .secrets
+		if err := os.WriteFile(filepath.Join(util.WORKING_DIR, ".secrets"), config.DumpSecrets(anonymizeAppSecrets(appSecrets)), 0644); err != nil {
+			log.WithError(err).Fatal("Failed to save .secrets file")
+		}
+
+		// write config.yaml for hasura CLI to work :facepalm:
+		// maybe someday hasura cli won't need this file
+		if err := os.WriteFile(filepath.Join(nhost.NHOST_DIR, "config.yaml"), []byte("version: 3"), 0644); err != nil {
 			log.Debug(err)
-			status.Fatal("Failed to save Nhost configuration")
+			status.Fatal(err.Error())
 		}
 
 		installDefaultTemplates(log)
@@ -229,6 +248,7 @@ in the following manner:
 				util.Rel(filepath.Join(nhost.WEB_DIR, "node_modules")),
 				util.Rel(filepath.Join(util.WORKING_DIR, "node_modules")),
 				util.Rel(filepath.Join(nhost.API_DIR, "node_modules")),
+				".secrets",
 			}, "\n"), "end"); err != nil {
 			log.Debug(err)
 			status.Errorln("Failed to write to .gitignore file")
@@ -242,22 +262,18 @@ in the following manner:
 				status.Fatal("Failed to save app configuration")
 			}
 
-			sch, err := schema.New()
+			resolvedConf, err := config.ValidateAndResolve(conf, appSecrets)
 			if err != nil {
 				log.Debug(err)
-				status.Fatal("Failed to initialize config schema")
-			}
-			resolvedConf, err := appconfig.Config(sch, selectedProject.Config, selectedProject.AppSecrets)
-			if err != nil {
-				log.Debug(err)
-				status.Fatal("Failed to resolve config")
+				status.Fatal("Failed to validate and resolve config")
 			}
 
 			hasuraEndpoint := fmt.Sprintf("https://%s.hasura.%s.%s", selectedProject.Subdomain, selectedProject.Region.AwsName, nhost.DOMAIN)
 			adminSecret := resolvedConf.GetHasura().GetAdminSecret()
 
+			hasuraVersion := generichelper.DerefPtr(resolvedConf.GetHasura().GetVersion())
 			//  create new hasura client
-			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, viper.GetString(userDefinedHasuraCliFlag), nil)
+			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, hasuraVersion, viper.GetString(userDefinedHasuraCliFlag), nil)
 			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to initialize Hasura client")
@@ -268,19 +284,6 @@ in the following manner:
 			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to pull migrations from remote")
-			}
-
-			//  write ENV variables to .env.development
-			var envArray []string
-			for _, row := range resolvedConf.GetGlobal().GetEnvironment() {
-				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row.GetName(), row.GetValue()))
-			}
-
-			envData := strings.Join(envArray, "\n")
-			log.Debug("Saving environment variables")
-			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
-				log.Debug(err)
-				status.Errorln(fmt.Sprintf("Failed to write app environment variables to %s file", util.Rel(nhost.ENV_FILE)))
 			}
 		}
 	},

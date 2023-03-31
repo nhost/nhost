@@ -3,6 +3,7 @@ package compose
 import (
 	"fmt"
 	"github.com/compose-spec/compose-go/types"
+	"github.com/nhost/cli/nhost/envvars"
 )
 
 const (
@@ -14,45 +15,30 @@ const (
 	envAuthSmtpSender = "AUTH_SMTP_SENDER"
 )
 
-func (c Config) mailhogServiceEnvs() env {
+func (c Config) mailhogServiceEnvs() envvars.Env {
 	authEnv := c.authServiceEnvs()
 
-	e := env{
+	return envvars.Env{
 		"SMTP_HOST":   authEnv[envAuthSmtpHost],
 		"SMTP_PORT":   authEnv[envAuthSmtpPort],
-		"SMTP_PASS":   authEnv[envAuthSmtpPass],
-		"SMTP_USER":   authEnv[envAuthSmtpUser],
+		"SMTP_PASS":   escapeDollarSignForDockerCompose(authEnv[envAuthSmtpPass]),
+		"SMTP_USER":   escapeDollarSignForDockerCompose(authEnv[envAuthSmtpUser]),
 		"SMTP_SECURE": authEnv[envAuthSmtpSecure],
-		"SMTP_SENDER": authEnv[envAuthSmtpSender],
-	}
-
-	e.merge(c.serviceConfigEnvs(SvcMailhog))
-	e.mergeWithSlice(c.dotenv)
-	return e
-}
-
-func (c Config) runMailhogService() bool {
-	if conf, ok := c.nhostConfig.Services[SvcMailhog]; ok && conf != nil {
-		if conf.NoContainer {
-			return false
-		}
-	}
-
-	authEnv := c.authServiceEnvs()
-
-	return authEnv[envAuthSmtpHost] == SvcMailhog
+		"SMTP_SENDER": escapeDollarSignForDockerCompose(authEnv[envAuthSmtpSender]),
+	}.Merge(c.nhostSystemEnvs(), c.globalEnvs)
 }
 
 func (c Config) mailhogService() *types.ServiceConfig {
-	if !c.runMailhogService() {
+	// do not start mailhog if smtp host is not mailhog
+	if c.smtpSettings().Host != "mailhog" {
 		return nil
 	}
 
 	return &types.ServiceConfig{
 		Name:        SvcMailhog,
-		Environment: c.mailhogServiceEnvs().dockerServiceConfigEnv(),
+		Environment: c.mailhogServiceEnvs().ToDockerServiceConfigEnv(),
 		Restart:     types.RestartPolicyAlways,
-		Image:       c.serviceDockerImage(SvcMailhog, svcMailhogDefaultImage),
+		Image:       "mailhog/mailhog",
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",

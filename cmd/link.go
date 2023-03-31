@@ -256,7 +256,7 @@ var linkCmd = &cobra.Command{
 }
 
 func updateNhostProject(app nhost.App) error {
-	// do not dump configuration and app secrets
+	// do not dump configuration and secrets contents
 	app.Config = nil
 	app.AppSecrets = nil
 	//  create .nhost, if it doesn't exists

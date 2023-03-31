@@ -1,10 +1,10 @@
 package nhost
 
 import (
+	"github.com/nhost/be/services/mimir/model"
 	"sync"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/nhost/be/services/mimir/model"
 )
 
 type (
@@ -121,17 +121,6 @@ type (
 		Version           int                         `yaml:",omitempty"`
 		Sessions          map[string]Session          `yaml:",omitempty"`
 		//  Environment       map[string]interface{} `yaml:",omitempty"`
-	}
-
-	//  Nhost config.yaml authentication structure
-	Authentication struct {
-		Endpoints map[string]interface{} `yaml:",omitempty"`
-		Providers map[string]interface{} `yaml:",omitempty"`
-		Signin    map[string]interface{} `yaml:",omitempty"`
-		Signup    map[string]interface{} `yaml:",omitempty"`
-		Email     map[string]interface{} `yaml:",omitempty"`
-		Tokens    map[string]interface{} `yaml:",omitempty"`
-		Gravatar  map[string]interface{} `yaml:",omitempty"`
 	}
 
 	//  Nhost config.yaml service structure

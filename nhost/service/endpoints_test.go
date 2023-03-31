@@ -2,13 +2,29 @@ package service_test
 
 import (
 	"bytes"
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/config"
 	"github.com/nhost/cli/internal/ports"
-	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/nhost/cli/nhost/service"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func resolvedDefaultConfig(t *testing.T) *model.ConfigConfig {
+	t.Helper()
+	c, secr, err := config.DefaultConfigAndSecrets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c, err = config.ValidateAndResolve(c, secr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return c
+}
 
 func TestEndpoints_Dump(t *testing.T) {
 	assert := assert.New(t)
@@ -24,7 +40,7 @@ func TestEndpoints_Dump(t *testing.T) {
 		ports.DefaultDashboardPort,
 		ports.DefaultMailhogPort,
 	)
-	dcConf := compose.NewConfig(&nhost.Configuration{}, p, []string{}, "", "")
+	dcConf := compose.NewConfig(resolvedDefaultConfig(t), p, "", "")
 	endpoints := service.NewEndpoints(
 		dcConf.PublicPostgresConnectionString(),
 		dcConf.PublicHasuraGraphqlEndpoint(),

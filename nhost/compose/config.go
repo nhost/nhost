@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/internal/generichelper"
 	"github.com/nhost/cli/internal/ports"
+	"github.com/nhost/cli/nhost/envvars"
 	"gopkg.in/yaml.v3"
 
 	"github.com/compose-spec/compose-go/types"
-	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/util"
 )
 
 const (
@@ -46,46 +47,32 @@ const (
 	proxySSLPort    = 443
 	// --
 
-	// default docker images
-	svcDashboardDefaultImage = "nhost/dashboard:0.14.1"
-	svcPostgresDefaultImage  = "nhost/postgres:14.5-20230104-1"
-	svcAuthDefaultImage      = "nhost/hasura-auth:0.19.0"
-	svcStorageDefaultImage   = "nhost/hasura-storage:0.3.0"
-	svcFunctionsDefaultImage = "nhost/functions:0.1.8"
-	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
-	svcMailhogDefaultImage   = "mailhog/mailhog"
-	svcHasuraDefaultImage    = "hasura/graphql-engine:v2.15.2"
-	svcTraefikDefaultImage   = "traefik:v2.8"
-	// --
-
 	// volume names
 	volFunctionsNodeModules = "functions_node_modules"
 	volRootNodeModules      = "root_node_modules"
 	// --
+
+	// providers
+	providerTwilio = "twilio"
 )
 
 type Config struct {
-	nhostConfig        *nhost.Configuration // nhost configuration
-	gitBranch          string               // git branch name, used as a namespace for postgres data mounted from host
+	nhostConfig        *model.ConfigConfig // nhost configuration
+	gitBranch          string              // git branch name, used as a namespace for postgres data mounted from host
 	composeConfig      *types.Config
 	composeProjectName string
-	dotenv             []string // environment variables from .env file
 	ports              *ports.Ports
+	globalEnvs         envvars.Env
 }
 
-// HasuraCliVersion extracts version from Hasura CLI docker image. That allows us to keep the same version of Hasura CLI
-// both in the docker image and in the hasura-cli on the host
-func HasuraCliVersion() (string, error) {
-	s := strings.SplitN(svcHasuraDefaultImage, ":", 2)
-	if len(s) != 2 {
-		return "", fmt.Errorf("invalid hasura cli version: %s", svcHasuraDefaultImage)
+func NewConfig(conf *model.ConfigConfig, p *ports.Ports, gitBranch, projectName string) *Config {
+	return &Config{
+		nhostConfig:        conf,
+		globalEnvs:         configGlobalEnvVarsToEnvVars(conf),
+		ports:              p,
+		gitBranch:          gitBranch,
+		composeProjectName: projectName,
 	}
-
-	return s[1], nil
-}
-
-func NewConfig(conf *nhost.Configuration, p *ports.Ports, env []string, gitBranch, projectName string) *Config {
-	return &Config{nhostConfig: conf, ports: p, dotenv: env, gitBranch: gitBranch, composeProjectName: projectName}
 }
 
 func (c Config) addExtraHosts(svc *types.ServiceConfig) *types.ServiceConfig {
@@ -101,29 +88,36 @@ func (c Config) addExtraHosts(svc *types.ServiceConfig) *types.ServiceConfig {
 	return svc
 }
 
-func (c Config) serviceDockerImage(svcName, dockerImageFallback string) string {
-	if svcConf, ok := c.nhostConfig.Services[svcName]; ok && svcConf != nil {
-		if svcConf.Image != "" {
-			return svcConf.Image
-		}
+func (c Config) twilioSettings() (accountSid, authToken, messagingServiceId string) {
+	providerConf := c.nhostConfig.GetProvider()
+	providerName := strings.ToLower(generichelper.DerefPtr(providerConf.GetSms().GetProvider()))
+
+	if providerName == providerTwilio {
+		accountSid = providerConf.Sms.AccountSid
+		authToken = providerConf.Sms.AuthToken
+		messagingServiceId = providerConf.Sms.MessagingServiceId
 	}
 
-	return dockerImageFallback
+	return
 }
 
-// serviceConfigEnvs returns environment variables from "services".$name."environment" section in yaml config
-func (c Config) serviceConfigEnvs(svc string) env {
-	e := env{}
+func (c Config) graphqlJwtSecret() string {
+	hasuraConf := c.nhostConfig.GetHasura()
+	var graphqlJwtSecret string
 
-	if svcConf, ok := c.nhostConfig.Services[svc]; ok && svcConf != nil {
-		e.mergeWithServiceEnv(svcConf.Environment)
+	if len(hasuraConf.GetJwtSecrets()) > 0 {
+		graphqlJwtSecret = fmt.Sprintf(
+			`{"type":"%s", "key": "%s"}`,
+			generichelper.DerefPtr(hasuraConf.JwtSecrets[0].Type),
+			generichelper.DerefPtr(hasuraConf.JwtSecrets[0].Key),
+		)
 	}
 
-	return e
+	return graphqlJwtSecret
 }
 
 func (c Config) build() *types.Config {
-	config := &types.Config{}
+	conf := &types.Config{}
 
 	// build services, they may be nil
 	services := []*types.ServiceConfig{
@@ -149,7 +143,7 @@ func (c Config) build() *types.Config {
 	}
 
 	// set volumes
-	config.Volumes = types.Volumes{
+	conf.Volumes = types.Volumes{
 		volFunctionsNodeModules: types.VolumeConfig{},
 		volRootNodeModules:      types.VolumeConfig{},
 	}
@@ -157,13 +151,31 @@ func (c Config) build() *types.Config {
 	// loop over services and filter out nils, i.e. services that are not enabled
 	for _, service := range services {
 		if service != nil {
-			config.Services = append(config.Services, *c.addExtraHosts(service))
+			conf.Services = append(conf.Services, *c.addExtraHosts(service))
 		}
 	}
 
-	c.composeConfig = config
+	c.composeConfig = conf
 
-	return config
+	return conf
+}
+
+func (c Config) smtpSettings() *model.ConfigSmtp {
+	// use smtp settings if they are provided
+	if c.nhostConfig.GetProvider().GetSmtp() != nil {
+		return c.nhostConfig.GetProvider().GetSmtp()
+	}
+
+	// otherwise use mailhog
+	return &model.ConfigSmtp{
+		User:     "user",
+		Password: "password",
+		Sender:   "hasura-auth@example.com",
+		Host:     "mailhog",
+		Port:     uint16(ports.DefaultSMTPPort),
+		Secure:   false,
+		Method:   "PLAIN",
+	}
 }
 
 func (c Config) BuildYAML() ([]byte, error) {
@@ -230,8 +242,21 @@ func (c Config) PublicDashboardURL() string {
 	return DashboardHostname(c.ports.Dashboard())
 }
 
-func (c Config) envValueHasuraGraphqlJwtSecret() string {
-	return fmt.Sprintf(`{"type":"HS256", "key": "%s"}`, util.JWT_KEY)
+func (c Config) nhostSystemEnvs() envvars.Env {
+	hasuraConf := c.nhostConfig.GetHasura()
+	return envvars.Env{
+		"NHOST_BACKEND_URL":    c.envValueNhostBackendUrl(),
+		"NHOST_SUBDOMAIN":      SubdomainLocal,
+		"NHOST_REGION":         "",
+		"NHOST_HASURA_URL":     c.envValueNhostHasuraURL(),
+		"NHOST_GRAPHQL_URL":    c.PublicHasuraGraphqlEndpoint(),
+		"NHOST_AUTH_URL":       c.PublicAuthConnectionString(),
+		"NHOST_STORAGE_URL":    c.PublicStorageConnectionString(),
+		"NHOST_FUNCTIONS_URL":  c.PublicFunctionsConnectionString(),
+		"NHOST_ADMIN_SECRET":   escapeDollarSignForDockerCompose(hasuraConf.GetAdminSecret()),
+		"NHOST_WEBHOOK_SECRET": escapeDollarSignForDockerCompose(hasuraConf.GetWebhookSecret()),
+		"NHOST_JWT_SECRET":     escapeDollarSignForDockerCompose(c.graphqlJwtSecret()),
+	}
 }
 
 // deprecated
@@ -249,4 +274,18 @@ func (c Config) hasuraApiURL() string {
 
 func (c Config) hasuraMigrationsApiURL() string {
 	return HasuraMigrationsAPIHostname(c.ports.HasuraConsoleAPI())
+}
+
+func configGlobalEnvVarsToEnvVars(conf *model.ConfigConfig) envvars.Env {
+	envs := envvars.Env{}
+	globalEnvs := conf.GetGlobal().GetEnvironment()
+	for _, env := range globalEnvs {
+		envs[env.GetName()] = env.GetValue()
+	}
+	return envs
+}
+
+// prevents '$' from being replaced by docker-compose, see https://docs.docker.com/compose/compose-file/compose-file-v2/#variable-substitution
+func escapeDollarSignForDockerCompose(v string) string {
+	return strings.ReplaceAll(v, "$", "$$")
 }

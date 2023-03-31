@@ -3,37 +3,26 @@ package compose
 import (
 	"fmt"
 	"github.com/compose-spec/compose-go/types"
-	"github.com/nhost/cli/util"
+	"github.com/nhost/cli/internal/generichelper"
+	"github.com/nhost/cli/nhost/envvars"
 )
 
-func (c Config) hasuraServiceEnvs() env {
-	e := env{
+func (c Config) hasuraServiceEnvs() envvars.Env {
+	hasuraConf := c.nhostConfig.GetHasura()
+
+	return envvars.Env{
 		"HASURA_GRAPHQL_DATABASE_URL":              c.postgresConnectionStringForUser("nhost_hasura"),
-		"HASURA_GRAPHQL_JWT_SECRET":                c.envValueHasuraGraphqlJwtSecret(),
-		"HASURA_GRAPHQL_ADMIN_SECRET":              util.ADMIN_SECRET,
-		"NHOST_ADMIN_SECRET":                       util.ADMIN_SECRET,
-		"NHOST_BACKEND_URL":                        c.envValueNhostBackendUrl(),
-		"NHOST_SUBDOMAIN":                          SubdomainLocal,
-		"NHOST_REGION":                             "",
-		"NHOST_HASURA_URL":                         c.envValueNhostHasuraURL(),
-		"NHOST_GRAPHQL_URL":                        c.PublicHasuraGraphqlEndpoint(),
-		"NHOST_AUTH_URL":                           c.PublicAuthConnectionString(),
-		"NHOST_STORAGE_URL":                        c.PublicStorageConnectionString(),
-		"NHOST_FUNCTIONS_URL":                      c.PublicFunctionsConnectionString(),
+		"HASURA_GRAPHQL_JWT_SECRET":                escapeDollarSignForDockerCompose(c.graphqlJwtSecret()),
+		"HASURA_GRAPHQL_ADMIN_SECRET":              escapeDollarSignForDockerCompose(hasuraConf.GetAdminSecret()),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
 		"HASURA_GRAPHQL_DEV_MODE":                  "true",
-		"HASURA_GRAPHQL_LOG_LEVEL":                 "debug",
+		"HASURA_GRAPHQL_LOG_LEVEL":                 generichelper.DerefPtr(hasuraConf.GetLogs().GetLevel()),
+		"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE":     fmt.Sprint(generichelper.DerefPtr(hasuraConf.GetEvents().GetHttpPoolSize())),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
 		"HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT": "20",
 		"HASURA_GRAPHQL_NO_OF_RETRIES":             "20",
 		"HASURA_GRAPHQL_ENABLE_TELEMETRY":          "false",
-		"NHOST_WEBHOOK_SECRET":                     util.WEBHOOK_SECRET,
-	}
-
-	e.merge(c.serviceConfigEnvs(SvcHasura))
-	e.mergeWithSlice(c.dotenv)
-
-	return e
+	}.Merge(c.nhostSystemEnvs(), c.globalEnvs)
 }
 
 func (c Config) hasuraService() *types.ServiceConfig {
@@ -82,8 +71,8 @@ func (c Config) hasuraService() *types.ServiceConfig {
 
 	return &types.ServiceConfig{
 		Name:        SvcGraphql,
-		Image:       c.serviceDockerImage(SvcHasura, svcHasuraDefaultImage),
-		Environment: c.hasuraServiceEnvs().dockerServiceConfigEnv(),
+		Image:       "hasura/graphql-engine:" + generichelper.DerefPtr(c.nhostConfig.GetHasura().GetVersion()),
+		Environment: c.hasuraServiceEnvs().ToDockerServiceConfigEnv(),
 		Labels: mergeTraefikServiceLabels(
 			redirectRootLabels,
 			redirectConsoleLabels,

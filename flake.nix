@@ -10,7 +10,7 @@
       let
         overlays = [
           (final: prev: rec {
-            go = final.go_1_18;
+            go = final.go_1_20;
 
             golangci-lint = prev.golangci-lint.override rec {
               buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
@@ -21,7 +21,7 @@
                   rev = "v${version}";
                   sha256 = "sha256-7sDAwWz+qoB/ngeH35tsJ5FZUfAQvQsU6kU9rUHIHMk=";
                 };
-                vendorSha256 = "sha256-w38OKN6HPoz37utG/2QSPMai55IRDXCIIymeMe6ogIU=";
+                vendorHash = "sha256-w38OKN6HPoz37utG/2QSPMai55IRDXCIIymeMe6ogIU=";
 
                 meta = with final.lib; args.meta // {
                   broken = false;

@@ -25,18 +25,23 @@ SOFTWARE.
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/config"
+	"github.com/nhost/cli/internal/generichelper"
 	"github.com/nhost/cli/internal/git"
 	"github.com/nhost/cli/internal/ports"
 	nhostssl "github.com/nhost/cli/internal/ssl"
 	"github.com/nhost/cli/nhost/compose"
+	"github.com/nhost/cli/nhost/secrets"
 	"net"
 	"os"
 	"os/signal"
 	"path"
-	"reflect"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"text/tabwriter"
@@ -128,19 +133,52 @@ var devCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
-		config, err := nhost.GetConfiguration()
+		if !util.PathExists(nhost.CONFIG_PATH) {
+			fmt.Printf("\nConfig file '%s' wasn't found. Would you like to generate a new one from the cloud? [Yn]: ", nhost.CONFIG_PATH)
+
+			for {
+				r := bufio.NewReader(os.Stdin)
+				fmt.Print(">  ")
+
+				input, err := r.ReadString('\n')
+				if err != nil {
+					return err
+				}
+
+				input = strings.TrimSpace(strings.ToLower(input))
+
+				if input == "n" {
+					log.Info("Please first run 'nhost config pull' to get the new config format.")
+					os.Exit(0)
+				}
+
+				if input == "y" || input == "" {
+					if err := pullConfigCmd.RunE(nil, nil); err != nil {
+						return err
+					}
+					break
+				}
+			}
+		}
+
+		secr, err := secrets.ParseSecrets(filepath.Join(util.WORKING_DIR, ".secrets"))
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get local secrets: %v", err)
+		}
+
+		confData, err := os.ReadFile(nhost.CONFIG_PATH)
+		if err != nil {
+			return fmt.Errorf("failed to read config file: %v", err)
+		}
+
+		conf, err := config.ValidateAndResolve(confData, secr)
+		if err != nil {
+			return fmt.Errorf("failed to resolve config: %v", err)
 		}
 
 		projectName, err := nhost.GetDockerComposeProjectName()
 		if err != nil {
 			return err
-		}
-
-		env, err := nhost.Env()
-		if err != nil {
-			return fmt.Errorf("failed to read .env.development: %v", err)
 		}
 
 		ports, err := getPorts(cmd.Flags())
@@ -150,7 +188,9 @@ var devCmd = &cobra.Command{
 
 		debug := logger.DEBUG
 
-		hc, err := hasura.InitClient(compose.HasuraConsoleHostname(ports.GraphQL()), util.ADMIN_SECRET, viper.GetString(userDefinedHasuraCliFlag), nil)
+		hasuraVersion := generichelper.DerefPtr(conf.GetHasura().GetVersion())
+
+		hc, err := hasura.InitClient(compose.HasuraConsoleHostname(ports.GraphQL()), conf.GetHasura().GetAdminSecret(), hasuraVersion, viper.GetString(userDefinedHasuraCliFlag), nil)
 		if err != nil {
 			return fmt.Errorf("failed to init hasura client: %v", err)
 		}
@@ -177,11 +217,10 @@ var devCmd = &cobra.Command{
 
 		dcMgr, err := service.NewDockerComposeManager(
 			nhostssl.NewNhostSSLCert(),
-			config,
+			conf,
 			cwd,
 			hc,
 			ports,
-			env,
 			gitBranchName,
 			projectName,
 			log,
@@ -226,7 +265,7 @@ var devCmd = &cobra.Command{
 			}
 
 			fmt.Println()
-			configurationWarnings(config)
+			configurationWarnings(conf)
 		}()
 
 		// handle cancellation or termination signals
@@ -258,7 +297,6 @@ func checkHostnames() error {
 		compose.HostLocalAuthNhostRun,
 		compose.HostLocalStorageNhostRun,
 		compose.HostLocalFunctionsNhostRun,
-		compose.HostLocalDashboardNhostRun,
 	}
 
 	for _, hostname := range hostnames {
@@ -400,37 +438,15 @@ func init() {
 	viper.BindPFlag(userDefinedHasuraCliFlag, devCmd.PersistentFlags().Lookup(userDefinedHasuraCliFlag))
 }
 
-func configurationWarnings(c *nhost.Configuration) {
-	// warn about deprecated fields
-	for name, svc := range c.Services {
-		if svc != nil && svc.Version != nil && svc.Version.(string) != "" {
-			fmt.Printf("WARNING: [services.%s.version] \"version\" field is not used anymore, please use \"image\" instead or let CLI use the default version\n", name)
-		}
+func configurationWarnings(c *model.ConfigConfig) {
+	smtpHost := c.Provider.GetSmtp().GetHost()
+	smtpPort := c.Provider.GetSmtp().GetPort()
+
+	if smtpHost != "" && smtpHost != "mailhog" && strings.Contains(smtpHost, "mailhog") {
+		fmt.Printf("WARNING: [provider.smtp] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to catch the mails\n", smtpHost)
 	}
 
-	// check auth smtp config
-	var smtpHost, smtpPort string
-	if smtp, ok := c.Auth["smtp"]; ok { //nolint:nestif
-		v := reflect.ValueOf(smtp)
-
-		if v.Kind() == reflect.Map {
-			for _, key := range v.MapKeys() {
-				if key.Interface().(string) == "host" {
-					smtpHost = v.MapIndex(key).Interface().(string)
-				}
-
-				if key.Interface().(string) == "port" {
-					smtpPort = fmt.Sprint(v.MapIndex(key).Interface())
-				}
-			}
-		}
-
-		if smtpHost != "" && smtpHost != "mailhog" && strings.Contains(smtpHost, "mailhog") {
-			fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", smtpHost)
-		}
-
-		if smtpPort != "1025" && strings.Contains(smtpHost, "mailhog") {
-			fmt.Printf("WARNING: [auth.smtp.port] \"port\" field has a value \"%s\", please set the value to \"1025\" if you want mailhog to work properly\n", smtpPort)
-		}
+	if smtpPort != 1025 && strings.Contains(smtpHost, "mailhog") {
+		fmt.Printf("WARNING: [provider.smtp] \"port\" field has a value \"%d\", please set the value to \"1025\" if you want mailhog to work properly\n", smtpPort)
 	}
 }
