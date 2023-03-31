@@ -1,0 +1,68 @@
+{
+  "cookies": [
+    {
+      "name": "ajs_anonymous_id",
+      "value": "b7354379-b4a3-4558-8a72-149019df0b24",
+      "domain": ".dashboard-staging-nrtr5i323-nhost.vercel.app",
+      "path": "/",
+      "expires": 1711788473,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "nhostRefreshTokenExpiresAt",
+      "value": "2023-03-31T09:02:53.546Z",
+      "domain": "dashboard-staging-nrtr5i323-nhost.vercel.app",
+      "path": "/",
+      "expires": 1682844473,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "nhostRefreshToken",
+      "value": "fd2e58cf-5608-4a93-a192-7e2f0ec8a74d",
+      "domain": "dashboard-staging-nrtr5i323-nhost.vercel.app",
+      "path": "/",
+      "expires": 1682844473,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "nhostSession",
+      "value": "{%22accessToken%22:%22eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiMWFjNTQ5NTktZWE3Zi00ZTU0LWJkODUtMzdjMjE4YzY3NjkwIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJzdWIiOiIxYWM1NDk1OS1lYTdmLTRlNTQtYmQ4NS0zN2MyMThjNjc2OTAiLCJpYXQiOjE2ODAyNTI0NzMsImV4cCI6MTY4MDI1MzM3MywiaXNzIjoiaGFzdXJhLWF1dGgifQ.DGM0Rw5_xlw8-z4wnGiJWXEQzZjIxiLFawaH5i_30uQ%22%2C%22accessTokenExpiresIn%22:899.998%2C%22user%22:{%22id%22:%221ac54959-ea7f-4e54-bd85-37c218c67690%22%2C%22createdAt%22:%222023-03-30T18:48:18.654641+00:00%22%2C%22displayName%22:%22Nhost%20Test%20User%22%2C%22avatarUrl%22:%22https://s.gravatar.com/avatar/ec633c8933c237fe85c75000d95baa66?r=g&default=blank%22%2C%22locale%22:%22en%22%2C%22email%22:%22nowiv30659@maazios.com%22%2C%22isAnonymous%22:false%2C%22defaultRole%22:%22user%22%2C%22metadata%22:{}%2C%22emailVerified%22:false%2C%22phoneNumber%22:null%2C%22phoneNumberVerified%22:false%2C%22activeMfaType%22:null%2C%22roles%22:[%22me%22%2C%22user%22]}}",
+      "domain": "dashboard-staging-nrtr5i323-nhost.vercel.app",
+      "path": "/",
+      "expires": 1680253312,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Strict"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://dashboard-staging-nrtr5i323-nhost.vercel.app",
+      "localStorage": [
+        {
+          "name": "ajs_anonymous_id",
+          "value": "\"b7354379-b4a3-4558-8a72-149019df0b24\""
+        },
+        {
+          "name": "ajs_user_id",
+          "value": "null"
+        }
+      ]
+    },
+    {
+      "origin": "https://vercel.live",
+      "localStorage": [
+        {
+          "name": "vid-https://dashboard-staging-nrtr5i323-nhost.vercel.app",
+          "value": "\"16802524733060.9838031601503994\""
+        }
+      ]
+    }
+  ]
+}
