@@ -3,7 +3,7 @@ import {
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
-import { createUser, openProject } from '@/e2e/utils';
+import { createUser, generateTestEmail, openProject } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -37,7 +37,7 @@ test.afterAll(async () => {
 });
 
 test('should be able to verify the email of a user', async () => {
-  const email = faker.internet.email();
+  const email = generateTestEmail();
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
@@ -67,7 +67,7 @@ test('should be able to verify the email of a user', async () => {
 });
 
 test('should be able to verify the phone number of a user', async () => {
-  const email = faker.internet.email();
+  const email = generateTestEmail();
   const password = faker.internet.password();
   const phoneNumber = faker.phone.number();
 
@@ -82,9 +82,7 @@ test('should be able to verify the phone number of a user', async () => {
   ).toBeDisabled();
 
   await page.getByRole('textbox', { name: /phone number/i }).fill(phoneNumber);
-
   await page.getByRole('checkbox', { name: /phone number verified/i }).check();
-
   await page.getByRole('button', { name: /save/i }).click();
 
   await expect(

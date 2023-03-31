@@ -3,7 +3,7 @@ import {
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
-import { createUser, openProject } from '@/e2e/utils';
+import { createUser, generateTestEmail, openProject } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import test, { expect } from '@playwright/test';
 
@@ -24,7 +24,7 @@ test('should be able to ban and unban a user', async ({ page }) => {
 
   await page.waitForURL(`/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/users`);
 
-  const email = faker.internet.email();
+  const email = generateTestEmail();
   const password = faker.internet.password();
 
   await createUser({ page, email, password });

@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 
 /**
@@ -174,4 +175,15 @@ export async function createUser({
   await page.getByRole('textbox', { name: /email/i }).fill(email);
   await page.getByRole('textbox', { name: /password/i }).fill(password);
   await page.getByRole('button', { name: /create/i, exact: true }).click();
+}
+
+/**
+ * Generates a test email address with the given prefix (if provided).
+ *
+ * @param prefix - The prefix to use for the email address. (Default: `Nhost_Test_`)
+ */
+export function generateTestEmail(prefix: string = 'Nhost_Test_') {
+  const email = faker.internet.email();
+
+  return [prefix, email].join('');
 }

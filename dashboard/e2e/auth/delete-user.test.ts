@@ -3,7 +3,7 @@ import {
   TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
-import { createUser, openProject } from '@/e2e/utils';
+import { createUser, generateTestEmail, openProject } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import test, { expect } from '@playwright/test';
@@ -37,7 +37,7 @@ test.afterAll(async () => {
 });
 
 test('should be able to delete a user', async () => {
-  const email = faker.internet.email();
+  const email = generateTestEmail();
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
@@ -69,7 +69,7 @@ test('should be able to delete a user', async () => {
 });
 
 test('should be able to delete a user from the details page', async () => {
-  const email = faker.internet.email();
+  const email = generateTestEmail();
   const password = faker.internet.password();
 
   await createUser({ page, email, password });
