@@ -32,7 +32,6 @@ export const validationSchema = Yup.object({
     .required('This field is required.'),
   password: Yup.string()
     .label('Users Password')
-    .min(8, 'Password must be at least 8 characters long.')
     .required('This field is required.'),
 });
 
@@ -99,7 +98,7 @@ export default function CreateUserForm({
         }),
         {
           loading: 'Creating user...',
-          success: 'User created successfully.',
+          success: 'User has been created successfully.',
           error: getServerError(
             'An error occurred while trying to create the user.',
           ),
