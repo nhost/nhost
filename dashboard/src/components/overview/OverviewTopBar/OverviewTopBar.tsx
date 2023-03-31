@@ -14,7 +14,7 @@ import Link from 'next/link';
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
-  const isPro = !currentProject?.plan.isFree;
+  const isPro = !currentProject?.plan?.isFree;
   const { openAlertDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
