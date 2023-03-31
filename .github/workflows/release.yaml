@@ -19,7 +19,7 @@ jobs:
         id: go-mod-details
       -
         name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
       - name: Configure aws
