@@ -87,24 +87,26 @@ export default function OverviewTopBar() {
                   color={isPro ? 'primary' : 'default'}
                 />
 
-                <Button
-                  variant="borderless"
-                  className="mr-2"
-                  onClick={() => {
-                    openAlertDialog({
-                      title: 'Upgrade your plan.',
-                      payload: <ChangePlanModal />,
-                      props: {
-                        PaperProps: { className: 'p-0 max-w-xl w-full' },
-                        hidePrimaryAction: true,
-                        hideSecondaryAction: true,
-                        hideTitle: true,
-                      },
-                    });
-                  }}
-                >
-                  Upgrade
-                </Button>
+                {!isPro && (
+                  <Button
+                    variant="borderless"
+                    className="mr-2"
+                    onClick={() => {
+                      openAlertDialog({
+                        title: 'Upgrade your plan.',
+                        payload: <ChangePlanModal />,
+                        props: {
+                          PaperProps: { className: 'p-0 max-w-xl w-full' },
+                          hidePrimaryAction: true,
+                          hideSecondaryAction: true,
+                          hideTitle: true,
+                        },
+                      });
+                    }}
+                  >
+                    Upgrade
+                  </Button>
+                )}
               </div>
             </div>
 
