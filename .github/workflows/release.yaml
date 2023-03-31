@@ -11,36 +11,33 @@ jobs:
       id-token: write
       contents: write
     steps:
-      -
-        uses: actions/checkout@v3.5.0
-      -
-        name: Get go.mod details
+      - uses: actions/checkout@v3.5.0
+
+      - name: Get go.mod details
         uses: Eun/go-mod-details@v1.0.6
         id: go-mod-details
-      -
-        name: Install Go
+
+      - name: Install Go
         uses: actions/setup-go@v4
+
         with:
           go-version: ${{ steps.go-mod-details.outputs.go_version }}
-      - name: Configure aws
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: arn:aws:iam::796351718684:role/github-actions-nhost-cli
-          aws-region: eu-central-1
-      - name: fetch let's encrypt cert
-        shell: bash
+
+      - name: place let's encrypt cert
         run: |
-          .github/cert.sh
-      -
-        name: GoReleaser
+          echo ${{ secrets.CERT_FULL_CHAIN }} > internal/ssl/.ssl/fullchain.pem
+          echo ${{ secrets.CERT_PRIV_KEY }} > internal/ssl/.ssl/privkey.pem
+        shell: bash
+
+      - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4.2.0
         with:
           version: latest
           args: release --skip-validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Upload assets
+
+      - name: Upload assets
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
