@@ -6,6 +6,7 @@ import type {
   PermissionVariableFragment,
   ProjectFragment,
   SecretFragment,
+  WorkspaceFragment,
 } from '@/utils/__generated__/graphql';
 
 /**
@@ -62,6 +63,7 @@ export type FeatureFlag = {
   value: string;
 };
 
+export type Workspace = WorkspaceFragment;
 export type Project = ProjectFragment;
 
 export interface PermissionVariable extends PermissionVariableFragment {

@@ -39,6 +39,8 @@ export function useCheckProvisioning() {
 
   const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
 
+  const currentApplicationId = currentApplication?.id;
+
   useEffect(() => {
     startPolling(2000);
   }, [startPolling]);
@@ -84,7 +86,7 @@ export function useCheckProvisioning() {
         createdAt: data.app.appStates[0].createdAt,
       });
       discordAnnounce(
-        `Application ${currentApplication.id} errored after provisioning: ${data.app.appStates[0].message}`,
+        `Application ${currentApplicationId} errored after provisioning: ${data.app.appStates[0].message}`,
       );
       stopPolling();
       memoizedUpdateCache();
@@ -93,7 +95,7 @@ export function useCheckProvisioning() {
     data,
     stopPolling,
     memoizedUpdateCache,
-    currentApplication.id,
+    currentApplicationId,
     currentApplicationState.state,
   ]);
 
