@@ -2,7 +2,7 @@
 name: "build certificate daily"
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 1'
 
 jobs:
   run:
@@ -29,8 +29,8 @@ jobs:
       run: |
         .github/cert.sh
 
-        echo "CERT_FULL_CHAIN=$(cat /tmp/letsencrypt/live/local.db.nhost.run/fullchain.pem)" >> "$GITHUB_OUTPUT"
-        echo "CERT_PRIV_KEY=$(cat /tmp/letsencrypt/live/local.db.nhost.run/privkey.pem)" >> "$GITHUB_OUTPUT"
+        echo "CERT_FULL_CHAIN=$(sudo cat /tmp/letsencrypt/live/local.db.nhost.run/fullchain.pem)" >> "$GITHUB_OUTPUT"
+        echo "CERT_PRIV_KEY=$(sudo cat /tmp/letsencrypt/live/local.db.nhost.run/privkey.pem)" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - uses: hmanzur/actions-set-secret@v2.0.0
