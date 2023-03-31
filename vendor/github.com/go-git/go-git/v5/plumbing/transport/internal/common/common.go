@@ -374,7 +374,7 @@ func (s *session) checkNotFoundError() error {
 	case <-t.C:
 		return ErrTimeoutExceeded
 	case line, ok := <-s.firstErrLine:
-		if !ok {
+		if !ok || len(line) == 0 {
 			return nil
 		}
 

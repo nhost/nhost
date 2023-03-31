@@ -9,7 +9,12 @@ import (
 
 // Bzip2Decompressor is an implementation of Decompressor that can
 // decompress bz2 files.
-type Bzip2Decompressor struct{}
+type Bzip2Decompressor struct {
+	// FileSizeLimit limits the size of a decompressed file.
+	//
+	// The zero value means no limit.
+	FileSizeLimit int64
+}
 
 func (d *Bzip2Decompressor) Decompress(dst, src string, dir bool, umask os.FileMode) error {
 	// Directory isn't supported at all
@@ -33,5 +38,5 @@ func (d *Bzip2Decompressor) Decompress(dst, src string, dir bool, umask os.FileM
 	bzipR := bzip2.NewReader(f)
 
 	// Copy it out
-	return copyReader(dst, bzipR, 0622, umask)
+	return copyReader(dst, bzipR, 0622, umask, d.FileSizeLimit)
 }

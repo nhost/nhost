@@ -9,7 +9,12 @@ import (
 
 // GzipDecompressor is an implementation of Decompressor that can
 // decompress gzip files.
-type GzipDecompressor struct{}
+type GzipDecompressor struct {
+	// FileSizeLimit limits the size of a decompressed file.
+	//
+	// The zero value means no limit.
+	FileSizeLimit int64
+}
 
 func (d *GzipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMode) error {
 	// Directory isn't supported at all
@@ -37,5 +42,5 @@ func (d *GzipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMo
 	defer gzipR.Close()
 
 	// Copy it out
-	return copyReader(dst, gzipR, 0622, umask)
+	return copyReader(dst, gzipR, 0622, umask, d.FileSizeLimit)
 }

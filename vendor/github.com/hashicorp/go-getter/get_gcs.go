@@ -25,6 +25,12 @@ type GCSGetter struct {
 	// Timeout sets a deadline which all GCS operations should
 	// complete within. Zero value means no timeout.
 	Timeout time.Duration
+
+	// FileSizeLimit limits the size of an single
+	// decompressed file.
+	//
+	// The zero value means no limit.
+	FileSizeLimit int64
 }
 
 func (g *GCSGetter) ClientMode(u *url.URL) (ClientMode, error) {
@@ -179,7 +185,8 @@ func (g *GCSGetter) getObject(ctx context.Context, client *storage.Client, dst, 
 		return err
 	}
 
-	return copyReader(dst, rc, 0666, g.client.umask())
+	// There is no limit set for the size of an object from GCS
+	return copyReader(dst, rc, 0666, g.client.umask(), 0)
 }
 
 func (g *GCSGetter) parseURL(u *url.URL) (bucket, path, fragment string, err error) {

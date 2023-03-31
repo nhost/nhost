@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -293,50 +294,79 @@ func (g *HttpGetter) Get(dst string, u *url.URL) error {
 	// If there is a subdir component, then we download the root separately
 	// into a temporary directory, then copy over the proper subdir.
 	source, subDir := SourceDirSubdir(source)
-	if subDir == "" {
-		var opts []ClientOption
 
-		// Check if the protocol was switched to one which was not configured.
-		//
+	var opts []ClientOption
+
+	// Check if the protocol was switched to one which was not configured.
+	if g.client != nil && g.client.Getters != nil {
+		// We must first use the Detectors provided, because `X-Terraform-Get does
+		// not necessarily return a valid URL. We can replace the source string
+		// here, since the detectors would have been called immediately during the
+		// next Get anyway.
+		source, err = Detect(source, g.client.Pwd, g.client.Detectors)
+		if err != nil {
+			return err
+		}
+
+		protocol := ""
+		// X-Terraform-Get allows paths relative to the previous request too,
+		// which won't have a protocol.
+		if !relativeGet(source) {
+			protocol = strings.Split(source, ":")[0]
+		}
+
 		// Otherwise, all default getters are allowed.
-		if g.client != nil && g.client.Getters != nil {
-			protocol := strings.Split(source, ":")[0]
+		if protocol != "" {
 			_, allowed := g.client.Getters[protocol]
 			if !allowed {
 				return fmt.Errorf("no getter available for X-Terraform-Get source protocol: %q", protocol)
 			}
 		}
+	}
 
-		// Add any getter client options.
-		if g.client != nil {
-			opts = g.client.Options
-		}
+	// Add any getter client options.
+	if g.client != nil {
+		opts = g.client.Options
+	}
 
-		// If the client is nil, we know we're using the HttpGetter directly. In this case,
-		// we don't know exactly which protocols are configued, but we can make a good guess.
-		//
-		// This prevents all default getters from being allowed when only using the
-		// HttpGetter directly. To enable protocol switching, a client "wrapper" must
-		// be used.
-		if g.client == nil {
+	// If the client is nil, we know we're using the HttpGetter directly. In
+	// this case, we don't know exactly which protocols are configured, but we
+	// can make a good guess.
+	//
+	// This prevents all default getters from being allowed when only using the
+	// HttpGetter directly. To enable protocol switching, a client "wrapper" must
+	// be used.
+	if g.client == nil {
+		switch {
+		case subDir != "":
+			// If there's a subdirectory, we will also need a file getter to
+			// unpack it.
+			opts = append(opts, WithGetters(map[string]Getter{
+				"file":  new(FileGetter),
+				"http":  g,
+				"https": g,
+			}))
+		default:
 			opts = append(opts, WithGetters(map[string]Getter{
 				"http":  g,
 				"https": g,
 			}))
 		}
-
-		// Ensure we pass along the context we constructed in this function.
-		//
-		// This is especially important to enforce a limit on X-Terraform-Get redirects
-		// which could be setup, if configured, at the top of this function.
-		opts = append(opts, WithContext(ctx))
-
-		// Note: this allows the protocol to be switched to another configured getters.
-		return Get(dst, source, opts...)
 	}
 
-	// We have a subdir, time to jump some hoops
-	return g.getSubdir(ctx, dst, source, subDir)
+	// Ensure we pass along the context we constructed in this function.
+	//
+	// This is especially important to enforce a limit on X-Terraform-Get redirects
+	// which could be setup, if configured, at the top of this function.
+	opts = append(opts, WithContext(ctx))
+
+	if subDir != "" {
+		// We have a subdir, time to jump some hoops
+		return g.getSubdir(ctx, dst, source, subDir, opts...)
+	}
+
+	// Note: this allows the protocol to be switched to another configured getters.
+	return Get(dst, source, opts...)
 }
 
 // GetFile fetches the file from src and stores it at dst.
@@ -478,7 +508,7 @@ func (g *HttpGetter) GetFile(dst string, src *url.URL) error {
 
 // getSubdir downloads the source into the destination, but with
 // the proper subdir.
-func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string) error {
+func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string, opts ...ClientOption) error {
 	// Create a temporary directory to store the full source. This has to be
 	// a non-existent directory.
 	td, tdcloser, err := safetemp.Dir("", "getter")
@@ -487,10 +517,6 @@ func (g *HttpGetter) getSubdir(ctx context.Context, dst, source, subDir string) 
 	}
 	defer tdcloser.Close()
 
-	var opts []ClientOption
-	if g.client != nil {
-		opts = g.client.Options
-	}
 	// Download that into the given directory
 	if err := Get(td, source, opts...); err != nil {
 		return err
@@ -565,6 +591,9 @@ func (g *HttpGetter) parseMeta(ctx context.Context, r io.Reader) (string, error)
 		}
 	}
 }
+
+// X-Terraform-Get allows paths relative to the previous request
+var relativeGet = regexp.MustCompile(`^\.{0,2}/`).MatchString
 
 // attrValue returns the attribute value for the case-insensitive key
 // `name', or the empty string if nothing is found.

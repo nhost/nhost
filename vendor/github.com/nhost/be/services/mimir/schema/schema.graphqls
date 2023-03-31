@@ -55,6 +55,10 @@ type Mutation {
         appID: uuid! @hasAppVisibility(),
         config: ConfigConfigUpdateInput!,
     ): ConfigConfig!
+    replaceConfig(
+        appID: uuid! @hasAppVisibility(),
+        config: ConfigConfigInsertInput!,
+    ): ConfigConfig!
     insertConfig(
         appID: uuid! @hasAppVisibility(),
         config: ConfigConfigInsertInput!,

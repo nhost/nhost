@@ -9,7 +9,19 @@ import (
 
 // TarGzipDecompressor is an implementation of Decompressor that can
 // decompress tar.gzip files.
-type TarGzipDecompressor struct{}
+type TarGzipDecompressor struct {
+	// FileSizeLimit limits the total size of all
+	// decompressed files.
+	//
+	// The zero value means no limit.
+	FileSizeLimit int64
+
+	// FilesLimit limits the number of files that are
+	// allowed to be decompressed.
+	//
+	// The zero value means no limit.
+	FilesLimit int
+}
 
 func (d *TarGzipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMode) error {
 	// If we're going into a directory we should make that first
@@ -35,5 +47,5 @@ func (d *TarGzipDecompressor) Decompress(dst, src string, dir bool, umask os.Fil
 	}
 	defer gzipR.Close()
 
-	return untar(gzipR, dst, src, dir, umask)
+	return untar(gzipR, dst, src, dir, umask, d.FileSizeLimit, d.FilesLimit)
 }

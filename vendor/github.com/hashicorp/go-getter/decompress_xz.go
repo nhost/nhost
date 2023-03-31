@@ -10,7 +10,12 @@ import (
 
 // XzDecompressor is an implementation of Decompressor that can
 // decompress xz files.
-type XzDecompressor struct{}
+type XzDecompressor struct {
+	// FileSizeLimit limits the size of a decompressed file.
+	//
+	// The zero value means no limit.
+	FileSizeLimit int64
+}
 
 func (d *XzDecompressor) Decompress(dst, src string, dir bool, umask os.FileMode) error {
 	// Directory isn't supported at all
@@ -36,6 +41,6 @@ func (d *XzDecompressor) Decompress(dst, src string, dir bool, umask os.FileMode
 		return err
 	}
 
-	// Copy it out
-	return copyReader(dst, xzR, 0622, umask)
+	// Copy it out, potentially using a file size limit.
+	return copyReader(dst, xzR, 0622, umask, d.FileSizeLimit)
 }

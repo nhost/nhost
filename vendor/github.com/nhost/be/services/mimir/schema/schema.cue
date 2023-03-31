@@ -13,6 +13,17 @@ import (
 	postgres:  #Postgres
 	provider:  #Provider
 	storage:   #Storage
+
+	// this dummy field is used to validate that the total amount of CPU is equal to 2x the total amount of memory
+	_resourcesCpuMemoryRatioMustBe1CPUFor2GB: (
+        hasura.resources.replicas*hasura.resources.compute.cpu+
+		auth.resources.replicas*auth.resources.compute.cpu+
+		storage.resources.replicas*storage.resources.compute.cpu+
+		postgres.resources.replicas*postgres.resources.compute.cpu)*2.048 & (
+		hasura.resources.replicas*hasura.resources.compute.memory+
+		auth.resources.replicas*auth.resources.compute.memory+
+		storage.resources.replicas*storage.resources.compute.memory+
+		postgres.resources.replicas*postgres.resources.compute.memory)*1.0 @cuegraph(skip)
 }
 
 #Global: {
@@ -47,13 +58,13 @@ import (
 		enableRemoteSchemaPermissions: bool | *false
 	}
 
-    logs: {
-        level: "debug"| "info" | "error" | *"warn"
-    }
+	logs: {
+		level: "debug" | "info" | "error" | *"warn"
+	}
 
-    events: {
-        httpPoolSize: uint32 & >=1 & <=100 | *100
-    }
+	events: {
+		httpPoolSize: uint32 & >=1 & <=100 | *100
+	}
 
 	resources?: #Resources
 }

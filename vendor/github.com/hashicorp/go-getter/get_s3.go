@@ -23,7 +23,9 @@ type S3Getter struct {
 	getter
 
 	// Timeout sets a deadline which all S3 operations should
-	// complete within. Zero value means no timeout.
+	// complete within.
+	//
+	// The zero value means timeout.
 	Timeout time.Duration
 }
 
@@ -207,7 +209,8 @@ func (g *S3Getter) getObject(ctx context.Context, client *s3.S3, dst, bucket, ke
 	}
 	defer body.Close()
 
-	return copyReader(dst, body, 0666, g.client.umask())
+	// There is no limit set for the size of an object from S3
+	return copyReader(dst, body, 0666, g.client.umask(), 0)
 }
 
 func (g *S3Getter) getAWSConfig(region string, url *url.URL, creds *credentials.Credentials) *aws.Config {

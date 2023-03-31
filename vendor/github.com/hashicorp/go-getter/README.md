@@ -45,6 +45,20 @@ $ go-getter github.com/foo/bar ./foo
 
 The command is useful for verifying URL structures.
 
+## Security
+Fetching resources from user-supplied URLs is an inherently dangerous operation and may
+leave your application vulnerable to [server side request forgery](https://owasp.org/www-community/attacks/Server_Side_Request_Forgery),
+[path traversal](https://owasp.org/www-community/attacks/Path_Traversal), [denial of service](https://owasp.org/www-community/attacks/Denial_of_Service)
+or other security flaws.
+
+go-getter contains mitigations for some of these security issues, but should still be used with
+caution in security-critical contexts. See the available [security options](#Security-Options) that
+can be configured to mitigate some of these risks.
+
+go-getter may return values that contain caller-provided query parameters that can contain sensitive data.
+Context around what parameters are and are not sensitive is known only by the caller of go-getter, and specific to each use case.
+We recommend the caller ensure that go-getter's return values (e.g., error messages) are properly handled and sanitized to ensure
+sensitive data is not persisted to logs.
 ## URL Format
 
 go-getter uses a single string URL as input to download from a variety of
@@ -337,7 +351,7 @@ be used automatically.
 #### S3 Bucket Examples
 
 S3 has several addressing schemes used to reference your bucket. These are
-listed here: http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro
+listed here: https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html
 
 Some examples for these addressing schemes:
 - s3::https://s3.amazonaws.com/bucket/foo
@@ -361,3 +375,79 @@ In order to access to GCS, authentication credentials should be provided. More i
 #### GCS Testing
 
 The tests for `get_gcs.go` require you to have GCP credentials set in your environment.  These credentials can have any level of permissions to any project, they just need to exist.  This means setting `GOOGLE_APPLICATION_CREDENTIALS="~/path/to/credentials.json"` or `GOOGLE_CREDENTIALS="{stringified-credentials-json}"`.  Due to this configuration, `get_gcs_test.go` will fail for external contributors in CircleCI.
+
+
+### Security Options
+
+**Disable Symlinks**
+
+In your getter client config, we recommend using the `DisableSymlinks` option,
+which prevents writing through or copying from symlinks (which may point outside the directory).
+
+```go
+client := getter.Client{
+    // This will prevent copying or writing files through symlinks
+    DisableSymlinks: true,
+}
+```
+
+**Disable or Limit `X-Terraform-Get`**
+
+Go-Getter supports arbitrary redirects via the `X-Terraform-Get` header. This functionality
+exists to support [Terraform use cases](https://www.terraform.io/language/modules/sources#http-urls),
+but is likely not needed in most applications.
+
+For code that uses the `HttpGetter`, add the following configuration options:
+
+```go
+var httpGetter = &getter.HttpGetter{
+    // Most clients should disable X-Terraform-Get
+    // See the note below
+    XTerraformGetDisabled: true,
+    // Your software probably doesn’t rely on X-Terraform-Get, but
+    // if it does, you should set the above field to false, plus
+    // set XTerraformGet Limit to prevent endless redirects
+    // XTerraformGetLimit: 10,
+}
+```
+
+**Enforce Timeouts**
+
+The `HttpGetter` supports timeouts and other resource-constraining configuration options. The `GitGetter` and `HgGetter`
+only support timeouts.
+
+Configuration for the `HttpGetter`:
+
+```go
+var httpGetter = &getter.HttpGetter{
+    // Disable pre-fetch HEAD requests
+    DoNotCheckHeadFirst: true,
+    
+    // As an alternative to the above setting, you can
+    // set a reasonable timeout for HEAD requests
+    // HeadFirstTimeout: 10 * time.Second,
+
+    // Read timeout for HTTP operations
+    ReadTimeout: 30 * time.Second,
+
+    // Set the maximum number of bytes
+    // that can be read by the getter
+    MaxBytes: 500000000, // 500 MB
+}
+```
+
+For code that uses the `GitGetter` or `HgGetter`, set the `Timeout` option:
+```go
+var gitGetter = &getter.GitGetter{
+    // Set a reasonable timeout for git operations
+    Timeout: 5 * time.Minute,
+}
+```
+
+```go
+var hgGetter = &getter.HgGetter{
+    // Set a reasonable timeout for hg operations
+    Timeout: 5 * time.Minute,
+}
+```
+
