@@ -9,6 +9,7 @@ import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWor
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
 import { useSetAppWorkspaceContextFromUserContext } from '@/hooks/useSetAppWorkspaceContextFromUserContext';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import { NextSeo } from 'next-seo';
@@ -30,8 +31,14 @@ function ProjectLayoutContent({
     ...mainContainerProps
   } = {},
 }: ProjectLayoutProps) {
-  const { currentApplication, currentWorkspace } =
+  // TODO: This will be removed once we migrated every occurrence to
+  // useCurrentWorkspaceAndProject()
+  const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
+
+  const { currentProject, loading, error } = useCurrentWorkspaceAndProject({
+    fetchPolicy: 'network-only',
+  });
 
   const router = useRouter();
   const shouldDisplayNav = useNavigationVisible();
@@ -63,8 +70,12 @@ function ProjectLayoutContent({
     }
   }, [isPlatform, isRestrictedPath, router]);
 
-  if (!currentWorkspace || !currentApplication || isRestrictedPath) {
+  if (!currentWorkspace || !currentApplication || isRestrictedPath || loading) {
     return <LoadingScreen />;
+  }
+
+  if (error) {
+    throw error;
   }
 
   if (!isPlatform) {
@@ -104,7 +115,7 @@ function ProjectLayoutContent({
       >
         {children}
 
-        <NextSeo title={currentApplication.name} />
+        <NextSeo title={currentProject.name} />
       </Box>
     </>
   );

@@ -3,14 +3,14 @@ import { InterpreterFrom } from 'xstate'
 import { ResetPasswordMachine } from '../machines'
 import { ResetPasswordOptions } from '../types'
 
-import { ActionErrorState, ActionLoadingState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState } from './types'
 
-export interface ResetPasswordHandlerResult extends ActionErrorState {
+export interface ResetPasswordHandlerResult extends AuthActionErrorState {
   /** Returns `true` when an email to reset the password has been sent */
   isSent: boolean
 }
 
-export interface ResetPasswordState extends ResetPasswordHandlerResult, ActionLoadingState {}
+export interface ResetPasswordState extends ResetPasswordHandlerResult, AuthActionLoadingState {}
 
 export const resetPasswordPromise = async (
   interpreter: InterpreterFrom<ResetPasswordMachine>,

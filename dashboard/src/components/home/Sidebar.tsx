@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default function Sidebar() {
   return (
-    <div className="grid grid-flow-row gap-8 mt-2 ml-10 w-full md:grid md:w-workspaceSidebar content-start">
+    <div className="mt-2 grid w-full grid-flow-row content-start gap-8 md:ml-10 md:grid md:w-workspaceSidebar">
       <WorkspaceSection />
       <Resources />
 

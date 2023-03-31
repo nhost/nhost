@@ -2,13 +2,13 @@ import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 import { PasswordlessOptions } from '../types'
 
-import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+import { AuthActionErrorState, AuthActionLoadingState, AuthActionSuccessState } from './types'
 export interface SignInEmailPasswordlessHandlerResult
-  extends ActionErrorState,
-    ActionSuccessState {}
+  extends AuthActionErrorState,
+    AuthActionSuccessState {}
 export interface SignInEmailPasswordlessState
   extends SignInEmailPasswordlessHandlerResult,
-    ActionLoadingState {}
+    AuthActionLoadingState {}
 
 export const signInEmailPasswordlessPromise = (
   interpreter: AuthInterpreter,

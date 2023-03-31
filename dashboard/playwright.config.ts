@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -16,17 +15,24 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
-  globalSetup: require.resolve('./global-setup'),
+  globalTeardown: require.resolve('./global-teardown'),
   use: {
     actionTimeout: 0,
     trace: 'on-first-retry',
-    storageState: 'storageState.json',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: ['**/setup/*.setup.ts'],
+    },
+    {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 });

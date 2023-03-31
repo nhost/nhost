@@ -25,7 +25,9 @@ export type Scalars = {
   bpchar: any;
   bytea: any;
   citext: any;
+  float64: any;
   jsonb: any;
+  labels: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -1035,7 +1037,9 @@ export type ConfigGlobalUpdateInput = {
 export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   adminSecret: Scalars['String'];
+  events?: Maybe<ConfigHasuraEvents>;
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+  logs?: Maybe<ConfigHasuraLogs>;
   resources?: Maybe<ConfigResources>;
   settings?: Maybe<ConfigHasuraSettings>;
   version?: Maybe<Scalars['String']>;
@@ -1047,20 +1051,64 @@ export type ConfigHasuraComparisonExp = {
   _not?: InputMaybe<ConfigHasuraComparisonExp>;
   _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   adminSecret?: InputMaybe<ConfigStringComparisonExp>;
+  events?: InputMaybe<ConfigHasuraEventsComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
+  logs?: InputMaybe<ConfigHasuraLogsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   settings?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
   webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+export type ConfigHasuraEvents = {
+  __typename?: 'ConfigHasuraEvents';
+  httpPoolSize?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigHasuraEventsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraEventsComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraEventsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraEventsComparisonExp>>;
+  httpPoolSize?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigHasuraEventsInsertInput = {
+  httpPoolSize?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigHasuraEventsUpdateInput = {
+  httpPoolSize?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 export type ConfigHasuraInsertInput = {
   adminSecret: Scalars['String'];
+  events?: InputMaybe<ConfigHasuraEventsInsertInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
+  logs?: InputMaybe<ConfigHasuraLogsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   settings?: InputMaybe<ConfigHasuraSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
+};
+
+export type ConfigHasuraLogs = {
+  __typename?: 'ConfigHasuraLogs';
+  level?: Maybe<Scalars['String']>;
+};
+
+export type ConfigHasuraLogsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraLogsComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraLogsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraLogsComparisonExp>>;
+  level?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigHasuraLogsInsertInput = {
+  level?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigHasuraLogsUpdateInput = {
+  level?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigHasuraSettings = {
@@ -1085,7 +1133,9 @@ export type ConfigHasuraSettingsUpdateInput = {
 
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
+  events?: InputMaybe<ConfigHasuraEventsUpdateInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
+  logs?: InputMaybe<ConfigHasuraLogsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -1637,6 +1687,24 @@ export type Log = {
   log: Scalars['String'];
   service: Scalars['String'];
   timestamp: Scalars['Timestamp'];
+};
+
+export type Metrics = {
+  __typename?: 'Metrics';
+  rows: Array<RowMetric>;
+};
+
+export type RowMetric = {
+  __typename?: 'RowMetric';
+  labels?: Maybe<Scalars['labels']>;
+  time: Scalars['Timestamp'];
+  value?: Maybe<Scalars['float64']>;
+};
+
+export type StatsLiveApps = {
+  __typename?: 'StatsLiveApps';
+  appID: Array<Scalars['uuid']>;
+  count: Scalars['Int'];
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -4878,6 +4946,7 @@ export type Backups = {
   appId: Scalars['uuid'];
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt: Scalars['timestamptz'];
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id: Scalars['uuid'];
   size: Scalars['bigint'];
 };
@@ -4965,6 +5034,7 @@ export type Backups_Bool_Exp = {
   appId?: InputMaybe<Uuid_Comparison_Exp>;
   completedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   size?: InputMaybe<Bigint_Comparison_Exp>;
 };
@@ -4986,6 +5056,7 @@ export type Backups_Insert_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -4996,6 +5067,7 @@ export type Backups_Max_Fields = {
   appId?: Maybe<Scalars['uuid']>;
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   size?: Maybe<Scalars['bigint']>;
 };
@@ -5005,6 +5077,7 @@ export type Backups_Max_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5015,6 +5088,7 @@ export type Backups_Min_Fields = {
   appId?: Maybe<Scalars['uuid']>;
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   size?: Maybe<Scalars['bigint']>;
 };
@@ -5024,6 +5098,7 @@ export type Backups_Min_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5050,6 +5125,7 @@ export type Backups_Order_By = {
   appId?: InputMaybe<Order_By>;
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
 };
@@ -5068,6 +5144,8 @@ export enum Backups_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
   Id = 'id',
   /** column name */
   Size = 'size'
@@ -5078,6 +5156,7 @@ export type Backups_Set_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -5128,6 +5207,7 @@ export type Backups_Stream_Cursor_Value_Input = {
   appId?: InputMaybe<Scalars['uuid']>;
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   size?: InputMaybe<Scalars['bigint']>;
 };
@@ -5151,6 +5231,8 @@ export enum Backups_Update_Column {
   CompletedAt = 'completedAt',
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
   /** column name */
   Id = 'id',
   /** column name */
@@ -9150,6 +9232,7 @@ export type Mutation_Root = {
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
   migrateRDSToPostgres: Scalars['Boolean'];
+  pauseInactiveApps: Array<Scalars['String']>;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
   /** update single row of the table: "apps" */
@@ -9339,8 +9422,15 @@ export type Mutation_Root = {
 
 
 /** mutation root */
+export type Mutation_RootBackupAllApplicationsDatabaseArgs = {
+  expireInDays?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
+  expireInDays?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -11338,6 +11428,7 @@ export type Plans = {
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
+  featureCustomResources: Scalars['Boolean'];
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates: Scalars['Boolean'];
   /** Function execution timeout in seconds */
@@ -11431,6 +11522,7 @@ export type Plans_Bool_Exp = {
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
+  featureCustomResources?: InputMaybe<Boolean_Comparison_Exp>;
   featureDeployEmailTemplates?: InputMaybe<Boolean_Comparison_Exp>;
   featureFunctionExecutionTimeout?: InputMaybe<Int_Comparison_Exp>;
   featureMaxDbSize?: InputMaybe<Int_Comparison_Exp>;
@@ -11472,6 +11564,7 @@ export type Plans_Insert_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11557,6 +11650,7 @@ export type Plans_Order_By = {
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
+  featureCustomResources?: InputMaybe<Order_By>;
   featureDeployEmailTemplates?: InputMaybe<Order_By>;
   featureFunctionExecutionTimeout?: InputMaybe<Order_By>;
   featureMaxDbSize?: InputMaybe<Order_By>;
@@ -11588,6 +11682,8 @@ export enum Plans_Select_Column {
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
+  /** column name */
+  FeatureCustomResources = 'featureCustomResources',
   /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
   /** column name */
@@ -11624,6 +11720,7 @@ export type Plans_Set_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11696,6 +11793,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11738,6 +11836,8 @@ export enum Plans_Update_Column {
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
+  /** column name */
+  FeatureCustomResources = 'featureCustomResources',
   /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
   /** column name */
@@ -11947,6 +12047,41 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
+  /**
+   * Returns CPU metrics for a given application.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * CPU usage is calculated as the average CPU usage over the period of 1m.
+   *
+   * Unit returned is millicores.
+   */
+  getCPUMetrics: Metrics;
+  /**
+   * Returns memory metrics for a given application.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Memory usage is returned in MiB.
+   */
+  getMemoryMetrics: Metrics;
+  /**
+   * Returns disk capacity for the volume used by postgres to store the database.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Disk usage is returned in MiB.
+   */
+  getPostgresVolumeCapacity: Metrics;
+  /**
+   * Returns disk usage for the volume used by postgres to store the database.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   *
+   * Disk usage is returned in MiB.
+   */
+  getPostgresVolumeUsage: Metrics;
+  /**
+   * Return requests per second for a given application by service.
+   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
+   */
+  getRequestsPerSecond: Metrics;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -11982,6 +12117,13 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  /**
+   * Returns lists of apps that have some live traffic in the give time range.
+   * From defaults to 24 hours ago and to defaults to now.
+   *
+   * Requests that returned a 4xx or 5xx status code are not counted as live traffic.
+   */
+  statsLiveApps: StatsLiveApps;
   systemConfig?: Maybe<ConfigSystemConfig>;
   systemConfigs: Array<ConfigAppSystemConfig>;
   /** fetch data from the table: "auth.users" using primary key columns */
@@ -12511,6 +12653,41 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
+export type Query_RootGetCpuMetricsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetMemoryMetricsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPostgresVolumeCapacityArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetPostgresVolumeUsageArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetRequestsPerSecondArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGithubAppInstallationArgs = {
   id: Scalars['uuid'];
 };
@@ -12631,6 +12808,12 @@ export type Query_RootRegions_AggregateArgs = {
 
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootStatsLiveAppsArgs = {
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -16390,6 +16573,16 @@ export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
+export type GetWorkspaceAndProjectQueryVariables = Exact<{
+  workspaceSlug: Scalars['String'];
+  projectSlug?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
 }>;
@@ -16489,7 +16682,7 @@ export type GetSignInMethodsQueryVariables = Exact<{
 }>;
 
 
-export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null } | null } | null } | null } | null };
+export type GetSignInMethodsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', sms?: { __typename?: 'ConfigSms', accountSid: string, authToken: string, messagingServiceId: string, provider?: string | null } | null } | null, auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', method?: { __typename?: 'ConfigAuthMethod', emailPassword?: { __typename?: 'ConfigAuthMethodEmailPassword', emailVerificationRequired?: boolean | null, hibpEnabled?: boolean | null } | null, emailPasswordless?: { __typename?: 'ConfigAuthMethodEmailPasswordless', enabled?: boolean | null } | null, smsPasswordless?: { __typename?: 'ConfigAuthMethodSmsPasswordless', enabled?: boolean | null } | null, anonymous?: { __typename?: 'ConfigAuthMethodAnonymous', enabled?: boolean | null } | null, webauthn?: { __typename?: 'ConfigAuthMethodWebauthn', enabled?: boolean | null } | null, oauth?: { __typename?: 'ConfigAuthMethodOauth', apple?: { __typename?: 'ConfigAuthMethodOauthApple', enabled?: boolean | null, clientId?: string | null, keyId?: string | null, teamId?: string | null, privateKey?: string | null } | null, discord?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, facebook?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, github?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, google?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, linkedin?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, spotify?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitch?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, twitter?: { __typename?: 'ConfigAuthMethodOauthTwitter', enabled?: boolean | null, consumerKey?: string | null, consumerSecret?: string | null } | null, windowslive?: { __typename?: 'ConfigStandardOauthProviderWithScope', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, scope?: Array<string> | null } | null, workos?: { __typename?: 'ConfigAuthMethodOauthWorkos', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, connection?: string | null, organization?: string | null } | null, azuread?: { __typename?: 'ConfigAuthMethodOauthAzuread', enabled?: boolean | null, clientId?: string | null, clientSecret?: string | null, tenant?: string | null } | null } | null } | null } | null } | null };
 
 export type GetSmtpSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -16625,6 +16818,8 @@ export type GetFilesAggregateQueryVariables = Exact<{
 
 
 export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number } | null } };
+
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -16852,14 +17047,12 @@ export type GetFreeAndActiveProjectsQueryVariables = Exact<{
 
 export type GetFreeAndActiveProjectsQuery = { __typename?: 'query_root', freeAndActiveProjects: Array<{ __typename?: 'apps', id: any }> };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> };
-
 export type GetOneUserQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }> }> } }> } | null };
+export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> } }> } | null };
 
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17061,6 +17254,86 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
   }
 }
     `;
+export const ProjectFragmentDoc = gql`
+    fragment Project on apps {
+  id
+  slug
+  name
+  repositoryProductionBranch
+  subdomain
+  isProvisioned
+  createdAt
+  desiredState
+  nhostBaseFolder
+  providersUpdated
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
+  featureFlags {
+    description
+    id
+    name
+    value
+  }
+  appStates(order_by: {createdAt: desc}, limit: 1) {
+    id
+    appId
+    message
+    stateId
+    createdAt
+  }
+  region {
+    id
+    countryCode
+    awsName
+    city
+  }
+  plan {
+    id
+    name
+    isFree
+  }
+  githubRepository {
+    fullName
+  }
+  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
+  }
+  creator {
+    id
+    email
+    displayName
+  }
+}
+    `;
+export const WorkspaceFragmentDoc = gql`
+    fragment Workspace on workspaces {
+  id
+  name
+  slug
+  workspaceMembers {
+    id
+    user {
+      id
+      email
+      displayName
+    }
+    type
+  }
+  projects: apps {
+    ...Project
+  }
+}
+    ${ProjectFragmentDoc}`;
 export const PrefetchNewAppRegionsFragmentDoc = gql`
     fragment PrefetchNewAppRegions on regions {
   id
@@ -17263,63 +17536,6 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     providerId
   }
   disabled
-}
-    `;
-export const ProjectFragmentDoc = gql`
-    fragment Project on apps {
-  id
-  slug
-  name
-  repositoryProductionBranch
-  subdomain
-  isProvisioned
-  createdAt
-  desiredState
-  nhostBaseFolder
-  providersUpdated
-  config(resolve: true) {
-    hasura {
-      adminSecret
-    }
-  }
-  featureFlags {
-    description
-    id
-    name
-    value
-  }
-  appStates(order_by: {createdAt: desc}, limit: 1) {
-    id
-    appId
-    message
-    stateId
-    createdAt
-  }
-  region {
-    id
-    countryCode
-    awsName
-    city
-  }
-  plan {
-    id
-    name
-    isFree
-    price
-  }
-  githubRepository {
-    fullName
-  }
-  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
-    id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
-  }
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
@@ -17793,6 +18009,49 @@ export type GetRemoteAppRolesLazyQueryHookResult = ReturnType<typeof useGetRemot
 export type GetRemoteAppRolesQueryResult = Apollo.QueryResult<GetRemoteAppRolesQuery, GetRemoteAppRolesQueryVariables>;
 export function refetchGetRemoteAppRolesQuery(variables?: GetRemoteAppRolesQueryVariables) {
       return { query: GetRemoteAppRolesDocument, variables: variables }
+    }
+export const GetWorkspaceAndProjectDocument = gql`
+    query GetWorkspaceAndProject($workspaceSlug: String!, $projectSlug: String) {
+  workspaces(where: {slug: {_eq: $workspaceSlug}}) {
+    ...Workspace
+  }
+  projects: apps(where: {slug: {_eq: $projectSlug}}) {
+    ...Project
+  }
+}
+    ${WorkspaceFragmentDoc}
+${ProjectFragmentDoc}`;
+
+/**
+ * __useGetWorkspaceAndProjectQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceAndProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceAndProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceAndProjectQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      projectSlug: // value for 'projectSlug'
+ *   },
+ * });
+ */
+export function useGetWorkspaceAndProjectQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>(GetWorkspaceAndProjectDocument, options);
+      }
+export function useGetWorkspaceAndProjectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>(GetWorkspaceAndProjectDocument, options);
+        }
+export type GetWorkspaceAndProjectQueryHookResult = ReturnType<typeof useGetWorkspaceAndProjectQuery>;
+export type GetWorkspaceAndProjectLazyQueryHookResult = ReturnType<typeof useGetWorkspaceAndProjectLazyQuery>;
+export type GetWorkspaceAndProjectQueryResult = Apollo.QueryResult<GetWorkspaceAndProjectQuery, GetWorkspaceAndProjectQueryVariables>;
+export function refetchGetWorkspaceAndProjectQuery(variables: GetWorkspaceAndProjectQueryVariables) {
+      return { query: GetWorkspaceAndProjectDocument, variables: variables }
     }
 export const InsertApplicationDocument = gql`
     mutation insertApplication($app: apps_insert_input!) {
@@ -18367,6 +18626,12 @@ export const GetSignInMethodsDocument = gql`
             clientSecret
             connection
             organization
+          }
+          azuread {
+            enabled
+            clientId
+            clientSecret
+            tenant
           }
         }
       }

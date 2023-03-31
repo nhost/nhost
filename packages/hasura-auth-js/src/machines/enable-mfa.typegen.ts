@@ -23,9 +23,9 @@ export interface Typegen0 {
   }
   missingImplementations: {
     actions: never
-    services: never
-    guards: never
     delays: never
+    guards: never
+    services: never
   }
   eventsCausingActions: {
     reportError: 'error.platform.activate'
@@ -37,15 +37,15 @@ export interface Typegen0 {
     saveInvalidMfaCodeError: 'ACTIVATE'
     saveInvalidMfaTypeError: 'ACTIVATE'
   }
-  eventsCausingServices: {
-    activate: 'ACTIVATE'
-    generate: 'GENERATE'
-  }
+  eventsCausingDelays: {}
   eventsCausingGuards: {
     invalidMfaCode: 'ACTIVATE'
     invalidMfaType: 'ACTIVATE'
   }
-  eventsCausingDelays: {}
+  eventsCausingServices: {
+    activate: 'ACTIVATE'
+    generate: 'GENERATE'
+  }
   matchesStates:
     | 'generated'
     | 'generated.activated'

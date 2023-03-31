@@ -54,3 +54,4 @@ tailwind.json
 /playwright-report/
 /playwright/.cache/
 storageState.json
+e2e/.auth/*

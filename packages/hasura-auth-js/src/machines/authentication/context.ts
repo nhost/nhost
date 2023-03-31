@@ -1,4 +1,4 @@
-import { ErrorPayload, User } from '../../types'
+import { AuthErrorPayload, User } from '../../types'
 
 export type StateErrorTypes = 'registration' | 'authentication' | 'signout'
 
@@ -21,7 +21,7 @@ export type AuthContext = {
   }
   /** Number of times the user tried to get an access token from a refresh token but got a network error */
   importTokenAttempts: number
-  errors: Partial<Record<StateErrorTypes, ErrorPayload>>
+  errors: Partial<Record<StateErrorTypes, AuthErrorPayload>>
 }
 
 export const INITIAL_MACHINE_CONTEXT: AuthContext = {

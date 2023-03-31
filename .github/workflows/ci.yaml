@@ -24,6 +24,7 @@ env:
   NHOST_TEST_PROJECT_NAME: ${{ vars.NHOST_TEST_PROJECT_NAME }}
   NHOST_TEST_USER_EMAIL: ${{ secrets.NHOST_TEST_USER_EMAIL }}
   NHOST_TEST_USER_PASSWORD: ${{ secrets.NHOST_TEST_USER_PASSWORD }}
+  NHOST_TEST_PROJECT_ADMIN_SECRET: ${{ secrets.NHOST_TEST_PROJECT_ADMIN_SECRET }}
 
 jobs:
   build:
@@ -128,12 +129,27 @@ jobs:
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         uses: ./.github/actions/nhost-cli
+      - name: Fetch Dashboard Preview URL
+        id: fetch-dashboard-preview-url
+        uses: zentered/vercel-preview-url@v1.1.9
+        if: github.ref_name != 'main'
+        env:
+          VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          GITHUB_REF: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        with:
+          vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+          vercel_state: BUILDING,READY,INITIALIZING
+      - name: Set Dashboard Preview URL
+        if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
+        run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
-      - name: Run e2e test
+      - name: Run e2e tests
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
-        name: Tranform package name into a valid file name
+        name: Transform package name into a valid file name
         run: |
           PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
           echo "fileName=$PACKAGE_FILE_NAME"  >> $GITHUB_OUTPUT

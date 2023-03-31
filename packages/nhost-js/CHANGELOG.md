@@ -1,5 +1,25 @@
 # @nhost/nhost-js
 
+## 2.2.0
+
+### Minor Changes
+
+- a0e093d7: fix(exports): don't use conflicting names in exports
+
+### Patch Changes
+
+- Updated dependencies [bb8803a1]
+- Updated dependencies [a0e093d7]
+  - @nhost/hasura-storage-js@2.1.0
+  - @nhost/hasura-auth-js@2.1.0
+
+## 2.1.2
+
+### Patch Changes
+
+- Updated dependencies [43c86fef]
+  - @nhost/hasura-storage-js@2.0.5
+
 ## 2.1.1
 
 ### Patch Changes

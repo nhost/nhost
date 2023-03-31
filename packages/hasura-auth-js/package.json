@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -43,7 +43,8 @@
   },
   "scripts": {
     "dev": "vite build --config ./vite.dev.config.js",
-    "build": "run-p build:lib build:umd",
+    "build": "run-p typecheck build:lib build:umd",
+    "typecheck": "tsc --noEmit",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run",

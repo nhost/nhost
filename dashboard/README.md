@@ -128,4 +128,5 @@ NHOST_TEST_USER_EMAIL=<test_user_email>
 NHOST_TEST_USER_PASSWORD=<test_user_password>
 NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
 NHOST_TEST_PROJECT_NAME=<test_project_name>
+NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
 ```

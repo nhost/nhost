@@ -1,9 +1,35 @@
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
+
 // TODO shared with other packages
-export type ErrorPayload = {
+export interface ErrorPayload {
   error: string
   status: number
   message: string
+}
+
+// TODO shared with other packages
+export interface ActionErrorState {
+  /**
+   * @return `true` if an error occurred
+   * @depreacted use `!isSuccess` or `!!error` instead
+   * */
+  isError: boolean
+  /** Provides details about the error */
+  error: ErrorPayload | null
+}
+
+// TODO shared with other packages
+export interface ActionLoadingState {
+  /**
+   * @return `true` when the action is executing, `false` when it finished its execution.
+   */
+  isLoading: boolean
+}
+
+// TODO shared with other packages
+export interface ActionSuccessState {
+  /** Returns `true` if the action is successful. */
+  isSuccess: boolean
 }
 
 export type BackendUrl = {

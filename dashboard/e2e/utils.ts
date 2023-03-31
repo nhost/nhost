@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 
 /**
@@ -66,18 +67,25 @@ export async function prepareTable({
 
         // set type
         await page
+          .getByRole('table')
           .getByRole('combobox', { name: /type/i })
           .nth(index)
-          .fill(type);
-        await page.getByRole('option', { name: type }).first().click();
+          .type(type);
+        await page
+          .getByRole('table')
+          .getByRole('option', { name: type })
+          .first()
+          .click();
 
         // optionally set default value
         if (defaultValue) {
           await page
+            .getByRole('table')
             .getByRole('combobox', { name: /default value/i })
-            .first()
-            .fill(defaultValue);
+            .nth(index)
+            .type(defaultValue);
           await page
+            .getByRole('table')
             .getByRole('option', { name: defaultValue })
             .first()
             .click();
@@ -110,4 +118,72 @@ export async function prepareTable({
   // select the first column as primary key
   await page.getByRole('button', { name: /primary key/i }).click();
   await page.getByRole('option', { name: primaryKey, exact: true }).click();
+}
+
+/**
+ * Deletes a table with the given name.
+ *
+ * @param page - The Playwright page object.
+ * @param name - The name of the table to delete.
+ * @returns A promise that resolves when the table is deleted.
+ */
+export async function deleteTable({
+  page,
+  name,
+}: {
+  page: Page;
+  name: string;
+}) {
+  const tableLink = page.getByRole('link', {
+    name,
+    exact: true,
+  });
+
+  await tableLink.hover();
+  await page
+    .getByRole('listitem')
+    .filter({ hasText: name })
+    .getByRole('button')
+    .click();
+
+  await page.getByRole('menuitem', { name: /delete table/i }).click();
+  await page.getByRole('button', { name: /delete/i }).click();
+}
+
+/**
+ * Creates a new user.
+ *
+ * @param page - The Playwright page object.
+ * @param email - The email of the user to create.
+ * @param password - The password of the user to create.
+ * @returns A promise that resolves when the user is created.
+ */
+export async function createUser({
+  page,
+  email,
+  password,
+}: {
+  page: Page;
+  email: string;
+  password: string;
+}) {
+  await page
+    .getByRole('button', { name: /create user/i })
+    .first()
+    .click();
+
+  await page.getByRole('textbox', { name: /email/i }).fill(email);
+  await page.getByRole('textbox', { name: /password/i }).fill(password);
+  await page.getByRole('button', { name: /create/i, exact: true }).click();
+}
+
+/**
+ * Generates a test email address with the given prefix (if provided).
+ *
+ * @param prefix - The prefix to use for the email address. (Default: `Nhost_Test_`)
+ */
+export function generateTestEmail(prefix: string = 'Nhost_Test_') {
+  const email = faker.internet.email();
+
+  return [prefix, email].join('');
 }

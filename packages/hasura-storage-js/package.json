@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -41,7 +41,8 @@
   },
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
-    "build": "run-p build:lib build:umd",
+    "build": "run-p typecheck build:lib build:umd",
+    "typecheck": "tsc --noEmit",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
@@ -66,6 +67,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
+    "@types/uuid": "^9.0.1",
     "jpeg-js": "^0.4.4",
     "pixelmatch": "^5.3.0",
     "start-server-and-test": "^1.15.2",

@@ -1,10 +1,12 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
 
-import { ActionLoadingState, SessionActionHandlerResult } from './types'
+import { AuthActionLoadingState, SessionActionHandlerResult } from './types'
 
 export interface SignInAnonymousHandlerResult extends SessionActionHandlerResult {}
-export interface SignInAnonymousState extends SignInAnonymousHandlerResult, ActionLoadingState {}
+export interface SignInAnonymousState
+  extends SignInAnonymousHandlerResult,
+    AuthActionLoadingState {}
 
 export const signInAnonymousPromise = (
   interpreter: AuthInterpreter

@@ -16,9 +16,9 @@ export interface Typegen0 {
   }
   missingImplementations: {
     actions: never
-    services: never
-    guards: never
     delays: never
+    guards: never
+    services: never
   }
   eventsCausingActions: {
     reportError: 'error.platform.requestChange'
@@ -26,13 +26,13 @@ export interface Typegen0 {
     saveInvalidEmailError: 'REQUEST'
     saveRequestError: 'error.platform.requestChange'
   }
-  eventsCausingServices: {
-    requestChange: 'REQUEST'
-  }
+  eventsCausingDelays: {}
   eventsCausingGuards: {
     invalidEmail: 'REQUEST'
   }
-  eventsCausingDelays: {}
+  eventsCausingServices: {
+    requestChange: 'REQUEST'
+  }
   matchesStates:
     | 'idle'
     | 'idle.error'

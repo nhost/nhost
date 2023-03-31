@@ -1,11 +1,11 @@
 import InfoCard from '@/components/overview/InfoCard';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 
 export default function OverviewProjectInfo() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { region, subdomain } = currentApplication || {};
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { region, subdomain } = currentProject || {};
   const isRegionAvailable =
     region?.awsName && region?.countryCode && region?.city;
 
@@ -13,14 +13,14 @@ export default function OverviewProjectInfo() {
     <div className="grid grid-flow-row content-start gap-6">
       <Text variant="h3">Project Info</Text>
 
-      {currentApplication && (
+      {currentProject && (
         <div className="grid grid-flow-row gap-3">
           <InfoCard
             title="Region"
             value={region?.awsName}
             customValue={
-              region.countryCode &&
-              region.city && (
+              region?.countryCode &&
+              region?.city && (
                 <div className="grid grid-flow-col items-center gap-1 self-center">
                   <Image
                     src={`/assets/flags/${region.countryCode}.svg`}
@@ -29,7 +29,7 @@ export default function OverviewProjectInfo() {
                     height={12}
                   />
 
-                  <Text className="text-sm font-medium truncate">
+                  <Text className="truncate text-sm font-medium">
                     {region.city} ({region.awsName})
                   </Text>
                 </div>

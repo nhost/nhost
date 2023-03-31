@@ -11,7 +11,7 @@ const StyledListItemText = styled(MaterialListItemText)(({ theme }) => ({
   display: 'grid',
   justifyContent: 'start',
   gridAutoFlow: 'row',
-  gap: theme.spacing(0.5),
+  gap: theme.spacing(0.25),
   fontSize: theme.typography.pxToRem(15),
   [`&.${listItemTextClasses.root}`]: {
     margin: 0,
