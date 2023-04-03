@@ -134,9 +134,5 @@ export default function LogsPage() {
 }
 
 LogsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout mainContainerProps={{ className: 'bg-gray-50' }}>
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };
