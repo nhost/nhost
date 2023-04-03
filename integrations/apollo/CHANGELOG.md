@@ -1,5 +1,12 @@
 # @nhost/apollo
 
+## 5.2.1
+
+### Patch Changes
+
+- 0d73e87a: fix(ws): don't open unnecessary connections
+- 0d73e87a: fix(ws): increase retry attempts and implement exponential backoff
+
 ## 5.2.0
 
 ### Patch Changes
