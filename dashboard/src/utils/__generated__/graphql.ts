@@ -27,7 +27,6 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
-  labels: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -1691,14 +1690,7 @@ export type Log = {
 
 export type Metrics = {
   __typename?: 'Metrics';
-  rows: Array<RowMetric>;
-};
-
-export type RowMetric = {
-  __typename?: 'RowMetric';
-  labels?: Maybe<Scalars['labels']>;
-  time: Scalars['Timestamp'];
-  value?: Maybe<Scalars['float64']>;
+  value: Scalars['float64'];
 };
 
 export type StatsLiveApps = {
@@ -9233,6 +9225,7 @@ export type Mutation_Root = {
   insert_regions_one?: Maybe<Regions>;
   migrateRDSToPostgres: Scalars['Boolean'];
   pauseInactiveApps: Array<Scalars['String']>;
+  replaceConfig: ConfigConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
   /** update single row of the table: "apps" */
@@ -10247,6 +10240,13 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 export type Mutation_RootMigrateRdsToPostgresArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootReplaceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
 };
 
 
@@ -11428,6 +11428,7 @@ export type Plans = {
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
+  featureCustomResources: Scalars['Boolean'];
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates: Scalars['Boolean'];
   /** Function execution timeout in seconds */
@@ -11521,6 +11522,7 @@ export type Plans_Bool_Exp = {
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
+  featureCustomResources?: InputMaybe<Boolean_Comparison_Exp>;
   featureDeployEmailTemplates?: InputMaybe<Boolean_Comparison_Exp>;
   featureFunctionExecutionTimeout?: InputMaybe<Int_Comparison_Exp>;
   featureMaxDbSize?: InputMaybe<Int_Comparison_Exp>;
@@ -11562,6 +11564,7 @@ export type Plans_Insert_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11647,6 +11650,7 @@ export type Plans_Order_By = {
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
+  featureCustomResources?: InputMaybe<Order_By>;
   featureDeployEmailTemplates?: InputMaybe<Order_By>;
   featureFunctionExecutionTimeout?: InputMaybe<Order_By>;
   featureMaxDbSize?: InputMaybe<Order_By>;
@@ -11678,6 +11682,8 @@ export enum Plans_Select_Column {
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
+  /** column name */
+  FeatureCustomResources = 'featureCustomResources',
   /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
   /** column name */
@@ -11714,6 +11720,7 @@ export type Plans_Set_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11786,6 +11793,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureCustomResources?: InputMaybe<Scalars['Boolean']>;
   /** Weather or not to deploy email templates for git deployments */
   featureDeployEmailTemplates?: InputMaybe<Scalars['Boolean']>;
   /** Function execution timeout in seconds */
@@ -11828,6 +11836,8 @@ export enum Plans_Update_Column {
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
   FeatureCustomEmailTemplatesEnabled = 'featureCustomEmailTemplatesEnabled',
+  /** column name */
+  FeatureCustomResources = 'featureCustomResources',
   /** column name */
   FeatureDeployEmailTemplates = 'featureDeployEmailTemplates',
   /** column name */
@@ -12037,41 +12047,13 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
-  /**
-   * Returns CPU metrics for a given application.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * CPU usage is calculated as the average CPU usage over the period of 1m.
-   *
-   * Unit returned is millicores.
-   */
-  getCPUMetrics: Metrics;
-  /**
-   * Returns memory metrics for a given application.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Memory usage is returned in MiB.
-   */
-  getMemoryMetrics: Metrics;
-  /**
-   * Returns disk capacity for the volume used by postgres to store the database.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Disk usage is returned in MiB.
-   */
+  getCPUSecondsUsage: Metrics;
+  getEgressVolume: Metrics;
+  getFunctionsInvocations: Metrics;
+  getLogsVolume: Metrics;
   getPostgresVolumeCapacity: Metrics;
-  /**
-   * Returns disk usage for the volume used by postgres to store the database.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Disk usage is returned in MiB.
-   */
   getPostgresVolumeUsage: Metrics;
-  /**
-   * Return requests per second for a given application by service.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   */
-  getRequestsPerSecond: Metrics;
+  getTotalRequests: Metrics;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -12643,14 +12625,29 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
-export type Query_RootGetCpuMetricsArgs = {
+export type Query_RootGetCpuSecondsUsageArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
-export type Query_RootGetMemoryMetricsArgs = {
+export type Query_RootGetEgressVolumeArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  subdomain: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsInvocationsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetLogsVolumeArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
@@ -12659,19 +12656,17 @@ export type Query_RootGetMemoryMetricsArgs = {
 
 export type Query_RootGetPostgresVolumeCapacityArgs = {
   appID: Scalars['String'];
-  from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
+  t?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
 export type Query_RootGetPostgresVolumeUsageArgs = {
   appID: Scalars['String'];
-  from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
+  t?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
-export type Query_RootGetRequestsPerSecondArgs = {
+export type Query_RootGetTotalRequestsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
@@ -16558,6 +16553,15 @@ export type GetAppProvisionStatusQueryVariables = Exact<{
 
 export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, createdAt: any }> };
 
+export type GetProjectMetricsQueryVariables = Exact<{
+  appId: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any } };
+
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -17915,6 +17919,65 @@ export type GetAppProvisionStatusLazyQueryHookResult = ReturnType<typeof useGetA
 export type GetAppProvisionStatusQueryResult = Apollo.QueryResult<GetAppProvisionStatusQuery, GetAppProvisionStatusQueryVariables>;
 export function refetchGetAppProvisionStatusQuery(variables: GetAppProvisionStatusQueryVariables) {
       return { query: GetAppProvisionStatusDocument, variables: variables }
+    }
+export const GetProjectMetricsDocument = gql`
+    query GetProjectMetrics($appId: String!, $from: Timestamp, $to: Timestamp) {
+  logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  functionInvocations: getFunctionsInvocations(
+    appID: $appId
+    from: $from
+    to: $to
+  ) {
+    value
+  }
+  postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
+    value
+  }
+  postgresVolumeUsage: getPostgresVolumeUsage(appID: $appId) {
+    value
+  }
+  totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
+    value
+  }
+}
+    `;
+
+/**
+ * __useGetProjectMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectMetricsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetProjectMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
+      }
+export function useGetProjectMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
+        }
+export type GetProjectMetricsQueryHookResult = ReturnType<typeof useGetProjectMetricsQuery>;
+export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProjectMetricsLazyQuery>;
+export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
+export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
+      return { query: GetProjectMetricsDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {
