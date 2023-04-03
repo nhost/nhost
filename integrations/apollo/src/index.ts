@@ -72,7 +72,22 @@ export const createApolloClient = ({
     ? createRestartableClient({
         url: uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws'),
         shouldRetry: () => true,
-        retryAttempts: 10,
+        retryAttempts: 100,
+        retryWait: async (retries) => {
+          // start with 1 second delay
+          const baseDelay = 1000
+
+          // max 3 seconds of jitter
+          const maxJitter = 3000
+
+          // exponential backoff with jitter
+          return new Promise((resolve) =>
+            setTimeout(
+              resolve,
+              baseDelay * Math.pow(2, retries) + Math.floor(Math.random() * maxJitter)
+            )
+          )
+        },
         connectionParams: () => ({
           headers: {
             ...headers,
@@ -141,7 +156,7 @@ export const createApolloClient = ({
       // update token
       token = state.context.accessToken.value
 
-      if (!isBrowser) {
+      if (!isBrowser || !wsClient?.isOpen()) {
         return
       }
 
