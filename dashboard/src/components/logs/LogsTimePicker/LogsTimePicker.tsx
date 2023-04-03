@@ -4,6 +4,7 @@ import { useDropdown } from '@/ui/v2/Dropdown';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import { format, set } from 'date-fns';
+import type { ChangeEvent } from 'react';
 
 export interface LogTimePickerProps extends InputProps {
   /**
@@ -22,21 +23,21 @@ function LogsTimePicker({
 }: any) {
   const { handleClose } = useDropdown();
 
-  const handleCancel = () => {
+  function handleCancel() {
     handleClose();
-  };
+  }
 
-  const handleApply = () => {
+  function handleApply() {
     onChange(selectedDate);
     handleClose();
-  };
+  }
 
-  const handleTimePicking = (event) => {
-    const [hours, minutes, seconds] = event.target.value.split(':');
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const [hours, minutes, seconds] = event.target.value?.split(':') || [];
 
-    const hoursNumber = parseInt(hours, 10);
-    const minutesNumber = parseInt(minutes, 10);
-    const secondsNumber = parseInt(seconds, 10);
+    const hoursNumber = parseInt(hours || '0', 10);
+    const minutesNumber = parseInt(minutes || '0', 10);
+    const secondsNumber = parseInt(seconds || '0', 10);
 
     const newDate = set(new Date(selectedDate), {
       hours: hoursNumber,
@@ -51,7 +52,7 @@ function LogsTimePicker({
     }
 
     setSelectedDate(newDate);
-  };
+  }
 
   return (
     <div className="mx-auto grid grid-flow-row items-center self-center">
@@ -64,7 +65,7 @@ function LogsTimePicker({
             formControl: { className: 'grid grid-flow-col gap-x-3' },
             label: { sx: { fontSize: '14px' } },
           }}
-          onChange={handleTimePicking}
+          onChange={handleChange}
           type="time"
           label="Select Time"
           sx={{
