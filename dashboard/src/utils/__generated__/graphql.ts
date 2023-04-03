@@ -16555,12 +16555,13 @@ export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Arra
 
 export type GetProjectMetricsQueryVariables = Exact<{
   appId: Scalars['String'];
+  subdomain: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 }>;
 
 
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17921,7 +17922,7 @@ export function refetchGetAppProvisionStatusQuery(variables: GetAppProvisionStat
       return { query: GetAppProvisionStatusDocument, variables: variables }
     }
 export const GetProjectMetricsDocument = gql`
-    query GetProjectMetrics($appId: String!, $from: Timestamp, $to: Timestamp) {
+    query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
   logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
     value
   }
@@ -17944,6 +17945,14 @@ export const GetProjectMetricsDocument = gql`
   totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
     value
   }
+  egressVolume: getEgressVolume(
+    appID: $appId
+    subdomain: $subdomain
+    from: $from
+    to: $to
+  ) {
+    value
+  }
 }
     `;
 
@@ -17960,6 +17969,7 @@ export const GetProjectMetricsDocument = gql`
  * const { data, loading, error } = useGetProjectMetricsQuery({
  *   variables: {
  *      appId: // value for 'appId'
+ *      subdomain: // value for 'subdomain'
  *      from: // value for 'from'
  *      to: // value for 'to'
  *   },

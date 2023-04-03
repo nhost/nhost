@@ -41,8 +41,10 @@ export default function OverviewMetrics() {
   const { data, loading, error } = useGetProjectMetricsQuery({
     variables: {
       appId: currentProject?.id,
+      subdomain: currentProject?.subdomain,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
+    skip: !currentProject?.id,
   });
 
   const cardElements: { label: string; value: string }[] = [
@@ -69,6 +71,10 @@ export default function OverviewMetrics() {
     {
       label: 'Logs',
       value: prettysize(data?.logsVolume?.value || 0),
+    },
+    {
+      label: 'Egress Volume',
+      value: prettysize(data?.egressVolume?.value || 0),
     },
   ];
 
