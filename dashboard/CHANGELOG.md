@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.14.2
+
+### Patch Changes
+
+- 3cb67300: fix(logs): don't break UI when clearing time picker
+- 7453bf3b: feat(projects): show project creator info
+- c166dad0: chore(tests): improve auth page tests
+- 6a290bb2: chore(deps): bump `@types/react` to 18.0.32
+
 ## 0.14.1
 
 ### Patch Changes
