@@ -167,7 +167,7 @@ importers:
       msw: ^1.0.1
       msw-storybook-addon: ^1.6.3
       next: ^12.3.1
-      next-seo: ^5.14.1
+      next-seo: ^6.0.0
       node-fetch: ^3.3.0
       node-pg-format: ^1.3.5
       pluralize: ^8.0.0
@@ -245,7 +245,7 @@ importers:
       just-kebab-case: 4.1.1
       lodash.debounce: 4.0.8
       next: 12.3.3_mqvh5p7ejg4taogoj6tpk3gd5a
-      next-seo: 5.14.1_axequwibc5yadwk55bo7ehxsoe
+      next-seo: 6.0.0_axequwibc5yadwk55bo7ehxsoe
       node-pg-format: 1.3.5
       pluralize: 8.0.0
       prettysize: 2.0.0
@@ -24187,8 +24187,8 @@ packages:
     resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
     dev: true
 
-  /next-seo/5.14.1_axequwibc5yadwk55bo7ehxsoe:
-    resolution: {integrity: sha512-NiJeQbxYP3z+EMp52q8k3Q+OfX2+Yv2WehERDj98r2wjXxL+woKpRBdsSVYolTD0Hm8IWs42SzaISE93RoQdOw==}
+  /next-seo/6.0.0_axequwibc5yadwk55bo7ehxsoe:
+    resolution: {integrity: sha512-jKKt1p1z4otMA28AyeoAONixVjdYmgFCWwpEFtu+DwRHQDllVX3RjtyXbuCQiUZEfQ9rFPBpAI90vDeLZlMBdg==}
     peerDependencies:
       next: ^8.1.1-canary.54 || >=9.0.0
       react: '>=16.0.0'
