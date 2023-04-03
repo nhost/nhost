@@ -879,7 +879,7 @@ importers:
       graphql-ws: ^5.11.2
       react: ^18.2.0
       react-dom: ^18.2.0
-      urql: ^3.0.3
+      urql: ^4.0.0
     dependencies:
       '@urql/devtools': 2.0.3_graphql@16.6.0
       '@urql/exchange-refocus': 1.0.0_graphql@16.6.0
@@ -890,7 +890,7 @@ importers:
       graphql: 16.6.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
-      urql: 3.0.3_onqnqwb3ubg5opvemcqf7c2qhy
+      urql: 4.0.0_onqnqwb3ubg5opvemcqf7c2qhy
 
   integrations/stripe-graphql-js:
     specifiers:
@@ -1119,6 +1119,17 @@ importers:
       xstate: 4.33.6
 
 packages:
+
+  /@0no-co/graphql.web/1.0.0_graphql@16.6.0:
+    resolution: {integrity: sha512-JBq2pWyDchE1vVjj/+c4dzZ8stbpew4RrzpZ3vYdn1WJFGHfYg6YIX1fDdMKtSXJJM9FUlsoDOxemr9WMM2p+A==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    peerDependenciesMeta:
+      graphql:
+        optional: true
+    dependencies:
+      graphql: 16.6.0
+    dev: true
 
   /@adobe/css-tools/4.0.1:
     resolution: {integrity: sha512-+u76oB43nOHrF4DDWRLWDCtci7f3QJoEBigemIdIeTi1ODqjx6Tad9NCVnPRwewWlKkVab5PlK8DCtPTyX7S8g==}
@@ -13291,7 +13302,17 @@ packages:
     dependencies:
       '@graphql-typed-document-node/core': 3.1.1_graphql@16.6.0
       graphql: 16.6.0
-      wonka: 6.1.1
+      wonka: 6.3.1
+    dev: false
+
+  /@urql/core/4.0.2_graphql@16.6.0:
+    resolution: {integrity: sha512-GrJhMDqFP0URS47h6tMSHN/hmeTB1BNWnlXkWTxZo+b2ZB1+E9rgsuG2VTfaErXtZySGLwyCsDHtT+kZLN2cMA==}
+    dependencies:
+      '@0no-co/graphql.web': 1.0.0_graphql@16.6.0
+      wonka: 6.3.1
+    transitivePeerDependencies:
+      - graphql
+    dev: true
 
   /@urql/devtools/2.0.3_graphql@16.6.0:
     resolution: {integrity: sha512-TktPLiBS9LcBPHD6qcnb8wqOVcg3Bx0iCtvQ80uPpfofwwBGJmqnQTjUdEFU6kwaLOFZULQ9+Uo4831G823mQw==}
@@ -30388,6 +30409,19 @@ packages:
       graphql: 16.6.0
       react: 18.2.0
       wonka: 6.1.1
+    dev: false
+
+  /urql/4.0.0_onqnqwb3ubg5opvemcqf7c2qhy:
+    resolution: {integrity: sha512-JY+h1rTLThB9lgoasy9TehL/W2yuzhyRazr6TzLB9ST8+Nm9lKKuyuoLvywhSOHdXtz2FJVFFUeJHE3S+ZfaWA==}
+    peerDependencies:
+      react: '>= 16.8.0'
+    dependencies:
+      '@urql/core': 4.0.2_graphql@16.6.0
+      react: 18.2.0
+      wonka: 6.3.1
+    transitivePeerDependencies:
+      - graphql
+    dev: true
 
   /use-callback-ref/1.3.0_b7lksjcz5zr4rqebyeqormarua:
     resolution: {integrity: sha512-3FT9PRuRdbB9HfXhEq35u4oZkvpJ5kuYbpqhCfmiZyReuRgpnhDlbr2ZEnnuS0RrJAPn6l23xjFg9kpDM+Ms7w==}
@@ -31794,6 +31828,10 @@ packages:
 
   /wonka/6.1.1:
     resolution: {integrity: sha512-shBtyZ0KFvUadtnDGlTRA4mF4pgcRoyZKikdputKhmShoXWcZDvlg6CUw6Jx9nTL7Ub8QUJoIarPpxdlosg9cw==}
+    dev: false
+
+  /wonka/6.3.1:
+    resolution: {integrity: sha512-nJyGPcjuBiaLFn8QAlrHd+QjV9AlPO7snOWAhgx6aX0nQLMV6Wi0nqfrkmsXIH0efngbDOroOz2QyLnZMF16Hw==}
 
   /word-wrap/1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}
