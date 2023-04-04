@@ -25,8 +25,12 @@ jobs:
 
       - name: place let's encrypt cert
         run: |
-          echo ${{ secrets.CERT_FULL_CHAIN }} > internal/ssl/.ssl/fullchain.pem
-          echo ${{ secrets.CERT_PRIV_KEY }} > internal/ssl/.ssl/privkey.pem
+          cat <<EOF > internal/ssl/.ssl/fullchain.pem
+          ${{ secrets.CERT_FULL_CHAIN }}
+          EOF
+          cat <<EOF > internal/ssl/.ssl/privkey.pem
+          ${{ secrets.CERT_PRIV_KEY }}
+          EOF
         shell: bash
 
       - name: GoReleaser
