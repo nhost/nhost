@@ -3,7 +3,7 @@ import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Text from '@/ui/v2/Text';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
-import prettysize from 'prettysize';
+import { prettifySize } from '@/utils/common/prettifySize';
 import { twMerge } from 'tailwind-merge';
 
 const now = new Date();
@@ -62,19 +62,15 @@ export default function OverviewMetrics() {
     },
     {
       label: 'Postgres Usage',
-      value: prettysize(data?.postgresVolumeUsage?.value || 0),
-    },
-    {
-      label: 'Postgres Capacity',
-      value: prettysize(data?.postgresVolumeCapacity?.value || 0),
-    },
-    {
-      label: 'Logs',
-      value: prettysize(data?.logsVolume?.value || 0),
+      value: prettifySize(data?.postgresVolumeUsage?.value || 0),
     },
     {
       label: 'Egress Volume',
-      value: prettysize(data?.egressVolume?.value || 0),
+      value: prettifySize(data?.egressVolume?.value || 0),
+    },
+    {
+      label: 'Logs',
+      value: prettifySize(data?.logsVolume?.value || 0),
     },
   ];
 
