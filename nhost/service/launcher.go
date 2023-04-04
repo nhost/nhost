@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-version"
-	"github.com/nhost/cli/internal/ports"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/hashicorp/go-version"
+	"github.com/nhost/cli/internal/ports"
 
 	"github.com/docker/docker/client"
 	"github.com/nhost/cli/nhost"
@@ -67,7 +68,7 @@ func (l *Launcher) Init() error {
 }
 
 func (l *Launcher) checkDockerVersion() error {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
