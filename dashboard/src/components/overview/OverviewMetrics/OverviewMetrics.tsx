@@ -70,25 +70,6 @@ export default function OverviewMetrics() {
     },
   ];
 
-  if (!data && loading) {
-    return (
-      <div className="grid grid-flow-row gap-4">
-        <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 md:grid-cols-3">
-          {cardElements.map((element) => (
-            <MetricsCard
-              className="h-[92px] animate-pulse"
-              key={element.label}
-            />
-          ))}
-        </div>
-
-        <Text color="disabled">
-          Your project usage since the beginning of the month.
-        </Text>
-      </div>
-    );
-  }
-
   if (!data && error) {
     throw error;
   }
@@ -98,9 +79,10 @@ export default function OverviewMetrics() {
       <div className="grid grid-cols-1 justify-start gap-4 xs:grid-cols-2 md:grid-cols-3">
         {cardElements.map((element) => (
           <MetricsCard
-            label={element.label}
-            value={element.value}
+            label={!loading ? element.label : null}
+            value={!loading ? element.value : null}
             key={element.label}
+            className={twMerge('min-h-[92px]', loading && 'animate-pulse')}
           />
         ))}
       </div>
