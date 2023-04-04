@@ -61,10 +61,6 @@ export default function OverviewMetrics() {
       value: Math.round(data?.functionInvocations?.value || 0).toString(),
     },
     {
-      label: 'Postgres Usage',
-      value: prettifySize(data?.postgresVolumeUsage?.value || 0),
-    },
-    {
       label: 'Egress Volume',
       value: prettifySize(data?.egressVolume?.value || 0),
     },
