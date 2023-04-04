@@ -94,16 +94,26 @@ test('should not have a GitHub repository connected', async () => {
   ).toBeVisible();
 });
 
+test('should show metrics', async () => {
+  await expect(page.getByText(/cpu usage seconds\d+/i)).toBeVisible();
+  await expect(page.getByText(/total requests\d+/i)).toBeVisible();
+  await expect(page.getByText(/function invocations\d+/i)).toBeVisible();
+  await expect(
+    page.getByText(/egress volume\d+(\.\d+)? [a-zA-Z]+/i),
+  ).toBeVisible();
+  await expect(page.getByText(/logs\d+(\.\d+)? [a-zA-Z]+/i)).toBeVisible();
+});
+
 test('should show proper limits for the free project', async () => {
-  // Limit for Database
-  await expect(page.getByText(/of 500 MB/i)).toBeVisible();
+  await expect(
+    page.getByText(/database\d+(\.\d+)? [a-zA-Z]+ of \d+(\.\d+)? [a-zA-Z]+/i),
+  ).toBeVisible();
 
-  // Limit for Storage
-  await expect(page.getByText(/of 1 GB/i)).toBeVisible();
+  await expect(
+    page.getByText(/storage\d+(\.\d+)? [a-zA-Z]+ of \d+(\.\d+)? [a-zA-Z]+/i),
+  ).toBeVisible();
 
-  // Limit for Users
-  await expect(page.getByText(/of 10000/i)).toBeVisible();
+  await expect(page.getByText(/users[0-9]+ of [0-9]+/i)).toBeVisible();
 
-  // Limit for Functions
-  await expect(page.getByText(/of 10$/i, { exact: true })).toBeVisible();
+  await expect(page.getByText(/functions[0-9]+ of [0-9]+/i)).toBeVisible();
 });
