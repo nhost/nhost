@@ -1,0 +1,25 @@
+{
+  "metrics": {
+    "cpuUsageSeconds": {
+      "label": "CPU Usage Seconds",
+      "tooltip": "Total time the service has used the CPUs"
+    },
+    "totalRequests": {
+      "label": "Total Requests",
+      "tooltip": "Total amount of requests your services have received excluding functions"
+    },
+    "functionInvocations": {
+      "label": "Function Invocations",
+      "tooltip": "Number of times your functions have been called"
+    },
+    "egressVolume": {
+      "label": "Egress Volume",
+      "tooltip": "Amount of data your services have sent to users"
+    },
+    "logs": {
+      "label": "Logs",
+      "tooltip": "Amount of logs stored"
+    },
+    "helperText": "Your resource usage since the beginning of the month."
+  }
+}

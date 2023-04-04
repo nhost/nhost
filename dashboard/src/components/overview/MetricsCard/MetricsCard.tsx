@@ -36,7 +36,7 @@ export default function MetricsCard({
     >
       <div className="grid grid-flow-col items-center justify-between gap-2">
         {label && (
-          <Text className="font-medium" color="secondary">
+          <Text className="truncate font-medium" color="secondary">
             {label}
           </Text>
         )}

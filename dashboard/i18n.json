@@ -1,0 +1,9 @@
+{
+  "locales": ["en"],
+  "defaultLocale": "en",
+
+  "pages": {
+    "*": ["common"],
+    "/[workspaceSlug]/[appSlug]": ["overview"]
+  }
+}
