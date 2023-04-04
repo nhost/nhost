@@ -1,40 +1,12 @@
+import type { MetricsCardProps } from '@/components/overview/MetricsCard';
+import { MetricsCard } from '@/components/overview/MetricsCard';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
-import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
 import Text from '@/ui/v2/Text';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { prettifySize } from '@/utils/common/prettifySize';
 import { twMerge } from 'tailwind-merge';
 
 const now = new Date();
-
-function MetricsCard({
-  label,
-  value,
-  className,
-}: BoxProps & { label?: string; value?: string }) {
-  return (
-    <Box
-      className={twMerge(
-        'grid grid-flow-row gap-2 rounded-md px-4 py-3',
-        className,
-      )}
-      sx={{ backgroundColor: 'grey.200' }}
-    >
-      {label && (
-        <Text className="font-medium" color="secondary">
-          {label}
-        </Text>
-      )}
-
-      {value && (
-        <Text variant="h2" component="p" className="truncate">
-          {value}
-        </Text>
-      )}
-    </Box>
-  );
-}
 
 export default function OverviewMetrics() {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -47,25 +19,31 @@ export default function OverviewMetrics() {
     skip: !currentProject?.id,
   });
 
-  const cardElements: { label: string; value: string }[] = [
+  const cardElements: MetricsCardProps[] = [
     {
       label: 'CPU Usage Seconds',
+      tooltip: 'Total time the service has used the CPUs',
       value: Math.round(data?.cpuSecondsUsage?.value || 0).toString(),
     },
     {
       label: 'Total Requests',
+      tooltip:
+        'Total amount of requests your services have received excluding functions',
       value: Math.round(data?.totalRequests?.value || 0).toString(),
     },
     {
       label: 'Function Invocations',
+      tooltip: 'Number of times your functions have been called',
       value: Math.round(data?.functionInvocations?.value || 0).toString(),
     },
     {
       label: 'Egress Volume',
+      tooltip: 'Amount of data your services have sent to users',
       value: prettifySize(data?.egressVolume?.value || 0),
     },
     {
       label: 'Logs',
+      tooltip: 'Amount of logs stored',
       value: prettifySize(data?.logsVolume?.value || 0),
     },
   ];
@@ -77,12 +55,18 @@ export default function OverviewMetrics() {
   return (
     <div className="grid grid-flow-row gap-4">
       <div className="grid grid-cols-1 justify-start gap-4 xs:grid-cols-2 md:grid-cols-3">
-        {cardElements.map((element) => (
+        {cardElements.map(({ label, value, tooltip, className, ...props }) => (
           <MetricsCard
-            label={!loading ? element.label : null}
-            value={!loading ? element.value : null}
-            key={element.label}
-            className={twMerge('min-h-[92px]', loading && 'animate-pulse')}
+            {...props}
+            key={label}
+            label={!loading ? label : null}
+            value={!loading ? value : null}
+            tooltip={!loading ? tooltip : null}
+            className={twMerge(
+              'min-h-[92px]',
+              loading && 'animate-pulse',
+              className,
+            )}
           />
         ))}
       </div>
