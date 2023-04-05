@@ -1,15 +1,13 @@
 import { useUI } from '@/context/UIContext';
-import { useWorkspaceContext } from '@/context/workspace-context';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import { emptyWorkspace } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import { useDeleteWorkspaceMutation } from '@/utils/__generated__/graphql';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
 import { useState } from 'react';
 
@@ -20,7 +18,6 @@ export default function RemoveWorkspaceModal() {
   const [deleteWorkspace, { loading, error: mutationError, client }] =
     useDeleteWorkspaceMutation();
 
-  const { setWorkspaceContext } = useWorkspaceContext();
   const { currentWorkspace } = useCurrentWorkspaceAndApplication();
 
   async function handleClick() {
@@ -32,7 +29,6 @@ export default function RemoveWorkspaceModal() {
       });
       triggerToast(`Workspace ${currentWorkspace.name} successfully deleted`);
       closeDeleteWorkspaceModal();
-      setWorkspaceContext(emptyWorkspace());
     } catch (error) {
       // TODO: Display error to user and use a logging solution
       return;
@@ -42,7 +38,7 @@ export default function RemoveWorkspaceModal() {
   }
 
   return (
-    <Box className="w-modal p-6 text-left rounded-lg">
+    <Box className="w-modal rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-4">
         <div className="grid grid-flow-row gap-1">
           <Text variant="h3" component="h2">

@@ -1,4 +1,4 @@
-import { UserDataProvider } from '@/context/workspace1-context';
+import { UserDataProvider } from '@/context/UserDataContext';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';

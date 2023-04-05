@@ -1,8 +1,7 @@
 import DialogProvider from '@/components/common/DialogProvider/DialogProvider';
 import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import { ManagedUIContext } from '@/context/UIContext';
-import { WorkspaceProvider } from '@/context/workspace-context';
-import { UserDataProvider } from '@/context/workspace1-context';
+import { UserDataProvider } from '@/context/UserDataContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
@@ -94,28 +93,26 @@ function MyApp({
               nhost={nhost}
               connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
             >
-              <WorkspaceProvider>
-                <UserDataProvider>
-                  <ManagedUIContext>
-                    <Toaster position="bottom-center" />
+              <UserDataProvider>
+                <ManagedUIContext>
+                  <Toaster position="bottom-center" />
 
-                    {isPlatform && (
-                      <Script
-                        id="segment"
-                        dangerouslySetInnerHTML={{ __html: renderSnippet() }}
-                      />
-                    )}
+                  {isPlatform && (
+                    <Script
+                      id="segment"
+                      dangerouslySetInnerHTML={{ __html: renderSnippet() }}
+                    />
+                  )}
 
-                    <ThemeProvider
-                      colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-                    >
-                      <DialogProvider>
-                        {getLayout(<Component {...pageProps} />)}
-                      </DialogProvider>
-                    </ThemeProvider>
-                  </ManagedUIContext>
-                </UserDataProvider>
-              </WorkspaceProvider>
+                  <ThemeProvider
+                    colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+                  >
+                    <DialogProvider>
+                      {getLayout(<Component {...pageProps} />)}
+                    </DialogProvider>
+                  </ThemeProvider>
+                </ManagedUIContext>
+              </UserDataProvider>
             </NhostApolloProvider>
           </NhostProvider>
         </CacheProvider>

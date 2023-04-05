@@ -8,7 +8,6 @@ import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAn
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
-import { useSetAppWorkspaceContextFromUserContext } from '@/hooks/useSetAppWorkspaceContextFromUserContext';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
@@ -57,7 +56,6 @@ function ProjectLayoutContent({
     );
 
   useGetAllUserWorkspacesAndApplications(false);
-  useSetAppWorkspaceContextFromUserContext();
   useNotFoundRedirect();
 
   useEffect(() => {

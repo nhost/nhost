@@ -16903,7 +16903,7 @@ export type GetAppFunctionsMetadataQueryVariables = Exact<{
 }>;
 
 
-export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', metadataFunctions: any } | null };
+export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, metadataFunctions: any } | null };
 
 export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -19820,6 +19820,7 @@ export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<Remo
 export const GetAppFunctionsMetadataDocument = gql`
     query getAppFunctionsMetadata($id: uuid!) {
   app(id: $id) {
+    id
     metadataFunctions
   }
 }

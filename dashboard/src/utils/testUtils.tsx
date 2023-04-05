@@ -2,8 +2,7 @@
 import DialogProvider from '@/components/common/DialogProvider/DialogProvider';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
-import { WorkspaceProvider } from '@/context/workspace-context';
-import { UserDataProvider } from '@/context/workspace1-context';
+import { UserDataProvider } from '@/context/UserDataContext';
 import createTheme from '@/ui/v2/createTheme';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
@@ -11,7 +10,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { queries, Queries, RenderOptions } from '@testing-library/react';
+import type { Queries, RenderOptions, queries } from '@testing-library/react';
 import { render as rtlRender } from '@testing-library/react';
 import { RouterContext } from 'next/dist/shared/lib/router-context';
 import type { NextRouter } from 'next/router';
@@ -82,16 +81,14 @@ function Providers({ children }: PropsWithChildren<{}>) {
                   uri: 'https://local.graphql.nhost.run/v1',
                 })}
               >
-                <WorkspaceProvider>
-                  <UserDataProvider>
-                    <ManagedUIContext>
-                      <Toaster position="bottom-center" />
-                      <ThemeProvider theme={theme}>
-                        <DialogProvider>{children}</DialogProvider>
-                      </ThemeProvider>
-                    </ManagedUIContext>
-                  </UserDataProvider>
-                </WorkspaceProvider>
+                <UserDataProvider>
+                  <ManagedUIContext>
+                    <Toaster position="bottom-center" />
+                    <ThemeProvider theme={theme}>
+                      <DialogProvider>{children}</DialogProvider>
+                    </ThemeProvider>
+                  </ManagedUIContext>
+                </UserDataProvider>
               </NhostApolloProvider>
             </NhostProvider>
           </CacheProvider>
