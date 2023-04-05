@@ -101,21 +101,21 @@ export default function Sidebar({
       </section>
 
       <section className="grid grid-flow-row gap-2">
-        <Text color="secondary">{t('labels.resources')}</Text>
+        <Text color="secondary">{t('common:labels.resources')}</Text>
 
         <div className="grid grid-flow-row gap-2">
           <Resource
-            text={t('home:labels.documentation')}
+            text={t('labels.documentation')}
             logo="Question"
             link="https://docs.nhost.io"
           />
           <Resource
-            text={t('home:labels.client')}
+            text={t('labels.client')}
             logo="js"
             link="https://docs.nhost.io/reference/javascript/"
           />
           <Resource
-            text={t('home:labels.cli')}
+            text={t('labels.cli')}
             logo="CLI"
             link="https://docs.nhost.io/platform/cli"
           />

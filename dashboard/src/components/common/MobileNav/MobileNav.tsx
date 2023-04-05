@@ -3,7 +3,6 @@ import FeedbackForm from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
 import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';
-import { useUserDataContext } from '@/context/UserDataContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
@@ -19,7 +18,9 @@ import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import { useApolloClient } from '@apollo/client';
 import { useSignOut } from '@nhost/nextjs';
+import useTranslation from 'next-translate/useTranslation';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
@@ -82,13 +83,14 @@ function MobileNavLink({
   );
 }
 export default function MobileNav({ className, ...props }: MobileNavProps) {
+  const { t } = useTranslation('common');
   const isPlatform = useIsPlatform();
   const { allRoutes } = useProjectRoutes();
   const shouldDisplayNav = useNavigationVisible();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { signOut } = useSignOut();
-  const { setUserContext } = useUserDataContext();
+  const apolloClient = useApolloClient();
   const router = useRouter();
   const { publicRuntimeConfig } = getConfig();
 
@@ -105,7 +107,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
       <Button
         variant="borderless"
         color="secondary"
-        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        aria-label={menuOpen ? t('a11y.closeMenu') : t('a11y.openMenu')}
         className={twMerge('min-w-0 p-0', className)}
         onClick={() => setMenuOpen((current) => !current)}
         {...props}
@@ -165,7 +167,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
           )}
         >
           <Text variant="h2" className="text-xl font-semibold">
-            Resources
+            {t('labels.resources')}
           </Text>
 
           <List className="grid grid-flow-row gap-2">
@@ -182,7 +184,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                       className="w-full"
                       role={undefined}
                     >
-                      <ListItem.Text>Feedback</ListItem.Text>
+                      <ListItem.Text>{t('labels.feedback')}</ListItem.Text>
                     </ListItem.Button>
                   </ListItem.Root>
                 </Dropdown.Trigger>
@@ -205,7 +207,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <ListItem.Text>Docs</ListItem.Text>
+                <ListItem.Text>{t('labels.docs')}</ListItem.Text>
               </ListItem.Button>
             </ListItem.Root>
           </List>
@@ -213,7 +215,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
         <section className={twMerge('grid grid-flow-row gap-3')}>
           <Text variant="h2" className="text-xl font-semibold">
-            Theme
+            {t('labels.theme')}
           </Text>
 
           <ThemeSwitcher aria-label="Theme" />
@@ -222,7 +224,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
             <Text variant="h2" className="text-xl font-semibold">
-              Account
+              {t('labels.account')}
             </Text>
 
             <List className="grid grid-flow-row gap-2">
@@ -236,7 +238,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                     setShowChangePasswordModal(true);
                   }}
                 >
-                  Change password
+                  {t('labels.changePassword')}
                 </ListItem.Button>
               </ListItem.Root>
 
@@ -248,19 +250,21 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   color="secondary"
                   className="justify-start border-none px-2 py-2.5 text-[16px]"
                   onClick={async () => {
-                    setUserContext({ workspaces: [] });
                     setMenuOpen(false);
+                    await apolloClient.clearStore();
                     await signOut();
                     await router.push('/signin');
                   }}
                 >
-                  Sign out
+                  {t('labels.signOut')}
                 </ListItem.Button>
               </ListItem.Root>
             </List>
 
             <Text className="text-center text-xs" color="secondary">
-              Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+              {t('labels.dashboardVersion', {
+                version: publicRuntimeConfig?.version || 'n/a',
+              })}
             </Text>
           </section>
         )}

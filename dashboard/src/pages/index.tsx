@@ -9,6 +9,7 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { useGetAllWorkspacesAndProjectsQuery } from '@/utils/__generated__/graphql';
 import { darken } from '@mui/system';
+import { useUserData } from '@nhost/nextjs';
 import Trans from 'next-translate/Trans';
 import useTranslation from 'next-translate/useTranslation';
 import NavLink from 'next/link';
@@ -16,9 +17,12 @@ import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 
 export default function IndexPage() {
+  const user = useUserData();
   const { t } = useTranslation('home');
   const { data, loading, startPolling, stopPolling } =
-    useGetAllWorkspacesAndProjectsQuery();
+    useGetAllWorkspacesAndProjectsQuery({
+      skip: !user,
+    });
 
   const numberOfProjects = data?.workspaces.reduce(
     (projectCount, currentWorkspace) =>
@@ -91,7 +95,7 @@ export default function IndexPage() {
           </div>
         </Box>
 
-        <Sidebar workspaces={data.workspaces} />
+        <Sidebar workspaces={data?.workspaces || []} />
       </Container>
     );
   }
@@ -99,10 +103,11 @@ export default function IndexPage() {
   return (
     <Container className="grid grid-cols-1 gap-8 md:grid-cols-4">
       <WorkspaceAndProjectList
-        workspaces={data.workspaces}
+        workspaces={data?.workspaces || []}
         className="col-span-1 md:col-span-3"
       />
-      <Sidebar workspaces={data.workspaces} />
+
+      <Sidebar workspaces={data?.workspaces || []} />
     </Container>
   );
 }

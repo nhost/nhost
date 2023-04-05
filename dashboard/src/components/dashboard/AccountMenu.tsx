@@ -7,9 +7,9 @@ import Button from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
 import PowerIcon from '@/ui/v2/icons/PowerIcon';
 import Text from '@/ui/v2/Text';
-import { nhost } from '@/utils/nhost';
 import { useApolloClient } from '@apollo/client';
-import { useUserData } from '@nhost/nextjs';
+import { useSignOut, useUserData } from '@nhost/nextjs';
+import useTranslation from 'next-translate/useTranslation';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -21,9 +21,11 @@ interface AccountMenuContentProps {
 function AccountMenuContent({
   onChangePasswordClick,
 }: AccountMenuContentProps) {
+  const { t } = useTranslation('common');
   const user = useUserData();
+  const { signOut } = useSignOut();
   const router = useRouter();
-  const client = useApolloClient();
+  const apolloClient = useApolloClient();
   const { handleClose } = useDropdown();
   const { publicRuntimeConfig } = getConfig();
 
@@ -37,12 +39,10 @@ function AccountMenuContent({
         />
 
         <Text variant="h3" component="h2" className="text-center">
-          {nhost.auth.getUser()?.displayName}
+          {user?.displayName}
         </Text>
 
-        <Text className="text-center font-medium">
-          {nhost.auth.getUser()?.email}
-        </Text>
+        <Text className="text-center font-medium">{user?.email}</Text>
       </div>
 
       <div className="grid grid-flow-row gap-2">
@@ -54,31 +54,29 @@ function AccountMenuContent({
             handleClose();
           }}
         >
-          Change Password
-        </Button>
-
-        <Button color="error" disabled>
-          Remove Account
+          {t('labels.changePassword')}
         </Button>
 
         <Button
           variant="outlined"
           color="secondary"
           onClick={async () => {
-            await nhost.auth.signOut();
-            router.push('/signin');
-            await client.resetStore();
+            await apolloClient.clearStore();
+            await signOut();
+            await router.push('/signin');
           }}
           endIcon={<PowerIcon className="mr-1 h-4 w-4" />}
         >
-          Sign Out
+          {t('labels.signOut')}
         </Button>
       </div>
 
-      <ThemeSwitcher label="Theme" />
+      <ThemeSwitcher label={t('labels.theme')} />
 
       <Text className="text-center text-xs" color="disabled">
-        Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+        {t('labels.dashboardVersion', {
+          version: publicRuntimeConfig?.version || 'n/a',
+        })}
       </Text>
     </Box>
   );
