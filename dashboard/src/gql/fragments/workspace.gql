@@ -1,0 +1,18 @@
+fragment Workspace on workspaces {
+  id
+  name
+  slug
+  creatorUserId
+  workspaceMembers {
+    id
+    user {
+      id
+      email
+      displayName
+    }
+    type
+  }
+  projects: apps(order_by: { name: asc }) {
+    ...Project
+  }
+}

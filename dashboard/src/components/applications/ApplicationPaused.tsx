@@ -4,6 +4,7 @@ import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
@@ -35,7 +36,7 @@ export default function ApplicationPaused() {
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
-      refetchQueries: [GetOneUserDocument],
+      refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
     });
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({

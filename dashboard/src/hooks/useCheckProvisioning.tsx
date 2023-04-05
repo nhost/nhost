@@ -1,4 +1,5 @@
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
@@ -33,7 +34,7 @@ export function useCheckProvisioning() {
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: [GetOneUserDocument],
+      include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
     });
   }
 

@@ -1,4 +1,5 @@
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
@@ -17,7 +18,7 @@ import { toast } from 'react-hot-toast';
 export default function ApplicationInfo() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetOneUserDocument],
+    refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
   });
   const router = useRouter();
 

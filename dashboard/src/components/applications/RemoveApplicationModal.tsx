@@ -4,12 +4,13 @@ import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { triggerToast } from '@/utils/toast';
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useDeleteApplicationMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -46,7 +47,7 @@ export function RemoveApplicationModal({
   className,
 }: RemoveApplicationModalProps) {
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetOneUserDocument],
+    refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
   });
   const [loadingRemove, setLoadingRemove] = useState(false);
   const { currentApplication } = useCurrentWorkspaceAndApplication();

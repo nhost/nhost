@@ -1,0 +1,25 @@
+{
+  "title": "My Projects",
+  "labels": {
+    "search": "Find Project",
+    "createProject": "New Project",
+    "createFirstProject": "Create Your First Project",
+    "createWorkspace": "New Workspace",
+    "workspaces": "My Workspaces",
+    "resources": "Resources",
+    "documentation": "Documentation",
+    "client": "JavaScript Client",
+    "cli": "Nhost CLI"
+  },
+  "messages": {
+    "welcome": {
+      "title": "Welcome to Nhost!",
+      "description": "Let's set up your first backend - the Nhost way."
+    },
+    "beta": "Looking for your old apps? They're still on <Link>console.nhost.io</Link> during this beta."
+  },
+  "workspaceModal": {
+    "title": "New Workspace",
+    "description": "Invite team members to workspaces to work collaboratively."
+  }
+}

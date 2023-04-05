@@ -4,6 +4,7 @@
 
   "pages": {
     "*": ["common"],
+    "/": ["home"],
     "/[workspaceSlug]/[appSlug]": ["overview"]
   }
 }

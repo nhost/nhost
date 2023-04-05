@@ -6,6 +6,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
@@ -117,7 +118,9 @@ export default function SettingsGeneralPage() {
       await router.push(
         `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
       );
-      await client.refetchQueries({ include: [GetOneUserDocument] });
+      await client.refetchQueries({
+        include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+      });
     } catch (error) {
       await discordAnnounce(
         error.message ||
