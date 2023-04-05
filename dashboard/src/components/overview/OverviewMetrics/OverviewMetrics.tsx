@@ -3,6 +3,7 @@ import { MetricsCard } from '@/components/overview/MetricsCard';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Text from '@/ui/v2/Text';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
+import { prettifyNumber } from '@/utils/common/prettifyNumber';
 import { prettifySize } from '@/utils/common/prettifySize';
 import useTranslation from 'next-translate/useTranslation';
 import { twMerge } from 'tailwind-merge';
@@ -25,17 +26,21 @@ export default function OverviewMetrics() {
     {
       label: t('metrics.cpuUsageSeconds.label'),
       tooltip: t('metrics.cpuUsageSeconds.tooltip'),
-      value: Math.round(data?.cpuSecondsUsage?.value || 0).toString(),
+      value: prettifyNumber(data?.cpuSecondsUsage?.value || 0),
     },
     {
       label: t('metrics.totalRequests.label'),
       tooltip: t('metrics.totalRequests.tooltip'),
-      value: Math.round(data?.totalRequests?.value || 0).toString(),
+      value: prettifyNumber(data?.totalRequests?.value || 0, {
+        numberOfDecimals: data?.totalRequests?.value > 1000 ? 2 : 0,
+      }),
     },
     {
       label: t('metrics.functionInvocations.label'),
       tooltip: t('metrics.functionInvocations.tooltip'),
-      value: Math.round(data?.functionInvocations?.value || 0).toString(),
+      value: prettifyNumber(data?.functionInvocations?.value || 0, {
+        numberOfDecimals: 0,
+      }),
     },
     {
       label: t('metrics.egressVolume.label'),
