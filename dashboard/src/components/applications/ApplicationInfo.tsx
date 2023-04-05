@@ -3,7 +3,7 @@ import {
   GetOneUserDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Link from '@/ui/v2/Link';
@@ -16,7 +16,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-hot-toast';
 
 export default function ApplicationInfo() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [deleteApplication] = useDeleteApplicationMutation({
     refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
   });
@@ -27,7 +27,7 @@ export default function ApplicationInfo() {
       await toast.promise(
         deleteApplication({
           variables: {
-            appId: currentApplication.id,
+            appId: currentProject.id,
           },
         }),
         {
@@ -52,10 +52,10 @@ export default function ApplicationInfo() {
 
         <Button
           variant="borderless"
-          onClick={() => copy(currentApplication.id, 'Application ID')}
+          onClick={() => copy(currentProject.id, 'Application ID')}
           className="py-1 text-xs"
         >
-          {currentApplication.id}
+          {currentProject.id}
         </Button>
       </div>
 
@@ -66,27 +66,27 @@ export default function ApplicationInfo() {
           variant="borderless"
           onClick={() =>
             copy(
-              currentApplication.desiredState.toString(),
+              currentProject.desiredState.toString(),
               'Application Desired State',
             )
           }
           className="py-1 text-xs"
         >
-          {getApplicationStatusString(currentApplication.desiredState)}
+          {getApplicationStatusString(currentProject.desiredState)}
         </Button>
       </div>
 
       <div className="grid grid-flow-row gap-0.5">
         <Text variant="subtitle2">Region:</Text>
 
-        <Text variant="subtitle1">{currentApplication.region.city}</Text>
+        <Text variant="subtitle1">{currentProject.region.city}</Text>
       </div>
 
       <div className="grid grid-flow-row gap-0.5">
         <Text variant="subtitle2">Created:</Text>
 
         <Text variant="subtitle1">
-          {formatDistance(new Date(currentApplication.createdAt), new Date(), {
+          {formatDistance(new Date(currentProject.createdAt), new Date(), {
             addSuffix: true,
           })}
         </Text>
@@ -94,7 +94,7 @@ export default function ApplicationInfo() {
 
       <div className="grid grid-flow-row gap-2">
         <Link
-          href={`https://staging.nhost.run/console/data/default/schema/public/tables/app_state_history/browse?filter=app_id%3B%24eq%3B${currentApplication.id}`}
+          href={`https://staging.nhost.run/console/data/default/schema/public/tables/app_state_history/browse?filter=app_id%3B%24eq%3B${currentProject.id}`}
           target="_blank"
           rel="noreferrer noopener"
           className="grid grid-flow-col items-center justify-center gap-1 p-2"

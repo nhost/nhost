@@ -1,10 +1,10 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
-import { triggerToast } from '@/utils/toast';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
+import { triggerToast } from '@/utils/toast';
 import { formatISO9075 } from 'date-fns';
 import { useState } from 'react';
 
@@ -28,7 +28,7 @@ export function RestoreBackupModal({
 
   const [isSure, setIsSure] = useState(false);
   const [mutationIsCompleted, setMutationIsCompleted] = useState(false);
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [restoreApplicationDatabase, { loading }] =
     useRestoreApplicationDatabaseMutation();
@@ -39,7 +39,7 @@ export function RestoreBackupModal({
       await restoreApplicationDatabase({
         variables: {
           backupId,
-          appId: currentApplication.id,
+          appId: currentProject.id,
         },
       });
     } catch (error) {
@@ -53,9 +53,9 @@ export function RestoreBackupModal({
 
   if (mutationIsCompleted) {
     return (
-      <Box className="w-modal p-6 rounded-lg">
+      <Box className="w-modal rounded-lg p-6">
         <div className="flex flex-col">
-          <Text className="text-center font-medium text-lg">
+          <Text className="text-center text-lg font-medium">
             The backup has been restored successfully.
           </Text>
 
@@ -68,7 +68,7 @@ export function RestoreBackupModal({
   }
 
   return (
-    <Box className="w-modal px-6 py-6 text-left rounded-lg">
+    <Box className="w-modal rounded-lg px-6 py-6 text-left">
       <div className="flex flex-col">
         <Text className="text-center text-lg font-medium">
           Restore Database Backup

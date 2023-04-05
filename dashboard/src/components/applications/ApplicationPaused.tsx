@@ -9,7 +9,7 @@ import {
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -27,11 +27,10 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
   const { openAlertDialog } = useDialog();
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-  const { id } = useUserData();
-  const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === id && type === 'owner',
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const user = useUserData();
+  const isOwner = currentWorkspace.workspaceMembers.some(
+    ({ id, type }) => id === user?.id && type === 'owner',
   );
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
@@ -40,8 +39,9 @@ export default function ApplicationPaused() {
     });
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({
-    variables: { userId: id },
+    variables: { userId: user?.id },
     fetchPolicy: 'cache-and-network',
+    skip: !user,
   });
 
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
@@ -50,7 +50,7 @@ export default function ApplicationPaused() {
   async function handleTriggerUnpausing() {
     try {
       await toast.promise(
-        unpauseApplication({ variables: { appId: currentApplication.id } }),
+        unpauseApplication({ variables: { appId: currentProject.id } }),
         {
           loading: 'Starting the project...',
           success: `The project has been started successfully.`,
@@ -87,8 +87,8 @@ export default function ApplicationPaused() {
       >
         <RemoveApplicationModal
           close={() => setShowDeletingModal(false)}
-          title={`Remove project ${currentApplication.name}?`}
-          description={`The project ${currentApplication.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${currentProject.name}?`}
+          description={`The project ${currentProject.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>
@@ -105,7 +105,7 @@ export default function ApplicationPaused() {
 
         <Box className="grid grid-flow-row gap-1">
           <Text variant="h3" component="h1">
-            {currentApplication.name} is sleeping
+            {currentProject.name} is sleeping
           </Text>
 
           <Text>
@@ -149,7 +149,7 @@ export default function ApplicationPaused() {
               <Alert severity="warning" className="mx-auto max-w-xs text-left">
                 Note: Only one free project can be active at any given time.
                 Please pause your active free project before unpausing{' '}
-                {currentApplication.name}.
+                {currentProject.name}.
               </Alert>
             )}
 

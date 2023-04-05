@@ -35,6 +35,7 @@
     "@mui/material": "^5.10.14",
     "@mui/system": "^5.10.14",
     "@mui/x-date-pickers": "^5.0.8",
+    "@nhost/apollo": "workspace:*",
     "@nhost/nextjs": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "@segment/snippet": "^4.15.3",

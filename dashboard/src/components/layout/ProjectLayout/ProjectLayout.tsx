@@ -35,9 +35,7 @@ function ProjectLayoutContent({
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
 
-  const { currentProject, loading, error } = useCurrentWorkspaceAndProject({
-    fetchPolicy: 'network-only',
-  });
+  const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
 
   const router = useRouter();
   const shouldDisplayNav = useNavigationVisible();

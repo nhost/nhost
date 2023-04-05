@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
@@ -50,11 +50,11 @@ export function RemoveApplicationModal({
     refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
   });
   const [loadingRemove, setLoadingRemove] = useState(false);
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [remove, setRemove] = useState(false);
   const [remove2, setRemove2] = useState(false);
-  const appName = currentApplication?.name;
+  const appName = currentProject?.name;
 
   async function handleClick() {
     setLoadingRemove(true);
@@ -71,7 +71,7 @@ export function RemoveApplicationModal({
     try {
       await deleteApplication({
         variables: {
-          appId: currentApplication.id,
+          appId: currentProject.id,
         },
       });
     } catch (error) {
@@ -79,7 +79,7 @@ export function RemoveApplicationModal({
     }
     close();
     await router.push('/');
-    triggerToast(`${currentApplication.name} deleted`);
+    triggerToast(`${currentProject.name} deleted`);
   }
 
   return (

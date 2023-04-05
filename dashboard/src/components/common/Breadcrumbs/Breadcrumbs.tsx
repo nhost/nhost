@@ -1,6 +1,6 @@
 import NavLink from '@/components/common/NavLink';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Text from '@/ui/v2/Text';
@@ -10,8 +10,7 @@ export interface BreadcrumbsProps extends BoxProps {}
 
 export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
   const isPlatform = useIsPlatform();
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
 
   if (!isPlatform) {
     return (
@@ -61,16 +60,16 @@ export default function Breadcrumbs({ className, ...props }: BreadcrumbsProps) {
         </>
       )}
 
-      {currentApplication && (
+      {currentProject && (
         <>
           <Text color="disabled">/</Text>
 
           <NavLink
-            href={`/${currentWorkspace.slug}/${currentApplication.slug}`}
+            href={`/${currentWorkspace.slug}/${currentProject.slug}`}
             className="truncate text-[13px] hover:underline sm:text-sm"
             sx={{ color: 'text.primary' }}
           >
-            {currentApplication.name}
+            {currentProject.name}
           </NavLink>
         </>
       )}

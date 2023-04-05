@@ -4,7 +4,6 @@ import Container from '@/components/layout/Container';
 import OverviewDeployments from '@/components/overview/OverviewDeployments';
 import OverviewDocumentation from '@/components/overview/OverviewDocumentation';
 import OverviewMetrics from '@/components/overview/OverviewMetrics/OverviewMetrics';
-import OverviewMigration from '@/components/overview/OverviewMigration';
 import OverviewProjectInfo from '@/components/overview/OverviewProjectInfo';
 import OverviewRepository from '@/components/overview/OverviewRepository';
 import OverviewTopBar from '@/components/overview/OverviewTopBar';
@@ -12,15 +11,10 @@ import OverviewUsage from '@/components/overview/OverviewUsage';
 import { features } from '@/components/overview/features';
 import { frameworks } from '@/components/overview/frameworks';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import Divider from '@/ui/v2/Divider';
 
 export default function ApplicationLive() {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isProjectUsingRDS = currentApplication?.featureFlags.some(
-    (feature) => feature.name === 'fleetcontrol_use_rds',
-  );
 
   if (!isPlatform) {
     return (
@@ -83,12 +77,6 @@ export default function ApplicationLive() {
         </div>
 
         <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
-          {isProjectUsingRDS && (
-            <>
-              <OverviewMigration />
-              <Divider />
-            </>
-          )}
           <OverviewProjectInfo />
           <Divider />
           <OverviewRepository />
