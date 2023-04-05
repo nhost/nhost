@@ -14,6 +14,7 @@ export default function prettifySize(
 ) {
   return prettifyNumber(size, {
     labels: ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+    separator: ' ',
     ...options,
   });
 }
