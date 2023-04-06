@@ -133,7 +133,6 @@
     "lint-staged": ">=13",
     "msw": "^1.0.1",
     "msw-storybook-addon": "^1.6.3",
-    "next-translate-plugin": "^2.0.4",
     "node-fetch": "^3.3.0",
     "postcss": "^8.4.19",
     "prettier": "^2.7.1",

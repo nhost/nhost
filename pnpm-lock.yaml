@@ -168,7 +168,6 @@ importers:
       msw-storybook-addon: ^1.6.3
       next: ^12.3.1
       next-seo: ^6.0.0
-      next-translate-plugin: ^2.0.4
       node-fetch: ^3.3.0
       node-pg-format: ^1.3.5
       pluralize: ^8.0.0
@@ -320,7 +319,6 @@ importers:
       lint-staged: 13.0.3
       msw: 1.0.1_encoding@0.1.13
       msw-storybook-addon: 1.6.3_wfed36xf2cj7dcilohayxz5mxm
-      next-translate-plugin: 2.0.4
       node-fetch: 3.3.0
       postcss: 8.4.19
       prettier: 2.7.1
@@ -24218,16 +24216,6 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /next-translate-plugin/2.0.4:
-    resolution: {integrity: sha512-4uay8TOL88IApF9nns4CGDZYJ5zlR1vdNp4K7S13zp3L+Ecqyf0MNl1nSZu5zWqH5zGW4lGqZRD1SP7Ct3mOYA==}
-    engines: {node: '>=14.15.0'}
-    requiresBuild: true
-    peerDependencies:
-      next-translate: '>= 2.0.0-canary.1'
-    dependencies:
-      typescript: 4.5.2
-    dev: true
-
   /next/12.1.6_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-cebwKxL3/DhNKfg9tPZDQmbRKjueqykHHbgaoG4VBRH3AHQJ2HO0dbKFiS1hPhe1/qgc2d/hFeadsbPicmLD+A==}
     engines: {node: '>=12.22.0'}
@@ -29933,12 +29921,6 @@ packages:
       minimatch: 5.1.0
       shiki: 0.10.1
       typescript: 4.9.5
-    dev: true
-
-  /typescript/4.5.2:
-    resolution: {integrity: sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
     dev: true
 
   /typescript/4.7.4:
