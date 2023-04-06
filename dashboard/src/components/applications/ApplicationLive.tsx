@@ -18,7 +18,7 @@ import Divider from '@/ui/v2/Divider';
 
 export interface ApplicationLiveProps {
   /**
-   * Whether to show an error message or not.
+   * Error message to display in the alert.
    */
   errorMessage?: string;
 }
@@ -35,6 +35,8 @@ export default function ApplicationLive({
   if (!isPlatform) {
     return (
       <Container>
+        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+
         <OverviewTopBar />
 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
