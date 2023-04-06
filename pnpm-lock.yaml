@@ -191,7 +191,7 @@ importers:
       slugify: ^1.6.5
       snake-case: ^3.0.4
       storybook-addon-next-router: ^4.0.1
-      stripe: ^10.17.0
+      stripe: ^12.0.0
       tailwind-merge: ^1.8.0
       tailwindcss: ^3.1.2
       ts-node: ^10.9.1
@@ -259,7 +259,7 @@ importers:
       react-table: 7.8.0_react@18.2.0
       sharp: 0.32.0
       slugify: 1.6.5
-      stripe: 10.17.0
+      stripe: 12.0.0
       tailwind-merge: 1.8.0
       utility-types: 3.10.0
       validator: 13.7.0
@@ -900,7 +900,7 @@ importers:
       graphql-scalars: ^1.18.0
       graphql-yoga: ^3.4.0
       jsonwebtoken: ^9.0.0
-      stripe: ^11.8.0
+      stripe: ^12.0.0
       ts-node-dev: ^2.0.0
       typescript: ^4.7.4
     dependencies:
@@ -909,7 +909,7 @@ importers:
       graphql-scalars: 1.18.0_graphql@16.6.0
       graphql-yoga: 3.4.0_xfoe4adolgvm4tvnio5xigcr6e
       jsonwebtoken: 9.0.0
-      stripe: 11.8.0
+      stripe: 12.0.0
     devDependencies:
       '@types/jsonwebtoken': 9.0.0
       '@types/node': 18.11.9
@@ -8374,7 +8374,7 @@ packages:
       '@jest/schemas': 29.0.0
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 16.18.11
+      '@types/node': 18.11.18
       '@types/yargs': 17.0.13
       chalk: 4.1.2
 
@@ -14983,7 +14983,7 @@ packages:
   /axios/0.25.0_debug@4.3.4:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2_debug@4.3.4
+      follow-redirects: 1.15.2
     transitivePeerDependencies:
       - debug
     dev: true
@@ -20060,19 +20060,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: false
-
-  /follow-redirects/1.15.2_debug@4.3.4:
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.4
-    dev: true
 
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -22544,7 +22531,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.3.1
-      '@types/node': 16.18.11
+      '@types/node': 18.11.18
       chalk: 4.1.2
       ci-info: 3.5.0
       graceful-fs: 4.2.10
@@ -28642,14 +28629,6 @@ packages:
       acorn: 8.8.1
     dev: true
 
-  /stripe/10.17.0:
-    resolution: {integrity: sha512-JHV2KoL+nMQRXu3m9ervCZZvi4DDCJfzHUE6CmtJxR9TmizyYfrVuhGvnsZLLnheby9Qrnf4Hq6iOEcejGwnGQ==}
-    engines: {node: ^8.1 || >=10.*}
-    dependencies:
-      '@types/node': 18.11.18
-      qs: 6.11.0
-    dev: false
-
   /stripe/11.1.0:
     resolution: {integrity: sha512-erOslPQZSYKOotQjmKRy4eBon/tdhzLIYzBdPSNVWDdatSQozkkPlh8mVeXNwubYYZYx61/yS23eWiGDF93z2w==}
     engines: {node: '>=12.*'}
@@ -28658,8 +28637,8 @@ packages:
       qs: 6.11.0
     dev: false
 
-  /stripe/11.8.0:
-    resolution: {integrity: sha512-aGwrJDqYzpjQj0ejt7oN7BE7kUjZFxhUz/gDeyDCS7CBpZhDb26Eb6z9sS8KdbsbmuS8rkkn2lBY4koK7L1ZCw==}
+  /stripe/12.0.0:
+    resolution: {integrity: sha512-9zdcWApF4Yg2WG4GVv1qnvAv+h5KD103gKwbTsTyk5G3lf9h4vN0FXGQ5d5eWKP9itAjt0D5gZtWG7cLPzyLxw==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 18.11.18
