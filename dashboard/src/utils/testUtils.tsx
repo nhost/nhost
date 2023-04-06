@@ -1,13 +1,14 @@
 /* eslint-disable no-restricted-imports */
-import DialogProvider from '@/components/common/DialogProvider/DialogProvider';
+import { DialogProvider } from '@/components/common/DialogProvider';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
 import { UserDataProvider } from '@/context/UserDataContext';
 import createTheme from '@/ui/v2/createTheme';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
+import { faker } from '@faker-js/faker';
 import { ThemeProvider } from '@mui/material/styles';
-import { NhostProvider } from '@nhost/nextjs';
+import { NhostProvider, NhostSession } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { Queries, RenderOptions, queries } from '@testing-library/react';
@@ -66,6 +67,28 @@ export const mockRouter: NextRouter = {
   isFallback: false,
 };
 
+export const mockSession: NhostSession = {
+  accessToken: faker.random.alphaNumeric(),
+  accessTokenExpiresIn: 900,
+  refreshToken: faker.datatype.uuid(),
+  user: {
+    id: faker.datatype.uuid(),
+    email: faker.internet.email(),
+    displayName: faker.name.fullName(),
+    createdAt: faker.date.past().toISOString(),
+    avatarUrl: faker.image.avatar(),
+    locale: 'en',
+    isAnonymous: false,
+    defaultRole: 'user',
+    roles: ['user', 'me'],
+    metadata: {},
+    emailVerified: true,
+    phoneNumber: faker.phone.number(),
+    phoneNumberVerified: true,
+    activeMfaType: 'totp',
+  },
+};
+
 function Providers({ children }: PropsWithChildren<{}>) {
   const theme = createTheme('light');
 
@@ -74,7 +97,7 @@ function Providers({ children }: PropsWithChildren<{}>) {
       <RetryableErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
-            <NhostProvider nhost={nhost}>
+            <NhostProvider nhost={nhost} initial={mockSession}>
               <NhostApolloProvider
                 nhost={nhost}
                 link={createHttpLink({
