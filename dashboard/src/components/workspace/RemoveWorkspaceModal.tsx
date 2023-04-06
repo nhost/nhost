@@ -1,5 +1,5 @@
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -18,7 +18,7 @@ export default function RemoveWorkspaceModal() {
   const [deleteWorkspace, { loading, error: mutationError, client }] =
     useDeleteWorkspaceMutation();
 
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   async function handleClick() {
     try {

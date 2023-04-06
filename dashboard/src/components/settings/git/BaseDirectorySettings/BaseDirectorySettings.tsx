@@ -3,7 +3,7 @@ import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -23,14 +23,14 @@ export interface BaseDirectoryFormValues {
 
 export default function BaseDirectorySettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
 
   const form = useForm<BaseDirectoryFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      nhostBaseFolder: currentApplication?.nhostBaseFolder,
+      nhostBaseFolder: currentProject?.nhostBaseFolder,
     },
   });
 
@@ -38,14 +38,14 @@ export default function BaseDirectorySettings() {
 
   useEffect(() => {
     reset(() => ({
-      nhostBaseFolder: currentApplication?.nhostBaseFolder,
+      nhostBaseFolder: currentProject?.nhostBaseFolder,
     }));
-  }, [currentApplication?.nhostBaseFolder, reset]);
+  }, [currentProject?.nhostBaseFolder, reset]);
 
   const handleBaseFolderChange = async (values: BaseDirectoryFormValues) => {
     const updateAppMutation = updateApp({
       variables: {
-        id: currentApplication.id,
+        id: currentProject.id,
         app: {
           ...values,
         },
@@ -98,7 +98,7 @@ export default function BaseDirectorySettings() {
           docsLink="https://docs.nhost.io/platform/github-integration#base-directory"
           className="grid grid-flow-row lg:grid-cols-5"
         >
-          {currentApplication?.githubRepository ? (
+          {currentProject?.githubRepository ? (
             <Input
               {...register('nhostBaseFolder')}
               name="nhostBaseFolder"

@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import type {
   GetApplicationStateQuery,
@@ -17,11 +17,11 @@ export interface UseProjectRedirectWhenReadyOptions
 export default function useProjectRedirectWhenReady(
   options: UseProjectRedirectWhenReadyOptions = {},
 ) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, client, startPolling, ...rest } = useGetApplicationStateQuery({
     ...options,
-    variables: { ...options.variables, appId: currentApplication?.id },
-    skip: !currentApplication.id,
+    variables: { ...options.variables, appId: currentProject?.id },
+    skip: !currentProject.id,
   });
 
   useEffect(() => {

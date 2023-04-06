@@ -5,7 +5,7 @@ import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
@@ -51,7 +51,7 @@ export default function ResetDatabasePasswordSettings() {
 
   const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
   const user = useUserData();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const handleGenerateRandomPassword = () => {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
@@ -65,13 +65,13 @@ export default function ResetDatabasePasswordSettings() {
     try {
       await resetPostgresPasswordMutation({
         variables: {
-          appID: currentApplication.id,
+          appID: currentProject.id,
           newPassword: values.databasePassword,
         },
       });
       await updateApplication({
         variables: {
-          appId: currentApplication.id,
+          appId: currentProject.id,
           app: {
             postgresPassword: values.databasePassword,
           },
@@ -81,14 +81,14 @@ export default function ResetDatabasePasswordSettings() {
       form.reset(values);
 
       triggerToast(
-        `The database password for ${currentApplication.name} has been updated successfully.`,
+        `The database password for ${currentProject.name} has been updated successfully.`,
       );
     } catch (e) {
       triggerToast(
-        `An error occured while trying to update the database password for ${currentApplication.name}`,
+        `An error occured while trying to update the database password for ${currentProject.name}`,
       );
       await discordAnnounce(
-        `An error occurred while trying to update the database password: ${currentApplication.name} (${user.email}): ${e.message}`,
+        `An error occurred while trying to update the database password: ${currentProject.name} (${user.email}): ${e.message}`,
       );
     }
   };

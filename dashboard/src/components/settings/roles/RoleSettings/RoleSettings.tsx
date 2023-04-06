@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
-import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -12,20 +12,20 @@ import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import LockIcon from '@/ui/v2/icons/LockIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import getServerError from '@/utils/settings/getServerError';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import LockIcon from '@/ui/v2/icons/LockIcon';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import getServerError from '@/utils/settings/getServerError';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -43,11 +43,11 @@ export interface RoleSettingsFormValues {
 
 export default function RoleSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog } = useDialog();
 
   const { data, loading, error } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -69,7 +69,7 @@ export default function RoleSettings() {
   async function handleSetAsDefault({ name }: Role) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           auth: {
             user: {
@@ -99,7 +99,7 @@ export default function RoleSettings() {
   async function handleDeleteRole({ name }: Role) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           auth: {
             user: {

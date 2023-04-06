@@ -5,17 +5,17 @@ import type {
 import BaseRoleForm, {
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getServerError from '@/utils/settings/getServerError';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import getServerError from '@/utils/settings/getServerError';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -37,9 +37,9 @@ export default function EditRoleForm({
   onSubmit,
   ...props
 }: EditRoleFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -98,7 +98,7 @@ export default function EditRoleForm({
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           auth: {
             user: {
