@@ -8,18 +8,12 @@ type AcceptedState =
   | ApplicationStatus.Updating;
 
 function checkIfAcceptedState(appState: ApplicationStatus) {
-  switch (appState) {
-    case ApplicationStatus.Provisioning:
-      return true;
-    case ApplicationStatus.Unpausing:
-      return true;
-    case ApplicationStatus.Pausing:
-      return true;
-    case ApplicationStatus.Updating:
-      return true;
-    default:
-      return false;
-  }
+  return [
+    ApplicationStatus.Provisioning,
+    ApplicationStatus.Unpausing,
+    ApplicationStatus.Pausing,
+    ApplicationStatus.Updating,
+  ].includes(appState);
 }
 
 /**

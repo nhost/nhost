@@ -23,17 +23,14 @@ import { triggerToast } from '@/utils/toast';
 import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
-import useTranslation from 'next-translate/useTranslation';
 import Image from 'next/image';
 import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
 import ApplicationLive from './ApplicationLive';
-import ApplicationUnknown from './ApplicationUnknown';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationErrored() {
-  const { t } = useTranslation('overview');
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
@@ -48,8 +45,6 @@ export default function ApplicationErrored() {
   const { data, loading, error } = useGetApplicationStateQuery({
     variables: { appId: currentApplication.id },
   });
-
-  const currentState = data?.app?.appStates?.[0];
 
   const previousState = data?.app?.appStates
     ? getPreviousApplicationState(data.app.appStates)
@@ -160,19 +155,13 @@ export default function ApplicationErrored() {
     return null;
   }
 
-  // For now, if the application errored and the previous state to this error is an UPDATING state, we want to show the dashboard,
-  // it's likely that most services are up and we shouldn't block all functionality. In the future, we're going to have a way to
-  // redeploy the app again, and get to a healthy state. @GC
-  if (previousState === ApplicationStatus.Updating) {
+  if (
+    previousState === ApplicationStatus.Updating ||
+    previousState === ApplicationStatus.Empty
+  ) {
     return (
-      <ApplicationLive
-        errorMessage={currentState?.message || t('messages.projectHasErrors')}
-      />
+      <ApplicationLive errorMessage="Error deploying the project most likely due to invalid configuration. Please review your project's configuration and logs for more information." />
     );
-  }
-
-  if (previousState === ApplicationStatus.Empty) {
-    return <ApplicationUnknown />;
   }
 
   return (
