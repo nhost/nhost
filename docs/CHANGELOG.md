@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.16
+
+### Patch Changes
+
+- e7cb5070: fix(docs): use updated URLs everywhere
+
 ## 0.0.15
 
 ### Patch Changes

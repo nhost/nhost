@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.14.5
+
+### Patch Changes
+
+- ba0d57ee: fix(i18n): revert i18n library
+- 3328ed05: feat(projects): improve overview when there is an error
+
 ## 0.14.4
 
 ### Patch Changes
