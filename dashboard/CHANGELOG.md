@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.14.4
+
+### Patch Changes
+
+- 5e0920ba: chore(deps): bump `next-seo` to v6
+- 706c9dc3: chore(deps): bump `@types/react` to 18.0.33
+- 99f8f6b3: feat(metrics): show metrics on the overview
+
 ## 0.14.3
 
 ### Patch Changes
