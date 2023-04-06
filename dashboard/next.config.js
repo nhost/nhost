@@ -1,11 +1,10 @@
 const path = require('path');
-const nextTranslate = require('next-translate-plugin');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 const { version } = require('./package.json');
 
-const configWithBundleAnalyzer = withBundleAnalyzer({
+module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: false,
   output: 'standalone',
@@ -79,5 +78,3 @@ const configWithBundleAnalyzer = withBundleAnalyzer({
     ];
   },
 });
-
-module.exports = nextTranslate(configWithBundleAnalyzer);

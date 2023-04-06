@@ -24,10 +24,9 @@ import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
 import ApplicationLive from './ApplicationLive';
-import ApplicationUnknown from './ApplicationUnknown';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
@@ -47,9 +46,9 @@ export default function ApplicationErrored() {
     skip: !currentProject,
   });
 
-  const [previousState, setPreviousState] = useState<ApplicationStatus | null>(
-    null,
-  );
+  const previousState = data?.app?.appStates
+    ? getPreviousApplicationState(data.app.appStates)
+    : null;
 
   const [showRecreateModal, setShowRecreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -140,20 +139,6 @@ export default function ApplicationErrored() {
     await recreateApplication();
   }
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-    if (error) {
-      return;
-    }
-
-    const previousAcceptedState = getPreviousApplicationState(
-      data.app.appStates,
-    );
-    setPreviousState(previousAcceptedState);
-  }, [setPreviousState, data, loading, error]);
-
   if (loading || previousState === null) {
     return (
       <Container className="mx-auto mt-12 max-w-sm text-center">
@@ -170,19 +155,13 @@ export default function ApplicationErrored() {
     return null;
   }
 
-  if (previousState === ApplicationStatus.Live) {
-    return <ApplicationLive />;
-  }
-
-  // For now, if the application errored and the previous state to this error is an UPDATING state, we want to show the dashboard,
-  // it's likely that most services are up and we shouldn't block all functionality. In the future, we're going to have a way to
-  // redeploy the app again, and get to a healthy state. @GC
-  if (previousState === ApplicationStatus.Updating) {
-    return <ApplicationLive />;
-  }
-
-  if (previousState === ApplicationStatus.Empty) {
-    return <ApplicationUnknown />;
+  if (
+    previousState === ApplicationStatus.Updating ||
+    previousState === ApplicationStatus.Empty
+  ) {
+    return (
+      <ApplicationLive errorMessage="Error deploying the project most likely due to invalid configuration. Please review your project's configuration and logs for more information." />
+    );
   }
 
   return (

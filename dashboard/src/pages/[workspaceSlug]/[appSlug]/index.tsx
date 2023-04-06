@@ -13,13 +13,13 @@ import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const isPlatform = useIsPlatform();
-  const applicationState = useApplicationState();
+  const { state } = useApplicationState();
 
   if (!isPlatform) {
     return <ApplicationLive />;
   }
 
-  switch (applicationState) {
+  switch (state) {
     case ApplicationStatus.Empty:
       return <ApplicationProvisioning />;
     case ApplicationStatus.Provisioning:

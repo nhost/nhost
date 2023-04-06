@@ -9,7 +9,7 @@ import usePreviousApplicationState from './usePreviousApplicationStates';
  */
 export function useNavigationVisible() {
   const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const applicationState = useApplicationState();
+  const { state } = useApplicationState();
   const previousApplicationState = usePreviousApplicationState();
 
   const router = useRouter();
@@ -39,14 +39,14 @@ export function useNavigationVisible() {
   }
 
   if (
-    applicationState === ApplicationStatus.Live ||
-    applicationState === ApplicationStatus.Updating
+    state === ApplicationStatus.Live ||
+    state === ApplicationStatus.Updating
   ) {
     return true;
   }
 
   if (
-    applicationState === ApplicationStatus.Errored &&
+    state === ApplicationStatus.Errored &&
     previousApplicationState === ApplicationStatus.Updating
   ) {
     return true;
