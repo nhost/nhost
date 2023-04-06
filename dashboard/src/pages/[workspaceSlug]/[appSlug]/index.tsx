@@ -15,7 +15,7 @@ import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const isPlatform = useIsPlatform();
-  const applicationState = useApplicationState();
+  const { state } = useApplicationState();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
 
   if (!isPlatform) {
@@ -26,7 +26,7 @@ export default function AppIndexPage() {
     return <ApplicationMigrating />;
   }
 
-  switch (applicationState) {
+  switch (state) {
     case ApplicationStatus.Empty:
       return <ApplicationProvisioning />;
     case ApplicationStatus.Provisioning:

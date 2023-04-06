@@ -10,21 +10,22 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
-import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
-import { updateOwnCache } from '@/utils/updateOwnCache';
 import {
   useDeleteApplicationMutation,
   useGetApplicationStateQuery,
   useInsertApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
+import { getApplicationStatusString } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
+import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
+import useTranslation from 'next-translate/useTranslation';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
 import ApplicationLive from './ApplicationLive';
 import ApplicationUnknown from './ApplicationUnknown';
@@ -32,6 +33,7 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationErrored() {
+  const { t } = useTranslation('overview');
   const { currentWorkspace, currentApplication } =
     useCurrentWorkspaceAndApplication();
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
@@ -47,9 +49,11 @@ export default function ApplicationErrored() {
     variables: { appId: currentApplication.id },
   });
 
-  const [previousState, setPreviousState] = useState<ApplicationStatus | null>(
-    null,
-  );
+  const currentState = data?.app?.appStates?.[0];
+
+  const previousState = data?.app?.appStates
+    ? getPreviousApplicationState(data.app.appStates)
+    : null;
 
   const [showRecreateModal, setShowRecreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -140,20 +144,6 @@ export default function ApplicationErrored() {
     await recreateApplication();
   }
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-    if (error) {
-      return;
-    }
-
-    const previousAcceptedState = getPreviousApplicationState(
-      data.app.appStates,
-    );
-    setPreviousState(previousAcceptedState);
-  }, [setPreviousState, data, loading, error]);
-
   if (loading || previousState === null) {
     return (
       <Container className="mx-auto mt-12 max-w-sm text-center">
@@ -170,15 +160,15 @@ export default function ApplicationErrored() {
     return null;
   }
 
-  if (previousState === ApplicationStatus.Live) {
-    return <ApplicationLive />;
-  }
-
   // For now, if the application errored and the previous state to this error is an UPDATING state, we want to show the dashboard,
   // it's likely that most services are up and we shouldn't block all functionality. In the future, we're going to have a way to
   // redeploy the app again, and get to a healthy state. @GC
   if (previousState === ApplicationStatus.Updating) {
-    return <ApplicationLive />;
+    return (
+      <ApplicationLive
+        errorMessage={currentState?.message || t('messages.projectHasErrors')}
+      />
+    );
   }
 
   if (previousState === ApplicationStatus.Empty) {

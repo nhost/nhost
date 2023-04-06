@@ -13,9 +13,19 @@ import { features } from '@/components/overview/features';
 import { frameworks } from '@/components/overview/frameworks';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { Alert } from '@/ui/Alert';
 import Divider from '@/ui/v2/Divider';
 
-export default function ApplicationLive() {
+export interface ApplicationLiveProps {
+  /**
+   * Whether to show an error message or not.
+   */
+  errorMessage?: string;
+}
+
+export default function ApplicationLive({
+  errorMessage,
+}: ApplicationLiveProps) {
   const isPlatform = useIsPlatform();
   const { currentApplication } = useCurrentWorkspaceAndApplication();
   const isProjectUsingRDS = currentApplication?.featureFlags.some(
@@ -55,6 +65,9 @@ export default function ApplicationLive() {
   return (
     <Container>
       <MaintenanceAlert />
+
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+
       <OverviewTopBar />
 
       <div className="grid grid-cols-1 gap-12 pt-3 lg:grid-cols-3">

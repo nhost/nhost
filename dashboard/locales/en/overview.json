@@ -1,4 +1,7 @@
 {
+  "messages": {
+    "projectHasErrors": "Error deploying the project most likely due to invalid configuration. Please review the config and the project logs for more information."
+  },
   "metrics": {
     "cpuUsageSeconds": {
       "label": "CPU Usage Seconds",
