@@ -5,7 +5,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 const { version } = require('./package.json');
 
-const configWithBundleAnalyzer = withBundleAnalyzer({
+module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: false,
   output: 'standalone',
@@ -79,5 +79,3 @@ const configWithBundleAnalyzer = withBundleAnalyzer({
     ];
   },
 });
-
-module.exports = nextTranslate(configWithBundleAnalyzer);

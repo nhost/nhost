@@ -5,13 +5,11 @@ import Text from '@/ui/v2/Text';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { prettifyNumber } from '@/utils/common/prettifyNumber';
 import { prettifySize } from '@/utils/common/prettifySize';
-import useTranslation from 'next-translate/useTranslation';
 import { twMerge } from 'tailwind-merge';
 
 const now = new Date();
 
 export default function OverviewMetrics() {
-  const { t } = useTranslation('overview');
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetProjectMetricsQuery({
     variables: {
@@ -24,32 +22,33 @@ export default function OverviewMetrics() {
 
   const cardElements: MetricsCardProps[] = [
     {
-      label: t('metrics.cpuUsageSeconds.label'),
-      tooltip: t('metrics.cpuUsageSeconds.tooltip'),
+      label: 'CPU Usage Seconds',
+      tooltip: 'Total time the service has used the CPUs',
       value: prettifyNumber(data?.cpuSecondsUsage?.value || 0),
     },
     {
-      label: t('metrics.totalRequests.label'),
-      tooltip: t('metrics.totalRequests.tooltip'),
+      label: 'Total Requests',
+      tooltip:
+        'Total amount of requests your services have received excluding functions',
       value: prettifyNumber(data?.totalRequests?.value || 0, {
         numberOfDecimals: data?.totalRequests?.value > 1000 ? 2 : 0,
       }),
     },
     {
-      label: t('metrics.functionInvocations.label'),
-      tooltip: t('metrics.functionInvocations.tooltip'),
+      label: 'Function Invocations',
+      tooltip: 'Number of times your functions have been called',
       value: prettifyNumber(data?.functionInvocations?.value || 0, {
         numberOfDecimals: 0,
       }),
     },
     {
-      label: t('metrics.egressVolume.label'),
-      tooltip: t('metrics.egressVolume.tooltip'),
+      label: 'Egress Volume',
+      tooltip: 'Amount of data your services have sent to users',
       value: prettifySize(data?.egressVolume?.value || 0),
     },
     {
-      label: t('metrics.logs.label'),
-      tooltip: t('metrics.logs.tooltip'),
+      label: 'Logs',
+      tooltip: 'Amount of logs stored',
       value: prettifySize(data?.logsVolume?.value || 0),
     },
   ];
@@ -77,7 +76,9 @@ export default function OverviewMetrics() {
         ))}
       </div>
 
-      <Text color="disabled">{t('metrics.helperText')}</Text>
+      <Text color="disabled">
+        Your resource usage since the beginning of the month.
+      </Text>
     </div>
   );
 }
