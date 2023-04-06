@@ -10,15 +10,12 @@ import Text from '@/ui/v2/Text';
 import { useGetAllWorkspacesAndProjectsQuery } from '@/utils/__generated__/graphql';
 import { darken } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
-import Trans from 'next-translate/Trans';
-import useTranslation from 'next-translate/useTranslation';
 import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 
 export default function IndexPage() {
   const user = useUserData();
-  const { t } = useTranslation('home');
   const { data, loading, startPolling, stopPolling } =
     useGetAllWorkspacesAndProjectsQuery({
       skip: !user,
@@ -58,11 +55,11 @@ export default function IndexPage() {
               className="text-center text-2xl font-semibold"
               sx={{ color: 'common.white' }}
             >
-              {t('messages.welcome.title')}
+              Welcome to Nhost!
             </Text>
 
             <Text className="mt-2" sx={{ color: 'common.white' }}>
-              {t('messages.welcome.description')}
+              Let&apos;s set up your first backend - the Nhost way.
             </Text>
 
             <div className="inline-block pt-10">
@@ -80,16 +77,14 @@ export default function IndexPage() {
                   }}
                   disabled={data?.workspaces?.length === 0}
                 >
-                  {t('labels.createFirstProject')}
+                  Create Your First Project
                 </Button>
               </NavLink>
             </div>
             <div>
               <Text className="mt-9 opacity-70" sx={{ color: 'common.white' }}>
-                <Trans
-                  i18nKey="home:messages.beta"
-                  components={{ Link: <span /> }}
-                />
+                Looking for your old apps? They&apos;re still on
+                console.nhost.io during this beta.
               </Text>
             </div>
           </div>

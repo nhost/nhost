@@ -20,8 +20,6 @@ import SearchIcon from '@/ui/v2/icons/SearchIcon';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
-import Trans from 'next-translate/Trans';
-import useTranslation from 'next-translate/useTranslation';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import type { ChangeEvent, PropsWithoutRef } from 'react';
@@ -64,7 +62,6 @@ export default function WorkspaceAndProjectList({
 }: WorkspaceAndProjectListProps) {
   const [query, setQuery] = useState('');
   const { maintenanceActive } = useUI();
-  const { t } = useTranslation('home');
 
   const handleQueryChange = debounce((event: ChangeEvent<HTMLInputElement>) => {
     slotProps?.search?.onChange?.(event);
@@ -98,11 +95,11 @@ export default function WorkspaceAndProjectList({
         )}
       >
         <Text variant="h2" component="h1" className="hidden md:block">
-          {t('title')}
+          My Projects
         </Text>
 
         <Input
-          placeholder={t('labels.search')}
+          placeholder="Find Project"
           startAdornment={
             <SearchIcon
               className="ml-2 -mr-1 h-4 w-4 shrink-0"
@@ -121,7 +118,7 @@ export default function WorkspaceAndProjectList({
             disabled={maintenanceActive}
             {...slotProps.button}
           >
-            {t('labels.createProject')}
+            New Project
           </Button>
         </NavLink>
       </Box>
@@ -212,19 +209,16 @@ export default function WorkspaceAndProjectList({
       </Box>
 
       <Text className="font-medium" color="secondary">
-        <Trans
-          i18nKey="home:messages.beta"
-          components={{
-            Link: (
-              <Link
-                href="https://console.nhost.io"
-                target="_blank"
-                rel="noreferrer"
-                underline="always"
-              />
-            ),
-          }}
-        />
+        Looking for your old apps? They&apos;re still on{' '}
+        <Link
+          href="https://console.nhost.io"
+          target="_blank"
+          rel="noreferrer"
+          underline="always"
+        >
+          console.nhost.io
+        </Link>{' '}
+        during this beta.
       </Text>
     </Box>
   );

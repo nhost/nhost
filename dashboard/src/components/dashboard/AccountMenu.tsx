@@ -9,7 +9,6 @@ import PowerIcon from '@/ui/v2/icons/PowerIcon';
 import Text from '@/ui/v2/Text';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut, useUserData } from '@nhost/nextjs';
-import useTranslation from 'next-translate/useTranslation';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -21,7 +20,6 @@ interface AccountMenuContentProps {
 function AccountMenuContent({
   onChangePasswordClick,
 }: AccountMenuContentProps) {
-  const { t } = useTranslation('common');
   const user = useUserData();
   const { signOut } = useSignOut();
   const router = useRouter();
@@ -54,7 +52,7 @@ function AccountMenuContent({
             handleClose();
           }}
         >
-          {t('labels.changePassword')}
+          Change Password
         </Button>
 
         <Button
@@ -67,16 +65,14 @@ function AccountMenuContent({
           }}
           endIcon={<PowerIcon className="mr-1 h-4 w-4" />}
         >
-          {t('labels.signOut')}
+          Sign Out
         </Button>
       </div>
 
-      <ThemeSwitcher label={t('labels.theme')} />
+      <ThemeSwitcher label="Theme" />
 
       <Text className="text-center text-xs" color="disabled">
-        {t('labels.dashboardVersion', {
-          version: publicRuntimeConfig?.version || 'n/a',
-        })}
+        Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
       </Text>
     </Box>
   );

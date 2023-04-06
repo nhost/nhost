@@ -11,7 +11,6 @@ import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
-import useTranslation from 'next-translate/useTranslation';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { twMerge } from 'tailwind-merge';
@@ -29,7 +28,6 @@ export default function Sidebar({
   ...props
 }: SidebarProps) {
   const { openDialog } = useDialog();
-  const { t } = useTranslation('home');
 
   return (
     <Box
@@ -41,7 +39,7 @@ export default function Sidebar({
       {...props}
     >
       <section className="grid grid-flow-row gap-2">
-        <Text color="secondary">{t('labels.workspaces')}</Text>
+        <Text color="secondary">My Workspaces</Text>
 
         {workspaces.length > 0 ? (
           <List className="grid grid-flow-row gap-2">
@@ -85,10 +83,10 @@ export default function Sidebar({
             openDialog({
               title: (
                 <span className="grid grid-flow-row">
-                  <span>{t('workspaceModal.title')}</span>
+                  <span>New Workspace</span>
 
                   <Text variant="subtitle1" component="span">
-                    {t('workspaceModal.description')}
+                    Invite team members to workspaces to work collaboratively.
                   </Text>
                 </span>
               ),
@@ -96,26 +94,26 @@ export default function Sidebar({
             });
           }}
         >
-          {t('labels.createWorkspace')}
+          New Workspace
         </Button>
       </section>
 
       <section className="grid grid-flow-row gap-2">
-        <Text color="secondary">{t('common:labels.resources')}</Text>
+        <Text color="secondary">Resources</Text>
 
         <div className="grid grid-flow-row gap-2">
           <Resource
-            text={t('labels.documentation')}
+            text="Documentation"
             logo="Question"
             link="https://docs.nhost.io"
           />
           <Resource
-            text={t('labels.client')}
+            text="JavaScript Client"
             logo="js"
             link="https://docs.nhost.io/reference/javascript/"
           />
           <Resource
-            text={t('labels.cli')}
+            text="Nhost CLI"
             logo="CLI"
             link="https://docs.nhost.io/platform/cli"
           />
@@ -135,7 +133,7 @@ export default function Sidebar({
             color="secondary"
             startIcon={<GithubIcon />}
           >
-            {t('common:labels.starUs')}
+            Star us on GitHub
           </Button>
         </NavLink>
 
@@ -158,9 +156,7 @@ export default function Sidebar({
               height={24}
             />
 
-            <span id="discord-button-label">
-              {t('common:labels.joinDiscord')}
-            </span>
+            <span id="discord-button-label">Join Discord</span>
           </Button>
         </NavLink>
       </section>

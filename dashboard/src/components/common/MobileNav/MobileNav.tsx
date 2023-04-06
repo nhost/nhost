@@ -20,7 +20,6 @@ import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut } from '@nhost/nextjs';
-import useTranslation from 'next-translate/useTranslation';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
@@ -83,7 +82,6 @@ function MobileNavLink({
   );
 }
 export default function MobileNav({ className, ...props }: MobileNavProps) {
-  const { t } = useTranslation('common');
   const isPlatform = useIsPlatform();
   const { allRoutes } = useProjectRoutes();
   const shouldDisplayNav = useNavigationVisible();
@@ -107,7 +105,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
       <Button
         variant="borderless"
         color="secondary"
-        aria-label={menuOpen ? t('a11y.closeMenu') : t('a11y.openMenu')}
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         className={twMerge('min-w-0 p-0', className)}
         onClick={() => setMenuOpen((current) => !current)}
         {...props}
@@ -167,7 +165,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
           )}
         >
           <Text variant="h2" className="text-xl font-semibold">
-            {t('labels.resources')}
+            Resources
           </Text>
 
           <List className="grid grid-flow-row gap-2">
@@ -184,7 +182,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                       className="w-full"
                       role={undefined}
                     >
-                      <ListItem.Text>{t('labels.feedback')}</ListItem.Text>
+                      <ListItem.Text>Feedback</ListItem.Text>
                     </ListItem.Button>
                   </ListItem.Root>
                 </Dropdown.Trigger>
@@ -207,7 +205,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <ListItem.Text>{t('labels.docs')}</ListItem.Text>
+                <ListItem.Text>Docs</ListItem.Text>
               </ListItem.Button>
             </ListItem.Root>
           </List>
@@ -215,7 +213,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
         <section className={twMerge('grid grid-flow-row gap-3')}>
           <Text variant="h2" className="text-xl font-semibold">
-            {t('labels.theme')}
+            Theme
           </Text>
 
           <ThemeSwitcher aria-label="Theme" />
@@ -224,7 +222,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         {isPlatform && (
           <section className={twMerge('grid grid-flow-row gap-3')}>
             <Text variant="h2" className="text-xl font-semibold">
-              {t('labels.account')}
+              Account
             </Text>
 
             <List className="grid grid-flow-row gap-2">
@@ -238,7 +236,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                     setShowChangePasswordModal(true);
                   }}
                 >
-                  {t('labels.changePassword')}
+                  Change Password
                 </ListItem.Button>
               </ListItem.Root>
 
@@ -256,15 +254,13 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                     await router.push('/signin');
                   }}
                 >
-                  {t('labels.signOut')}
+                  Sign Out
                 </ListItem.Button>
               </ListItem.Root>
             </List>
 
             <Text className="text-center text-xs" color="secondary">
-              {t('labels.dashboardVersion', {
-                version: publicRuntimeConfig?.version || 'n/a',
-              })}
+              Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
             </Text>
           </section>
         )}
