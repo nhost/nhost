@@ -1,5 +1,5 @@
 import LogsDatePicker from '@/components/logs/LogsDatePicker';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { AvailableLogsServices, LogsCustomInterval } from '@/types/logs';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
@@ -127,8 +127,8 @@ export default function LogsHeader({
   onServiceChange,
   ...props
 }: LogsHeaderProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const applicationCreationDate = new Date(currentApplication.createdAt);
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const applicationCreationDate = new Date(currentProject.createdAt);
 
   /**
    * Will subtract the `customInterval` time in minutes from the current date.

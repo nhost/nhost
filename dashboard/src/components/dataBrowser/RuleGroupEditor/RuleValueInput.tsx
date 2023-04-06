@@ -3,15 +3,15 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { ColumnAutocompleteProps } from '@/components/dataBrowser/ColumnAutocomplete';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
-import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 
@@ -96,7 +96,7 @@ export default function RuleValueInput({
   helperText,
 }: RuleValueInputProps) {
   const { schema, table, disabled } = useRuleGroupEditor();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { setValue } = useFormContext();
   const inputName = `${name}.value`;
   const operator: HasuraOperator = useWatch({ name: `${name}.operator` });
@@ -118,8 +118,8 @@ export default function RuleValueInput({
     loading,
     error: customClaimsError,
   } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
-    skip: !isHasuraInput || !currentApplication?.id,
+    variables: { appId: currentProject?.id },
+    skip: !isHasuraInput || !currentProject?.id,
   });
 
   if (operator === '_is_null') {

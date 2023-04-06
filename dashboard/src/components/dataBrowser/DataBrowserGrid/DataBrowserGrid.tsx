@@ -13,8 +13,8 @@ import useDeleteColumnWithToastMutation from '@/hooks/dataBrowser/useDeleteColum
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import type { UpdateRecordVariables } from '@/hooks/dataBrowser/useUpdateRecordMutation';
 import useUpdateRecordWithToastMutation from '@/hooks/dataBrowser/useUpdateRecordMutation/useUpdateRecordWithToastMutation';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useTablePath from '@/hooks/useTablePath';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type {
   DataBrowserGridColumn,
   NormalizedQueryDataRow,
@@ -163,8 +163,8 @@ export default function DataBrowserGrid({
   const isSchemaEditable = !isSchemaLocked(schemaSlug as string);
   const { openDrawer, openAlertDialog } = useDialog();
 
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isGitHubConnected = !!currentApplication?.githubRepository;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
   const limit = 25;
   const [currentOffset, setCurrentOffset] = useState<number | null>(

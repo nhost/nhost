@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAccessLevel,
@@ -13,9 +13,6 @@ import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
-import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
-import PartialPermissionIcon from '@/ui/v2/icons/PartialPermissionIcon';
 import Link from '@/ui/v2/Link';
 import Table from '@/ui/v2/Table';
 import TableBody from '@/ui/v2/TableBody';
@@ -24,6 +21,9 @@ import TableContainer from '@/ui/v2/TableContainer';
 import TableHead from '@/ui/v2/TableHead';
 import TableRow from '@/ui/v2/TableRow';
 import Text from '@/ui/v2/Text';
+import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
+import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
+import PartialPermissionIcon from '@/ui/v2/icons/PartialPermissionIcon';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
 import { useState } from 'react';
@@ -61,8 +61,7 @@ export default function EditPermissionsForm({
   const [action, setAction] = useState<DatabaseAction>();
 
   const { closeDrawerWithDirtyGuard } = useDialog();
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
 
   const client = useRemoteApplicationGQLClient();
   const {
@@ -330,7 +329,7 @@ export default function EditPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/roles-and-permissions`}
+              href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/roles-and-permissions`}
               passHref
             >
               <Link

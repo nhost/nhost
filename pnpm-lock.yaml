@@ -100,7 +100,6 @@ importers:
       '@mui/system': ^5.10.14
       '@mui/x-date-pickers': ^5.0.8
       '@next/bundle-analyzer': ^12.3.1
-      '@nhost/apollo': workspace:*
       '@nhost/nextjs': workspace:*
       '@nhost/react-apollo': workspace:*
       '@playwright/test': ^1.31.2
@@ -223,7 +222,6 @@ importers:
       '@mui/material': 5.10.14_hl53xlsm4e3bsla7lwirbrc36q
       '@mui/system': 5.10.14_twkxu2nphm2chhdhjatteahpie
       '@mui/x-date-pickers': 5.0.8_p6r6qp7wldbu5ojdsmv4yukx2q
-      '@nhost/apollo': link:../integrations/apollo
       '@nhost/nextjs': link:../packages/nextjs
       '@nhost/react-apollo': link:../integrations/react-apollo
       '@segment/snippet': 4.15.3
