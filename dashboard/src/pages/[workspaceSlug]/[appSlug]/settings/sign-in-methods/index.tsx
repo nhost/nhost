@@ -19,15 +19,15 @@ import WebAuthnSettings from '@/components/settings/signInMethods/WebAuthnSettin
 import WindowsLiveProviderSettings from '@/components/settings/signInMethods/WindowsLiveProviderSettings';
 import WorkOsProviderSettings from '@/components/settings/signInMethods/WorkOsProviderSettings';
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
 
 export default function SettingsSignInMethodsPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { loading, error } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'network-only',
   });
 
@@ -55,7 +55,7 @@ export default function SettingsSignInMethodsPage() {
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
-      {!currentApplication.providersUpdated && <ProvidersUpdatedAlert />}
+      {!currentProject.providersUpdated && <ProvidersUpdatedAlert />}
       <AppleProviderSettings />
       <AzureADProviderSettings />
       <DiscordProviderSettings />

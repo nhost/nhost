@@ -4,7 +4,6 @@ import type { AuthenticatedLayoutProps } from '@/components/layout/Authenticated
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
@@ -30,11 +29,6 @@ function ProjectLayoutContent({
     ...mainContainerProps
   } = {},
 }: ProjectLayoutProps) {
-  // TODO: This will be removed once we migrated every occurrence to
-  // useCurrentWorkspaceAndProject()
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-
   const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
 
   const router = useRouter();
@@ -66,7 +60,7 @@ function ProjectLayoutContent({
     }
   }, [isPlatform, isRestrictedPath, router]);
 
-  if (!currentWorkspace || !currentApplication || isRestrictedPath || loading) {
+  if (isRestrictedPath || loading) {
     return <LoadingScreen />;
   }
 

@@ -8,7 +8,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
@@ -19,7 +19,7 @@ import type { ReactElement } from 'react';
 
 export default function SettingsGitPage() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { openGitHubModal } = useGitHubModal();
   const { openAlertDialog } = useDialog();
   const client = useApolloClient();
@@ -38,7 +38,7 @@ export default function SettingsGitPage() {
         slotProps={{ submitButton: { className: 'hidden' } }}
         className="grid grid-cols-5"
       >
-        {!currentApplication.githubRepository ? (
+        {!currentProject.githubRepository ? (
           <Button
             onClick={openGitHubModal}
             className="col-span-5 grid grid-flow-col gap-1.5 xs:col-span-3 lg:col-span-2"
@@ -52,7 +52,7 @@ export default function SettingsGitPage() {
             <div className="ml-2 flex flex-row">
               <GithubIcon className="mr-1.5 h-7 w-7 self-center" />
               <Text className="self-center font-normal">
-                {currentApplication.githubRepository.fullName}
+                {currentProject.githubRepository.fullName}
               </Text>
             </div>
             <Button
@@ -64,7 +64,7 @@ export default function SettingsGitPage() {
                   payload: (
                     <p>
                       Are you sure you want to disconnect{' '}
-                      <b>{currentApplication.githubRepository.fullName}</b>?
+                      <b>{currentProject.githubRepository.fullName}</b>?
                     </p>
                   ),
                   props: {
@@ -73,14 +73,14 @@ export default function SettingsGitPage() {
                     onPrimaryAction: async () => {
                       await updateApp({
                         variables: {
-                          id: currentApplication.id,
+                          id: currentProject.id,
                           app: {
                             githubRepositoryId: null,
                           },
                         },
                       });
                       triggerToast(
-                        `Successfully disconnected GitHub repository from ${currentApplication.name}.`,
+                        `Successfully disconnected GitHub repository from ${currentProject.name}.`,
                       );
                       await updateOwnCache(client);
                     },

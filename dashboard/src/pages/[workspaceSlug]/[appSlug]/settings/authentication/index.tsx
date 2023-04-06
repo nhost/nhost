@@ -7,16 +7,16 @@ import DisableNewUsersSettings from '@/components/settings/authentication/Disabl
 import GravatarSettings from '@/components/settings/authentication/GravatarSettings';
 import MFASettings from '@/components/settings/authentication/MFASettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function SettingsAuthenticationPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { loading, error } = useGetAuthenticationSettingsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   if (loading) {
