@@ -52,6 +52,9 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
     {
       keepPreviousData: true,
       enabled: isPlatform && isReady && !!workspaceSlug && !!user,
+      // multiple components are relying on this query, so we don't want to
+      // refetch it too often - kind of a hack, should be improved later
+      staleTime: 1000,
     },
   );
 
