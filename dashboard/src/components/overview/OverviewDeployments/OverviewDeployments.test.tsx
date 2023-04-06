@@ -1,9 +1,8 @@
-import { UserDataProvider } from '@/context/UserDataContext';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
 import nhostGraphQLLink from '@/utils/msw/mocks/graphql/nhostGraphQLLink';
-import { render, screen, waitForElementToBeRemoved } from '@/utils/testUtils';
+import { render, screen } from '@/utils/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
@@ -78,6 +77,12 @@ const server = setupServer(
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
+  nhostGraphQLLink.query('GetWorkspaceAndProject', (_req, res, ctx) =>
+    res(
+      ctx.delay(250),
+      ctx.data({ workspaces: [mockWorkspace], projects: [mockApplication] }),
+    ),
+  ),
   nhostGraphQLLink.operation(async (_req, res, ctx) =>
     res(
       ctx.data({
@@ -101,18 +106,24 @@ afterAll(() => {
 });
 
 test('should render an empty state when GitHub is not connected', () => {
-  render(
-    <UserDataProvider
-      initialWorkspaces={[
-        {
-          ...mockWorkspace,
-          applications: [{ ...mockApplication, githubRepository: null }],
-        },
-      ]}
-    >
-      <OverviewDeployments />
-    </UserDataProvider>,
+  server.use(
+    nhostGraphQLLink.query('GetWorkspaceAndProject', (_req, res, ctx) =>
+      res(
+        ctx.delay(250),
+        ctx.data({
+          workspaces: [
+            {
+              ...mockWorkspace,
+              projects: [{ ...mockApplication, githubRepository: null }],
+            },
+          ],
+          projects: [{ ...mockApplication, githubRepository: null }],
+        }),
+      ),
+    ),
   );
+
+  render(<OverviewDeployments />);
 
   expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
   expect(
@@ -121,20 +132,16 @@ test('should render an empty state when GitHub is not connected', () => {
 });
 
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
-  );
+  server.use();
+
+  render(<OverviewDeployments />);
 
   expect(screen.getByText(/^deployments$/i)).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /view all/i })).toBeInTheDocument();
 
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
-
-  expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
-  expect(screen.getByText(/test\/git-project/i)).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /edit/i })).toHaveAttribute(
+  expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
+  expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
+  expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
     '/test-workspace/test-application/settings/git',
   );
@@ -168,26 +175,22 @@ test('should render a list of deployments', async () => {
     }),
   );
 
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
-  );
+  render(<OverviewDeployments />);
 
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
-
-  expect(screen.getByText(/test commit message/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/avatar/i)).toHaveStyle(
+  expect(await screen.findByText(/test commit message/i)).toBeInTheDocument();
+  expect(await screen.findByLabelText(/avatar/i)).toHaveStyle(
     'background-image: url(http://images.example.com/avatar.png)',
   );
   expect(
-    screen.getByRole('link', {
+    await screen.findByRole('link', {
       name: /test commit message/i,
     }),
   ).toHaveAttribute('href', '/test-workspace/test-application/deployments/1');
-  expect(screen.getByText(/5m 0s/i)).toBeInTheDocument();
-  expect(screen.getByText(/live/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /redeploy/i })).not.toBeDisabled();
+  expect(await screen.findByText(/5m 0s/i)).toBeInTheDocument();
+  expect(await screen.findByText(/live/i)).toBeInTheDocument();
+  expect(
+    await screen.findByRole('button', { name: /redeploy/i }),
+  ).not.toBeDisabled();
 });
 
 test('should disable redeployments if a deployment is already in progress', async () => {
@@ -233,12 +236,9 @@ test('should disable redeployments if a deployment is already in progress', asyn
     }),
   );
 
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
-  );
+  render(<OverviewDeployments />);
 
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
-  expect(screen.getByRole('button', { name: /redeploy/i })).toBeDisabled();
+  expect(
+    await screen.findByRole('button', { name: /redeploy/i }),
+  ).toBeDisabled();
 });

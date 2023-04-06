@@ -42,13 +42,13 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   const { data: response, status } = useQuery(
     ['currentWorkspaceAndProject', workspaceSlug, appSlug],
     () =>
-      client.graphql.request<{ workspaces: Workspace[]; projects?: Project[] }>(
-        GetWorkspaceAndProjectDocument,
-        {
-          workspaceSlug: (workspaceSlug as string) || '',
-          projectSlug: (appSlug as string) || '',
-        },
-      ),
+      client.graphql.request<{
+        workspaces: Workspace[];
+        projects?: Project[];
+      }>(GetWorkspaceAndProjectDocument, {
+        workspaceSlug: (workspaceSlug as string) || '',
+        projectSlug: (appSlug as string) || '',
+      }),
     {
       keepPreviousData: true,
       enabled: isPlatform && isReady && !!workspaceSlug && !!user,
