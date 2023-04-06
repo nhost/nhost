@@ -1,53 +1,55 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import {
   useGetAppFunctionsMetadataQuery,
+  useGetProjectMetricsQuery,
   useGetRemoteAppMetricsQuery,
 } from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import useDatabaseSizeOfApplication from '@/hooks/overview/useDatabaseSizeOfApplication';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import LinearProgress from '@/ui/v2/LinearProgress';
 import Text from '@/ui/v2/Text';
-import prettysize from 'prettysize';
-import { useEffect, useState } from 'react';
+import { prettifySize } from '@/utils/common/prettifySize';
+
+const now = new Date();
 
 export interface UsageProgressProps {
   /**
    * The title of the current service being rendered.
    */
-  service: string;
+  label: string;
   /**
    * The amount used for a given servince on the current project.
    */
-  used: number;
+  used?: string | number;
   /**
    * The total amount of a given service.
    */
-  total: number;
+  total?: string | number;
+  /**
+   * The percentage of the service used.
+   */
+  percentage?: number;
 }
 
-export function UsageProgress({ service, used, total }: UsageProgressProps) {
-  const denotesFileSizes = service === 'Database' || service === 'Storage';
-  const normalizedTotal = denotesFileSizes ? total * 1024 * 1024 : total;
-  const percentage = Math.round((used / normalizedTotal) * 100);
-  const prettyTotal = denotesFileSizes
-    ? prettysize(total * 1024 * 1024)
-    : total;
-  const prettyUsed = denotesFileSizes ? prettysize(used) : used;
-
+export function UsageProgress({
+  label,
+  used,
+  total,
+  percentage,
+}: UsageProgressProps) {
   return (
     <div className="flex flex-col space-y-3">
       <div className="flex flex-row place-content-between items-center">
         <Text variant="subtitle2" className="lg:!font-medium">
-          {service}
+          {label}
         </Text>
 
         <Text className="text-xs !font-medium">
-          {prettyUsed}{' '}
-          {total && <span className="opacity-80">of {prettyTotal}</span>}
+          {used} {total && <span className="opacity-80">of {total}</span>}
         </Text>
       </div>
+
       <LinearProgress
         variant="determinate"
         value={percentage === 0 ? -1 : percentage}
@@ -56,92 +58,120 @@ export function UsageProgress({ service, used, total }: UsageProgressProps) {
   );
 }
 
-const services = [
-  {
-    service: 'Database',
-    total: { Starter: 500, Pro: 10240 },
-  },
-  {
-    service: 'Storage',
-    total: { Starter: 1024, Pro: 10240 },
-  },
-  {
-    service: 'Users',
-    total: { Starter: 10000, Pro: 100000 },
-  },
-  {
-    service: 'Functions',
-    total: { Starter: 10, Pro: 50 },
-  },
-];
-
 export function OverviewUsageMetrics() {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const remoteAppClient = useRemoteApplicationGQLClient();
 
-  const [metrics, setMetrics] = useState({
-    functions: 0,
-    storage: 0,
-    database: 0,
-    users: 0,
-  });
+  const { data: functionsInfoData, loading: functionMetricsLoading } =
+    useGetAppFunctionsMetadataQuery({
+      variables: { id: currentProject?.id },
+      skip: !isPlatform || !currentProject,
+    });
 
-  const { data: functionsInfoData } = useGetAppFunctionsMetadataQuery({
-    variables: { id: currentApplication?.id },
-    skip: !isPlatform,
-  });
+  const { data: projectMetrics, loading: projectMetricsLoading } =
+    useGetProjectMetricsQuery({
+      variables: {
+        appId: currentProject?.id,
+        subdomain: currentProject?.subdomain,
+        from: new Date(now.getFullYear(), now.getMonth(), 1),
+      },
+      skip: !isPlatform || !currentProject,
+    });
 
-  const { data: databaseSizeData } = useDatabaseSizeOfApplication(
-    [currentApplication?.name, 'databaseSize'],
-    { enabled: !!currentApplication },
-  );
+  const { data: remoteAppMetricsData, loading: remoteAppMetricsLoading } =
+    useGetRemoteAppMetricsQuery({
+      client: remoteAppClient,
+      skip: !currentProject,
+    });
 
-  const { data: remoteAppMetricsData } = useGetRemoteAppMetricsQuery({
-    client: remoteAppClient,
-    skip: !currentApplication,
-  });
+  const metricsLoading =
+    functionMetricsLoading || projectMetricsLoading || remoteAppMetricsLoading;
+  // metrics for database
+  const usedDatabase = projectMetrics?.postgresVolumeUsage.value || 0;
+  const totalDatabase = projectMetrics?.postgresVolumeCapacity.value || 0;
 
-  useEffect(() => {
-    if (databaseSizeData) {
-      setMetrics((m) => ({
-        ...m,
-        database: databaseSizeData.databaseSize,
-      }));
-    }
-  }, [databaseSizeData]);
+  // metrics for storage
+  const usedStorage =
+    remoteAppMetricsData?.filesAggregate?.aggregate?.sum?.size || 0;
+  const totalStorage = currentProject?.plan?.isFree
+    ? 1 * 1000 ** 3 // 1 GB
+    : 10 * 1000 ** 3; // 10 GB
 
-  useEffect(() => {
-    if (remoteAppMetricsData) {
-      setMetrics((m) => ({
-        ...m,
-        storage: remoteAppMetricsData.filesAggregate.aggregate.sum.size,
-        users: remoteAppMetricsData.usersAggregate.aggregate.count,
-      }));
-    }
-  }, [remoteAppMetricsData]);
+  // metrics for users
+  const usedUsers = remoteAppMetricsData?.usersAggregate?.aggregate?.count || 0;
+  const totalUsers = currentProject?.plan?.isFree ? 10000 : 100000;
 
-  useEffect(() => {
-    if (functionsInfoData) {
-      setMetrics((m) => ({
-        ...m,
-        functions: functionsInfoData.app.metadataFunctions.length,
-      }));
-    }
-  }, [functionsInfoData]);
+  // metrics for functions
+  const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
+  const totalFunctions = currentProject?.plan?.isFree ? 10 : 50;
+
+  if (metricsLoading) {
+    return (
+      <div className="grid grid-flow-row content-start gap-6">
+        <UsageProgress label="Database" percentage={0} />
+        <UsageProgress label="Storage" percentage={0} />
+        <UsageProgress label="Users" percentage={0} />
+        <UsageProgress label="Functions" percentage={0} />
+      </div>
+    );
+  }
+
+  if (!isPlatform) {
+    return (
+      <div className="grid grid-flow-row content-start gap-6">
+        <UsageProgress
+          label="Database"
+          used={prettifySize(0)}
+          percentage={100}
+        />
+
+        <UsageProgress
+          label="Storage"
+          used={prettifySize(usedStorage)}
+          percentage={100}
+        />
+
+        <UsageProgress label="Users" used={usedUsers} percentage={100} />
+
+        <UsageProgress
+          label="Functions"
+          used={usedFunctions}
+          percentage={100}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-flow-row content-start gap-6">
-      {services.map((service) => (
-        <UsageProgress
-          key={service.service}
-          service={service.service}
-          used={metrics[service.service.toLowerCase()]}
-          total={
-            isPlatform ? service.total[currentApplication.plan?.name] : null
-          }
-        />
-      ))}
+      <UsageProgress
+        label="Database"
+        used={prettifySize(usedDatabase)}
+        total={prettifySize(totalDatabase)}
+        percentage={(usedDatabase / totalDatabase) * 100}
+      />
+
+      <UsageProgress
+        label="Storage"
+        used={prettifySize(usedStorage)}
+        total={prettifySize(totalStorage)}
+        percentage={(usedStorage / totalStorage) * 100}
+      />
+
+      <UsageProgress
+        label="Users"
+        used={usedUsers}
+        total={totalUsers}
+        percentage={(usedUsers / totalUsers) * 100}
+      />
+
+      <UsageProgress
+        label="Functions"
+        used={usedFunctions}
+        total={totalFunctions}
+        percentage={(usedFunctions / totalFunctions) * 100}
+      />
     </div>
   );
 }

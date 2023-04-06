@@ -1,9 +1,9 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { GetWorkspaceAndProjectQueryHookResult } from '@/utils/__generated__/graphql';
 import { useGetWorkspaceAndProjectQuery } from '@/utils/__generated__/graphql';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryHookOptions } from '@apollo/client';
 import { useRouter } from 'next/router';
 

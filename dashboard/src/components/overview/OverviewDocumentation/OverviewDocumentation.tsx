@@ -35,7 +35,7 @@ export default function OverviewDocumentation({
         <Text color="secondary">{description}</Text>
       </div>
 
-      <div className="mt-6 grid grid-flow-row items-center gap-6 xs:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+      <div className="mt-6 grid grid-flow-row items-center gap-6 xs:grid-cols-2 lg:gap-4 xl:grid-cols-4">
         {cardElements.map(
           ({
             title: cardTitle,
