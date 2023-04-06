@@ -64,16 +64,15 @@ pnpm storybook
 
 ### Environment Variables for Local Development and Self-Hosting
 
-| Name | Description |
-| ---- | ----------- |
-
-| `NEXT_PUBLIC_NHOST_AUTH_URL` | The URL of the Auth service. When working locally, point it to the Auth service started by the CLI. When self-hosting, point it to the self-hosted Auth service. |
-| `NEXT_PUBLIC_NHOST_FUNCTIONS_URL` | The URL of the Functions service. When working locally, point it to the Functions service started by the CLI. When self-hosting, point it to the self-hosted Functions service. |
-| `NEXT_PUBLIC_NHOST_GRAPHQL_URL` | The URL of the GraphQL service. When working locally, point it to the GraphQL service started by the CLI. When self-hosting, point it to the self-hosted GraphQL service. |
-| `NEXT_PUBLIC_NHOST_STORAGE_URL` | The URL of the Storage service. When working locally, point it to the Storage service started by the CLI. When self-hosting, point it to the self-hosted Storage service. |
-| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL` | The URL of the Hasura Console. When working locally, point it to the Hasura Console started by the CLI. When self-hosting, point it to the self-hosted Hasura Console. |
-| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI. |
-| `NEXT_PUBLIC_NHOST_HASURA_API_URL` | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
+| Name                                          | Description                                                                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_NHOST_AUTH_URL`                  | The URL of the Auth service. When working locally, point it to the Auth service started by the CLI. When self-hosting, point it to the self-hosted Auth service.                                       |
+| `NEXT_PUBLIC_NHOST_FUNCTIONS_URL`             | The URL of the Functions service. When working locally, point it to the Functions service started by the CLI. When self-hosting, point it to the self-hosted Functions service.                        |
+| `NEXT_PUBLIC_NHOST_GRAPHQL_URL`               | The URL of the GraphQL service. When working locally, point it to the GraphQL service started by the CLI. When self-hosting, point it to the self-hosted GraphQL service.                              |
+| `NEXT_PUBLIC_NHOST_STORAGE_URL`               | The URL of the Storage service. When working locally, point it to the Storage service started by the CLI. When self-hosting, point it to the self-hosted Storage service.                              |
+| `NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL`        | The URL of the Hasura Console. When working locally, point it to the Hasura Console started by the CLI. When self-hosting, point it to the self-hosted Hasura Console.                                 |
+| `NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL` | The URL of Hasura's Migrations service. When working locally, point it to the Migrations service started by the CLI.                                                                                   |
+| `NEXT_PUBLIC_NHOST_HASURA_API_URL`            | The URL of Hasura's Schema and Metadata API. When working locally, point it to the Schema and Metadata API started by the CLI. When self-hosting, point it to the self-hosted Schema and Metadata API. |
 
 ### Other Environment Variables
 
