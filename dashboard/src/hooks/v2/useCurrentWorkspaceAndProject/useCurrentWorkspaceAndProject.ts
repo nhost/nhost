@@ -39,7 +39,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   // We can't use the hook exported by the codegen here because there are cases
   // where it doesn't target the Nhost backend, but the currently active project
   // instead.
-  const { data: response, status } = useQuery(
+  const { data: response, isFetching } = useQuery(
     ['currentWorkspaceAndProject', workspaceSlug, appSlug],
     () =>
       client.graphql.request<{
@@ -118,7 +118,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   return {
     currentWorkspace,
     currentProject,
-    loading: response ? false : status === 'loading',
+    loading: response ? false : isFetching,
     error: response?.error
       ? new Error(error?.message || 'Unknown error occurred.')
       : null,

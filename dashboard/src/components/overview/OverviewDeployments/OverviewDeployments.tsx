@@ -142,10 +142,14 @@ function OverviewDeploymentList() {
 }
 
 export default function OverviewDeployments() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, loading } = useCurrentWorkspaceAndProject();
   const { openGitHubModal } = useGitHubModal();
   const { maintenanceActive } = useUI();
   const isGitHubConnected = !!currentProject?.githubRepository;
+
+  if (loading) {
+    return <ActivityIndicator label="Loading project info..." delay={1000} />;
+  }
 
   // GitHub repo connected. Show deployments
   if (isGitHubConnected) {

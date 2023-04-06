@@ -9,7 +9,7 @@ import { CacheProvider } from '@emotion/react';
 import { faker } from '@faker-js/faker';
 import { ThemeProvider } from '@mui/material/styles';
 import type { NhostSession } from '@nhost/nextjs';
-import { NhostProvider } from '@nhost/nextjs';
+import { NhostClient, NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { Queries, RenderOptions, queries } from '@testing-library/react';
@@ -20,17 +20,9 @@ import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
 import createEmotionCache from './createEmotionCache';
-import { nhost } from './nhost';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const emotionCache = createEmotionCache();
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
 
 process.env = {
   NODE_ENV: 'development',
@@ -90,7 +82,18 @@ export const mockSession: NhostSession = {
   },
 };
 
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 0,
+    },
+  },
+});
+
 function Providers({ children }: PropsWithChildren<{}>) {
+  const nhost = new NhostClient({ subdomain: 'local' });
   const theme = createTheme('light');
 
   return (

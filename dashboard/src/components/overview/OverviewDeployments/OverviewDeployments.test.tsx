@@ -1,8 +1,7 @@
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
-import nhostGraphQLLink from '@/utils/msw/mocks/graphql/nhostGraphQLLink';
-import { render, screen } from '@/utils/testUtils';
+import { queryClient, render, screen } from '@/utils/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
@@ -77,19 +76,6 @@ const server = setupServer(
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
-  nhostGraphQLLink.query('GetWorkspaceAndProject', (_req, res, ctx) =>
-    res(
-      ctx.delay(250),
-      ctx.data({ workspaces: [mockWorkspace], projects: [mockApplication] }),
-    ),
-  ),
-  nhostGraphQLLink.operation(async (_req, res, ctx) =>
-    res(
-      ctx.data({
-        deployments: [],
-      }),
-    ),
-  ),
 );
 
 beforeAll(() => {
@@ -98,46 +84,85 @@ beforeAll(() => {
   server.listen();
 });
 
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers(
+    rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
+      res(ctx.status(200)),
+    ),
+  );
+  queryClient.clear();
+});
 
 afterAll(() => {
   server.close();
   vi.restoreAllMocks();
 });
 
-test('should render an empty state when GitHub is not connected', () => {
+test('should render an empty state when GitHub is not connected', async () => {
   server.use(
-    nhostGraphQLLink.query('GetWorkspaceAndProject', (_req, res, ctx) =>
-      res(
-        ctx.delay(250),
-        ctx.data({
-          workspaces: [
-            {
-              ...mockWorkspace,
+    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
+      const { operationName } = await req.json();
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [
+                {
+                  ...mockWorkspace,
+                  projects: [{ ...mockApplication, githubRepository: null }],
+                },
+              ],
               projects: [{ ...mockApplication, githubRepository: null }],
             },
-          ],
-          projects: [{ ...mockApplication, githubRepository: null }],
+          }),
+        );
+      }
+
+      return res(
+        ctx.json({
+          data: {
+            deployments: [],
+          },
         }),
-      ),
-    ),
+      );
+    }),
   );
 
   render(<OverviewDeployments />);
 
-  expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
+  expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
   expect(
-    screen.getByRole('button', { name: /connect to github/i }),
+    await screen.findByRole('button', { name: /connect to github/i }),
   ).toBeInTheDocument();
 });
 
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
-  server.use();
+  server.use(
+    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
+      const { operationName } = await _req.json();
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
+          }),
+        );
+      }
+
+      return res(ctx.json({ data: { deployments: [] } }));
+    }),
+  );
 
   render(<OverviewDeployments />);
 
-  expect(screen.getByText(/^deployments$/i)).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /view all/i })).toBeInTheDocument();
+  expect(await screen.findByText(/^deployments$/i)).toBeInTheDocument();
+  expect(
+    await screen.findByRole('link', { name: /view all/i }),
+  ).toBeInTheDocument();
 
   expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
   expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
@@ -149,27 +174,40 @@ test('should render an empty state when GitHub is connected, but there are no de
 
 test('should render a list of deployments', async () => {
   server.use(
-    nhostGraphQLLink.operation(async (req, res, ctx) => {
-      const requestPayload = await req.json();
+    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
+      const { operationName } = await _req.json();
 
-      if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
-        return res(ctx.data({ deployments: [] }));
+      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        return res(ctx.json({ data: { deployments: [] } }));
+      }
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
+          }),
+        );
       }
 
       return res(
-        ctx.data({
-          deployments: [
-            {
-              id: '1',
-              commitSHA: 'abc123',
-              deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-              deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-              deploymentStatus: 'DEPLOYED',
-              commitUserName: 'test.user',
-              commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-              commitMessage: 'Test commit message',
-            },
-          ],
+        ctx.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
         }),
       );
     }),
@@ -195,42 +233,57 @@ test('should render a list of deployments', async () => {
 
 test('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
-    nhostGraphQLLink.operation(async (req, res, ctx) => {
-      const requestPayload = await req.json();
+    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
+      const { operationName } = await req.json();
 
-      if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
+      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
         return res(
-          ctx.data({
-            deployments: [
-              {
-                id: '2',
-                commitSHA: 'abc234',
-                deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                deploymentEndedAt: null,
-                deploymentStatus: 'PENDING',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
-              },
-            ],
+          ctx.json({
+            data: {
+              deployments: [
+                {
+                  id: '2',
+                  commitSHA: 'abc234',
+                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
+                  deploymentEndedAt: null,
+                  deploymentStatus: 'PENDING',
+                  commitUserName: 'test.user',
+                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                  commitMessage: 'Test commit message',
+                },
+              ],
+            },
+          }),
+        );
+      }
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
           }),
         );
       }
 
       return res(
-        ctx.data({
-          deployments: [
-            {
-              id: '1',
-              commitSHA: 'abc123',
-              deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-              deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-              deploymentStatus: 'DEPLOYED',
-              commitUserName: 'test.user',
-              commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-              commitMessage: 'Test commit message',
-            },
-          ],
+        ctx.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
         }),
       );
     }),
