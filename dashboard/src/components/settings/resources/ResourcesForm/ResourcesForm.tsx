@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
-import SettingsContainer from '@/components/settings/SettingsContainer';
 import useProPlan from '@/hooks/common/useProPlan';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -17,17 +17,17 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/CONSTANTS';
-import getServerError from '@/utils/settings/getServerError';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
-import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
-import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import getServerError from '@/utils/settings/getServerError';
+import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
+import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
+import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -50,7 +50,7 @@ export default function ResourcesForm() {
   const [validationError, setValidationError] = useState<Error | null>(null);
 
   const { openDialog, closeDialog } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const {
     data,
@@ -58,7 +58,7 @@ export default function ResourcesForm() {
     error: resourcesError,
   } = useGetResourcesQuery({
     variables: {
-      appId: currentApplication?.id,
+      appId: currentProject?.id,
     },
   });
 
@@ -136,7 +136,7 @@ export default function ResourcesForm() {
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           postgres: {
             resources: enabled

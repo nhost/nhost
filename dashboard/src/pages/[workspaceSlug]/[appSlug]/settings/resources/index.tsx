@@ -1,14 +1,19 @@
 import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
 import Container from '@/components/layout/Container';
-import ResourcesForm from '@/components/settings/resources/ResourcesForm';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import ResourcesForm from '@/components/settings/resources/ResourcesForm';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator/ActivityIndicator';
 import type { ReactElement } from 'react';
 
 export default function ResourceSettingsPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject, loading } = useCurrentWorkspaceAndProject();
 
-  if (currentApplication.plan.isFree) {
+  if (loading) {
+    return <ActivityIndicator delay={1000} label="Loading project..." />;
+  }
+
+  if (currentProject?.plan.isFree) {
     return (
       <UnlockFeatureByUpgrading message="Unlock Resource settings by upgrading your project to the Pro plan." />
     );
