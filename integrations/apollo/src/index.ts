@@ -3,7 +3,6 @@ import {
   createHttpLink,
   from,
   InMemoryCache,
-  RequestHandler,
   split,
   WatchQueryFetchPolicy
 } from '@apollo/client/core'
@@ -23,8 +22,7 @@ export type NhostApolloClientOptions = {
   fetchPolicy?: WatchQueryFetchPolicy
   connectToDevTools?: boolean
   cache?: InMemoryCache
-  onError?: RequestHandler
-  link?: ApolloClient<any>['link']
+  generateLinks?: Function
 }
 
 export const createApolloClient = ({
@@ -35,8 +33,7 @@ export const createApolloClient = ({
   fetchPolicy,
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
-  onError,
-  link: customLink
+  generateLinks,
 }: NhostApolloClientOptions) => {
   const backendUrl = graphqlUrl || nhost?.graphql.httpUrl
 
@@ -106,7 +103,7 @@ export const createApolloClient = ({
     }
   })).concat(createHttpLink({ uri }))
 
-  const link = wsLink
+  const splitLink = wsLink
     ? split(
         ({ query }) => {
           const mainDefinition = getMainDefinition(query)
@@ -124,6 +121,9 @@ export const createApolloClient = ({
       )
     : httpLink
 
+  const links = [splitLink];
+  const link = from(generateLinks ? generateLinks(links) : links)
+
   const client = new ApolloClient({
     cache: cache || new InMemoryCache(),
     ssrMode: !isBrowser,
@@ -133,9 +133,7 @@ export const createApolloClient = ({
       }
     },
     connectToDevTools,
-    link: customLink
-      ? from([customLink])
-      : from(typeof onError === 'function' ? [onError, link] : [link])
+    link
   })
 
   interpreter?.onTransition(async (state, event) => {
