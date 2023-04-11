@@ -39,20 +39,51 @@ export class NhostFunctionsClient {
   }
 
   /**
-   * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
+   * Use `nhost.functions.call` to call (sending a POST request to) a serverless function. Use generic
+   * types to specify the expected response data, request body and error message.
    *
    * @example
+   * ### Without generic types
    * ```ts
    * await nhost.functions.call('send-welcome-email', { email: 'joe@example.com', name: 'Joe Doe' })
    * ```
    *
+   * @example
+   * ### Using generic types
+   * ```ts
+   * type Data = {
+   *   message: string
+   * }
+   *
+   * type Body = {
+   *   email: string
+   *   name: string
+   * }
+   *
+   * type ErrorMessage = {
+   *   details: string
+   * }
+   *
+   * // The function will only accept a body of type `Body`
+   * const { res, error } = await nhost.functions.call<Data, Body, ErrorMessage>(
+   *   'send-welcome-email',
+   *   { email: 'joe@example.com', name: 'Joe Doe' }
+   * )
+   *
+   * // Now the response data is typed as `Data`
+   * console.log(res?.data.message)
+   *
+   * // Now the error message is typed as `ErrorMessage`
+   * console.log(error?.message.details)
+   * ```
+   *
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/call
    */
-  async call<T = unknown, D = any>(
+  async call<TData = unknown, TBody = any, TErrorMessage = unknown>(
     url: string,
-    body: D | null,
+    body?: TBody | null,
     config?: NhostFunctionCallConfig
-  ): Promise<NhostFunctionCallResponse<T>> {
+  ): Promise<NhostFunctionCallResponse<TData>> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
@@ -69,15 +100,30 @@ export class NhostFunctionsClient {
       })
 
       if (!result.ok) {
-        throw new Error(result.statusText)
+        let message: TErrorMessage
+
+        if (result.headers.get('content-type')?.includes('application/json')) {
+          message = await result.json()
+        } else {
+          message = (await result.text()) as unknown as TErrorMessage
+        }
+
+        return {
+          res: null,
+          error: {
+            message: message || 'Unknown error',
+            error: result.statusText,
+            status: result.status
+          }
+        }
       }
 
-      let data: T
+      let data: TData
 
       if (result.headers.get('content-type')?.includes('application/json')) {
         data = await result.json()
       } else {
-        data = (await result.text()) as unknown as T
+        data = (await result.text()) as unknown as TData
       }
 
       return {
