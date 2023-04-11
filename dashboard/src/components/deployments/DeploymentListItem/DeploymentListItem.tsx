@@ -1,19 +1,19 @@
 import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
-import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
-import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import Tooltip from '@/ui/v2/Tooltip';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -44,8 +44,7 @@ export default function DeploymentListItem({
   showRedeploy,
   disableRedeploy,
 }: DeploymentListItemProps) {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
 
   const relativeDateOfDeployment = deployment.deploymentStartedAt
     ? formatDistanceToNowStrict(parseISO(deployment.deploymentStartedAt), {
@@ -61,7 +60,7 @@ export default function DeploymentListItem({
       <ListItem.Button
         className="grid grid-flow-col items-center justify-between gap-2 rounded-none p-2"
         component={NavLink}
-        href={`/${currentWorkspace.slug}/${currentApplication.slug}/deployments/${deployment.id}`}
+        href={`/${currentWorkspace.slug}/${currentProject.slug}/deployments/${deployment.id}`}
         aria-label={commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
@@ -108,7 +107,7 @@ export default function DeploymentListItem({
                   const insertDeploymentPromise = insertDeployment({
                     variables: {
                       object: {
-                        appId: currentApplication?.id,
+                        appId: currentProject?.id,
                         commitMessage: deployment.commitMessage,
                         commitSHA: deployment.commitSHA,
                         commitUserAvatarUrl: deployment.commitUserAvatarUrl,

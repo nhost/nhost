@@ -2,8 +2,8 @@ import type { DataGridPaginationProps } from '@/components/common/DataGridPagina
 import DataGridPagination from '@/components/common/DataGridPagination';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useAppClient } from '@/hooks/useAppClient';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { FileUploadButtonProps } from '@/ui/FileUploadButton';
 import FileUploadButton from '@/ui/FileUploadButton';
 import type { BoxProps } from '@/ui/v2/Box';
@@ -12,9 +12,9 @@ import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
+import type { Files } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { triggerToast } from '@/utils/toast';
-import type { Files } from '@/utils/__generated__/graphql';
 import type { PropsWithoutRef } from 'react';
 import { useState } from 'react';
 import type { Row } from 'react-table';
@@ -38,7 +38,7 @@ export default function FilesDataGridControls({
   ...props
 }: FilesDataGridControlsProps) {
   const { openAlertDialog } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const appClient = useAppClient();
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -73,7 +73,7 @@ export default function FilesDataGridControls({
       const storageWithAdminSecret = appClient.storage.setAdminSecret(
         process.env.NEXT_PUBLIC_ENV === 'dev'
           ? getHasuraAdminSecret()
-          : currentApplication.config?.hasura.adminSecret,
+          : currentProject.config?.hasura.adminSecret,
       );
 
       // note: this is not an optimal solution, but we don't have a better way

@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
@@ -20,11 +20,11 @@ interface HasuraDataProps {
 }
 
 export function HasuraData({ close }: HasuraDataProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlatform = useIsPlatform();
-  const projectAdminSecret = currentApplication?.config?.hasura.adminSecret;
+  const projectAdminSecret = currentProject?.config?.hasura.adminSecret;
 
-  if (!currentApplication?.subdomain || !projectAdminSecret) {
+  if (!currentProject?.subdomain || !projectAdminSecret) {
     return <LoadingScreen />;
   }
 
@@ -32,8 +32,8 @@ export function HasuraData({ close }: HasuraDataProps) {
     process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
       ? `${getHasuraConsoleServiceUrl()}`
       : generateAppServiceUrl(
-          currentApplication?.subdomain,
-          currentApplication?.region.awsName,
+          currentProject?.subdomain,
+          currentProject?.region.awsName,
           'hasura',
           defaultLocalBackendSlugs,
           { ...defaultRemoteBackendSlugs, hasura: '/console' },

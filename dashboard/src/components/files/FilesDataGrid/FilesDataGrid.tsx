@@ -9,13 +9,13 @@ import FilesDataGridControls from '@/components/files/FilesDataGridControls';
 import { FileIcon } from '@/components/icons/FileIcon';
 import { useAppClient } from '@/hooks/useAppClient';
 import useBuckets from '@/hooks/useBuckets';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useFiles from '@/hooks/useFiles';
 import useFilesAggregate from '@/hooks/useFilesAggregate';
-import { getHasuraAdminSecret } from '@/utils/env';
-import { showLoadingToast, triggerToast } from '@/utils/toast';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { Files } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
+import { getHasuraAdminSecret } from '@/utils/env';
+import { showLoadingToast, triggerToast } from '@/utils/toast';
 import debounce from 'lodash.debounce';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
@@ -31,7 +31,7 @@ export type FilesDataGridProps = Partial<DataGridProps<StoredFile>>;
 
 export default function FilesDataGrid(props: FilesDataGridProps) {
   const router = useRouter();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const appClient = useAppClient();
   const [searchString, setSearchString] = useState<string | null>(null);
   const [currentOffset, setCurrentOffset] = useState<number | null>(
@@ -263,7 +263,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
         .setAdminSecret(
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : currentApplication.config?.hasura.adminSecret,
+            : currentProject.config?.hasura.adminSecret,
         )
         .upload({
           file,

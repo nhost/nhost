@@ -2,8 +2,8 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import LogsBody from '@/components/logs/LogsBody';
 import LogsHeader from '@/components/logs/LogsHeader';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { AvailableLogsServices } from '@/types/logs';
 import {
   GetLogsSubscriptionDocument,
@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const MINUTES_TO_DECREASE_FROM_CURRENT_DATE = 20;
 
 export default function LogsPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [fromDate, setFromDate] = useState<Date>(
     subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
   );
@@ -39,7 +39,7 @@ export default function LogsPage() {
   const { data, loading, error, subscribeToMore, client } =
     useGetProjectLogsQuery({
       variables: {
-        appID: currentApplication.id,
+        appID: currentProject.id,
         from: fromDate,
         to: toDate,
         service,
@@ -52,7 +52,7 @@ export default function LogsPage() {
       subscribeToMore({
         document: GetLogsSubscriptionDocument,
         variables: {
-          appID: currentApplication.id,
+          appID: currentProject.id,
           service,
           from: fromDate,
         },
@@ -93,7 +93,7 @@ export default function LogsPage() {
           };
         },
       }),
-    [subscribeToMore, currentApplication.id, service, fromDate],
+    [subscribeToMore, currentProject.id, service, fromDate],
   );
 
   useEffect(() => {

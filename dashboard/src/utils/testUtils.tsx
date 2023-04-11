@@ -1,17 +1,18 @@
 /* eslint-disable no-restricted-imports */
-import DialogProvider from '@/components/common/DialogProvider/DialogProvider';
+import { DialogProvider } from '@/components/common/DialogProvider';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
-import { WorkspaceProvider } from '@/context/workspace-context';
-import { UserDataProvider } from '@/context/workspace1-context';
+import { UserDataProvider } from '@/context/UserDataContext';
 import createTheme from '@/ui/v2/createTheme';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
+import { faker } from '@faker-js/faker';
 import { ThemeProvider } from '@mui/material/styles';
-import { NhostProvider } from '@nhost/nextjs';
+import type { NhostSession } from '@nhost/nextjs';
+import { NhostClient, NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { queries, Queries, RenderOptions } from '@testing-library/react';
+import type { Queries, RenderOptions, queries } from '@testing-library/react';
 import { render as rtlRender } from '@testing-library/react';
 import { RouterContext } from 'next/dist/shared/lib/router-context';
 import type { NextRouter } from 'next/router';
@@ -19,17 +20,9 @@ import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { vi } from 'vitest';
 import createEmotionCache from './createEmotionCache';
-import { nhost } from './nhost';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const emotionCache = createEmotionCache();
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
 
 process.env = {
   NODE_ENV: 'development',
@@ -67,7 +60,40 @@ export const mockRouter: NextRouter = {
   isFallback: false,
 };
 
+export const mockSession: NhostSession = {
+  accessToken: faker.random.alphaNumeric(),
+  accessTokenExpiresIn: 900,
+  refreshToken: faker.datatype.uuid(),
+  user: {
+    id: faker.datatype.uuid(),
+    email: faker.internet.email(),
+    displayName: faker.name.fullName(),
+    createdAt: faker.date.past().toISOString(),
+    avatarUrl: faker.image.avatar(),
+    locale: 'en',
+    isAnonymous: false,
+    defaultRole: 'user',
+    roles: ['user', 'me'],
+    metadata: {},
+    emailVerified: true,
+    phoneNumber: faker.phone.number(),
+    phoneNumberVerified: true,
+    activeMfaType: 'totp',
+  },
+};
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      staleTime: 0,
+      cacheTime: 0,
+    },
+  },
+});
+
 function Providers({ children }: PropsWithChildren<{}>) {
+  const nhost = new NhostClient({ subdomain: 'local' });
   const theme = createTheme('light');
 
   return (
@@ -75,23 +101,21 @@ function Providers({ children }: PropsWithChildren<{}>) {
       <RetryableErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <CacheProvider value={emotionCache}>
-            <NhostProvider nhost={nhost}>
+            <NhostProvider nhost={nhost} initial={mockSession}>
               <NhostApolloProvider
                 nhost={nhost}
                 link={createHttpLink({
                   uri: 'https://local.graphql.nhost.run/v1',
                 })}
               >
-                <WorkspaceProvider>
-                  <UserDataProvider>
-                    <ManagedUIContext>
-                      <Toaster position="bottom-center" />
-                      <ThemeProvider theme={theme}>
-                        <DialogProvider>{children}</DialogProvider>
-                      </ThemeProvider>
-                    </ManagedUIContext>
-                  </UserDataProvider>
-                </WorkspaceProvider>
+                <UserDataProvider>
+                  <ManagedUIContext>
+                    <Toaster position="bottom-center" />
+                    <ThemeProvider theme={theme}>
+                      <DialogProvider>{children}</DialogProvider>
+                    </ThemeProvider>
+                  </ManagedUIContext>
+                </UserDataProvider>
               </NhostApolloProvider>
             </NhostProvider>
           </CacheProvider>

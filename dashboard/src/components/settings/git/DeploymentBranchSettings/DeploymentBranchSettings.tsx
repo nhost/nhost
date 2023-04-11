@@ -2,7 +2,7 @@ import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useUpdateAppMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -22,15 +22,14 @@ export interface DeploymentBranchFormValues {
 
 export default function DeploymentBranchSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateApp] = useUpdateAppMutation();
   const client = useApolloClient();
 
   const form = useForm<DeploymentBranchFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      repositoryProductionBranch:
-        currentApplication?.repositoryProductionBranch,
+      repositoryProductionBranch: currentProject?.repositoryProductionBranch,
     },
   });
 
@@ -38,17 +37,16 @@ export default function DeploymentBranchSettings() {
 
   useEffect(() => {
     reset(() => ({
-      repositoryProductionBranch:
-        currentApplication?.repositoryProductionBranch,
+      repositoryProductionBranch: currentProject?.repositoryProductionBranch,
     }));
-  }, [currentApplication?.repositoryProductionBranch, reset]);
+  }, [currentProject?.repositoryProductionBranch, reset]);
 
   const handleDeploymentBranchChange = async (
     values: DeploymentBranchFormValues,
   ) => {
     const updateAppMutation = updateApp({
       variables: {
-        id: currentApplication.id,
+        id: currentProject.id,
         app: {
           ...values,
         },
@@ -93,7 +91,7 @@ export default function DeploymentBranchSettings() {
           docsLink="https://docs.nhost.io/platform/github-integration#deployment-branch"
           className="grid grid-flow-row lg:grid-cols-5"
         >
-          {currentApplication?.githubRepository ? (
+          {currentProject?.githubRepository ? (
             <Input
               {...register('repositoryProductionBranch')}
               name="repositoryProductionBranch"

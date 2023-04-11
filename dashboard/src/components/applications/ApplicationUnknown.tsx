@@ -1,6 +1,6 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -13,12 +13,11 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationUnknown() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const user = useUserData();
-  const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === user?.id && type === 'owner',
+  const isOwner = currentWorkspace.workspaceMembers.some(
+    ({ id, type }) => id === user?.id && type === 'owner',
   );
 
   return (
@@ -29,8 +28,8 @@ export default function ApplicationUnknown() {
       >
         <RemoveApplicationModal
           close={() => setShowDeleteModal(false)}
-          title={`Remove project ${currentApplication.name}?`}
-          description={`The project ${currentApplication.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${currentProject.name}?`}
+          description={`The project ${currentProject.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>

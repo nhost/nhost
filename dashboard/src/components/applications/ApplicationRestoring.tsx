@@ -1,17 +1,17 @@
 import Container from '@/components/layout/Container';
 import { useCheckProvisioning } from '@/hooks/useCheckProvisioning';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
-import ApplicationInfo from './ApplicationInfo';
 import { AppLoader } from './AppLoader';
+import ApplicationInfo from './ApplicationInfo';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationRestoring() {
-  const currentApplicationState = useCheckProvisioning();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const currentProjectState = useCheckProvisioning();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   return (
     <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
@@ -23,10 +23,10 @@ export default function ApplicationRestoring() {
           height={72}
         />
       </div>
-      {currentApplicationState.state === ApplicationStatus.Empty ? (
+      {currentProjectState.state === ApplicationStatus.Empty ? (
         <div className="grid grid-flow-row gap-1">
           <Text variant="h3" component="h1">
-            Setting Up {currentApplication.name}
+            Setting Up {currentProject.name}
           </Text>
 
           <Text>This normally takes around 2 minutes</Text>
@@ -34,11 +34,7 @@ export default function ApplicationRestoring() {
           <ActivityIndicator className="mx-auto" />
         </div>
       ) : (
-        <AppLoader
-          startLoader
-          restoring
-          date={currentApplicationState.createdAt}
-        />
+        <AppLoader startLoader restoring date={currentProjectState.createdAt} />
       )}
       <StagingMetadata>
         <ApplicationInfo />

@@ -3,7 +3,7 @@ import { FileIcon } from '@/components/icons/FileIcon';
 import PDFPreview from '@/components/icons/PDFPreview';
 import VideoPreview from '@/components/icons/VideoPreview';
 import { useAppClient } from '@/hooks/useAppClient';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -166,7 +166,7 @@ export default function DataGridPreviewCell<TData extends object>({
   value: { fetchBlob, id, mimeType, alt, blob },
   fallbackPreview = null,
 }: DataGridPreviewCellProps<TData>) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const appClient = useAppClient();
   const { objectUrl, loading, error } = useBlob({ fetchBlob, blob, mimeType });
   const [showModal, setShowModal] = useState(false);
@@ -205,7 +205,7 @@ export default function DataGridPreviewCell<TData extends object>({
     }
 
     const { presignedUrl } = await appClient.storage
-      .setAdminSecret(currentApplication.config?.hasura.adminSecret)
+      .setAdminSecret(currentProject?.config?.hasura.adminSecret)
       .getPresignedUrl({ fileId: id });
 
     if (!presignedUrl) {

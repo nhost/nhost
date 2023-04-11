@@ -1,18 +1,18 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Autocomplete from '@/ui/v2/Autocomplete';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import XIcon from '@/ui/v2/icons/XIcon';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import XIcon from '@/ui/v2/icons/XIcon';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
@@ -50,10 +50,10 @@ export default function ColumnPresetsSection({
     error: tableError,
   } = useTableQuery([`default.${schema}.${table}`], { schema, table });
 
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data: permissionVariablesData } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
-    skip: !currentApplication?.id,
+    variables: { appId: currentProject?.id },
+    skip: !currentProject?.id,
   });
   const {
     setValue,

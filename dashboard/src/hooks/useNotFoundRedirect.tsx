@@ -1,26 +1,28 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 /**
- * Redirects to 404 page if either currentWorkspace/currentApplication resolves to undefined.
+ * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined.
  */
 export default function useNotFoundRedirect() {
-  const { currentApplication, currentWorkspace } =
-    useCurrentWorkspaceAndApplication();
+  const { currentProject, currentWorkspace, loading } =
+    useCurrentWorkspaceAndProject();
   const router = useRouter();
   const {
     query: { workspaceSlug, appSlug, updating },
+    isReady,
   } = router;
 
   const notIn404Already = router.pathname !== '/404';
-  const noResolvedWorkspace = workspaceSlug && currentWorkspace === undefined;
+  const noResolvedWorkspace =
+    isReady && !loading && workspaceSlug && currentWorkspace === undefined;
   const noResolvedApplication =
-    workspaceSlug && appSlug && currentApplication === undefined;
-
-  const isProjectUsingRDS = currentApplication?.featureFlags?.find(
-    (feature) => feature.name === 'fleetcontrol_use_rds',
-  );
+    isReady &&
+    !loading &&
+    workspaceSlug &&
+    appSlug &&
+    currentProject === undefined;
 
   const inSettingsDatabasePage = router.pathname.includes('/settings/database');
 
@@ -41,19 +43,15 @@ export default function useNotFoundRedirect() {
     if (noResolvedApplication && notIn404Already) {
       router.replace('/404');
     }
-
-    if (isProjectUsingRDS && inSettingsDatabasePage) {
-      router.replace('/404');
-    }
   }, [
+    isReady,
     updating,
-    currentApplication,
+    currentProject,
     currentWorkspace,
     noResolvedApplication,
     noResolvedWorkspace,
     notIn404Already,
     router,
-    isProjectUsingRDS,
     inSettingsDatabasePage,
   ]);
 }

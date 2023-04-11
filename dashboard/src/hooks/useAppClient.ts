@@ -1,3 +1,5 @@
+import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
@@ -7,8 +9,6 @@ import {
 import { isDevOrStaging } from '@/utils/helpers';
 import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
-import useIsPlatform from './common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 export type UseAppClientOptions = NhostNextClientConstructorParams;
 export type UseAppClientReturn = NhostClient;
@@ -24,7 +24,7 @@ export function useAppClient(
   options?: UseAppClientOptions,
 ): UseAppClientReturn {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   if (!isPlatform) {
     return new NhostClient({
@@ -36,7 +36,7 @@ export function useAppClient(
     });
   }
 
-  if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentApplication) {
+  if (process.env.NEXT_PUBLIC_ENV === 'dev' || !currentProject) {
     return new NhostClient({
       subdomain: 'local',
       ...options,
@@ -44,10 +44,10 @@ export function useAppClient(
   }
 
   return new NhostClient({
-    subdomain: currentApplication.subdomain,
+    subdomain: currentProject.subdomain,
     region: isDevOrStaging()
-      ? `${currentApplication.region.awsName}.staging`
-      : currentApplication.region.awsName,
+      ? `${currentProject.region.awsName}.staging`
+      : currentProject.region.awsName,
     ...options,
   });
 }

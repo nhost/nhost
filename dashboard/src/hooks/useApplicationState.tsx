@@ -1,5 +1,5 @@
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 /**
  * This hook returns the current application state. If the application state
@@ -9,25 +9,25 @@ export default function useApplicationState(): {
   state: ApplicationStatus;
   message?: string;
 } {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const noApplication = !currentApplication;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const noApplication = !currentProject;
 
   if (noApplication) {
     return { state: ApplicationStatus.Empty };
   }
 
-  const emptyApplicationStates = !currentApplication.appStates;
+  const emptyApplicationStates = !currentProject.appStates;
 
   if (noApplication || emptyApplicationStates) {
     return { state: ApplicationStatus.Empty };
   }
 
-  if (currentApplication.appStates?.length === 0) {
+  if (currentProject.appStates?.length === 0) {
     return { state: ApplicationStatus.Empty };
   }
 
   return {
-    state: currentApplication.appStates[0].stateId,
-    message: currentApplication.appStates[0].message,
+    state: currentProject.appStates[0].stateId,
+    message: currentProject.appStates[0].message,
   };
 }

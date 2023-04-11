@@ -1,12 +1,12 @@
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
-import { getHasuraAdminSecret } from '@/utils/env';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryHookOptions } from '@apollo/client';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 export type UseFilesOptions = {
   /**
@@ -38,7 +38,7 @@ export default function useFiles({
   orderBy,
   options = {},
 }: UseFilesOptions) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, previousData, ...rest } = useGetFilesQuery({
     variables: {
       where: searchString
@@ -59,7 +59,7 @@ export default function useFiles({
 
   return {
     files:
-      currentApplication?.config?.hasura.adminSecret && cachedOrFetchedFiles
+      currentProject?.config?.hasura.adminSecret && cachedOrFetchedFiles
         ? cachedOrFetchedFiles.map((file) => ({
             ...file,
             preview: {
@@ -68,8 +68,8 @@ export default function useFiles({
                 size?: { width?: number; height?: number },
               ) => {
                 const fetchUrl = `${generateAppServiceUrl(
-                  currentApplication.subdomain,
-                  currentApplication.region.awsName,
+                  currentProject.subdomain,
+                  currentProject.region.awsName,
                   'storage',
                 )}/files/${file.id}`;
 
@@ -94,7 +94,7 @@ export default function useFiles({
                       'x-hasura-admin-secret':
                         process.env.NEXT_PUBLIC_ENV === 'dev'
                           ? getHasuraAdminSecret()
-                          : currentApplication?.config?.hasura.adminSecret,
+                          : currentProject?.config?.hasura.adminSecret,
                     },
                     mode: 'cors',
                     ...init,

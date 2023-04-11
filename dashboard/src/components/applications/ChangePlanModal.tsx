@@ -7,7 +7,7 @@ import {
   useGetPaymentMethodsQuery,
   useUpdateAppMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -70,14 +70,14 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { closeAlertDialog } = useDialog();
 
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
 
   // get workspace payment methods
   const { data } = useGetPaymentMethodsQuery({
     variables: {
-      workspaceId: currentWorkspace.id,
+      workspaceId: currentWorkspace?.id,
     },
+    skip: !currentWorkspace,
   });
 
   const { openPaymentModal, closePaymentModal, paymentModal } = useUI();
@@ -93,7 +93,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     refetchQueries: [
       refetchGetApplicationPlanQuery({
         workspace: currentWorkspace.slug,
-        slug: currentApplication.slug,
+        slug: currentProject.slug,
       }),
     ],
   });
@@ -118,7 +118,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     }
 
     triggerToast(
-      `${currentApplication.name} plan changed to ${selectedPlan.name}.`,
+      `${currentProject.name} plan changed to ${selectedPlan.name}.`,
     );
   };
 

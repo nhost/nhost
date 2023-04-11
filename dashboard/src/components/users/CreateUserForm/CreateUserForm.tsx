@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
@@ -43,7 +43,7 @@ export default function CreateUserForm({
   location,
 }: CreateUserFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [createUserFormError, setCreateUserFormError] = useState<Error | null>(
     null,
   );
@@ -67,8 +67,8 @@ export default function CreateUserForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   const baseAuthUrl = generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region?.awsName,
+    currentProject?.subdomain,
+    currentProject?.region?.awsName,
     'auth',
   );
 

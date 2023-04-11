@@ -4,7 +4,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -23,8 +23,8 @@ export type Backup = {
 };
 
 function BackupsHeader() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { plan } = currentApplication;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { plan } = currentProject;
   return (
     <div className="flex flex-row place-content-between">
       <div>
@@ -83,10 +83,10 @@ function BackupRow({ backup }: any) {
 }
 
 function BackupsTable() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetApplicationBackupsQuery({
-    variables: { appId: currentApplication.id },
+    variables: { appId: currentProject.id },
   });
 
   if (loading) {
@@ -147,8 +147,8 @@ function SectionContainer({ title }: any) {
 }
 
 function BackupsContent() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isPlanFree = currentApplication.plan.isFree;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isPlanFree = currentProject.plan.isFree;
 
   if (isPlanFree) {
     return (

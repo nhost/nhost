@@ -3,8 +3,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useUI } from '@/context/UIContext';
-import { useWorkspaceContext } from '@/context/workspace-context';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
@@ -12,12 +11,10 @@ import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 
 export default function DeploymentsPage() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-  const { workspaceContext } = useWorkspaceContext();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { maintenanceActive } = useUI();
 
-  if (!workspaceContext.repository) {
+  if (!currentProject?.githubRepository) {
     return (
       <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
@@ -39,7 +36,7 @@ export default function DeploymentsPage() {
         </div>
 
         <NavLink
-          href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+          href={`/${currentWorkspace?.slug}/${currentProject?.slug}/settings/git`}
           passHref
         >
           <Button
@@ -63,7 +60,7 @@ export default function DeploymentsPage() {
       </div>
 
       <RetryableErrorBoundary>
-        <AppDeployments appId={workspaceContext.appId} />
+        <AppDeployments appId={currentProject?.id} />
       </RetryableErrorBoundary>
     </Container>
   );

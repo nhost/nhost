@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
@@ -18,7 +18,7 @@ export default function RemoveWorkspaceMemberInvite({
   close,
   handler,
 }: RemoveWorkspaceMemberInviteProps) {
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   return (
     <Box className="grid w-miniModal grid-flow-row gap-2 rounded-lg p-6 text-left">

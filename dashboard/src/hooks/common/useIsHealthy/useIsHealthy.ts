@@ -1,5 +1,5 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useQuery } from '@tanstack/react-query';
 
@@ -8,11 +8,11 @@ import { useQuery } from '@tanstack/react-query';
  */
 export default function useIsHealthy() {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const appUrl = generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region?.awsName,
+    currentProject?.subdomain,
+    currentProject?.region?.awsName,
     'auth',
   );
 
@@ -20,7 +20,7 @@ export default function useIsHealthy() {
     ['/healthz'],
     () => fetch(`${appUrl}/healthz`),
     {
-      enabled: !isPlatform && !!currentApplication,
+      enabled: !isPlatform && !!currentProject,
       retry: true,
       retryDelay: 5000,
       cacheTime: 0,

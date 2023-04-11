@@ -16508,6 +16508,11 @@ export type GetAllAppsWhereQueryVariables = Exact<{
 
 export type GetAllAppsWhereQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
 
+export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+
 export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null };
 
 export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
@@ -16568,15 +16573,13 @@ export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
-
 export type GetWorkspaceAndProjectQueryVariables = Exact<{
   workspaceSlug: Scalars['String'];
   projectSlug?: InputMaybe<Scalars['String']>;
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -16807,6 +16810,8 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
 export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -16898,7 +16903,7 @@ export type GetAppFunctionsMetadataQueryVariables = Exact<{
 }>;
 
 
-export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', metadataFunctions: any } | null };
+export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, metadataFunctions: any } | null };
 
 export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17238,86 +17243,6 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
   }
 }
     `;
-export const ProjectFragmentDoc = gql`
-    fragment Project on apps {
-  id
-  slug
-  name
-  repositoryProductionBranch
-  subdomain
-  isProvisioned
-  createdAt
-  desiredState
-  nhostBaseFolder
-  providersUpdated
-  config(resolve: true) {
-    hasura {
-      adminSecret
-    }
-  }
-  featureFlags {
-    description
-    id
-    name
-    value
-  }
-  appStates(order_by: {createdAt: desc}, limit: 1) {
-    id
-    appId
-    message
-    stateId
-    createdAt
-  }
-  region {
-    id
-    countryCode
-    awsName
-    city
-  }
-  plan {
-    id
-    name
-    isFree
-  }
-  githubRepository {
-    fullName
-  }
-  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
-    id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
-  }
-  creator {
-    id
-    email
-    displayName
-  }
-}
-    `;
-export const WorkspaceFragmentDoc = gql`
-    fragment Workspace on workspaces {
-  id
-  name
-  slug
-  workspaceMembers {
-    id
-    user {
-      id
-      email
-      displayName
-    }
-    type
-  }
-  projects: apps {
-    ...Project
-  }
-}
-    ${ProjectFragmentDoc}`;
 export const PrefetchNewAppRegionsFragmentDoc = gql`
     fragment PrefetchNewAppRegions on regions {
   id
@@ -17396,6 +17321,87 @@ export const DeploymentRowFragmentDoc = gql`
   commitMessage
 }
     `;
+export const ProjectFragmentDoc = gql`
+    fragment Project on apps {
+  id
+  slug
+  name
+  repositoryProductionBranch
+  subdomain
+  isProvisioned
+  createdAt
+  desiredState
+  nhostBaseFolder
+  providersUpdated
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
+  featureFlags {
+    description
+    id
+    name
+    value
+  }
+  appStates(order_by: {createdAt: desc}, limit: 1) {
+    id
+    appId
+    message
+    stateId
+    createdAt
+  }
+  region {
+    id
+    countryCode
+    awsName
+    city
+  }
+  plan {
+    id
+    name
+    isFree
+  }
+  githubRepository {
+    fullName
+  }
+  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
+  }
+  creator {
+    id
+    email
+    displayName
+  }
+}
+    `;
+export const WorkspaceFragmentDoc = gql`
+    fragment Workspace on workspaces {
+  id
+  name
+  slug
+  creatorUserId
+  workspaceMembers {
+    id
+    user {
+      id
+      email
+      displayName
+    }
+    type
+  }
+  projects: apps(order_by: {name: asc}) {
+    ...Project
+  }
+}
+    ${ProjectFragmentDoc}`;
 export const GithubRepositoryFragmentDoc = gql`
     fragment GithubRepository on githubRepositories {
   id
@@ -17664,6 +17670,43 @@ export type GetAllAppsWhereLazyQueryHookResult = ReturnType<typeof useGetAllApps
 export type GetAllAppsWhereQueryResult = Apollo.QueryResult<GetAllAppsWhereQuery, GetAllAppsWhereQueryVariables>;
 export function refetchGetAllAppsWhereQuery(variables: GetAllAppsWhereQueryVariables) {
       return { query: GetAllAppsWhereDocument, variables: variables }
+    }
+export const GetAllWorkspacesAndProjectsDocument = gql`
+    query GetAllWorkspacesAndProjects {
+  workspaces(order_by: {name: asc}) {
+    ...Workspace
+  }
+}
+    ${WorkspaceFragmentDoc}`;
+
+/**
+ * __useGetAllWorkspacesAndProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetAllWorkspacesAndProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllWorkspacesAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllWorkspacesAndProjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllWorkspacesAndProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
+      }
+export function useGetAllWorkspacesAndProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
+        }
+export type GetAllWorkspacesAndProjectsQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsQuery>;
+export type GetAllWorkspacesAndProjectsLazyQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsLazyQuery>;
+export type GetAllWorkspacesAndProjectsQueryResult = Apollo.QueryResult<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>;
+export function refetchGetAllWorkspacesAndProjectsQuery(variables?: GetAllWorkspacesAndProjectsQueryVariables) {
+      return { query: GetAllWorkspacesAndProjectsDocument, variables: variables }
     }
 export const GetAppByWorkspaceAndNameDocument = gql`
     query getAppByWorkspaceAndName($workspace: String!, $slug: String!) {
@@ -19777,6 +19820,7 @@ export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<Remo
 export const GetAppFunctionsMetadataDocument = gql`
     query getAppFunctionsMetadata($id: uuid!) {
   app(id: $id) {
+    id
     metadataFunctions
   }
 }

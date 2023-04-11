@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
-import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { EnvironmentVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -11,18 +11,18 @@ import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -37,9 +37,9 @@ export interface EnvironmentVariableSettingsFormValues {
 export default function EnvironmentVariableSettings() {
   const { openDialog, openAlertDialog } = useDialog();
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -77,7 +77,7 @@ export default function EnvironmentVariableSettings() {
   async function handleDeleteVariable({ id }: EnvironmentVariable) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           global: {
             environment: availableEnvironmentVariables

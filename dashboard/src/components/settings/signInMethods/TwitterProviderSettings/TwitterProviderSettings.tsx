@@ -6,7 +6,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
@@ -42,13 +42,13 @@ export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -85,7 +85,7 @@ export default function TwitterProviderSettings() {
   const handleProviderUpdate = async (values: TwitterProviderFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           auth: {
             method: {
@@ -166,8 +166,8 @@ export default function TwitterProviderSettings() {
             name="redirectUrl"
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
+              currentProject.subdomain,
+              currentProject.region.awsName,
               'auth',
             )}/signin/provider/twitter/callback`}
             className="col-span-2"
@@ -185,8 +185,8 @@ export default function TwitterProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        currentApplication.subdomain,
-                        currentApplication.region.awsName,
+                        currentProject.subdomain,
+                        currentProject.region.awsName,
                         'auth',
                       )}/signin/provider/twitter/callback`,
                       'Redirect URL',

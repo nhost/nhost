@@ -1,12 +1,13 @@
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
+import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { useCallback, useEffect, useState } from 'react';
-import useIsPlatform from './common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 type ApplicationStateMetadata = {
   state: ApplicationStatus;
@@ -20,26 +21,26 @@ type ApplicationStateMetadata = {
  * it will update the entire cache with the application state.
  */
 export function useCheckProvisioning() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
 
   const { data, startPolling, stopPolling, client } =
     useGetApplicationStateQuery({
-      variables: { appId: currentApplication?.id },
-      skip: !isPlatform || !currentApplication?.id,
+      variables: { appId: currentWorkspace?.id },
+      skip: !isPlatform || !currentWorkspace?.id,
     });
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: [GetOneUserDocument],
+      include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
     });
   }
 
   const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
 
-  const currentApplicationId = currentApplication?.id;
+  const currentApplicationId = currentWorkspace?.id;
 
   useEffect(() => {
     startPolling(2000);

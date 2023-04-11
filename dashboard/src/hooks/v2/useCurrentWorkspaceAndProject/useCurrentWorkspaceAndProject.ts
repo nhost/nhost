@@ -1,20 +1,11 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import type { GetWorkspaceAndProjectQueryHookResult } from '@/utils/__generated__/graphql';
-import { useGetWorkspaceAndProjectQuery } from '@/utils/__generated__/graphql';
+import { GetWorkspaceAndProjectDocument } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
-import type { QueryHookOptions } from '@apollo/client';
+import { useNhostClient, useUserData } from '@nhost/nextjs';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-
-export interface UseCurrentWorkspaceAndProjectOptions {
-  /**
-   * The fetch policy to use.
-   *
-   * @default 'cache-first'
-   */
-  fetchPolicy?: QueryHookOptions['fetchPolicy'];
-}
 
 export interface UseCurrentWorkspaceAndProjectReturnType {
   /**
@@ -28,16 +19,16 @@ export interface UseCurrentWorkspaceAndProjectReturnType {
   /**
    * Whether the query is loading.
    */
-  loading?: GetWorkspaceAndProjectQueryHookResult['loading'];
+  loading?: boolean;
   /**
    * The error if any.
    */
-  error?: GetWorkspaceAndProjectQueryHookResult['error'];
+  error?: Error;
 }
 
-export default function useCurrentWorkspaceAndProject(
-  options?: UseCurrentWorkspaceAndProjectOptions,
-): UseCurrentWorkspaceAndProjectReturnType {
+export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndProjectReturnType {
+  const client = useNhostClient();
+  const user = useUserData();
   const isPlatform = useIsPlatform();
 
   const {
@@ -45,15 +36,29 @@ export default function useCurrentWorkspaceAndProject(
     isReady,
   } = useRouter();
 
-  const { data, loading, error } = useGetWorkspaceAndProjectQuery({
-    variables: {
-      workspaceSlug: (workspaceSlug as string) || '',
-      projectSlug: (appSlug as string) || '',
+  // We can't use the hook exported by the codegen here because there are cases
+  // where it doesn't target the Nhost backend, but the currently active project
+  // instead.
+  const { data: response, isFetching } = useQuery(
+    ['currentWorkspaceAndProject', workspaceSlug, appSlug],
+    () =>
+      client.graphql.request<{
+        workspaces: Workspace[];
+        projects?: Project[];
+      }>(GetWorkspaceAndProjectDocument, {
+        workspaceSlug: (workspaceSlug as string) || '',
+        projectSlug: (appSlug as string) || '',
+      }),
+    {
+      keepPreviousData: true,
+      enabled: isPlatform && isReady && !!workspaceSlug && !!user,
+      // multiple components are relying on this query, so we don't want to
+      // refetch it too often - kind of a hack, should be improved later
+      staleTime: 1000,
     },
-    fetchPolicy: options?.fetchPolicy || 'cache-first',
-    skip: !isPlatform || !isReady || !workspaceSlug,
-  });
+  );
 
+  // Return a default project if working locally
   if (!isPlatform) {
     const localProject: Project = {
       id: 'local',
@@ -103,13 +108,19 @@ export default function useCurrentWorkspaceAndProject(
     };
   }
 
-  const [currentWorkspace] = data?.workspaces || [];
-  const [currentProject] = data?.projects || [];
+  // Return the current workspace and project if using the Nhost backend
+  const [currentWorkspace] = response?.data?.workspaces || [];
+  const [currentProject] = response?.data?.projects || [];
+  const error = Array.isArray(response?.error || {})
+    ? response?.error[0]
+    : response?.error;
 
   return {
     currentWorkspace,
     currentProject,
-    loading: data ? false : loading,
-    error,
+    loading: response ? false : isFetching,
+    error: response?.error
+      ? new Error(error?.message || 'Unknown error occurred.')
+      : null,
   };
 }

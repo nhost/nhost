@@ -10,7 +10,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
@@ -29,13 +29,13 @@ import { twMerge } from 'tailwind-merge';
 export default function GitHubProviderSettings() {
   const theme = useTheme();
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -74,7 +74,7 @@ export default function GitHubProviderSettings() {
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           auth: {
             method: {
@@ -144,8 +144,8 @@ export default function GitHubProviderSettings() {
             hideEmptyHelperText
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
+              currentProject.subdomain,
+              currentProject.region.awsName,
               'auth',
             )}/signin/provider/github/callback`}
             disabled
@@ -159,8 +159,8 @@ export default function GitHubProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        currentApplication.subdomain,
-                        currentApplication.region.awsName,
+                        currentProject.subdomain,
+                        currentProject.region.awsName,
                         'auth',
                       )}/signin/provider/github/callback`,
                       'Redirect URL',

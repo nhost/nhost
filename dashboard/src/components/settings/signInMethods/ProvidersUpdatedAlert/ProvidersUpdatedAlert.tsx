@@ -1,23 +1,23 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
-import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
+import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphql';
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useConfirmProvidersUpdatedMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function ProvidersUpdatedAlert() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { openAlertDialog } = useDialog();
   const [confirmed, setConfirmed] = useState(true);
 
   const [confirmProvidersUpdated] = useConfirmProvidersUpdatedMutation({
-    variables: { id: currentApplication?.id },
+    variables: { id: currentProject?.id },
   });
 
   async function handleSubmitConfirmation() {

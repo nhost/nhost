@@ -5,16 +5,16 @@ import type {
 import BasePermissionVariableForm, {
   basePermissionVariableValidationSchema,
 } from '@/components/settings/permissions/BasePermissionVariableForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { PermissionVariable } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -36,10 +36,10 @@ export default function EditPermissionVariableForm({
   onSubmit,
   ...props
 }: EditPermissionVariableFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, error, loading } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -116,7 +116,7 @@ export default function EditPermissionVariableForm({
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           auth: {
             session: {

@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
-import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
-import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
+import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { Secret } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
@@ -13,17 +13,17 @@ import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
   useGetSecretsQuery,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
@@ -32,10 +32,10 @@ import { twMerge } from 'tailwind-merge';
 export default function SecretsPage() {
   const { openDialog, openAlertDialog } = useDialog();
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetSecretsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   const [deleteSecret] = useDeleteSecretMutation({
@@ -53,7 +53,7 @@ export default function SecretsPage() {
   async function handleDeleteSecret(secret: Secret) {
     const deleteSecretPromise = deleteSecret({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         name: secret.name,
       },
     });

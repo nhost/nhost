@@ -6,12 +6,13 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import {
+  GetAllWorkspacesAndProjectsDocument,
   GetOneUserDocument,
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
@@ -37,19 +38,18 @@ export type ProjectNameValidationSchema = Yup.InferType<
 >;
 
 export default function SettingsGeneralPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
   const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
   const [pauseApplication] = usePauseApplicationMutation({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     refetchQueries: [GetOneUserDocument],
   });
   const [deleteApplication] = useDeleteApplicationMutation({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     refetchQueries: [GetOneUserDocument],
   });
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
   const router = useRouter();
   const { maintenanceActive } = useUI();
 
@@ -57,7 +57,7 @@ export default function SettingsGeneralPage() {
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
     defaultValues: {
-      name: currentApplication?.name,
+      name: currentProject?.name,
     },
     resolver: yupResolver(projectNameValidationSchema),
     criteriaMode: 'all',
@@ -88,7 +88,7 @@ export default function SettingsGeneralPage() {
 
     const updateAppMutation = updateApp({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         app: {
           name: data.name,
           slug: newProjectSlug,
@@ -117,7 +117,9 @@ export default function SettingsGeneralPage() {
       await router.push(
         `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
       );
-      await client.refetchQueries({ include: [GetOneUserDocument] });
+      await client.refetchQueries({
+        include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+      });
     } catch (error) {
       await discordAnnounce(
         error.message ||
@@ -130,10 +132,10 @@ export default function SettingsGeneralPage() {
     await toast.promise(
       deleteApplication(),
       {
-        loading: `Deleting ${currentApplication.name}...`,
-        success: `${currentApplication.name} has been deleted successfully.`,
+        loading: `Deleting ${currentProject.name}...`,
+        success: `${currentProject.name} has been deleted successfully.`,
         error: getServerError(
-          `An error occurred while trying to delete the project "${currentApplication.name}". Please try again.`,
+          `An error occurred while trying to delete the project "${currentProject.name}". Please try again.`,
         ),
       },
       getToastStyleProps(),
@@ -146,10 +148,10 @@ export default function SettingsGeneralPage() {
     await toast.promise(
       pauseApplication(),
       {
-        loading: `Pausing ${currentApplication.name}...`,
-        success: `${currentApplication.name} will be paused, but please note that it may take some time to complete the process.`,
+        loading: `Pausing ${currentProject.name}...`,
+        success: `${currentProject.name} will be paused, but please note that it may take some time to complete the process.`,
         error: getServerError(
-          `An error occurred while trying to pause the project "${currentApplication.name}". Please try again.`,
+          `An error occurred while trying to pause the project "${currentProject.name}". Please try again.`,
         ),
       },
       getToastStyleProps(),
@@ -192,7 +194,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {currentApplication.plan.isFree && (
+      {currentProject.plan.isFree && (
         <SettingsContainer
           title="Pause Project"
           description="While your project is paused, it will not be accessible. You can wake it up anytime after."
