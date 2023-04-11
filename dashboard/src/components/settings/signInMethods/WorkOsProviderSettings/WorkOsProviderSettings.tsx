@@ -7,7 +7,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
@@ -55,13 +55,13 @@ export type WorkOsProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WorkOsProviderSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -100,7 +100,7 @@ export default function WorkOsProviderSettings() {
   const handleProviderUpdate = async (values: WorkOsProviderFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           auth: {
             method: {
@@ -183,8 +183,8 @@ export default function WorkOsProviderSettings() {
             name="redirectUrl"
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
+              currentProject.subdomain,
+              currentProject.region.awsName,
               'auth',
             )}/signin/provider/workos/callback`}
             className="col-span-2"
@@ -202,8 +202,8 @@ export default function WorkOsProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        currentApplication.subdomain,
-                        currentApplication.region.awsName,
+                        currentProject.subdomain,
+                        currentProject.region.awsName,
                         'auth',
                       )}/signin/provider/workos/callback`,
                       'Redirect URL',

@@ -27,7 +27,6 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
-  labels: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -1669,6 +1668,15 @@ export type ConfigUserRoleComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
+export type DedicatedResourceReport = {
+  __typename?: 'DedicatedResourceReport';
+  ends: Scalars['Timestamp'];
+  id: Scalars['uuid'];
+  pending: Scalars['Boolean'];
+  starts: Scalars['Timestamp'];
+  totalMillicores: Scalars['Int'];
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Int']>;
@@ -1691,14 +1699,7 @@ export type Log = {
 
 export type Metrics = {
   __typename?: 'Metrics';
-  rows: Array<RowMetric>;
-};
-
-export type RowMetric = {
-  __typename?: 'RowMetric';
-  labels?: Maybe<Scalars['labels']>;
-  time: Scalars['Timestamp'];
-  value?: Maybe<Scalars['float64']>;
+  value: Scalars['float64'];
 };
 
 export type StatsLiveApps = {
@@ -2352,6 +2353,7 @@ export type Apps = {
   /** An object relationship */
   creator?: Maybe<Users>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  dedicatedResourcesReports: Array<DedicatedResourceReport>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** An aggregate relationship */
@@ -9233,6 +9235,7 @@ export type Mutation_Root = {
   insert_regions_one?: Maybe<Regions>;
   migrateRDSToPostgres: Scalars['Boolean'];
   pauseInactiveApps: Array<Scalars['String']>;
+  replaceConfig: ConfigConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
   /** update single row of the table: "apps" */
@@ -9288,6 +9291,7 @@ export type Mutation_Root = {
   /** update data of the table: "cli_tokens" */
   updateCliTokens?: Maybe<CliTokens_Mutation_Response>;
   updateConfig: ConfigConfig;
+  updateDedicatedResources: Scalars['Boolean'];
   /** update single row of the table: "deployments" */
   updateDeployment?: Maybe<Deployments>;
   /** update single row of the table: "deployment_logs" */
@@ -10251,6 +10255,13 @@ export type Mutation_RootMigrateRdsToPostgresArgs = {
 
 
 /** mutation root */
+export type Mutation_RootReplaceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
+};
+
+
+/** mutation root */
 export type Mutation_RootResetPostgresPasswordArgs = {
   appID: Scalars['String'];
   newPassword: Scalars['String'];
@@ -10482,6 +10493,13 @@ export type Mutation_RootUpdateCliTokensArgs = {
 export type Mutation_RootUpdateConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigUpdateInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateDedicatedResourcesArgs = {
+  appID: Scalars['uuid'];
+  totalMillicores: Scalars['Int'];
 };
 
 
@@ -12017,6 +12035,7 @@ export type Query_Root = {
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
+  dedicatedResourcesReport: Array<DedicatedResourceReport>;
   /** fetch data from the table: "deployments" using primary key columns */
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
@@ -12047,41 +12066,13 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
-  /**
-   * Returns CPU metrics for a given application.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * CPU usage is calculated as the average CPU usage over the period of 1m.
-   *
-   * Unit returned is millicores.
-   */
-  getCPUMetrics: Metrics;
-  /**
-   * Returns memory metrics for a given application.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Memory usage is returned in MiB.
-   */
-  getMemoryMetrics: Metrics;
-  /**
-   * Returns disk capacity for the volume used by postgres to store the database.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Disk usage is returned in MiB.
-   */
+  getCPUSecondsUsage: Metrics;
+  getEgressVolume: Metrics;
+  getFunctionsInvocations: Metrics;
+  getLogsVolume: Metrics;
   getPostgresVolumeCapacity: Metrics;
-  /**
-   * Returns disk usage for the volume used by postgres to store the database.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   *
-   * Disk usage is returned in MiB.
-   */
   getPostgresVolumeUsage: Metrics;
-  /**
-   * Return requests per second for a given application by service.
-   * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
-   */
-  getRequestsPerSecond: Metrics;
+  getTotalRequests: Metrics;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -12538,6 +12529,11 @@ export type Query_RootCountries_By_PkArgs = {
 };
 
 
+export type Query_RootDedicatedResourcesReportArgs = {
+  appID: Scalars['uuid'];
+};
+
+
 export type Query_RootDeploymentArgs = {
   id: Scalars['uuid'];
 };
@@ -12653,14 +12649,29 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
-export type Query_RootGetCpuMetricsArgs = {
+export type Query_RootGetCpuSecondsUsageArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
-export type Query_RootGetMemoryMetricsArgs = {
+export type Query_RootGetEgressVolumeArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  subdomain: Scalars['String'];
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetFunctionsInvocationsArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetLogsVolumeArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
@@ -12669,19 +12680,17 @@ export type Query_RootGetMemoryMetricsArgs = {
 
 export type Query_RootGetPostgresVolumeCapacityArgs = {
   appID: Scalars['String'];
-  from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
+  t?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
 export type Query_RootGetPostgresVolumeUsageArgs = {
   appID: Scalars['String'];
-  from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
+  t?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
-export type Query_RootGetRequestsPerSecondArgs = {
+export type Query_RootGetTotalRequestsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
@@ -16523,6 +16532,11 @@ export type GetAllAppsWhereQueryVariables = Exact<{
 
 export type GetAllAppsWhereQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
 
+export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+
 export type GetAppByWorkspaceAndNameFragment = { __typename?: 'apps', updatedAt: any, id: any, slug: string, subdomain: string, name: string, createdAt: any, isProvisioned: boolean, providersUpdated?: boolean | null, repositoryProductionBranch: string, githubRepositoryId?: any | null, workspaceId: any, githubRepository?: { __typename?: 'githubRepositories', id: any, name: string, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null } } | null, region: { __typename?: 'regions', countryCode: string, city: string }, workspace: { __typename?: 'workspaces', name: string, slug: string, id: any }, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null };
 
 export type GetAppByWorkspaceAndNameQueryVariables = Exact<{
@@ -16568,12 +16582,20 @@ export type GetAppProvisionStatusQueryVariables = Exact<{
 
 export type GetAppProvisionStatusQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, isProvisioned: boolean, subdomain: string, createdAt: any }> };
 
+export type GetProjectMetricsQueryVariables = Exact<{
+  appId: Scalars['String'];
+  subdomain: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetRemoteAppRolesQuery = { __typename?: 'query_root', authRoles: Array<{ __typename?: 'authRoles', role: string }> };
-
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GetWorkspaceAndProjectQueryVariables = Exact<{
   workspaceSlug: Scalars['String'];
@@ -16581,7 +16603,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -16821,6 +16843,8 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
 export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -16914,7 +16938,7 @@ export type GetAppFunctionsMetadataQueryVariables = Exact<{
 }>;
 
 
-export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', metadataFunctions: any } | null };
+export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, metadataFunctions: any } | null };
 
 export type GetRemoteAppFilesUsageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -17254,87 +17278,6 @@ export const GetAppByWorkspaceAndNameFragmentDoc = gql`
   }
 }
     `;
-export const ProjectFragmentDoc = gql`
-    fragment Project on apps {
-  id
-  slug
-  name
-  repositoryProductionBranch
-  subdomain
-  isProvisioned
-  createdAt
-  desiredState
-  nhostBaseFolder
-  providersUpdated
-  config(resolve: true) {
-    hasura {
-      adminSecret
-    }
-  }
-  featureFlags {
-    description
-    id
-    name
-    value
-  }
-  appStates(order_by: {createdAt: desc}, limit: 1) {
-    id
-    appId
-    message
-    stateId
-    createdAt
-  }
-  region {
-    id
-    countryCode
-    awsName
-    city
-  }
-  plan {
-    id
-    name
-    price
-    isFree
-  }
-  githubRepository {
-    fullName
-  }
-  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
-    id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
-  }
-  creator {
-    id
-    email
-    displayName
-  }
-}
-    `;
-export const WorkspaceFragmentDoc = gql`
-    fragment Workspace on workspaces {
-  id
-  name
-  slug
-  workspaceMembers {
-    id
-    user {
-      id
-      email
-      displayName
-    }
-    type
-  }
-  projects: apps {
-    ...Project
-  }
-}
-    ${ProjectFragmentDoc}`;
 export const PrefetchNewAppRegionsFragmentDoc = gql`
     fragment PrefetchNewAppRegions on regions {
   id
@@ -17449,6 +17392,88 @@ export const DeploymentRowFragmentDoc = gql`
   commitMessage
 }
     `;
+export const ProjectFragmentDoc = gql`
+    fragment Project on apps {
+  id
+  slug
+  name
+  repositoryProductionBranch
+  subdomain
+  isProvisioned
+  createdAt
+  desiredState
+  nhostBaseFolder
+  providersUpdated
+  config(resolve: true) {
+    hasura {
+      adminSecret
+    }
+  }
+  featureFlags {
+    description
+    id
+    name
+    value
+  }
+  appStates(order_by: {createdAt: desc}, limit: 1) {
+    id
+    appId
+    message
+    stateId
+    createdAt
+  }
+  region {
+    id
+    countryCode
+    awsName
+    city
+  }
+  plan {
+    id
+    name
+    price
+    isFree
+  }
+  githubRepository {
+    fullName
+  }
+  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+    id
+    commitSHA
+    commitMessage
+    commitUserName
+    deploymentStartedAt
+    deploymentEndedAt
+    commitUserAvatarUrl
+    deploymentStatus
+  }
+  creator {
+    id
+    email
+    displayName
+  }
+}
+    `;
+export const WorkspaceFragmentDoc = gql`
+    fragment Workspace on workspaces {
+  id
+  name
+  slug
+  creatorUserId
+  workspaceMembers {
+    id
+    user {
+      id
+      email
+      displayName
+    }
+    type
+  }
+  projects: apps(order_by: {name: asc}) {
+    ...Project
+  }
+}
+    ${ProjectFragmentDoc}`;
 export const GithubRepositoryFragmentDoc = gql`
     fragment GithubRepository on githubRepositories {
   id
@@ -17718,6 +17743,43 @@ export type GetAllAppsWhereQueryResult = Apollo.QueryResult<GetAllAppsWhereQuery
 export function refetchGetAllAppsWhereQuery(variables: GetAllAppsWhereQueryVariables) {
       return { query: GetAllAppsWhereDocument, variables: variables }
     }
+export const GetAllWorkspacesAndProjectsDocument = gql`
+    query GetAllWorkspacesAndProjects {
+  workspaces(order_by: {name: asc}) {
+    ...Workspace
+  }
+}
+    ${WorkspaceFragmentDoc}`;
+
+/**
+ * __useGetAllWorkspacesAndProjectsQuery__
+ *
+ * To run a query within a React component, call `useGetAllWorkspacesAndProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllWorkspacesAndProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllWorkspacesAndProjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAllWorkspacesAndProjectsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
+      }
+export function useGetAllWorkspacesAndProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>(GetAllWorkspacesAndProjectsDocument, options);
+        }
+export type GetAllWorkspacesAndProjectsQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsQuery>;
+export type GetAllWorkspacesAndProjectsLazyQueryHookResult = ReturnType<typeof useGetAllWorkspacesAndProjectsLazyQuery>;
+export type GetAllWorkspacesAndProjectsQueryResult = Apollo.QueryResult<GetAllWorkspacesAndProjectsQuery, GetAllWorkspacesAndProjectsQueryVariables>;
+export function refetchGetAllWorkspacesAndProjectsQuery(variables?: GetAllWorkspacesAndProjectsQueryVariables) {
+      return { query: GetAllWorkspacesAndProjectsDocument, variables: variables }
+    }
 export const GetAppByWorkspaceAndNameDocument = gql`
     query getAppByWorkspaceAndName($workspace: String!, $slug: String!) {
   apps(where: {workspace: {slug: {_eq: $workspace}}, slug: {_eq: $slug}}) {
@@ -17973,6 +18035,74 @@ export type GetAppProvisionStatusLazyQueryHookResult = ReturnType<typeof useGetA
 export type GetAppProvisionStatusQueryResult = Apollo.QueryResult<GetAppProvisionStatusQuery, GetAppProvisionStatusQueryVariables>;
 export function refetchGetAppProvisionStatusQuery(variables: GetAppProvisionStatusQueryVariables) {
       return { query: GetAppProvisionStatusDocument, variables: variables }
+    }
+export const GetProjectMetricsDocument = gql`
+    query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
+  logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  cpuSecondsUsage: getCPUSecondsUsage(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  functionInvocations: getFunctionsInvocations(
+    appID: $appId
+    from: $from
+    to: $to
+  ) {
+    value
+  }
+  postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
+    value
+  }
+  postgresVolumeUsage: getPostgresVolumeUsage(appID: $appId) {
+    value
+  }
+  totalRequests: getTotalRequests(appID: $appId, from: $from, to: $to) {
+    value
+  }
+  egressVolume: getEgressVolume(
+    appID: $appId
+    subdomain: $subdomain
+    from: $from
+    to: $to
+  ) {
+    value
+  }
+}
+    `;
+
+/**
+ * __useGetProjectMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectMetricsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      subdomain: // value for 'subdomain'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetProjectMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
+      }
+export function useGetProjectMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>(GetProjectMetricsDocument, options);
+        }
+export type GetProjectMetricsQueryHookResult = ReturnType<typeof useGetProjectMetricsQuery>;
+export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProjectMetricsLazyQuery>;
+export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
+export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
+      return { query: GetProjectMetricsDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {
@@ -19779,6 +19909,7 @@ export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<Remo
 export const GetAppFunctionsMetadataDocument = gql`
     query getAppFunctionsMetadata($id: uuid!) {
   app(id: $id) {
+    id
     metadataFunctions
   }
 }

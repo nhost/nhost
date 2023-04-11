@@ -1,5 +1,17 @@
 # @nhost/docs
 
+## 0.0.16
+
+### Patch Changes
+
+- e7cb5070: fix(docs): use updated URLs everywhere
+
+## 0.0.15
+
+### Patch Changes
+
+- 0795d1c6: chore: add link to event triggers on the serverless functions page
+
 ## 0.0.14
 
 ### Patch Changes

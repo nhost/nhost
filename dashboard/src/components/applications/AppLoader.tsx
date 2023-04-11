@@ -1,6 +1,6 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useInterval } from '@/hooks/useInterval';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -33,7 +33,7 @@ export function AppLoader({
   date,
   restoring,
 }: AppLoaderProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   let timeElapsedSinceEventCreation: number;
 
@@ -41,11 +41,11 @@ export function AppLoader({
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
   } else if (unpause) {
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      currentApplication.appStates[0].createdAt,
+      currentProject.appStates[0].createdAt,
     );
   } else {
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      currentApplication.createdAt,
+      currentProject.createdAt,
     );
   }
 
@@ -63,9 +63,9 @@ export function AppLoader({
     <div className="grid grid-flow-row gap-2">
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h1">
-          {restoring && `Restoring ${currentApplication.name} from backup`}
-          {!restoring && unpause && `Unpausing ${currentApplication.name}`}
-          {!restoring && !unpause && `Provisioning ${currentApplication.name}`}
+          {restoring && `Restoring ${currentProject.name} from backup`}
+          {!restoring && unpause && `Unpausing ${currentProject.name}`}
+          {!restoring && !unpause && `Provisioning ${currentProject.name}`}
         </Text>
         <Text>This normally takes around 2 minutes</Text>
       </div>

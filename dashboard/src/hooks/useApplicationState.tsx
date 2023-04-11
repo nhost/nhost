@@ -1,27 +1,33 @@
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 /**
  * This hook returns the current application state. If the application state
  * has not been filled, it returns an Empty application status.
  */
-export default function useApplicationState(): ApplicationStatus {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const noApplication = !currentApplication;
+export default function useApplicationState(): {
+  state: ApplicationStatus;
+  message?: string;
+} {
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const noApplication = !currentProject;
 
   if (noApplication) {
-    return ApplicationStatus.Empty;
+    return { state: ApplicationStatus.Empty };
   }
 
-  const emptyApplicationStates = !currentApplication.appStates;
+  const emptyApplicationStates = !currentProject.appStates;
 
   if (noApplication || emptyApplicationStates) {
-    return ApplicationStatus.Empty;
+    return { state: ApplicationStatus.Empty };
   }
 
-  if (currentApplication.appStates?.length === 0) {
-    return ApplicationStatus.Empty;
+  if (currentProject.appStates?.length === 0) {
+    return { state: ApplicationStatus.Empty };
   }
 
-  return currentApplication.appStates[0].stateId;
+  return {
+    state: currentProject.appStates[0].stateId,
+    message: currentProject.appStates[0].message,
+  };
 }

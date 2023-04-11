@@ -1,6 +1,8 @@
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
+import { faker } from '@faker-js/faker';
+import type { NhostSession } from '@nhost/nextjs';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
 
@@ -67,4 +69,26 @@ export const mockWorkspace: Workspace = {
   slug: 'test-workspace',
   members: [],
   applications: [mockApplication],
+};
+
+export const mockSession: NhostSession = {
+  accessToken: faker.random.alphaNumeric(),
+  accessTokenExpiresIn: 900,
+  refreshToken: faker.datatype.uuid(),
+  user: {
+    id: faker.datatype.uuid(),
+    email: faker.internet.email(),
+    displayName: faker.name.fullName(),
+    createdAt: faker.date.past().toISOString(),
+    avatarUrl: faker.image.avatar(),
+    locale: 'en',
+    isAnonymous: false,
+    defaultRole: 'user',
+    roles: ['user', 'me'],
+    metadata: {},
+    emailVerified: true,
+    phoneNumber: faker.phone.number(),
+    phoneNumberVerified: true,
+    activeMfaType: 'totp',
+  },
 };

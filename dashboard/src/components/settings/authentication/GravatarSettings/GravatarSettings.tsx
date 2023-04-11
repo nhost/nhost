@@ -7,7 +7,7 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import getServerError from '@/utils/settings/getServerError';
@@ -32,13 +32,13 @@ export type GravatarFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function GravatarSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -78,7 +78,7 @@ export default function GravatarSettings() {
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           auth: {
             user: {

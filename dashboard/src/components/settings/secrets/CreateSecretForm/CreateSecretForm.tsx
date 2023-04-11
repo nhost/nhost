@@ -5,12 +5,12 @@ import type {
 import BaseSecretForm, {
   baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -36,7 +36,7 @@ export default function CreateSecretForm({
     resolver: yupResolver(baseSecretFormValidationSchema),
   });
 
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertSecret] = useInsertSecretMutation({
     refetchQueries: [GetSecretsDocument],
   });
@@ -44,7 +44,7 @@ export default function CreateSecretForm({
   async function handleSubmit({ name, value }: BaseSecretFormValues) {
     const insertSecretPromise = insertSecret({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         secret: {
           name,
           value,

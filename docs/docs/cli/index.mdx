@@ -85,13 +85,13 @@ Hasura Console starts automatically and your Nhost project is running locally.
 
 ## Subdomain and Region
 
-Use `localhost` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
+Use `local` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
 
 ```js
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  subdomain: 'localhost'
+  subdomain: 'local'
 })
 ```
 
@@ -104,18 +104,19 @@ The Mailhog address is listed after starting [`nhost up`](/reference/cli/up):
 ```
 $ nhost up
 URLs:
-- Postgres:         postgres://postgres:postgres@localhost:5432/postgres
-- GraphQL:          http://localhost:1337/v1/graphql
-- Auth:             http://localhost:1337/v1/auth
-- Storage:          http://localhost:1337/v1/storage
-- Functions:        http://localhost:1337/v1/functions
+- Postgres:         postgres://postgres:postgres@local.db.nhost.run:5432/postgres
+- Hasura:           https://local.hasura.nhost.run
+- GraphQL:          https://local.graphql.nhost.run/v1
+- Auth:             https://local.auth.nhost.run/v1
+- Storage:          https://local.storage.nhost.run/v1
+- Functions:        https://local.functions.nhost.run/v1
 
-- Hasura console:  http://localhost:9695
+- Dashboard:        http://localhost:3030
 // highlight-start
-- Mailhog:         http://localhost:8025
+- Mailhog:          http://localhost:8025
 // highlight-end
 
-- subdomain:       localhost
+- subdomain:       local
 - region:          (empty)
 ```
 

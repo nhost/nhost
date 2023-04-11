@@ -6,7 +6,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
@@ -47,13 +47,13 @@ export type SMSSettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function SMSSettings() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
   const { data, error, loading } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -92,7 +92,7 @@ export default function SMSSettings() {
   const handleSMSSettingsChange = async (values: SMSSettingsFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           provider: {
             sms: {

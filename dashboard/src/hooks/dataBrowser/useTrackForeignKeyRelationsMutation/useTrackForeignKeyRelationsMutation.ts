@@ -1,5 +1,5 @@
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';
@@ -34,10 +34,10 @@ export default function useTrackForeignKeyRelationMutation({
   const {
     query: { dataSourceSlug },
   } = useRouter();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region.awsName,
+    currentProject?.subdomain,
+    currentProject?.region.awsName,
     'hasura',
   );
   const mutationFn = isPlatform
@@ -52,8 +52,7 @@ export default function useTrackForeignKeyRelationMutation({
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret ||
-              currentApplication?.config?.hasura.adminSecret,
+            : customAdminSecret || currentProject?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     mutationOptions,

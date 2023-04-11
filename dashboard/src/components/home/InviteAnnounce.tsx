@@ -29,7 +29,7 @@ export function InviteAnnounce() {
       variables: {
         userId: user?.id,
       },
-      skip: !isPlatform,
+      skip: !isPlatform || !user,
     });
 
   useEffect(() => {

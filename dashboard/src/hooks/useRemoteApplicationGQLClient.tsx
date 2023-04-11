@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
@@ -9,10 +9,10 @@ import { useMemo } from 'react';
  * @returns A function that returns a new ApolloClient instance.
  */
 export function useRemoteApplicationGQLClient() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const userApplicationClient = useMemo(() => {
-    if (!currentApplication) {
+    if (!currentProject) {
       return new ApolloClient({ cache: new InMemoryCache() });
     }
 
@@ -20,19 +20,19 @@ export function useRemoteApplicationGQLClient() {
       cache: new InMemoryCache(),
       link: new HttpLink({
         uri: generateAppServiceUrl(
-          currentApplication?.subdomain,
-          currentApplication?.region.awsName,
+          currentProject?.subdomain,
+          currentProject?.region.awsName,
           'graphql',
         ),
         headers: {
           'x-hasura-admin-secret':
             process.env.NEXT_PUBLIC_ENV === 'dev'
               ? getHasuraAdminSecret()
-              : currentApplication?.config?.hasura.adminSecret,
+              : currentProject?.config?.hasura.adminSecret,
         },
       }),
     });
-  }, [currentApplication]);
+  }, [currentProject]);
 
   return userApplicationClient;
 }

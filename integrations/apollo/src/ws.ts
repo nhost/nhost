@@ -3,6 +3,7 @@ import { Client, ClientOptions, createClient } from 'graphql-ws'
 
 export interface RestartableClient extends Client {
   restart(): void
+  isOpen(): boolean
 }
 
 export function createRestartableClient(options: ClientOptions): RestartableClient {
@@ -10,6 +11,8 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
   let restart = () => {
     restartRequested = true
   }
+
+  let connectionOpen = false
   let socket: WebSocket
   let timedOut: NodeJS.Timeout
 
@@ -46,6 +49,7 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
       opened: (originalSocket) => {
         socket = originalSocket as WebSocket
         options.on?.opened?.(socket)
+        connectionOpen = true
 
         restart = () => {
           if (socket.readyState === WebSocket.OPEN) {
@@ -63,12 +67,17 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
           restartRequested = false
           restart()
         }
+      },
+      closed: (event) => {
+        options?.on?.closed?.(event)
+        connectionOpen = false
       }
     }
   })
 
   return {
     ...client,
-    restart: () => restart()
+    restart: () => restart(),
+    isOpen: () => connectionOpen
   }
 }

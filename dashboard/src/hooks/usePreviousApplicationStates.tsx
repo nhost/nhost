@@ -1,19 +1,19 @@
+import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { ApplicationStatus } from '@/types/application';
-import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
 import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
+import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
 import { useEffect, useState } from 'react';
-import useIsPlatform from './common/useIsPlatform';
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
 
 /**
  * This hook returns the previous application state (plus some checks.)
  */
 export default function usePreviousApplicationState(): ApplicationStatus {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlatform = useIsPlatform();
   const { data, loading, error } = useGetApplicationStateQuery({
-    variables: { appId: currentApplication?.id },
-    skip: !isPlatform,
+    variables: { appId: currentProject?.id },
+    skip: !isPlatform || !currentProject?.id,
   });
 
   const [previousState, setPreviousState] = useState<ApplicationStatus | null>(

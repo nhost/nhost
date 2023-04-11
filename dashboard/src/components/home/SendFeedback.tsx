@@ -1,5 +1,5 @@
 import { useInsertFeedbackOneMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -8,7 +8,7 @@ import { useUserData } from '@nhost/nextjs';
 import * as React from 'react';
 
 export function SendFeedback({ setFeedbackSent, feedback, setFeedback }: any) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertFeedback, { loading }] = useInsertFeedbackOneMutation();
   const user = useUserData();
 
@@ -16,7 +16,7 @@ export function SendFeedback({ setFeedbackSent, feedback, setFeedback }: any) {
     e.preventDefault();
 
     const feedbackWithProjectInfo = [
-      currentApplication && `Project ID: ${currentApplication.id}`,
+      currentProject && `Project ID: ${currentProject.id}`,
       typeof window !== 'undefined' && `URL: ${window.location.href}`,
       feedback,
     ]

@@ -71,23 +71,6 @@ export function generateRemoteAppUrl(subdomain: string): string {
   return `https://${subdomain}.nhost.run`;
 }
 
-export function emptyWorkspace() {
-  return {
-    id: '',
-    name: '',
-    slug: '',
-    app: '',
-    appId: '',
-    appSlug: '',
-    appName: '',
-    appSubdomain: '',
-    appAdminSecret: '',
-    appIsProvisioned: false,
-    repository: '',
-    provisioning: false,
-  };
-}
-
 /**
  * Converts the state number of the application to its string equivalent.
  * @param appStatus The current state of the application.

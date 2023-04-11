@@ -2,7 +2,6 @@ import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 
 import { useGetDatabaseConnectionInfoQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { ReactElement } from 'react';
@@ -10,23 +9,24 @@ import type { ReactElement } from 'react';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 
 import ResetDatabasePasswordSettings from '@/components/settings/ResetDatabasePasswordSettings';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
 
 export default function DatabaseSettingsPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const postgresHost = `${currentApplication.subdomain}.db.${
-    currentApplication.region.awsName
+  const postgresHost = `${currentProject.subdomain}.db.${
+    currentProject.region.awsName
   }.${isDevOrStaging() ? 'staging.nhost' : 'nhost'}.run`;
 
   const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
     variables: {
-      appId: currentApplication?.id,
+      appId: currentProject?.id,
     },
   });
 

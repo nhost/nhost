@@ -3,7 +3,7 @@ import { DEFAULT_ROLES } from '@/components/applications/graphql/utils';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import PlayIcon from '@/ui/v2/icons/PlayIcon';
 import Option from '@/ui/v2/Option';
@@ -250,19 +250,19 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
 }
 
 export default function GraphQLPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
   if (
-    !currentApplication?.subdomain ||
-    !currentApplication?.config?.hasura.adminSecret
+    !currentProject?.subdomain ||
+    !currentProject?.config?.hasura.adminSecret
   ) {
     return <LoadingScreen />;
   }
 
   const appUrl = generateAppServiceUrl(
-    currentApplication.subdomain,
-    currentApplication.region.awsName,
+    currentProject.subdomain,
+    currentProject.region.awsName,
     'graphql',
   );
 
@@ -272,7 +272,7 @@ export default function GraphQLPage() {
 
   const headers = {
     'content-type': 'application/json',
-    'x-hasura-admin-secret': currentApplication.config?.hasura.adminSecret,
+    'x-hasura-admin-secret': currentProject.config?.hasura.adminSecret,
     ...userHeaders,
   };
 

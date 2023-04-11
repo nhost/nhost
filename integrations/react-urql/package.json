@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-urql",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "description": "Nhost React URQL client",
   "license": "MIT",
   "keywords": [
@@ -71,10 +71,10 @@
   },
   "devDependencies": {
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.0.25",
+    "@types/react": "^18.0.34",
     "graphql": "16.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "urql": "^3.0.3"
+    "urql": "^4.0.0"
   }
 }

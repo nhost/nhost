@@ -1,28 +1,27 @@
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import NavLink from 'next/link';
 
 export default function OverviewRepository() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { maintenanceActive } = useUI();
 
   return (
     <div>
       <Text variant="h3">Repository</Text>
       <Text variant="subtitle1" className="mt-2 !font-medium">
-        {!currentApplication.githubRepository
+        {!currentProject.githubRepository
           ? 'Connect your project with a GitHub repository to create your first deployment.'
           : 'GitHub is connected.'}
       </Text>
-      {!currentApplication.githubRepository ? (
+      {!currentProject.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
-            href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+            href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
           >
             <Button
@@ -47,12 +46,12 @@ export default function OverviewRepository() {
           >
             <GithubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
-              {currentApplication.githubRepository.fullName}
+              {currentProject.githubRepository.fullName}
             </Text>
           </Box>
 
           <NavLink
-            href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+            href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
           >
             <Button

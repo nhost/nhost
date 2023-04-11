@@ -2,28 +2,26 @@ import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
-import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import List from '@/ui/v2/List';
 import Text from '@/ui/v2/Text';
-import { getLastLiveDeployment } from '@/utils/helpers';
+import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import RocketIcon from '@/ui/v2/icons/RocketIcon';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
+import { getLastLiveDeployment } from '@/utils/helpers';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
 
 function OverviewDeploymentsTopBar() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
-
-  const { githubRepository } = currentApplication || {};
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
   return (
     <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
@@ -32,10 +30,10 @@ function OverviewDeploymentsTopBar() {
       </Text>
 
       <NavLink
-        href={`/${currentWorkspace?.slug}/${currentApplication?.slug}/deployments`}
+        href={`/${currentWorkspace?.slug}/${currentProject?.slug}/deployments`}
         passHref
       >
-        <Button variant="borderless" disabled={!githubRepository}>
+        <Button variant="borderless" disabled={!isGitHubConnected}>
           View all
           <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
         </Button>
@@ -45,11 +43,10 @@ function OverviewDeploymentsTopBar() {
 }
 
 function OverviewDeploymentList() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading } = useGetDeploymentsSubSubscription({
     variables: {
-      id: currentApplication?.id,
+      id: currentProject?.id,
       limit: 5,
       offset: 0,
     },
@@ -60,7 +57,7 @@ function OverviewDeploymentList() {
     loading: scheduledOrPendingDeploymentsLoading,
   } = useScheduledOrPendingDeploymentsSubSubscription({
     variables: {
-      appId: currentApplication?.id,
+      appId: currentProject?.id,
     },
   });
 
@@ -102,12 +99,12 @@ function OverviewDeploymentList() {
           >
             <GithubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
-              {currentApplication?.githubRepository?.fullName}
+              {currentProject?.githubRepository?.fullName}
             </Text>
           </Box>
 
           <NavLink
-            href={`/${currentWorkspace.slug}/${currentApplication.slug}/settings/git`}
+            href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
           >
             <Button variant="borderless" size="small">
@@ -145,14 +142,17 @@ function OverviewDeploymentList() {
 }
 
 export default function OverviewDeployments() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject, loading } = useCurrentWorkspaceAndProject();
   const { openGitHubModal } = useGitHubModal();
   const { maintenanceActive } = useUI();
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
-  const { githubRepository } = currentApplication || {};
+  if (loading) {
+    return <ActivityIndicator label="Loading project info..." delay={1000} />;
+  }
 
   // GitHub repo connected. Show deployments
-  if (githubRepository) {
+  if (isGitHubConnected) {
     return (
       <div className="flex flex-col">
         <OverviewDeploymentsTopBar />

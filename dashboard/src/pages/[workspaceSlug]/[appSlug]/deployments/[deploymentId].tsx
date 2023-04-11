@@ -2,7 +2,7 @@ import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuratio
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
@@ -25,7 +25,7 @@ export default function DeploymentDetailsPage() {
     },
   });
 
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   if (loading) {
     return (
@@ -110,7 +110,7 @@ export default function DeploymentDetailsPage() {
             className="self-center font-mono font-medium"
             target="_blank"
             rel="noreferrer"
-            href={`https://github.com/${currentApplication.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
+            href={`https://github.com/${currentProject.githubRepository?.fullName}/commit/${deployment.commitSHA}`}
             underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}

@@ -1,5 +1,11 @@
 # @nhost/react-urql
 
+## 2.0.14
+
+### Patch Changes
+
+- 09cf5d4b: chore(deps): bump `urql` to v4
+
 ## 2.0.13
 
 ### Patch Changes

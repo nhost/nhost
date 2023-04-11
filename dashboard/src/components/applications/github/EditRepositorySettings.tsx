@@ -1,5 +1,5 @@
 import type { ConnectGithubModalState } from '@/components/applications/ConnectGithubModal';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { FormProvider, useForm } from 'react-hook-form';
 import { EditRepositorySettingsModal } from './EditRepositorySettingsModal';
 
@@ -21,13 +21,13 @@ export function EditRepositorySettings({
   selectedRepoId,
   handleSelectAnotherRepository,
 }: EditRepositorySettingsProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const form = useForm<EditRepositorySettingsFormData>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      productionBranch: currentApplication.repositoryProductionBranch || 'main',
-      repoBaseFolder: currentApplication.nhostBaseFolder,
+      productionBranch: currentProject?.repositoryProductionBranch || 'main',
+      repoBaseFolder: currentProject?.nhostBaseFolder,
     },
   });
 

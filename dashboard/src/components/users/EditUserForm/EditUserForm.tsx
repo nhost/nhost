@@ -3,8 +3,8 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import EditUserPasswordForm from '@/components/users/EditUserPasswordForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import Avatar from '@/ui/v2/Avatar';
 import Box from '@/ui/v2/Box';
@@ -12,21 +12,21 @@ import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputLabel from '@/ui/v2/InputLabel';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import getReadableProviderName from '@/utils/common/getReadableProviderName';
-import { copy } from '@/utils/copy';
-import getServerError from '@/utils/settings/getServerError';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import {
   RemoteAppGetUsersDocument,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import getReadableProviderName from '@/utils/common/getReadableProviderName';
+import { copy } from '@/utils/copy';
+import getServerError from '@/utils/settings/getServerError';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
@@ -93,7 +93,7 @@ export default function EditUserForm({
 }: EditUserFormProps) {
   const theme = useTheme();
   const { onDirtyStateChange, openDialog } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const isAnonymous = user.roles.some((role) => role.role === 'anonymous');
   const [isUserBanned, setIsUserBanned] = useState(user.disabled);
@@ -139,7 +139,7 @@ export default function EditUserForm({
   }
 
   const { data: dataRoles } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   const allAvailableProjectRoles = getUserRoles(

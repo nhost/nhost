@@ -1,5 +1,35 @@
 # @nhost/dashboard
 
+## 0.14.5
+
+### Patch Changes
+
+- ba0d57ee: fix(i18n): revert i18n library
+- 3328ed05: feat(projects): improve overview when there is an error
+
+## 0.14.4
+
+### Patch Changes
+
+- 5e0920ba: chore(deps): bump `next-seo` to v6
+- 706c9dc3: chore(deps): bump `@types/react` to 18.0.33
+- 99f8f6b3: feat(metrics): show metrics on the overview
+
+## 0.14.3
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.16
+
+## 0.14.2
+
+### Patch Changes
+
+- 3cb67300: fix(logs): don't break UI when clearing time picker
+- 7453bf3b: feat(projects): show project creator info
+- c166dad0: chore(tests): improve auth page tests
+- 6a290bb2: chore(deps): bump `@types/react` to 18.0.32
+
 ## 0.14.1
 
 ### Patch Changes

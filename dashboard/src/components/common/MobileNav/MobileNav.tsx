@@ -3,7 +3,6 @@ import FeedbackForm from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
 import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';
-import { useUserDataContext } from '@/context/workspace1-context';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
@@ -19,6 +18,7 @@ import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import { useApolloClient } from '@apollo/client';
 import { useSignOut } from '@nhost/nextjs';
 import getConfig from 'next/config';
 import { useRouter } from 'next/router';
@@ -88,7 +88,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { signOut } = useSignOut();
-  const { setUserContext } = useUserDataContext();
+  const apolloClient = useApolloClient();
   const router = useRouter();
   const { publicRuntimeConfig } = getConfig();
 
@@ -236,7 +236,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                     setShowChangePasswordModal(true);
                   }}
                 >
-                  Change password
+                  Change Password
                 </ListItem.Button>
               </ListItem.Root>
 
@@ -248,13 +248,13 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   color="secondary"
                   className="justify-start border-none px-2 py-2.5 text-[16px]"
                   onClick={async () => {
-                    setUserContext({ workspaces: [] });
                     setMenuOpen(false);
+                    await apolloClient.clearStore();
                     await signOut();
                     await router.push('/signin');
                   }}
                 >
-                  Sign out
+                  Sign Out
                 </ListItem.Button>
               </ListItem.Root>
             </List>

@@ -1,14 +1,14 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -64,7 +64,7 @@ export default function EditJwtSecretForm({
   submitButtonText = 'Save',
   location,
 }: EditJwtSecretFormProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetEnvironmentVariablesDocument],
   });
@@ -93,7 +93,7 @@ export default function EditJwtSecretForm({
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication?.id,
+        appId: currentProject?.id,
         config: {
           hasura: {
             jwtSecrets: isArray ? parsedJwtSecret : [parsedJwtSecret],

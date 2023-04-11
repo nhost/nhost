@@ -28,10 +28,10 @@ const StyledTooltip = styled(Box)(({ theme }) => ({
     lineHeight: '1.375rem',
     backgroundColor:
       theme.palette.mode === 'dark'
-        ? theme.palette.grey[300]
+        ? theme.palette.grey[400]
         : theme.palette.grey[700],
     color: theme.palette.common.white,
-    padding: theme.spacing(0.5, 1),
+    padding: theme.spacing(0.75, 1.25),
     borderRadius: theme.shape.borderRadius,
     WebkitFontSmoothing: 'antialiased',
     boxShadow:

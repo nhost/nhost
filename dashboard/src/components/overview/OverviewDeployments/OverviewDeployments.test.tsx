@@ -1,13 +1,11 @@
-import { UserDataProvider } from '@/context/workspace1-context';
-import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
-import { render, screen, waitForElementToBeRemoved } from '@/tests/testUtils';
+import { queryClient, render, screen } from '@/tests/testUtils';
 import type { Project } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import type { Workspace } from '@/types/workspace';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
-import OverviewDeployments from '.';
+import OverviewDeployments from './OverviewDeployments';
 
 vi.mock('next/router', () => ({
   useRouter: vi.fn().mockReturnValue({
@@ -78,13 +76,6 @@ const server = setupServer(
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
-  nhostGraphQLLink.operation(async (_req, res, ctx) =>
-    res(
-      ctx.data({
-        deployments: [],
-      }),
-    ),
-  ),
 );
 
 beforeAll(() => {
@@ -93,48 +84,89 @@ beforeAll(() => {
   server.listen();
 });
 
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers(
+    rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
+      res(ctx.status(200)),
+    ),
+  );
+  queryClient.clear();
+});
 
 afterAll(() => {
   server.close();
   vi.restoreAllMocks();
 });
 
-test('should render an empty state when GitHub is not connected', () => {
-  render(
-    <UserDataProvider
-      initialWorkspaces={[
-        {
-          ...mockWorkspace,
-          applications: [{ ...mockApplication, githubRepository: null }],
-        },
-      ]}
-    >
-      <OverviewDeployments />
-    </UserDataProvider>,
+test('should render an empty state when GitHub is not connected', async () => {
+  server.use(
+    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
+      const { operationName } = await req.json();
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [
+                {
+                  ...mockWorkspace,
+                  projects: [{ ...mockApplication, githubRepository: null }],
+                },
+              ],
+              projects: [{ ...mockApplication, githubRepository: null }],
+            },
+          }),
+        );
+      }
+
+      return res(
+        ctx.json({
+          data: {
+            deployments: [],
+          },
+        }),
+      );
+    }),
   );
 
-  expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
+  render(<OverviewDeployments />);
+
+  expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
   expect(
-    screen.getByRole('button', { name: /connect to github/i }),
+    await screen.findByRole('button', { name: /connect to github/i }),
   ).toBeInTheDocument();
 });
 
 test('should render an empty state when GitHub is connected, but there are no deployments', async () => {
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
+  server.use(
+    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
+      const { operationName } = await _req.json();
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
+          }),
+        );
+      }
+
+      return res(ctx.json({ data: { deployments: [] } }));
+    }),
   );
 
-  expect(screen.getByText(/^deployments$/i)).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /view all/i })).toBeInTheDocument();
+  render(<OverviewDeployments />);
 
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
+  expect(await screen.findByText(/^deployments$/i)).toBeInTheDocument();
+  expect(
+    await screen.findByRole('link', { name: /view all/i }),
+  ).toBeInTheDocument();
 
-  expect(screen.getByText(/no deployments/i)).toBeInTheDocument();
-  expect(screen.getByText(/test\/git-project/i)).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /edit/i })).toHaveAttribute(
+  expect(await screen.findByText(/no deployments/i)).toBeInTheDocument();
+  expect(await screen.findByText(/test\/git-project/i)).toBeInTheDocument();
+  expect(await screen.findByRole('link', { name: /edit/i })).toHaveAttribute(
     'href',
     '/test-workspace/test-application/settings/git',
   );
@@ -142,103 +174,124 @@ test('should render an empty state when GitHub is connected, but there are no de
 
 test('should render a list of deployments', async () => {
   server.use(
-    nhostGraphQLLink.operation(async (req, res, ctx) => {
-      const requestPayload = await req.json();
+    rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
+      const { operationName } = await _req.json();
 
-      if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
-        return res(ctx.data({ deployments: [] }));
+      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        return res(ctx.json({ data: { deployments: [] } }));
       }
 
-      return res(
-        ctx.data({
-          deployments: [
-            {
-              id: '1',
-              commitSHA: 'abc123',
-              deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-              deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-              deploymentStatus: 'DEPLOYED',
-              commitUserName: 'test.user',
-              commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-              commitMessage: 'Test commit message',
-            },
-          ],
-        }),
-      );
-    }),
-  );
-
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
-  );
-
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
-
-  expect(screen.getByText(/test commit message/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/avatar/i)).toHaveStyle(
-    'background-image: url(http://images.example.com/avatar.png)',
-  );
-  expect(
-    screen.getByRole('link', {
-      name: /test commit message/i,
-    }),
-  ).toHaveAttribute('href', '/test-workspace/test-application/deployments/1');
-  expect(screen.getByText(/5m 0s/i)).toBeInTheDocument();
-  expect(screen.getByText(/live/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /redeploy/i })).not.toBeDisabled();
-});
-
-test('should disable redeployments if a deployment is already in progress', async () => {
-  server.use(
-    nhostGraphQLLink.operation(async (req, res, ctx) => {
-      const requestPayload = await req.json();
-
-      if (requestPayload.operationName === 'ScheduledOrPendingDeploymentsSub') {
+      if (operationName === 'GetWorkspaceAndProject') {
         return res(
-          ctx.data({
-            deployments: [
-              {
-                id: '2',
-                commitSHA: 'abc234',
-                deploymentStartedAt: '2021-08-02T00:00:00.000Z',
-                deploymentEndedAt: null,
-                deploymentStatus: 'PENDING',
-                commitUserName: 'test.user',
-                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-                commitMessage: 'Test commit message',
-              },
-            ],
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
           }),
         );
       }
 
       return res(
-        ctx.data({
-          deployments: [
-            {
-              id: '1',
-              commitSHA: 'abc123',
-              deploymentStartedAt: '2021-08-01T00:00:00.000Z',
-              deploymentEndedAt: '2021-08-01T00:05:00.000Z',
-              deploymentStatus: 'DEPLOYED',
-              commitUserName: 'test.user',
-              commitUserAvatarUrl: 'http://images.example.com/avatar.png',
-              commitMessage: 'Test commit message',
-            },
-          ],
+        ctx.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
         }),
       );
     }),
   );
 
-  render(
-    <UserDataProvider initialWorkspaces={[mockWorkspace]}>
-      <OverviewDeployments />
-    </UserDataProvider>,
+  render(<OverviewDeployments />);
+
+  expect(await screen.findByText(/test commit message/i)).toBeInTheDocument();
+  expect(await screen.findByLabelText(/avatar/i)).toHaveStyle(
+    'background-image: url(http://images.example.com/avatar.png)',
+  );
+  expect(
+    await screen.findByRole('link', {
+      name: /test commit message/i,
+    }),
+  ).toHaveAttribute('href', '/test-workspace/test-application/deployments/1');
+  expect(await screen.findByText(/5m 0s/i)).toBeInTheDocument();
+  expect(await screen.findByText(/live/i)).toBeInTheDocument();
+  expect(
+    await screen.findByRole('button', { name: /redeploy/i }),
+  ).not.toBeDisabled();
+});
+
+test('should disable redeployments if a deployment is already in progress', async () => {
+  server.use(
+    rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
+      const { operationName } = await req.json();
+
+      if (operationName === 'ScheduledOrPendingDeploymentsSub') {
+        return res(
+          ctx.json({
+            data: {
+              deployments: [
+                {
+                  id: '2',
+                  commitSHA: 'abc234',
+                  deploymentStartedAt: '2021-08-02T00:00:00.000Z',
+                  deploymentEndedAt: null,
+                  deploymentStatus: 'PENDING',
+                  commitUserName: 'test.user',
+                  commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                  commitMessage: 'Test commit message',
+                },
+              ],
+            },
+          }),
+        );
+      }
+
+      if (operationName === 'GetWorkspaceAndProject') {
+        return res(
+          ctx.json({
+            data: {
+              workspaces: [mockWorkspace],
+              projects: [mockApplication],
+            },
+          }),
+        );
+      }
+
+      return res(
+        ctx.json({
+          data: {
+            deployments: [
+              {
+                id: '1',
+                commitSHA: 'abc123',
+                deploymentStartedAt: '2021-08-01T00:00:00.000Z',
+                deploymentEndedAt: '2021-08-01T00:05:00.000Z',
+                deploymentStatus: 'DEPLOYED',
+                commitUserName: 'test.user',
+                commitUserAvatarUrl: 'http://images.example.com/avatar.png',
+                commitMessage: 'Test commit message',
+              },
+            ],
+          },
+        }),
+      );
+    }),
   );
 
-  await waitForElementToBeRemoved(() => screen.queryByRole('progressbar'));
-  expect(screen.getByRole('button', { name: /redeploy/i })).toBeDisabled();
+  render(<OverviewDeployments />);
+
+  expect(
+    await screen.findByRole('button', { name: /redeploy/i }),
+  ).toBeDisabled();
 });

@@ -2,15 +2,15 @@ import Container from '@/components/layout/Container';
 import EnvironmentVariableSettings from '@/components/settings/environmentVariables/EnvironmentVariableSettings';
 import SystemEnvironmentVariableSettings from '@/components/settings/environmentVariables/SystemEnvironmentVariableSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function EnvironmentVariablesPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { loading, error } = useGetEnvironmentVariablesQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   if (loading) {

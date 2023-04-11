@@ -8,7 +8,11 @@ module.exports = {
     tsconfigRootDir: __dirname,
     project: './tsconfig.json',
   },
-  ignorePatterns: ['**/.eslintrc.js', '**/prettier.config.js'],
+  ignorePatterns: [
+    '**/.eslintrc.js',
+    '**/prettier.config.js',
+    '**/next.config.js',
+  ],
   rules: {
     'react/react-in-jsx-scope': 'off',
     'react/jsx-props-no-spreading': 'off',

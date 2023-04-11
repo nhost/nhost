@@ -4,15 +4,15 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';
+import { prettifySize } from '@/utils/common/prettifySize';
 import { formatDistanceStrict, formatISO9075 } from 'date-fns';
-import prettysize from 'prettysize';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 
@@ -23,8 +23,8 @@ export type Backup = {
 };
 
 function BackupsHeader() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const { plan } = currentApplication;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { plan } = currentProject;
   return (
     <div className="flex flex-row place-content-between">
       <div>
@@ -58,13 +58,13 @@ function BackupRow({ backup }: any) {
         />
       )}
       <Box className="flex flex-row place-content-between py-3">
-        <Text className="w-drop self-center font-medium text-xs">
+        <Text className="w-drop self-center text-xs font-medium">
           {formatISO9075(new Date(createdAt))}
         </Text>
-        <Text className="w-drop self-center font-medium text-xs">
-          {prettysize(size)}
+        <Text className="w-drop self-center text-xs font-medium">
+          {prettifySize(size)}
         </Text>
-        <Text className="w-drop self-center font-medium text-xs">
+        <Text className="w-drop self-center text-xs font-medium">
           {formatDistanceStrict(new Date(createdAt), new Date(), {
             addSuffix: true,
           })}
@@ -83,10 +83,10 @@ function BackupRow({ backup }: any) {
 }
 
 function BackupsTable() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetApplicationBackupsQuery({
-    variables: { appId: currentApplication.id },
+    variables: { appId: currentProject.id },
   });
 
   if (loading) {
@@ -108,9 +108,9 @@ function BackupsTable() {
   return (
     <>
       <Box className="flex flex-row place-content-between border-b-1 py-2">
-        <Text className="w-drop font-bold text-xs">Backup</Text>
-        <Text className="w-drop font-bold text-xs">Size</Text>
-        <Text className="w-drop font-bold text-xs">Backed Up</Text>
+        <Text className="w-drop text-xs font-bold">Backup</Text>
+        <Text className="w-drop text-xs font-bold">Size</Text>
+        <Text className="w-drop text-xs font-bold">Backed Up</Text>
         <div className="w-20" />
       </Box>
       <Box className="border-b-1">
@@ -133,7 +133,7 @@ function BackupsTable() {
 function SectionContainer({ title }: any) {
   return (
     <div className="mt-6 w-full">
-      <Text className="font-medium text-lg">{title}</Text>
+      <Text className="text-lg font-medium">{title}</Text>
       <Text className="font-normal">
         The database backup includes database schema, database data and Hasura
         metadata. It does not include the actual files in Storage.
@@ -147,8 +147,8 @@ function SectionContainer({ title }: any) {
 }
 
 function BackupsContent() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isPlanFree = currentApplication.plan.isFree;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isPlanFree = currentProject.plan.isFree;
 
   if (isPlanFree) {
     return (

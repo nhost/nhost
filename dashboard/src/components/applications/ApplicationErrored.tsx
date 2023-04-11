@@ -2,7 +2,7 @@ import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
 import { useAppCreatedAt } from '@/hooks/useAppCreatedAt';
 import { useCurrentDate } from '@/hooks/useCurrentDate';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Modal } from '@/ui/Modal';
@@ -10,30 +10,28 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
-import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
-import { updateOwnCache } from '@/utils/updateOwnCache';
 import {
   useDeleteApplicationMutation,
   useGetApplicationStateQuery,
   useInsertApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
+import { getApplicationStatusString } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
+import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
 import ApplicationLive from './ApplicationLive';
-import ApplicationUnknown from './ApplicationUnknown';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationErrored() {
-  const { currentWorkspace, currentApplication } =
-    useCurrentWorkspaceAndApplication();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
     useState(false);
 
@@ -44,12 +42,13 @@ export default function ApplicationErrored() {
   // state, but we want to query again to double-check that we have the latest state
   // of the application. @GC.
   const { data, loading, error } = useGetApplicationStateQuery({
-    variables: { appId: currentApplication.id },
+    variables: { appId: currentProject?.id },
+    skip: !currentProject,
   });
 
-  const [previousState, setPreviousState] = useState<ApplicationStatus | null>(
-    null,
-  );
+  const previousState = data?.app?.appStates
+    ? getPreviousApplicationState(data.app.appStates)
+    : null;
 
   const [showRecreateModal, setShowRecreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -57,8 +56,8 @@ export default function ApplicationErrored() {
   const client = useApolloClient();
   const { currentDate } = useCurrentDate();
   const user = useUserData();
-  const isOwner = currentWorkspace.members.some(
-    ({ userId, type }) => userId === user?.id && type === 'owner',
+  const isOwner = currentWorkspace.workspaceMembers.some(
+    ({ id, type }) => id === user?.id && type === 'owner',
   );
 
   const { appCreatedAt } = useAppCreatedAt();
@@ -70,15 +69,15 @@ export default function ApplicationErrored() {
     try {
       await deleteApplication({
         variables: {
-          appId: currentApplication.id,
+          appId: currentProject.id,
         },
       });
 
-      triggerToast(`${currentApplication.name} deleted`);
+      triggerToast(`${currentProject?.name} deleted`);
     } catch (e) {
-      triggerToast(`Error deleting ${currentApplication.name}`);
+      triggerToast(`Error deleting ${currentProject?.name}`);
       discordAnnounce(
-        `Error deleting app: ${currentApplication.name} (${user.email})`,
+        `Error deleting app: ${currentProject?.name} (${user.email})`,
       );
       return;
     }
@@ -86,19 +85,19 @@ export default function ApplicationErrored() {
       await insertApp({
         variables: {
           app: {
-            name: currentApplication.name,
-            slug: currentApplication.slug,
-            planId: currentApplication.plan.id,
+            name: currentProject.name,
+            slug: currentProject.slug,
+            planId: currentProject.plan.id,
             workspaceId: currentWorkspace.id,
-            regionId: currentApplication.region.id,
+            regionId: currentProject.region.id,
           },
         },
       });
-      discordAnnounce(`Recreating: ${currentApplication.name} (${user.email})`);
-      triggerToast(`Recreating ${currentApplication.name} `);
+      discordAnnounce(`Recreating: ${currentProject?.name} (${user.email})`);
+      triggerToast(`Recreating ${currentProject?.name} `);
       await updateOwnCache(client);
     } catch (e) {
-      triggerToast(`Error trying to recreate: ${currentApplication.name}`);
+      triggerToast(`Error trying to recreate: ${currentProject?.name}`);
     }
   }
 
@@ -107,18 +106,18 @@ export default function ApplicationErrored() {
     try {
       await updateApplication({
         variables: {
-          appId: currentApplication.id,
+          appId: currentProject?.id,
           app: {
             desiredState: ApplicationStatus.Live,
           },
         },
       });
 
-      triggerToast(`${currentApplication.name} set to awake.`);
+      triggerToast(`${currentProject?.name} set to awake.`);
     } catch (e) {
-      triggerToast(`Error trying to awake ${currentApplication.name}`);
+      triggerToast(`Error trying to awake ${currentProject?.name}`);
       discordAnnounce(
-        `Error trying to awake app: ${currentApplication.name} (${user.email})`,
+        `Error trying to awake app: ${currentProject?.name} (${user.email})`,
       );
     }
   }
@@ -140,20 +139,6 @@ export default function ApplicationErrored() {
     await recreateApplication();
   }
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-    if (error) {
-      return;
-    }
-
-    const previousAcceptedState = getPreviousApplicationState(
-      data.app.appStates,
-    );
-    setPreviousState(previousAcceptedState);
-  }, [setPreviousState, data, loading, error]);
-
   if (loading || previousState === null) {
     return (
       <Container className="mx-auto mt-12 max-w-sm text-center">
@@ -170,19 +155,13 @@ export default function ApplicationErrored() {
     return null;
   }
 
-  if (previousState === ApplicationStatus.Live) {
-    return <ApplicationLive />;
-  }
-
-  // For now, if the application errored and the previous state to this error is an UPDATING state, we want to show the dashboard,
-  // it's likely that most services are up and we shouldn't block all functionality. In the future, we're going to have a way to
-  // redeploy the app again, and get to a healthy state. @GC
-  if (previousState === ApplicationStatus.Updating) {
-    return <ApplicationLive />;
-  }
-
-  if (previousState === ApplicationStatus.Empty) {
-    return <ApplicationUnknown />;
+  if (
+    previousState === ApplicationStatus.Updating ||
+    previousState === ApplicationStatus.Empty
+  ) {
+    return (
+      <ApplicationLive errorMessage="Error deploying the project most likely due to invalid configuration. Please review your project's configuration and logs for more information." />
+    );
   }
 
   return (
@@ -196,8 +175,8 @@ export default function ApplicationErrored() {
           // which instead of deleting just an application, it deletes and recreates.
           handler={recreateApplication}
           close={() => setShowRecreateModal(false)}
-          title={`Recreate project ${currentApplication.name}?`}
-          description={`The project ${currentApplication.name} will be removed and then re-created. All data will be lost and there will be no way to
+          title={`Recreate project ${currentProject.name}?`}
+          description={`The project ${currentProject?.name} will be removed and then re-created. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>
@@ -208,8 +187,8 @@ export default function ApplicationErrored() {
       >
         <RemoveApplicationModal
           close={() => setShowDeleteModal(false)}
-          title={`Remove project ${currentApplication.name}?`}
-          description={`The project ${currentApplication.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${currentProject.name}?`}
+          description={`The project ${currentProject?.name} will be removed. All data will be lost and there will be no way to
         recover the app once it has been deleted.`}
         />
       </Modal>

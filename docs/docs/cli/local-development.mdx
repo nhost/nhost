@@ -314,14 +314,14 @@ Every JavaScript and TypeScript file inside the `functions/` folder becomes an
 API endpoint.
 
 Locally, the base URL for the serverless functions is
-`http://localhost:1337/v1/functions`. Then, the endpoint for each function is
+`http://local.functions.nhost.run/v1/`. Then, the endpoint for each function is
 determined by its filename or the name of its dedicated parent directory.
 
 For example, the endpoint for our function is
-`http://localhost:1337/v1/functions/time`.
+`http://local.functions.nhost.run/v1/time`.
 
 ```bash
-curl http://localhost:1337/v1/functions/time\?name\=Greg
+curl http://local.functions.nhost.run/v1/time\?name\=Greg
 Hello Greg! It's now: Wed, 27 Apr 2022 18:52:12 GMT
 ```
 

@@ -4,7 +4,6 @@ import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import BaseLayout from '@/components/layout/BaseLayout';
 import Container from '@/components/layout/Container';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCleanWorkspaceContext } from '@/hooks/use-cleanWorkspaceContext';
 import Box from '@/ui/v2/Box';
 import ThemeProvider from '@/ui/v2/ThemeProvider';
 import GlobalStyles from '@mui/material/GlobalStyles';
@@ -22,7 +21,6 @@ export default function UnauthenticatedLayout({
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
-  useCleanWorkspaceContext();
 
   useEffect(() => {
     if (!isPlatform || (!isLoading && isAuthenticated)) {
