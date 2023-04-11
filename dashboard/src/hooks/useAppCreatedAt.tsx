@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from './useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 
 export type UseAppCreatedAtReturn = {
   /**
@@ -8,7 +8,7 @@ export type UseAppCreatedAtReturn = {
 };
 
 export function useAppCreatedAt(): UseAppCreatedAtReturn {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const appCreatedAt = new Date(currentApplication.createdAt).getTime();
-  return { appCreatedAt };
+  const { currentProject } = useCurrentWorkspaceAndProject();
+
+  return { appCreatedAt: new Date(currentProject.createdAt).getTime() };
 }

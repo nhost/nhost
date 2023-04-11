@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
@@ -8,7 +8,7 @@ import { useState } from 'react';
 export function WorkspaceInvoices() {
   const [loading, setLoading] = useState(false);
 
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   return (
     <div className="mt-18">

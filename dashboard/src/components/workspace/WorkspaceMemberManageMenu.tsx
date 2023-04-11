@@ -1,17 +1,17 @@
 import RemoveWorkspaceMember from '@/components/workspace/RemoveWorkspaceMember';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import { capitalize } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import {
   refetchGetWorkspaceMembersQuery,
   useDeleteWorkspaceMemberMutation,
   useUpdateWorkspaceMemberMutation,
 } from '@/utils/__generated__/graphql';
+import { capitalize } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
 type WorkspaceMemberManageMenuParams = {
@@ -21,14 +21,14 @@ type WorkspaceMemberManageMenuParams = {
 export function WorkspaceMemberManageMenu({
   workspaceMember,
 }: WorkspaceMemberManageMenuParams) {
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const [removeMemberModal, setRemoveMemberModal] = useState(false);
   const otherMemberType = workspaceMember.type === 'owner' ? 'member' : 'owner';
 
   const [updateWorkspaceMember] = useUpdateWorkspaceMemberMutation({
     refetchQueries: [
       refetchGetWorkspaceMembersQuery({
-        workspaceId: currentWorkspace.id,
+        workspaceId: currentWorkspace?.id,
       }),
     ],
   });
@@ -36,7 +36,7 @@ export function WorkspaceMemberManageMenu({
   const [deleteWorkspaceMember] = useDeleteWorkspaceMemberMutation({
     refetchQueries: [
       refetchGetWorkspaceMembersQuery({
-        workspaceId: currentWorkspace.id,
+        workspaceId: currentWorkspace?.id,
       }),
     ],
   });

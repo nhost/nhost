@@ -1,24 +1,20 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Avatar from '@/ui/v2/Avatar';
 import Chip from '@/ui/v2/Chip';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
-import DotsHorizontalIcon from '@/ui/v2/icons/DotsHorizontalIcon';
-import TrashIcon from '@/ui/v2/icons/TrashIcon';
-import UserIcon from '@/ui/v2/icons/UserIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import getReadableProviderName from '@/utils/common/getReadableProviderName';
-import getServerError from '@/utils/settings/getServerError';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import DotsHorizontalIcon from '@/ui/v2/icons/DotsHorizontalIcon';
+import TrashIcon from '@/ui/v2/icons/TrashIcon';
+import UserIcon from '@/ui/v2/icons/UserIcon';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -26,6 +22,10 @@ import {
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
+import getReadableProviderName from '@/utils/common/getReadableProviderName';
+import getServerError from '@/utils/settings/getServerError';
+import getUserRoles from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';
@@ -58,7 +58,7 @@ export interface UsersBodyProps {
 export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
   const theme = useTheme();
   const { openAlertDialog, openDrawer, closeDrawer } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [deleteUser] = useRemoteAppDeleteUserMutation({
@@ -83,7 +83,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
    * in the drawer form.
    */
   const { data: dataRoles } = useGetRolesPermissionsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   const { allowed: allowedRoles } = dataRoles?.config?.auth?.user?.roles || {};

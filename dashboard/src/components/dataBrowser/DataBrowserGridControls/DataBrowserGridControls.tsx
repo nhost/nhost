@@ -2,8 +2,8 @@ import type { DataGridPaginationProps } from '@/components/common/DataGridPagina
 import DataGridPagination from '@/components/common/DataGridPagination';
 import { useDialog } from '@/components/common/DialogProvider';
 import useDeleteRecordMutation from '@/hooks/dataBrowser/useDeleteRecordMutation';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
@@ -50,8 +50,8 @@ export default function DataBrowserGridControls({
   onInsertColumnClick,
   ...props
 }: DataBrowserGridControlsProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isGitHubConnected = !!currentApplication?.githubRepository;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isGitHubConnected = !!currentProject?.githubRepository;
   const queryClient = useQueryClient();
   const { openAlertDialog } = useDialog();
 

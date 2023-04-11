@@ -1,14 +1,14 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import useApplicationState from '@/hooks/useApplicationState';
+import usePreviousApplicationState from '@/hooks/usePreviousApplicationStates';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import { useRouter } from 'next/router';
-import useApplicationState from './useApplicationState';
-import usePreviousApplicationState from './usePreviousApplicationStates';
 
 /**
  * This hook will check the route, the environment, and the history of the states of the app to correctly render the navigation header.
  */
 export function useNavigationVisible() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { state } = useApplicationState();
   const previousApplicationState = usePreviousApplicationState();
 
@@ -26,15 +26,15 @@ export function useNavigationVisible() {
     return false;
   }
 
-  if (!currentApplication) {
+  if (!currentProject) {
     return false;
   }
 
-  if (currentApplication.appStates?.length === 0) {
+  if (currentProject.appStates?.length === 0) {
     return false;
   }
 
-  if (currentApplication.desiredState === ApplicationStatus.Migrating) {
+  if (currentProject.desiredState === ApplicationStatus.Migrating) {
     return false;
   }
 

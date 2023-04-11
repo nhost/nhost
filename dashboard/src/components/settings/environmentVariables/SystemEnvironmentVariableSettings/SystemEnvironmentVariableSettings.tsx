@@ -1,21 +1,22 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
-import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import SettingsContainer from '@/components/settings/SettingsContainer';
+import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import { useUI } from '@/context/UIContext';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
-import EyeIcon from '@/ui/v2/icons/EyeIcon';
-import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
+import EyeIcon from '@/ui/v2/icons/EyeIcon';
+import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import generateAppServiceUrl, {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
@@ -23,7 +24,6 @@ import generateAppServiceUrl, {
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { generateRemoteAppUrl } from '@/utils/helpers';
 import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -32,9 +32,9 @@ export default function SystemEnvironmentVariableSettings() {
 
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -101,18 +101,18 @@ export default function SystemEnvironmentVariableSettings() {
   const systemEnvironmentVariables = [
     {
       key: 'NHOST_BACKEND_URL',
-      value: generateRemoteAppUrl(currentApplication.subdomain),
+      value: generateRemoteAppUrl(currentProject.subdomain),
     },
-    { key: 'NHOST_SUBDOMAIN', value: currentApplication.subdomain },
-    { key: 'NHOST_REGION', value: currentApplication.region.awsName },
+    { key: 'NHOST_SUBDOMAIN', value: currentProject.subdomain },
+    { key: 'NHOST_REGION', value: currentProject.region.awsName },
     {
       key: 'NHOST_HASURA_URL',
       value:
         process.env.NEXT_PUBLIC_ENV === 'dev' || !isPlatform
           ? `${getHasuraConsoleServiceUrl()}/console`
           : generateAppServiceUrl(
-              currentApplication?.subdomain,
-              currentApplication?.region.awsName,
+              currentProject?.subdomain,
+              currentProject?.region.awsName,
               'hasura',
               defaultLocalBackendSlugs,
               { ...defaultRemoteBackendSlugs, hasura: '/console' },

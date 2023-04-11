@@ -1,5 +1,5 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
@@ -19,12 +19,12 @@ export interface UserSelectProps {
 }
 
 export function UserSelect({ onUserChange, ...props }: UserSelectProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
   const { data, loading, error } = useRemoteAppGetUsersCustomQuery({
     client: userApplicationClient,
     variables: { where: {}, limit: 250, offset: 0 },
-    skip: !currentApplication,
+    skip: !currentProject,
   });
 
   if (loading) {

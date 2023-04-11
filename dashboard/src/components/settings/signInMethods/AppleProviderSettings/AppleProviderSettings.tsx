@@ -6,7 +6,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import IconButton from '@/ui/v2/IconButton';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
@@ -56,13 +56,13 @@ export type AppleProviderFormValues = Yup.InferType<typeof validationSchema>;
 export default function AppleProviderSettings() {
   const theme = useTheme();
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -101,7 +101,7 @@ export default function AppleProviderSettings() {
   const handleProviderUpdate = async (values: AppleProviderFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           auth: {
             method: {
@@ -216,8 +216,8 @@ export default function AppleProviderSettings() {
             name="redirectUrl"
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
-              currentApplication.subdomain,
-              currentApplication.region.awsName,
+              currentProject.subdomain,
+              currentProject.region.awsName,
               'auth',
             )}/signin/provider/apple/callback`}
             className="col-span-2"
@@ -235,8 +235,8 @@ export default function AppleProviderSettings() {
                     e.stopPropagation();
                     copy(
                       `${generateAppServiceUrl(
-                        currentApplication.subdomain,
-                        currentApplication.region.awsName,
+                        currentProject.subdomain,
+                        currentProject.region.awsName,
                         'auth',
                       )}/signin/provider/apple/callback`,
                       'Redirect URL',

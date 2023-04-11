@@ -1,12 +1,12 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import PlusIcon from '@/ui/v2/icons/PlusIcon';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -69,7 +69,7 @@ export default function RuleGroupEditor({
   sx,
   ...props
 }: RuleGroupEditorProps) {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const form = useFormContext();
 
   const { control, getValues } = form;
@@ -127,7 +127,7 @@ export default function RuleGroupEditor({
           depth > 6 && { backgroundColor: 'secondary.800' },
         ]}
       >
-        <div className="grid grid-flow-row gap-4 lg:gap-2 py-4">
+        <div className="grid grid-flow-row gap-4 py-4 lg:gap-2">
           {(rules as (Rule & { id: string })[]).map((rule, ruleIndex) => (
             <div className="grid grid-cols-[70px_1fr] gap-2" key={rule.id}>
               <div>
@@ -188,13 +188,13 @@ export default function RuleGroupEditor({
               <Text>
                 This rule group contains one or more objects (e.g: _exists) that
                 are not supported by our dashboard yet.{' '}
-                {currentApplication && (
+                {currentProject && (
                   <span>
                     Please{' '}
                     <Link
                       href={`${generateAppServiceUrl(
-                        currentApplication.subdomain,
-                        currentApplication.region?.awsName,
+                        currentProject.subdomain,
+                        currentProject.region?.awsName,
                         'hasura',
                       )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
                       underline="hover"
@@ -212,8 +212,8 @@ export default function RuleGroupEditor({
         </div>
 
         {!disabled && (
-          <div className="grid grid-flow-row lg:grid-flow-col lg:justify-between gap-2 pb-2">
-            <div className="grid grid-flow-row lg:grid-flow-col gap-2 lg:justify-start">
+          <div className="grid grid-flow-row gap-2 pb-2 lg:grid-flow-col lg:justify-between">
+            <div className="grid grid-flow-row gap-2 lg:grid-flow-col lg:justify-start">
               <Button
                 startIcon={<PlusIcon />}
                 variant="borderless"

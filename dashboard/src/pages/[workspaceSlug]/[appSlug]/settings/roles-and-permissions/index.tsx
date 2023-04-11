@@ -2,16 +2,16 @@ import Container from '@/components/layout/Container';
 import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
 import RolesSettings from '@/components/settings/roles/RoleSettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function RolesAndPermissionsPage() {
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { loading, error } = useGetRolesPermissionsQuery({
     variables: {
-      appId: currentApplication?.id,
+      appId: currentProject?.id,
     },
   });
 

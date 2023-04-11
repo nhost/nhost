@@ -3,7 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUpdateAppMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -27,7 +27,7 @@ export function EditRepositorySettingsModal({
   const isNotCompleted = !watch('productionBranch') || !watch('repoBaseFolder');
   const { closeAlertDialog } = useDialog();
 
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [updateApp, { loading }] = useUpdateAppMutation();
 
@@ -37,10 +37,10 @@ export function EditRepositorySettingsModal({
     data: EditRepositorySettingsFormData,
   ) => {
     try {
-      if (!currentApplication.githubRepository || selectedRepoId) {
+      if (!currentProject.githubRepository || selectedRepoId) {
         await updateApp({
           variables: {
-            id: currentApplication.id,
+            id: currentProject.id,
             app: {
               githubRepositoryId: selectedRepoId,
               repositoryProductionBranch: data.productionBranch,
@@ -51,7 +51,7 @@ export function EditRepositorySettingsModal({
       } else {
         await updateApp({
           variables: {
-            id: currentApplication.id,
+            id: currentProject.id,
             app: {
               repositoryProductionBranch: data.productionBranch,
               nhostBaseFolder: data.repoBaseFolder,
@@ -69,7 +69,7 @@ export function EditRepositorySettingsModal({
       triggerToast('GitHub repository settings successfully updated.');
     } catch (error) {
       await discordAnnounce(
-        `Error while trying to edit repository GitHub integration: ${currentApplication.slug}.`,
+        `Error while trying to edit repository GitHub integration: ${currentProject.slug}.`,
       );
       throw error;
     }

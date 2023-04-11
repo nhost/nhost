@@ -1,17 +1,17 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import { nhost } from '@/utils/nhost';
-import { triggerToast } from '@/utils/toast';
 import {
   refetchGetWorkspaceMembersQuery,
   useGetWorkspaceMembersQuery,
   useInsertWorkspaceMemberInviteMutation,
 } from '@/utils/__generated__/graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { nhost } from '@/utils/nhost';
+import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import validator from 'validator';
@@ -25,7 +25,7 @@ function WorkspaceMemberInviteForm({
 }: any) {
   const [email, setEmail] = useState('');
 
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const [insertWorkspaceMemberInvite] = useInsertWorkspaceMemberInviteMutation({
     refetchQueries: [
@@ -119,7 +119,7 @@ function WorkspaceMemberInviteForm({
 
 export default function WorkspaceMembers() {
   const [workspaceInviteError, setWorkspaceInviteError] = useState('');
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const { data, loading } = useGetWorkspaceMembersQuery({
     variables: {
@@ -172,7 +172,7 @@ export default function WorkspaceMembers() {
 
       {data?.workspace?.workspaceMemberInvites.length > 0 && (
         <div className="mt-12">
-          <Text className="font-medium text-lg mb-2">Pending Invitations</Text>
+          <Text className="mb-2 text-lg font-medium">Pending Invitations</Text>
           {data?.workspace?.workspaceMemberInvites.map(
             (workspaceMemberInvite) => (
               <WorkspaceMemberInvite

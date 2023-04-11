@@ -5,15 +5,15 @@ import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -47,10 +47,10 @@ export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
   const { maintenanceActive } = useUI();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
-    variables: { appId: currentApplication?.id },
+    variables: { appId: currentProject?.id },
   });
 
   const { secure, host, port, user, method, sender } =
@@ -88,7 +88,7 @@ export default function SMTPSettingsPage() {
     refetchQueries: [GetSmtpSettingsDocument],
   });
 
-  if (currentApplication.plan.isFree) {
+  if (currentProject.plan.isFree) {
     return (
       <Container
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
@@ -121,7 +121,7 @@ export default function SMTPSettingsPage() {
 
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: currentApplication.id,
+        appId: currentProject.id,
         config: {
           provider: {
             smtp: password ? values : valuesWithoutPassword,

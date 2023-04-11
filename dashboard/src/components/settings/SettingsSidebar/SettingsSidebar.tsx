@@ -1,5 +1,5 @@
 import NavLink from '@/components/common/NavLink';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import Backdrop from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
@@ -63,11 +63,7 @@ export default function SettingsSidebar({
   ...props
 }: SettingsSidebarProps) {
   const [expanded, setExpanded] = useState(false);
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-
-  const isProjectUsingRDS = currentApplication?.featureFlags?.some(
-    (feature) => feature.name === 'fleetcontrol_use_rds',
-  );
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   function toggleExpanded() {
     setExpanded(!expanded);
@@ -92,7 +88,7 @@ export default function SettingsSidebar({
       document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
   }, []);
 
-  if (!currentApplication) {
+  if (!currentProject) {
     return null;
   }
 
@@ -132,7 +128,7 @@ export default function SettingsSidebar({
             >
               General
             </SettingsNavLink>
-            {isK8SPostgresEnabledInCurrentEnvironment && !isProjectUsingRDS && (
+            {isK8SPostgresEnabledInCurrentEnvironment && (
               <SettingsNavLink
                 href="/database"
                 exact={false}

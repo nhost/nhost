@@ -7,7 +7,7 @@ import {
   useGetPaymentMethodsQuery,
   useSetNewDefaultPaymentMethodMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
@@ -47,7 +47,7 @@ export default function WorkspacePaymentMethods() {
   const router = useRouter();
   const { action } = router.query;
 
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const { openAlertDialog } = useDialog();
 
   const [showAddPaymentMethodModal, setShowAddPaymentMethodModal] = useState(
@@ -81,7 +81,7 @@ export default function WorkspacePaymentMethods() {
 
     if (isLastPaymentMethod) {
       // if so, make sure no non-free projects exists for the workspace
-      const workspaceHasPaidProjects = currentWorkspace.applications.some(
+      const workspaceHasPaidProjects = currentWorkspace.projects.some(
         (app) => !app.plan.isFree,
       );
 

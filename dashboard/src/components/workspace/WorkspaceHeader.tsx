@@ -1,9 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import EditWorkspaceNameForm from '@/components/home/EditWorkspaceNameForm';
+import { EditWorkspaceNameForm } from '@/components/home/EditWorkspaceNameForm';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
 import { useUI } from '@/context/UIContext';
-import { useGetWorkspace } from '@/hooks/use-GetWorkspace';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
@@ -13,13 +12,9 @@ import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { nhost } from '@/utils/nhost';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 
 export default function WorkspaceHeader() {
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
-  const {
-    query: { workspaceSlug },
-  } = useRouter();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const {
     openDeleteWorkspaceModal,
@@ -29,19 +24,15 @@ export default function WorkspaceHeader() {
 
   const { openDialog } = useDialog();
 
-  const { data } = useGetWorkspace(workspaceSlug);
-
-  const workspace = data?.workspaces[0];
-
   const user = nhost.auth.getUser();
 
-  const isOwner = workspace?.workspaceMembers.some(
+  const isOwner = currentWorkspace?.workspaceMembers.some(
     (member) => member.user.id === user?.id && member.type === 'owner',
   );
 
-  const noApplications = workspace?.apps.length === 0;
+  const noApplications = currentWorkspace?.projects.length === 0;
 
-  const IS_DEFAULT_WORKSPACE = currentWorkspace.name === 'Default Workspace';
+  const IS_DEFAULT_WORKSPACE = currentWorkspace?.name === 'Default Workspace';
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
@@ -53,7 +44,7 @@ export default function WorkspaceHeader() {
       <div className="flex flex-row place-content-between">
         <div className="flex flex-row items-center">
           {IS_DEFAULT_WORKSPACE &&
-          user.id === currentWorkspace.creatorUserId ? (
+          user.id === currentWorkspace?.creatorUserId ? (
             <Avatar
               className="h-14 w-14 self-center rounded-full"
               name={user?.displayName}
@@ -72,7 +63,7 @@ export default function WorkspaceHeader() {
 
           <div className="flex flex-col items-start pl-3">
             <Text variant="h1" className="font-display text-3xl font-medium">
-              {currentWorkspace.name}
+              {currentWorkspace?.name}
             </Text>
             <Button
               variant="borderless"
@@ -92,13 +83,13 @@ export default function WorkspaceHeader() {
               >
                 app.nhost.io/
               </Text>
-              {currentWorkspace.slug}
+              {currentWorkspace?.slug}
             </Button>
           </div>
         </div>
 
         <div className="hidden self-center sm:block">
-          {data && isOwner && (
+          {currentWorkspace && isOwner && (
             <Dropdown.Root>
               <Dropdown.Trigger asChild>
                 <Button variant="outlined" color="secondary" className="gap-2">

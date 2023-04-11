@@ -6,7 +6,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useDatabaseQuery from '@/hooks/dataBrowser/useDatabaseQuery';
 import useDeleteTableWithToastMutation from '@/hooks/dataBrowser/useDeleteTableMutation/useDeleteTableWithToastMutation';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Backdrop from '@/ui/v2/Backdrop';
@@ -74,8 +74,8 @@ function DataBrowserSidebarContent({
 }: Pick<DataBrowserSidebarProps, 'onSidebarItemClick'>) {
   const queryClient = useQueryClient();
   const { openDrawer, openAlertDialog } = useDialog();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
-  const isGitHubConnected = !!currentApplication?.githubRepository;
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
   const router = useRouter();
   const {
@@ -516,7 +516,7 @@ export default function DataBrowserSidebar({
   ...props
 }: DataBrowserSidebarProps) {
   const isPlatform = useIsPlatform();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [expanded, setExpanded] = useState(false);
 
@@ -547,7 +547,7 @@ export default function DataBrowserSidebar({
       document.removeEventListener('keydown', closeSidebarWhenEscapeIsPressed);
   }, []);
 
-  if (isPlatform && !currentApplication?.config?.hasura.adminSecret) {
+  if (isPlatform && !currentProject?.config?.hasura.adminSecret) {
     return null;
   }
 

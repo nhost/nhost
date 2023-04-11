@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
@@ -39,10 +39,10 @@ export default function useMetadataQuery(
     query: { dataSourceSlug },
     isReady,
   } = useRouter();
-  const { currentApplication } = useCurrentWorkspaceAndApplication();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
-    currentApplication?.subdomain,
-    currentApplication?.region.awsName,
+    currentProject?.subdomain,
+    currentProject?.region.awsName,
     'hasura',
   );
 
@@ -55,14 +55,13 @@ export default function useMetadataQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret ||
-              currentApplication?.config?.hasura.adminSecret,
+            : customAdminSecret || currentProject?.config?.hasura.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {
       ...queryOptions,
       enabled:
-        currentApplication?.config?.hasura.adminSecret && isReady
+        currentProject?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
     },

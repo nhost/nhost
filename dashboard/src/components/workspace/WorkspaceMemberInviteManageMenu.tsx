@@ -5,7 +5,7 @@ import {
   useDeleteWorkspaceMemberInvitesMutation,
   useUpdateWorkspaceMemberInviteMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndApplication } from '@/hooks/useCurrentWorkspaceAndApplication';
+import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
@@ -24,7 +24,7 @@ export interface WorkspaceMemberManageMenuProps {
 export function WorkspaceMemberInviteManageMenu({
   workspaceMemberInvite,
 }: WorkspaceMemberManageMenuProps) {
-  const { currentWorkspace } = useCurrentWorkspaceAndApplication();
+  const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const [removeMemberInviteModal, setRemoveMemberInviteModal] = useState(false);
   const otherMemberType =
     workspaceMemberInvite.memberType === 'owner' ? 'member' : 'owner';
