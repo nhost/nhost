@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.0.8
+
+### Patch Changes
+
+- b06239cc: chore(deps): bump `glob` to v10
+
 ## 0.0.7
 
 ### Patch Changes

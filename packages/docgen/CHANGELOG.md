@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.9
+
+### Patch Changes
+
+- 9a1f095a: chore(deps): bump `rimraf` to v5
+
 ## 0.1.8
 
 ### Patch Changes
