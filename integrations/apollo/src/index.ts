@@ -1,8 +1,10 @@
 import {
   ApolloClient,
+  ApolloLink,
   createHttpLink,
   from,
   InMemoryCache,
+  RequestHandler,
   split,
   WatchQueryFetchPolicy
 } from '@apollo/client/core'
@@ -22,7 +24,9 @@ export type NhostApolloClientOptions = {
   fetchPolicy?: WatchQueryFetchPolicy
   connectToDevTools?: boolean
   cache?: InMemoryCache
-  generateLinks?: Function
+  onError?: RequestHandler
+  link?: ApolloLink
+  generateLinks: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
 }
 
 export const createApolloClient = ({
@@ -33,7 +37,9 @@ export const createApolloClient = ({
   fetchPolicy,
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
-  generateLinks,
+  onError,
+  link: customLink,
+  generateLinks = (links) => links,
 }: NhostApolloClientOptions) => {
   const backendUrl = graphqlUrl || nhost?.graphql.httpUrl
 
@@ -121,8 +127,19 @@ export const createApolloClient = ({
       )
     : httpLink
 
-  const links = [splitLink];
-  const link = from(generateLinks ? generateLinks(links) : links)
+  const links = [];
+
+  if(onError) {
+    links.push(onError);
+  }
+
+  if(customLink) {
+    links.push(customLink);
+  }
+
+  links.push(splitLink);
+
+  const link = from(generateLinks(links))
 
   const client = new ApolloClient({
     cache: cache || new InMemoryCache(),
