@@ -19,7 +19,7 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-We are very excited to announce the release of Dedicated Resources to everyone! a new feature to help you scale your Nhost applications by providing more control over your compute resources. Dedicated Resources allows you to allocate CPU and memory for each service on the Nhost stack, so that you can efficiently scale your applications to meet growing demands and provide the best possible user experience for your users.
+We are very excited to announce the release of Dedicated Resources to everyone! a new feature to help you scale your Nhost applications by providing you with more control over compute resources. Dedicated Resources allows you to allocate CPU and memory for each service on the Nhost stack. Your applications will be able to efficiently meet growing demands and provide the best possible user experience to your users. To the moon and back, blazingly fast! 
 
 
 ## Background and Motivation
@@ -30,20 +30,20 @@ As your applications grow and user traffic increases, it's crucial to have the f
 ## Scaling Applications Made Easy
 
 
-Dedicated Resources is designed to provide a simple and intuitive way for you to buy and allocate your desired amount of compute capacity for each of your Nhost services. As of now, navigating to your project's settings will show you a new "Resources" page where you can buy and allocate resources using a few resource sliders (see below image). Configuring Dedicated Resources is as simple as:
+Dedicated Resources is designed to provide a simple and intuitive way for you to buy and allocate your desired amount of compute capacity for each of your Nhost services. As of now, navigating to your project's settings will show you a new "Resources" page where you can buy and allocate resources using a few resource sliders (see below image):
 
 1. Select the total amount of capacity you want to dedicate to your Nhost project.
 2. Distribute it amongst all services according to their needs.
 
 ![Resource Slider](/images/blog/dedicated-resources/dashboard-slider.png)
 
-> You will also be able to define your project's dedicated resources through a new Config we are about to release.
 
 Notes:
 
 - Dedicated Resources is available starting on the Pro plan.
 - When purchasing dedicated resources, they must adhere to a 1:2 ratio between CPU and memory. For example, if you buy 3 vCPUs, you will also get 6GB of RAM.
 - You can buy as little as a fourth of a vCPU (and 512MB of RAM).
+- You will also be able to set your resources using a new config file we are currently working on as part of your Git Workflow.
 
 
 ## Pricing
