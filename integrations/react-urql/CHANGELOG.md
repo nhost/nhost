@@ -1,5 +1,13 @@
 # @nhost/react-urql
 
+## 2.0.15
+
+### Patch Changes
+
+- 43b1b144: chore(deps): bump `@types/react` to v18.0.34 and `@types/react-dom` to v18.0.11
+- Updated dependencies [43b1b144]
+  - @nhost/react@2.0.14
+
 ## 2.0.14
 
 ### Patch Changes
