@@ -1,0 +1,67 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Scaling Your Nhost Applications with Dedicated Resources',
+	description: 'Optimize performance and meet growing demands with tailored resource allocation for each service',
+  image: '/images/blog/dedicated-resources/chip.png',
+  date: '2023-04-10',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Resources'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We are very excited to announce the release of Dedicated Resources to everyone! a new feature to help you scale your Nhost applications by providing more control over your compute resources. Dedicated Resources allows you to allocate CPU and memory for each service on the Nhost stack, so that you can efficiently scale your applications to meet growing demands and provide the best possible user experience for your users.
+
+
+## Background and Motivation
+
+As your applications grow and user traffic increases, it's crucial to have the flexibility to scale your services accordingly. Different services have unique requirements, so a one-size-fits-all approach just doesn't cut it. That's why we are introducing Dedicated Resources, to give you the power and flexibility to allocate exactly the amount of CPU and memory each service needs, up to a whopping 15 vCPUs and 30GB of RAM per service. Your users will thank you!
+
+
+## Scaling Applications Made Easy
+
+
+Dedicated Resources is designed to provide a simple and intuitive way for you to buy and allocate your desired amount of compute capacity for each of your Nhost services. As of now, navigating to your project's settings will show you a new "Resources" page where you can buy and allocate resources using a few resource sliders (see below image). Configuring Dedicated Resources is as simple as:
+
+1. Select the total amount of capacity you want to dedicate to your Nhost project.
+2. Distribute it amongst all services according to their needs.
+
+![Resource Slider](/images/blog/dedicated-resources/dashboard-slider.png)
+
+> You will also be able to define your project's dedicated resources through a new Config we are about to release.
+
+Notes:
+
+- Dedicated Resources is available starting on the Pro plan.
+- When purchasing dedicated resources, they must adhere to a 1:2 ratio between CPU and memory. For example, if you buy 3 vCPUs, you will also get 6GB of RAM.
+- You can buy as little as a fourth of a vCPU (and 512MB of RAM).
+
+
+## Pricing
+
+The Pro plan remains priced at $25, and each dedicated vCPU/2GB adds $50. For instance, if you purchase 2 vCPUs and 4GB of RAM, the total cost would be $125.
+
+
+## Benefits of Dedicated Resources for Scaling your Applications
+
+1. Granular Control: Allocate CPU and memory on a per-service basis, letting you optimize the performance of each service independently, according to its specific requirements.
+
+2. Seamless Scaling: Adjust your Dedicated Resources allocation as your applications grow, ensuring that you can support increased traffic and demand without compromising performance or user experience.
+
+3. Cost Efficiency: Allocate resources precisely where they are needed, avoiding over-provisioning and reducing your monthly bill.
+
+4. Enhanced Performance: Tailor your resources to provide the best possible performance for your users, delivering a seamless experience to them.
+
+## Conclusion
+
+
+Dedicated Resources is a game-changing solution for scaling your Nhost applications. By offering precise control over the allocation of CPU and memory, it enables you to optimize the performance of each Nhost service while ensuring a seamless experience for your users. As your applications grow and evolve, Dedicated Resources ensures that your projects can scale along with your needs. Embrace it today and take your Nhost applications to the next level of growth!
