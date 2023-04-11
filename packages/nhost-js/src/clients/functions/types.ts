@@ -11,7 +11,7 @@ export interface NhostFunctionsConstructorParams {
   adminSecret?: string
 }
 
-export type NhostFunctionCallResponse<TData = unknown, TErrorMessage = unknown> =
+export type NhostFunctionCallResponse<TData = unknown, TErrorMessage = any> =
   | {
       res: {
         data: TData

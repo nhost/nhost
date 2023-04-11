@@ -1,7 +1,7 @@
 import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
 
 // TODO shared with other packages
-export interface ErrorPayload<TMessage = unknown> {
+export interface ErrorPayload<TMessage = any> {
   error: string
   status: number
   message: TMessage

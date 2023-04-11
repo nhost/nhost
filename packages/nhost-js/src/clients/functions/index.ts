@@ -79,11 +79,11 @@ export class NhostFunctionsClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/call
    */
-  async call<TData = unknown, TBody = any, TErrorMessage = unknown>(
+  async call<TData = unknown, TBody = any, TErrorMessage = any>(
     url: string,
     body?: TBody | null,
     config?: NhostFunctionCallConfig
-  ): Promise<NhostFunctionCallResponse<TData>> {
+  ): Promise<NhostFunctionCallResponse<TData, TErrorMessage>> {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
@@ -111,7 +111,7 @@ export class NhostFunctionsClient {
         return {
           res: null,
           error: {
-            message: message || 'Unknown error',
+            message,
             error: result.statusText,
             status: result.status
           }
@@ -135,7 +135,7 @@ export class NhostFunctionsClient {
       return {
         res: null,
         error: {
-          message: error.message,
+          message: error.message as unknown as TErrorMessage,
           status: error.name === 'AbortError' ? 0 : 500,
           error: error.name === 'AbortError' ? 'abort-error' : 'unknown'
         }
