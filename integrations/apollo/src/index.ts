@@ -32,7 +32,7 @@ export type NhostApolloClientOptions = {
    * @deprecated Please use `generateLinks` instead.
    */
   link?: ApolloLink
-  generateLinks: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
+  generateLinks?: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
 }
 
 export const createApolloClient = ({
