@@ -1,5 +1,13 @@
 # @nhost-examples/react-gqty
 
+## 0.0.7
+
+### Patch Changes
+
+- 43b1b144: chore(deps): bump `@types/react` to v18.0.34 and `@types/react-dom` to v18.0.11
+- Updated dependencies [43b1b144]
+  - @nhost/react@2.0.14
+
 ## 0.0.6
 
 ### Patch Changes

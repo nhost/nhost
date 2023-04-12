@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 0.14.6
+
+### Patch Changes
+
+- b299cfc9: chore(deps): bump `vitest` to v0.30.0
+- 411cb65b: chore(projects): refactor workspace and project hooks
+- 43b1b144: chore(deps): bump `@types/react` to v18.0.34 and `@types/react-dom` to v18.0.11
+- Updated dependencies [43b1b144]
+  - @nhost/react-apollo@5.0.17
+  - @nhost/nextjs@1.13.20
+
 ## 0.14.5
 
 ### Patch Changes
