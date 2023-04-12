@@ -4,6 +4,10 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
+import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import useProPlan from '@/hooks/common/useProPlan';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
@@ -13,7 +17,6 @@ import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
 import {
-  RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/CONSTANTS';
@@ -25,8 +28,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import getServerError from '@/utils/settings/getServerError';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
-import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
-import { resourceSettingsValidationSchema } from '@/utils/settings/resourceSettingsValidationSchema';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
@@ -41,8 +42,8 @@ function getInitialServiceResources(
   const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
 
   return {
-    vcpu: (cpu || 0) / RESOURCE_VCPU_MULTIPLIER,
-    memory: (memory || 0) / RESOURCE_MEMORY_MULTIPLIER,
+    vcpu: cpu || 0,
+    memory: memory || 0,
   };
 }
 
@@ -130,8 +131,12 @@ export default function ResourcesForm() {
   const enabled = watch('enabled');
   const totalAvailableVCPU = enabled ? watch('totalAvailableVCPU') : 0;
 
-  const initialPrice = RESOURCE_VCPU_PRICE * totalInitialVCPU + proPlan.price;
-  const updatedPrice = RESOURCE_VCPU_PRICE * totalAvailableVCPU + proPlan.price;
+  const initialPrice =
+    RESOURCE_VCPU_PRICE * (totalInitialVCPU / RESOURCE_VCPU_MULTIPLIER) +
+    proPlan.price;
+  const updatedPrice =
+    RESOURCE_VCPU_PRICE * (totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
+    proPlan.price;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -142,9 +147,8 @@ export default function ResourcesForm() {
             resources: enabled
               ? {
                   compute: {
-                    cpu: formValues.databaseVCPU * RESOURCE_VCPU_MULTIPLIER,
-                    memory:
-                      formValues.databaseMemory * RESOURCE_MEMORY_MULTIPLIER,
+                    cpu: formValues.databaseVCPU,
+                    memory: formValues.databaseMemory,
                   },
                   replicas: 1,
                 }
@@ -154,9 +158,8 @@ export default function ResourcesForm() {
             resources: enabled
               ? {
                   compute: {
-                    cpu: formValues.hasuraVCPU * RESOURCE_VCPU_MULTIPLIER,
-                    memory:
-                      formValues.hasuraMemory * RESOURCE_MEMORY_MULTIPLIER,
+                    cpu: formValues.hasuraVCPU,
+                    memory: formValues.hasuraMemory,
                   },
                   replicas: 1,
                 }
@@ -166,8 +169,8 @@ export default function ResourcesForm() {
             resources: enabled
               ? {
                   compute: {
-                    cpu: formValues.authVCPU * RESOURCE_VCPU_MULTIPLIER,
-                    memory: formValues.authMemory * RESOURCE_MEMORY_MULTIPLIER,
+                    cpu: formValues.authVCPU,
+                    memory: formValues.authMemory,
                   },
                   replicas: 1,
                 }
@@ -177,9 +180,8 @@ export default function ResourcesForm() {
             resources: enabled
               ? {
                   compute: {
-                    cpu: formValues.storageVCPU * RESOURCE_VCPU_MULTIPLIER,
-                    memory:
-                      formValues.storageMemory * RESOURCE_MEMORY_MULTIPLIER,
+                    cpu: formValues.storageVCPU,
+                    memory: formValues.storageMemory,
                   },
                   replicas: 1,
                 }
@@ -233,8 +235,10 @@ export default function ResourcesForm() {
 
     if (hasUnusedResources) {
       const unusedResourceMessage = [
-        unallocatedVCPU > 0 ? `${unallocatedVCPU} vCPUs` : '',
-        unallocatedMemory > 0 ? `${unallocatedMemory} GiB of Memory` : '',
+        unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
+        unallocatedMemory > 0
+          ? `${prettifyMemory(unallocatedMemory)} of Memory`
+          : '',
       ]
         .filter(Boolean)
         .join(' and ');

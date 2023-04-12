@@ -1,4 +1,7 @@
-import { getProPlanOnlyQuery } from '@/tests/msw/mocks/graphql/plansQuery';
+import {
+  getProPlanOnlyQuery,
+  getWorkspaceAndProjectQuery,
+} from '@/tests/msw/mocks/graphql/plansQuery';
 import {
   resourcesAvailableQuery,
   resourcesUnavailableQuery,
@@ -13,6 +16,10 @@ import {
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
+import {
+  RESOURCE_MEMORY_MULTIPLIER,
+  RESOURCE_VCPU_MULTIPLIER,
+} from '@/utils/CONSTANTS';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { test, vi } from 'vitest';
@@ -60,7 +67,11 @@ vi.mock('next/router', () => ({
   }),
 }));
 
-const server = setupServer(resourcesAvailableQuery, getProPlanOnlyQuery);
+const server = setupServer(
+  resourcesAvailableQuery,
+  getProPlanOnlyQuery,
+  getWorkspaceAndProjectQuery,
+);
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -127,7 +138,7 @@ test('should show a warning message if not all the resources are allocated', asy
     screen.getByRole('slider', {
       name: /total available vcpu/i,
     }),
-    9,
+    9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 9/i);
@@ -149,7 +160,7 @@ test('should update the price when the top slider is changed', async () => {
     screen.getByRole('slider', {
       name: /total available vcpu/i,
     }),
-    9,
+    9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   expect(screen.getByText(/\$425\.00\/mo/i)).toBeInTheDocument();
@@ -169,7 +180,7 @@ test('should show a validation error when the form is submitted when not everyth
     screen.getByRole('slider', {
       name: /total available vcpu/i,
     }),
-    9,
+    9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -196,35 +207,41 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     screen.getByRole('slider', {
       name: /total available vcpu/i,
     }),
-    9,
+    9 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   changeSliderValue(
     screen.getByRole('slider', { name: /database vcpu/i }),
-    2.25,
+    2.25 * RESOURCE_VCPU_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
-    2.25,
+    2.25 * RESOURCE_VCPU_MULTIPLIER,
   );
-  changeSliderValue(screen.getByRole('slider', { name: /auth vcpu/i }), 2.25);
+  changeSliderValue(
+    screen.getByRole('slider', { name: /auth vcpu/i }),
+    2.25 * RESOURCE_VCPU_MULTIPLIER,
+  );
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
-    2.25,
+    2.25 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   changeSliderValue(
     screen.getByRole('slider', { name: /database memory/i }),
-    4.5,
+    4.5 * RESOURCE_MEMORY_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql memory/i }),
-    4.5,
+    4.5 * RESOURCE_MEMORY_MULTIPLIER,
   );
-  changeSliderValue(screen.getByRole('slider', { name: /auth memory/i }), 4.5);
+  changeSliderValue(
+    screen.getByRole('slider', { name: /auth memory/i }),
+    4.5 * RESOURCE_MEMORY_MULTIPLIER,
+  );
   changeSliderValue(
     screen.getByRole('slider', { name: /storage memory/i }),
-    4.5,
+    4.5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -260,7 +277,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
 
   expect(
     screen.getByRole('slider', { name: /total available vcpu/i }),
-  ).toHaveValue('9');
+  ).toHaveValue((9 * RESOURCE_VCPU_MULTIPLIER).toString());
   expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
 });
 

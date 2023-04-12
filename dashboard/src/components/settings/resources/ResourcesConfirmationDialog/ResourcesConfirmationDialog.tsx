@@ -1,10 +1,15 @@
+import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import useProPlan from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
-import { RESOURCE_VCPU_PRICE } from '@/utils/CONSTANTS';
+import {
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+} from '@/utils/CONSTANTS';
 
 export interface ResourcesConfirmationDialogProps {
   /**
@@ -30,7 +35,8 @@ export default function ResourcesConfirmationDialog({
   onSubmit,
 }: ResourcesConfirmationDialogProps) {
   const { data: proPlan, loading, error } = useProPlan();
-  const updatedPrice = RESOURCE_VCPU_PRICE * updatedResources.vcpu;
+  const updatedPrice =
+    RESOURCE_VCPU_PRICE * (updatedResources.vcpu / RESOURCE_VCPU_MULTIPLIER);
 
   if (!loading && !proPlan) {
     return (
@@ -67,8 +73,8 @@ export default function ResourcesConfirmationDialog({
           <Box className="grid grid-flow-row gap-0.5">
             <Text className="font-medium">Dedicated Resources</Text>
             <Text className="text-xs" color="secondary">
-              {updatedResources.vcpu} vCPUs + {updatedResources.memory} GiB of
-              Memory
+              {prettifyVCPU(updatedResources.vcpu)} vCPUs +{' '}
+              {prettifyMemory(updatedResources.memory)} of Memory
             </Text>
           </Box>
           <Text>${updatedPrice.toFixed(2)}/mo</Text>

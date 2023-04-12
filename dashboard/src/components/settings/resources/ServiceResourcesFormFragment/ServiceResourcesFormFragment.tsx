@@ -1,14 +1,16 @@
-import Box from '@/ui/v2/Box';
-import Slider from '@/ui/v2/Slider';
-import Text from '@/ui/v2/Text';
-import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
-import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_VCPU,
-} from '@/utils/settings/resourceSettingsValidationSchema';
+} from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import Box from '@/ui/v2/Box';
+import Slider from '@/ui/v2/Slider';
+import Text from '@/ui/v2/Text';
+import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
@@ -110,12 +112,17 @@ export default function ServiceResourcesFormFragment({
         <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated vCPUs:{' '}
-            <span className="font-medium">{formValues[cpuKey]}</span>
+            <span className="font-medium">
+              {prettifyVCPU(formValues[cpuKey])}
+            </span>
           </Text>
 
           {remainingCPU > 0 && formValues[cpuKey] < MAX_SERVICE_VCPU && (
             <Text className="text-sm">
-              <span className="font-medium">{remainingCPU} CPU</span> remaining
+              <span className="font-medium">
+                {prettifyVCPU(remainingCPU)} vCPUs
+              </span>{' '}
+              remaining
             </Text>
           )}
         </Box>
@@ -135,13 +142,15 @@ export default function ServiceResourcesFormFragment({
         <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated Memory:{' '}
-            <span className="font-medium">{formValues[memoryKey]} GiB</span>
+            <span className="font-medium">
+              {prettifyMemory(formValues[memoryKey])}
+            </span>
           </Text>
 
           {remainingMemory > 0 && formValues[memoryKey] < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">
               <span className="font-medium">
-                {remainingMemory} GiB of Memory
+                {prettifyMemory(remainingMemory)} of Memory
               </span>{' '}
               remaining
             </Text>

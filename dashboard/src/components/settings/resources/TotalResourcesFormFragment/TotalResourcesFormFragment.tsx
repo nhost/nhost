@@ -1,21 +1,25 @@
-import useProPlan from '@/hooks/common/useProPlan';
-import { Alert } from '@/ui/Alert';
-import Box from '@/ui/v2/Box';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
-import Slider, { sliderClasses } from '@/ui/v2/Slider';
-import Text from '@/ui/v2/Text';
-import {
-  RESOURCE_VCPU_MEMORY_RATIO,
-  RESOURCE_VCPU_PRICE,
-  RESOURCE_VCPU_STEP,
-} from '@/utils/CONSTANTS';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
-import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_MEMORY,
   MIN_TOTAL_VCPU,
-} from '@/utils/settings/resourceSettingsValidationSchema';
+} from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import useProPlan from '@/hooks/common/useProPlan';
+import { Alert } from '@/ui/Alert';
+import Box from '@/ui/v2/Box';
+import Slider, { sliderClasses } from '@/ui/v2/Slider';
+import Text from '@/ui/v2/Text';
+import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
+import {
+  RESOURCE_MEMORY_MULTIPLIER,
+  RESOURCE_VCPU_MEMORY_RATIO,
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+  RESOURCE_VCPU_STEP,
+} from '@/utils/CONSTANTS';
+import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 
@@ -68,7 +72,9 @@ export default function TotalResourcesFormFragment({
     formValues.storageMemory;
 
   const updatedPrice =
-    RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU + proPlan.price;
+    RESOURCE_VCPU_PRICE *
+      (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
+    proPlan.price;
 
   const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
@@ -77,15 +83,20 @@ export default function TotalResourcesFormFragment({
     Object.keys(dirtyFields).filter((key) => key !== 'enabled').length > 0;
   const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
-    unallocatedVCPU > 0 ? `${unallocatedVCPU} vCPUs` : '',
-    unallocatedMemory > 0 ? `${unallocatedMemory} GiB of memory` : '',
+    unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
+    unallocatedMemory > 0
+      ? `${prettifyMemory(unallocatedMemory)} of Memory`
+      : '',
   ]
     .filter(Boolean)
     .join(' and ');
 
   function handleCPUChange(value: string) {
     const updatedCPU = parseFloat(value);
-    const updatedMemory = updatedCPU * RESOURCE_VCPU_MEMORY_RATIO;
+    const updatedMemory =
+      (updatedCPU / RESOURCE_VCPU_MULTIPLIER) *
+      RESOURCE_VCPU_MEMORY_RATIO *
+      RESOURCE_MEMORY_MULTIPLIER;
 
     if (
       Number.isNaN(updatedCPU) ||
@@ -125,14 +136,14 @@ export default function TotalResourcesFormFragment({
             <Text color="secondary">
               vCPUs:{' '}
               <Text component="span" color="primary" className="font-medium">
-                {formValues.totalAvailableVCPU}
+                {prettifyVCPU(formValues.totalAvailableVCPU)}
               </Text>
             </Text>
 
             <Text color="secondary">
               Memory:{' '}
               <Text component="span" color="primary" className="font-medium">
-                {formValues.totalAvailableMemory} GiB
+                {prettifyMemory(formValues.totalAvailableMemory)}
               </Text>
             </Text>
           </Box>

@@ -29,17 +29,6 @@ export const COLOR_PREFERENCE_STORAGE_KEY = 'nhost-color-preference';
 export const RESOURCE_VCPU_MEMORY_RATIO = 2;
 
 /**
- * Number of steps between CPU cores.
- */
-export const RESOURCE_VCPU_STEP = 0.25;
-
-/**
- * Number of steps between GiB of RAM.
- */
-export const RESOURCE_MEMORY_STEP =
-  RESOURCE_VCPU_STEP * RESOURCE_VCPU_MEMORY_RATIO;
-
-/**
  * The infrastructure uses a multiplier of 1000 to represent vCPU cores, but the
  * vCPU values are displayed in smaller units.
  */
@@ -50,6 +39,16 @@ export const RESOURCE_VCPU_MULTIPLIER = 1000;
  * displayed in GiB.
  */
 export const RESOURCE_MEMORY_MULTIPLIER = 1024;
+
+/**
+ * Number of steps between CPU cores.
+ */
+export const RESOURCE_VCPU_STEP = 0.25 * RESOURCE_VCPU_MULTIPLIER;
+
+/**
+ * Number of steps between GiB of RAM.
+ */
+export const RESOURCE_MEMORY_STEP = 128;
 
 /**
  * Price per vCPU.

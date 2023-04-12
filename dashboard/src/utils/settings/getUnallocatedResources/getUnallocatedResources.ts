@@ -1,4 +1,4 @@
-import type { ResourceSettingsFormValues } from '@/utils/settings/resourceSettingsValidationSchema';
+import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 
 /**
  * Returns the unallocated resources based on the form values.
