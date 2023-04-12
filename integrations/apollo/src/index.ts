@@ -32,7 +32,7 @@ export type NhostApolloClientOptions = {
    * @deprecated Please use `generateLinks` instead.
    */
   link?: ApolloLink
-  generateLinks: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
+  generateLinks?: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
 }
 
 export const createApolloClient = ({
@@ -45,7 +45,7 @@ export const createApolloClient = ({
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError,
   link: customLink,
-  generateLinks,
+  generateLinks
 }: NhostApolloClientOptions) => {
   const backendUrl = graphqlUrl || nhost?.graphql.httpUrl
 
@@ -133,17 +133,17 @@ export const createApolloClient = ({
       )
     : httpLink
 
-  const links = [];
+  const links = []
 
-  if(onError) {
-    links.push(onError);
+  if (onError) {
+    links.push(onError)
   }
 
-  if(customLink) {
-    links.push(customLink);
+  if (customLink) {
+    links.push(customLink)
   }
 
-  links.push(splitLink);
+  links.push(splitLink)
 
   const link = from(generateLinks ? generateLinks(links) : links)
 
