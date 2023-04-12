@@ -1,4 +1,8 @@
-import { useGetWorkspaceMemberInvitesToManageQuery } from '@/generated/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  GetWorkspaceMemberInvitesToManageDocument,
+  useGetWorkspaceMemberInvitesToManageQuery,
+} from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import Box from '@/ui/v2/Box';
@@ -114,7 +118,10 @@ export function InviteAnnounce() {
 
     // just refetch all data
     await client.refetchQueries({
-      include: ['getWorkspaceMemberInvitesToManage'],
+      include: [
+        GetAllWorkspacesAndProjectsDocument,
+        GetWorkspaceMemberInvitesToManageDocument,
+      ],
     });
 
     setIgnoreState({
