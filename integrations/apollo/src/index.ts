@@ -24,6 +24,9 @@ export type NhostApolloClientOptions = {
   fetchPolicy?: WatchQueryFetchPolicy
   connectToDevTools?: boolean
   cache?: InMemoryCache
+  /**
+   * @deprecated Please use `generateLinks` instead.
+   */
   onError?: RequestHandler
   /**
    * @deprecated Please use `generateLinks` instead.
