@@ -4,7 +4,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  useUpdateAppMutation,
+  useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
@@ -27,7 +27,7 @@ export interface BaseDirectoryFormValues {
 export default function BaseDirectorySettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
 
   const form = useForm<BaseDirectoryFormValues>({
@@ -48,7 +48,7 @@ export default function BaseDirectorySettings() {
   const handleBaseFolderChange = async (values: BaseDirectoryFormValues) => {
     const updateAppMutation = updateApp({
       variables: {
-        id: currentProject.id,
+        appId: currentProject.id,
         app: {
           ...values,
         },

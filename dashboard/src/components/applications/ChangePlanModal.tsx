@@ -5,7 +5,7 @@ import {
   refetchGetApplicationPlanQuery,
   useGetAppPlanAndGlobalPlansQuery,
   useGetPaymentMethodsQuery,
-  useUpdateAppMutation,
+  useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
@@ -89,7 +89,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const isDowngrade = currentPlan.price > selectedPlan?.price;
 
   // graphql mutations
-  const [updateApp] = useUpdateAppMutation({
+  const [updateApp] = useUpdateApplicationMutation({
     refetchQueries: [
       refetchGetApplicationPlanQuery({
         workspace: currentWorkspace.slug,
@@ -102,7 +102,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const handleUpdateAppPlan = async () => {
     await updateApp({
       variables: {
-        id: app.id,
+        appId: app.id,
         app: {
           planId: selectedPlan.id,
         },

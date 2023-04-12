@@ -3,7 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  useUpdateAppMutation,
+  useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
@@ -26,7 +26,7 @@ export interface DeploymentBranchFormValues {
 export default function DeploymentBranchSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const [updateApp] = useUpdateAppMutation();
+  const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
 
   const form = useForm<DeploymentBranchFormValues>({
@@ -49,7 +49,7 @@ export default function DeploymentBranchSettings() {
   ) => {
     const updateAppMutation = updateApp({
       variables: {
-        id: currentProject.id,
+        appId: currentProject.id,
         app: {
           ...values,
         },

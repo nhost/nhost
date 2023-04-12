@@ -9,17 +9,6 @@ fragment DeploymentRow on deployments {
   commitMessage
 }
 
-query getDeployments($id: uuid!, $limit: Int!, $offset: Int!) {
-  deployments(
-    where: { appId: { _eq: $id } }
-    order_by: { deploymentStartedAt: desc }
-    limit: $limit
-    offset: $offset
-  ) {
-    ...DeploymentRow
-  }
-}
-
 subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
     where: { deploymentStatus: { _in: ["SCHEDULED"] }, appId: { _eq: $appId } }

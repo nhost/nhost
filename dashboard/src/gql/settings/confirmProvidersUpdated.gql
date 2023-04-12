@@ -1,5 +1,0 @@
-mutation confirmProvidersUpdated($id: uuid!) {
-  updateApp(pk_columns: { id: $id }, _set: { providersUpdated: true }) {
-    id
-  }
-}
