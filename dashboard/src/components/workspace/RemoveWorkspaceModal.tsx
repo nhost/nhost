@@ -5,7 +5,10 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
-import { useDeleteWorkspaceMutation } from '@/utils/__generated__/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  useDeleteWorkspaceMutation,
+} from '@/utils/__generated__/graphql';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
@@ -34,7 +37,9 @@ export default function RemoveWorkspaceModal() {
       return;
     }
     await router.push('/');
-    await client.refetchQueries({ include: ['getOneUser'] });
+    await client.refetchQueries({
+      include: [GetAllWorkspacesAndProjectsDocument],
+    });
   }
 
   return (

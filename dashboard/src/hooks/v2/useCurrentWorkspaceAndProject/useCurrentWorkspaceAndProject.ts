@@ -24,6 +24,10 @@ export interface UseCurrentWorkspaceAndProjectReturnType {
    * The error if any.
    */
   error?: Error;
+  /**
+   * Refetch the query.
+   */
+  refetch: (options?: any) => Promise<any>;
 }
 
 export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndProjectReturnType {
@@ -39,7 +43,11 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   // We can't use the hook exported by the codegen here because there are cases
   // where it doesn't target the Nhost backend, but the currently active project
   // instead.
-  const { data: response, isFetching } = useQuery(
+  const {
+    data: response,
+    isFetching,
+    refetch,
+  } = useQuery(
     ['currentWorkspaceAndProject', workspaceSlug, appSlug],
     () =>
       client.graphql.request<{
@@ -105,6 +113,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       },
       currentProject: localProject,
       loading: false,
+      refetch: () => Promise.resolve(),
     };
   }
 
@@ -122,5 +131,6 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
     error: response?.error
       ? new Error(error?.message || 'Unknown error occurred.')
       : null,
+    refetch,
   };
 }

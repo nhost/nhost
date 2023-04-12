@@ -1,7 +1,10 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
-import { useUpdateAppMutation } from '@/generated/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  useUpdateAppMutation,
+} from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import Input from '@/ui/v2/Input';
@@ -68,7 +71,9 @@ export default function DeploymentBranchSettings() {
     form.reset(values);
 
     try {
-      await client.refetchQueries({ include: ['getOneUser'] });
+      await client.refetchQueries({
+        include: [GetAllWorkspacesAndProjectsDocument],
+      });
     } catch (error) {
       await discordAnnounce(
         error.message || 'Error while trying to update application cache',

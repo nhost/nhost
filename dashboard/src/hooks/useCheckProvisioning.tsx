@@ -1,6 +1,5 @@
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -34,7 +33,7 @@ export function useCheckProvisioning() {
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+      include: [GetAllWorkspacesAndProjectsDocument],
     });
   }
 

@@ -4,7 +4,6 @@ import type { AuthenticatedLayoutProps } from '@/components/layout/Authenticated
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
-import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
@@ -47,7 +46,6 @@ function ProjectLayoutContent({
       ),
     );
 
-  useGetAllUserWorkspacesAndApplications(false);
   useNotFoundRedirect();
 
   useEffect(() => {

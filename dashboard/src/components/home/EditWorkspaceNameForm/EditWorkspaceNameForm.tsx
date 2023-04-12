@@ -3,14 +3,14 @@ import Form from '@/components/common/Form';
 import type { DialogFormProps } from '@/types/common';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
-import { slugifyString } from '@/utils/helpers';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
-  refetchGetOneUserQuery,
+  GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
+import { slugifyString } from '@/utils/helpers';
+import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -85,11 +85,7 @@ export default function EditWorkspaceNameForm({
   const currentUser = useUserData();
   const [insertWorkspace, { client }] = useInsertWorkspaceMutation();
   const [updateWorkspaceName] = useUpdateWorkspaceMutation({
-    refetchQueries: [
-      refetchGetOneUserQuery({
-        userId: currentUser.id,
-      }),
-    ],
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
     awaitRefetchQueries: true,
     ignoreResults: true,
   });
@@ -196,7 +192,7 @@ export default function EditWorkspaceNameForm({
     }
 
     await client.refetchQueries({
-      include: ['getOneUser'],
+      include: [GetAllWorkspacesAndProjectsDocument],
     });
 
     // The form has been submitted, it's not dirty anymore

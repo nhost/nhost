@@ -1668,6 +1668,15 @@ export type ConfigUserRoleComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
+export type DedicatedResourceReport = {
+  __typename?: 'DedicatedResourceReport';
+  ends: Scalars['Timestamp'];
+  id: Scalars['uuid'];
+  pending: Scalars['Boolean'];
+  starts: Scalars['Timestamp'];
+  totalMillicores: Scalars['Int'];
+};
+
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Int']>;
@@ -2344,6 +2353,7 @@ export type Apps = {
   /** An object relationship */
   creator?: Maybe<Users>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  dedicatedResourcesReports: Array<DedicatedResourceReport>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** An aggregate relationship */
@@ -9281,6 +9291,7 @@ export type Mutation_Root = {
   /** update data of the table: "cli_tokens" */
   updateCliTokens?: Maybe<CliTokens_Mutation_Response>;
   updateConfig: ConfigConfig;
+  updateDedicatedResources: Scalars['Boolean'];
   /** update single row of the table: "deployments" */
   updateDeployment?: Maybe<Deployments>;
   /** update single row of the table: "deployment_logs" */
@@ -10482,6 +10493,13 @@ export type Mutation_RootUpdateCliTokensArgs = {
 export type Mutation_RootUpdateConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigUpdateInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateDedicatedResourcesArgs = {
+  appID: Scalars['uuid'];
+  totalMillicores: Scalars['Int'];
 };
 
 
@@ -12017,6 +12035,7 @@ export type Query_Root = {
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
+  dedicatedResourcesReport: Array<DedicatedResourceReport>;
   /** fetch data from the table: "deployments" using primary key columns */
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
@@ -12507,6 +12526,11 @@ export type Query_RootCountries_AggregateArgs = {
 
 export type Query_RootCountries_By_PkArgs = {
   code: Scalars['bpchar'];
+};
+
+
+export type Query_RootDedicatedResourcesReportArgs = {
+  appID: Scalars['uuid'];
 };
 
 
@@ -17036,13 +17060,6 @@ export type GetFreeAndActiveProjectsQueryVariables = Exact<{
 
 export type GetFreeAndActiveProjectsQuery = { __typename?: 'query_root', freeAndActiveProjects: Array<{ __typename?: 'apps', id: any }> };
 
-export type GetOneUserQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetOneUserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, userId: any, workspaceId: any, type: string, workspace: { __typename?: 'workspaces', creatorUserId?: any | null, id: any, slug: string, name: string, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> } }> } | null };
-
 export type GetUserAllWorkspacesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -20607,61 +20624,6 @@ export type GetFreeAndActiveProjectsLazyQueryHookResult = ReturnType<typeof useG
 export type GetFreeAndActiveProjectsQueryResult = Apollo.QueryResult<GetFreeAndActiveProjectsQuery, GetFreeAndActiveProjectsQueryVariables>;
 export function refetchGetFreeAndActiveProjectsQuery(variables: GetFreeAndActiveProjectsQueryVariables) {
       return { query: GetFreeAndActiveProjectsDocument, variables: variables }
-    }
-export const GetOneUserDocument = gql`
-    query getOneUser($userId: uuid!) {
-  user(id: $userId) {
-    id
-    displayName
-    avatarUrl
-    workspaceMembers {
-      id
-      userId
-      workspaceId
-      type
-      workspace {
-        creatorUserId
-        id
-        slug
-        name
-        apps {
-          ...Project
-        }
-      }
-    }
-  }
-}
-    ${ProjectFragmentDoc}`;
-
-/**
- * __useGetOneUserQuery__
- *
- * To run a query within a React component, call `useGetOneUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOneUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetOneUserQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetOneUserQuery(baseOptions: Apollo.QueryHookOptions<GetOneUserQuery, GetOneUserQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOneUserQuery, GetOneUserQueryVariables>(GetOneUserDocument, options);
-      }
-export function useGetOneUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOneUserQuery, GetOneUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOneUserQuery, GetOneUserQueryVariables>(GetOneUserDocument, options);
-        }
-export type GetOneUserQueryHookResult = ReturnType<typeof useGetOneUserQuery>;
-export type GetOneUserLazyQueryHookResult = ReturnType<typeof useGetOneUserLazyQuery>;
-export type GetOneUserQueryResult = Apollo.QueryResult<GetOneUserQuery, GetOneUserQueryVariables>;
-export function refetchGetOneUserQuery(variables: GetOneUserQueryVariables) {
-      return { query: GetOneUserDocument, variables: variables }
     }
 export const GetUserAllWorkspacesDocument = gql`
     query getUserAllWorkspaces {

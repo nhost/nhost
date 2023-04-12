@@ -114,7 +114,7 @@ export function InviteAnnounce() {
 
     // just refetch all data
     await client.refetchQueries({
-      include: ['getOneUser', 'getWorkspaceMemberInvitesToManage'],
+      include: ['getWorkspaceMemberInvitesToManage'],
     });
 
     setIgnoreState({
