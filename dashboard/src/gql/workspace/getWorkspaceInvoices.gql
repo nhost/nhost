@@ -1,5 +1,0 @@
-query getWorkspaceInvoices($id: uuid!) {
-  workspace(id: $id) {
-    id
-  }
-}

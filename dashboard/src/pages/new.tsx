@@ -69,8 +69,6 @@ export function NewProjectPageContent({
 }: NewAppPageProps) {
   const { maintenanceActive } = useUI();
   const router = useRouter();
-  // pre hook
-  // useGetAllUserWorkspacesAndApplications();
 
   // form
   const [name, setName] = useState('');
