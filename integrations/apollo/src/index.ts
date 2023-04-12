@@ -11,7 +11,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { NhostClient } from '@nhost/nhost-js'
+import { AuthContext, NhostClient } from '@nhost/nhost-js'
 
 import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
@@ -56,19 +56,38 @@ export const createApolloClient = ({
   const uri = backendUrl
   const interpreter = nhost?.auth.client.interpreter
 
-  let token: string | null = null
+  let accessToken: AuthContext['accessToken'] | null = null
 
-  function getAuthHeaders() {
+  const isTokenValid = () =>
+    accessToken?.value && accessToken?.expiresAt && accessToken.expiresAt > new Date()
+
+  const awaitValidTokenOrNull = () =>
+    new Promise((resolve) => {
+      // doing this as an interval to avoid race conditions that I imagine can happen if listening to token changes. Maybe there's a better way.
+      const interval = setInterval(() => {
+        console.log('checking for token change')
+        if (!accessToken || isTokenValid()) {
+          clearInterval(interval)
+          resolve(true)
+        }
+      }, 100)
+    })
+
+  const getAuthHeaders = async () => {
     // add headers
     const resHeaders = {
       ...headers,
       'Sec-WebSocket-Protocol': 'graphql-ws'
     }
 
+    if (accessToken && !isTokenValid()) {
+      await awaitValidTokenOrNull()
+    }
+
     // add auth headers if signed in
     // or add 'public' role if not signed in
-    if (token) {
-      resHeaders.authorization = `Bearer ${token}`
+    if (accessToken) {
+      resHeaders.authorization = `Bearer ${accessToken.value}`
     } else {
       // ? Not sure it changes anything for Hasura
       resHeaders.role = publicRole
@@ -97,10 +116,10 @@ export const createApolloClient = ({
             )
           )
         },
-        connectionParams: () => ({
+        connectionParams: async () => ({
           headers: {
             ...headers,
-            ...getAuthHeaders()
+            ...(await getAuthHeaders())
           }
         })
       })
@@ -108,12 +127,14 @@ export const createApolloClient = ({
 
   const wsLink = wsClient ? new GraphQLWsLink(wsClient) : null
 
-  const httpLink = setContext((_, { headers }) => ({
-    headers: {
-      ...headers,
-      ...getAuthHeaders()
+  const httpLink = setContext(async (_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        ...(await getAuthHeaders())
+      }
     }
-  })).concat(createHttpLink({ uri }))
+  }).concat(createHttpLink({ uri }))
 
   const splitLink = wsLink
     ? split(
@@ -162,7 +183,7 @@ export const createApolloClient = ({
   interpreter?.onTransition(async (state, event) => {
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       if (event.type === 'SIGNOUT') {
-        token = null
+        accessToken = null
 
         try {
           await client.resetStore()
@@ -175,7 +196,7 @@ export const createApolloClient = ({
       }
 
       // update token
-      token = state.context.accessToken.value
+      accessToken = state.context.accessToken
 
       if (!isBrowser || !wsClient?.isOpen()) {
         return
