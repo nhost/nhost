@@ -42,7 +42,7 @@ export default function IndexPage() {
     stopPolling();
   }, [data?.workspaces, stopPolling]);
 
-  if (!data && loading) {
+  if ((!data && loading) || !user) {
     return <LoadingScreen />;
   }
 
