@@ -104,9 +104,11 @@ function Providers({ children }: PropsWithChildren<{}>) {
             <NhostProvider nhost={nhost} initial={mockSession}>
               <NhostApolloProvider
                 nhost={nhost}
-                link={createHttpLink({
-                  uri: 'https://local.graphql.nhost.run/v1',
-                })}
+                generateLinks={() => [
+                  createHttpLink({
+                    uri: 'https://local.graphql.nhost.run/v1',
+                  }),
+                ]}
               >
                 <UserDataProvider>
                   <ManagedUIContext>
