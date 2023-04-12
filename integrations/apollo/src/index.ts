@@ -25,6 +25,9 @@ export type NhostApolloClientOptions = {
   connectToDevTools?: boolean
   cache?: InMemoryCache
   onError?: RequestHandler
+  /**
+   * @deprecated Please use `generateLinks` instead.
+   */
   link?: ApolloLink
   generateLinks: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
 }
