@@ -1,5 +1,6 @@
 import {
   ApolloClient,
+  ApolloLink,
   createHttpLink,
   from,
   InMemoryCache,
@@ -23,8 +24,15 @@ export type NhostApolloClientOptions = {
   fetchPolicy?: WatchQueryFetchPolicy
   connectToDevTools?: boolean
   cache?: InMemoryCache
+  /**
+   * @deprecated Please use `generateLinks` instead.
+   */
   onError?: RequestHandler
-  link?: ApolloClient<any>['link']
+  /**
+   * @deprecated Please use `generateLinks` instead.
+   */
+  link?: ApolloLink
+  generateLinks?: (links: (ApolloLink | RequestHandler)[]) => (ApolloLink | RequestHandler)[]
 }
 
 export const createApolloClient = ({
@@ -36,7 +44,8 @@ export const createApolloClient = ({
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError,
-  link: customLink
+  link: customLink,
+  generateLinks
 }: NhostApolloClientOptions) => {
   const backendUrl = graphqlUrl || nhost?.graphql.httpUrl
 
@@ -106,7 +115,7 @@ export const createApolloClient = ({
     }
   })).concat(createHttpLink({ uri }))
 
-  const link = wsLink
+  const splitLink = wsLink
     ? split(
         ({ query }) => {
           const mainDefinition = getMainDefinition(query)
@@ -124,6 +133,20 @@ export const createApolloClient = ({
       )
     : httpLink
 
+  const links = []
+
+  if (onError) {
+    links.push(onError)
+  }
+
+  if (customLink) {
+    links.push(customLink)
+  }
+
+  links.push(splitLink)
+
+  const link = from(generateLinks ? generateLinks(links) : links)
+
   const client = new ApolloClient({
     cache: cache || new InMemoryCache(),
     ssrMode: !isBrowser,
@@ -133,9 +156,7 @@ export const createApolloClient = ({
       }
     },
     connectToDevTools,
-    link: customLink
-      ? from([customLink])
-      : from(typeof onError === 'function' ? [onError, link] : [link])
+    link
   })
 
   interpreter?.onTransition(async (state, event) => {
