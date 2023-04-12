@@ -15,7 +15,7 @@ export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const isPro = !currentProject?.plan?.isFree;
-  const { openAlertDialog } = useDialog();
+  const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
   if (!isPlatform) {
@@ -92,9 +92,9 @@ export default function OverviewTopBar() {
                     variant="borderless"
                     className="mr-2"
                     onClick={() => {
-                      openAlertDialog({
+                      openDialog({
                         title: 'Upgrade your plan.',
-                        payload: <ChangePlanModal />,
+                        component: <ChangePlanModal />,
                         props: {
                           PaperProps: { className: 'p-0 max-w-xl w-full' },
                           hidePrimaryAction: true,

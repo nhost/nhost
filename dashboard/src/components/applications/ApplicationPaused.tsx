@@ -25,7 +25,7 @@ import { toast } from 'react-hot-toast';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
-  const { openAlertDialog } = useDialog();
+  const { openDialog } = useDialog();
   const {
     currentWorkspace,
     currentProject,
@@ -123,9 +123,9 @@ export default function ApplicationPaused() {
           <Button
             className="mx-auto w-full max-w-[280px]"
             onClick={() => {
-              openAlertDialog({
+              openDialog({
                 title: 'Upgrade your plan.',
-                payload: <ChangePlanModal />,
+                component: <ChangePlanModal />,
                 props: {
                   PaperProps: { className: 'p-0' },
                   hidePrimaryAction: true,

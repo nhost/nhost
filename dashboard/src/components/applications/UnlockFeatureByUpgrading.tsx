@@ -19,7 +19,7 @@ export function UnlockFeatureByUpgrading({
   className,
   ...props
 }: UnlockFeatureByUpgradingProps) {
-  const { openAlertDialog } = useDialog();
+  const { openDialog } = useDialog();
 
   return (
     <div className={twMerge('flex', className)} {...props}>
@@ -29,9 +29,9 @@ export function UnlockFeatureByUpgrading({
         <Button
           variant="borderless"
           onClick={() => {
-            openAlertDialog({
+            openDialog({
               title: 'Upgrade your plan.',
-              payload: <ChangePlanModal />,
+              component: <ChangePlanModal />,
               props: {
                 PaperProps: { className: 'p-0 max-w-xl w-full' },
                 hidePrimaryAction: true,
