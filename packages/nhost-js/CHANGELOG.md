@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.2.1
+
+### Patch Changes
+
+- 08e70b9d: fix(functions): show more detailed error messages
+
 ## 2.2.0
 
 ### Minor Changes

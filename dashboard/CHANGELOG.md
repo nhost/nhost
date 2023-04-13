@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.14.7
+
+### Patch Changes
+
+- d4ccc656: chore: cleanup unused code
+  - @nhost/react-apollo@5.0.18
+  - @nhost/nextjs@1.13.21
+
 ## 0.14.6
 
 ### Patch Changes
