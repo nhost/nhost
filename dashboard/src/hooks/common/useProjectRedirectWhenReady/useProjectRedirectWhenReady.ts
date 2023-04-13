@@ -4,7 +4,10 @@ import type {
   GetApplicationStateQuery,
   GetApplicationStateQueryVariables,
 } from '@/utils/__generated__/graphql';
-import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  useGetApplicationStateQuery,
+} from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
 import { useEffect } from 'react';
 
@@ -31,7 +34,7 @@ export default function useProjectRedirectWhenReady(
   useEffect(() => {
     async function updateOwnCache() {
       await client.refetchQueries({
-        include: ['getOneUser'],
+        include: [GetAllWorkspacesAndProjectsDocument],
       });
     }
 

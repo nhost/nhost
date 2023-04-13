@@ -3,8 +3,6 @@ import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import Container from '@/components/layout/Container';
 import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
-import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
-import { useLazyRefetchUserData } from '@/hooks/useLazyRefetchUserData';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
 import { Modal } from '@/ui/Modal';
@@ -12,7 +10,6 @@ import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import Option from '@/ui/v2/Option';
@@ -22,7 +19,19 @@ import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
+import type {
+  PrefetchNewAppPlansFragment,
+  PrefetchNewAppRegionsFragment,
+  PrefetchNewAppWorkspaceFragment,
+} from '@/utils/__generated__/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  useGetFreeAndActiveProjectsQuery,
+  useInsertApplicationMutation,
+  usePrefetchNewAppQuery,
+} from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
@@ -31,16 +40,6 @@ import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatab
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { triggerToast } from '@/utils/toast';
-import type {
-  PrefetchNewAppPlansFragment,
-  PrefetchNewAppRegionsFragment,
-  PrefetchNewAppWorkspaceFragment,
-} from '@/utils/__generated__/graphql';
-import {
-  useGetFreeAndActiveProjectsQuery,
-  useInsertApplicationMutation,
-  usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
 import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
@@ -70,8 +69,6 @@ export function NewProjectPageContent({
 }: NewAppPageProps) {
   const { maintenanceActive } = useUI();
   const router = useRouter();
-  // pre hook
-  useGetAllUserWorkspacesAndApplications();
 
   // form
   const [name, setName] = useState('');
@@ -111,8 +108,9 @@ export function NewProjectPageContent({
 
   // graphql mutations
 
-  const [insertApp] = useInsertApplicationMutation({});
-  const { refetchUserData } = useLazyRefetchUserData();
+  const [insertApp] = useInsertApplicationMutation({
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+  });
 
   // options
   const workspaceOptions = workspaces.map((workspace) => ({
@@ -220,7 +218,6 @@ export function NewProjectPageContent({
         getToastStyleProps(),
       );
 
-      await refetchUserData();
       await router.push(`/${selectedWorkspace.slug}/${slug}`);
     } catch (error) {
       setSubmitState({

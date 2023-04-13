@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 5.2.2
+
+### Patch Changes
+
+- a1c7b00e: chore(links): add support for `generateLinks`
+- Updated dependencies [08e70b9d]
+  - @nhost/nhost-js@2.2.1
+
 ## 5.2.1
 
 ### Patch Changes

@@ -3,11 +3,6 @@ import type { PropsWithChildren } from 'react';
 import { createContext, useContext, useMemo, useReducer } from 'react';
 
 export interface UIContextState {
-  newWorkspace: boolean;
-  modal: boolean;
-  deleteApplicationModal: boolean;
-  deleteWorkspaceModal: boolean;
-  resourcesCollapsible: boolean;
   paymentModal: boolean;
   /**
    * Determines whether or not the dashboard is in maintenance mode.
@@ -19,23 +14,14 @@ export interface UIContextState {
   maintenanceEndDate: Date;
   openPaymentModal: () => void;
   closePaymentModal: () => void;
-  openDeleteWorkspaceModal: () => void;
-  closeDeleteWorkspaceModal: () => void;
 }
 
 const initialState: UIContextState = {
-  newWorkspace: false,
-  modal: false,
-  deleteApplicationModal: false,
-  deleteWorkspaceModal: false,
-  resourcesCollapsible: true,
   paymentModal: false,
   maintenanceActive: false,
   maintenanceEndDate: null,
   openPaymentModal: () => {},
   closePaymentModal: () => {},
-  openDeleteWorkspaceModal: () => {},
-  closeDeleteWorkspaceModal: () => {},
 };
 
 export const UIContext = createContext<UIContextState>(initialState);
@@ -44,12 +30,6 @@ UIContext.displayName = 'UIContext';
 
 function sideReducer(state: any, action: any) {
   switch (action.type) {
-    case 'TOGGLE_DELETE_WORKSPACE_MODAL': {
-      return {
-        ...state,
-        deleteWorkspaceModal: !state.deleteWorkspaceModal,
-      };
-    }
     case 'TOGGLE_PAYMENT_MODAL': {
       return {
         ...state,
@@ -67,10 +47,6 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
 
   const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
   const closePaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
-  const openDeleteWorkspaceModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
-  const closeDeleteWorkspaceModal = () =>
-    dispatch({ type: 'TOGGLE_DELETE_WORKSPACE_MODAL' });
 
   const maintenanceUnlocked =
     process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET &&
@@ -80,8 +56,6 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
   const value: UIContextState = useMemo(
     () => ({
       ...state,
-      openDeleteWorkspaceModal,
-      closeDeleteWorkspaceModal,
       openPaymentModal,
       closePaymentModal,
       maintenanceActive: maintenanceUnlocked

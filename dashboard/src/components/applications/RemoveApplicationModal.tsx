@@ -6,7 +6,6 @@ import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useDeleteApplicationMutation,
 } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -47,7 +46,7 @@ export function RemoveApplicationModal({
   className,
 }: RemoveApplicationModalProps) {
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
   });
   const [loadingRemove, setLoadingRemove] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();

@@ -1,5 +1,13 @@
 # @nhost/vue
 
+## 1.13.20
+
+### Patch Changes
+
+- 4c615203: fix(hooks): use correct return type for `useError`
+- Updated dependencies [08e70b9d]
+  - @nhost/nhost-js@2.2.1
+
 ## 1.13.19
 
 ### Patch Changes

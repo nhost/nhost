@@ -8,7 +8,6 @@ import {
 } from '@/components/workspace';
 import { WorkspaceInvoices } from '@/components/workspace/WorkspaceInvoices';
 import WorkspacePaymentMethods from '@/components/workspace/WorkspacePaymentMethods';
-import { useGetAllUserWorkspacesAndApplications } from '@/hooks/useGetAllUserWorkspacesAndApplications';
 import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { NextSeo } from 'next-seo';
@@ -17,7 +16,6 @@ import type { ReactElement } from 'react';
 export default function WorkspaceDetailsPage() {
   const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
 
-  useGetAllUserWorkspacesAndApplications(false);
   useNotFoundRedirect();
 
   if (!currentWorkspace || loading) {

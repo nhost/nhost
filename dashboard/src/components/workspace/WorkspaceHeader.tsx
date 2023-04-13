@@ -1,10 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { EditWorkspaceNameForm } from '@/components/home/EditWorkspaceNameForm';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
-import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
-import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -15,12 +13,6 @@ import Image from 'next/image';
 
 export default function WorkspaceHeader() {
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
-
-  const {
-    openDeleteWorkspaceModal,
-    closeDeleteWorkspaceModal,
-    deleteWorkspaceModal,
-  } = useUI();
 
   const { openDialog } = useDialog();
 
@@ -36,11 +28,6 @@ export default function WorkspaceHeader() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
-      <Modal
-        showModal={deleteWorkspaceModal}
-        close={closeDeleteWorkspaceModal}
-        Component={RemoveWorkspaceModal}
-      />
       <div className="flex flex-row place-content-between">
         <div className="flex flex-row items-center">
           {IS_DEFAULT_WORKSPACE &&
@@ -98,7 +85,7 @@ export default function WorkspaceHeader() {
               </Dropdown.Trigger>
 
               <Dropdown.Content
-                PaperProps={{ className: 'mt-1 w-[280px]' }}
+                PaperProps={{ className: 'mt-1 max-w-[280px]' }}
                 menu
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -125,7 +112,7 @@ export default function WorkspaceHeader() {
                     });
                   }}
                 >
-                  Change workspace name
+                  Change Workspace Name
                 </Dropdown.Item>
 
                 <Divider component="li" sx={{ margin: 0 }} />
@@ -133,18 +120,34 @@ export default function WorkspaceHeader() {
                 <Dropdown.Item
                   className="grid grid-flow-row whitespace-pre-wrap py-2 font-medium"
                   disabled={!noApplications}
-                  onClick={openDeleteWorkspaceModal}
+                  onClick={() =>
+                    openDialog({
+                      title: (
+                        <span className="grid grid-flow-row">
+                          <span>Delete Workspace</span>
+
+                          <Text variant="subtitle1" component="span">
+                            There is no way to recover this workspace later.
+                          </Text>
+                        </span>
+                      ),
+                      component: <RemoveWorkspaceModal />,
+                      props: {
+                        titleProps: { className: '!pb-0' },
+                      },
+                    })
+                  }
                   sx={{ color: 'error.main' }}
                 >
-                  I want to remove this workspace
+                  Delete Workspace
                   {!noApplications && (
                     <Text
                       variant="caption"
                       className="font-medium"
                       color="disabled"
                     >
-                      You can&apos;t remove this workspace because you have apps
-                      running. Remove all apps first.
+                      You can&apos;t delete this workspace because you have
+                      projects running. Delete all projects first.
                     </Text>
                   )}
                 </Dropdown.Item>

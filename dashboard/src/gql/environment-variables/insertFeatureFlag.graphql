@@ -1,5 +1,0 @@
-mutation insertFeatureFlag($flag: featureFlags_insert_input!) {
-  insertFeatureFlag(object: $flag){
-    id
-  }
-}

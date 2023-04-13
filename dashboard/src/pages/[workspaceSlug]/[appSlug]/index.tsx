@@ -30,6 +30,7 @@ export default function AppIndexPage() {
       return <ApplicationLive />;
     case ApplicationStatus.Errored:
       return <ApplicationErrored />;
+    case ApplicationStatus.Pausing:
     case ApplicationStatus.Paused:
       return <ApplicationPaused />;
     case ApplicationStatus.Unpausing:

@@ -7,7 +7,6 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
@@ -44,11 +43,11 @@ export default function SettingsGeneralPage() {
   const client = useApolloClient();
   const [pauseApplication] = usePauseApplicationMutation({
     variables: { appId: currentProject?.id },
-    refetchQueries: [GetOneUserDocument],
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
   });
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentProject?.id },
-    refetchQueries: [GetOneUserDocument],
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
   });
   const router = useRouter();
   const { maintenanceActive } = useUI();
@@ -118,7 +117,7 @@ export default function SettingsGeneralPage() {
         `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
       );
       await client.refetchQueries({
-        include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+        include: [GetAllWorkspacesAndProjectsDocument],
       });
     } catch (error) {
       await discordAnnounce(
