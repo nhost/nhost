@@ -1,5 +1,0 @@
-mutation updateApp($id: uuid!, $app: apps_set_input!) {
-  updateApp(pk_columns: { id: $id }, _set: $app) {
-    id
-  }
-}

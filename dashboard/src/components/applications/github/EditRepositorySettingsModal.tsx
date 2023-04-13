@@ -2,7 +2,7 @@ import type { EditRepositorySettingsFormData } from '@/components/applications/g
 import { useDialog } from '@/components/common/DialogProvider';
 import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import GithubIcon from '@/components/icons/GithubIcon';
-import { useUpdateAppMutation } from '@/generated/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
@@ -29,7 +29,7 @@ export function EditRepositorySettingsModal({
 
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const [updateApp, { loading }] = useUpdateAppMutation();
+  const [updateApp, { loading }] = useUpdateApplicationMutation();
 
   const client = useApolloClient();
 
@@ -40,7 +40,7 @@ export function EditRepositorySettingsModal({
       if (!currentProject.githubRepository || selectedRepoId) {
         await updateApp({
           variables: {
-            id: currentProject.id,
+            appId: currentProject.id,
             app: {
               githubRepositoryId: selectedRepoId,
               repositoryProductionBranch: data.productionBranch,
@@ -51,7 +51,7 @@ export function EditRepositorySettingsModal({
       } else {
         await updateApp({
           variables: {
-            id: currentProject.id,
+            appId: currentProject.id,
             app: {
               repositoryProductionBranch: data.productionBranch,
               nhostBaseFolder: data.repoBaseFolder,

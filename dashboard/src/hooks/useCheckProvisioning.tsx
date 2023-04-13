@@ -1,6 +1,5 @@
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -21,33 +20,33 @@ type ApplicationStateMetadata = {
  * it will update the entire cache with the application state.
  */
 export function useCheckProvisioning() {
-  const { currentWorkspace } = useCurrentWorkspaceAndProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
   const isPlatform = useIsPlatform();
 
   const { data, startPolling, stopPolling, client } =
     useGetApplicationStateQuery({
-      variables: { appId: currentWorkspace?.id },
-      skip: !isPlatform || !currentWorkspace?.id,
+      variables: { appId: currentProject?.id },
+      skip: !isPlatform || !currentProject?.id,
     });
 
   async function updateOwnCache() {
     await client.refetchQueries({
-      include: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+      include: [GetAllWorkspacesAndProjectsDocument],
     });
   }
 
   const memoizedUpdateCache = useCallback(updateOwnCache, [client]);
 
-  const currentApplicationId = currentWorkspace?.id;
+  const currentApplicationId = currentProject?.id;
 
   useEffect(() => {
     startPolling(2000);
   }, [startPolling]);
 
   useEffect(() => {
-    if (!data) {
+    if (!data?.app) {
       return;
     }
 

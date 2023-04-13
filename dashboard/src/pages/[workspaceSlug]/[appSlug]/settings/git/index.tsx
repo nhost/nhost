@@ -7,7 +7,7 @@ import DeploymentBranchSettings from '@/components/settings/git/DeploymentBranch
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
-import { useUpdateAppMutation } from '@/generated/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -24,7 +24,7 @@ export default function SettingsGitPage() {
   const { openAlertDialog } = useDialog();
   const client = useApolloClient();
 
-  const [updateApp] = useUpdateAppMutation();
+  const [updateApp] = useUpdateApplicationMutation();
 
   return (
     <Container
@@ -73,7 +73,7 @@ export default function SettingsGitPage() {
                     onPrimaryAction: async () => {
                       await updateApp({
                         variables: {
-                          id: currentProject.id,
+                          appId: currentProject.id,
                           app: {
                             githubRepositoryId: null,
                           },

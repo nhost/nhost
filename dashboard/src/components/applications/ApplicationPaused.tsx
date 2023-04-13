@@ -5,7 +5,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
@@ -26,8 +25,12 @@ import { toast } from 'react-hot-toast';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
-  const { openAlertDialog } = useDialog();
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const { openDialog } = useDialog();
+  const {
+    currentWorkspace,
+    currentProject,
+    refetch: refetchWorkspaceAndProject,
+  } = useCurrentWorkspaceAndProject();
   const user = useUserData();
   const isOwner = currentWorkspace.workspaceMembers.some(
     ({ id, type }) => id === user?.id && type === 'owner',
@@ -35,7 +38,7 @@ export default function ApplicationPaused() {
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
-      refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+      refetchQueries: [GetAllWorkspacesAndProjectsDocument],
     });
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({
@@ -70,6 +73,8 @@ export default function ApplicationPaused() {
         },
         getToastStyleProps(),
       );
+
+      await refetchWorkspaceAndProject();
     } catch {
       // Note: The toast will handle the error.
     }
@@ -118,9 +123,9 @@ export default function ApplicationPaused() {
           <Button
             className="mx-auto w-full max-w-[280px]"
             onClick={() => {
-              openAlertDialog({
+              openDialog({
                 title: 'Upgrade your plan.',
-                payload: <ChangePlanModal />,
+                component: <ChangePlanModal />,
                 props: {
                   PaperProps: { className: 'p-0' },
                   hidePrimaryAction: true,

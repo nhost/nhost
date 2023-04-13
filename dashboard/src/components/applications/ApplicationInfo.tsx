@@ -1,6 +1,5 @@
 import {
   GetAllWorkspacesAndProjectsDocument,
-  GetOneUserDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
@@ -11,6 +10,7 @@ import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
 import getServerError from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 import { toast } from 'react-hot-toast';
@@ -18,7 +18,7 @@ import { toast } from 'react-hot-toast';
 export default function ApplicationInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetOneUserDocument, GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
   });
   const router = useRouter();
 
@@ -37,6 +37,7 @@ export default function ApplicationInfo() {
             'An error occurred while deleting the project. Please try again.',
           ),
         },
+        getToastStyleProps(),
       );
 
       await router.push('/');

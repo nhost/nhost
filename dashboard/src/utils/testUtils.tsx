@@ -2,7 +2,6 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import { ManagedUIContext } from '@/context/UIContext';
-import { UserDataProvider } from '@/context/UserDataContext';
 import createTheme from '@/ui/v2/createTheme';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
@@ -110,14 +109,12 @@ function Providers({ children }: PropsWithChildren<{}>) {
                   }),
                 ]}
               >
-                <UserDataProvider>
-                  <ManagedUIContext>
-                    <Toaster position="bottom-center" />
-                    <ThemeProvider theme={theme}>
-                      <DialogProvider>{children}</DialogProvider>
-                    </ThemeProvider>
-                  </ManagedUIContext>
-                </UserDataProvider>
+                <ManagedUIContext>
+                  <Toaster position="bottom-center" />
+                  <ThemeProvider theme={theme}>
+                    <DialogProvider>{children}</DialogProvider>
+                  </ThemeProvider>
+                </ManagedUIContext>
               </NhostApolloProvider>
             </NhostProvider>
           </CacheProvider>

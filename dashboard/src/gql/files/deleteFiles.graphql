@@ -1,5 +1,0 @@
-mutation deleteFiles($fileIds: [uuid!]!) {
-  deleteFiles(where: { id: { _in: $fileIds } }) {
-    affected_rows
-  }
-}
