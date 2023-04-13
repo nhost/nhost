@@ -59,7 +59,7 @@ export const createApolloClient = ({
   let accessToken: AuthContext['accessToken'] | null = null
 
   const isTokenValid = () =>
-    accessToken?.value && accessToken?.expiresAt && accessToken.expiresAt > new Date()
+    !!accessToken?.value && !!accessToken?.expiresAt && accessToken?.expiresAt > new Date()
 
   const awaitValidTokenOrNull = () =>
     new Promise((resolve) => {
