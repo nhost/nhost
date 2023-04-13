@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-chore(projects): cleanup unused hooks
+chore: cleanup unused code
