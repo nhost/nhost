@@ -8,7 +8,6 @@ import {
   useSetNewDefaultPaymentMethodMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
-import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Table from '@/ui/v2/Table';
@@ -21,8 +20,6 @@ import Text from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
 import { useTheme } from '@mui/material';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
 
 function CheckCircle() {
   const theme = useTheme();
@@ -44,15 +41,8 @@ function CheckCircle() {
 }
 
 export default function WorkspacePaymentMethods() {
-  const router = useRouter();
-  const { action } = router.query;
-
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
-  const { openAlertDialog } = useDialog();
-
-  const [showAddPaymentMethodModal, setShowAddPaymentMethodModal] = useState(
-    action === 'add-payment-method',
-  );
+  const { openAlertDialog, openDialog, closeDialog } = useDialog();
 
   const { loading, error, data } = useGetPaymentMethodsQuery({
     variables: {
@@ -230,7 +220,14 @@ export default function WorkspacePaymentMethods() {
             <Button
               variant="outlined"
               onClick={() => {
-                setShowAddPaymentMethodModal(true);
+                openDialog({
+                  component: (
+                    <BillingPaymentMethodForm
+                      workspaceId={currentWorkspace.id}
+                      onPaymentMethodAdded={closeDialog}
+                    />
+                  ),
+                });
               }}
               disabled={maxPaymentMethodsReached}
             >
@@ -243,19 +240,6 @@ export default function WorkspacePaymentMethods() {
               new payment method, please first delete one of your existing
               payment methods.
             </Text>
-          )}
-          {showAddPaymentMethodModal && (
-            <Modal
-              showModal={showAddPaymentMethodModal}
-              close={() =>
-                setShowAddPaymentMethodModal(!showAddPaymentMethodModal)
-              }
-            >
-              <BillingPaymentMethodForm
-                workspaceId={currentWorkspace.id}
-                close={() => setShowAddPaymentMethodModal(false)}
-              />
-            </Modal>
           )}
         </div>
       </div>

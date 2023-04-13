@@ -234,7 +234,6 @@ export default function SettingsGeneralPage() {
             disabled: maintenanceActive,
             onClick: () => {
               openDialog({
-                title: '',
                 component: (
                   <RemoveApplicationModal
                     close={closeDialog}
@@ -243,7 +242,6 @@ export default function SettingsGeneralPage() {
                 ),
                 props: {
                   PaperProps: { className: 'max-w-sm' },
-                  hideTitle: true,
                 },
               });
             },

@@ -22,6 +22,13 @@ export function CountrySelector({ value, onChange }: CountrySelectorProps) {
       value={value || null}
       onChange={(_event, inputValue) => onChange(inputValue as string)}
       placeholder="Select Country"
+      slotProps={{
+        listbox: { className: 'min-w-0 w-full' },
+        popper: {
+          disablePortal: false,
+          className: 'z-[10000] w-[270px] w-full',
+        },
+      }}
     >
       {countries?.map((country) => (
         <Option key={country.name} value={country.code}>
