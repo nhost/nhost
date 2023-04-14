@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"

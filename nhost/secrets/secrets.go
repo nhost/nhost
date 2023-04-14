@@ -2,43 +2,58 @@ package secrets
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
-	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/util"
+	"io"
 	"os"
 	"strings"
+
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/util"
 )
 
-func ParseSecrets(path string) (model.Secrets, error) {
-	secrets := model.Secrets{}
-
+func ParseFile(path string) (model.Secrets, error) {
 	if !util.PathExists(path) {
-		return secrets, nil
+		return model.Secrets{}, nil
 	}
 
-	data, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("can't read secrets file '%s' %v", path, err)
 	}
+	defer f.Close()
 
-	data = bytes.TrimSpace(data)
-	if len(data) == 0 {
-		return secrets, nil
-	}
+	return Parse(f)
+}
 
-	scanner := bufio.NewScanner(bytes.NewReader(data))
+func Parse(r io.Reader) (model.Secrets, error) {
+	secrets := model.Secrets{}
+
+	scanner := bufio.NewScanner(r)
+	scanner.Split(bufio.ScanLines)
+
+	i := 1
 	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+		line := scanner.Text()
+		line = strings.Split(line, "#")[0]
+		line = strings.TrimSpace(line)
+
 		if line == "" {
 			continue
 		}
+
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid secret: %s", line)
+			return nil, fmt.Errorf("invalid secret on line %d: %s", i, line)
 		}
 
-		secrets = append(secrets, &model.ConfigEnvironmentVariable{Name: strings.TrimSpace(parts[0]), Value: strings.TrimSpace(parts[1])})
+		secrets = append(
+			secrets,
+			&model.ConfigEnvironmentVariable{
+				Name:  strings.TrimSpace(parts[0]),
+				Value: strings.TrimSpace(parts[1]),
+			},
+		)
+		i++
 	}
 
 	return secrets, nil

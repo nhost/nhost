@@ -1,9 +1,10 @@
 package config_test
 
 import (
+	"testing"
+
 	"github.com/nhost/cli/config"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestFullExampleConfig(t *testing.T) {
@@ -37,8 +38,8 @@ httpPoolSize = 100
 replicas = 1
 
 [hasura.resources.compute]
-cpu = 1000
-memory = 1400
+cpu = 500
+memory = 1024
 
 [functions]
 [functions.node]
@@ -51,8 +52,8 @@ version = '0.19.1'
 replicas = 1
 
 [auth.resources.compute]
-cpu = 1000
-memory = 1400
+cpu = 500
+memory = 1024
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -222,8 +223,8 @@ version = '14.5-20230104-1'
 replicas = 1
 
 [postgres.resources.compute]
-cpu = 1000
-memory = 1400
+cpu = 500
+memory = 1024
 
 [provider]
 [provider.smtp]
@@ -248,8 +249,8 @@ version = '0.3.4'
 replicas = 1
 
 [storage.resources.compute]
-cpu = 1000
-memory = 1400
+cpu = 500
+memory = 1024
 `
 
 	fullExampleConf, err := config.FullExampleConfig()

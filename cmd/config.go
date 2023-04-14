@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/config"
 	"github.com/nhost/cli/nhost"
@@ -9,9 +13,6 @@ import (
 	"github.com/nhost/cli/util"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var configCmd = &cobra.Command{
@@ -47,11 +48,11 @@ var pullConfigCmd = &cobra.Command{
 			return fmt.Errorf("failed to marshal config: %v", err)
 		}
 
-		if err := os.WriteFile(filepath.Join(util.WORKING_DIR, ".secrets"), config.DumpSecrets(anonymizeAppSecrets(appSecrets)), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(util.WORKING_DIR, ".secrets"), config.DumpSecrets(anonymizeAppSecrets(appSecrets)), 0o644); err != nil {
 			return fmt.Errorf("failed to write secrets file: %w", err)
 		}
 
-		if err := os.WriteFile(nhost.CONFIG_PATH, confData, 0644); err != nil {
+		if err := os.WriteFile(nhost.CONFIG_PATH, confData, 0o644); err != nil {
 			return fmt.Errorf("failed to write config file: %w", err)
 		}
 
@@ -61,7 +62,7 @@ var pullConfigCmd = &cobra.Command{
 			log.WithError(err).Error("Failed to read .gitignore")
 		} else {
 			if !strings.Contains(string(gitIgnore), ".secrets") {
-				if err := os.WriteFile(nhost.GITIGNORE, append(gitIgnore, []byte("\n.secrets")...), 0644); err != nil {
+				if err := os.WriteFile(nhost.GITIGNORE, append(gitIgnore, []byte("\n.secrets")...), 0o644); err != nil {
 					log.WithError(err).Error("Failed to write .gitignore")
 				}
 			}
@@ -97,7 +98,7 @@ var validateConfigCmd = &cobra.Command{
 		}
 
 		if local {
-			secr, err := secrets.ParseSecrets(filepath.Join(util.WORKING_DIR, ".secrets"))
+			secr, err := secrets.ParseFile(filepath.Join(util.WORKING_DIR, ".secrets"))
 			if err != nil {
 				return fmt.Errorf("failed to get local secrets: %v", err)
 			}

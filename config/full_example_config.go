@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/cli/internal/generichelper"
@@ -26,8 +27,8 @@ func FullExampleConfig() ([]byte, error) {
 
 	exampleResources := &model.ConfigResources{
 		Compute: &model.ConfigResourcesCompute{
-			Cpu:    1000,
-			Memory: 1400,
+			Cpu:    500,
+			Memory: 1024,
 		},
 		Replicas: 1,
 	}

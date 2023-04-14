@@ -29,14 +29,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/config"
-	"github.com/nhost/cli/internal/generichelper"
-	"github.com/nhost/cli/internal/git"
-	"github.com/nhost/cli/internal/ports"
-	nhostssl "github.com/nhost/cli/internal/ssl"
-	"github.com/nhost/cli/nhost/compose"
-	"github.com/nhost/cli/nhost/secrets"
 	"net"
 	"os"
 	"os/signal"
@@ -47,8 +39,16 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/cli/config"
 	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/internal/generichelper"
+	"github.com/nhost/cli/internal/git"
+	"github.com/nhost/cli/internal/ports"
+	nhostssl "github.com/nhost/cli/internal/ssl"
 	"github.com/nhost/cli/logger"
+	"github.com/nhost/cli/nhost/compose"
+	"github.com/nhost/cli/nhost/secrets"
 	"github.com/nhost/cli/nhost/service"
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -161,7 +161,7 @@ var devCmd = &cobra.Command{
 			}
 		}
 
-		secr, err := secrets.ParseSecrets(filepath.Join(util.WORKING_DIR, ".secrets"))
+		secr, err := secrets.ParseFile(filepath.Join(util.WORKING_DIR, ".secrets"))
 		if err != nil {
 			return fmt.Errorf("failed to get local secrets: %v", err)
 		}
