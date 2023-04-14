@@ -600,7 +600,9 @@ export default function NewProjectPage() {
   const router = useRouter();
   const user = useUserData();
 
-  const { data, loading, error } = usePrefetchNewAppQuery();
+  const { data, loading, error } = usePrefetchNewAppQuery({
+    fetchPolicy: 'cache-and-network',
+  });
 
   const {
     data: freeAndActiveProjectsData,
