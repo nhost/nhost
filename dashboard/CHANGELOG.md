@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.14.8
+
+### Patch Changes
+
+- 668c8771: chore(dialogs): unify dialog management of payment dialogs
+
 ## 0.14.7
 
 ### Patch Changes
