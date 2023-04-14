@@ -124,13 +124,9 @@ export default function ApplicationPaused() {
             className="mx-auto w-full max-w-[280px]"
             onClick={() => {
               openDialog({
-                title: 'Upgrade your plan.',
                 component: <ChangePlanModal />,
                 props: {
                   PaperProps: { className: 'p-0' },
-                  hidePrimaryAction: true,
-                  hideSecondaryAction: true,
-                  hideTitle: true,
                   maxWidth: 'lg',
                 },
               });

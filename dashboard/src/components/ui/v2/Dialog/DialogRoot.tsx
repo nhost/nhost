@@ -16,7 +16,7 @@ export interface CommonDialogProps
   /**
    * The title of the dialog.
    */
-  title: ReactNode;
+  title?: ReactNode;
   /**
    * The message to display in the dialog.
    */

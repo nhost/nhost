@@ -22,7 +22,7 @@ export interface OpenDialogOptions {
   /**
    * Title of the dialog.
    */
-  title: ReactNode;
+  title?: ReactNode;
   /**
    * Component to render inside the dialog skeleton.
    */

@@ -42,7 +42,7 @@ function AlertDialog({
       }}
       {...props}
     >
-      {!hideTitle && (
+      {!hideTitle && !!title && (
         <Dialog.Title {...titleProps} id="alert-dialog-title">
           {title}
         </Dialog.Title>

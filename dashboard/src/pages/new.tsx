@@ -1,11 +1,11 @@
-import { BillingPaymentMethodForm } from '@/components/billing-payment-method/BillingPaymentMethodForm';
+import { useDialog } from '@/components/common/DialogProvider';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import Container from '@/components/layout/Container';
+import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
-import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -44,7 +44,7 @@ import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { ReactElement } from 'react';
+import type { FormEvent, ReactElement } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import slugify from 'slugify';
@@ -67,6 +67,7 @@ export function NewProjectPageContent({
   preSelectedWorkspace,
   preSelectedRegion,
 }: NewAppPageProps) {
+  const { openDialog, closeDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const router = useRouter();
 
@@ -102,11 +103,7 @@ export function NewProjectPageContent({
 
   const [plan, setPlan] = useState(defaultSelectedPlan);
 
-  // state
   const { submitState, setSubmitState } = useSubmitState();
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-
-  // graphql mutations
 
   const [insertApp] = useInsertApplicationMutation({
     refetchQueries: [GetAllWorkspacesAndProjectsDocument],
@@ -146,13 +143,8 @@ export function NewProjectPageContent({
     setDatabasePassword(newRandomDatabasePassword);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!plan.isFree && workspace.paymentMethods.length === 0) {
-      setShowPaymentModal(true);
-      return;
-    }
+  async function handleCreateProject(event: FormEvent) {
+    event.preventDefault();
 
     setSubmitState({
       error: null,
@@ -225,7 +217,29 @@ export function NewProjectPageContent({
         loading: false,
       });
     }
-  };
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+
+    if (!plan.isFree && workspace.paymentMethods.length === 0) {
+      openDialog({
+        component: (
+          <BillingPaymentMethodForm
+            onPaymentMethodAdded={() => {
+              handleCreateProject(event);
+              closeDialog();
+            }}
+            workspaceId={workspace.id}
+          />
+        ),
+      });
+
+      return;
+    }
+
+    handleCreateProject(event);
+  }
 
   if (!selectedWorkspace) {
     return (
@@ -288,7 +302,13 @@ export function NewProjectPageContent({
                 const workspaceInList = workspaces.find(
                   ({ id }) => id === value,
                 );
-                setPlan(plans[0]);
+
+                if (numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS) {
+                  setPlan(plans.find((currentPlan) => !currentPlan.isFree));
+                } else {
+                  setPlan(plans[0]);
+                }
+
                 setSelectedWorkspace({
                   id: workspaceInList.id,
                   name: workspaceInList.name,
@@ -561,23 +581,6 @@ export function NewProjectPageContent({
           )}
 
           <div className="flex justify-end">
-            {showPaymentModal && (
-              <Modal
-                showModal={showPaymentModal}
-                close={() => {
-                  setShowPaymentModal(false);
-                }}
-              >
-                <BillingPaymentMethodForm
-                  close={() => {
-                    setShowPaymentModal(false);
-                  }}
-                  onPaymentMethodAdded={handleSubmit}
-                  workspaceId={workspace.id}
-                />
-              </Modal>
-            )}
-
             <Button
               type="submit"
               loading={submitState.loading}
@@ -597,7 +600,9 @@ export default function NewProjectPage() {
   const router = useRouter();
   const user = useUserData();
 
-  const { data, loading, error } = usePrefetchNewAppQuery();
+  const { data, loading, error } = usePrefetchNewAppQuery({
+    fetchPolicy: 'cache-and-network',
+  });
 
   const {
     data: freeAndActiveProjectsData,
