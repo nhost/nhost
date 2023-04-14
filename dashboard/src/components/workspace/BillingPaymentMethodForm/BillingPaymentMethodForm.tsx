@@ -201,12 +201,18 @@ function AddPaymentMethodForm({
   );
 }
 
-type BillingPaymentMethodFormProps = {
+export interface BillingPaymentMethodFormProps {
+  /**
+   * Callback function to run after a payment method is added.
+   */
   onPaymentMethodAdded?: (e?: any) => void;
+  /**
+   * Workspace identifier.
+   */
   workspaceId: string;
-};
+}
 
-export function BillingPaymentMethodForm({
+export default function BillingPaymentMethodForm({
   onPaymentMethodAdded,
   workspaceId,
 }: BillingPaymentMethodFormProps) {
@@ -219,5 +225,3 @@ export function BillingPaymentMethodForm({
     </Elements>
   );
 }
-
-export default BillingPaymentMethodForm;

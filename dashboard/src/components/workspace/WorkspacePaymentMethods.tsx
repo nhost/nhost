@@ -1,5 +1,5 @@
-import { BillingPaymentMethodForm } from '@/components/billing-payment-method/BillingPaymentMethodForm';
 import { useDialog } from '@/components/common/DialogProvider';
+import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import type { GetPaymentMethodsFragment } from '@/generated/graphql';
 import {
   refetchGetPaymentMethodsQuery,
