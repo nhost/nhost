@@ -65,7 +65,6 @@ export const createApolloClient = ({
     new Promise((resolve) => {
       // doing this as an interval to avoid race conditions that I imagine can happen if listening to token changes. Maybe there's a better way.
       const interval = setInterval(() => {
-        console.log('checking for token change')
         if (!accessToken || isTokenValid()) {
           clearInterval(interval)
           resolve(true)
