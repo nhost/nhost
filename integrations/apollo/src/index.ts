@@ -61,26 +61,32 @@ export const createApolloClient = ({
   const isTokenValid = () =>
     !!accessToken?.value && !!accessToken?.expiresAt && accessToken?.expiresAt > new Date()
 
-  const awaitValidTokenOrNull = () =>
-    new Promise((resolve) => {
-      // doing this as an interval to avoid race conditions that I imagine can happen if listening to token changes. Maybe there's a better way.
+  const isTokenValidOrNull = () => !accessToken || isTokenValid()
+
+  const awaitValidTokenOrNull = () => {
+    if (isTokenValidOrNull()) {
+      return
+    }
+
+    return new Promise((resolve) => {
+      // doing this as an interval to avoid race conditions.
       const interval = setInterval(() => {
-        if (!accessToken || isTokenValid()) {
+        if (isTokenValidOrNull()) {
           clearInterval(interval)
           resolve(true)
         }
       }, 100)
     })
+  }
 
   const getAuthHeaders = async () => {
+    // wait for valid access token
+    await awaitValidTokenOrNull()
+
     // add headers
     const resHeaders = {
       ...headers,
       'Sec-WebSocket-Protocol': 'graphql-ws'
-    }
-
-    if (accessToken && !isTokenValid()) {
-      await awaitValidTokenOrNull()
     }
 
     // add auth headers if signed in
