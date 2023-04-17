@@ -19,6 +19,7 @@
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "paths": {
+      "@/tests/*": ["tests/*"],
       "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
@@ -32,7 +33,8 @@
       "@/theme/*": ["theme/*"],
       "@/generated/*": ["utils/__generated__/*"],
       "@/ui/*": ["components/ui/*"],
-      "@/ui": ["components/ui/index.ts"]
+      "@/ui": ["components/ui/index.ts"],
+      "@/features/*": ["features/*"]
     },
     "incremental": true
   },

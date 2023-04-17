@@ -1,0 +1,8 @@
+query GetPlans($where: plans_bool_exp) {
+  plans(where: $where) {
+    id
+    name
+    isFree
+    price
+  }
+}

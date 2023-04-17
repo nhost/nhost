@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "types": ["vitest/globals"],
     "paths": {
+      "@/tests/*": ["tests/*"],
       "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
@@ -18,6 +19,7 @@
       "@/generated/*": ["utils/__generated__/*"],
       "@/ui/*": ["components/ui/*"],
       "@/ui": ["components/ui/index.ts"],
+      "@/features/*": ["features/*"],
       "@nhost/nextjs": ["../../packages/nextjs/src/index.ts"],
       "@nhost/react-apollo": ["../../packages/react-apollo/src/index.ts"]
     }

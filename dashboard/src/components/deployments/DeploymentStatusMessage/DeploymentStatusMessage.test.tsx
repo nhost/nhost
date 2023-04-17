@@ -1,5 +1,5 @@
+import { render, screen } from '@/tests/testUtils';
 import type { Deployment } from '@/types/application';
-import { render, screen } from '@/utils/testUtils';
 import { test, vi } from 'vitest';
 import DeploymentStatusMessage from './DeploymentStatusMessage';
 

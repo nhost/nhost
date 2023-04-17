@@ -1,0 +1,40 @@
+fragment ServiceResources on ConfigConfig {
+  auth {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  hasura {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  postgres {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+  storage {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+    }
+  }
+}
+
+query GetResources($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    ...ServiceResources
+  }
+}

@@ -99,7 +99,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       dark: '#c91737',
     },
     warning: {
-      light: '#ffebd3',
+      light: 'rgba(255, 154, 35, 0.2)',
       main: '#ff9a23',
       dark: '#ed7200',
     },

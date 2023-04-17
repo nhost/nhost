@@ -1,10 +1,10 @@
 import Form from '@/components/common/Form';
+import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
+import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
+import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import type { RuleGroup } from '@/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
-import permissionVariablesQuery from '@/utils/msw/mocks/graphql/permissionVariablesQuery';
-import hasuraMetadataQuery from '@/utils/msw/mocks/rest/hasuraMetadataQuery';
-import tableQuery from '@/utils/msw/mocks/rest/tableQuery';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

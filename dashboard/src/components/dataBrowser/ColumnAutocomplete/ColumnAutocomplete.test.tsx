@@ -1,7 +1,7 @@
-import permissionVariablesQuery from '@/utils/msw/mocks/graphql/permissionVariablesQuery';
-import hasuraMetadataQuery from '@/utils/msw/mocks/rest/hasuraMetadataQuery';
-import tableQuery from '@/utils/msw/mocks/rest/tableQuery';
-import { render, screen } from '@/utils/testUtils';
+import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
+import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
+import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
+import { render, screen } from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
 import { test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
