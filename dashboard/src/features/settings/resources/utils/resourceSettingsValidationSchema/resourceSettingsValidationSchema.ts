@@ -1,4 +1,5 @@
 import {
+  RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
   RESOURCE_VCPU_MULTIPLIER,
 } from '@/utils/CONSTANTS';
@@ -7,12 +8,15 @@ import * as Yup from 'yup';
 /**
  * The minimum total CPU that has to be allocated.
  */
-export const MIN_TOTAL_VCPU = 1;
+export const MIN_TOTAL_VCPU = 1 * RESOURCE_VCPU_MULTIPLIER;
 
 /**
  * The minimum amount of memory that has to be allocated in total.
  */
-export const MIN_TOTAL_MEMORY = MIN_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
+export const MIN_TOTAL_MEMORY =
+  (MIN_TOTAL_VCPU / RESOURCE_VCPU_MULTIPLIER) *
+  RESOURCE_VCPU_MEMORY_RATIO *
+  RESOURCE_MEMORY_MULTIPLIER;
 
 /**
  * The maximum total CPU that can be allocated.
@@ -27,7 +31,7 @@ export const MAX_TOTAL_MEMORY = MAX_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 /**
  * The minimum amount of CPU that has to be allocated per service.
  */
-export const MIN_SERVICE_VCPU = 0.25;
+export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
 
 /**
  * The maximum amount of CPU that can be allocated per service.
@@ -37,12 +41,15 @@ export const MAX_SERVICE_VCPU = 15 * RESOURCE_VCPU_MULTIPLIER;
 /**
  * The minimum amount of memory that has to be allocated per service.
  */
-export const MIN_SERVICE_MEMORY = 0.128;
+export const MIN_SERVICE_MEMORY = 128;
 
 /**
  * The maximum amount of memory that can be allocated per service.
  */
-export const MAX_SERVICE_MEMORY = MAX_SERVICE_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
+export const MAX_SERVICE_MEMORY =
+  (MAX_SERVICE_VCPU / RESOURCE_VCPU_MULTIPLIER) *
+  RESOURCE_VCPU_MEMORY_RATIO *
+  RESOURCE_MEMORY_MULTIPLIER;
 
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
