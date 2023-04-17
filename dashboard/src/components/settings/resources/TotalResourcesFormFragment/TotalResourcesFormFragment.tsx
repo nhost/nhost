@@ -113,7 +113,7 @@ export default function TotalResourcesFormFragment({
         <Box className="flex flex-col gap-4 bg-transparent p-4">
           <Box className="flex flex-row items-center justify-between gap-4">
             <Text color="secondary">
-              Total available resources for your project:
+              Total available compute for your project:
             </Text>
 
             {initialPrice !== updatedPrice && (

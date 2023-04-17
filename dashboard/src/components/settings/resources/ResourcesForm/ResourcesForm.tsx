@@ -282,8 +282,8 @@ export default function ResourcesForm() {
     <FormProvider {...form}>
       <Form onSubmit={handleConfirm}>
         <SettingsContainer
-          title="Resources"
-          description="See how much resources you have available and customise usage on this page."
+          title="Compute Resources"
+          description="See how much compute you have available and customise allocation on this page."
           className="gap-0 px-0"
           showSwitch
           switchId="enabled"
@@ -302,29 +302,29 @@ export default function ResourcesForm() {
               <TotalResourcesFormFragment initialPrice={initialPrice} />
               <Divider />
               <ServiceResourcesFormFragment
-                title="Database"
-                description="Manage how much resources you need for Database."
+                title="PostgreSQL Database"
+                description="Manage how much compute you need for the PostgreSQL Database."
                 cpuKey="databaseVCPU"
                 memoryKey="databaseMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Hasura GraphQL"
-                description="Manage how much resources you need for Hasura GraphQL."
+                description="Manage how much compute you need for the Hasura GraphQL API."
                 cpuKey="hasuraVCPU"
                 memoryKey="hasuraMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Auth"
-                description="Manage how much resources you need for Auth."
+                description="Manage how much compute you need for Auth."
                 cpuKey="authVCPU"
                 memoryKey="authMemory"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Storage"
-                description="Manage how much resources you need for Storage."
+                description="Manage how much compute you need for Storage."
                 cpuKey="storageVCPU"
                 memoryKey="storageMemory"
               />

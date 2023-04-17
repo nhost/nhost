@@ -15,7 +15,7 @@ export default function ResourceSettingsPage() {
 
   if (currentProject?.plan.isFree) {
     return (
-      <UnlockFeatureByUpgrading message="Unlock Resource settings by upgrading your project to the Pro plan." />
+      <UnlockFeatureByUpgrading message="Unlock Compute settings by upgrading your project to the Pro plan." />
     );
   }
 

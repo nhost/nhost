@@ -133,7 +133,7 @@ export default function SettingsSidebar({
               exact={false}
               onClick={handleSelect}
             >
-              Resources
+              Compute Resources
             </SettingsNavLink>
             {isK8SPostgresEnabledInCurrentEnvironment && (
               <SettingsNavLink
