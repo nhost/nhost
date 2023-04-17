@@ -1,6 +1,5 @@
-import { BillingPaymentMethodForm } from '@/components/billing-payment-method/BillingPaymentMethodForm';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/context/UIContext';
+import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import {
   refetchGetApplicationPlanQuery,
   useGetAppPlanAndGlobalPlansQuery,
@@ -8,18 +7,19 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
-import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
+import { BaseDialog } from '@/ui/v2/Dialog';
 import Text from '@/ui/v2/Text';
 import { planDescriptions } from '@/utils/planDescriptions';
-import { triggerToast } from '@/utils/toast';
-import { useTheme } from '@mui/material';
+import getServerError from '@/utils/settings/getServerError/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 function Plan({
   planName,
@@ -66,13 +66,15 @@ function Plan({
 }
 
 export function ChangePlanModalWithData({ app, plans, close }: any) {
-  const theme = useTheme();
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { closeAlertDialog } = useDialog();
 
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const {
+    currentWorkspace,
+    currentProject,
+    refetch: refetchWorkspaceAndProject,
+  } = useCurrentWorkspaceAndProject();
 
-  // get workspace payment methods
   const { data } = useGetPaymentMethodsQuery({
     variables: {
       workspaceId: currentWorkspace?.id,
@@ -80,7 +82,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     skip: !currentWorkspace,
   });
 
-  const { openPaymentModal, closePaymentModal, paymentModal } = useUI();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const paymentMethodAvailable = data?.paymentMethods.length > 0;
 
   const currentPlan = plans.find((plan) => plan.id === app.plan.id);
@@ -88,7 +90,6 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
   const isDowngrade = currentPlan.price > selectedPlan?.price;
 
-  // graphql mutations
   const [updateApp] = useUpdateApplicationMutation({
     refetchQueries: [
       refetchGetApplicationPlanQuery({
@@ -98,28 +99,35 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     ],
   });
 
-  // function handlers
   const handleUpdateAppPlan = async () => {
-    await updateApp({
-      variables: {
-        appId: app.id,
-        app: {
-          planId: selectedPlan.id,
+    try {
+      await toast.promise(
+        updateApp({
+          variables: {
+            appId: app.id,
+            app: {
+              planId: selectedPlan.id,
+            },
+          },
+        }),
+        {
+          loading: 'Updating plan...',
+          success: `Plan has been updated successfully to ${selectedPlan.name}.`,
+          error: getServerError(
+            'An error occurred while updating the plan. Please try again.',
+          ),
         },
-      },
-    });
+        getToastStyleProps(),
+      );
 
-    if (isDowngrade) {
-      if (close) {
-        close();
-      }
+      await refetchWorkspaceAndProject();
 
+      close?.();
       closeAlertDialog();
+      setShowPaymentModal(false);
+    } catch (error) {
+      // Note: Error is handled by the toast.
     }
-
-    triggerToast(
-      `${currentProject.name} plan changed to ${selectedPlan.name}.`,
-    );
   };
 
   const handleChangePlanClick = async () => {
@@ -128,33 +136,30 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     }
 
     if (!paymentMethodAvailable) {
-      openPaymentModal();
+      setShowPaymentModal(true);
 
       return;
     }
 
     await handleUpdateAppPlan();
 
-    if (close) {
-      close();
-    }
-
+    setShowPaymentModal(false);
+    close?.();
     closeAlertDialog();
   };
 
   return (
     <Box className="w-full max-w-xl rounded-lg p-6 text-left">
-      <Modal
-        showModal={paymentModal}
-        close={closePaymentModal}
-        dialogStyle={{ zIndex: theme.zIndex.modal + 1 }}
+      <BaseDialog
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
       >
         <BillingPaymentMethodForm
-          close={closePaymentModal}
           onPaymentMethodAdded={handleUpdateAppPlan}
           workspaceId={currentWorkspace.id}
         />
-      </Modal>
+      </BaseDialog>
+
       <div className="flex flex-col">
         <div className="mx-auto">
           <Image
@@ -217,14 +222,12 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
 export interface ChangePlanModalProps {
   /**
-   * Function to close the modal if mounted on parent component.
-   *
-   * @deprecated Implement modal by using `openAlertDialog` hook instead.
+   * Function to close the modal.
    */
-  close?: () => void;
+  onCancel?: () => void;
 }
 
-export function ChangePlanModal({ close }: ChangePlanModalProps) {
+export function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
   const {
     query: { workspaceSlug, appSlug },
   } = useRouter();
@@ -250,5 +253,5 @@ export function ChangePlanModal({ close }: ChangePlanModalProps) {
   const { apps, plans } = data;
   const app = apps[0];
 
-  return <ChangePlanModalWithData app={app} plans={plans} close={close} />;
+  return <ChangePlanModalWithData app={app} plans={plans} close={onCancel} />;
 }

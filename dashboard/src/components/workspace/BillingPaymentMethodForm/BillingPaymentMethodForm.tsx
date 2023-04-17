@@ -27,13 +27,11 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PK
   : null;
 
 type AddPaymentMethodFormProps = {
-  close: () => void;
-  onPaymentMethodAdded?: () => Promise<void>;
+  onPaymentMethodAdded?: () => void;
   workspaceId: string;
 };
 
 function AddPaymentMethodForm({
-  close,
   onPaymentMethodAdded,
   workspaceId,
 }: AddPaymentMethodFormProps) {
@@ -141,9 +139,7 @@ function AddPaymentMethodForm({
 
     // payment method added successfylly
 
-    triggerToast(`New payment method added`);
-
-    close();
+    triggerToast('New payment method has been added to the workspace.');
 
     discordAnnounce(
       `(${user.email}) added a new credit card to workspace id: ${workspaceId}.`,
@@ -205,26 +201,27 @@ function AddPaymentMethodForm({
   );
 }
 
-type BillingPaymentMethodFormProps = {
-  close: () => void;
-  onPaymentMethodAdded?: (e?: any) => Promise<void>;
+export interface BillingPaymentMethodFormProps {
+  /**
+   * Callback function to run after a payment method is added.
+   */
+  onPaymentMethodAdded?: (e?: any) => void;
+  /**
+   * Workspace identifier.
+   */
   workspaceId: string;
-};
+}
 
-export function BillingPaymentMethodForm({
-  close,
+export default function BillingPaymentMethodForm({
   onPaymentMethodAdded,
   workspaceId,
 }: BillingPaymentMethodFormProps) {
   return (
     <Elements stripe={stripePromise}>
       <AddPaymentMethodForm
-        close={close}
         onPaymentMethodAdded={onPaymentMethodAdded}
         workspaceId={workspaceId}
       />
     </Elements>
   );
 }
-
-export default BillingPaymentMethodForm;

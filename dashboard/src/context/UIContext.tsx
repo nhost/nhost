@@ -1,9 +1,8 @@
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useMemo, useReducer } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 
 export interface UIContextState {
-  paymentModal: boolean;
   /**
    * Determines whether or not the dashboard is in maintenance mode.
    */
@@ -12,41 +11,17 @@ export interface UIContextState {
    * The date and time when maintenance mode will end.
    */
   maintenanceEndDate: Date;
-  openPaymentModal: () => void;
-  closePaymentModal: () => void;
 }
 
-const initialState: UIContextState = {
-  paymentModal: false,
+export const UIContext = createContext<UIContextState>({
   maintenanceActive: false,
   maintenanceEndDate: null,
-  openPaymentModal: () => {},
-  closePaymentModal: () => {},
-};
-
-export const UIContext = createContext<UIContextState>(initialState);
+});
 
 UIContext.displayName = 'UIContext';
 
-function sideReducer(state: any, action: any) {
-  switch (action.type) {
-    case 'TOGGLE_PAYMENT_MODAL': {
-      return {
-        ...state,
-        paymentModal: !state.paymentModal,
-      };
-    }
-    default:
-      return { ...state };
-  }
-}
-
 export function UIProvider(props: PropsWithChildren<unknown>) {
-  const [state, dispatch] = useReducer(sideReducer, initialState);
   const router = useRouter();
-
-  const openPaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
-  const closePaymentModal = () => dispatch({ type: 'TOGGLE_PAYMENT_MODAL' });
 
   const maintenanceUnlocked =
     process.env.NEXT_PUBLIC_MAINTENANCE_UNLOCK_SECRET &&
@@ -55,9 +30,6 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
 
   const value: UIContextState = useMemo(
     () => ({
-      ...state,
-      openPaymentModal,
-      closePaymentModal,
       maintenanceActive: maintenanceUnlocked
         ? false
         : process.env.NEXT_PUBLIC_MAINTENANCE_ACTIVE === 'true',
@@ -67,7 +39,7 @@ export function UIProvider(props: PropsWithChildren<unknown>) {
           ? new Date(Date.parse(process.env.NEXT_PUBLIC_MAINTENANCE_END_DATE))
           : null,
     }),
-    [state, maintenanceUnlocked],
+    [maintenanceUnlocked],
   );
 
   return <UIContext.Provider value={value} {...props} />;

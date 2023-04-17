@@ -93,13 +93,9 @@ export default function OverviewTopBar() {
                     className="mr-2"
                     onClick={() => {
                       openDialog({
-                        title: 'Upgrade your plan.',
                         component: <ChangePlanModal />,
                         props: {
                           PaperProps: { className: 'p-0 max-w-xl w-full' },
-                          hidePrimaryAction: true,
-                          hideSecondaryAction: true,
-                          hideTitle: true,
                         },
                       });
                     }}

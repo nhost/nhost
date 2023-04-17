@@ -30,13 +30,9 @@ export function UnlockFeatureByUpgrading({
           variant="borderless"
           onClick={() => {
             openDialog({
-              title: 'Upgrade your plan.',
               component: <ChangePlanModal />,
               props: {
                 PaperProps: { className: 'p-0 max-w-xl w-full' },
-                hidePrimaryAction: true,
-                hideSecondaryAction: true,
-                hideTitle: true,
               },
             });
           }}
