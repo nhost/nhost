@@ -197,6 +197,7 @@ export default function BlogPostLayout({
               height={1080}
               alt={`Banner of ${article.title}`}
               priority
+              quality={100}
             />
           </div>
         </div>
