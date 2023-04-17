@@ -3,9 +3,10 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
   title: 'Scaling Your Nhost Apps with Dedicated Compute',
-	description: 'Optimize performance and meet growing demands with tailored compute allocation for each service',
+  description:
+    'Optimize performance and meet growing demands with tailored compute allocation for each service',
   image: '/images/blog/dedicated-compute/og-dedicated-compute.png',
-  date: '2023-04-10',
+  date: '2023-04-18',
   authors: [
     {
       name: 'Nuno Pato',
@@ -19,16 +20,13 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-We are very excited to announce the release of Dedicated Compute to everyone, a new feature to help you scale your Nhost apps by providing you with more control over compute resources. Dedicated Compute allows you to allocate CPU and memory for each service on the Nhost stack. Your apps will be able to efficiently meet growing demands and provide the best possible user experience to your users. To the moon and back, blazingly fast! 
-
+We are very excited to announce the release of Dedicated Compute to everyone, a new feature to help you scale your Nhost apps by providing you with more control over compute resources. Dedicated Compute allows you to allocate CPU and memory for each service on the Nhost stack. Your apps will be able to efficiently meet growing demands and provide the best possible user experience to your users. To the moon and back, blazingly fast!
 
 ## Background and Motivation
 
 As your apps grow and user traffic increases, it's crucial to have the flexibility to scale your services accordingly. Different services have unique requirements, so a one-size-fits-all approach just doesn't cut it. That's why we are introducing Dedicated Compute, to give you the power and flexibility to allocate exactly the amount of CPU and RAM each service needs, up to a whopping 15 vCPUs and 30GiB per service. Your users will thank you!
 
-
 ## Scaling Apps Made Easy
-
 
 Dedicated Compute is designed to provide a simple and intuitive way for you to buy and allocate your desired amount of compute capacity for each of your Nhost services. As of now, if you navigate to your project's settings in the Nhost Dashboard, you will find a new "Compute Resources" section where you can buy and allocate compute resources using a few sliders (see image below):
 
@@ -38,7 +36,6 @@ Dedicated Compute is designed to provide a simple and intuitive way for you to b
 
 ![Resource Slider](/images/blog/dedicated-compute/dashboard-slider.png)
 
-
 Notes:
 
 - Dedicated Compute is available starting on the Pro plan.
@@ -46,11 +43,9 @@ Notes:
 - The minimum you can buy is 1 vCPU, and as little as a fourth of a vCPU after that.
 - No downtime required with the exception of Postgres, which requires 1-2 minutes.
 
-
 ## Pricing
 
 The Pro plan remains priced at $25, and each dedicated vCPU/2GiB adds $50. For instance, if you purchase 2 vCPUs and 4GiB of RAM, the total cost will be $125.
-
 
 ## Benefits of Dedicated Compute for Scaling your Apps
 
@@ -67,7 +62,6 @@ The Pro plan remains priced at $25, and each dedicated vCPU/2GiB adds $50. For i
 - Multiple Replicas for High Availability: we are already working on extending Dedicated Compute to allow for multiple replicas of the same service. I know, this is amazing!
 - Metrics around compute utilization for each of your services will be available very soon. This will allow you to allocate compute resources more precisely.
 - A new and shiny configuration file that will allow you to configure compute as part of your GitHub workflow.
-
 
 ## Conclusion
 
