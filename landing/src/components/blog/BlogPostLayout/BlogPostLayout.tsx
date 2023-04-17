@@ -1,6 +1,7 @@
 import { Button } from '@/components/common/Button'
 import { Container } from '@/components/common/Container'
 import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
+import { ImageWithLegend } from '@/components/common/ImageWithLegend'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
@@ -15,7 +16,7 @@ import 'react-medium-image-zoom/dist/styles.css'
 // TODO: Break out the MDXProvider in its own MDX component
 // TODO: make the image component work with Zoom so a user can zoom in on images
 const components = {
-  img: (props: any) => <img {...props} />,
+  img: (props: any) => <ImageWithLegend {...props} />,
 }
 
 function Share({ title }: { title: string }) {
