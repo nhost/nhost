@@ -21,7 +21,7 @@ import {
 } from '@/utils/CONSTANTS';
 import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { alpha, styled } from '@mui/material';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface TotalResourcesFormFragmentProps {
   /**
@@ -44,7 +44,6 @@ export default function TotalResourcesFormFragment({
     error: proPlanError,
     loading: proPlanLoading,
   } = useProPlan();
-  const { dirtyFields } = useFormState<ResourceSettingsFormValues>();
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
@@ -79,8 +78,6 @@ export default function TotalResourcesFormFragment({
   const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
     getUnallocatedResources(formValues);
 
-  const showAlert =
-    Object.keys(dirtyFields).filter((key) => key !== 'enabled').length > 0;
   const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
     unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
@@ -157,32 +154,30 @@ export default function TotalResourcesFormFragment({
           />
         </Box>
 
-        {showAlert && (
-          <Alert
-            severity={hasUnusedResources ? 'warning' : 'info'}
-            className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
-          >
-            {hasUnusedResources ? (
-              <>
-                <strong>Please use all the available vCPUs and Memory</strong>
+        <Alert
+          severity={hasUnusedResources ? 'warning' : 'info'}
+          className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
+        >
+          {hasUnusedResources ? (
+            <>
+              <strong>Please use all the available vCPUs and Memory</strong>
 
-                <p>
-                  You now have {unusedResourceMessage} unused. Allocate it to
-                  any of the services before saving.
-                </p>
-              </>
-            ) : (
-              <>
-                <strong>You&apos;re All Set</strong>
+              <p>
+                You now have {unusedResourceMessage} unused. Allocate it to any
+                of the services before saving.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>You&apos;re All Set</strong>
 
-                <p>
-                  You have successfully allocated all the available vCPUs and
-                  Memory.
-                </p>
-              </>
-            )}
-          </Alert>
-        )}
+              <p>
+                You have successfully allocated all the available vCPUs and
+                Memory.
+              </p>
+            </>
+          )}
+        </Alert>
       </Box>
     </Box>
   );

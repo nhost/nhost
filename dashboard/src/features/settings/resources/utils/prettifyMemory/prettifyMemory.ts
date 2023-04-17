@@ -9,7 +9,7 @@ import { prettifyNumber } from '@/utils/common/prettifyNumber';
  */
 export default function prettifyMemory(memory: number) {
   return prettifyNumber(memory, {
-    labels: ['MiB', 'GiB', 'TiB', 'PiB'],
+    labels: ['MiB'],
     numberOfDecimals: 3,
     separator: ' ',
     multiplier: RESOURCE_MEMORY_MULTIPLIER,
