@@ -126,7 +126,7 @@ test('should not show an empty state message if there is data available', async 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(9);
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
-  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16 gib/i);
+  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16384 mib/i);
 });
 
 test('should show a warning message if not all the resources are allocated', async () => {
@@ -142,10 +142,10 @@ test('should show a warning message if not all the resources are allocated', asy
   );
 
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 9/i);
-  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 18 gib/i);
+  expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 18432 mib/i);
 
   expect(
-    screen.getByText(/you now have 1 vcpus and 2 gib of memory unused./i),
+    screen.getByText(/you now have 1 vcpus and 2048 mib of memory unused./i),
   ).toBeInTheDocument();
 });
 
@@ -186,7 +186,7 @@ test('should show a validation error when the form is submitted when not everyth
   await user.click(screen.getByRole('button', { name: /save/i }));
 
   expect(
-    screen.getAllByText(/you now have 1 vcpus and 2 gib of memory unused./i),
+    screen.getAllByText(/you now have 1 vcpus and 2048 mib of memory unused./i),
   ).toHaveLength(2);
 });
 
@@ -254,7 +254,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   ).toBeInTheDocument();
   expect(
     within(screen.getByRole('dialog')).getByText(
-      /9 vcpus \+ 18 gib of memory/i,
+      /9 vcpus \+ 18432 mib of memory/i,
       { exact: true },
     ),
   ).toBeInTheDocument();
