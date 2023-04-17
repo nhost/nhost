@@ -812,6 +812,7 @@ func reduceDepth(depth int) int {
 // (Algorithm suggestion by Russ Cox.)
 //
 // The precedences are:
+//
 //	7             *  /  % quo rem div mod
 //	6             +  -
 //	5             ==  !=  <  <=  >  >=
@@ -826,23 +827,22 @@ func reduceDepth(depth int) int {
 // To choose the cutoff, look at the whole expression but excluding primary
 // expressions (function calls, parenthesized exprs), and apply these rules:
 //
-//	1) If there is a binary operator with a right side unary operand
-//	   that would clash without a space, the cutoff must be (in order):
+//  1. If there is a binary operator with a right side unary operand
+//     that would clash without a space, the cutoff must be (in order):
 //
-//		/*	8
-//		++	7 // not necessary, but to avoid confusion
-//		--	7
+//     /*	8
+//     ++	7 // not necessary, but to avoid confusion
+//     --	7
 //
-//         (Comparison operators always have spaces around them.)
+//     (Comparison operators always have spaces around them.)
 //
-//	2) If there is a mix of level 7 and level 6 operators, then the cutoff
-//	   is 7 (use spaces to distinguish precedence) in Normal mode
-//	   and 6 (never use spaces) in Compact mode.
+//  2. If there is a mix of level 7 and level 6 operators, then the cutoff
+//     is 7 (use spaces to distinguish precedence) in Normal mode
+//     and 6 (never use spaces) in Compact mode.
 //
-//	3) If there are no level 6 operators or no level 7 operators, then the
-//	   cutoff is 8 (always use spaces) in Normal mode
-//	   and 6 (never use spaces) in Compact mode.
-//
+//  3. If there are no level 6 operators or no level 7 operators, then the
+//     cutoff is 8 (always use spaces) in Normal mode
+//     and 6 (never use spaces) in Compact mode.
 func (f *formatter) binaryExpr(x *ast.BinaryExpr, prec1, cutoff, depth int) {
 	f.nestExpr++
 	defer func() { f.nestExpr-- }()

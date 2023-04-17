@@ -14,16 +14,33 @@ import (
 	provider:  #Provider
 	storage:   #Storage
 
-	// this dummy field is used to validate that the total amount of CPU is equal to 2x the total amount of memory
-	_resourcesCpuMemoryRatioMustBe1CPUFor2GB: (
+
+    _totalResourcesCPU: (
         hasura.resources.replicas*hasura.resources.compute.cpu+
 		auth.resources.replicas*auth.resources.compute.cpu+
 		storage.resources.replicas*storage.resources.compute.cpu+
-		postgres.resources.replicas*postgres.resources.compute.cpu)*2.048 & (
-		hasura.resources.replicas*hasura.resources.compute.memory+
+		postgres.resources.replicas*postgres.resources.compute.cpu) @cuegraph(skip)
+
+    _totalResourcesMemory: (
+        hasura.resources.replicas*hasura.resources.compute.memory+
 		auth.resources.replicas*auth.resources.compute.memory+
 		storage.resources.replicas*storage.resources.compute.memory+
-		postgres.resources.replicas*postgres.resources.compute.memory)*1.0 @cuegraph(skip)
+		postgres.resources.replicas*postgres.resources.compute.memory) @cuegraph(skip)
+
+	_validateResourcesTotalCpuMemoryRatioMustBe1CPUFor2GB: (
+        _totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
+
+	_validateResourcesTotalCpuMin1000: (
+        hasura.resources.compute.cpu+
+		auth.resources.compute.cpu+
+		storage.resources.compute.cpu+
+		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
+
+    _validateAllResourcesAreSetOrNot: (
+        (hasura.resources == _|_) ==
+        (auth.resources == _|_) ==
+        (storage.resources == _|_) ==
+        (postgres.resources == _|_) ) & true @cuegraph(skip)
 }
 
 #Global: {
@@ -40,8 +57,14 @@ import (
 	compute: {
 		// milicpus
 		cpu: uint32 & >=250 & <=15000
-		// MiB: 50MiB to 30GiB
-		memory: uint32 & >=100 & <=30720
+		// MiB: 128MiB to 30GiB
+		memory: uint32 & >=128 & <=30720
+
+		// validate CPU steps of 250 milicpus
+		_validateCPUSteps250: (mod(cpu, 250) == 0) & true @cuegraph(skip)
+
+		// validate memory steps of 128 MiB
+		_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 	}
 
 	replicas: uint8 & >=1 & <=10

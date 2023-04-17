@@ -19,14 +19,17 @@
 // More precisely, it is the syntax accepted by RE2 and described at
 // https://golang.org/s/re2syntax, except for \C.
 // For an overview of the syntax, run
-//   go doc regexp/syntax
+//
+//	go doc regexp/syntax
 //
 // The regexp implementation provided by this package is
 // guaranteed to run in time linear in the size of the input.
 // (This is a property not guaranteed by most open source
 // implementations of regular expressions.) For more information
 // about this property, see
+//
 //	https://swtch.com/~rsc/regexp/regexp1.html
+//
 // or any book about automata theory.
 //
 // All characters are UTF-8-encoded code points.
@@ -140,10 +143,12 @@ func FindAllSubmatch(pattern, s string, n int) ([][]string, error) {
 // in capturing groups.
 //
 // Example:
-//     regexp.FindNamedSubmatch(#"Hello (?P<person>\w*)!"#, "Hello World!")
-// Output:
-//     [{person: "World"}]
 //
+//	regexp.FindNamedSubmatch(#"Hello (?P<person>\w*)!"#, "Hello World!")
+//
+// Output:
+//
+//	[{person: "World"}]
 func FindNamedSubmatch(pattern, s string) (map[string]string, error) {
 	re, err := regexp.Compile(pattern)
 	if err != nil {

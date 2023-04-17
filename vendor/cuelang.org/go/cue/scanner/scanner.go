@@ -567,14 +567,14 @@ func (s *Scanner) consumeStringClose(ch rune, quote quoteInfo) (next rune, atEnd
 	return s.ch, true
 }
 
-func (s *Scanner) checkHashCount(offs int, quote quoteInfo) {
-	for i := 0; i < quote.numHash; i++ {
+func (s *Scanner) scanHashes(maxHash int) int {
+	for i := 0; i < maxHash; i++ {
 		if s.ch != '#' {
-			s.errf(offs, "string literal not terminated")
-			return
+			return i
 		}
 		s.next()
 	}
+	return maxHash
 }
 
 func stripCR(b []byte) []byte {
@@ -830,8 +830,18 @@ scanAgain:
 				quote.numChar = 1
 				tok, lit = s.scanString(offs, quote)
 			case 1:
-				s.checkHashCount(offs, quote)
-				tok, lit = token.STRING, string(s.src[offs:s.offset])
+				// When the string is surrounded by hashes,
+				// a single leading quote is OK (and part of the string)
+				// e.g. #""hello""#
+				// unless it's succeeded by the correct number of terminating
+				// hash characters
+				// e.g. ##""##
+				if n := s.scanHashes(quote.numHash); n == quote.numHash {
+					// It's the empty string.
+					tok, lit = token.STRING, string(s.src[offs:s.offset])
+				} else {
+					tok, lit = s.scanString(offs, quote)
+				}
 			case 2:
 				quote.numChar = 3
 				switch s.ch {

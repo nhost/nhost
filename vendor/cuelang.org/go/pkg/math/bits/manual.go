@@ -78,7 +78,6 @@ func Xor(a, b *big.Int) *big.Int {
 }
 
 // Clear returns the bitwise and not of a and b (a &^ b in Go).
-//
 func Clear(a, b *big.Int) *big.Int {
 	var z big.Int
 	z.AndNot(a, b)

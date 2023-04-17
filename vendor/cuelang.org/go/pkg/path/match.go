@@ -51,7 +51,6 @@ var ErrBadPattern = errors.New("syntax error in pattern")
 //
 // On Windows, escaping is disabled. Instead, '\\' is treated as
 // path separator.
-//
 func Match(pattern, name string, o OS) (matched bool, err error) {
 	os := getOS(o)
 Pattern:

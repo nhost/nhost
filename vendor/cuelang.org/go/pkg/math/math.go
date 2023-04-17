@@ -40,6 +40,7 @@ func Abs(x *internal.Decimal) (*internal.Decimal, error) {
 // Acosh returns the inverse hyperbolic cosine of x.
 //
 // Special cases are:
+//
 //	Acosh(+Inf) = +Inf
 //	Acosh(x) = NaN if x < 1
 //	Acosh(NaN) = NaN
@@ -50,6 +51,7 @@ func Acosh(x float64) float64 {
 // Asin returns the arcsine, in radians, of x.
 //
 // Special cases are:
+//
 //	Asin(±0) = ±0
 //	Asin(x) = NaN if x < -1 or x > 1
 func Asin(x float64) float64 {
@@ -59,6 +61,7 @@ func Asin(x float64) float64 {
 // Acos returns the arccosine, in radians, of x.
 //
 // Special case is:
+//
 //	Acos(x) = NaN if x < -1 or x > 1
 func Acos(x float64) float64 {
 	return math.Acos(x)
@@ -67,6 +70,7 @@ func Acos(x float64) float64 {
 // Asinh returns the inverse hyperbolic sine of x.
 //
 // Special cases are:
+//
 //	Asinh(±0) = ±0
 //	Asinh(±Inf) = ±Inf
 //	Asinh(NaN) = NaN
@@ -77,8 +81,9 @@ func Asinh(x float64) float64 {
 // Atan returns the arctangent, in radians, of x.
 //
 // Special cases are:
-//      Atan(±0) = ±0
-//      Atan(±Inf) = ±Pi/2
+//
+//	Atan(±0) = ±0
+//	Atan(±Inf) = ±Pi/2
 func Atan(x float64) float64 {
 	return math.Atan(x)
 }
@@ -88,6 +93,7 @@ func Atan(x float64) float64 {
 // of the return value.
 //
 // Special cases are (in order):
+//
 //	Atan2(y, NaN) = NaN
 //	Atan2(NaN, x) = NaN
 //	Atan2(+0, x>=0) = +0
@@ -112,6 +118,7 @@ func Atan2(y, x float64) float64 {
 // Atanh returns the inverse hyperbolic tangent of x.
 //
 // Special cases are:
+//
 //	Atanh(1) = +Inf
 //	Atanh(±0) = ±0
 //	Atanh(-1) = -Inf
@@ -124,6 +131,7 @@ func Atanh(x float64) float64 {
 // Cbrt returns the cube root of x.
 //
 // Special cases are:
+//
 //	Cbrt(±0) = ±0
 //	Cbrt(±Inf) = ±Inf
 //	Cbrt(NaN) = NaN
@@ -164,6 +172,7 @@ var zero = apd.New(0, 0)
 // Dim returns the maximum of x-y or 0.
 //
 // Special cases are:
+//
 //	Dim(+Inf, +Inf) = NaN
 //	Dim(-Inf, -Inf) = NaN
 //	Dim(x, NaN) = Dim(NaN, x) = NaN
@@ -182,6 +191,7 @@ func Dim(x, y *internal.Decimal) (*internal.Decimal, error) {
 // Erf returns the error function of x.
 //
 // Special cases are:
+//
 //	Erf(+Inf) = 1
 //	Erf(-Inf) = -1
 //	Erf(NaN) = NaN
@@ -192,6 +202,7 @@ func Erf(x float64) float64 {
 // Erfc returns the complementary error function of x.
 //
 // Special cases are:
+//
 //	Erfc(+Inf) = 0
 //	Erfc(-Inf) = 2
 //	Erfc(NaN) = NaN
@@ -202,6 +213,7 @@ func Erfc(x float64) float64 {
 // Erfinv returns the inverse error function of x.
 //
 // Special cases are:
+//
 //	Erfinv(1) = +Inf
 //	Erfinv(-1) = -Inf
 //	Erfinv(x) = NaN if x < -1 or x > 1
@@ -213,6 +225,7 @@ func Erfinv(x float64) float64 {
 // Erfcinv returns the inverse of Erfc(x).
 //
 // Special cases are:
+//
 //	Erfcinv(0) = +Inf
 //	Erfcinv(2) = -Inf
 //	Erfcinv(x) = NaN if x < 0 or x > 2
@@ -224,8 +237,10 @@ func Erfcinv(x float64) float64 {
 // Exp returns e**x, the base-e exponential of x.
 //
 // Special cases are:
+//
 //	Exp(+Inf) = +Inf
 //	Exp(NaN) = NaN
+//
 // Very large values overflow to 0 or +Inf.
 // Very small values underflow to 1.
 func Exp(x *internal.Decimal) (*internal.Decimal, error) {
@@ -249,9 +264,11 @@ func Exp2(x *internal.Decimal) (*internal.Decimal, error) {
 // It is more accurate than Exp(x) - 1 when x is near zero.
 //
 // Special cases are:
+//
 //	Expm1(+Inf) = +Inf
 //	Expm1(-Inf) = -1
 //	Expm1(NaN) = NaN
+//
 // Very large values overflow to -1 or +Inf.
 func Expm1(x float64) float64 {
 	return math.Expm1(x)
@@ -260,6 +277,7 @@ func Expm1(x float64) float64 {
 // Gamma returns the Gamma function of x.
 //
 // Special cases are:
+//
 //	Gamma(+Inf) = +Inf
 //	Gamma(+0) = +Inf
 //	Gamma(-0) = -Inf
@@ -274,6 +292,7 @@ func Gamma(x float64) float64 {
 // unnecessary overflow and underflow.
 //
 // Special cases are:
+//
 //	Hypot(±Inf, q) = +Inf
 //	Hypot(p, ±Inf) = +Inf
 //	Hypot(NaN, q) = NaN
@@ -285,6 +304,7 @@ func Hypot(p, q float64) float64 {
 // J0 returns the order-zero Bessel function of the first kind.
 //
 // Special cases are:
+//
 //	J0(±Inf) = 0
 //	J0(0) = 1
 //	J0(NaN) = NaN
@@ -295,6 +315,7 @@ func J0(x float64) float64 {
 // Y0 returns the order-zero Bessel function of the second kind.
 //
 // Special cases are:
+//
 //	Y0(+Inf) = 0
 //	Y0(0) = -Inf
 //	Y0(x < 0) = NaN
@@ -306,6 +327,7 @@ func Y0(x float64) float64 {
 // J1 returns the order-one Bessel function of the first kind.
 //
 // Special cases are:
+//
 //	J1(±Inf) = 0
 //	J1(NaN) = NaN
 func J1(x float64) float64 {
@@ -315,6 +337,7 @@ func J1(x float64) float64 {
 // Y1 returns the order-one Bessel function of the second kind.
 //
 // Special cases are:
+//
 //	Y1(+Inf) = 0
 //	Y1(0) = -Inf
 //	Y1(x < 0) = NaN
@@ -326,6 +349,7 @@ func Y1(x float64) float64 {
 // Jn returns the order-n Bessel function of the first kind.
 //
 // Special cases are:
+//
 //	Jn(n, ±Inf) = 0
 //	Jn(n, NaN) = NaN
 func Jn(n int, x float64) float64 {
@@ -335,6 +359,7 @@ func Jn(n int, x float64) float64 {
 // Yn returns the order-n Bessel function of the second kind.
 //
 // Special cases are:
+//
 //	Yn(n, +Inf) = 0
 //	Yn(n ≥ 0, 0) = -Inf
 //	Yn(n < 0, 0) = +Inf if n is odd, -Inf if n is even
@@ -348,6 +373,7 @@ func Yn(n int, x float64) float64 {
 // It returns frac × 2**exp.
 //
 // Special cases are:
+//
 //	Ldexp(±0, exp) = ±0
 //	Ldexp(±Inf, exp) = ±Inf
 //	Ldexp(NaN, exp) = NaN
@@ -358,6 +384,7 @@ func Ldexp(frac float64, exp int) float64 {
 // Log returns the natural logarithm of x.
 //
 // Special cases are:
+//
 //	Log(+Inf) = +Inf
 //	Log(0) = -Inf
 //	Log(x < 0) = NaN
@@ -393,6 +420,7 @@ func Log2(x *internal.Decimal) (*internal.Decimal, error) {
 // It is more accurate than Log(1 + x) when x is near zero.
 //
 // Special cases are:
+//
 //	Log1p(+Inf) = +Inf
 //	Log1p(±0) = ±0
 //	Log1p(-1) = -Inf
@@ -405,6 +433,7 @@ func Log1p(x float64) float64 {
 // Logb returns the binary exponent of x.
 //
 // Special cases are:
+//
 //	Logb(±Inf) = +Inf
 //	Logb(0) = -Inf
 //	Logb(NaN) = NaN
@@ -415,6 +444,7 @@ func Logb(x float64) float64 {
 // Ilogb returns the binary exponent of x as an integer.
 //
 // Special cases are:
+//
 //	Ilogb(±Inf) = MaxInt32
 //	Ilogb(0) = MinInt32
 //	Ilogb(NaN) = MaxInt32
@@ -427,6 +457,7 @@ func Ilogb(x float64) int {
 // sign agrees with that of x.
 //
 // Special cases are:
+//
 //	Mod(±Inf, y) = NaN
 //	Mod(NaN, y) = NaN
 //	Mod(x, 0) = NaN
@@ -439,6 +470,7 @@ func Mod(x, y float64) float64 {
 // Pow returns x**y, the base-x exponential of y.
 //
 // Special cases are (in order):
+//
 //	Pow(x, ±0) = 1 for any x
 //	Pow(1, y) = 1 for any y
 //	Pow(x, 1) = x for any x
@@ -466,7 +498,6 @@ func Pow(x, y *internal.Decimal) (*internal.Decimal, error) {
 }
 
 // Pow10 returns 10**n, the base-10 exponential of n.
-//
 func Pow10(n int32) *internal.Decimal {
 	return apd.New(1, n)
 }
@@ -474,6 +505,7 @@ func Pow10(n int32) *internal.Decimal {
 // Remainder returns the IEEE 754 floating-point remainder of x/y.
 //
 // Special cases are:
+//
 //	Remainder(±Inf, y) = NaN
 //	Remainder(NaN, y) = NaN
 //	Remainder(x, 0) = NaN
@@ -491,6 +523,7 @@ func Signbit(x *internal.Decimal) bool {
 // Cos returns the cosine of the radian argument x.
 //
 // Special cases are:
+//
 //	Cos(±Inf) = NaN
 //	Cos(NaN) = NaN
 func Cos(x float64) float64 {
@@ -500,6 +533,7 @@ func Cos(x float64) float64 {
 // Sin returns the sine of the radian argument x.
 //
 // Special cases are:
+//
 //	Sin(±0) = ±0
 //	Sin(±Inf) = NaN
 //	Sin(NaN) = NaN
@@ -510,6 +544,7 @@ func Sin(x float64) float64 {
 // Sinh returns the hyperbolic sine of x.
 //
 // Special cases are:
+//
 //	Sinh(±0) = ±0
 //	Sinh(±Inf) = ±Inf
 //	Sinh(NaN) = NaN
@@ -520,6 +555,7 @@ func Sinh(x float64) float64 {
 // Cosh returns the hyperbolic cosine of x.
 //
 // Special cases are:
+//
 //	Cosh(±0) = 1
 //	Cosh(±Inf) = +Inf
 //	Cosh(NaN) = NaN
@@ -530,6 +566,7 @@ func Cosh(x float64) float64 {
 // Sqrt returns the square root of x.
 //
 // Special cases are:
+//
 //	Sqrt(+Inf) = +Inf
 //	Sqrt(±0) = ±0
 //	Sqrt(x < 0) = NaN
@@ -541,6 +578,7 @@ func Sqrt(x float64) float64 {
 // Tan returns the tangent of the radian argument x.
 //
 // Special cases are:
+//
 //	Tan(±0) = ±0
 //	Tan(±Inf) = NaN
 //	Tan(NaN) = NaN
@@ -551,6 +589,7 @@ func Tan(x float64) float64 {
 // Tanh returns the hyperbolic tangent of x.
 //
 // Special cases are:
+//
 //	Tanh(±0) = ±0
 //	Tanh(±Inf) = ±1
 //	Tanh(NaN) = NaN

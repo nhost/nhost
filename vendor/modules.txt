@@ -20,8 +20,8 @@ cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/stubs
-# cuelang.org/go v0.4.3
-## explicit; go 1.17
+# cuelang.org/go v0.5.0
+## explicit; go 1.18
 cuelang.org/go/cue
 cuelang.org/go/cue/ast
 cuelang.org/go/cue/ast/astutil
@@ -32,6 +32,7 @@ cuelang.org/go/cue/format
 cuelang.org/go/cue/literal
 cuelang.org/go/cue/parser
 cuelang.org/go/cue/scanner
+cuelang.org/go/cue/stats
 cuelang.org/go/cue/token
 cuelang.org/go/encoding/json
 cuelang.org/go/internal
@@ -41,6 +42,7 @@ cuelang.org/go/internal/core/adt
 cuelang.org/go/internal/core/compile
 cuelang.org/go/internal/core/convert
 cuelang.org/go/internal/core/debug
+cuelang.org/go/internal/core/dep
 cuelang.org/go/internal/core/eval
 cuelang.org/go/internal/core/export
 cuelang.org/go/internal/core/runtime
@@ -420,7 +422,7 @@ github.com/mitchellh/mapstructure
 # github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de
 ## explicit
 github.com/mpvl/unique
-# github.com/nhost/be v0.0.0-20230331121340-c25a4d1a1194
+# github.com/nhost/be v0.0.0-20230417073532-3fb8b94c7444
 ## explicit; go 1.20
 github.com/nhost/be/services/mimir/model
 github.com/nhost/be/services/mimir/schema
@@ -552,7 +554,7 @@ golang.org/x/crypto/ssh/knownhosts
 # golang.org/x/mod v0.9.0
 ## explicit; go 1.17
 golang.org/x/mod/semver
-# golang.org/x/net v0.8.0
+# golang.org/x/net v0.9.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/http/httpguts
@@ -575,7 +577,7 @@ golang.org/x/oauth2/jwt
 # golang.org/x/sync v0.1.0
 ## explicit
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.6.0
+# golang.org/x/sys v0.7.0
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
@@ -583,10 +585,10 @@ golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.6.0
+# golang.org/x/term v0.7.0
 ## explicit; go 1.17
 golang.org/x/term
-# golang.org/x/text v0.8.0
+# golang.org/x/text v0.9.0
 ## explicit; go 1.17
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal

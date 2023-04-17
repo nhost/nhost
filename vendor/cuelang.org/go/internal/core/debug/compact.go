@@ -17,7 +17,6 @@
 // Note that the result is not valid CUE, but instead prints the internals
 // of an ADT node in human-readable form. It uses a simple indentation algorithm
 // for improved readability and diffing.
-//
 package debug
 
 import (
@@ -51,9 +50,23 @@ func (w *compactPrinter) node(n adt.Node) {
 				if i > 0 {
 					w.string(",")
 				}
-				w.label(a.Label)
-				w.string(":")
-				w.node(a)
+				if a.Label.IsLet() {
+					w.string("let ")
+					w.label(a.Label)
+					if a.MultiLet {
+						w.string("m")
+					}
+					w.string("=")
+					if c := a.Conjuncts[0]; a.MultiLet {
+						w.node(c.Expr())
+						continue
+					}
+					w.node(a)
+				} else {
+					w.label(a.Label)
+					w.string(":")
+					w.node(a)
+				}
 			}
 			w.string("}")
 
@@ -107,6 +120,16 @@ func (w *compactPrinter) node(n adt.Node) {
 		s := w.labelString(x.Label)
 		w.string(s)
 		w.string("?:")
+		w.node(x.Value)
+
+	case *adt.LetField:
+		w.string("let ")
+		s := w.labelString(x.Label)
+		w.string(s)
+		if x.IsMulti {
+			w.string("m")
+		}
+		w.string("=")
 		w.node(x.Value)
 
 	case *adt.BulkOptionalField:
@@ -302,8 +325,10 @@ func (w *compactPrinter) node(n adt.Node) {
 		}
 
 	case *adt.Comprehension:
-		w.node(x.Clauses)
-		w.node(x.Value)
+		for _, c := range x.Clauses {
+			w.node(c)
+		}
+		w.node(adt.ToExpr(x.Value))
 
 	case *adt.ForClause:
 		w.string("for ")
@@ -313,13 +338,11 @@ func (w *compactPrinter) node(n adt.Node) {
 		w.string(" in ")
 		w.node(x.Src)
 		w.string(" ")
-		w.node(x.Dst)
 
 	case *adt.IfClause:
 		w.string("if ")
 		w.node(x.Condition)
 		w.string(" ")
-		w.node(x.Dst)
 
 	case *adt.LetClause:
 		w.string("let ")
@@ -327,7 +350,6 @@ func (w *compactPrinter) node(n adt.Node) {
 		w.string(" = ")
 		w.node(x.Expr)
 		w.string(" ")
-		w.node(x.Dst)
 
 	case *adt.ValueClause:
 

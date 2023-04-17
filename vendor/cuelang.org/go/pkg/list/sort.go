@@ -60,10 +60,9 @@ func (s *valueSorter) Less(i, j int) bool {
 //
 // Example:
 //
-//    Sort([2, 3, 1], list.Ascending)
+//	Sort([2, 3, 1], list.Ascending)
 //
-//    Sort{{a: 2}, {a: 3}, {a: 1}, {x: {}, y: {}, less: x.a < y.a}}
-//
+//	Sort([{a: 2}, {a: 3}, {a: 1}], {x: {}, y: {}, less: x.a < y.a})
 func Sort(list []cue.Value, cmp cue.Value) (sorted []cue.Value, err error) {
 	s := valueSorter{list, cmp, nil}
 	// The input slice is already a copy and that we can modify it safely.

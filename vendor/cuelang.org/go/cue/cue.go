@@ -21,23 +21,21 @@
 // A Context defines the set of active packages, the translations of field
 // names to unique codes, as well as the set of builtins. Use
 //
-//     import "cuelang.org/go/cue/cuecontext"
+//	import "cuelang.org/go/cue/cuecontext"
 //
-//     ctx := cuecontext.New()
+//	ctx := cuecontext.New()
 //
 // to obtain a context.
-//
 //
 // Note that the following types are DEPRECATED and their usage should be
 // avoided if possible:
 //
-//    FieldInfo
-//    Instance
-//    Runtime
-//    Struct
+//	FieldInfo
+//	Instance
+//	Runtime
+//	Struct
 //
 // Many types also have deprecated methods. Code that already uses deprecated
 // methods can keep using them for at least some time. We aim to provide a
 // go or cue fix solution to automatically rewrite code using the new API.
-//
 package cue

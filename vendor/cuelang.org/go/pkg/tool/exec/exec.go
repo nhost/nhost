@@ -14,9 +14,6 @@
 
 package exec
 
-//go:generate go run gen.go
-//go:generate gofmt -s -w .
-
 import (
 	"fmt"
 	"os/exec"

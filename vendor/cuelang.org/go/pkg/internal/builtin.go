@@ -30,20 +30,19 @@ import (
 //
 // A function may return and a constant may be any of the following types:
 //
-//   error (translates to bottom)
-//   nil   (translates to null)
-//   bool
-//   int*
-//   uint*
-//   float64
-//   string
-//   *big.Float
-//   *big.Int
+//	error (translates to bottom)
+//	nil   (translates to null)
+//	bool
+//	int*
+//	uint*
+//	float64
+//	string
+//	*big.Float
+//	*big.Int
 //
-//   For any of the above, including interface{} and these types recursively:
-//   []T
-//   map[string]T
-//
+//	For any of the above, including interface{} and these types recursively:
+//	[]T
+//	map[string]T
 type Builtin struct {
 	Name   string
 	Pkg    adt.Feature
@@ -75,9 +74,11 @@ func (p *Package) MustCompile(ctx *adt.OpContext, importPath string) *adt.Vertex
 
 		f := ctx.StringLabel(b.Name) // never starts with _
 		// n := &node{baseValue: newBase(imp.Path)}
-		var v adt.Expr = toBuiltin(ctx, b)
+		var v adt.Expr
 		if b.Const != "" {
 			v = mustParseConstBuiltin(ctx, b.Name, b.Const)
+		} else {
+			v = toBuiltin(ctx, b)
 		}
 		st.Decls = append(st.Decls, &adt.Field{
 			Label: f,
@@ -149,7 +150,7 @@ func toBuiltin(ctx *adt.OpContext, b *Builtin) *adt.Builtin {
 			return nil
 		case adt.Value:
 			return v
-		case bottomer:
+		case Bottomer:
 			// deal with API limitation: catch nil interface issue.
 			if b := v.Bottom(); b != nil {
 				return b
@@ -157,7 +158,9 @@ func toBuiltin(ctx *adt.OpContext, b *Builtin) *adt.Builtin {
 			return nil
 		}
 		if c.Err != nil {
-			return nil
+			if _, ok := c.Err.(ValidationError); !ok || c.ctx.IsValidator {
+				return nil
+			}
 		}
 		return convert.GoValueToValue(ctx, c.Ret, true)
 	}
@@ -194,17 +197,21 @@ func processErr(call *CallCtxt, errVal interface{}, ret adt.Expr) adt.Expr {
 	ctx := call.ctx
 	switch err := errVal.(type) {
 	case nil:
+	case ValidationError:
+		if call.ctx.IsValidator {
+			ret = err.B
+		}
 	case *adt.Bottom:
 		ret = err
 	case *callError:
 		ret = err.b
 	case *json.MarshalerError:
-		if err, ok := err.Err.(bottomer); ok {
+		if err, ok := err.Err.(Bottomer); ok {
 			if b := err.Bottom(); b != nil {
 				ret = b
 			}
 		}
-	case bottomer:
+	case Bottomer:
 		ret = wrapCallErr(call, err.Bottom())
 
 	case errors.Error:

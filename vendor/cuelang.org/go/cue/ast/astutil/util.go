@@ -26,10 +26,10 @@ import (
 // ImportPathName derives the package name from the given import path.
 //
 // Examples:
-//      string           string
-//      foo.com/bar      bar
-//      foo.com/bar:baz  baz
 //
+//	string           string
+//	foo.com/bar      bar
+//	foo.com/bar:baz  baz
 func ImportPathName(id string) string {
 	name := path.Base(id)
 	if p := strings.LastIndexByte(name, ':'); p > 0 {

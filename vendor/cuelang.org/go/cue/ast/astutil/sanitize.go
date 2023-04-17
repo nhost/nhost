@@ -35,10 +35,9 @@ import (
 // construction of an AST.
 //
 // Rewrites:
-//    - auto inserts imports associated with Idents
-//    - unshadows imports associated with idents
-//    - unshadows references for identifiers that were already resolved.
-//
+//   - auto inserts imports associated with Idents
+//   - unshadows imports associated with idents
+//   - unshadows references for identifiers that were already resolved.
 func Sanitize(f *ast.File) error {
 	z := &sanitizer{
 		file: f,
@@ -324,7 +323,6 @@ func (z *sanitizer) handleIdent(s *scope, n *ast.Ident) bool {
 // It prefers short extensions over large ones, while ensuring the likelihood of
 // fast termination is high. There are at least two digits to make it visually
 // clearer this concerns a generated number.
-//
 func (z *sanitizer) uniqueName(base string, hidden bool) string {
 	if hidden && !strings.HasPrefix(base, "_") {
 		base = "_" + base

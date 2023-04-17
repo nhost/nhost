@@ -51,15 +51,24 @@ outer:
 	if len(o.Bulk) > 0 {
 		bulkEnv := *env
 		bulkEnv.DynamicLabel = f
-		bulkEnv.Deref = nil
-		bulkEnv.Cycles = nil
 
 		// match bulk optional fields / pattern properties
 		for _, b := range o.Bulk {
 			// if matched && f.additional {
 			// 	continue
 			// }
-			if matchBulk(c, env, b, f, label) {
+
+			// Mark the current arc as cyclic while evaluating pattern
+			// expressions, but not while adding conjuncts.
+			// TODO: make MatchAndInsert return a list of conjuncts instead?
+			// TODO: it could be that we can set the cycle before calling
+			// MatchAndInsert after the renewed implementation of disjunctions.
+			saved := arc.BaseValue
+			arc.BaseValue = cycle
+			match := matchBulk(c, env, b, f, label)
+			arc.BaseValue = saved
+
+			if match {
 				matched = true
 				info := closeInfo.SpawnSpan(b.Value, ConstraintSpan)
 				arc.AddConjunct(MakeConjunct(&bulkEnv, b, info))
@@ -71,10 +80,6 @@ outer:
 		return
 	}
 
-	addEnv := *env
-	addEnv.Deref = nil
-	addEnv.Cycles = nil
-
 	// match others
 	for _, x := range o.Additional {
 		info := closeInfo
@@ -82,19 +87,28 @@ outer:
 			info = info.SpawnSpan(x, ConstraintSpan)
 		}
 		// TODO: consider moving in above block (2 lines up).
-		arc.AddConjunct(MakeConjunct(&addEnv, x, info))
+		arc.AddConjunct(MakeConjunct(env, x, info))
 	}
 }
 
 // matchBulk reports whether feature f matches the filter of x. It evaluation of
 // the filter is erroneous, it returns false and the error will  be set in c.
-func matchBulk(c *OpContext, env *Environment, x *BulkOptionalField, f Feature, label Value) bool {
-	v := env.evalCached(c, x.Filter)
+func matchBulk(c *OpContext, env *Environment, p *BulkOptionalField, f Feature, label Value) bool {
+	v := env.evalCached(c, p.Filter)
 	v = Unwrap(v)
 
 	// Fast-track certain cases.
 	switch x := v.(type) {
 	case *Bottom:
+		if x == cycle {
+			err := c.NewPosf(pos(p.Filter), "cyclic pattern constraint")
+			for _, c := range c.vertex.Conjuncts {
+				err.AddPosition(c.Elem())
+			}
+			c.AddBottom(&Bottom{
+				Err: err,
+			})
+		}
 		if c.errs == nil {
 			c.AddBottom(x)
 		}
@@ -123,10 +137,12 @@ func matchBulk(c *OpContext, env *Environment, x *BulkOptionalField, f Feature, 
 		return false
 	}
 
-	n := Vertex{}
-	m := MakeRootConjunct(env, v)
+	n := Vertex{
+		IsDynamic: true,
+	}
+	m := MakeConjunct(env, v, c.ci)
 	n.AddConjunct(m)
-	n.AddConjunct(MakeRootConjunct(m.Env, label))
+	n.AddConjunct(MakeConjunct(m.Env, label, c.ci))
 
 	c.inConstraint++
 	n.Finalize(c)

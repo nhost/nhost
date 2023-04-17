@@ -24,7 +24,6 @@ import (
 // node must not be nil. If before returns true, Walk invokes f recursively for
 // each of the non-nil children of node, followed by a call of after. Both
 // functions may be nil. If before is nil, it is assumed to always return true.
-//
 func Walk(node Node, before func(Node) bool, after func(Node)) {
 	walk(&inspector{before: before, after: after}, node)
 }
@@ -56,7 +55,6 @@ func walkDeclList(v visitor, list []Decl) {
 // v.Visit(node) is not nil, walk is invoked recursively with visitor
 // w for each of the non-nil children of node, followed by a call of
 // w.Visit(nil).
-//
 func walk(v visitor, node Node) {
 	if v = v.Before(node); v == nil {
 		return

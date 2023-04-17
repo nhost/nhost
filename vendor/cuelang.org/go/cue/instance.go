@@ -210,6 +210,11 @@ func (inst *hiddenInstance) Doc() []*ast.CommentGroup {
 func (inst *Instance) Value() Value {
 	ctx := newContext(inst.index)
 	inst.root.Finalize(ctx)
+	// TODO: consider including these statistics as well. Right now, this only
+	// seems to be used in cue cmd for "auxiliary" evaluations, like filetypes.
+	// These arguably skew the actual statistics for the cue command line, so
+	// it is convenient to not include these.
+	// adt.AddStats(ctx)
 	return newVertexRoot(inst.index, ctx, inst.root)
 }
 
@@ -237,7 +242,7 @@ func Merge(inst ...*Instance) *Instance {
 
 	for _, i := range inst {
 		w := i.Value()
-		v.AddConjunct(adt.MakeRootConjunct(nil, w.v.ToDataAll()))
+		v.AddConjunct(adt.MakeRootConjunct(nil, w.v.ToDataAll(ctx)))
 	}
 	v.Finalize(ctx)
 

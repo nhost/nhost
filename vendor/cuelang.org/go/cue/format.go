@@ -33,35 +33,35 @@ import (
 
 // Format prints a CUE value.
 //
-// WARNING:
-//     although we are narrowing down the semantics, the verbs and options
-//     are still subject to change. this API is experimental although it is
-//     likely getting close to the final design.
+// WARNING: although we are narrowing down the semantics, the verbs and options
+// are still subject to change. this API is experimental although it is likely
+// getting close to the final design.
 //
 // It recognizes the following verbs:
 //
-//     v    print CUE value
+//	v    print CUE value
 //
 // The verbs support the following flags:
-//     #    print as schema and include definitions.
-//          The result is printed as a self-contained file, instead of an the
-//          expression format.
-//     +    evaluate: resolve defaults and error on incomplete errors
+//
+//	#    print as schema and include definitions.
+//	     The result is printed as a self-contained file, instead of an the
+//	     expression format.
+//	+    evaluate: resolve defaults and error on incomplete errors
 //
 // Indentation can be controlled as follows:
-//     width      indent the cue block by <width> tab stops (e.g. %2v)
-//     precision  convert tabs to <precision> spaces (e.g. %.2v), where
-//                a value of 0 means no indentation or newlines (TODO).
+//
+//	width      indent the cue block by <width> tab stops (e.g. %2v)
+//	precision  convert tabs to <precision> spaces (e.g. %.2v), where
+//	           a value of 0 means no indentation or newlines (TODO).
 //
 // If the value kind corresponds to one of the following Go types, the
 // usual Go formatting verbs for that type can be used:
 //
-//     Int:          b,d,o,O,q,x,X
-//     Float:        f,e,E,g,G
-//     String/Bytes: s,q,x,X
+//	Int:          b,d,o,O,q,x,X
+//	Float:        f,e,E,g,G
+//	String/Bytes: s,q,x,X
 //
 // The %v directive will be used if the type is not supported for that verb.
-//
 func (v Value) Format(state fmt.State, verb rune) {
 	if v.v == nil {
 		fmt.Fprint(state, "<nil>")

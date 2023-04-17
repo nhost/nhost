@@ -31,21 +31,11 @@ func Features(x adt.Expr, f func(label adt.Feature, src adt.Node)) {
 }
 
 type Visitor struct {
-	// TODO: lets really should be special fields
-	letDone map[adt.Expr]bool
-
 	Feature func(f adt.Feature, src adt.Node)
 	Before  func(adt.Node) bool
 }
 
-func (w *Visitor) init() {
-	if w.letDone == nil {
-		w.letDone = map[adt.Expr]bool{}
-	}
-}
-
 func (w *Visitor) Elem(x adt.Elem) {
-	w.init()
 	w.node(x)
 }
 
@@ -92,13 +82,6 @@ func (w *Visitor) node(n adt.Node) {
 
 	case *adt.LetReference:
 		w.feature(x.Label, x)
-		if w.letDone == nil {
-			w.letDone = map[adt.Expr]bool{}
-		}
-		if !w.letDone[x.X] {
-			w.letDone[x.X] = true
-			w.node(x.X)
-		}
 
 	case *adt.SelectorExpr:
 		w.node(x.X)
@@ -155,6 +138,10 @@ func (w *Visitor) node(n adt.Node) {
 		w.feature(x.Label, x)
 		w.node(x.Value)
 
+	case *adt.LetField:
+		w.feature(x.Label, x)
+		w.node(x.Value)
+
 	case *adt.BulkOptionalField:
 		w.node(x.Filter)
 		w.node(x.Value)
@@ -166,22 +153,21 @@ func (w *Visitor) node(n adt.Node) {
 	// Yielders
 
 	case *adt.Comprehension:
-		w.node(x.Clauses)
-		w.node(x.Value)
+		for _, c := range x.Clauses {
+			w.node(c)
+		}
+		w.node(adt.ToExpr(x.Value))
 
 	case *adt.ForClause:
 		w.feature(x.Key, x)
 		w.feature(x.Value, x)
-		w.node(x.Dst)
 
 	case *adt.IfClause:
 		w.node(x.Condition)
-		w.node(x.Dst)
 
 	case *adt.LetClause:
 		w.feature(x.Label, x)
 		w.node(x.Expr)
-		w.node(x.Dst)
 
 	case *adt.ValueClause:
 

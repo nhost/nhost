@@ -410,6 +410,8 @@ func convertRec(ctx *adt.OpContext, nilIsTop bool, x interface{}) adt.Value {
 			if env == nil {
 				env = &adt.Environment{}
 			}
+			// There is no closedness or cycle info for Go structs, so we
+			// pass an empty CloseInfo.
 			v.AddStruct(obj, env, adt.CloseInfo{})
 			v.SetValue(ctx, adt.Finalized, &adt.StructMarker{})
 

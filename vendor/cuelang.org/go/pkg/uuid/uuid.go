@@ -62,8 +62,7 @@ func URN(x string) (string, error) {
 
 // FromInt creates a UUID from an integer.
 //
-//    DNS:  uuid.FromInt(0x6ba7b810_9dad_11d1_80b4_00c04fd430c8)
-//
+//	DNS:  uuid.FromInt(0x6ba7b810_9dad_11d1_80b4_00c04fd430c8)
 func FromInt(i *big.Int) (string, error) {
 	// must be uint128
 	var buf [16]byte

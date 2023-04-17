@@ -14,9 +14,6 @@
 
 package file
 
-//go:generate go run gen.go
-//go:generate gofmt -s -w .
-
 import (
 	"io/ioutil"
 	"os"

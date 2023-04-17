@@ -14,9 +14,6 @@
 
 package http
 
-//go:generate go run gen.go
-//go:generate gofmt -s -w .
-
 import (
 	"bytes"
 	"crypto/tls"

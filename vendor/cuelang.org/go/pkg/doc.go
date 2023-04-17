@@ -29,7 +29,7 @@
 //   - no querying of the file system of any kind
 //   - no communication on the network
 //   - no information about the type of environment
-//   - only reproduceable random generators
+//   - only reproducible random generators
 //
 // Hermetic configurations allow for fast and advanced analysis that otherwise
 // would not be possible or practical. The cue "cmd" command can be used to mix

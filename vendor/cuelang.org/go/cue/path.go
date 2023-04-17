@@ -16,6 +16,7 @@ package cue
 
 import (
 	"fmt"
+	"math/bits"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,87 @@ import (
 	"github.com/cockroachdb/apd/v2"
 )
 
+// SelectorType represents the kind of a selector. It indicates both the label
+// type as well as whether it is a constraint or an actual value.
+type SelectorType uint16
+
+const (
+	// StringLabel represents a regular non-definition field.
+	StringLabel SelectorType = 1 << iota
+	// IndexLabel represents a numeric index into an array.
+	IndexLabel
+	// DefinitionLabel represents a definition.
+	DefinitionLabel
+	// HiddenLabel represents a hidden non-definition field.
+	HiddenLabel
+	// HiddenDefinitionLabel represents a hidden definition.
+	HiddenDefinitionLabel
+
+	// OptionalConstraint represents an optional constraint (?).
+	OptionalConstraint
+	// PatternConstraint represents a selector of fields in a struct
+	// or array that match a constraint.
+	PatternConstraint
+
+	InvalidSelectorType SelectorType = 0
+)
+
+// LabelType reports the label type of t.
+func (t SelectorType) LabelType() SelectorType {
+	return t & 0b0001_1111
+}
+
+// ConstraintType reports the constraint type of t.
+func (t SelectorType) ConstraintType() SelectorType {
+	return t & 0b0110_0000
+}
+
+var selectorTypeStrings = [...]string{
+	"InvalidSelectorType",
+	"StringLabel",
+	"IndexLabel",
+	"DefinitionLabel",
+	"HiddenLabel",
+	"HiddenDefinitionLabel",
+	"OptionalConstraint",
+	"PatternConstraint",
+}
+
+func (t SelectorType) String() string {
+	if t.LabelType() == 0 && t.ConstraintType() == 0 {
+		return "NoLabels"
+	}
+	single := bits.OnesCount16(uint16(t)) == 1
+	var buf strings.Builder
+	for i := range selectorTypeStrings[:len(selectorTypeStrings)-1] {
+		if t&(SelectorType(1)<<i) == 0 {
+			continue
+		}
+		if single {
+			return selectorTypeStrings[i+1]
+		}
+		if buf.Len() > 0 {
+			buf.WriteByte('|')
+		}
+		buf.WriteString(selectorTypeStrings[i+1])
+	}
+	return buf.String()
+}
+
+// IsHidden reports whether t describes a hidden field, regardless of
+// whether or not this is a constraint.
+func (t SelectorType) IsHidden() bool {
+	t = t.LabelType()
+	return t == HiddenLabel || t == HiddenDefinitionLabel
+}
+
+// IsDefinition reports whether t describes a definition, regardless of
+// whether or not this is a constraint.
+func (t SelectorType) IsDefinition() bool {
+	t = t.LabelType()
+	return t == HiddenDefinitionLabel || t == DefinitionLabel
+}
+
 // A Selector is a component of a path.
 type Selector struct {
 	sel selector
@@ -39,21 +121,72 @@ func (sel Selector) String() string {
 	return sel.sel.String()
 }
 
-// IsString reports whether sel is a regular label type.
-func (sel Selector) IsString() bool {
-	return sel.sel.kind() == adt.StringLabel
+// Unquoted returns the unquoted value of a string label.
+// It panics unless sel.LabelType is StringLabel and has a concrete name.
+func (sel Selector) Unquoted() string {
+	if sel.LabelType() != StringLabel ||
+		sel.ConstraintType() >= PatternConstraint {
+		panic("Selector.Unquoted invoked on non-string label")
+	}
+	switch s := sel.sel.(type) {
+	case stringSelector:
+		return string(s)
+	case optionalSelector:
+		return string(s.selector.(stringSelector))
+	}
+	panic(fmt.Sprintf("unreachable %T", sel.sel))
 }
 
-// IsDefinition reports whether sel is a non-hidden definition label type.
+// IsConstraint reports whether s is optional or a pattern constraint.
+// Fields that are constraints are considered non-existing and their
+// values may be erroneous for a configuration to be valid..
+func (sel Selector) IsConstraint() bool {
+	return sel.Type().ConstraintType() != 0
+}
+
+// IsString reports whether sel represents an optional or regular member field.
+func (sel Selector) IsString() bool {
+	// TODO: consider deprecating this method. It is a bit wonkey now.
+	t := sel.Type()
+	t &^= OptionalConstraint
+	return t == StringLabel
+}
+
+// IsDefinition reports whether sel is a non-hidden definition and non-constraint label type.
 func (sel Selector) IsDefinition() bool {
-	return sel.sel.kind() == adt.DefinitionLabel
+	return sel.Type().IsDefinition()
+}
+
+// Type returns the type of the selector.
+func (sel Selector) Type() SelectorType {
+	return sel.sel.labelType() | sel.sel.constraintType()
+}
+
+// LabelType returns the type of the label part of a selector.
+func (sel Selector) LabelType() SelectorType {
+	return sel.sel.labelType()
+}
+
+// ConstraintType returns the type of the constraint part of a selector.
+func (sel Selector) ConstraintType() SelectorType {
+	return sel.sel.constraintType()
 }
 
 // PkgPath reports the package path associated with a hidden label or "" if
 // this is not a hidden label.
 func (sel Selector) PkgPath() string {
-	h, _ := sel.sel.(scopedSelector)
-	return h.pkg
+	s, _ := sel.sel.(scopedSelector)
+	return s.pkg
+}
+
+// Index returns the index of the selector. It panics
+// unless sel.Type is SelIndex.
+func (sel Selector) Index() int {
+	s, ok := sel.sel.(indexSelector)
+	if !ok {
+		panic("Index called on non-index selector")
+	}
+	return adt.Feature(s).Index()
 }
 
 var (
@@ -63,7 +196,6 @@ var (
 	// In paths it is used to select constraints that apply to all elements.
 	// AnyDefinition = anyDefinition
 	anyDefinition = Selector{sel: anySelector(adt.AnyDefinition)}
-
 	// AnyIndex can be used to ask for any index.
 	//
 	// In paths it is used to select constraints that apply to all elements.
@@ -78,7 +210,9 @@ var (
 )
 
 // Optional converts sel into an optional equivalent.
-//     foo -> foo?
+// It's a no-op if the selector is already optional.
+//
+//	foo -> foo?
 func (sel Selector) Optional() Selector {
 	return wrapOptional(sel)
 }
@@ -87,7 +221,8 @@ type selector interface {
 	String() string
 
 	feature(ctx adt.Runtime) adt.Feature
-	kind() adt.FeatureType
+	labelType() SelectorType
+	constraintType() SelectorType
 	optional() bool
 }
 
@@ -128,7 +263,7 @@ func ParsePath(s string) Path {
 
 	p := Path{path: toSelectors(expr)}
 	for _, sel := range p.path {
-		if sel.sel.kind().IsHidden() {
+		if sel.Type().IsHidden() {
 			return MakePath(Selector{pathError{errors.Newf(token.NoPos,
 				"invalid path: hidden fields not allowed in path %s", s)}})
 		}
@@ -149,27 +284,25 @@ func (p Path) String() string {
 
 	b := &strings.Builder{}
 	for i, sel := range p.path {
-		x := sel.sel
-		// TODO: use '.' in all cases, once supported.
-		_, isAny := x.(anySelector)
 		switch {
-		case x.kind() == adt.IntLabel && !isAny:
+		case sel.Type() == IndexLabel:
+			// TODO: use '.' in all cases, once supported.
 			b.WriteByte('[')
-			b.WriteString(x.String())
+			b.WriteString(sel.sel.String())
 			b.WriteByte(']')
 			continue
 		case i > 0:
 			b.WriteByte('.')
 		}
 
-		b.WriteString(x.String())
+		b.WriteString(sel.sel.String())
 	}
 	return b.String()
 }
 
 // Optional returns the optional form of a Path. For instance,
-//    foo.bar  --> foo?.bar?
 //
+//	foo.bar  --> foo?.bar?
 func (p Path) Optional() Path {
 	q := make([]Selector, 0, len(p.path))
 	for _, s := range p.path {
@@ -329,18 +462,13 @@ func (s scopedSelector) String() string {
 }
 func (scopedSelector) optional() bool { return false }
 
-func (s scopedSelector) kind() adt.FeatureType {
-	switch {
-	case strings.HasPrefix(s.name, "#"):
-		return adt.DefinitionLabel
-	case strings.HasPrefix(s.name, "_#"):
-		return adt.HiddenDefinitionLabel
-	case strings.HasPrefix(s.name, "_"):
-		return adt.HiddenLabel
-	default:
-		return adt.StringLabel
+func (s scopedSelector) labelType() SelectorType {
+	if strings.HasPrefix(s.name, "_#") {
+		return HiddenDefinitionLabel
 	}
+	return HiddenLabel
 }
+func (s scopedSelector) constraintType() SelectorType { return 0 }
 
 func (s scopedSelector) feature(r adt.Runtime) adt.Feature {
 	return adt.MakeIdentLabel(r, s.name, s.pkg)
@@ -368,9 +496,11 @@ func (d definitionSelector) String() string {
 
 func (d definitionSelector) optional() bool { return false }
 
-func (d definitionSelector) kind() adt.FeatureType {
-	return adt.DefinitionLabel
+func (d definitionSelector) labelType() SelectorType {
+	return DefinitionLabel
 }
+
+func (s definitionSelector) constraintType() SelectorType { return 0 }
 
 func (d definitionSelector) feature(r adt.Runtime) adt.Feature {
 	return adt.MakeIdentLabel(r, string(d), "")
@@ -391,8 +521,9 @@ func (s stringSelector) String() string {
 	return str
 }
 
-func (s stringSelector) optional() bool        { return false }
-func (s stringSelector) kind() adt.FeatureType { return adt.StringLabel }
+func (s stringSelector) optional() bool               { return false }
+func (s stringSelector) labelType() SelectorType      { return StringLabel }
+func (s stringSelector) constraintType() SelectorType { return 0 }
 
 func (s stringSelector) feature(r adt.Runtime) adt.Feature {
 	return adt.MakeStringLabel(r, string(s))
@@ -413,8 +544,10 @@ func (s indexSelector) String() string {
 	return strconv.Itoa(adt.Feature(s).Index())
 }
 
-func (s indexSelector) kind() adt.FeatureType { return adt.IntLabel }
-func (s indexSelector) optional() bool        { return false }
+func (s indexSelector) labelType() SelectorType      { return IndexLabel }
+func (s indexSelector) constraintType() SelectorType { return 0 }
+
+func (s indexSelector) optional() bool { return false }
 
 func (s indexSelector) feature(r adt.Runtime) adt.Feature {
 	return adt.Feature(s)
@@ -423,9 +556,16 @@ func (s indexSelector) feature(r adt.Runtime) adt.Feature {
 // an anySelector represents a wildcard option of a particular type.
 type anySelector adt.Feature
 
-func (s anySelector) String() string        { return "[_]" }
-func (s anySelector) optional() bool        { return true }
-func (s anySelector) kind() adt.FeatureType { return adt.Feature(s).Typ() }
+func (s anySelector) String() string { return "[_]" }
+func (s anySelector) optional() bool { return true }
+func (s anySelector) labelType() SelectorType {
+	// FeatureTypes are numbered sequentially. SelectorType is a bitmap. As they
+	// are defined in the same order, we can go from FeatureType to SelectorType
+	// by left shifting. As valid FeatureTypes starts at 1, we need to end with
+	// a final right shift.
+	return SelectorType((1 << adt.Feature(s).Typ()) >> 1)
+}
+func (s anySelector) constraintType() SelectorType { return PatternConstraint }
 
 func (s anySelector) feature(r adt.Runtime) adt.Feature {
 	return adt.Feature(s)
@@ -435,11 +575,20 @@ func (s anySelector) feature(r adt.Runtime) adt.Feature {
 //
 // // ImportPath defines a lookup at the root of an instance. It must be the first
 // // element of a Path.
-// func ImportPath(s string) Selector {
-// 	return importSelector(s)
-// }
+//
+//	func ImportPath(s string) Selector {
+//		return importSelector(s)
+//	}
 type optionalSelector struct {
 	selector
+}
+
+func (s optionalSelector) labelType() SelectorType {
+	return s.selector.labelType()
+}
+
+func (s optionalSelector) constraintType() SelectorType {
+	return OptionalConstraint
 }
 
 func wrapOptional(sel Selector) Selector {
@@ -479,9 +628,10 @@ type pathError struct {
 	errors.Error
 }
 
-func (p pathError) String() string        { return "" }
-func (p pathError) optional() bool        { return false }
-func (p pathError) kind() adt.FeatureType { return 0 }
+func (p pathError) String() string               { return "" }
+func (p pathError) optional() bool               { return false }
+func (p pathError) labelType() SelectorType      { return InvalidSelectorType }
+func (p pathError) constraintType() SelectorType { return 0 }
 func (p pathError) feature(r adt.Runtime) adt.Feature {
 	return adt.InvalidLabel
 }

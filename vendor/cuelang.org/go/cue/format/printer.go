@@ -173,6 +173,9 @@ func (p *printer) Print(v interface{}) {
 		p.lastTok = token.IDENT
 
 	case string:
+		// We can print a Go string as part of a CUE identifier or literal;
+		// for example, see the formatter.label method.
+		isLit = true
 		data = x
 		impliedComma = true
 		p.lastTok = token.STRING
@@ -194,12 +197,14 @@ func (p *printer) Print(v interface{}) {
 		return
 
 	case *ast.Attribute:
+		isLit = true
 		data = x.Text
 		impliedComma = true
 		p.lastTok = token.ATTRIBUTE
 
 	case *ast.Comment:
 		// TODO: if implied comma, postpone comment
+		isLit = true
 		data = x.Text
 		p.lastTok = token.COMMENT
 
@@ -339,7 +344,6 @@ func (f *formatter) matchUnindent() whiteSpace {
 // needed (i.e., when we don't know that s contains no tabs or line breaks)
 // avoids processing extra escape characters and reduces run time of the
 // printer benchmark by up to 10%.
-//
 func (p *printer) writeString(s string, isLit bool) {
 	if s != "" {
 		p.spaceBefore = false

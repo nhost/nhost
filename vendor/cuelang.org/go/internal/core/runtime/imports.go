@@ -65,12 +65,23 @@ type index struct {
 	importsByPath  map[string]*adt.Vertex
 	importsByBuild map[*build.Instance]*adt.Vertex
 
+	nextUniqueID uint64
+
 	// These are initialized during Go package initialization time and do not
 	// need to be guarded.
 	builtinPaths map[string]PackageFunc // Full path
 	builtinShort map[string]string      // Commandline shorthand
 
 	typeCache sync.Map // map[reflect.Type]evaluated
+}
+
+func (i *index) getNextUniqueID() uint64 {
+	// TODO: use atomic increment instead.
+	i.lock.Lock()
+	i.nextUniqueID++
+	x := i.nextUniqueID
+	i.lock.Unlock()
+	return x
 }
 
 func newIndex() *index {

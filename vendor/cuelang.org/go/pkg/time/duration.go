@@ -22,13 +22,14 @@ import (
 // to avoid confusion across daylight savings time zone transitions.
 //
 // To count the number of units in a Duration, divide:
+//
 //	second := time.Second
 //	fmt.Print(int64(second/time.Millisecond)) // prints 1000
 //
 // To convert an integer number of units to a Duration, multiply:
+//
 //	seconds := 10
 //	fmt.Print(time.Duration(seconds)*time.Second) // prints 10s
-//
 const (
 	Nanosecond  = 1
 	Microsecond = 1000

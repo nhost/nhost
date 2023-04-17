@@ -49,6 +49,20 @@ var MakeInstance func(value interface{}) (instance interface{})
 // BaseContext is used as CUEs default context for arbitrary-precision decimals
 var BaseContext = apd.BaseContext.WithPrecision(24)
 
+// APIVersionSupported is the back version until which deprecated features
+// are still supported.
+var APIVersionSupported = Version(MinorSupported, PatchSupported)
+
+const (
+	MinorCurrent   = 5
+	MinorSupported = 4
+	PatchSupported = 0
+)
+
+func Version(minor, patch int) int {
+	return -1000 + 100*minor + patch
+}
+
 // ListEllipsis reports the list type and remaining elements of a list. If we
 // ever relax the usage of ellipsis, this function will likely change. Using
 // this function will ensure keeping correct behavior or causing a compiler

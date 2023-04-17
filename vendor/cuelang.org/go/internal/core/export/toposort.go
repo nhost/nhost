@@ -25,7 +25,7 @@ import (
 
 // VertexFeatures returns the feature list of v. The list may include more
 // features than for which there are arcs and also includes features for
-// optional fields. It assumes the Structs fields is properly initialized.
+// optional fields. It assumes the Structs fields are initialized and evaluated.
 func VertexFeatures(c *adt.OpContext, v *adt.Vertex) []adt.Feature {
 	sets := extractFeatures(v.Structs)
 	m := sortArcs(sets) // TODO: use for convenience.

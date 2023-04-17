@@ -57,9 +57,14 @@ type Profile struct {
 	// Use unevaluated conjuncts for these error types
 	// IgnoreRecursive
 
-	// TODO: recurse over entire tree to determine transitive closure
-	// of what needs to be printed.
-	// IncludeDependencies bool
+	// SelfContained exports a schema such that it does not rely on any imports.
+	SelfContained bool
+
+	// AddPackage causes a package clause to be added.
+	AddPackage bool
+
+	// InlineImports expands references to non-builtin packages.
+	InlineImports bool
 }
 
 var Simplified = &Profile{
@@ -78,6 +83,7 @@ var Raw = &Profile{
 	ShowDefinitions: true,
 	ShowHidden:      true,
 	ShowDocs:        true,
+	AddPackage:      true,
 }
 
 var All = &Profile{
@@ -87,26 +93,29 @@ var All = &Profile{
 	ShowHidden:      true,
 	ShowDocs:        true,
 	ShowAttributes:  true,
+	AddPackage:      true,
 }
 
 // Concrete
 
 // Def exports v as a definition.
+// It resolves references that point outside any of the vertices in v.
 func Def(r adt.Runtime, pkgID string, v *adt.Vertex) (*ast.File, errors.Error) {
 	return All.Def(r, pkgID, v)
 }
 
 // Def exports v as a definition.
-func (p *Profile) Def(r adt.Runtime, pkgID string, v *adt.Vertex) (*ast.File, errors.Error) {
+// It resolves references that point outside any of the vertices in v.
+func (p *Profile) Def(r adt.Runtime, pkgID string, v *adt.Vertex) (f *ast.File, err errors.Error) {
 	e := newExporter(p, r, pkgID, v)
-	e.markUsedFeatures(v)
+	e.initPivot(v)
 
 	isDef := v.IsRecursivelyClosed()
 	if isDef {
 		e.inDefinition++
 	}
 
-	expr := e.expr(v)
+	expr := e.expr(nil, v)
 
 	if isDef {
 		e.inDefinition--
@@ -117,45 +126,51 @@ func (p *Profile) Def(r adt.Runtime, pkgID string, v *adt.Vertex) (*ast.File, er
 			)
 		}
 	}
-	return e.toFile(v, expr)
+
+	return e.finalize(v, expr)
 }
 
+// Expr exports the given unevaluated expression (schema mode).
+// It does not resolve references that point outside the given expession.
 func Expr(r adt.Runtime, pkgID string, n adt.Expr) (ast.Expr, errors.Error) {
 	return Simplified.Expr(r, pkgID, n)
 }
 
+// Expr exports the given unevaluated expression (schema mode).
+// It does not resolve references that point outside the given expression.
 func (p *Profile) Expr(r adt.Runtime, pkgID string, n adt.Expr) (ast.Expr, errors.Error) {
 	e := newExporter(p, r, pkgID, nil)
-	e.markUsedFeatures(n)
 
-	return e.expr(n), nil
+	return e.expr(nil, n), nil
 }
 
-func (e *exporter) toFile(v *adt.Vertex, x ast.Expr) (*ast.File, errors.Error) {
+func (e *exporter) toFile(v *adt.Vertex, x ast.Expr) *ast.File {
 	f := &ast.File{}
 
-	pkgName := ""
-	pkg := &ast.Package{}
-	for _, c := range v.Conjuncts {
-		f, _ := c.Source().(*ast.File)
-		if f == nil {
-			continue
-		}
+	if e.cfg.AddPackage {
+		pkgName := ""
+		pkg := &ast.Package{}
+		for _, c := range v.Conjuncts {
+			f, _ := c.Source().(*ast.File)
+			if f == nil {
+				continue
+			}
 
-		if _, name, _ := internal.PackageInfo(f); name != "" {
-			pkgName = name
-		}
+			if _, name, _ := internal.PackageInfo(f); name != "" {
+				pkgName = name
+			}
 
-		if e.cfg.ShowDocs {
-			if doc := internal.FileComment(f); doc != nil {
-				ast.AddComment(pkg, doc)
+			if e.cfg.ShowDocs {
+				if doc := internal.FileComment(f); doc != nil {
+					ast.AddComment(pkg, doc)
+				}
 			}
 		}
-	}
 
-	if pkgName != "" {
-		pkg.Name = ast.NewIdent(pkgName)
-		f.Decls = append(f.Decls, pkg)
+		if pkgName != "" {
+			pkg.Name = ast.NewIdent(pkgName)
+			f.Decls = append(f.Decls, pkg)
+		}
 	}
 
 	switch st := x.(type) {
@@ -168,46 +183,39 @@ func (e *exporter) toFile(v *adt.Vertex, x ast.Expr) (*ast.File, errors.Error) {
 	default:
 		f.Decls = append(f.Decls, &ast.EmbedDecl{Expr: x})
 	}
-	if err := astutil.Sanitize(f); err != nil {
-		err := errors.Promote(err, "export")
-		return f, errors.Append(e.errs, err)
-	}
 
-	return f, nil
+	return f
 }
 
-// File
-
+// Vertex exports evaluated values (data mode).
+// It resolves incomplete references that point outside the current context.
 func Vertex(r adt.Runtime, pkgID string, n *adt.Vertex) (*ast.File, errors.Error) {
 	return Simplified.Vertex(r, pkgID, n)
 }
 
-func (p *Profile) Vertex(r adt.Runtime, pkgID string, n *adt.Vertex) (*ast.File, errors.Error) {
-	e := exporter{
-		ctx:   eval.NewContext(r, nil),
-		cfg:   p,
-		index: r,
-		pkgID: pkgID,
-	}
-	e.markUsedFeatures(n)
-	v := e.value(n, n.Conjuncts...)
+// Vertex exports evaluated values (data mode).
+// It resolves incomplete references that point outside the current context.
+func (p *Profile) Vertex(r adt.Runtime, pkgID string, n *adt.Vertex) (f *ast.File, err errors.Error) {
+	e := newExporter(p, r, pkgID, n)
+	e.initPivot(n)
 
-	return e.toFile(n, v)
+	v := e.value(n, n.Conjuncts...)
+	return e.finalize(n, v)
 }
 
+// Value exports evaluated values (data mode).
+// It does not resolve references that point outside the given Value.
 func Value(r adt.Runtime, pkgID string, n adt.Value) (ast.Expr, errors.Error) {
 	return Simplified.Value(r, pkgID, n)
 }
 
-// Should take context.
+// Value exports evaluated values (data mode).
+//
+// It does not resolve references that point outside the given Value.
+//
+// TODO: Should take context.
 func (p *Profile) Value(r adt.Runtime, pkgID string, n adt.Value) (ast.Expr, errors.Error) {
-	e := exporter{
-		ctx:   eval.NewContext(r, nil),
-		cfg:   p,
-		index: r,
-		pkgID: pkgID,
-	}
-	e.markUsedFeatures(n)
+	e := newExporter(p, r, pkgID, n)
 	v := e.value(n)
 	return v, e.errs
 }
@@ -225,10 +233,13 @@ type exporter struct {
 	stack []frame
 
 	inDefinition int // for close() wrapping.
+	inExpression int // for inlining decisions.
 
 	// hidden label handling
-	pkgID  string
-	hidden map[string]adt.Feature // adt.InvalidFeatures means more than one.
+	pkgID string
+	// pkgHash is used when mangling hidden identifiers of packages that are
+	// inlined.
+	pkgHash map[string]string
 
 	// If a used feature maps to an expression, it means it is assigned to a
 	// unique let expression.
@@ -238,15 +249,50 @@ type exporter struct {
 	letAlias    map[*ast.LetClause]*ast.LetClause
 
 	usedHidden map[string]bool
+
+	pivotter *pivotter
 }
 
-func newExporter(p *Profile, r adt.Runtime, pkgID string, v *adt.Vertex) *exporter {
-	return &exporter{
+// newExporter creates and initializes an exporter.
+func newExporter(p *Profile, r adt.Runtime, pkgID string, v adt.Value) *exporter {
+	n, _ := v.(*adt.Vertex)
+	e := &exporter{
 		cfg:   p,
-		ctx:   eval.NewContext(r, v),
+		ctx:   eval.NewContext(r, n),
 		index: r,
 		pkgID: pkgID,
 	}
+
+	e.markUsedFeatures(v)
+
+	return e
+}
+
+// initPivot initializes the pivotter to allow aligning a configuration around
+// a new root, if needed.
+func (e *exporter) initPivot(n *adt.Vertex) {
+	if !e.cfg.InlineImports &&
+		!e.cfg.SelfContained &&
+		n.Parent == nil {
+		return
+	}
+
+	e.initPivotter(n)
+}
+
+// finalize finalizes the result of an export. It is only needed for use cases
+// that require conversion to a File, Sanitization, and self containment.
+func (e *exporter) finalize(n *adt.Vertex, v ast.Expr) (f *ast.File, err errors.Error) {
+	f = e.toFile(n, v)
+
+	e.completePivot(f)
+
+	if err := astutil.Sanitize(f); err != nil {
+		err := errors.Promote(err, "export")
+		return f, errors.Append(e.errs, err)
+	}
+
+	return f, nil
 }
 
 func (e *exporter) markUsedFeatures(x adt.Expr) {
@@ -305,10 +351,14 @@ func (e *exporter) getFieldAlias(f *ast.Field, name string) string {
 
 func setFieldAlias(f *ast.Field, name string) {
 	if _, ok := f.Label.(*ast.Alias); !ok {
+		x := f.Label.(ast.Expr)
 		f.Label = &ast.Alias{
 			Ident: ast.NewIdent(name),
-			Expr:  f.Label.(ast.Expr),
+			Expr:  x,
 		}
+		ast.SetComments(f.Label, ast.Comments(x))
+		ast.SetComments(x, nil)
+		// TODO: move position information.
 	}
 }
 
@@ -373,19 +423,31 @@ func filterUnusedLets(s *ast.StructLit) {
 
 // resolveLet actually parses the let expression.
 // If there was no recorded let expression, it expands the expression in place.
-func (e *exporter) resolveLet(x *adt.LetReference) ast.Expr {
+func (e *exporter) resolveLet(env *adt.Environment, x *adt.LetReference) ast.Expr {
 	letClause, _ := x.Src.Node.(*ast.LetClause)
 	let := e.letAlias[letClause]
 
 	switch {
 	case let == nil:
-		return e.expr(x.X)
+		ref, _ := e.ctx.Lookup(env, x)
+		if ref == nil {
+			// This can happen if x.X does not resolve to a valid value. At this
+			// point we will not get a valid configuration.
+
+			// TODO: get rid of the use of x.X.
+			// str := x.Label.IdentString(e.ctx)
+			// ident := ast.NewIdent(str)
+			// return ident
+
+			return e.expr(env, x.X)
+		}
+		return e.expr(env, ref.Conjuncts[0].Expr())
 
 	case let.Expr == nil:
 		label := e.uniqueLetIdent(x.Label, x.X)
 
 		let.Ident = e.ident(label)
-		let.Expr = e.expr(x.X)
+		let.Expr = e.expr(env, x.X)
 	}
 
 	ident := ast.NewIdent(let.Ident.Name)
@@ -416,6 +478,29 @@ func (e *exporter) uniqueAlias(name string) string {
 	return name
 }
 
+// A featureSet implements a set of Features. It only supports testing
+// whether a given string is available as a Feature.
+type featureSet interface {
+	// intn returns a pseudo-random integer in [0..n).
+	intn(n int) int
+
+	// makeFeature converts s to f if it is available.
+	makeFeature(s string) (f adt.Feature, ok bool)
+}
+
+func (e *exporter) intn(n int) int {
+	return e.rand.Intn(n)
+}
+
+func (e *exporter) makeFeature(s string) (f adt.Feature, ok bool) {
+	f = adt.MakeIdentLabel(e.ctx, s, "")
+	_, exists := e.usedFeature[f]
+	if !exists {
+		e.usedFeature[f] = nil
+	}
+	return f, !exists
+}
+
 // uniqueFeature returns a name for an identifier that uniquely identifies
 // the given expression. If the preferred name is already taken, a new globally
 // unique name of the form base_X ... base_XXXXXXXXXXXXXX is generated.
@@ -423,18 +508,22 @@ func (e *exporter) uniqueAlias(name string) string {
 // It prefers short extensions over large ones, while ensuring the likelihood of
 // fast termination is high. There are at least two digits to make it visually
 // clearer this concerns a generated number.
-//
 func (e *exporter) uniqueFeature(base string) (f adt.Feature, name string) {
 	if e.rand == nil {
 		e.rand = rand.New(rand.NewSource(808))
+	}
+	return findUnique(e, base)
+}
+
+func findUnique(set featureSet, base string) (f adt.Feature, name string) {
+	if f, ok := set.makeFeature(base); ok {
+		return f, base
 	}
 
 	// Try the first few numbers in sequence.
 	for i := 1; i < 5; i++ {
 		name := fmt.Sprintf("%s_%01X", base, i)
-		f := adt.MakeIdentLabel(e.ctx, name, "")
-		if _, ok := e.usedFeature[f]; !ok {
-			e.usedFeature[f] = nil
+		if f, ok := set.makeFeature(name); ok {
 			return f, name
 		}
 	}
@@ -443,11 +532,9 @@ func (e *exporter) uniqueFeature(base string) (f adt.Feature, name string) {
 	const shift = 4                  // rate of growth
 	digits := 1
 	for n := int64(0x10); ; n = int64(mask&((n<<shift)-1)) + 1 {
-		num := e.rand.Intn(int(n)-1) + 1
+		num := set.intn(int(n)-1) + 1
 		name := fmt.Sprintf("%[1]s_%0[2]*[3]X", base, digits, num)
-		f := adt.MakeIdentLabel(e.ctx, name, "")
-		if _, ok := e.usedFeature[f]; !ok {
-			e.usedFeature[f] = nil
+		if f, ok := set.makeFeature(name); ok {
 			return f, name
 		}
 		digits++
@@ -455,14 +542,20 @@ func (e *exporter) uniqueFeature(base string) (f adt.Feature, name string) {
 }
 
 type frame struct {
+	node *adt.Vertex
+
 	scope *ast.StructLit
 
 	docSources []adt.Conjunct
 
-	// For resolving dynamic fields.
+	// For resolving pattern constraints  fields labels
 	field     *ast.Field
 	labelExpr ast.Expr
-	upCount   int32 // for off-by-one handling
+
+	dynamicFields []*entry
+
+	// for off-by-one handling
+	upCount int32
 
 	// labeled fields
 	fields map[adt.Feature]entry
@@ -491,10 +584,11 @@ func (e *exporter) addEmbed(x ast.Expr) {
 	frame.scope.Elts = append(frame.scope.Elts, x)
 }
 
-func (e *exporter) pushFrame(conjuncts []adt.Conjunct) (s *ast.StructLit, saved []frame) {
+func (e *exporter) pushFrame(src *adt.Vertex, conjuncts []adt.Conjunct) (s *ast.StructLit, saved []frame) {
 	saved = e.stack
 	s = &ast.StructLit{}
 	e.stack = append(e.stack, frame{
+		node:       src,
 		scope:      s,
 		mapped:     map[adt.Node]ast.Node{},
 		fields:     map[adt.Feature]entry{},
@@ -522,6 +616,17 @@ func (e *exporter) popFrame(saved []frame) {
 
 func (e *exporter) top() *frame {
 	return &(e.stack[len(e.stack)-1])
+}
+
+func (e *exporter) node() *adt.Vertex {
+	if len(e.stack) == 0 {
+		return empty
+	}
+	n := e.stack[len(e.stack)-1].node
+	if n == nil {
+		return empty
+	}
+	return n
 }
 
 func (e *exporter) frame(upCount int32) *frame {

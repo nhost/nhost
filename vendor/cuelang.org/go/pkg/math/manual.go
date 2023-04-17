@@ -43,6 +43,7 @@ func toInt(d *internal.Decimal) *big.Int {
 // Floor returns the greatest integer value less than or equal to x.
 //
 // Special cases are:
+//
 //	Floor(±0) = ±0
 //	Floor(±Inf) = ±Inf
 //	Floor(NaN) = NaN
@@ -56,6 +57,7 @@ func Floor(x *internal.Decimal) (*big.Int, error) {
 // Ceil returns the least integer value greater than or equal to x.
 //
 // Special cases are:
+//
 //	Ceil(±0) = ±0
 //	Ceil(±Inf) = ±Inf
 //	Ceil(NaN) = NaN
@@ -71,6 +73,7 @@ var roundTruncContext = roundContext(apd.RoundDown)
 // Trunc returns the integer value of x.
 //
 // Special cases are:
+//
 //	Trunc(±0) = ±0
 //	Trunc(±Inf) = ±Inf
 //	Trunc(NaN) = NaN
@@ -85,6 +88,7 @@ var roundUpContext = roundContext(apd.RoundHalfUp)
 // Round returns the nearest integer, rounding half away from zero.
 //
 // Special cases are:
+//
 //	Round(±0) = ±0
 //	Round(±Inf) = ±Inf
 //	Round(NaN) = NaN
@@ -99,6 +103,7 @@ var roundEvenContext = roundContext(apd.RoundHalfEven)
 // RoundToEven returns the nearest integer, rounding ties to even.
 //
 // Special cases are:
+//
 //	RoundToEven(±0) = ±0
 //	RoundToEven(±Inf) = ±Inf
 //	RoundToEven(NaN) = NaN

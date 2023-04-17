@@ -262,7 +262,6 @@ type decoder struct {
 	p            *parser
 	doc          *node
 	aliases      map[*node]bool
-	mapType      reflect.Type
 	terrors      []string
 	prev         token.Pos
 	lastNode     ast.Node
@@ -270,7 +269,6 @@ type decoder struct {
 }
 
 var (
-	mapItemType    = reflect.TypeOf(MapItem{})
 	durationType   = reflect.TypeOf(time.Duration(0))
 	defaultMapType = reflect.TypeOf(map[interface{}]interface{}{})
 	timeType       = reflect.TypeOf(time.Time{})
@@ -278,7 +276,7 @@ var (
 )
 
 func newDecoder(p *parser) *decoder {
-	d := &decoder{p: p, mapType: defaultMapType}
+	d := &decoder{p: p}
 	d.aliases = make(map[*node]bool)
 	return d
 }
@@ -523,19 +521,8 @@ func (d *decoder) scalar(n *node) ast.Expr {
 			Value:    "null",
 		}
 	}
-	err := &ast.BottomLit{
-		Bottom: d.pos(n.startPos),
-	}
-	comment := &ast.Comment{
-		Slash: d.start(n),
-		Text:  "// " + d.terror(n, tag),
-	}
-	err.AddComment(&ast.CommentGroup{
-		Line:     true,
-		Position: 1,
-		List:     []*ast.Comment{comment},
-	})
-	return err
+	d.terror(n, tag)
+	return &ast.BottomLit{}
 }
 
 func (d *decoder) label(n *node) ast.Label {

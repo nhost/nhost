@@ -27,7 +27,6 @@ import (
 // Read converts src to a []byte if possible; otherwise it returns an
 // error. If src == nil, readSource returns the result of reading the file
 // specified by filename.
-//
 func Read(filename string, src interface{}) ([]byte, error) {
 	if src != nil {
 		switch s := src.(type) {

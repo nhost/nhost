@@ -2,8 +2,7 @@
 //
 // Source code and other details for the project are available at GitHub:
 //
-//   https://github.com/go-yaml/yaml
-//
+//	https://github.com/go-yaml/yaml
 package yaml // import "cuelang.org/go/internal/third_party/yaml"
 
 import (
@@ -18,73 +17,13 @@ import (
 	"cuelang.org/go/cue/ast"
 )
 
-// MapSlice encodes and decodes as a YAML map.
-// The order of keys is preserved when encoding and decoding.
-type MapSlice []MapItem
-
-// MapItem is an item in a MapSlice.
-type MapItem struct {
-	Key, Value interface{}
-}
-
-// The Unmarshaler interface may be implemented by types to customize their
-// behavior when being unmarshaled from a YAML document. The UnmarshalYAML
-// method receives a function that may be called to unmarshal the original
-// YAML value into a field or variable. It is safe to call the unmarshal
-// function parameter more than once if necessary.
-type Unmarshaler interface {
-	UnmarshalYAML(unmarshal func(interface{}) error) error
-}
-
-// The Marshaler interface may be implemented by types to customize their
-// behavior when being marshaled into a YAML document. The returned value
-// is marshaled in place of the original value implementing Marshaler.
-//
-// If an error is returned by MarshalYAML, the marshaling procedure stops
-// and returns with the provided error.
-type Marshaler interface {
-	MarshalYAML() (interface{}, error)
-}
-
 // Unmarshal decodes the first document found within the in byte slice
-// and assigns decoded values into the out value.
-//
-// Maps and pointers (to a struct, string, int, etc) are accepted as out
-// values. If an internal pointer within a struct is not initialized,
-// the yaml package will initialize it if necessary for unmarshalling
-// the provided data. The out parameter must not be nil.
-//
-// The type of the decoded values should be compatible with the respective
-// values in out. If one or more values cannot be decoded due to a type
-// mismatches, decoding continues partially until the end of the YAML
-// content, and a *yaml.TypeError is returned with details for all
-// missed values.
-//
-// Struct fields are only unmarshalled if they are exported (have an
-// upper case first letter), and are unmarshalled using the field name
-// lowercased as the default key. Custom keys may be defined via the
-// "yaml" name in the field tag: the content preceding the first comma
-// is used as the key, and the following comma-separated options are
-// used to tweak the marshalling process (see Marshal).
-// Conflicting names result in a runtime error.
-//
-// For example:
-//
-//     type T struct {
-//         F int `yaml:"a,omitempty"`
-//         B int
-//     }
-//     var t T
-//     yaml.Unmarshal([]byte("a: 1\nb: 2"), &t)
-//
-// See the documentation of Marshal for the format of tags and a list of
-// supported tag options.
-//
+// and returns it as a CUE syntax AST.
 func Unmarshal(filename string, in []byte) (expr ast.Expr, err error) {
 	return unmarshal(filename, in)
 }
 
-// A Decorder reads and decodes YAML values from an input stream.
+// A Decoder reads and decodes YAML values from an input stream.
 type Decoder struct {
 	strict    bool
 	firstDone bool
@@ -103,12 +42,9 @@ func NewDecoder(filename string, src interface{}) (*Decoder, error) {
 	return &Decoder{parser: d}, nil
 }
 
-// Decode reads the next YAML-encoded value from its input and stores it in the
-// value pointed to by v. It returns io.EOF if there are no more value in the
+// Decode reads the next YAML-encoded value from its input and returns
+// it as CUE syntax. It returns io.EOF if there are no more value in the
 // stream.
-//
-// See the documentation for Unmarshal for details about the conversion of YAML
-// into a Go value.
 func (dec *Decoder) Decode() (expr ast.Expr, err error) {
 	d := newDecoder(dec.parser)
 	defer handleErr(&err)
@@ -318,52 +254,4 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 	structMap[st] = sinfo
 	fieldMapMutex.Unlock()
 	return sinfo, nil
-}
-
-// IsZeroer is used to check whether an object is zero to
-// determine whether it should be omitted when marshaling
-// with the omitempty flag. One notable implementation
-// is time.Time.
-type IsZeroer interface {
-	IsZero() bool
-}
-
-func isZero(v reflect.Value) bool {
-	kind := v.Kind()
-	if z, ok := v.Interface().(IsZeroer); ok {
-		if (kind == reflect.Ptr || kind == reflect.Interface) && v.IsNil() {
-			return true
-		}
-		return z.IsZero()
-	}
-	switch kind {
-	case reflect.String:
-		return len(v.String()) == 0
-	case reflect.Interface, reflect.Ptr:
-		return v.IsNil()
-	case reflect.Slice:
-		return v.Len() == 0
-	case reflect.Map:
-		return v.Len() == 0
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() == 0
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.Struct:
-		vt := v.Type()
-		for i := v.NumField() - 1; i >= 0; i-- {
-			if vt.Field(i).PkgPath != "" {
-				continue // Private field
-			}
-			if !isZero(v.Field(i)) {
-				return false
-			}
-		}
-		return true
-	}
-	return false
 }

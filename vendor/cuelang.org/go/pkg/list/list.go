@@ -20,6 +20,10 @@ import (
 	"sort"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/errors"
+	"cuelang.org/go/cue/token"
+	"cuelang.org/go/internal/core/adt"
+	"cuelang.org/go/pkg/internal"
 )
 
 // Drop reports the suffix of list x after the first n elements,
@@ -27,12 +31,11 @@ import (
 //
 // For instance:
 //
-//    Drop([1, 2, 3, 4], 2)
+//	Drop([1, 2, 3, 4], 2)
 //
 // results in
 //
-//    [3, 4]
-//
+//	[3, 4]
 func Drop(x []cue.Value, n int) ([]cue.Value, error) {
 	if n < 0 {
 		return nil, fmt.Errorf("negative index")
@@ -50,7 +53,7 @@ func Drop(x []cue.Value, n int) ([]cue.Value, error) {
 //       extensions are introduced, which may provide flatten functionality
 //       natively.
 //
-// // Flatten reports a flattend sequence of the list xs by expanding any elements
+// // Flatten reports a flattened sequence of the list xs by expanding any elements
 // // that are lists.
 // //
 // // For instance:
@@ -86,17 +89,16 @@ func Drop(x []cue.Value, n int) ([]cue.Value, error) {
 // 	return flatten(xs)
 // }
 
-// FlattenN reports a flattend sequence of the list xs by expanding any elements
+// FlattenN reports a flattened sequence of the list xs by expanding any elements
 // depth levels deep. If depth is negative all elements are expanded.
 //
 // For instance:
 //
-//    FlattenN([1, [[2, 3], []], [4]], 1)
+//	FlattenN([1, [[2, 3], []], [4]], 1)
 //
 // results in
 //
-//    [1, [2, 3], [], 4]
-//
+//	[1, [2, 3], [], 4]
 func FlattenN(xs cue.Value, depth int) ([]cue.Value, error) {
 	var flattenN func(cue.Value, int) ([]cue.Value, error)
 	flattenN = func(xs cue.Value, depth int) ([]cue.Value, error) {
@@ -127,12 +129,11 @@ func FlattenN(xs cue.Value, depth int) ([]cue.Value, error) {
 //
 // For instance:
 //
-//    Repeat([1, 2], 2)
+//	Repeat([1, 2], 2)
 //
 // results in
 //
-//    [1, 2, 1, 2]
-//
+//	[1, 2, 1, 2]
 func Repeat(x []cue.Value, count int) ([]cue.Value, error) {
 	if count < 0 {
 		return nil, fmt.Errorf("negative count")
@@ -148,8 +149,7 @@ func Repeat(x []cue.Value, count int) ([]cue.Value, error) {
 //
 // Concat([a, b, c]) is equivalent to
 //
-//     [ for x in a {x}, for x in b {x}, for x in c {x} ]
-//
+//	[ for x in a {x}, for x in b {x}, for x in c {x} ]
 func Concat(a []cue.Value) ([]cue.Value, error) {
 	var res []cue.Value
 	for _, e := range a {
@@ -168,12 +168,11 @@ func Concat(a []cue.Value) ([]cue.Value, error) {
 //
 // For instance:
 //
-//    Take([1, 2, 3, 4], 2)
+//	Take([1, 2, 3, 4], 2)
 //
 // results in
 //
-//    [1, 2]
-//
+//	[1, 2]
 func Take(x []cue.Value, n int) ([]cue.Value, error) {
 	if n < 0 {
 		return nil, fmt.Errorf("negative index")
@@ -191,12 +190,11 @@ func Take(x []cue.Value, n int) ([]cue.Value, error) {
 //
 // For instance:
 //
-//    Slice([1, 2, 3, 4], 1, 3)
+//	Slice([1, 2, 3, 4], 1, 3)
 //
 // results in
 //
-//    [2, 3]
-//
+//	[2, 3]
 func Slice(x []cue.Value, i, j int) ([]cue.Value, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("negative index")
@@ -218,13 +216,32 @@ func Slice(x []cue.Value, i, j int) ([]cue.Value, error) {
 }
 
 // MinItems reports whether a has at least n items.
-func MinItems(a []cue.Value, n int) bool {
-	return len(a) >= n
+func MinItems(list internal.List, n int) (bool, error) {
+	count := len(list.Elems())
+	if count >= n {
+		return true, nil
+	}
+	code := adt.EvalError
+	if list.IsOpen() {
+		code = adt.IncompleteError
+	}
+	return false, internal.ValidationError{B: &adt.Bottom{
+		Code: code,
+		Err:  errors.Newf(token.NoPos, "len(list) < MinItems(%[2]d) (%[1]d < %[2]d)", count, n),
+	}}
 }
 
 // MaxItems reports whether a has at most n items.
-func MaxItems(a []cue.Value, n int) bool {
-	return len(a) <= n
+func MaxItems(list internal.List, n int) (bool, error) {
+	count := len(list.Elems())
+	if count > n {
+		return false, internal.ValidationError{B: &adt.Bottom{
+			Code: adt.EvalError,
+			Err:  errors.Newf(token.NoPos, "len(list) > MaxItems(%[2]d) (%[1]d > %[2]d)", count, n),
+		}}
+	}
+
+	return true, nil
 }
 
 // UniqueItems reports whether all elements in the list are unique.

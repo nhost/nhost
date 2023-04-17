@@ -21,7 +21,7 @@ import (
 	"cuelang.org/go/internal/core/adt"
 )
 
-type bottomer interface {
+type Bottomer interface {
 	error
 	Bottom() *adt.Bottom
 }
@@ -39,7 +39,7 @@ func (c *CallCtxt) errf(underlying error, format string, args ...interface{}) {
 	var code adt.ErrorCode
 	switch x := underlying.(type) {
 	case nil:
-	case bottomer:
+	case Bottomer:
 		b := x.Bottom()
 		errs = b.Err
 		code = b.Code
@@ -61,15 +61,14 @@ func (c *CallCtxt) errcf(code adt.ErrorCode, format string, args ...interface{})
 func wrapCallErr(c *CallCtxt, b *adt.Bottom) *adt.Bottom {
 	var err errors.Error
 	for _, e := range errors.Errors(b.Err) {
-		const msg = "error in call to %s"
-		err = errors.Append(err,
-			errors.Wrapf(e, c.Pos(), msg, c.builtin.name(c.ctx)))
+		ne := c.ctx.Newf("error in call to %s", c.builtin.name(c.ctx))
+		err = errors.Append(err, errors.Wrap(ne, e))
 	}
 	return &adt.Bottom{Code: b.Code, Err: err}
 }
 
 func (c *CallCtxt) invalidArgType(arg adt.Value, i int, typ string, err error) {
-	if ve, ok := err.(bottomer); ok && ve.Bottom().IsIncomplete() {
+	if ve, ok := err.(Bottomer); ok && ve.Bottom().IsIncomplete() {
 		c.Err = ve
 		return
 	}
@@ -77,21 +76,15 @@ func (c *CallCtxt) invalidArgType(arg adt.Value, i int, typ string, err error) {
 		c.Err = b
 		return
 	}
-	v, ok := arg.(adt.Value)
 	// TODO: make these permanent errors if the value did not originate from
 	// a reference.
-	if !ok {
-		c.errf(nil,
-			"cannot use incomplete value %s as %s in argument %d to %s",
-			arg, typ, i, c.Name())
-	}
 	if err != nil {
 		c.errf(err,
 			"cannot use %s (type %s) as %s in argument %d to %s",
-			arg, v.Kind(), typ, i, c.Name())
+			arg, arg.Kind(), typ, i, c.Name())
 	} else {
 		c.errf(err,
 			"cannot use %s (type %s) as %s in argument %d to %s",
-			arg, v.Kind(), typ, i, c.Name())
+			arg, arg.Kind(), typ, i, c.Name())
 	}
 }

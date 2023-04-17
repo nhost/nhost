@@ -182,15 +182,17 @@ func BinOp(c *OpContext, op Op, left, right Value) Value {
 
 			x := MakeIdentLabel(c, "x", "")
 
+			// for x in expr { x }
 			forClause := func(src Expr) *Comprehension {
 				s := &StructLit{Decls: []Decl{
 					&FieldReference{UpCount: 1, Label: x},
 				}}
 				return &Comprehension{
-					Clauses: &ForClause{
-						Value: x,
-						Src:   src,
-						Dst:   &ValueClause{s},
+					Clauses: []Yielder{
+						&ForClause{
+							Value: x,
+							Src:   src,
+						},
 					},
 					Value: s,
 				}
@@ -204,8 +206,8 @@ func BinOp(c *OpContext, op Op, left, right Value) Value {
 			}
 
 			n := &Vertex{}
-			n.AddConjunct(MakeRootConjunct(c.Env(0), list))
-			n.Finalize(c)
+			n.AddConjunct(MakeConjunct(c.Env(0), list, c.ci))
+			c.Unify(n, Conjuncts)
 
 			return n
 		}
@@ -251,10 +253,11 @@ func BinOp(c *OpContext, op Op, left, right Value) Value {
 				}}
 				list.Elems = append(list.Elems,
 					&Comprehension{
-						Clauses: &ForClause{
-							Value: x,
-							Src:   right,
-							Dst:   &ValueClause{st},
+						Clauses: []Yielder{
+							&ForClause{
+								Value: x,
+								Src:   right,
+							},
 						},
 						Value: st,
 					},
@@ -265,8 +268,8 @@ func BinOp(c *OpContext, op Op, left, right Value) Value {
 			}
 
 			n := &Vertex{}
-			n.AddConjunct(MakeRootConjunct(c.Env(0), list))
-			n.Finalize(c)
+			n.AddConjunct(MakeConjunct(c.Env(0), list, c.ci))
+			c.Unify(n, Conjuncts)
 
 			return n
 		}

@@ -18,9 +18,9 @@
 // Some of the functions in this package are specifically intended as field
 // constraints. For instance, MaxRunes as used in this CUE program
 //
-//    import "strings"
+//	import "strings"
 //
-//    myString: strings.MaxRunes(5)
+//	myString: strings.MaxRunes(5)
 //
 // specifies that the myString should be at most 5 code points.
 package strings

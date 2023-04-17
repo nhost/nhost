@@ -25,10 +25,14 @@ import (
 
 // These are predefined layouts for use in Time.Format and time.Parse.
 // The reference time used in the layouts is the specific time:
+//
 //	Mon Jan 2 15:04:05 MST 2006
+//
 // which is Unix time 1136239445. Since MST is GMT-0700,
 // the reference time can be thought of as
+//
 //	01/02 03:04:05PM '06 -0700
+//
 // To define your own format, write down what the reference time would look
 // like formatted your way; see the values of constants like ANSIC,
 // StampMicro or Kitchen for examples. The model is to demonstrate what the
@@ -52,12 +56,15 @@ import (
 // series of digits is parsed as a fractional second.
 //
 // Numeric time zone offsets format as follows:
+//
 //	-0700  ±hhmm
 //	-07:00 ±hh:mm
 //	-07    ±hh
+//
 // Replacing the sign in the format with a Z triggers
 // the ISO 8601 behavior of printing Z instead of an
 // offset for the UTC zone. Thus:
+//
 //	Z0700  Z or ±hhmm
 //	Z07:00 Z or ±hh:mm
 //	Z07    Z or ±hh
@@ -163,7 +170,9 @@ func FormatString(layout, value string) (string, error) {
 // Parse parses a formatted string and returns the time value it represents.
 // The layout defines the format by showing how the reference time,
 // defined to be
+//
 //	Mon Jan 2 15:04:05 -0700 MST 2006
+//
 // would be interpreted if it were the value; it serves as an example of
 // the input format. The same interpretation will then be made to the
 // input string.

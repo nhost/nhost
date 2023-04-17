@@ -105,6 +105,17 @@ type compiler struct {
 	stack      []frame
 	inSelector int
 
+	// refersToForVariable tracks whether an expression refers to a key or
+	// value produced by a for comprehension embedded within a struct.
+	// An Environment associated with such a comprehension value is collapsed
+	// onto the destination.
+	// Tracking this is necessary for let fields, which should not be unified
+	// into the destination when referring to such values.
+	// See https://cuelang.org/issue/2218.
+	// TODO(perf): use this to compute when a field can be structure shared
+	// across different iterations of the same field.
+	refersToForVariable bool
+
 	fileScope map[adt.Feature]bool
 
 	num literal.NumInfo
@@ -141,9 +152,13 @@ func (c *compiler) path() []string {
 type frame struct {
 	label labeler  // path name leading to this frame.
 	scope ast.Node // *ast.File or *ast.Struct
-	field *ast.Field
+	field ast.Decl
 	// scope   map[ast.Node]bool
 	upCount int32 // 1 for field, 0 for embedding.
+
+	// isComprehensionVar indicates that this scope refers to a for clause
+	// that is part of a comprehension embedded in a struct.
+	isComprehensionVar bool
 
 	aliases map[string]aliasEntry
 }
@@ -153,6 +168,7 @@ type aliasEntry struct {
 	srcExpr ast.Expr
 	expr    adt.Expr
 	source  ast.Node
+	feature adt.Feature // For let declarations
 	used    bool
 }
 
@@ -202,6 +218,8 @@ func (c *compiler) lookupAlias(k int, id *ast.Ident) aliasEntry {
 
 	switch {
 	case entry.label != nil:
+		// TODO: allow cyclic references in let expressions once these can be
+		// encoded as a ValueReference.
 		if entry.srcExpr == nil {
 			entry.expr = c.errf(id, "cyclic references in let clause or alias")
 			break
@@ -250,6 +268,7 @@ func (c *compiler) compileFiles(a []*ast.File) *adt.Vertex { // Or value?
 	// Excluded from cross-file resolution are:
 	// - import specs
 	// - aliases
+	// - let declarations
 	// - anything in an anonymous file
 	//
 	for _, f := range a {
@@ -343,7 +362,10 @@ func (c *compiler) resolve(n *ast.Ident) adt.Expr {
 		upCount += c.upCountOffset
 		for p := c.Scope; p != nil; p = p.Parent() {
 			for _, a := range p.Vertex().Arcs {
-				if a.Label == label {
+				switch {
+				case a.Label.IsLet() && a.Label.IdentString(c.index) == n.Name:
+					label = a.Label
+				case a.Label == label:
 					return &adt.FieldReference{
 						Src:     n,
 						UpCount: upCount,
@@ -414,7 +436,10 @@ func (c *compiler) resolve(n *ast.Ident) adt.Expr {
 
 	k := len(c.stack) - 1
 	for ; k >= 0; k-- {
-		if c.stack[k].scope == n.Scope {
+		if f := c.stack[k]; f.scope == n.Scope {
+			if f.isComprehensionVar {
+				c.refersToForVariable = true
+			}
 			break
 		}
 		upCount += c.stack[k].upCount
@@ -438,13 +463,17 @@ func (c *compiler) resolve(n *ast.Ident) adt.Expr {
 	// Local expressions
 	case *ast.LetClause:
 		entry := c.lookupAlias(k, n)
+		if entry.expr == nil {
+			panic("unreachable")
+		}
+		label = entry.feature
 
 		// let x = y
 		return &adt.LetReference{
 			Src:     n,
 			UpCount: upCount,
 			Label:   label,
-			X:       entry.expr,
+			X:       entry.expr, // TODO: remove usage
 		}
 
 	// TODO: handle new-style aliases
@@ -525,6 +554,7 @@ func (c *compiler) markAlias(d ast.Decl) {
 			label:   (*letScope)(x),
 			srcExpr: x.Expr,
 			source:  x,
+			feature: adt.MakeLetLabel(c.index, x.Ident.Name),
 		}
 		c.insertAlias(x.Ident, a)
 
@@ -543,14 +573,6 @@ func (c *compiler) decl(d ast.Decl) adt.Decl {
 		if a, ok := lab.(*ast.Alias); ok {
 			if lab, ok = a.Expr.(ast.Label); !ok {
 				return c.errf(a, "alias expression is not a valid label")
-			}
-
-			switch lab.(type) {
-			case *ast.Ident, *ast.BasicLit, *ast.ListLit:
-				// Even though we won't need the alias, we still register it
-				// for duplicate and failed reference detection.
-			default:
-				c.updateAlias(a.Ident, c.expr(a.Expr))
 			}
 		}
 
@@ -638,8 +660,31 @@ func (c *compiler) decl(d ast.Decl) adt.Decl {
 			}
 		}
 
-	// Handled in addLetDecl.
 	case *ast.LetClause:
+		m := c.stack[len(c.stack)-1].aliases
+		entry := m[x.Ident.Name]
+
+		// A reference to the let should, in principle, be interpreted as a
+		// value reference, not field reference:
+		// - this is syntactically consistent for the use of =
+		// - this is semantically the only valid interpretation
+		// In practice this amounts to the same thing, as let expressions cannot
+		// be addressed from outside their scope. But it will matter once
+		// expressions may refer to a let from within the let.
+
+		savedUses := c.refersToForVariable
+		c.refersToForVariable = false
+		value := c.labeledExpr(x, (*letScope)(x), x.Expr)
+		refsCompVar := c.refersToForVariable
+		c.refersToForVariable = savedUses || refsCompVar
+
+		return &adt.LetField{
+			Src:     x,
+			Label:   entry.feature,
+			IsMulti: refsCompVar,
+			Value:   value,
+		}
+
 	// case: *ast.Alias: // TODO(value alias)
 
 	case *ast.CommentGroup:
@@ -655,7 +700,7 @@ func (c *compiler) decl(d ast.Decl) adt.Decl {
 		}
 
 	case *ast.Comprehension:
-		return c.comprehension(x)
+		return c.comprehension(x, false)
 
 	case *ast.EmbedDecl: // Deprecated
 		return c.expr(x.Expr)
@@ -668,15 +713,22 @@ func (c *compiler) decl(d ast.Decl) adt.Decl {
 
 func (c *compiler) addLetDecl(d ast.Decl) {
 	switch x := d.(type) {
-	// An alias reference will have an expression that is looked up in the
-	// environment cash.
-	case *ast.LetClause:
-		// Cache the parsed expression. Creating a unique expression for each
-		// reference allows the computation to be shared given that we don't
-		// have fields for expressions. This, in turn, prevents exponential
-		// blowup in x2: x1+x1, x3: x2+x2,  ... patterns.
-		expr := c.labeledExpr(nil, (*letScope)(x), x.Expr)
-		c.updateAlias(x.Ident, expr)
+	case *ast.Field:
+		lab := x.Label
+		if a, ok := lab.(*ast.Alias); ok {
+			if lab, ok = a.Expr.(ast.Label); !ok {
+				// error reported elsewhere
+				return
+			}
+
+			switch lab.(type) {
+			case *ast.Ident, *ast.BasicLit, *ast.ListLit:
+				// Even though we won't need the alias, we still register it
+				// for duplicate and failed reference detection.
+			default:
+				c.updateAlias(a.Ident, c.expr(a.Expr))
+			}
+		}
 
 	case *ast.Alias:
 		c.errf(x, "old-style alias no longer supported: use let clause; use cue fix to update.")
@@ -692,7 +744,7 @@ func (c *compiler) elem(n ast.Expr) adt.Elem {
 		}
 
 	case *ast.Comprehension:
-		return c.comprehension(x)
+		return c.comprehension(x, true)
 
 	case ast.Expr:
 		return c.expr(x)
@@ -700,10 +752,8 @@ func (c *compiler) elem(n ast.Expr) adt.Elem {
 	return nil
 }
 
-func (c *compiler) comprehension(x *ast.Comprehension) adt.Elem {
-	var cur adt.Yielder
-	var first adt.Yielder
-	var prev, next *adt.Yielder
+func (c *compiler) comprehension(x *ast.Comprehension, inList bool) adt.Elem {
+	var a []adt.Yielder
 	for _, v := range x.Clauses {
 		switch x := v.(type) {
 		case *ast.ForClause:
@@ -717,41 +767,42 @@ func (c *compiler) comprehension(x *ast.Comprehension) adt.Elem {
 				Value:  c.label(x.Value),
 				Src:    c.expr(x.Source),
 			}
-			cur = y
-			c.pushScope((*forScope)(x), 1, v)
+			f := c.pushScope((*forScope)(x), 1, v)
 			defer c.popScope()
-			next = &y.Dst
+			f.isComprehensionVar = !inList
+			a = append(a, y)
 
 		case *ast.IfClause:
 			y := &adt.IfClause{
 				Src:       x,
 				Condition: c.expr(x.Condition),
 			}
-			cur = y
-			next = &y.Dst
+			a = append(a, y)
 
 		case *ast.LetClause:
+			// Check if any references in the expression refer to a for
+			// comprehension.
+			savedUses := c.refersToForVariable
+			c.refersToForVariable = false
+			expr := c.expr(x.Expr)
+			refsCompVar := c.refersToForVariable
+			c.refersToForVariable = savedUses || refsCompVar
+
 			y := &adt.LetClause{
 				Src:   x,
 				Label: c.label(x.Ident),
-				Expr:  c.expr(x.Expr),
+				Expr:  expr,
 			}
-			cur = y
-			c.pushScope((*letScope)(x), 1, v)
+			f := c.pushScope((*letScope)(x), 1, v)
 			defer c.popScope()
-			next = &y.Dst
+			f.isComprehensionVar = !inList && refsCompVar
+			a = append(a, y)
 		}
 
-		if prev != nil {
-			*prev = cur
-		} else {
-			first = cur
-			if _, ok := cur.(*adt.LetClause); ok {
-				return c.errf(x,
-					"first comprehension clause must be 'if' or 'for'")
-			}
+		if _, ok := a[0].(*adt.LetClause); ok {
+			return c.errf(x,
+				"first comprehension clause must be 'if' or 'for'")
 		}
-		prev = next
 	}
 
 	// TODO: make x.Value an *ast.StructLit and this is redundant.
@@ -768,27 +819,23 @@ func (c *compiler) comprehension(x *ast.Comprehension) adt.Elem {
 		return y
 	}
 
-	if prev != nil {
-		*prev = &adt.ValueClause{StructLit: st}
-	} else {
+	if len(a) == 0 {
 		return c.errf(x, "comprehension value without clauses")
 	}
 
 	return &adt.Comprehension{
-		Clauses: first,
+		Syntax:  x,
+		Clauses: a,
 		Value:   st,
 	}
 }
 
-func (c *compiler) labeledExpr(f *ast.Field, lab labeler, expr ast.Expr) adt.Expr {
+func (c *compiler) labeledExpr(f ast.Decl, lab labeler, expr ast.Expr) adt.Expr {
 	k := len(c.stack) - 1
 	return c.labeledExprAt(k, f, lab, expr)
 }
 
-func (c *compiler) labeledExprAt(k int, f *ast.Field, lab labeler, expr ast.Expr) adt.Expr {
-	if c.stack[k].field != nil {
-		panic("expected nil field")
-	}
+func (c *compiler) labeledExprAt(k int, f ast.Decl, lab labeler, expr ast.Expr) adt.Expr {
 	saved := c.stack[k]
 
 	c.stack[k].label = lab

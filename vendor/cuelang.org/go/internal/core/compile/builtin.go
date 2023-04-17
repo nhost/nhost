@@ -37,6 +37,7 @@ var lenBuiltin = &adt.Builtin{
 	Func: func(c *adt.OpContext, args []adt.Value) adt.Expr {
 		v := args[0]
 		if x, ok := v.(*adt.Vertex); ok {
+			x.LockArcs = true
 			switch x.BaseValue.(type) {
 			case nil:
 				// This should not happen, but be defensive.
@@ -48,7 +49,7 @@ var lenBuiltin = &adt.Builtin{
 				n := 0
 				v, _ := v.(*adt.Vertex)
 				for _, a := range v.Arcs {
-					if a.Label.IsRegular() {
+					if a.Label.IsRegular() && a.IsDefined(c) {
 						n++
 					}
 				}
@@ -85,7 +86,7 @@ var closeBuiltin = &adt.Builtin{
 		if !ok {
 			return c.NewErrf("struct argument must be concrete")
 		}
-		if s.IsClosedStruct() {
+		if m, ok := s.BaseValue.(*adt.StructMarker); ok && m.NeedClose || s.Closed {
 			return s
 		}
 		v := s.Clone()
@@ -101,7 +102,7 @@ var andBuiltin = &adt.Builtin{
 	Params: []adt.Param{listParam},
 	Result: adt.IntKind,
 	Func: func(c *adt.OpContext, args []adt.Value) adt.Expr {
-		list := c.Elems(args[0])
+		list := c.RawElems(args[0])
 		if len(list) == 0 {
 			return &adt.Top{}
 		}
@@ -119,7 +120,7 @@ var orBuiltin = &adt.Builtin{
 	Result: adt.IntKind,
 	Func: func(c *adt.OpContext, args []adt.Value) adt.Expr {
 		d := []adt.Disjunct{}
-		for _, c := range c.Elems(args[0]) {
+		for _, c := range c.RawElems(args[0]) {
 			d = append(d, adt.Disjunct{Val: c, Default: false})
 		}
 		if len(d) == 0 {
@@ -137,10 +138,12 @@ var orBuiltin = &adt.Builtin{
 		}
 		v := &adt.Vertex{}
 		// TODO: make a Disjunction.
-		v.AddConjunct(adt.MakeRootConjunct(nil,
+		closeInfo := c.CloseInfo()
+		v.AddConjunct(adt.MakeConjunct(nil,
 			&adt.DisjunctionExpr{Values: d, HasDefaults: false},
+			closeInfo,
 		))
-		c.Unify(v, adt.Finalized)
+		c.Unify(v, adt.Conjuncts)
 		return v
 	},
 }

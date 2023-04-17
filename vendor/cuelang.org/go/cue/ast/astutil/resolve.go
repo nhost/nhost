@@ -88,7 +88,6 @@ func ResolveExpr(e ast.Expr, errFn ErrFunc) {
 // A Scope maintains the set of named language entities declared
 // in the scope and a link to the immediately surrounding (outer)
 // scope.
-//
 type scope struct {
 	file    *ast.File
 	outer   *scope
@@ -204,9 +203,9 @@ func (s *scope) insert(name string, n, link ast.Node) {
 				if _, ok := existing.node.(*ast.ImportSpec); ok {
 					return
 					// TODO:
-					s.errFn(n.Pos(), "conflicting declaration %s\n"+
-						"\tprevious declaration at %s",
-						name, existing.node.Pos())
+					// s.errFn(n.Pos(), "conflicting declaration %s\n"+
+					// 	"\tprevious declaration at %s",
+					// 	name, existing.node.Pos())
 				} else {
 					s.errFn(n.Pos(), "alias %q redeclared in same scope", name)
 				}
@@ -307,7 +306,7 @@ func (s *scope) Before(n ast.Node) (w visitor) {
 				// references to bind to these illegally.
 				// We need this kind of administration anyway to detect
 				// illegal name clashes, and it allows giving better error
-				// messages. This puts the burdon on clients of this library
+				// messages. This puts the burden on clients of this library
 				// to detect illegal usage, though.
 				name, err := ast.ParseIdent(a.Ident)
 				if err == nil {

@@ -184,7 +184,6 @@ func (c *cursor) Delete()                 { panic("unsupported") }
 //
 // Children are traversed in the order in which they appear in the
 // respective node's struct definition.
-//
 func Apply(node ast.Node, before, after func(Cursor) bool) ast.Node {
 	apply(&applier{before: before, after: after}, nil, &node)
 	return node
@@ -303,7 +302,6 @@ func apply(v applyVisitor, parent Cursor, nodePtr interface{}) {
 // v.Visit(node) is not nil, apply is invoked recursively with visitor
 // w for each of the non-nil children of node, followed by a call of
 // w.Visit(nil).
-//
 func applyCursor(v applyVisitor, c Cursor) {
 	if v = v.Before(c); v == nil {
 		return

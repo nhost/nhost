@@ -129,15 +129,14 @@ func parseIdent(pos token.Pos, ident string) (string, error) {
 //
 // Examples:
 //
-//     Label   Result
-//     foo     "foo"  true   nil
-//     true    "true" true   nil
-//     "foo"   "foo"  false  nil
-//     "x-y"   "x-y"  false  nil
-//     "foo    ""     false  invalid string
-//     "\(x)"  ""     false  errors.Is(err, ErrIsExpression)
-//     X=foo   "foo"  true   nil
-//
+//	Label   Result
+//	foo     "foo"  true   nil
+//	true    "true" true   nil
+//	"foo"   "foo"  false  nil
+//	"x-y"   "x-y"  false  nil
+//	"foo    ""     false  invalid string
+//	"\(x)"  ""     false  errors.Is(err, ErrIsExpression)
+//	X=foo   "foo"  true   nil
 func LabelName(l Label) (name string, isIdent bool, err error) {
 	if a, ok := l.(*Alias); ok {
 		l, _ = a.Expr.(Label)

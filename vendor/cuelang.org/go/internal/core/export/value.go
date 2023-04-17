@@ -47,7 +47,7 @@ func (e *exporter) vertex(n *adt.Vertex) (result ast.Expr) {
 		attrs = ExtractDeclAttrs(n)
 	}
 
-	s, saved := e.pushFrame(n.Conjuncts)
+	s, saved := e.pushFrame(n, n.Conjuncts)
 	e.top().upCount++
 	defer func() {
 		e.top().upCount--
@@ -99,7 +99,9 @@ func (e *exporter) vertex(n *adt.Vertex) (result ast.Expr) {
 		// fall back to expression mode
 		a := []ast.Expr{}
 		for _, c := range n.Conjuncts {
-			a = append(a, e.expr(c.Elem()))
+			if x := e.expr(c.Env, c.Elem()); x != dummyTop {
+				a = append(a, x)
+			}
 		}
 		result = ast.NewBinExpr(token.AND, a...)
 	}
@@ -110,7 +112,7 @@ func (e *exporter) vertex(n *adt.Vertex) (result ast.Expr) {
 	if result != s && len(s.Elts) > 0 {
 		// There are used let expressions within a non-struct.
 		// For now we just fall back to the original expressions.
-		result = e.adt(n, n.Conjuncts)
+		result = e.adt(nil, n)
 	}
 
 	return result
@@ -185,7 +187,7 @@ func (e *exporter) value(n adt.Value, a ...adt.Conjunct) (result ast.Expr) {
 			return ast.NewIdent("_")
 		case 1:
 			if e.cfg.Simplify {
-				return e.expr(x.Values[0])
+				return e.expr(nil, x.Values[0])
 			}
 			return e.bareValue(x.Values[0])
 		}
@@ -214,7 +216,7 @@ func (e *exporter) value(n adt.Value, a ...adt.Conjunct) (result ast.Expr) {
 			if e.cfg.Simplify {
 				expr = e.bareValue(v)
 			} else {
-				expr = e.expr(v)
+				expr = e.expr(nil, v)
 			}
 			if i < x.NumDefaults {
 				expr = &ast.UnaryExpr{Op: token.MUL, X: expr}
@@ -339,8 +341,10 @@ func (e *exporter) listComposite(v *adt.Vertex) ast.Expr {
 		}
 		elem := e.vertex(a)
 
-		docs := ExtractDoc(a)
-		ast.SetComments(elem, docs)
+		if e.cfg.ShowDocs {
+			docs := ExtractDoc(a)
+			ast.SetComments(elem, docs)
+		}
 
 		l.Elts = append(l.Elts, elem)
 	}
@@ -454,7 +458,7 @@ func (e *exporter) structComposite(v *adt.Vertex, attrs []*ast.Attribute) ast.Ex
 			}
 
 			// fall back to expression mode.
-			f.Value = stripRefs(e.expr(arc))
+			f.Value = stripRefs(e.expr(nil, arc))
 
 			// TODO: remove use of stripRefs.
 			// f.Value = e.expr(arc)

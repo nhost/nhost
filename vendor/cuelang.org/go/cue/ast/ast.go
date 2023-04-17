@@ -794,7 +794,7 @@ func (x *BasicLit) End() token.Pos { return x.ValuePos.Add(len(x.Value)) }
 func (x *Interpolation) End() token.Pos { return x.Elts[len(x.Elts)-1].Pos() }
 func (x *StructLit) End() token.Pos {
 	if x.Rbrace == token.NoPos && len(x.Elts) > 0 {
-		return x.Elts[len(x.Elts)-1].Pos()
+		return x.Elts[len(x.Elts)-1].End()
 	}
 	return x.Rbrace.Add(1)
 }

@@ -26,7 +26,7 @@ import (
 	"github.com/cockroachdb/apd/v2"
 
 	"cuelang.org/go/cue/ast"
-	"cuelang.org/go/cue/ast/astutil"
+	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/token"
 	"cuelang.org/go/internal"
@@ -220,7 +220,6 @@ func unwrapJSONError(err error) errors.Error {
 }
 
 // An Iterator iterates over values.
-//
 type Iterator struct {
 	val   Value
 	idx   *runtime.Runtime
@@ -269,7 +268,6 @@ func (i *Iterator) Selector() Selector {
 
 // Label reports the label of the value if i iterates over struct fields and ""
 // otherwise.
-//
 //
 // Slated to be deprecated: use i.Selector().String(). Note that this will give
 // more accurate string representations.
@@ -657,7 +655,7 @@ func Dereference(v Value) Value {
 	}
 
 	ctx := v.ctx()
-	n, b := ctx.Resolve(c.Env, r)
+	n, b := ctx.Resolve(c, r)
 	if b != nil {
 		return newErrValue(v, b)
 	}
@@ -985,6 +983,7 @@ func (v Value) Syntax(opts ...Option) ast.Node {
 		ShowAttributes:  !o.omitAttrs,
 		ShowDocs:        o.docs,
 		ShowErrors:      o.showErrors,
+		InlineImports:   o.inlineImports,
 	}
 
 	pkgID := v.instance().ID()
@@ -1016,20 +1015,12 @@ You could file a bug with the above information at:
 	var err error
 	var f *ast.File
 	if o.concrete || o.final || o.resolveReferences {
-		// inst = v.instance()
-		var expr ast.Expr
-		expr, err = p.Value(v.idx, pkgID, v.v)
+		f, err = p.Vertex(v.idx, pkgID, v.v)
 		if err != nil {
-			return bad(`"cuelang.org/go/internal/core/export".Value`, err)
+			return bad(`"cuelang.org/go/internal/core/export".Vertex`, err)
 		}
-
-		// This introduces gratuitous unshadowing!
-		f, err = astutil.ToFile(expr)
-		if err != nil {
-			return bad(`"cuelang.org/go/ast/astutil".ToFile`, err)
-		}
-		// return expr
 	} else {
+		p.AddPackage = true
 		f, err = p.Def(v.idx, pkgID, v.v)
 		if err != nil {
 			return bad(`"cuelang.org/go/internal/core/export".Def`, err)
@@ -1085,9 +1076,9 @@ func (v hiddenValue) Split() []Value {
 }
 
 // Source returns the original node for this value. The return value may not
-// be a syntax.Expr. For instance, a struct kind may be represented by a
+// be an [ast.Expr]. For instance, a struct kind may be represented by a
 // struct literal, a field comprehension, or a file. It returns nil for
-// computed nodes. Use Split to get all source values that apply to a field.
+// computed nodes. Use [Value.Expr] to get all source values that apply to a field.
 func (v Value) Source() ast.Node {
 	if v.v == nil {
 		return nil
@@ -1096,6 +1087,18 @@ func (v Value) Source() ast.Node {
 		return v.v.Conjuncts[0].Source()
 	}
 	return v.v.Value().Source()
+}
+
+// If v exactly represents a package, BuildInstance returns
+// the build instance corresponding to the value; otherwise it returns nil.
+//
+// The value returned by Value.ReferencePath will commonly represent
+// a package.
+func (v Value) BuildInstance() *build.Instance {
+	if v.idx == nil {
+		return nil
+	}
+	return v.idx.GetInstanceFromNode(v.v)
 }
 
 // Err returns the error represented by v or nil v is not an error.
@@ -1399,6 +1402,9 @@ func (v Value) structValOpts(ctx *adt.OpContext, o options) (s structValue, err 
 
 	k := 0
 	for _, f := range features {
+		if f.IsLet() {
+			continue
+		}
 		if f.IsDef() && (o.omitDefinitions || o.concrete) {
 			continue
 		}
@@ -1428,8 +1434,9 @@ func (v Value) structValOpts(ctx *adt.OpContext, o options) (s structValue, err 
 
 // Struct returns the underlying struct of a value or an error if the value
 // is not a struct.
+//
+// Deprecated: use Fields.
 func (v hiddenValue) Struct() (*Struct, error) {
-	// TODO: deprecate
 	ctx := v.ctx()
 	obj, err := v.structValOpts(ctx, options{})
 	if err != nil {
@@ -1573,7 +1580,7 @@ func appendPath(a []Selector, v Value) []Selector {
 	}
 
 	var sel selector
-	switch f.Typ() {
+	switch t := f.Typ(); t {
 	case adt.IntLabel:
 		sel = indexSelector(f)
 	case adt.DefinitionLabel:
@@ -1587,6 +1594,9 @@ func appendPath(a []Selector, v Value) []Selector {
 
 	case adt.StringLabel:
 		sel = stringSelector(f.StringValue(v.idx))
+
+	default:
+		panic(fmt.Sprintf("unsupported label type %v", t))
 	}
 	return append(a, Selector{sel})
 }
@@ -1680,7 +1690,6 @@ func (v hiddenValue) Fill(x interface{}, path ...string) Value {
 //
 // Any reference in v referring to the value at the given path will resolve to x
 // in the newly created value. The resulting value is not validated.
-//
 func (v Value) FillPath(p Path, x interface{}) Value {
 	if v.v == nil {
 		// TODO: panic here?
@@ -1705,8 +1714,8 @@ func (v Value) FillPath(p Path, x interface{}) Value {
 		expr = convert.GoValueToValue(ctx, x, true)
 	}
 	for i := len(p.path) - 1; i >= 0; i-- {
-		switch sel := p.path[i].sel; {
-		case sel == AnyString.sel:
+		switch sel := p.path[i]; sel.Type() {
+		case StringLabel | PatternConstraint:
 			expr = &adt.StructLit{Decls: []adt.Decl{
 				&adt.BulkOptionalField{
 					Filter: &adt.BasicType{K: adt.StringKind},
@@ -1714,17 +1723,13 @@ func (v Value) FillPath(p Path, x interface{}) Value {
 				},
 			}}
 
-		case sel == anyIndex.sel:
+		case IndexLabel | PatternConstraint:
 			expr = &adt.ListLit{Elems: []adt.Elem{
 				&adt.Ellipsis{Value: expr},
 			}}
 
-		case sel == anyDefinition.sel:
-			expr = &adt.Bottom{Err: errors.Newf(token.NoPos,
-				"AnyDefinition not supported")}
-
-		case sel.kind() == adt.IntLabel:
-			i := sel.feature(ctx.Runtime).Index()
+		case IndexLabel:
+			i := sel.Index()
 			list := &adt.ListLit{}
 			any := &adt.Top{}
 			// TODO(perf): make this a constant thing. This will be possible with the query extension.
@@ -1736,14 +1741,14 @@ func (v Value) FillPath(p Path, x interface{}) Value {
 
 		default:
 			var d adt.Decl
-			if sel.optional() {
+			if sel.ConstraintType() == OptionalConstraint {
 				d = &adt.OptionalField{
-					Label: sel.feature(v.idx),
+					Label: sel.sel.feature(v.idx),
 					Value: expr,
 				}
 			} else {
 				d = &adt.Field{
-					Label: sel.feature(v.idx),
+					Label: sel.sel.feature(v.idx),
 					Value: expr,
 				}
 			}
@@ -2047,6 +2052,7 @@ type options struct {
 	omitDefinitions   bool
 	omitOptional      bool
 	omitAttrs         bool
+	inlineImports     bool
 	resolveReferences bool
 	showErrors        bool
 	final             bool
@@ -2096,14 +2102,24 @@ func Concrete(concrete bool) Option {
 	}
 }
 
-// DisallowCycles forces validation in the precense of cycles, even if
+// InlineImports causes references to values within imported packages to be
+// inlined. References to builtin packages are not inlined.
+func InlineImports(expand bool) Option {
+	return func(p *options) { p.inlineImports = expand }
+}
+
+// DisallowCycles forces validation in the presence of cycles, even if
 // non-concrete values are allowed. This is implied by Concrete(true).
 func DisallowCycles(disallow bool) Option {
 	return func(p *options) { p.disallowCycles = disallow }
 }
 
 // ResolveReferences forces the evaluation of references when outputting.
-// This implies the input cannot have cycles.
+//
+// Deprecated: Syntax will now always attempt to resolve dangling references and
+// make the output self-contained. When Final or Concrete is used, it will
+// already attempt to resolve all references.
+// See also InlineImports.
 func ResolveReferences(resolve bool) Option {
 	return func(p *options) {
 		p.resolveReferences = resolve
@@ -2119,6 +2135,14 @@ func ResolveReferences(resolve bool) Option {
 		// inconsistent. This option is conservative, though.
 		p.showErrors = true
 	}
+}
+
+// ErrorsAsValues treats errors as a regular value, including them at the
+// location in the tree where they occur, instead of interpreting them as a
+// configuration-wide failure that is returned instead of root value.
+// Used by Syntax.
+func ErrorsAsValues(show bool) Option {
+	return func(p *options) { p.showErrors = show }
 }
 
 // Raw tells Syntax to generate the value as is without any simplifications.
@@ -2186,6 +2210,9 @@ func (o *options) updateOptions(opts []Option) {
 // Validate reports any errors, recursively. The returned error may represent
 // more than one error, retrievable with errors.Errors, if more than one
 // exists.
+//
+// Note that by default not all errors are reported, unless options like
+// Concrete are used.
 func (v Value) Validate(opts ...Option) error {
 	o := options{}
 	o.updateOptions(opts)
@@ -2198,7 +2225,7 @@ func (v Value) Validate(opts ...Option) error {
 
 	b := validate.Validate(v.ctx(), v.v, cfg)
 	if b != nil {
-		return b.Err
+		return v.toErr(b)
 	}
 	return nil
 }

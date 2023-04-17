@@ -63,6 +63,5 @@ func verifyArc2(ctx *OpContext, f Feature, v *Vertex, isClosed bool) (found bool
 		s.AddPositions(ctx)
 	}
 
-	label := f.SelectorString(ctx)
-	return false, ctx.NewErrf("field not allowed: %s", label)
+	return false, ctx.NewErrf("field not allowed")
 }

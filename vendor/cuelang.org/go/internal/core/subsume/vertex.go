@@ -22,9 +22,9 @@ import (
 )
 
 // Notes:
-// - Can optional fields of y can always be ignored here? Maybe not in the
-//   schema case.
-// - Definitions of y can be ignored in data mode.
+//   - Can optional fields of y can always be ignored here? Maybe not in the
+//     schema case.
+//   - Definitions of y can be ignored in data mode.
 //
 // TODO(perf): use merge sort where possible.
 func (s *subsumer) vertices(x, y *adt.Vertex) bool {

@@ -87,7 +87,6 @@ func sortImportsOption() Option {
 //
 // The function may return early (before the entire result is written) and
 // return a formatting error, for instance due to an incorrect AST.
-//
 func Node(node ast.Node, opt ...Option) ([]byte, error) {
 	cfg := newConfig(opt)
 	return cfg.fprint(node)
@@ -105,7 +104,6 @@ func Node(node ast.Node, opt ...Option) ([]byte, error) {
 // Caution: Tools relying on consistent formatting based on the installed
 // version of cue (for instance, such as for presubmit checks) should execute
 // that cue binary instead of calling Source.
-//
 func Source(b []byte, opt ...Option) ([]byte, error) {
 	cfg := newConfig(opt)
 
@@ -255,7 +253,6 @@ func (f *formatter) print(a ...interface{}) {
 			f.current.pos++
 		}
 	}
-	f.visitComments(f.current.pos)
 }
 
 func (f *formatter) formfeed() whiteSpace {

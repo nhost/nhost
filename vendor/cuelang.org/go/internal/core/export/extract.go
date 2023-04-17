@@ -26,9 +26,8 @@ import (
 // Comments are attached to a field with a field shorthand belong to the
 // child node. So in the following the comment is attached to field bar.
 //
-//     // comment
-//     foo: bar: 2
-//
+//	// comment
+//	foo: bar: 2
 func ExtractDoc(v *adt.Vertex) (docs []*ast.CommentGroup) {
 	return extractDocs(v, v.Conjuncts)
 }
@@ -38,12 +37,13 @@ func extractDocs(v *adt.Vertex, a []adt.Conjunct) (docs []*ast.CommentGroup) {
 
 	// Collect docs directly related to this Vertex.
 	for _, x := range a {
+		// TODO: Is this still being used?
 		if v, ok := x.Elem().(*adt.Vertex); ok {
 			docs = append(docs, extractDocs(v, v.Conjuncts)...)
 			continue
 		}
 
-		switch f := x.Source().(type) {
+		switch f := x.Field().Source().(type) {
 		case *ast.Field:
 			if hasShorthandValue(f) {
 				continue
@@ -98,8 +98,7 @@ func extractDocs(v *adt.Vertex, a []adt.Conjunct) (docs []*ast.CommentGroup) {
 // hasShorthandValue reports whether this field has a struct value that will
 // be rendered as a shorthand, for instance:
 //
-//     f: g: 2
-//
+//	f: g: 2
 func hasShorthandValue(f *ast.Field) bool {
 	if f = nestedField(f); f == nil {
 		return false
@@ -146,13 +145,18 @@ func containsDoc(a []*ast.CommentGroup, cg *ast.CommentGroup) bool {
 
 func ExtractFieldAttrs(v *adt.Vertex) (attrs []*ast.Attribute) {
 	for _, x := range v.Conjuncts {
-		attrs = extractFieldAttrs(attrs, x)
+		attrs = extractFieldAttrs(attrs, x.Field())
 	}
 	return attrs
 }
 
-func extractFieldAttrs(attrs []*ast.Attribute, c adt.Conjunct) []*ast.Attribute {
-	if f, ok := c.Source().(*ast.Field); ok {
+// extractFieldAttrs extracts the fields from n and appends unique entries to
+// attrs.
+//
+// The value of n should be obtained from the Conjunct.Field method if the
+// source for n is a Conjunct so that Comprehensions are properly unwrapped.
+func extractFieldAttrs(attrs []*ast.Attribute, n adt.Node) []*ast.Attribute {
+	if f, ok := n.Source().(*ast.Field); ok {
 		for _, a := range f.Attrs {
 			if !containsAttr(attrs, a) {
 				attrs = append(attrs, a)

@@ -29,11 +29,12 @@ import (
 // A Context provides context for running a task.
 type Context struct {
 	Context context.Context
-	Stdin   io.Reader
-	Stdout  io.Writer
-	Stderr  io.Writer
-	Obj     cue.Value
-	Err     errors.Error
+
+	Stdin  io.Reader
+	Stdout io.Writer
+	Stderr io.Writer
+	Obj    cue.Value
+	Err    errors.Error
 }
 
 func (c *Context) Lookup(field string) cue.Value {

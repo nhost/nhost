@@ -18,10 +18,9 @@
 // byte values. To allow one format over an other these types can be further
 // constraint using string or [...]. For instance,
 //
-//    // multicast defines a multicast IP address in string form.
-//    multicast: net.MulticastIP & string
+//	// multicast defines a multicast IP address in string form.
+//	multicast: net.MulticastIP & string
 //
-//    // unicast defines a global unicast IP address in list form.
-//    unicast: net.GlobalUnicastIP & [...]
-//
+//	// unicast defines a global unicast IP address in list form.
+//	unicast: net.GlobalUnicastIP & [...]
 package net
