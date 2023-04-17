@@ -207,16 +207,16 @@ export default function ResourcesForm() {
       if (!formValues.enabled) {
         form.reset({
           enabled: false,
-          totalAvailableVCPU: 2,
-          totalAvailableMemory: 4,
-          databaseVCPU: 0.5,
-          databaseMemory: 1,
-          hasuraVCPU: 0.5,
-          hasuraMemory: 1,
-          authVCPU: 0.5,
-          authMemory: 1,
-          storageVCPU: 0.5,
-          storageMemory: 1,
+          totalAvailableVCPU: 2000,
+          totalAvailableMemory: 4096,
+          hasuraVCPU: 500,
+          hasuraMemory: 1536,
+          databaseVCPU: 1000,
+          databaseMemory: 2048,
+          authVCPU: 250,
+          authMemory: 256,
+          storageVCPU: 250,
+          storageMemory: 256,
         });
       } else {
         form.reset(null, { keepValues: true, keepDirty: false });
