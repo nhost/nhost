@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.15.0
+
+### Minor Changes
+
+- 85889ee8: feat(dashboard): add Compute management to the settings
+
 ## 0.14.8
 
 ### Patch Changes
