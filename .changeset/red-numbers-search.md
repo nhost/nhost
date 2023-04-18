@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-feat(dashboard): add Resource management to the settings
+feat(dashboard): add Compute management to the settings
