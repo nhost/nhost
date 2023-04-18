@@ -8,15 +8,17 @@ import {
 } from 'react'
 import { useInView } from 'react-intersection-observer'
 
+interface Announcement {
+  id: string
+  content: ReactNode
+  href: string
+}
+
 export interface AnnouncementContextProps {
   /**
    * The announcement to show.
    */
-  announcement?: {
-    id: string
-    content: ReactNode
-    href: string
-  }
+  announcement?: Announcement
   /**
    * Whether or not to show the announcement.
    */
@@ -31,32 +33,30 @@ export interface AnnouncementContextProps {
   inView?: boolean
 }
 
+// Note: You can define the active announcement here.
+let announcement: Announcement
+
 export const AnnouncementContext = createContext<AnnouncementContextProps>({})
 
 export default function AnnouncementProvider({ children }: PropsWithChildren) {
   const { ref, inView } = useInView()
   const [showAnnouncement, setShowAnnouncement] = useState(false)
 
-  const announcement = {
-    id: 'nhost-launch-month-announcement-seen',
-    content: 'Nhost Launch Month - February 2023',
-    href: '/launch-month',
-  }
-
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
+      !announcement ||
       window.localStorage.getItem(announcement.id) === '1'
     ) {
       return
     }
 
     setShowAnnouncement(true)
-  }, [announcement.id])
+  }, [])
 
   function handleClose() {
     setShowAnnouncement(false)
-    window.localStorage.setItem(announcement.id, '1')
+    window.localStorage.setItem(announcement?.id, '1')
   }
 
   return (

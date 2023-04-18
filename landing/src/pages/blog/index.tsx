@@ -57,6 +57,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
               placeholder="blur"
               className="max-w-full object-cover"
               priority
+              quality={100}
             />
           }
           title={firstArticle.title}
@@ -80,6 +81,7 @@ export default function BlogPage({ articles }: BlogPageProps) {
                   height={225}
                   alt={`Cover of ${article.title}`}
                   className="h-full w-full object-contain"
+                  quality={90}
                 />
               }
               title={article.title}
