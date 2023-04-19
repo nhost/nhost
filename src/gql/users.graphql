@@ -70,6 +70,24 @@ query getUsersByRefreshToken($refreshTokenHash: String!) {
   }
 }
 
+query getUsersByPAT($patHash: String!) {
+  authRefreshTokens(
+    where: {
+      _and: [
+        { refreshTokenHash: { _eq: $patHash } }
+        { user: { disabled: { _eq: false } } }
+        { expiresAt: { _gte: now } }
+        { type: { _eq: "pat" } }
+      ]
+    }
+  ) {
+    refreshToken
+    user {
+      ...userFields
+    }
+  }
+}
+
 mutation updateUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: { id: $id }, _set: $user) {
     ...userFields

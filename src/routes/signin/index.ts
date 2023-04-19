@@ -3,19 +3,20 @@ import { Router } from 'express';
 import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 
+import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
 import {
   signInEmailPasswordHandler,
   signInEmailPasswordSchema,
 } from './email-password';
-import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
-import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
+import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 import {
   signInPasswordlessEmailHandler,
   signInPasswordlessEmailSchema,
   signInPasswordlessSmsHandler,
   signInPasswordlessSmsSchema,
 } from './passwordless';
-import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
+import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
+import { signInPATHandler, signInPATSchema } from './pat';
 import {
   signInVerifyWebauthnHandler,
   signInVerifyWebauthnSchema,
@@ -147,6 +148,21 @@ router.post(
   '/signin/mfa/totp',
   bodyValidator(signInMfaTotpSchema),
   aw(signInMfaTotpHandler)
+);
+
+/**
+ * POST /signin/pat
+ * @summary Sign in with a Personal Access Token (PAT)
+ * @param {SignInPATSchema} request.body.required
+ * @return {SessionPayload} 200 - User successfully authenticated - application/json
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
+ * @tags Authentication
+ */
+router.post(
+  '/signin/pat',
+  bodyValidator(signInPATSchema),
+  aw(signInPATHandler)
 );
 
 // TODO: Implement:

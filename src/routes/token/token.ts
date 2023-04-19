@@ -1,11 +1,11 @@
-import { RequestHandler } from 'express';
+import { sendError } from '@/errors';
 import {
   getNewOrUpdateCurrentSession,
   getUserByRefreshToken,
   gqlSdk,
 } from '@/utils';
-import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
+import { RequestHandler } from 'express';
 
 export const tokenSchema = Joi.object({
   refreshToken,
