@@ -1668,15 +1668,6 @@ export type ConfigUserRoleComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigUserRole']>>;
 };
 
-export type DedicatedResourceReport = {
-  __typename?: 'DedicatedResourceReport';
-  ends: Scalars['Timestamp'];
-  id: Scalars['uuid'];
-  pending: Scalars['Boolean'];
-  starts: Scalars['Timestamp'];
-  totalMillicores: Scalars['Int'];
-};
-
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
 export type Int_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['Int']>;
@@ -2348,12 +2339,17 @@ export type Apps = {
   backups: Array<Backups>;
   /** An aggregate relationship */
   backups_aggregate: Backups_Aggregate;
+  /** An object relationship */
+  billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** An object relationship */
+  billingDedicatedComputeReports?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** An object relationship */
+  billingSubscriptions?: Maybe<Billing_Subscriptions>;
   config?: Maybe<ConfigConfig>;
   createdAt: Scalars['timestamptz'];
   /** An object relationship */
   creator?: Maybe<Users>;
   creatorUserId?: Maybe<Scalars['uuid']>;
-  dedicatedResourcesReports: Array<DedicatedResourceReport>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** An aggregate relationship */
@@ -2594,6 +2590,9 @@ export type Apps_Bool_Exp = {
   autoUpdate?: InputMaybe<Boolean_Comparison_Exp>;
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
+  billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
   creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -2664,6 +2663,9 @@ export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
   autoUpdate?: InputMaybe<Scalars['Boolean']>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
+  billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
+  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input>;
+  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Obj_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
@@ -2820,6 +2822,9 @@ export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
   autoUpdate?: InputMaybe<Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
+  billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
+  billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Order_By>;
+  billingSubscriptions?: InputMaybe<Billing_Subscriptions_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
@@ -5293,6 +5298,715 @@ export type Bigint_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['bigint']>;
   _neq?: InputMaybe<Scalars['bigint']>;
   _nin?: InputMaybe<Array<Scalars['bigint']>>;
+};
+
+/** columns and relationships of "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute = {
+  __typename?: 'billing_dedicated_compute';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  app_id: Scalars['uuid'];
+  created_at: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  total_millicores: Scalars['Int'];
+  updated_at: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Aggregate = {
+  __typename?: 'billing_dedicated_compute_aggregate';
+  aggregate?: Maybe<Billing_Dedicated_Compute_Aggregate_Fields>;
+  nodes: Array<Billing_Dedicated_Compute>;
+};
+
+/** aggregate fields of "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Aggregate_Fields = {
+  __typename?: 'billing_dedicated_compute_aggregate_fields';
+  avg?: Maybe<Billing_Dedicated_Compute_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Dedicated_Compute_Max_Fields>;
+  min?: Maybe<Billing_Dedicated_Compute_Min_Fields>;
+  stddev?: Maybe<Billing_Dedicated_Compute_Stddev_Fields>;
+  stddev_pop?: Maybe<Billing_Dedicated_Compute_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Billing_Dedicated_Compute_Stddev_Samp_Fields>;
+  sum?: Maybe<Billing_Dedicated_Compute_Sum_Fields>;
+  var_pop?: Maybe<Billing_Dedicated_Compute_Var_Pop_Fields>;
+  var_samp?: Maybe<Billing_Dedicated_Compute_Var_Samp_Fields>;
+  variance?: Maybe<Billing_Dedicated_Compute_Variance_Fields>;
+};
+
+
+/** aggregate fields of "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Billing_Dedicated_Compute_Avg_Fields = {
+  __typename?: 'billing_dedicated_compute_avg_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.dedicated_compute". All fields are combined with a logical 'AND'. */
+export type Billing_Dedicated_Compute_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Dedicated_Compute_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Dedicated_Compute_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  app_id?: InputMaybe<Uuid_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  total_millicores?: InputMaybe<Int_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.dedicated_compute" */
+export enum Billing_Dedicated_Compute_Constraint {
+  /** unique or primary key constraint on columns "app_id" */
+  DedicatedComputeAppIdKey = 'dedicated_compute_app_id_key',
+  /** unique or primary key constraint on columns "id" */
+  DedicatedComputePkey = 'dedicated_compute_pkey'
+}
+
+/** input type for incrementing numeric columns in table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Inc_Input = {
+  total_millicores?: InputMaybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Dedicated_Compute_Max_Fields = {
+  __typename?: 'billing_dedicated_compute_max_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  total_millicores?: Maybe<Scalars['Int']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Dedicated_Compute_Min_Fields = {
+  __typename?: 'billing_dedicated_compute_min_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  total_millicores?: Maybe<Scalars['Int']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Mutation_Response = {
+  __typename?: 'billing_dedicated_compute_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Dedicated_Compute>;
+};
+
+/** input type for inserting object relation for remote table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Obj_Rel_Insert_Input = {
+  data: Billing_Dedicated_Compute_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
+};
+
+/** on_conflict condition type for table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_On_Conflict = {
+  constraint: Billing_Dedicated_Compute_Constraint;
+  update_columns?: Array<Billing_Dedicated_Compute_Update_Column>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.dedicated_compute". */
+export type Billing_Dedicated_Compute_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  total_millicores?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.dedicated_compute */
+export type Billing_Dedicated_Compute_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** columns and relationships of "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports = {
+  __typename?: 'billing_dedicated_compute_reports';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  app_id: Scalars['uuid'];
+  created_at: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  pending: Scalars['Boolean'];
+  report_ends: Scalars['timestamptz'];
+  report_starts: Scalars['timestamptz'];
+  total_millicores: Scalars['Int'];
+  updated_at: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Aggregate = {
+  __typename?: 'billing_dedicated_compute_reports_aggregate';
+  aggregate?: Maybe<Billing_Dedicated_Compute_Reports_Aggregate_Fields>;
+  nodes: Array<Billing_Dedicated_Compute_Reports>;
+};
+
+/** aggregate fields of "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Aggregate_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_aggregate_fields';
+  avg?: Maybe<Billing_Dedicated_Compute_Reports_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Dedicated_Compute_Reports_Max_Fields>;
+  min?: Maybe<Billing_Dedicated_Compute_Reports_Min_Fields>;
+  stddev?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Fields>;
+  stddev_pop?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields>;
+  sum?: Maybe<Billing_Dedicated_Compute_Reports_Sum_Fields>;
+  var_pop?: Maybe<Billing_Dedicated_Compute_Reports_Var_Pop_Fields>;
+  var_samp?: Maybe<Billing_Dedicated_Compute_Reports_Var_Samp_Fields>;
+  variance?: Maybe<Billing_Dedicated_Compute_Reports_Variance_Fields>;
+};
+
+
+/** aggregate fields of "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Billing_Dedicated_Compute_Reports_Avg_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_avg_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.dedicated_compute_reports". All fields are combined with a logical 'AND'. */
+export type Billing_Dedicated_Compute_Reports_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  app_id?: InputMaybe<Uuid_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  pending?: InputMaybe<Boolean_Comparison_Exp>;
+  report_ends?: InputMaybe<Timestamptz_Comparison_Exp>;
+  report_starts?: InputMaybe<Timestamptz_Comparison_Exp>;
+  total_millicores?: InputMaybe<Int_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.dedicated_compute_reports" */
+export enum Billing_Dedicated_Compute_Reports_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  DedicatedComputeReportsPkey = 'dedicated_compute_reports_pkey'
+}
+
+/** input type for incrementing numeric columns in table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Inc_Input = {
+  total_millicores?: InputMaybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  report_ends?: InputMaybe<Scalars['timestamptz']>;
+  report_starts?: InputMaybe<Scalars['timestamptz']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Dedicated_Compute_Reports_Max_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_max_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  report_ends?: Maybe<Scalars['timestamptz']>;
+  report_starts?: Maybe<Scalars['timestamptz']>;
+  total_millicores?: Maybe<Scalars['Int']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Dedicated_Compute_Reports_Min_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_min_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  report_ends?: Maybe<Scalars['timestamptz']>;
+  report_starts?: Maybe<Scalars['timestamptz']>;
+  total_millicores?: Maybe<Scalars['Int']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Mutation_Response = {
+  __typename?: 'billing_dedicated_compute_reports_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Dedicated_Compute_Reports>;
+};
+
+/** input type for inserting object relation for remote table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input = {
+  data: Billing_Dedicated_Compute_Reports_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
+};
+
+/** on_conflict condition type for table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_On_Conflict = {
+  constraint: Billing_Dedicated_Compute_Reports_Constraint;
+  update_columns?: Array<Billing_Dedicated_Compute_Reports_Update_Column>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.dedicated_compute_reports". */
+export type Billing_Dedicated_Compute_Reports_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  pending?: InputMaybe<Order_By>;
+  report_ends?: InputMaybe<Order_By>;
+  report_starts?: InputMaybe<Order_By>;
+  total_millicores?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.dedicated_compute_reports */
+export type Billing_Dedicated_Compute_Reports_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.dedicated_compute_reports" */
+export enum Billing_Dedicated_Compute_Reports_Select_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Pending = 'pending',
+  /** column name */
+  ReportEnds = 'report_ends',
+  /** column name */
+  ReportStarts = 'report_starts',
+  /** column name */
+  TotalMillicores = 'total_millicores',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "billing.dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Set_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  report_ends?: InputMaybe<Scalars['timestamptz']>;
+  report_starts?: InputMaybe<Scalars['timestamptz']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Billing_Dedicated_Compute_Reports_Stddev_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_stddev_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Billing_Dedicated_Compute_Reports_Stddev_Pop_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_stddev_pop_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Billing_Dedicated_Compute_Reports_Stddev_Samp_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_stddev_samp_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** Streaming cursor of the table "billing_dedicated_compute_reports" */
+export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Dedicated_Compute_Reports_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  report_ends?: InputMaybe<Scalars['timestamptz']>;
+  report_starts?: InputMaybe<Scalars['timestamptz']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Billing_Dedicated_Compute_Reports_Sum_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_sum_fields';
+  total_millicores?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "billing.dedicated_compute_reports" */
+export enum Billing_Dedicated_Compute_Reports_Update_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Pending = 'pending',
+  /** column name */
+  ReportEnds = 'report_ends',
+  /** column name */
+  ReportStarts = 'report_starts',
+  /** column name */
+  TotalMillicores = 'total_millicores',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Billing_Dedicated_Compute_Reports_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
+  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Billing_Dedicated_Compute_Reports_Var_Pop_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_var_pop_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Billing_Dedicated_Compute_Reports_Var_Samp_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_var_samp_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Billing_Dedicated_Compute_Reports_Variance_Fields = {
+  __typename?: 'billing_dedicated_compute_reports_variance_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** select columns of table "billing.dedicated_compute" */
+export enum Billing_Dedicated_Compute_Select_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  TotalMillicores = 'total_millicores',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "billing.dedicated_compute" */
+export type Billing_Dedicated_Compute_Set_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Billing_Dedicated_Compute_Stddev_Fields = {
+  __typename?: 'billing_dedicated_compute_stddev_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Billing_Dedicated_Compute_Stddev_Pop_Fields = {
+  __typename?: 'billing_dedicated_compute_stddev_pop_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Billing_Dedicated_Compute_Stddev_Samp_Fields = {
+  __typename?: 'billing_dedicated_compute_stddev_samp_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** Streaming cursor of the table "billing_dedicated_compute" */
+export type Billing_Dedicated_Compute_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Dedicated_Compute_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Dedicated_Compute_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  total_millicores?: InputMaybe<Scalars['Int']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Billing_Dedicated_Compute_Sum_Fields = {
+  __typename?: 'billing_dedicated_compute_sum_fields';
+  total_millicores?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "billing.dedicated_compute" */
+export enum Billing_Dedicated_Compute_Update_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  TotalMillicores = 'total_millicores',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Billing_Dedicated_Compute_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
+  where: Billing_Dedicated_Compute_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Billing_Dedicated_Compute_Var_Pop_Fields = {
+  __typename?: 'billing_dedicated_compute_var_pop_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Billing_Dedicated_Compute_Var_Samp_Fields = {
+  __typename?: 'billing_dedicated_compute_var_samp_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Billing_Dedicated_Compute_Variance_Fields = {
+  __typename?: 'billing_dedicated_compute_variance_fields';
+  total_millicores?: Maybe<Scalars['Float']>;
+};
+
+/** columns and relationships of "billing.subscriptions" */
+export type Billing_Subscriptions = {
+  __typename?: 'billing_subscriptions';
+  /** An object relationship */
+  app?: Maybe<Apps>;
+  app_id: Scalars['uuid'];
+  created_at: Scalars['timestamptz'];
+  dedicated_compute?: Maybe<Scalars['String']>;
+  id: Scalars['uuid'];
+  updated_at: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.subscriptions" */
+export type Billing_Subscriptions_Aggregate = {
+  __typename?: 'billing_subscriptions_aggregate';
+  aggregate?: Maybe<Billing_Subscriptions_Aggregate_Fields>;
+  nodes: Array<Billing_Subscriptions>;
+};
+
+/** aggregate fields of "billing.subscriptions" */
+export type Billing_Subscriptions_Aggregate_Fields = {
+  __typename?: 'billing_subscriptions_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Subscriptions_Max_Fields>;
+  min?: Maybe<Billing_Subscriptions_Min_Fields>;
+};
+
+
+/** aggregate fields of "billing.subscriptions" */
+export type Billing_Subscriptions_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.subscriptions". All fields are combined with a logical 'AND'. */
+export type Billing_Subscriptions_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Subscriptions_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Subscriptions_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  app_id?: InputMaybe<Uuid_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  dedicated_compute?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.subscriptions" */
+export enum Billing_Subscriptions_Constraint {
+  /** unique or primary key constraint on columns "app_id" */
+  SubscriptionsAppIdKey = 'subscriptions_app_id_key',
+  /** unique or primary key constraint on columns "dedicated_compute" */
+  SubscriptionsDedicatedComputeKey = 'subscriptions_dedicated_compute_key',
+  /** unique or primary key constraint on columns "id" */
+  SubscriptionsPkey = 'subscriptions_pkey'
+}
+
+/** input type for inserting data into table "billing.subscriptions" */
+export type Billing_Subscriptions_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Subscriptions_Max_Fields = {
+  __typename?: 'billing_subscriptions_max_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Subscriptions_Min_Fields = {
+  __typename?: 'billing_subscriptions_min_fields';
+  app_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  dedicated_compute?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.subscriptions" */
+export type Billing_Subscriptions_Mutation_Response = {
+  __typename?: 'billing_subscriptions_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Subscriptions>;
+};
+
+/** input type for inserting object relation for remote table "billing.subscriptions" */
+export type Billing_Subscriptions_Obj_Rel_Insert_Input = {
+  data: Billing_Subscriptions_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
+};
+
+/** on_conflict condition type for table "billing.subscriptions" */
+export type Billing_Subscriptions_On_Conflict = {
+  constraint: Billing_Subscriptions_Constraint;
+  update_columns?: Array<Billing_Subscriptions_Update_Column>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.subscriptions". */
+export type Billing_Subscriptions_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  app_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  dedicated_compute?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.subscriptions */
+export type Billing_Subscriptions_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.subscriptions" */
+export enum Billing_Subscriptions_Select_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "billing.subscriptions" */
+export type Billing_Subscriptions_Set_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "billing_subscriptions" */
+export type Billing_Subscriptions_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Subscriptions_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Subscriptions_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  dedicated_compute?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "billing.subscriptions" */
+export enum Billing_Subscriptions_Update_Column {
+  /** column name */
+  AppId = 'app_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Billing_Subscriptions_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
+  where: Billing_Subscriptions_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'. */
@@ -8989,6 +9703,12 @@ export type Mutation_Root = {
   __typename?: 'mutation_root';
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
+  billingFinishSubscription: Scalars['Boolean'];
+  billingFixSubscriptions: Scalars['Boolean'];
+  billingReportDedicatedCompute: Scalars['Boolean'];
+  billingUpdateAndReportDedicatedComputeReports: Scalars['Boolean'];
+  billingUpdateDedicatedCompute: Scalars['Boolean'];
+  billingUpdateDedicatedComputeReports: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -9291,7 +10011,6 @@ export type Mutation_Root = {
   /** update data of the table: "cli_tokens" */
   updateCliTokens?: Maybe<CliTokens_Mutation_Response>;
   updateConfig: ConfigConfig;
-  updateDedicatedResources: Scalars['Boolean'];
   /** update single row of the table: "deployments" */
   updateDeployment?: Maybe<Deployments>;
   /** update single row of the table: "deployment_logs" */
@@ -9422,6 +10141,48 @@ export type Mutation_Root = {
   update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
   /** update multiples rows of table: "workspaces" */
   update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
+  /** delete single row from the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_delete_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
+  /** delete single row from the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_delete_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** delete data from the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_delete_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
+  /** delete data from the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_delete_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** delete single row from the table: "billing.subscriptions" */
+  zzzDONOTUSE_delete_billing_subscription?: Maybe<Billing_Subscriptions>;
+  /** delete data from the table: "billing.subscriptions" */
+  zzzDONOTUSE_delete_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
+  /** insert a single row into the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_insert_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
+  /** insert a single row into the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_insert_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** insert data into the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_insert_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
+  /** insert data into the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_insert_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** insert a single row into the table: "billing.subscriptions" */
+  zzzDONOTUSE_insert_billing_subscription?: Maybe<Billing_Subscriptions>;
+  /** insert data into the table: "billing.subscriptions" */
+  zzzDONOTUSE_insert_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
+  /** update single row of the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_update_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
+  /** update single row of the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_update_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** update data of the table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_update_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
+  /** update data of the table: "billing.dedicated_compute" */
+  zzzDONOTUSE_update_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** update single row of the table: "billing.subscriptions" */
+  zzzDONOTUSE_update_billing_subscription?: Maybe<Billing_Subscriptions>;
+  /** update data of the table: "billing.subscriptions" */
+  zzzDONOTUSE_update_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
+  /** update multiples rows of table: "billing.dedicated_compute" */
+  zzzDONOTUSE_update_many_billing_dedicated_compute?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Mutation_Response>>>;
+  /** update multiples rows of table: "billing.dedicated_compute_reports" */
+  zzzDONOTUSE_update_many_billing_dedicated_compute_reports?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>>>;
+  /** update multiples rows of table: "billing.subscriptions" */
+  zzzDONOTUSE_update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
 };
 
 
@@ -9435,6 +10196,40 @@ export type Mutation_RootBackupAllApplicationsDatabaseArgs = {
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
   expireInDays?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingFinishSubscriptionArgs = {
+  appID: Scalars['uuid'];
+  appName: Scalars['String'];
+  subdomain: Scalars['String'];
+  subscriptionID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingReportDedicatedComputeArgs = {
+  reportTime: Scalars['Timestamp'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdateAndReportDedicatedComputeReportsArgs = {
+  reportTime: Scalars['Timestamp'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
+  appID: Scalars['uuid'];
+  totalMillicores: Scalars['Int'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdateDedicatedComputeReportsArgs = {
+  reportTime: Scalars['Timestamp'];
 };
 
 
@@ -10497,13 +11292,6 @@ export type Mutation_RootUpdateConfigArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdateDedicatedResourcesArgs = {
-  appID: Scalars['uuid'];
-  totalMillicores: Scalars['Int'];
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateDeploymentArgs = {
   _set?: InputMaybe<Deployments_Set_Input>;
   pk_columns: Deployments_Pk_Columns_Input;
@@ -10966,6 +11754,148 @@ export type Mutation_RootUpdate_WorkspaceMembers_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Workspaces_ManyArgs = {
   updates: Array<Workspaces_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_ComputeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportsArgs = {
+  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_ComputesArgs = {
+  where: Billing_Dedicated_Compute_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_SubscriptionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Delete_Billing_SubscriptionsArgs = {
+  where: Billing_Subscriptions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_ComputeArgs = {
+  object: Billing_Dedicated_Compute_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportArgs = {
+  object: Billing_Dedicated_Compute_Reports_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportsArgs = {
+  objects: Array<Billing_Dedicated_Compute_Reports_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_ComputesArgs = {
+  objects: Array<Billing_Dedicated_Compute_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_SubscriptionArgs = {
+  object: Billing_Subscriptions_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Insert_Billing_SubscriptionsArgs = {
+  objects: Array<Billing_Subscriptions_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_ComputeArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
+  pk_columns: Billing_Dedicated_Compute_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
+  pk_columns: Billing_Dedicated_Compute_Reports_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportsArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Reports_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Reports_Set_Input>;
+  where: Billing_Dedicated_Compute_Reports_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_ComputesArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
+  where: Billing_Dedicated_Compute_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_SubscriptionArgs = {
+  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
+  pk_columns: Billing_Subscriptions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Billing_SubscriptionsArgs = {
+  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
+  where: Billing_Subscriptions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_ComputeArgs = {
+  updates: Array<Billing_Dedicated_Compute_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_Compute_ReportsArgs = {
+  updates: Array<Billing_Dedicated_Compute_Reports_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootZzzDonotuse_Update_Many_Billing_SubscriptionsArgs = {
+  updates: Array<Billing_Subscriptions_Updates>;
 };
 
 /** column ordering options */
@@ -12009,6 +12939,25 @@ export type Query_Root = {
   backups: Array<Backups>;
   /** fetch aggregated fields from the table: "backups" */
   backupsAggregate: Backups_Aggregate;
+  /** fetch data from the table: "billing.dedicated_compute" using primary key columns */
+  billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** fetch aggregated fields from the table: "billing.dedicated_compute" */
+  billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
+  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
+  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** fetch data from the table: "billing.dedicated_compute_reports" */
+  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
+  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
+  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
+  /** fetch data from the table: "billing.dedicated_compute" */
+  billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
+  billingDummy: Scalars['Boolean'];
+  /** fetch data from the table: "billing.subscriptions" using primary key columns */
+  billingSubscription?: Maybe<Billing_Subscriptions>;
+  /** fetch data from the table: "billing.subscriptions" */
+  billingSubscriptions: Array<Billing_Subscriptions>;
+  /** fetch aggregated fields from the table: "billing.subscriptions" */
+  billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -12022,6 +12971,7 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
   config?: Maybe<ConfigConfig>;
+  configRawJSON: Scalars['String'];
   configs: Array<ConfigAppConfig>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
@@ -12035,7 +12985,6 @@ export type Query_Root = {
   countries_aggregate: Countries_Aggregate;
   /** fetch data from the table: "countries" using primary key columns */
   countries_by_pk?: Maybe<Countries>;
-  dedicatedResourcesReport: Array<DedicatedResourceReport>;
   /** fetch data from the table: "deployments" using primary key columns */
   deployment?: Maybe<Deployments>;
   /** fetch data from the table: "deployment_logs" using primary key columns */
@@ -12425,6 +13374,75 @@ export type Query_RootBackupsAggregateArgs = {
 };
 
 
+export type Query_RootBillingDedicatedComputeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingDedicatedComputeAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Query_RootBillingDedicatedComputeReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingDedicatedComputeReportsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+
+export type Query_RootBillingDedicatedComputeReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+
+export type Query_RootBillingDedicatedComputesArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Query_RootBillingSubscriptionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingSubscriptionsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+
+export type Query_RootBillingSubscriptionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+
 export type Query_RootBucketArgs = {
   id: Scalars['String'];
 };
@@ -12472,6 +13490,12 @@ export type Query_RootCliTokensAggregateArgs = {
 
 
 export type Query_RootConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+};
+
+
+export type Query_RootConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 };
@@ -12526,11 +13550,6 @@ export type Query_RootCountries_AggregateArgs = {
 
 export type Query_RootCountries_By_PkArgs = {
   code: Scalars['bpchar'];
-};
-
-
-export type Query_RootDedicatedResourcesReportArgs = {
-  appID: Scalars['uuid'];
 };
 
 
@@ -13358,6 +14377,30 @@ export type Subscription_Root = {
   backupsAggregate: Backups_Aggregate;
   /** fetch data from the table in a streaming manner: "backups" */
   backups_stream: Array<Backups>;
+  /** fetch data from the table: "billing.dedicated_compute" using primary key columns */
+  billingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** fetch aggregated fields from the table: "billing.dedicated_compute" */
+  billingDedicatedComputeAggregate: Billing_Dedicated_Compute_Aggregate;
+  /** fetch data from the table: "billing.dedicated_compute_reports" using primary key columns */
+  billingDedicatedComputeReport?: Maybe<Billing_Dedicated_Compute_Reports>;
+  /** fetch data from the table: "billing.dedicated_compute_reports" */
+  billingDedicatedComputeReports: Array<Billing_Dedicated_Compute_Reports>;
+  /** fetch aggregated fields from the table: "billing.dedicated_compute_reports" */
+  billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
+  /** fetch data from the table: "billing.dedicated_compute" */
+  billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
+  /** fetch data from the table: "billing.subscriptions" using primary key columns */
+  billingSubscription?: Maybe<Billing_Subscriptions>;
+  /** fetch data from the table: "billing.subscriptions" */
+  billingSubscriptions: Array<Billing_Subscriptions>;
+  /** fetch aggregated fields from the table: "billing.subscriptions" */
+  billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
+  /** fetch data from the table in a streaming manner: "billing.dedicated_compute_reports" */
+  billing_dedicated_compute_reports_stream: Array<Billing_Dedicated_Compute_Reports>;
+  /** fetch data from the table in a streaming manner: "billing.dedicated_compute" */
+  billing_dedicated_compute_stream: Array<Billing_Dedicated_Compute>;
+  /** fetch data from the table in a streaming manner: "billing.subscriptions" */
+  billing_subscriptions_stream: Array<Billing_Subscriptions>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -13867,6 +14910,96 @@ export type Subscription_RootBackups_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Backups_Stream_Cursor_Input>>;
   where?: InputMaybe<Backups_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingDedicatedComputeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBillingDedicatedComputeAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingDedicatedComputeReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBillingDedicatedComputeReportsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingDedicatedComputeReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingDedicatedComputesArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Dedicated_Compute_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Order_By>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingSubscriptionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBillingSubscriptionsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingSubscriptionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Subscriptions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Dedicated_Compute_Reports_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Dedicated_Compute_Reports_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Subscriptions_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Subscriptions_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
 };
 
 
