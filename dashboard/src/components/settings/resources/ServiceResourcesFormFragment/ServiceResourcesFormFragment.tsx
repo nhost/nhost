@@ -3,8 +3,10 @@ import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
+  MAX_SERVICE_REPLICAS,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
+  MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
 } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import Box from '@/ui/v2/Box';
@@ -22,6 +24,13 @@ export interface ServiceResourcesFormFragmentProps {
    * The description of the form fragment.
    */
   description: string;
+  /**
+   * Form field name for replica count.
+   */
+  replicaKey: Exclude<
+    keyof ResourceSettingsFormValues,
+    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
+  >;
   /**
    * Form field name for CPU.
    */
@@ -41,6 +50,7 @@ export interface ServiceResourcesFormFragmentProps {
 export default function ServiceResourcesFormFragment({
   title,
   description,
+  replicaKey,
   cpuKey,
   memoryKey,
 }: ServiceResourcesFormFragmentProps) {
@@ -106,6 +116,41 @@ export default function ServiceResourcesFormFragment({
         </Text>
 
         <Text color="secondary">{description}</Text>
+      </Box>
+
+      <Box className="grid grid-flow-row gap-2">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
+          <Text>
+            Replicas:{' '}
+            <span className="font-medium">{formValues[replicaKey]}</span>
+          </Text>
+        </Box>
+
+        <Slider
+          value={formValues[replicaKey]}
+          onChange={(_event, value) => {
+            if (Array.isArray(value)) {
+              if (value[0] < MIN_SERVICE_REPLICAS) {
+                return;
+              }
+
+              setValue(replicaKey, value[0], { shouldDirty: true });
+
+              return;
+            }
+
+            if (value < MIN_SERVICE_REPLICAS) {
+              return;
+            }
+
+            setValue(replicaKey, value, { shouldDirty: true });
+          }}
+          min={0}
+          max={MAX_SERVICE_REPLICAS}
+          step={1}
+          aria-label={`${title} Replicas`}
+          marks
+        />
       </Box>
 
       <Box className="grid grid-flow-row gap-2">

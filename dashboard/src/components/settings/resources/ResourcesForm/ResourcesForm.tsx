@@ -4,22 +4,18 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
+import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import useProPlan from '@/hooks/common/useProPlan';
+import { useProPlan } from '@/hooks/common/useProPlan';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import Text from '@/ui/v2/Text';
-import {
-  RESOURCE_VCPU_MULTIPLIER,
-  RESOURCE_VCPU_PRICE,
-} from '@/utils/CONSTANTS';
+import { RESOURCE_VCPU_PRICE } from '@/utils/CONSTANTS';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
@@ -34,6 +30,7 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import ResourcesFormFooter from './ResourcesFormFooter';
 
 function getInitialServiceResources(
   data: GetResourcesQuery,
@@ -42,6 +39,7 @@ function getInitialServiceResources(
   const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
 
   return {
+    replicas: 1,
     vcpu: cpu || 0,
     memory: memory || 0,
   };
@@ -95,12 +93,16 @@ export default function ResourcesForm() {
       enabled: totalInitialVCPU > 0 && totalInitialMemory > 0,
       totalAvailableVCPU: totalInitialVCPU || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
-      hasuraVCPU: initialHasuraResources.vcpu || 500,
-      hasuraMemory: initialHasuraResources.memory || 1536,
+      databaseReplicas: initialDatabaseResources.replicas || 1,
       databaseVCPU: initialDatabaseResources.vcpu || 1000,
       databaseMemory: initialDatabaseResources.memory || 2048,
+      hasuraReplicas: initialHasuraResources.replicas || 1,
+      hasuraVCPU: initialHasuraResources.vcpu || 500,
+      hasuraMemory: initialHasuraResources.memory || 1536,
+      authReplicas: initialAuthResources.replicas || 1,
       authVCPU: initialAuthResources.vcpu || 250,
       authMemory: initialAuthResources.memory || 256,
+      storageReplicas: initialStorageResources.replicas || 1,
       storageVCPU: initialStorageResources.vcpu || 250,
       storageMemory: initialStorageResources.memory || 256,
     },
@@ -129,14 +131,28 @@ export default function ResourcesForm() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const enabled = watch('enabled');
-  const totalAvailableVCPU = enabled ? watch('totalAvailableVCPU') : 0;
 
   const initialPrice =
-    RESOURCE_VCPU_PRICE * (totalInitialVCPU / RESOURCE_VCPU_MULTIPLIER) +
-    proPlan.price;
-  const updatedPrice =
-    RESOURCE_VCPU_PRICE * (totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
-    proPlan.price;
+    proPlan.price +
+    calculateApproximateCost(
+      RESOURCE_VCPU_PRICE,
+      {
+        replicas: initialDatabaseResources.replicas,
+        vcpu: initialDatabaseResources.vcpu,
+      },
+      {
+        replicas: initialHasuraResources.replicas,
+        vcpu: initialHasuraResources.vcpu,
+      },
+      {
+        replicas: initialAuthResources.replicas,
+        vcpu: initialAuthResources.vcpu,
+      },
+      {
+        replicas: initialStorageResources.replicas,
+        vcpu: initialStorageResources.vcpu,
+      },
+    );
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -144,7 +160,7 @@ export default function ResourcesForm() {
         appId: currentProject?.id,
         config: {
           postgres: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
                     cpu: formValues.databaseVCPU,
@@ -155,7 +171,7 @@ export default function ResourcesForm() {
               : null,
           },
           hasura: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
                     cpu: formValues.hasuraVCPU,
@@ -166,7 +182,7 @@ export default function ResourcesForm() {
               : null,
           },
           auth: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
                     cpu: formValues.authVCPU,
@@ -177,7 +193,7 @@ export default function ResourcesForm() {
               : null,
           },
           storage: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
                     cpu: formValues.storageVCPU,
@@ -209,12 +225,16 @@ export default function ResourcesForm() {
           enabled: false,
           totalAvailableVCPU: 2000,
           totalAvailableMemory: 4096,
-          hasuraVCPU: 500,
-          hasuraMemory: 1536,
+          databaseReplicas: 1,
           databaseVCPU: 1000,
           databaseMemory: 2048,
+          hasuraReplicas: 1,
+          hasuraVCPU: 500,
+          hasuraMemory: 1536,
+          authReplicas: 1,
           authVCPU: 250,
           authMemory: 256,
+          storageReplicas: 1,
           storageVCPU: 250,
           storageMemory: 256,
         });
@@ -253,14 +273,14 @@ export default function ResourcesForm() {
     }
 
     openDialog({
-      title: enabled
+      title: formValues.enabled
         ? 'Confirm Dedicated Resources'
         : 'Disable Dedicated Resources',
       component: (
         <ResourcesConfirmationDialog
           updatedResources={{
-            vcpu: enabled ? formValues.totalAvailableVCPU : 0,
-            memory: enabled ? formValues.totalAvailableMemory : 0,
+            vcpu: formValues.enabled ? formValues.totalAvailableVCPU : 0,
+            memory: formValues.enabled ? formValues.totalAvailableMemory : 0,
           }}
           onCancel={closeDialog}
           onSubmit={async () => {
@@ -304,6 +324,7 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="PostgreSQL Database"
                 description="Manage how much compute you need for the PostgreSQL Database."
+                replicaKey="databaseReplicas"
                 cpuKey="databaseVCPU"
                 memoryKey="databaseMemory"
               />
@@ -311,6 +332,7 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="Hasura GraphQL"
                 description="Manage how much compute you need for the Hasura GraphQL API."
+                replicaKey="hasuraReplicas"
                 cpuKey="hasuraVCPU"
                 memoryKey="hasuraMemory"
               />
@@ -318,6 +340,7 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="Auth"
                 description="Manage how much compute you need for Auth."
+                replicaKey="authReplicas"
                 cpuKey="authVCPU"
                 memoryKey="authMemory"
               />
@@ -325,6 +348,7 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="Storage"
                 description="Manage how much compute you need for Storage."
+                replicaKey="storageReplicas"
                 cpuKey="storageVCPU"
                 memoryKey="storageMemory"
               />
@@ -344,7 +368,7 @@ export default function ResourcesForm() {
               )}
             </>
           ) : (
-            <Box className={twMerge('px-4', (enabled || isDirty) && 'pb-4')}>
+            <Box className={twMerge('px-4', 'pb-4')}>
               <Alert className="text-left">
                 Enable this feature to access custom resource allocation for
                 your services.
@@ -352,29 +376,7 @@ export default function ResourcesForm() {
             </Box>
           )}
 
-          {(enabled || isDirty) && (
-            <Box className="flex flex-row items-center justify-between border-t px-4 pt-4">
-              <span />
-
-              <Box className="flex flex-row items-center gap-4">
-                <Text>
-                  Total cost:{' '}
-                  <span className="font-medium">
-                    ${updatedPrice.toFixed(2)}/mo
-                  </span>
-                </Text>
-
-                <Button
-                  type="submit"
-                  variant={isDirty ? 'contained' : 'outlined'}
-                  color={isDirty ? 'primary' : 'secondary'}
-                  disabled={!isDirty}
-                >
-                  Save
-                </Button>
-              </Box>
-            </Box>
-          )}
+          <ResourcesFormFooter />
         </SettingsContainer>
       </Form>
     </FormProvider>

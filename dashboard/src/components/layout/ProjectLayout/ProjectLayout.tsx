@@ -103,7 +103,7 @@ function ProjectLayoutContent({
       >
         {children}
 
-        <NextSeo title={currentProject.name} />
+        <NextSeo title={currentProject?.name} />
       </Box>
     </>
   );

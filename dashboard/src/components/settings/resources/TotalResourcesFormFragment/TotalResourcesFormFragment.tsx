@@ -6,7 +6,7 @@ import {
   MIN_TOTAL_MEMORY,
   MIN_TOTAL_VCPU,
 } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import useProPlan from '@/hooks/common/useProPlan';
+import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';

@@ -1,6 +1,6 @@
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
-import useProPlan from '@/hooks/common/useProPlan';
+import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';

@@ -291,8 +291,8 @@ test('should display a red button when custom resources are disabled', async () 
   await user.click(screen.getByRole('checkbox'));
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
-  expect(screen.getByText(/total cost:/i)).toHaveTextContent(
-    /total cost: \$25\.00\/mo/i,
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$25\.00\/mo/i,
   );
 
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -307,7 +307,7 @@ test('should display a red button when custom resources are disabled', async () 
   });
 });
 
-test('should hide the footer when custom resource allocation is disabled', async () => {
+test('should hide the pricing information when custom resource allocation is disabled', async () => {
   server.use(updateConfigMutation);
 
   const user = userEvent.setup();
@@ -327,5 +327,5 @@ test('should hide the footer when custom resource allocation is disabled', async
 
   await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
 
-  expect(screen.queryByText(/total cost:/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/approximate cost:/i)).not.toBeInTheDocument();
 });

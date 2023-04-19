@@ -29,6 +29,16 @@ export const MAX_TOTAL_VCPU = 60 * RESOURCE_VCPU_MULTIPLIER;
 export const MAX_TOTAL_MEMORY = MAX_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
+ * The minimum amount of replicas that has to be allocated per service.
+ */
+export const MIN_SERVICE_REPLICAS = 1;
+
+/**
+ * The maximum amount of replicas that can be allocated per service.
+ */
+export const MAX_SERVICE_REPLICAS = 32;
+
+/**
  * The minimum amount of CPU that has to be allocated per service.
  */
 export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
@@ -63,6 +73,11 @@ export const resourceSettingsValidationSchema = Yup.object({
     .required()
     .min(MIN_TOTAL_MEMORY)
     .max(MAX_TOTAL_MEMORY),
+  databaseReplicas: Yup.number()
+    .label('Database Replicas')
+    .required()
+    .min(1)
+    .max(MAX_SERVICE_REPLICAS),
   databaseVCPU: Yup.number()
     .label('Database vCPUs')
     .required()
@@ -73,6 +88,11 @@ export const resourceSettingsValidationSchema = Yup.object({
     .required()
     .min(MIN_SERVICE_MEMORY)
     .max(MAX_SERVICE_MEMORY),
+  hasuraReplicas: Yup.number()
+    .label('Hasura GraphQL Replicas')
+    .required()
+    .min(1)
+    .max(MAX_SERVICE_REPLICAS),
   hasuraVCPU: Yup.number()
     .label('Hasura GraphQL vCPUs')
     .required()
@@ -83,6 +103,11 @@ export const resourceSettingsValidationSchema = Yup.object({
     .required()
     .min(MIN_SERVICE_MEMORY)
     .max(MAX_SERVICE_MEMORY),
+  authReplicas: Yup.number()
+    .label('Auth Replicas')
+    .required()
+    .min(1)
+    .max(MAX_SERVICE_REPLICAS),
   authVCPU: Yup.number()
     .label('Auth vCPUs')
     .required()
@@ -93,6 +118,11 @@ export const resourceSettingsValidationSchema = Yup.object({
     .required()
     .min(MIN_SERVICE_MEMORY)
     .max(MAX_SERVICE_MEMORY),
+  storageReplicas: Yup.number()
+    .label('Storage Replicas')
+    .required()
+    .min(1)
+    .max(MAX_SERVICE_REPLICAS),
   storageVCPU: Yup.number()
     .label('Storage vCPUs')
     .required()

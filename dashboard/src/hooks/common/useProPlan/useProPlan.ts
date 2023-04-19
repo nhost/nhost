@@ -9,7 +9,7 @@ export default function useProPlan() {
         },
       },
     },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'cache-first',
   });
 
   return { data: data?.plans?.at(0), ...rest };
