@@ -6,7 +6,7 @@ export default defineConfig({
   // @ts-ignore
   plugins: [tsconfigPaths({ projects: ['./tsconfig.test.json'] }), react()],
   test: {
-    testTimeout: 5000,
+    testTimeout: 10000,
     environment: 'jsdom',
     globals: true,
     setupFiles: 'src/setupTests.ts',

@@ -13,7 +13,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
@@ -63,9 +62,7 @@ test('should show an empty state message that the feature must be enabled if no 
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
-
-  expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
+  expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 });
 
 test('should show the sliders if the switch is enabled', async () => {
@@ -74,9 +71,7 @@ test('should show the sliders if the switch is enabled', async () => {
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
-
-  expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
+  expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 
   await user.click(screen.getByRole('checkbox'));
 
@@ -87,12 +82,9 @@ test('should show the sliders if the switch is enabled', async () => {
 test('should not show an empty state message if there is data available', async () => {
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('slider', { name: /total available vcpu/i }),
-    ).toBeInTheDocument(),
-  );
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
   expect(screen.getAllByRole('slider')).toHaveLength(12);
@@ -103,7 +95,9 @@ test('should not show an empty state message if there is data available', async 
 test('should show a warning message if not all the resources are allocated', async () => {
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   changeSliderValue(
     screen.getByRole('slider', {
@@ -123,7 +117,9 @@ test('should show a warning message if not all the resources are allocated', asy
 test('should update the price when the top slider is changed', async () => {
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   expect(screen.queryByText(/\$200\.00\/mo/i)).not.toBeInTheDocument();
 
@@ -143,7 +139,9 @@ test('should show a validation error when the form is submitted when not everyth
   const user = userEvent.setup();
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
 
@@ -167,12 +165,9 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   const user = userEvent.setup();
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('slider', { name: /total available vcpu/i }),
-    ).toBeInTheDocument(),
-  );
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   changeSliderValue(
     screen.getByRole('slider', {
@@ -242,6 +237,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
   await user.click(screen.getByRole('button', { name: /confirm/i }));
 
   await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
+
   expect(
     await screen.findByText(/resources have been updated successfully./i),
   ).toBeInTheDocument();
@@ -257,7 +253,9 @@ test('should display a red button when custom resources are disabled', async () 
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   await user.click(screen.getByRole('checkbox'));
 
@@ -285,7 +283,9 @@ test('should hide the pricing information when custom resource allocation is dis
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   await user.click(screen.getByRole('checkbox'));
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -304,7 +304,9 @@ test('should hide the pricing information when custom resource allocation is dis
 test('should not be able to lower the total available resources below the allocated resources', async () => {
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   changeSliderValue(
     screen.getByRole('slider', {
@@ -319,7 +321,9 @@ test('should not be able to lower the total available resources below the alloca
 test('should change pricing based on selected replicas', async () => {
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
@@ -349,7 +353,9 @@ test('should change pricing in the modal based on selected replicas', async () =
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
@@ -386,7 +392,9 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
 
   render(<ResourcesForm />);
 
-  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
 
   changeSliderValue(
     screen.getByRole('slider', {
