@@ -93,18 +93,26 @@ export default function ResourcesForm() {
       enabled: totalInitialVCPU > 0 && totalInitialMemory > 0,
       totalAvailableVCPU: totalInitialVCPU || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
-      databaseReplicas: initialDatabaseResources.replicas || 1,
-      databaseVCPU: initialDatabaseResources.vcpu || 1000,
-      databaseMemory: initialDatabaseResources.memory || 2048,
-      hasuraReplicas: initialHasuraResources.replicas || 1,
-      hasuraVCPU: initialHasuraResources.vcpu || 500,
-      hasuraMemory: initialHasuraResources.memory || 1536,
-      authReplicas: initialAuthResources.replicas || 1,
-      authVCPU: initialAuthResources.vcpu || 250,
-      authMemory: initialAuthResources.memory || 256,
-      storageReplicas: initialStorageResources.replicas || 1,
-      storageVCPU: initialStorageResources.vcpu || 250,
-      storageMemory: initialStorageResources.memory || 256,
+      database: {
+        replicas: initialDatabaseResources.replicas || 1,
+        vcpu: initialDatabaseResources.vcpu || 1000,
+        memory: initialDatabaseResources.memory || 2048,
+      },
+      hasura: {
+        replicas: initialHasuraResources.replicas || 1,
+        vcpu: initialHasuraResources.vcpu || 500,
+        memory: initialHasuraResources.memory || 1536,
+      },
+      auth: {
+        replicas: initialAuthResources.replicas || 1,
+        vcpu: initialAuthResources.vcpu || 250,
+        memory: initialAuthResources.memory || 256,
+      },
+      storage: {
+        replicas: initialStorageResources.replicas || 1,
+        vcpu: initialStorageResources.vcpu || 250,
+        memory: initialStorageResources.memory || 256,
+      },
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
@@ -163,8 +171,8 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.databaseVCPU,
-                    memory: formValues.databaseMemory,
+                    cpu: formValues.database?.vcpu,
+                    memory: formValues.database?.memory,
                   },
                   replicas: 1,
                 }
@@ -174,8 +182,8 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.hasuraVCPU,
-                    memory: formValues.hasuraMemory,
+                    cpu: formValues.hasura?.vcpu,
+                    memory: formValues.hasura?.memory,
                   },
                   replicas: 1,
                 }
@@ -185,8 +193,8 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.authVCPU,
-                    memory: formValues.authMemory,
+                    cpu: formValues.auth?.vcpu,
+                    memory: formValues.auth?.memory,
                   },
                   replicas: 1,
                 }
@@ -196,8 +204,8 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.storageVCPU,
-                    memory: formValues.storageMemory,
+                    cpu: formValues.storage?.vcpu,
+                    memory: formValues.storage?.memory,
                   },
                   replicas: 1,
                 }
@@ -225,18 +233,26 @@ export default function ResourcesForm() {
           enabled: false,
           totalAvailableVCPU: 2000,
           totalAvailableMemory: 4096,
-          databaseReplicas: 1,
-          databaseVCPU: 1000,
-          databaseMemory: 2048,
-          hasuraReplicas: 1,
-          hasuraVCPU: 500,
-          hasuraMemory: 1536,
-          authReplicas: 1,
-          authVCPU: 250,
-          authMemory: 256,
-          storageReplicas: 1,
-          storageVCPU: 250,
-          storageMemory: 256,
+          database: {
+            replicas: 1,
+            vcpu: 1000,
+            memory: 2048,
+          },
+          hasura: {
+            replicas: 1,
+            vcpu: 500,
+            memory: 1536,
+          },
+          auth: {
+            replicas: 1,
+            vcpu: 250,
+            memory: 256,
+          },
+          storage: {
+            replicas: 1,
+            vcpu: 250,
+            memory: 256,
+          },
         });
       } else {
         form.reset(null, { keepValues: true, keepDirty: false });
@@ -324,33 +340,25 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="PostgreSQL Database"
                 description="Manage how much compute you need for the PostgreSQL Database."
-                replicaKey="databaseReplicas"
-                cpuKey="databaseVCPU"
-                memoryKey="databaseMemory"
+                serviceKey="database"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Hasura GraphQL"
                 description="Manage how much compute you need for the Hasura GraphQL API."
-                replicaKey="hasuraReplicas"
-                cpuKey="hasuraVCPU"
-                memoryKey="hasuraMemory"
+                serviceKey="hasura"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Auth"
                 description="Manage how much compute you need for Auth."
-                replicaKey="authReplicas"
-                cpuKey="authVCPU"
-                memoryKey="authMemory"
+                serviceKey="auth"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Storage"
                 description="Manage how much compute you need for Storage."
-                replicaKey="storageReplicas"
-                cpuKey="storageVCPU"
-                memoryKey="storageMemory"
+                serviceKey="storage"
               />
               {validationError && (
                 <Box className="px-4 pb-4">

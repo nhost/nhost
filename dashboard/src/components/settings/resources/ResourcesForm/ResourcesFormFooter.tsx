@@ -26,41 +26,11 @@ export default function ResourcesFormFooter() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const enabled = useWatch<ResourceSettingsFormValues>({ name: 'enabled' });
-  const [
-    totalAvailableVCPU,
-    databaseReplicas,
-    databaseVCPU,
-    hasuraReplicas,
-    hasuraVCPU,
-    authReplicas,
-    authVCPU,
-    storageReplicas,
-    storageVCPU,
-  ] = useWatch<
+  const [totalAvailableVCPU, database, hasura, auth, storage] = useWatch<
     ResourceSettingsFormValues,
-    [
-      'totalAvailableVCPU',
-      'databaseReplicas',
-      'databaseVCPU',
-      'hasuraReplicas',
-      'hasuraVCPU',
-      'authReplicas',
-      'authVCPU',
-      'storageReplicas',
-      'storageVCPU',
-    ]
+    ['totalAvailableVCPU', 'database', 'hasura', 'auth', 'storage']
   >({
-    name: [
-      'totalAvailableVCPU',
-      'databaseReplicas',
-      'databaseVCPU',
-      'hasuraReplicas',
-      'hasuraVCPU',
-      'authReplicas',
-      'authVCPU',
-      'storageReplicas',
-      'storageVCPU',
-    ],
+    name: ['totalAvailableVCPU', 'database', 'hasura', 'auth', 'storage'],
   });
 
   if (proPlanLoading) {
@@ -77,20 +47,20 @@ export default function ResourcesFormFooter() {
   const priceForServicesAndReplicas = calculateApproximateCost(
     RESOURCE_VCPU_PRICE,
     {
-      replicas: databaseReplicas,
-      vcpu: databaseVCPU,
+      replicas: database?.replicas,
+      vcpu: database?.vcpu,
     },
     {
-      replicas: hasuraReplicas,
-      vcpu: hasuraVCPU,
+      replicas: hasura?.replicas,
+      vcpu: hasura?.vcpu,
     },
     {
-      replicas: authReplicas,
-      vcpu: authVCPU,
+      replicas: auth?.replicas,
+      vcpu: auth?.vcpu,
     },
     {
-      replicas: storageReplicas,
-      vcpu: storageVCPU,
+      replicas: storage?.replicas,
+      vcpu: storage?.vcpu,
     },
   );
 

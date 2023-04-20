@@ -27,23 +27,9 @@ export interface ServiceResourcesFormFragmentProps {
    */
   description: string;
   /**
-   * Form field name for replica count.
+   * Form field name for service.
    */
-  replicaKey: Exclude<
-    keyof ResourceSettingsFormValues,
-    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
-  >;
-  /**
-   * Form field name for CPU.
-   */
-  cpuKey: Exclude<
-    keyof ResourceSettingsFormValues,
-    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
-  >;
-  /**
-   * Form field name for Memory.
-   */
-  memoryKey: Exclude<
+  serviceKey: Exclude<
     keyof ResourceSettingsFormValues,
     'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
   >;
@@ -52,52 +38,61 @@ export interface ServiceResourcesFormFragmentProps {
 export default function ServiceResourcesFormFragment({
   title,
   description,
-  replicaKey,
-  cpuKey,
-  memoryKey,
+  serviceKey,
 }: ServiceResourcesFormFragmentProps) {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formState = useFormState<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
+  const serviceValues = formValues[serviceKey];
 
   // Total allocated CPU for all resources
-  const totalAllocatedCPU = Object.keys(formValues)
-    .filter((key) => key.endsWith('CPU') && key !== 'totalAvailableVCPU')
-    .reduce((acc, key) => acc + formValues[key], 0);
+  const totalAllocatedVCPU = Object.keys(formValues)
+    .filter(
+      (key) =>
+        !['enabled', 'totalAvailableVCPU', 'totalAvailableMemory'].includes(
+          key,
+        ),
+    )
+    .reduce((acc, key) => acc + formValues[key].vcpu, 0);
 
   // Total allocated memory for all resources
   const totalAllocatedMemory = Object.keys(formValues)
-    .filter((key) => key.endsWith('Memory') && key !== 'totalAvailableMemory')
-    .reduce((acc, key) => acc + formValues[key], 0);
+    .filter(
+      (key) =>
+        !['enabled', 'totalAvailableVCPU', 'totalAvailableMemory'].includes(
+          key,
+        ),
+    )
+    .reduce((acc, key) => acc + formValues[key].memory, 0);
 
-  const remainingCPU = formValues.totalAvailableVCPU - totalAllocatedCPU;
-  const allowedCPU = remainingCPU + formValues[cpuKey];
+  const remainingVCPU = formValues.totalAvailableVCPU - totalAllocatedVCPU;
+  const allowedVCPU = remainingVCPU + serviceValues.vcpu;
 
   const remainingMemory =
     formValues.totalAvailableMemory - totalAllocatedMemory;
-  const allowedMemory = remainingMemory + formValues[memoryKey];
+  const allowedMemory = remainingMemory + serviceValues.memory;
 
   function handleCPUChange(value: string) {
-    const updatedCPU = parseFloat(value);
-    const exceedsAvailableCPU =
-      updatedCPU + (totalAllocatedCPU - formValues[cpuKey]) >
+    const updatedVCPU = parseFloat(value);
+    const exceedsAvailableVCPU =
+      updatedVCPU + (totalAllocatedVCPU - serviceValues.vcpu) >
       formValues.totalAvailableVCPU;
 
     if (
-      Number.isNaN(updatedCPU) ||
-      exceedsAvailableCPU ||
-      updatedCPU < MIN_SERVICE_VCPU
+      Number.isNaN(updatedVCPU) ||
+      exceedsAvailableVCPU ||
+      updatedVCPU < MIN_SERVICE_VCPU
     ) {
       return;
     }
 
-    setValue(cpuKey, updatedCPU, { shouldDirty: true });
+    setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
   }
 
   function handleMemoryChange(value: string) {
     const updatedMemory = parseFloat(value);
     const exceedsAvailableMemory =
-      updatedMemory + (totalAllocatedMemory - formValues[memoryKey]) >
+      updatedMemory + (totalAllocatedMemory - serviceValues.memory) >
       formValues.totalAvailableMemory;
 
     if (
@@ -108,7 +103,7 @@ export default function ServiceResourcesFormFragment({
       return;
     }
 
-    setValue(memoryKey, updatedMemory, { shouldDirty: true });
+    setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
   }
 
   return (
@@ -124,18 +119,20 @@ export default function ServiceResourcesFormFragment({
       <Box className="grid grid-flow-row gap-2">
         <Text>
           Replicas:{' '}
-          <span className="font-medium">{formValues[replicaKey]}</span>
+          <span className="font-medium">{serviceValues.replicas}</span>
         </Text>
 
         <Slider
-          value={formValues[replicaKey]}
+          value={serviceValues.replicas}
           onChange={(_event, value) => {
             if (Array.isArray(value)) {
               if (value[0] < MIN_SERVICE_REPLICAS) {
                 return;
               }
 
-              setValue(replicaKey, value[0], { shouldDirty: true });
+              setValue(`${serviceKey}.replicas`, value[0], {
+                shouldDirty: true,
+              });
 
               return;
             }
@@ -144,7 +141,7 @@ export default function ServiceResourcesFormFragment({
               return;
             }
 
-            setValue(replicaKey, value, { shouldDirty: true });
+            setValue(`${serviceKey}.replicas`, value, { shouldDirty: true });
           }}
           min={0}
           max={MAX_SERVICE_REPLICAS}
@@ -159,14 +156,14 @@ export default function ServiceResourcesFormFragment({
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
-              {prettifyVCPU(formValues[cpuKey])}
+              {prettifyVCPU(serviceValues.vcpu)}
             </span>
           </Text>
 
-          {remainingCPU > 0 && formValues[cpuKey] < MAX_SERVICE_VCPU && (
+          {remainingVCPU > 0 && serviceValues.vcpu < MAX_SERVICE_VCPU && (
             <Text className="text-sm">
               <span className="font-medium">
-                {prettifyVCPU(remainingCPU)} vCPUs
+                {prettifyVCPU(remainingVCPU)} vCPUs
               </span>{' '}
               remaining
             </Text>
@@ -174,11 +171,11 @@ export default function ServiceResourcesFormFragment({
         </Box>
 
         <Slider
-          value={formValues[cpuKey]}
+          value={serviceValues.vcpu}
           onChange={(_event, value) => handleCPUChange(value.toString())}
           max={MAX_SERVICE_VCPU}
           step={RESOURCE_VCPU_STEP}
-          allowed={allowedCPU}
+          allowed={allowedVCPU}
           aria-label={`${title} vCPU`}
           marks
         />
@@ -189,23 +186,23 @@ export default function ServiceResourcesFormFragment({
           <Box className="grid grid-flow-col items-center justify-start gap-2">
             <Text
               color={
-                formState.errors?.[memoryKey]?.message ? 'error' : 'primary'
+                formState.errors?.[serviceKey]?.message ? 'error' : 'primary'
               }
             >
               Allocated Memory:{' '}
               <span className="font-medium">
-                {prettifyMemory(formValues[memoryKey])}
+                {prettifyMemory(serviceValues.memory)}
               </span>
             </Text>
 
-            {formState.errors?.[memoryKey]?.message ? (
-              <Tooltip title={formState.errors[memoryKey].message}>
+            {formState.errors?.[serviceKey]?.message ? (
+              <Tooltip title={formState.errors[serviceKey].message}>
                 <ExclamationIcon color="error" className="h-4 w-4" />
               </Tooltip>
             ) : null}
           </Box>
 
-          {remainingMemory > 0 && formValues[memoryKey] < MAX_SERVICE_MEMORY && (
+          {remainingMemory > 0 && serviceValues.memory < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">
               <span className="font-medium">
                 {prettifyMemory(remainingMemory)} of Memory
@@ -216,7 +213,7 @@ export default function ServiceResourcesFormFragment({
         </Box>
 
         <Slider
-          value={formValues[memoryKey]}
+          value={serviceValues.memory}
           onChange={(_event, value) => handleMemoryChange(value.toString())}
           max={MAX_SERVICE_MEMORY}
           step={RESOURCE_MEMORY_STEP}

@@ -60,16 +60,16 @@ export default function TotalResourcesFormFragment({
     throw proPlanError;
   }
 
-  const allocatedCPU =
-    formValues.databaseVCPU +
-    formValues.hasuraVCPU +
-    formValues.authVCPU +
-    formValues.storageVCPU;
+  const allocatedVCPU =
+    formValues.database.vcpu +
+    formValues.hasura.vcpu +
+    formValues.auth.vcpu +
+    formValues.storage.vcpu;
   const allocatedMemory =
-    formValues.databaseMemory +
-    formValues.hasuraMemory +
-    formValues.authMemory +
-    formValues.storageMemory;
+    formValues.database.memory +
+    formValues.hasura.memory +
+    formValues.auth.memory +
+    formValues.storage.memory;
 
   const priceForTotalAvailableVCPU =
     (RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU) /
@@ -78,20 +78,20 @@ export default function TotalResourcesFormFragment({
   const priceForServicesAndReplicas = calculateApproximateCost(
     RESOURCE_VCPU_PRICE,
     {
-      replicas: formValues.databaseReplicas,
-      vcpu: formValues.databaseVCPU,
+      replicas: formValues.database?.replicas,
+      vcpu: formValues.database?.vcpu,
     },
     {
-      replicas: formValues.hasuraReplicas,
-      vcpu: formValues.hasuraVCPU,
+      replicas: formValues.hasura?.replicas,
+      vcpu: formValues.hasura?.vcpu,
     },
     {
-      replicas: formValues.authReplicas,
-      vcpu: formValues.authVCPU,
+      replicas: formValues.auth?.replicas,
+      vcpu: formValues.auth?.vcpu,
     },
     {
-      replicas: formValues.storageReplicas,
-      vcpu: formValues.storageVCPU,
+      replicas: formValues.storage?.replicas,
+      vcpu: formValues.storage?.vcpu,
     },
   );
 
@@ -112,22 +112,22 @@ export default function TotalResourcesFormFragment({
     .filter(Boolean)
     .join(' and ');
 
-  function handleCPUChange(value: string) {
-    const updatedCPU = parseFloat(value);
+  function handleVCPUChange(value: string) {
+    const updatedVCPU = parseFloat(value);
     const updatedMemory =
-      (updatedCPU / RESOURCE_VCPU_MULTIPLIER) *
+      (updatedVCPU / RESOURCE_VCPU_MULTIPLIER) *
       RESOURCE_VCPU_MEMORY_RATIO *
       RESOURCE_MEMORY_MULTIPLIER;
 
     if (
-      Number.isNaN(updatedCPU) ||
-      updatedCPU < Math.max(MIN_TOTAL_VCPU, allocatedCPU) ||
+      Number.isNaN(updatedVCPU) ||
+      updatedVCPU < Math.max(MIN_TOTAL_VCPU, allocatedVCPU) ||
       updatedMemory < Math.max(MIN_TOTAL_MEMORY, allocatedMemory)
     ) {
       return;
     }
 
-    setValue('totalAvailableVCPU', updatedCPU, { shouldDirty: true });
+    setValue('totalAvailableVCPU', updatedVCPU, { shouldDirty: true });
     setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
   }
 
@@ -171,7 +171,7 @@ export default function TotalResourcesFormFragment({
 
           <StyledAvailableCpuSlider
             value={formValues.totalAvailableVCPU}
-            onChange={(_event, value) => handleCPUChange(value.toString())}
+            onChange={(_event, value) => handleVCPUChange(value.toString())}
             max={MAX_TOTAL_VCPU}
             step={RESOURCE_VCPU_STEP}
             aria-label="Total Available vCPU"
