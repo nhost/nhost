@@ -36,12 +36,12 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
+  const { compute, replicas } = data?.config?.[service]?.resources || {};
 
   return {
-    replicas: 1,
-    vcpu: cpu || 0,
-    memory: memory || 0,
+    replicas,
+    vcpu: compute?.cpu || 0,
+    memory: compute?.memory || 0,
   };
 }
 
@@ -172,10 +172,10 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.database?.vcpu,
-                    memory: formValues.database?.memory,
+                    cpu: formValues.database.vcpu,
+                    memory: formValues.database.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.database.replicas,
                 }
               : null,
           },
@@ -183,10 +183,10 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.hasura?.vcpu,
-                    memory: formValues.hasura?.memory,
+                    cpu: formValues.hasura.vcpu,
+                    memory: formValues.hasura.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.hasura.replicas,
                 }
               : null,
           },
@@ -194,10 +194,10 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.auth?.vcpu,
-                    memory: formValues.auth?.memory,
+                    cpu: formValues.auth.vcpu,
+                    memory: formValues.auth.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.auth.replicas,
                 }
               : null,
           },
@@ -205,10 +205,10 @@ export default function ResourcesForm() {
             resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.storage?.vcpu,
-                    memory: formValues.storage?.memory,
+                    cpu: formValues.storage.vcpu,
+                    memory: formValues.storage.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.storage.replicas,
                 }
               : null,
           },

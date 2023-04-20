@@ -5,6 +5,7 @@ fragment ServiceResources on ConfigConfig {
         cpu
         memory
       }
+      replicas
     }
   }
   hasura {
@@ -13,6 +14,7 @@ fragment ServiceResources on ConfigConfig {
         cpu
         memory
       }
+      replicas
     }
   }
   postgres {
@@ -21,6 +23,7 @@ fragment ServiceResources on ConfigConfig {
         cpu
         memory
       }
+      replicas
     }
   }
   storage {
@@ -29,6 +32,7 @@ fragment ServiceResources on ConfigConfig {
         cpu
         memory
       }
+      replicas
     }
   }
 }
