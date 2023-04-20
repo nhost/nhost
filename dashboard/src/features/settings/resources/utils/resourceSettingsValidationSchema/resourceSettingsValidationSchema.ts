@@ -81,7 +81,7 @@ const serviceValidationSchema = Yup.object({
       then: (schema) =>
         schema.test(
           'is-matching-ratio',
-          `vCPU and Memory must match the ratio of 1:${RESOURCE_VCPU_MEMORY_RATIO} if you have more than 1 replica.`,
+          `vCPU and Memory must match the 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio if more than one replica is selected.`,
           (memory: number, { parent }) =>
             memory /
               RESOURCE_MEMORY_MULTIPLIER /

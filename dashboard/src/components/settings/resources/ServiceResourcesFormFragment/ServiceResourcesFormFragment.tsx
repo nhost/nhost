@@ -178,7 +178,9 @@ export default function ServiceResourcesFormFragment({
           <Box className="grid grid-flow-col items-center justify-start gap-2">
             <Text
               color={
-                formState.errors?.[serviceKey]?.message ? 'error' : 'primary'
+                formState.errors?.[serviceKey]?.memory?.message
+                  ? 'error'
+                  : 'primary'
               }
             >
               Allocated Memory:{' '}
@@ -187,8 +189,8 @@ export default function ServiceResourcesFormFragment({
               </span>
             </Text>
 
-            {formState.errors?.[serviceKey]?.message ? (
-              <Tooltip title={formState.errors[serviceKey].message}>
+            {formState.errors?.[serviceKey]?.memory?.message ? (
+              <Tooltip title={formState.errors[serviceKey].memory.message}>
                 <ExclamationIcon color="error" className="h-4 w-4" />
               </Tooltip>
             ) : null}

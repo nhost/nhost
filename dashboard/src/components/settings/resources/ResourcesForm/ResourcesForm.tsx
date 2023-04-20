@@ -137,6 +137,7 @@ export default function ResourcesForm() {
 
   const { watch, formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
+  const hasFormErrors = Object.keys(formState.errors).length > 0;
 
   const enabled = watch('enabled');
 
@@ -359,7 +360,24 @@ export default function ResourcesForm() {
                 description="Manage how much compute you need for Storage."
                 serviceKey="storage"
               />
-              {validationError && (
+
+              {hasFormErrors && (
+                <Box className="px-4 pb-4">
+                  <Alert
+                    severity="error"
+                    className="flex flex-col gap-2 text-left"
+                  >
+                    <strong>Invalid Configuration</strong>
+
+                    <p>
+                      Please fix the validation errors in the form before
+                      submitting.
+                    </p>
+                  </Alert>
+                </Box>
+              )}
+
+              {validationError && !hasFormErrors && (
                 <Box className="px-4 pb-4">
                   <Alert
                     severity="error"

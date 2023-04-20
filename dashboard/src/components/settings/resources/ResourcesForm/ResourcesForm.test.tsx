@@ -381,5 +381,53 @@ test('should change pricing in the modal based on selected replicas', async () =
   ).toBeInTheDocument();
 });
 
-// TODO: Validate if a validation error is displayed when the user tries to save
-// with invalid values (e.g: when vCPU and Memory doesn't match the 1:N ratio)
+test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    20 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage replicas/i }),
+    2,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage vcpu/i }),
+    1 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage memory/i }),
+    6 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      /please fix the validation errors in the form before submitting/i,
+    ),
+  ).toBeInTheDocument();
+
+  // this is a bit vague to test if the component is rendered as an error or not
+  // but it's the best we can do for now
+  expect(screen.getByText(/6144 mib/i).parentElement).toHaveStyle({
+    color: '#f13154',
+  });
+
+  expect(
+    screen.getByLabelText(
+      /vCPU and Memory must match the 1:2 ratio if more than one replica is selected./i,
+    ),
+  ).toBeInTheDocument();
+});
