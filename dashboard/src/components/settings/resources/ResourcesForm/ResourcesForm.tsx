@@ -5,6 +5,7 @@ import ResourcesConfirmationDialog from '@/components/settings/resources/Resourc
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
 import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
+import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
@@ -23,7 +24,6 @@ import {
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import getServerError from '@/utils/settings/getServerError';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
@@ -265,8 +265,10 @@ export default function ResourcesForm() {
   function handleConfirm(formValues: ResourceSettingsFormValues) {
     setValidationError(null);
 
-    const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
-      getUnallocatedResources(formValues);
+    const { vcpu: allocatedVCPU, memory: allocatedMemory } =
+      getAllocatedResources(formValues);
+    const unallocatedVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
+    const unallocatedMemory = formValues.totalAvailableMemory - allocatedMemory;
     const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
 
     if (hasUnusedResources) {

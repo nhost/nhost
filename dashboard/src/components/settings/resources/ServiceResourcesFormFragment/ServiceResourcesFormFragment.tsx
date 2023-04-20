@@ -72,7 +72,17 @@ export default function ServiceResourcesFormFragment({
     formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + serviceValues.memory;
 
-  function handleCPUChange(value: string) {
+  function handleReplicaChange(value: string) {
+    const updatedReplicas = parseInt(value, 10);
+
+    if (updatedReplicas < MIN_SERVICE_REPLICAS) {
+      return;
+    }
+
+    setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
+  }
+
+  function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
     const exceedsAvailableVCPU =
       updatedVCPU + (totalAllocatedVCPU - serviceValues.vcpu) >
@@ -124,25 +134,7 @@ export default function ServiceResourcesFormFragment({
 
         <Slider
           value={serviceValues.replicas}
-          onChange={(_event, value) => {
-            if (Array.isArray(value)) {
-              if (value[0] < MIN_SERVICE_REPLICAS) {
-                return;
-              }
-
-              setValue(`${serviceKey}.replicas`, value[0], {
-                shouldDirty: true,
-              });
-
-              return;
-            }
-
-            if (value < MIN_SERVICE_REPLICAS) {
-              return;
-            }
-
-            setValue(`${serviceKey}.replicas`, value, { shouldDirty: true });
-          }}
+          onChange={(_event, value) => handleReplicaChange(value.toString())}
           min={0}
           max={MAX_SERVICE_REPLICAS}
           step={1}
@@ -172,7 +164,7 @@ export default function ServiceResourcesFormFragment({
 
         <Slider
           value={serviceValues.vcpu}
-          onChange={(_event, value) => handleCPUChange(value.toString())}
+          onChange={(_event, value) => handleVCPUChange(value.toString())}
           max={MAX_SERVICE_VCPU}
           step={RESOURCE_VCPU_STEP}
           allowed={allowedVCPU}

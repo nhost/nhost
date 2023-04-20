@@ -1,4 +1,5 @@
 import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
+import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
@@ -20,7 +21,6 @@ import {
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
 } from '@/utils/CONSTANTS';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -60,17 +60,6 @@ export default function TotalResourcesFormFragment({
     throw proPlanError;
   }
 
-  const allocatedVCPU =
-    formValues.database.vcpu +
-    formValues.hasura.vcpu +
-    formValues.auth.vcpu +
-    formValues.storage.vcpu;
-  const allocatedMemory =
-    formValues.database.memory +
-    formValues.hasura.memory +
-    formValues.auth.memory +
-    formValues.storage.memory;
-
   const priceForTotalAvailableVCPU =
     (RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU) /
     RESOURCE_VCPU_MULTIPLIER;
@@ -99,10 +88,12 @@ export default function TotalResourcesFormFragment({
     Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
     proPlan.price;
 
-  const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
-    getUnallocatedResources(formValues);
-
+  const { vcpu: allocatedVCPU, memory: allocatedMemory } =
+    getAllocatedResources(formValues);
+  const unallocatedVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
+  const unallocatedMemory = formValues.totalAvailableMemory - allocatedMemory;
   const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
+
   const unusedResourceMessage = [
     unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
     unallocatedMemory > 0
