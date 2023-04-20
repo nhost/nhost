@@ -341,6 +341,7 @@ export default function ResourcesForm() {
                 title="PostgreSQL Database"
                 description="Manage how much compute you need for the PostgreSQL Database."
                 serviceKey="database"
+                disableReplicas
               />
               <Divider />
               <ServiceResourcesFormFragment
@@ -370,8 +371,8 @@ export default function ResourcesForm() {
                     <strong>Invalid Configuration</strong>
 
                     <p>
-                      Please fix the validation errors in the form before
-                      submitting.
+                      Please check the allocation for each service and try
+                      again.
                     </p>
                   </Alert>
                 </Box>

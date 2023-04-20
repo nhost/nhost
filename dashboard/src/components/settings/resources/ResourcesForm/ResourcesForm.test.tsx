@@ -81,7 +81,7 @@ test('should show the sliders if the switch is enabled', async () => {
   await user.click(screen.getByRole('checkbox'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(13);
+  expect(screen.getAllByRole('slider')).toHaveLength(12);
 });
 
 test('should not show an empty state message if there is data available', async () => {
@@ -95,7 +95,7 @@ test('should not show an empty state message if there is data available', async 
   );
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(13);
+  expect(screen.getAllByRole('slider')).toHaveLength(12);
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
   expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16384 mib/i);
 });
@@ -415,19 +415,14 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
   expect(
     screen.getByText(
-      /please fix the validation errors in the form before submitting/i,
+      /please check the allocation for each service and try again\./i,
     ),
   ).toBeInTheDocument();
 
-  // this is a bit vague to test if the component is rendered as an error or not
-  // but it's the best we can do for now
-  expect(screen.getByText(/6144 mib/i).parentElement).toHaveStyle({
-    color: '#f13154',
-  });
+  const validationErrorMessage = screen.getByLabelText(
+    /vCPU and Memory must match the 1:2 ratio if more than one replica is selected\./i,
+  );
 
-  expect(
-    screen.getByLabelText(
-      /vCPU and Memory must match the 1:2 ratio if more than one replica is selected./i,
-    ),
-  ).toBeInTheDocument();
+  expect(validationErrorMessage).toBeInTheDocument();
+  expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
 });

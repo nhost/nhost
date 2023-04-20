@@ -15,7 +15,7 @@ import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
 import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
   /**
@@ -33,15 +33,23 @@ export interface ServiceResourcesFormFragmentProps {
     keyof ResourceSettingsFormValues,
     'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
   >;
+  /**
+   * Whether to disable the replicas field.
+   */
+  disableReplicas?: boolean;
 }
 
 export default function ServiceResourcesFormFragment({
   title,
   description,
   serviceKey,
+  disableReplicas = false,
 }: ServiceResourcesFormFragmentProps) {
-  const { setValue } = useFormContext<ResourceSettingsFormValues>();
-  const formState = useFormState<ResourceSettingsFormValues>();
+  const {
+    setValue,
+    trigger: triggerValidation,
+    formState,
+  } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
   const serviceValues = formValues[serviceKey];
 
@@ -80,6 +88,7 @@ export default function ServiceResourcesFormFragment({
     }
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
+    triggerValidation(`${serviceKey}.replicas`);
   }
 
   function handleVCPUChange(value: string) {
@@ -97,6 +106,11 @@ export default function ServiceResourcesFormFragment({
     }
 
     setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
+
+    // trigger validation for "replicas" field
+    if (!disableReplicas) {
+      triggerValidation(`${serviceKey}.replicas`);
+    }
   }
 
   function handleMemoryChange(value: string) {
@@ -114,6 +128,11 @@ export default function ServiceResourcesFormFragment({
     }
 
     setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
+
+    // trigger validation for "replicas" field
+    if (!disableReplicas) {
+      triggerValidation(`${serviceKey}.replicas`);
+    }
   }
 
   return (
@@ -126,22 +145,46 @@ export default function ServiceResourcesFormFragment({
         <Text color="secondary">{description}</Text>
       </Box>
 
-      <Box className="grid grid-flow-row gap-2">
-        <Text>
-          Replicas:{' '}
-          <span className="font-medium">{serviceValues.replicas}</span>
-        </Text>
+      {!disableReplicas && (
+        <Box className="grid grid-flow-row gap-2">
+          <Box className="grid grid-flow-col items-center justify-start gap-2">
+            <Text
+              color={
+                formState.errors?.[serviceKey]?.replicas?.message
+                  ? 'error'
+                  : 'primary'
+              }
+              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
+            >
+              Replicas:{' '}
+              <span className="font-medium">{serviceValues.replicas}</span>
+            </Text>
 
-        <Slider
-          value={serviceValues.replicas}
-          onChange={(_event, value) => handleReplicaChange(value.toString())}
-          min={0}
-          max={MAX_SERVICE_REPLICAS}
-          step={1}
-          aria-label={`${title} Replicas`}
-          marks
-        />
-      </Box>
+            {formState.errors?.[serviceKey]?.replicas?.message ? (
+              <Tooltip
+                title={formState.errors[serviceKey].replicas.message}
+                id={`${serviceKey}-replicas-error-tooltip`}
+              >
+                <ExclamationIcon
+                  color="error"
+                  className="h-4 w-4"
+                  aria-hidden="false"
+                />
+              </Tooltip>
+            ) : null}
+          </Box>
+
+          <Slider
+            value={serviceValues.replicas}
+            onChange={(_event, value) => handleReplicaChange(value.toString())}
+            min={0}
+            max={MAX_SERVICE_REPLICAS}
+            step={1}
+            aria-label={`${title} Replicas`}
+            marks
+          />
+        </Box>
+      )}
 
       <Box className="grid grid-flow-row gap-2">
         <Box className="grid grid-flow-col items-center justify-between gap-2">
@@ -175,26 +218,12 @@ export default function ServiceResourcesFormFragment({
 
       <Box className="grid grid-flow-row gap-2">
         <Box className="grid grid-flow-col items-center justify-between gap-2">
-          <Box className="grid grid-flow-col items-center justify-start gap-2">
-            <Text
-              color={
-                formState.errors?.[serviceKey]?.memory?.message
-                  ? 'error'
-                  : 'primary'
-              }
-            >
-              Allocated Memory:{' '}
-              <span className="font-medium">
-                {prettifyMemory(serviceValues.memory)}
-              </span>
-            </Text>
-
-            {formState.errors?.[serviceKey]?.memory?.message ? (
-              <Tooltip title={formState.errors[serviceKey].memory.message}>
-                <ExclamationIcon color="error" className="h-4 w-4" />
-              </Tooltip>
-            ) : null}
-          </Box>
+          <Text>
+            Allocated Memory:{' '}
+            <span className="font-medium">
+              {prettifyMemory(serviceValues.memory)}
+            </span>
+          </Text>
 
           {remainingMemory > 0 && serviceValues.memory < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">

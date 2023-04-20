@@ -66,7 +66,23 @@ const serviceValidationSchema = Yup.object({
     .label('Replicas')
     .required()
     .min(1)
-    .max(MAX_SERVICE_REPLICAS),
+    .max(MAX_SERVICE_REPLICAS)
+    .test(
+      'is-matching-ratio',
+      `vCPU and Memory must match the 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio if more than one replica is selected.`,
+      (replicas: number, { parent }) => {
+        if (replicas === 1) {
+          return true;
+        }
+
+        return (
+          parent.memory /
+            RESOURCE_MEMORY_MULTIPLIER /
+            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
+          RESOURCE_VCPU_MEMORY_RATIO
+        );
+      },
+    ),
   vcpu: Yup.number()
     .label('vCPUs')
     .required()
@@ -75,20 +91,7 @@ const serviceValidationSchema = Yup.object({
   memory: Yup.number()
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY)
-    .when('replicas', {
-      is: (replicas: number) => replicas > 1,
-      then: (schema) =>
-        schema.test(
-          'is-matching-ratio',
-          `vCPU and Memory must match the 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio if more than one replica is selected.`,
-          (memory: number, { parent }) =>
-            memory /
-              RESOURCE_MEMORY_MULTIPLIER /
-              (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
-            RESOURCE_VCPU_MEMORY_RATIO,
-        ),
-    }),
+    .max(MAX_SERVICE_MEMORY),
 });
 
 export const resourceSettingsValidationSchema = Yup.object({
