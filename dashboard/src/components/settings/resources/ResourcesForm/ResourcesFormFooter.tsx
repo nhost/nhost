@@ -72,7 +72,6 @@ export default function ResourcesFormFooter() {
   }
 
   const priceForTotalAvailableVCPU =
-    proPlan.price +
     (RESOURCE_VCPU_PRICE * totalAvailableVCPU) / RESOURCE_VCPU_MULTIPLIER;
 
   const priceForServicesAndReplicas = calculateApproximateCost(
@@ -95,11 +94,10 @@ export default function ResourcesFormFooter() {
     },
   );
 
-  const updatedPrice =
-    enabled && isDirty
-      ? Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
-        proPlan.price
-      : proPlan.price;
+  const updatedPrice = enabled
+    ? Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
+      proPlan.price
+    : proPlan.price;
 
   return (
     <Box

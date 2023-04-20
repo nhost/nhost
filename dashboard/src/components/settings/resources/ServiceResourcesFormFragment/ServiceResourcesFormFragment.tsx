@@ -12,8 +12,10 @@ import {
 import Box from '@/ui/v2/Box';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
+import Tooltip from '@/ui/v2/Tooltip';
+import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
 import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
   /**
@@ -55,6 +57,7 @@ export default function ServiceResourcesFormFragment({
   memoryKey,
 }: ServiceResourcesFormFragmentProps) {
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
+  const formState = useFormState<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
   // Total allocated CPU for all resources
@@ -119,11 +122,17 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid grid-flow-col items-center justify-start gap-2">
           <Text>
             Replicas:{' '}
             <span className="font-medium">{formValues[replicaKey]}</span>
           </Text>
+
+          {formState.errors?.[memoryKey]?.message ? (
+            <Tooltip title={formState.errors[memoryKey].message}>
+              <InfoIcon color="error" className="h-4 w-4" />
+            </Tooltip>
+          ) : null}
         </Box>
 
         <Slider

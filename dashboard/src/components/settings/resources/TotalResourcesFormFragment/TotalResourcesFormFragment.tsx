@@ -1,3 +1,4 @@
+import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
@@ -70,9 +71,32 @@ export default function TotalResourcesFormFragment({
     formValues.authMemory +
     formValues.storageMemory;
 
+  const priceForTotalAvailableVCPU =
+    (RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU) /
+    RESOURCE_VCPU_MULTIPLIER;
+
+  const priceForServicesAndReplicas = calculateApproximateCost(
+    RESOURCE_VCPU_PRICE,
+    {
+      replicas: formValues.databaseReplicas,
+      vcpu: formValues.databaseVCPU,
+    },
+    {
+      replicas: formValues.hasuraReplicas,
+      vcpu: formValues.hasuraVCPU,
+    },
+    {
+      replicas: formValues.authReplicas,
+      vcpu: formValues.authVCPU,
+    },
+    {
+      replicas: formValues.storageReplicas,
+      vcpu: formValues.storageVCPU,
+    },
+  );
+
   const updatedPrice =
-    RESOURCE_VCPU_PRICE *
-      (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
+    Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
     proPlan.price;
 
   const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =

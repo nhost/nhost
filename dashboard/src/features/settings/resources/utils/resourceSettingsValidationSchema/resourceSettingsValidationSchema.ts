@@ -61,6 +61,7 @@ export const MAX_SERVICE_MEMORY =
   RESOURCE_VCPU_MEMORY_RATIO *
   RESOURCE_MEMORY_MULTIPLIER;
 
+// TODO: Reuse the same validation schema for individual services.
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
   totalAvailableVCPU: Yup.number()
@@ -87,7 +88,20 @@ export const resourceSettingsValidationSchema = Yup.object({
     .label('Database Memory')
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_SERVICE_MEMORY)
+    .when('databaseReplicas', {
+      is: (databaseReplicas: number) => databaseReplicas > 1,
+      then: (schema) =>
+        schema.test(
+          'is-matching-ratio',
+          `vCPU and Memory must match the ratio of 1:${RESOURCE_VCPU_MEMORY_RATIO} if you have more than 1 replica.`,
+          (databaseMemory: number, { parent }) =>
+            databaseMemory /
+              RESOURCE_MEMORY_MULTIPLIER /
+              (parent.databaseVCPU / RESOURCE_VCPU_MULTIPLIER) ===
+            RESOURCE_VCPU_MEMORY_RATIO,
+        ),
+    }),
   hasuraReplicas: Yup.number()
     .label('Hasura GraphQL Replicas')
     .required()
@@ -102,7 +116,20 @@ export const resourceSettingsValidationSchema = Yup.object({
     .label('Hasura GraphQL Memory')
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_SERVICE_MEMORY)
+    .when('hasuraReplicas', {
+      is: (hasuraReplicas: number) => hasuraReplicas > 1,
+      then: (schema) =>
+        schema.test(
+          'is-matching-ratio',
+          `vCPU and Memory must match the ratio of 1:${RESOURCE_VCPU_MEMORY_RATIO} if you have more than 1 replica.`,
+          (hasuraMemory: number, { parent }) =>
+            hasuraMemory /
+              RESOURCE_MEMORY_MULTIPLIER /
+              (parent.hasuraVCPU / RESOURCE_VCPU_MULTIPLIER) ===
+            RESOURCE_VCPU_MEMORY_RATIO,
+        ),
+    }),
   authReplicas: Yup.number()
     .label('Auth Replicas')
     .required()
@@ -117,7 +144,20 @@ export const resourceSettingsValidationSchema = Yup.object({
     .label('Auth Memory')
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_SERVICE_MEMORY)
+    .when('authReplicas', {
+      is: (authReplicas: number) => authReplicas > 1,
+      then: (schema) =>
+        schema.test(
+          'is-matching-ratio',
+          `vCPU and Memory must match the ratio of 1:${RESOURCE_VCPU_MEMORY_RATIO} if you have more than 1 replica.`,
+          (authMemory: number, { parent }) =>
+            authMemory /
+              RESOURCE_MEMORY_MULTIPLIER /
+              (parent.hasuraVCPU / RESOURCE_VCPU_MULTIPLIER) ===
+            RESOURCE_VCPU_MEMORY_RATIO,
+        ),
+    }),
   storageReplicas: Yup.number()
     .label('Storage Replicas')
     .required()
@@ -132,7 +172,20 @@ export const resourceSettingsValidationSchema = Yup.object({
     .label('Storage Memory')
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_SERVICE_MEMORY)
+    .when('storageReplicas', {
+      is: (storageReplicas: number) => storageReplicas > 1,
+      then: (schema) =>
+        schema.test(
+          'is-matching-ratio',
+          `vCPU and Memory must match the ratio of 1:${RESOURCE_VCPU_MEMORY_RATIO} if you have more than 1 replica.`,
+          (storageMemory: number, { parent }) =>
+            storageMemory /
+              RESOURCE_MEMORY_MULTIPLIER /
+              (parent.hasuraVCPU / RESOURCE_VCPU_MULTIPLIER) ===
+            RESOURCE_VCPU_MEMORY_RATIO,
+        ),
+    }),
 });
 
 export type ResourceSettingsFormValues = Yup.InferType<
