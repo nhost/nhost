@@ -1,3 +1,4 @@
+import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   getProPlanOnlyQuery,
   getWorkspaceAndProjectQuery,
@@ -27,44 +28,11 @@ import ResourcesForm from './ResourcesForm';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+  value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
 vi.mock('next/router', () => ({
-  useRouter: vi.fn().mockReturnValue({
-    basePath: '',
-    pathname: '/test-workspace/test-application',
-    route: '/[workspaceSlug]/[appSlug]',
-    asPath: '/test-workspace/test-application',
-    isLocaleDomain: false,
-    isReady: true,
-    isPreview: false,
-    query: {
-      workspaceSlug: 'test-workspace',
-      appSlug: 'test-application',
-    },
-    push: vi.fn(),
-    replace: vi.fn(),
-    reload: vi.fn(),
-    back: vi.fn(),
-    prefetch: vi.fn(),
-    beforePopState: vi.fn(),
-    events: {
-      on: vi.fn(),
-      off: vi.fn(),
-      emit: vi.fn(),
-    },
-    isFallback: false,
-  }),
+  useRouter: vi.fn().mockReturnValue(mockRouter),
 }));
 
 const server = setupServer(
@@ -79,7 +47,10 @@ beforeAll(() => {
   server.listen();
 });
 afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterAll(() => {
+  server.close();
+  vi.restoreAllMocks();
+});
 
 // Note: Workaround based on https://github.com/testing-library/user-event/issues/871#issuecomment-1059317998
 function changeSliderValue(slider: HTMLElement, value: number) {
@@ -329,3 +300,86 @@ test('should hide the pricing information when custom resource allocation is dis
 
   expect(screen.queryByText(/approximate cost:/i)).not.toBeInTheDocument();
 });
+
+test('should not be able to lower the total available resources below the allocated resources', async () => {
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    7 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
+});
+
+test('should change pricing based on selected replicas', async () => {
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$425\.00\/mo/i,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
+    2,
+  );
+
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$525\.00\/mo/i,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
+    1,
+  );
+
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$425\.00\/mo/i,
+  );
+});
+
+test('should change pricing in the modal based on selected replicas', async () => {
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  await waitForElementToBeRemoved(() => screen.getByRole('progressbar'));
+
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$425\.00\/mo/i,
+  );
+
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
+    2,
+  );
+
+  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+    /approximate cost: \$525\.00\/mo/i,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+  // vCPUs and Memory should not change
+  expect(
+    within(screen.getByRole('dialog')).getByText(
+      /^8 vcpus \+ 16384 mib of memory$/i,
+    ),
+  ).toBeInTheDocument();
+
+  // The price should change
+  expect(
+    within(screen.getByRole('dialog')).getByText(/^\$525\.00\/mo$/i),
+  ).toBeInTheDocument();
+});
+
+// TODO: Validate if a validation error is displayed when the user tries to save
+// with invalid values (e.g: when vCPU and Memory doesn't match the 1:N ratio)

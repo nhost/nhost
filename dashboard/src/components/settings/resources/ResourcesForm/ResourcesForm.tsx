@@ -296,10 +296,7 @@ export default function ResourcesForm() {
         : 'Disable Dedicated Resources',
       component: (
         <ResourcesConfirmationDialog
-          updatedResources={{
-            vcpu: formValues.enabled ? formValues.totalAvailableVCPU : 0,
-            memory: formValues.enabled ? formValues.totalAvailableMemory : 0,
-          }}
+          formValues={formValues}
           onCancel={closeDialog}
           onSubmit={async () => {
             await handleSubmit(formValues);

@@ -6,6 +6,17 @@ import type { NhostSession } from '@nhost/nextjs';
 import type { NextRouter } from 'next/router';
 import { vi } from 'vitest';
 
+export const mockMatchMediaValue = (query: any) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+});
+
 export const mockRouter: NextRouter = {
   basePath: '',
   pathname: '/test-workspace/test-application',
@@ -14,7 +25,10 @@ export const mockRouter: NextRouter = {
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
-  query: {},
+  query: {
+    workspaceSlug: 'test-workspace',
+    appSlug: 'test-application',
+  },
   push: vi.fn(),
   replace: vi.fn(),
   reload: vi.fn(),
