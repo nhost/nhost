@@ -13,7 +13,7 @@ import Box from '@/ui/v2/Box';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
+import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 
@@ -122,18 +122,10 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-start gap-2">
-          <Text>
-            Replicas:{' '}
-            <span className="font-medium">{formValues[replicaKey]}</span>
-          </Text>
-
-          {formState.errors?.[memoryKey]?.message ? (
-            <Tooltip title={formState.errors[memoryKey].message}>
-              <InfoIcon color="error" className="h-4 w-4" />
-            </Tooltip>
-          ) : null}
-        </Box>
+        <Text>
+          Replicas:{' '}
+          <span className="font-medium">{formValues[replicaKey]}</span>
+        </Text>
 
         <Slider
           value={formValues[replicaKey]}
@@ -194,12 +186,24 @@ export default function ServiceResourcesFormFragment({
 
       <Box className="grid grid-flow-row gap-2">
         <Box className="grid grid-flow-col items-center justify-between gap-2">
-          <Text>
-            Allocated Memory:{' '}
-            <span className="font-medium">
-              {prettifyMemory(formValues[memoryKey])}
-            </span>
-          </Text>
+          <Box className="grid grid-flow-col items-center justify-start gap-2">
+            <Text
+              color={
+                formState.errors?.[memoryKey]?.message ? 'error' : 'primary'
+              }
+            >
+              Allocated Memory:{' '}
+              <span className="font-medium">
+                {prettifyMemory(formValues[memoryKey])}
+              </span>
+            </Text>
+
+            {formState.errors?.[memoryKey]?.message ? (
+              <Tooltip title={formState.errors[memoryKey].message}>
+                <ExclamationIcon color="error" className="h-4 w-4" />
+              </Tooltip>
+            ) : null}
+          </Box>
 
           {remainingMemory > 0 && formValues[memoryKey] < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">
