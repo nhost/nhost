@@ -1,5 +1,11 @@
 # @nhost-examples/codegen-react-query
 
+## 0.1.9
+
+### Patch Changes
+
+- 2faf7907: chore(deps): bump `graphql-request` to v6
+
 ## 0.1.8
 
 ### Patch Changes

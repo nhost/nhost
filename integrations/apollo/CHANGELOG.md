@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 5.2.3
+
+### Patch Changes
+
+- 117398f5: Adds async headers that waits for valid token before establishing connection to backend.
+
 ## 5.2.2
 
 ### Patch Changes

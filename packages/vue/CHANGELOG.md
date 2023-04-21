@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 1.13.21
+
+### Patch Changes
+
+- a5b895a8: chore(deps): bump `@vueuse/core` to v10
+
 ## 1.13.20
 
 ### Patch Changes
