@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "1.13.20",
+  "version": "1.13.21",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@vueuse/core": "^9.0.0",
+    "@vueuse/core": "^10.0.0",
     "@xstate/vue": "^2.0.0",
     "jwt-decode": "^3.1.2"
   },
