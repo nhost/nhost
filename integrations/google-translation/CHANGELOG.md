@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.0.4
+
+### Patch Changes
+
+- 2faf7907: chore(deps): bump `graphql-request` to v6
+
 ## 0.0.3
 
 ### Patch Changes

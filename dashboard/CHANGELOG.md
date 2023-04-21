@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.15.1
+
+### Patch Changes
+
+- 2faf7907: chore(deps): bump `graphql-request` to v6
+- f1b5a944: chore(deps): bump `@vitejs/plugin-react` to v4
+- 7f1785ac: chore(deps): bump `@types/react` to v18.0.37
+  - @nhost/react-apollo@5.0.19
+
 ## 0.15.0
 
 ### Minor Changes
