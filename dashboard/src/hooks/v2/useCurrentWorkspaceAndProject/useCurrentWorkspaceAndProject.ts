@@ -6,6 +6,7 @@ import { getHasuraAdminSecret } from '@/utils/env';
 import { useNhostClient, useUserData } from '@nhost/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 
 export interface UseCurrentWorkspaceAndProjectReturnType {
   /**
@@ -52,7 +53,6 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
     () =>
       client.graphql.request<{
         workspaces: Workspace[];
-        projects?: Project[];
       }>(GetWorkspaceAndProjectDocument, {
         workspaceSlug: (workspaceSlug as string) || '',
         projectSlug: (appSlug as string) || '',
@@ -64,6 +64,16 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       // refetch it too often - kind of a hack, should be improved later
       staleTime: 1000,
     },
+  );
+
+  // Return the current workspace and project if using the Nhost backend
+  const [currentWorkspace] = response?.data?.workspaces || [];
+  const currentProject = useMemo(
+    () =>
+      appSlug
+        ? currentWorkspace?.projects.find((project) => project.slug === appSlug)
+        : null,
+    [appSlug, currentWorkspace?.projects],
   );
 
   // Return a default project if working locally
@@ -117,9 +127,6 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
     };
   }
 
-  // Return the current workspace and project if using the Nhost backend
-  const [currentWorkspace] = response?.data?.workspaces || [];
-  const [currentProject] = response?.data?.projects || [];
   const error = Array.isArray(response?.error || {})
     ? response?.error[0]
     : response?.error;
