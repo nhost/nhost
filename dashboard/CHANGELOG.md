@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.15.2
+
+### Patch Changes
+
+- 84b84ab7: fix(projects): filter projects by workspace
+
 ## 0.15.1
 
 ### Patch Changes
