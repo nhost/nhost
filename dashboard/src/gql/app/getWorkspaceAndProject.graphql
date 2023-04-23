@@ -2,7 +2,4 @@ query GetWorkspaceAndProject($workspaceSlug: String!, $projectSlug: String) {
   workspaces(where: { slug: { _eq: $workspaceSlug } }) {
     ...Workspace
   }
-  projects: apps(where: { slug: { _eq: $projectSlug } }) {
-    ...Project
-  }
 }

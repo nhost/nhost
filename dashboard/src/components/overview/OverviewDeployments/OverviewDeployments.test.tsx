@@ -1,7 +1,5 @@
+import { mockApplication, mockWorkspace } from '@/tests/mocks';
 import { queryClient, render, screen } from '@/tests/testUtils';
-import type { Project } from '@/types/application';
-import { ApplicationStatus } from '@/types/application';
-import type { Workspace } from '@/types/workspace';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
@@ -34,43 +32,6 @@ vi.mock('next/router', () => ({
     isFallback: false,
   }),
 }));
-
-const mockApplication: Project = {
-  id: '1',
-  name: 'Test Application',
-  slug: 'test-application',
-  appStates: [],
-  subdomain: '',
-  isProvisioned: true,
-  region: {
-    awsName: 'us-east-1',
-    city: 'New York',
-    countryCode: 'US',
-    id: '1',
-  },
-  createdAt: new Date().toISOString(),
-  deployments: [],
-  desiredState: ApplicationStatus.Live,
-  featureFlags: [],
-  providersUpdated: true,
-  githubRepository: { fullName: 'test/git-project' },
-  repositoryProductionBranch: null,
-  nhostBaseFolder: null,
-  plan: null,
-  config: {
-    hasura: {
-      adminSecret: 'nhost-admin-secret',
-    },
-  },
-};
-
-const mockWorkspace: Workspace = {
-  id: '1',
-  name: 'Test Workspace',
-  slug: 'test-workspace',
-  members: [],
-  applications: [mockApplication],
-};
 
 const server = setupServer(
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
