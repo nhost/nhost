@@ -49,13 +49,12 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
     isFetching,
     refetch,
   } = useQuery(
-    ['currentWorkspaceAndProject', workspaceSlug, appSlug],
+    ['currentWorkspaceAndProject', workspaceSlug],
     () =>
       client.graphql.request<{
         workspaces: Workspace[];
       }>(GetWorkspaceAndProjectDocument, {
         workspaceSlug: (workspaceSlug as string) || '',
-        projectSlug: (appSlug as string) || '',
       }),
     {
       keepPreviousData: true,
