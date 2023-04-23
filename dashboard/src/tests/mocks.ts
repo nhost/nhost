@@ -1,6 +1,5 @@
-import type { Project } from '@/types/application';
+import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import type { Workspace } from '@/types/workspace';
 import { faker } from '@faker-js/faker';
 import type { NhostSession } from '@nhost/nextjs';
 import type { NextRouter } from 'next/router';
@@ -67,8 +66,8 @@ export const mockWorkspace: Workspace = {
   id: '1',
   name: 'Test Workspace',
   slug: 'test-workspace',
-  members: [],
-  applications: [mockApplication],
+  workspaceMembers: [],
+  projects: [mockApplication],
 };
 
 export const mockSession: NhostSession = {

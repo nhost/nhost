@@ -70,7 +70,9 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   const currentProject = useMemo(
     () =>
       appSlug
-        ? currentWorkspace?.projects.find((project) => project.slug === appSlug)
+        ? currentWorkspace?.projects?.find(
+            (project) => project.slug === appSlug,
+          )
         : null,
     [appSlug, currentWorkspace?.projects],
   );
