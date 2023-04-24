@@ -319,7 +319,7 @@ test('should show a warning message when resources are overallocated', async () 
 
   expect(
     screen.getByText(
-      /^you have 1 vCPUs and 2048 mib of memory overallocated\. reduce it before saving\./i,
+      /^you have 1 vCPUs and 2048 mib of memory overallocated\. reduce it before saving or increase the total amount\./i,
     ),
   ).toBeInTheDocument();
 });

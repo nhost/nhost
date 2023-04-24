@@ -193,7 +193,7 @@ export default function TotalResourcesFormFragment({
 
               <p>
                 You have {overallocatedResourceMessage} overallocated. Reduce it
-                before saving.
+                before saving or increase the total amount.
               </p>
             </>
           )}
