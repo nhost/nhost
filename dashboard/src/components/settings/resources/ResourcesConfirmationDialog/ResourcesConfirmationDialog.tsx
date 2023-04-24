@@ -118,7 +118,7 @@ export default function ResourcesConfirmationDialog({
 
         <Box className="grid grid-flow-col justify-between gap-2">
           <Box className="grid grid-flow-col items-center gap-1.5">
-            <Text>Approximate cost</Text>
+            <Text className="font-medium">Approximate Cost</Text>
 
             <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
               <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
