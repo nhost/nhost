@@ -14,6 +14,7 @@ import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
+  RESOURCE_VCPU_PRICE_PER_MINUTE,
 } from '@/utils/CONSTANTS';
 
 export interface ResourcesConfirmationDialogProps {
@@ -68,6 +69,18 @@ export default function ResourcesConfirmationDialog({
     },
   );
 
+  const totalBillableVCPU =
+    formValues.database.replicas * formValues.database.vcpu +
+    formValues.hasura.replicas * formValues.hasura.vcpu +
+    formValues.auth.replicas * formValues.auth.vcpu +
+    formValues.storage.replicas * formValues.storage.vcpu;
+
+  const totalBillableMemory =
+    formValues.database.replicas * formValues.database.memory +
+    formValues.hasura.replicas * formValues.hasura.memory +
+    formValues.auth.replicas * formValues.auth.memory +
+    formValues.storage.replicas * formValues.storage.memory;
+
   const updatedPrice =
     Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
     proPlan.price;
@@ -103,15 +116,67 @@ export default function ResourcesConfirmationDialog({
           <Text>${proPlan.price.toFixed(2)}/mo</Text>
         </Box>
 
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
-          <Box className="grid grid-flow-row gap-0.5">
-            <Text className="font-medium">Dedicated Resources</Text>
-            <Text className="text-xs" color="secondary">
-              {prettifyVCPU(finalAllocatedVCPU)} vCPUs +{' '}
-              {prettifyMemory(finalAllocatedMemory)} of Memory
+        <Box className="grid grid-flow-row gap-1.5">
+          <Box className="grid grid-flow-col items-center justify-between gap-2">
+            <Box className="grid grid-flow-row gap-0.5">
+              <Text className="font-medium">Dedicated Resources</Text>
+            </Box>
+            <Text>
+              ${(totalBillableVCPU * RESOURCE_VCPU_PRICE_PER_MINUTE).toFixed(2)}
+              /min
             </Text>
           </Box>
-          <Text>${updatedPrice.toFixed(2)}/mo</Text>
+
+          <Box className="grid w-full grid-cols-2 justify-between gap-1.5">
+            <Text className="text-xs" color="secondary">
+              Database
+            </Text>
+            <Text className="text-right text-xs" color="secondary">
+              {prettifyVCPU(formValues.database.vcpu)} vCPU +{' '}
+              {prettifyMemory(formValues.database.memory)}
+            </Text>
+
+            <Text className="text-xs" color="secondary">
+              Hasura GraphQL
+            </Text>
+            <Text className="text-right text-xs" color="secondary">
+              {prettifyVCPU(formValues.hasura.vcpu)} vCPU +{' '}
+              {prettifyMemory(formValues.hasura.memory)}{' '}
+              {formValues.hasura.replicas > 1
+                ? `(${formValues.hasura.replicas} replicas)`
+                : null}
+            </Text>
+
+            <Text className="text-xs" color="secondary">
+              Auth
+            </Text>
+            <Text className="text-right text-xs" color="secondary">
+              {prettifyVCPU(formValues.auth.vcpu)} vCPU +{' '}
+              {prettifyMemory(formValues.auth.memory)}{' '}
+              {formValues.auth.replicas > 1
+                ? `(${formValues.auth.replicas} replicas)`
+                : null}
+            </Text>
+
+            <Text className="text-xs" color="secondary">
+              Storage
+            </Text>
+            <Text className="text-right text-xs" color="secondary">
+              {prettifyVCPU(formValues.storage.vcpu)} vCPU +{' '}
+              {prettifyMemory(formValues.storage.memory)}{' '}
+              {formValues.storage.replicas > 1
+                ? `(${formValues.storage.replicas} replicas)`
+                : null}
+            </Text>
+
+            <Text className="text-xs font-medium" color="secondary">
+              Total
+            </Text>
+            <Text className="text-right text-xs font-medium" color="secondary">
+              {prettifyVCPU(totalBillableVCPU)} vCPU +{' '}
+              {prettifyMemory(totalBillableMemory)}
+            </Text>
+          </Box>
         </Box>
 
         <Divider />

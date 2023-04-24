@@ -58,6 +58,11 @@ export const RESOURCE_MEMORY_STEP = 128;
 export const RESOURCE_VCPU_PRICE = 50;
 
 /**
+ * Price per vCPU and 2 GiB of RAM per minute.
+ */
+export const RESOURCE_VCPU_PRICE_PER_MINUTE = 0.0012;
+
+/**
  * Maximum number of free projects a user is allowed to have.
  */
 export const MAX_FREE_PROJECTS = 1;
