@@ -5,9 +5,6 @@ import ResourcesConfirmationDialog from '@/components/settings/resources/Resourc
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
 import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
-import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
-import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
@@ -26,7 +23,6 @@ import {
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -46,8 +42,6 @@ function getInitialServiceResources(
 }
 
 export default function ResourcesForm() {
-  const [validationError, setValidationError] = useState<Error | null>(null);
-
   const { openDialog, closeDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -264,33 +258,6 @@ export default function ResourcesForm() {
   }
 
   function handleConfirm(formValues: ResourceSettingsFormValues) {
-    setValidationError(null);
-
-    const { vcpu: allocatedVCPU, memory: allocatedMemory } =
-      getAllocatedResources(formValues);
-    const unallocatedVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
-    const unallocatedMemory = formValues.totalAvailableMemory - allocatedMemory;
-    const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
-
-    if (hasUnusedResources) {
-      const unusedResourceMessage = [
-        unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
-        unallocatedMemory > 0
-          ? `${prettifyMemory(unallocatedMemory)} of Memory`
-          : '',
-      ]
-        .filter(Boolean)
-        .join(' and ');
-
-      setValidationError(
-        new Error(
-          `You now have ${unusedResourceMessage} unused. Allocate it to any of the services before saving.`,
-        ),
-      );
-
-      return;
-    }
-
     openDialog({
       title: formValues.enabled
         ? 'Confirm Dedicated Resources'
@@ -374,21 +341,6 @@ export default function ResourcesForm() {
                       Please check the form for errors and the allocation for
                       each service and try again.
                     </p>
-                  </Alert>
-                </Box>
-              )}
-
-              {validationError && !hasFormErrors && (
-                <Box className="px-4 pb-4">
-                  <Alert
-                    severity="error"
-                    className="flex flex-col gap-2 text-left"
-                  >
-                    <strong>
-                      Please use all the available vCPUs and Memory
-                    </strong>
-
-                    <p>{validationError.message}</p>
                   </Alert>
                 </Box>
               )}

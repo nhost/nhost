@@ -110,7 +110,7 @@ test('should show a warning message if not all the resources are allocated', asy
   expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 18432 mib/i);
 
   expect(
-    screen.getByText(/you now have 1 vcpus and 2048 mib of memory unused./i),
+    screen.getByText(/you have 1 vcpus and 2048 mib of memory unused./i),
   ).toBeInTheDocument();
 });
 
@@ -155,7 +155,7 @@ test('should show a validation error when the form is submitted when not everyth
   await user.click(screen.getByRole('button', { name: /save/i }));
 
   expect(
-    screen.getByText(/you now have 1 vcpus and 2048 mib of memory unused./i),
+    screen.getByText(/you have 1 vcpus and 2048 mib of memory unused./i),
   ).toBeInTheDocument();
 
   expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
@@ -319,7 +319,7 @@ test('should show a warning message when resources are overallocated', async () 
 
   expect(
     screen.getByText(
-      /^you now have 1 vCPUs and 2048 mib of memory overallocated\. reduce it before saving\./i,
+      /^you have 1 vCPUs and 2048 mib of memory overallocated\. reduce it before saving\./i,
     ),
   ).toBeInTheDocument();
 });

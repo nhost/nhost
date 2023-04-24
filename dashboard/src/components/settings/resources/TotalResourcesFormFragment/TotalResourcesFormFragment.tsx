@@ -181,8 +181,8 @@ export default function TotalResourcesFormFragment({
               <strong>Please use all the available vCPUs and Memory</strong>
 
               <p>
-                You now have {unusedResourceMessage} unused. Allocate it to any
-                of the services before saving.
+                You have {unusedResourceMessage} unused. Allocate it to any of
+                the services before saving.
               </p>
             </>
           )}
@@ -192,8 +192,8 @@ export default function TotalResourcesFormFragment({
               <strong>Overallocated Resources</strong>
 
               <p>
-                You now have {overallocatedResourceMessage} overallocated.
-                Reduce it before saving.
+                You have {overallocatedResourceMessage} overallocated. Reduce it
+                before saving.
               </p>
             </>
           )}
