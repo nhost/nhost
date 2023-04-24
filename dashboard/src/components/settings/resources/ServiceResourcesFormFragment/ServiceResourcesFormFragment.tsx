@@ -131,47 +131,6 @@ export default function ServiceResourcesFormFragment({
         <Text color="secondary">{description}</Text>
       </Box>
 
-      {!disableReplicas && (
-        <Box className="grid grid-flow-row gap-2">
-          <Box className="grid grid-flow-col items-center justify-start gap-2">
-            <Text
-              color={
-                formState.errors?.[serviceKey]?.replicas?.message
-                  ? 'error'
-                  : 'primary'
-              }
-              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
-            >
-              Replicas:{' '}
-              <span className="font-medium">{serviceValues.replicas}</span>
-            </Text>
-
-            {formState.errors?.[serviceKey]?.replicas?.message ? (
-              <Tooltip
-                title={formState.errors[serviceKey].replicas.message}
-                id={`${serviceKey}-replicas-error-tooltip`}
-              >
-                <ExclamationIcon
-                  color="error"
-                  className="h-4 w-4"
-                  aria-hidden="false"
-                />
-              </Tooltip>
-            ) : null}
-          </Box>
-
-          <Slider
-            value={serviceValues.replicas}
-            onChange={(_event, value) => handleReplicaChange(value.toString())}
-            min={0}
-            max={MAX_SERVICE_REPLICAS}
-            step={1}
-            aria-label={`${title} Replicas`}
-            marks
-          />
-        </Box>
-      )}
-
       <Box className="grid grid-flow-row gap-2">
         <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
@@ -231,6 +190,47 @@ export default function ServiceResourcesFormFragment({
           marks
         />
       </Box>
+
+      {!disableReplicas && (
+        <Box className="grid grid-flow-row gap-2">
+          <Box className="grid grid-flow-col items-center justify-start gap-2">
+            <Text
+              color={
+                formState.errors?.[serviceKey]?.replicas?.message
+                  ? 'error'
+                  : 'primary'
+              }
+              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
+            >
+              Replicas:{' '}
+              <span className="font-medium">{serviceValues.replicas}</span>
+            </Text>
+
+            {formState.errors?.[serviceKey]?.replicas?.message ? (
+              <Tooltip
+                title={formState.errors[serviceKey].replicas.message}
+                id={`${serviceKey}-replicas-error-tooltip`}
+              >
+                <ExclamationIcon
+                  color="error"
+                  className="h-4 w-4"
+                  aria-hidden="false"
+                />
+              </Tooltip>
+            ) : null}
+          </Box>
+
+          <Slider
+            value={serviceValues.replicas}
+            onChange={(_event, value) => handleReplicaChange(value.toString())}
+            min={0}
+            max={MAX_SERVICE_REPLICAS}
+            step={1}
+            aria-label={`${title} Replicas`}
+            marks
+          />
+        </Box>
+      )}
     </Box>
   );
 }

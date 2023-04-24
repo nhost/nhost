@@ -141,7 +141,7 @@ export default function ResourcesConfirmationDialog({
 
               <Text className="text-xs" color="secondary">
                 {formValues.database.replicas > 1
-                  ? `${formValues.database.replicas}x (${databaseResources})`
+                  ? `${databaseResources} (${formValues.database.replicas} replicas)`
                   : databaseResources}
               </Text>
             </Box>
@@ -152,7 +152,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
               <Text className="text-xs" color="secondary">
                 {formValues.hasura.replicas > 1
-                  ? `${formValues.hasura.replicas} x (${hasuraResources})`
+                  ? `${hasuraResources} (${formValues.hasura.replicas} replicas)`
                   : hasuraResources}
               </Text>
             </Box>
@@ -163,7 +163,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
               <Text className="text-xs" color="secondary">
                 {formValues.auth.replicas > 1
-                  ? `${formValues.auth.replicas} x (${authResources})`
+                  ? `${authResources} (${formValues.auth.replicas} replicas)`
                   : authResources}
               </Text>
             </Box>
@@ -173,7 +173,7 @@ export default function ResourcesConfirmationDialog({
               </Text>
               <Text className="text-xs" color="secondary">
                 {formValues.storage.replicas > 1
-                  ? `${formValues.storage.replicas} x (${storageResources})`
+                  ? `${storageResources} (${formValues.storage.replicas} replicas)`
                   : storageResources}
               </Text>
             </Box>

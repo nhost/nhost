@@ -485,14 +485,14 @@ test('should take replicas into account when confirming the resources', async ()
 
   expect(
     within(dialog).getByText(/hasura graphql/i).parentElement,
-  ).toHaveTextContent(/3 x \(2\.5 vcpu \+ 5120 mib\)/i);
+  ).toHaveTextContent(/2\.5 vcpu \+ 5120 mib \(3 replicas\)/i);
 
   expect(within(dialog).getByText(/auth/i).parentElement).toHaveTextContent(
-    /2 x \(1\.5 vcpu \+ 3072 mib\)/i,
+    /1\.5 vcpu \+ 3072 mib \(2 replicas\)/i,
   );
 
   expect(within(dialog).getByText(/storage/i).parentElement).toHaveTextContent(
-    /4 x \(2\.5 vcpu \+ 5120 mib\)/i,
+    /2\.5 vcpu \+ 5120 mib \(4 replicas\)/i,
   );
 
   // total must contain the sum of all resources when replicas are taken into
