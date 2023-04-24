@@ -1,5 +1,5 @@
 import { sendError } from '@/errors';
-import { ENV, createHasuraAccessToken, getUserByPAT } from '@/utils';
+import { ENV, createHasuraAccessToken, getUser, getUserByPAT } from '@/utils';
 import { personalAccessToken } from '@/validation';
 import { RequestHandler } from 'express';
 import Joi from 'joi';
@@ -24,6 +24,7 @@ export const signInPATHandler: RequestHandler<
   }
 
   const accessToken = await createHasuraAccessToken(user);
+  const sessionUser = await getUser({ userId: user.id });
 
   return res.send({
     mfa: null,
@@ -31,7 +32,7 @@ export const signInPATHandler: RequestHandler<
       accessToken,
       accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
       refreshToken: null,
-      user,
+      user: sessionUser,
     },
   });
 };
