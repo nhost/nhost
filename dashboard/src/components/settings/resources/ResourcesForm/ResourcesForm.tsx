@@ -371,8 +371,8 @@ export default function ResourcesForm() {
                     <strong>Invalid Configuration</strong>
 
                     <p>
-                      Please check the allocation for each service and try
-                      again.
+                      Please check the form for errors and the allocation for
+                      each service and try again.
                     </p>
                   </Alert>
                 </Box>

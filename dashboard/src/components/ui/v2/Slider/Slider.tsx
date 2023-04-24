@@ -46,7 +46,7 @@ const StyledSlider = styled(MaterialSlider)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
     [`&:focus, &:hover, &.${materialSliderClasses.active}, &.${materialSliderClasses.focusVisible}`]:
       {
-        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.3)}`,
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.35)}`,
       },
   },
 }));

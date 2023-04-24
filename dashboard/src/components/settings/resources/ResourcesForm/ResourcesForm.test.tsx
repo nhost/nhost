@@ -423,7 +423,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   expect(screen.getByText(/invalid configuration/i)).toBeInTheDocument();
   expect(
     screen.getByText(
-      /please check the allocation for each service and try again\./i,
+      /please check the form for errors and the allocation for each service and try again\./i,
     ),
   ).toBeInTheDocument();
 

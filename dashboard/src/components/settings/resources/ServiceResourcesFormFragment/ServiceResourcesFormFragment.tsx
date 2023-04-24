@@ -93,15 +93,8 @@ export default function ServiceResourcesFormFragment({
 
   function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
-    const exceedsAvailableVCPU =
-      updatedVCPU + (totalAllocatedVCPU - serviceValues.vcpu) >
-      formValues.totalAvailableVCPU;
 
-    if (
-      Number.isNaN(updatedVCPU) ||
-      exceedsAvailableVCPU ||
-      updatedVCPU < MIN_SERVICE_VCPU
-    ) {
+    if (Number.isNaN(updatedVCPU) || updatedVCPU < MIN_SERVICE_VCPU) {
       return;
     }
 
@@ -115,15 +108,8 @@ export default function ServiceResourcesFormFragment({
 
   function handleMemoryChange(value: string) {
     const updatedMemory = parseFloat(value);
-    const exceedsAvailableMemory =
-      updatedMemory + (totalAllocatedMemory - serviceValues.memory) >
-      formValues.totalAvailableMemory;
 
-    if (
-      Number.isNaN(updatedMemory) ||
-      exceedsAvailableMemory ||
-      updatedMemory < MIN_SERVICE_MEMORY
-    ) {
+    if (Number.isNaN(updatedMemory) || updatedMemory < MIN_SERVICE_MEMORY) {
       return;
     }
 

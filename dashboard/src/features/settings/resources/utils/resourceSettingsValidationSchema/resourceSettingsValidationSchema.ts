@@ -100,12 +100,32 @@ export const resourceSettingsValidationSchema = Yup.object({
     .label('Total Available vCPUs')
     .required()
     .min(MIN_TOTAL_VCPU)
-    .max(MAX_TOTAL_VCPU),
+    .max(MAX_TOTAL_VCPU)
+    .test(
+      'is-equal-to-services',
+      'Total vCPUs must be equal to the sum of all services.',
+      (totalAvailableVCPU: number, { parent }) =>
+        parent.database.vcpu +
+          parent.hasura.vcpu +
+          parent.auth.vcpu +
+          parent.storage.vcpu ===
+        totalAvailableVCPU,
+    ),
   totalAvailableMemory: Yup.number()
     .label('Available Memory')
     .required()
     .min(MIN_TOTAL_MEMORY)
-    .max(MAX_TOTAL_MEMORY),
+    .max(MAX_TOTAL_MEMORY)
+    .test(
+      'is-equal-to-services',
+      'Total memory must be equal to the sum of all services.',
+      (totalAvailableMemory: number, { parent }) =>
+        parent.database.memory +
+          parent.hasura.memory +
+          parent.auth.memory +
+          parent.storage.memory ===
+        totalAvailableMemory,
+    ),
   database: serviceValidationSchema.required(),
   hasura: serviceValidationSchema.required(),
   auth: serviceValidationSchema.required(),

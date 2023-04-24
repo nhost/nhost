@@ -5,7 +5,6 @@ import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_TOTAL_VCPU,
-  MIN_TOTAL_MEMORY,
   MIN_TOTAL_VCPU,
 } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
@@ -90,15 +89,21 @@ export default function TotalResourcesFormFragment({
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
     getAllocatedResources(formValues);
-  const unallocatedVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
-  const unallocatedMemory = formValues.totalAvailableMemory - allocatedMemory;
-  const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
+  const remainingVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
+  const remainingMemory = formValues.totalAvailableMemory - allocatedMemory;
+  const hasUnusedResources = remainingVCPU > 0 || remainingMemory > 0;
+  const hasOverallocatedResources = remainingVCPU < 0 || remainingMemory < 0;
 
   const unusedResourceMessage = [
-    unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
-    unallocatedMemory > 0
-      ? `${prettifyMemory(unallocatedMemory)} of Memory`
-      : '',
+    remainingVCPU > 0 ? `${prettifyVCPU(remainingVCPU)} vCPUs` : '',
+    remainingMemory > 0 ? `${prettifyMemory(remainingMemory)} of Memory` : '',
+  ]
+    .filter(Boolean)
+    .join(' and ');
+
+  const overallocatedResourceMessage = [
+    remainingVCPU < 0 ? `${prettifyVCPU(-remainingVCPU)} vCPUs` : '',
+    remainingMemory < 0 ? `${prettifyMemory(-remainingMemory)} of Memory` : '',
   ]
     .filter(Boolean)
     .join(' and ');
@@ -110,11 +115,7 @@ export default function TotalResourcesFormFragment({
       RESOURCE_VCPU_MEMORY_RATIO *
       RESOURCE_MEMORY_MULTIPLIER;
 
-    if (
-      Number.isNaN(updatedVCPU) ||
-      updatedVCPU < Math.max(MIN_TOTAL_VCPU, allocatedVCPU) ||
-      updatedMemory < Math.max(MIN_TOTAL_MEMORY, allocatedMemory)
-    ) {
+    if (Number.isNaN(updatedVCPU) || updatedVCPU < MIN_TOTAL_VCPU) {
       return;
     }
 
@@ -170,10 +171,12 @@ export default function TotalResourcesFormFragment({
         </Box>
 
         <Alert
-          severity={hasUnusedResources ? 'warning' : 'info'}
+          severity={
+            hasUnusedResources || hasOverallocatedResources ? 'warning' : 'info'
+          }
           className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
         >
-          {hasUnusedResources ? (
+          {hasUnusedResources && !hasOverallocatedResources && (
             <>
               <strong>Please use all the available vCPUs and Memory</strong>
 
@@ -182,7 +185,20 @@ export default function TotalResourcesFormFragment({
                 of the services before saving.
               </p>
             </>
-          ) : (
+          )}
+
+          {hasOverallocatedResources && (
+            <>
+              <strong>Overallocated Resources</strong>
+
+              <p>
+                You now have {overallocatedResourceMessage} overallocated.
+                Reduce it before saving.
+              </p>
+            </>
+          )}
+
+          {!hasUnusedResources && !hasOverallocatedResources && (
             <>
               <strong>You&apos;re All Set</strong>
 
