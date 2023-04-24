@@ -1,5 +1,4 @@
-import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
-import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
+import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
@@ -39,51 +38,41 @@ export default function ResourcesConfirmationDialog({
 }: ResourcesConfirmationDialogProps) {
   const { data: proPlan, loading, error } = useProPlan();
 
-  const { vcpu: allocatedVCPU, memory: allocatedMemory } =
-    getAllocatedResources(formValues);
-
-  const finalAllocatedVCPU = formValues.enabled ? allocatedVCPU : 0;
-  const finalAllocatedMemory = formValues.enabled ? allocatedMemory : 0;
-
   const priceForTotalAvailableVCPU =
-    (RESOURCE_VCPU_PRICE * formValues.totalAvailableVCPU) /
-    RESOURCE_VCPU_MULTIPLIER;
+    (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
+    RESOURCE_VCPU_PRICE;
 
-  const priceForServicesAndReplicas = calculateApproximateCost(
-    RESOURCE_VCPU_PRICE,
+  const billableResources = calculateBillableResources(
     {
       replicas: formValues.database?.replicas,
       vcpu: formValues.database?.vcpu,
+      memory: formValues.database?.memory,
     },
     {
       replicas: formValues.hasura?.replicas,
       vcpu: formValues.hasura?.vcpu,
+      memory: formValues.hasura?.memory,
     },
     {
       replicas: formValues.auth?.replicas,
       vcpu: formValues.auth?.vcpu,
+      memory: formValues.auth?.memory,
     },
     {
       replicas: formValues.storage?.replicas,
       vcpu: formValues.storage?.vcpu,
+      memory: formValues.storage?.memory,
     },
   );
 
-  const totalBillableVCPU =
-    formValues.database.replicas * formValues.database.vcpu +
-    formValues.hasura.replicas * formValues.hasura.vcpu +
-    formValues.auth.replicas * formValues.auth.vcpu +
-    formValues.storage.replicas * formValues.storage.vcpu;
-
-  const totalBillableMemory =
-    formValues.database.replicas * formValues.database.memory +
-    formValues.hasura.replicas * formValues.hasura.memory +
-    formValues.auth.replicas * formValues.auth.memory +
-    formValues.storage.replicas * formValues.storage.memory;
+  const totalBillableVCPU = formValues.enabled ? billableResources.vcpu : 0;
+  const totalBillableMemory = formValues.enabled ? billableResources.memory : 0;
 
   const updatedPrice =
-    Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
-    proPlan.price;
+    Math.max(
+      priceForTotalAvailableVCPU,
+      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE,
+    ) + proPlan.price;
 
   if (!loading && !proPlan) {
     return (
@@ -97,9 +86,22 @@ export default function ResourcesConfirmationDialog({
     throw error;
   }
 
+  const databaseResources = `${prettifyVCPU(
+    formValues.database.vcpu,
+  )} vCPU + ${prettifyMemory(formValues.database.memory)}`;
+  const hasuraResources = `${prettifyVCPU(
+    formValues.hasura.vcpu,
+  )} vCPU + ${prettifyMemory(formValues.hasura.memory)}`;
+  const authResources = `${prettifyVCPU(
+    formValues.auth.vcpu,
+  )} vCPU + ${prettifyMemory(formValues.auth.memory)}`;
+  const storageResources = `${prettifyVCPU(
+    formValues.storage.vcpu,
+  )} vCPU + ${prettifyMemory(formValues.storage.memory)}`;
+
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      {finalAllocatedVCPU > 0 ? (
+      {totalBillableVCPU > 0 ? (
         <Text className="text-center">
           Please allow some time for the selected resources to take effect.
         </Text>
@@ -122,60 +124,69 @@ export default function ResourcesConfirmationDialog({
               <Text className="font-medium">Dedicated Resources</Text>
             </Box>
             <Text>
-              ${(totalBillableVCPU * RESOURCE_VCPU_PRICE_PER_MINUTE).toFixed(2)}
+              $
+              {(
+                (totalBillableVCPU / RESOURCE_VCPU_MULTIPLIER) *
+                RESOURCE_VCPU_PRICE_PER_MINUTE
+              ).toFixed(4)}
               /min
             </Text>
           </Box>
 
-          <Box className="grid w-full grid-cols-2 justify-between gap-1.5">
-            <Text className="text-xs" color="secondary">
-              Database
-            </Text>
-            <Text className="text-right text-xs" color="secondary">
-              {prettifyVCPU(formValues.database.vcpu)} vCPU +{' '}
-              {prettifyMemory(formValues.database.memory)}
-            </Text>
+          <Box className="grid w-full grid-flow-row gap-1.5">
+            <Box className="grid grid-flow-col justify-between gap-2">
+              <Text className="text-xs" color="secondary">
+                PostgreSQL Database
+              </Text>
 
-            <Text className="text-xs" color="secondary">
-              Hasura GraphQL
-            </Text>
-            <Text className="text-right text-xs" color="secondary">
-              {prettifyVCPU(formValues.hasura.vcpu)} vCPU +{' '}
-              {prettifyMemory(formValues.hasura.memory)}{' '}
-              {formValues.hasura.replicas > 1
-                ? `(${formValues.hasura.replicas} replicas)`
-                : null}
-            </Text>
+              <Text className="text-xs" color="secondary">
+                {formValues.database.replicas > 1
+                  ? `${formValues.database.replicas}x (${databaseResources})`
+                  : databaseResources}
+              </Text>
+            </Box>
 
-            <Text className="text-xs" color="secondary">
-              Auth
-            </Text>
-            <Text className="text-right text-xs" color="secondary">
-              {prettifyVCPU(formValues.auth.vcpu)} vCPU +{' '}
-              {prettifyMemory(formValues.auth.memory)}{' '}
-              {formValues.auth.replicas > 1
-                ? `(${formValues.auth.replicas} replicas)`
-                : null}
-            </Text>
+            <Box className="grid grid-flow-col justify-between gap-2">
+              <Text className="text-xs" color="secondary">
+                Hasura GraphQL
+              </Text>
+              <Text className="text-xs" color="secondary">
+                {formValues.hasura.replicas > 1
+                  ? `${formValues.hasura.replicas} x (${hasuraResources})`
+                  : hasuraResources}
+              </Text>
+            </Box>
 
-            <Text className="text-xs" color="secondary">
-              Storage
-            </Text>
-            <Text className="text-right text-xs" color="secondary">
-              {prettifyVCPU(formValues.storage.vcpu)} vCPU +{' '}
-              {prettifyMemory(formValues.storage.memory)}{' '}
-              {formValues.storage.replicas > 1
-                ? `(${formValues.storage.replicas} replicas)`
-                : null}
-            </Text>
+            <Box className="grid grid-flow-col justify-between gap-2">
+              <Text className="text-xs" color="secondary">
+                Auth
+              </Text>
+              <Text className="text-xs" color="secondary">
+                {formValues.auth.replicas > 1
+                  ? `${formValues.auth.replicas} x (${authResources})`
+                  : authResources}
+              </Text>
+            </Box>
+            <Box className="grid grid-flow-col justify-between gap-2">
+              <Text className="text-xs" color="secondary">
+                Storage
+              </Text>
+              <Text className="text-xs" color="secondary">
+                {formValues.storage.replicas > 1
+                  ? `${formValues.storage.replicas} x (${storageResources})`
+                  : storageResources}
+              </Text>
+            </Box>
 
-            <Text className="text-xs font-medium" color="secondary">
-              Total
-            </Text>
-            <Text className="text-right text-xs font-medium" color="secondary">
-              {prettifyVCPU(totalBillableVCPU)} vCPU +{' '}
-              {prettifyMemory(totalBillableMemory)}
-            </Text>
+            <Box className="grid grid-flow-col justify-between gap-2">
+              <Text className="text-xs font-medium" color="secondary">
+                Total
+              </Text>
+              <Text className="text-xs font-medium" color="secondary">
+                {prettifyVCPU(totalBillableVCPU)} vCPU +{' '}
+                {prettifyMemory(totalBillableMemory)}
+              </Text>
+            </Box>
           </Box>
         </Box>
 
@@ -190,13 +201,13 @@ export default function ResourcesConfirmationDialog({
             </Tooltip>
           </Box>
 
-          <Text>${(updatedPrice + proPlan.price).toFixed(2)}/mo</Text>
+          <Text>${updatedPrice.toFixed(2)}/mo</Text>
         </Box>
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
         <Button
-          color={finalAllocatedVCPU > 0 ? 'primary' : 'error'}
+          color={totalBillableVCPU > 0 ? 'primary' : 'error'}
           onClick={onSubmit}
           autoFocus
         >

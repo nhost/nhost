@@ -4,7 +4,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
-import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
+import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
@@ -13,7 +13,10 @@ import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Divider from '@/ui/v2/Divider';
-import { RESOURCE_VCPU_PRICE } from '@/utils/CONSTANTS';
+import {
+  RESOURCE_VCPU_MULTIPLIER,
+  RESOURCE_VCPU_PRICE,
+} from '@/utils/CONSTANTS';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
@@ -135,27 +138,28 @@ export default function ResourcesForm() {
 
   const enabled = watch('enabled');
 
+  const billableResources = calculateBillableResources(
+    {
+      replicas: initialDatabaseResources.replicas,
+      vcpu: initialDatabaseResources.vcpu,
+    },
+    {
+      replicas: initialHasuraResources.replicas,
+      vcpu: initialHasuraResources.vcpu,
+    },
+    {
+      replicas: initialAuthResources.replicas,
+      vcpu: initialAuthResources.vcpu,
+    },
+    {
+      replicas: initialStorageResources.replicas,
+      vcpu: initialStorageResources.vcpu,
+    },
+  );
+
   const initialPrice =
     proPlan.price +
-    calculateApproximateCost(
-      RESOURCE_VCPU_PRICE,
-      {
-        replicas: initialDatabaseResources.replicas,
-        vcpu: initialDatabaseResources.vcpu,
-      },
-      {
-        replicas: initialHasuraResources.replicas,
-        vcpu: initialHasuraResources.vcpu,
-      },
-      {
-        replicas: initialAuthResources.replicas,
-        vcpu: initialAuthResources.vcpu,
-      },
-      {
-        replicas: initialStorageResources.replicas,
-        vcpu: initialStorageResources.vcpu,
-      },
-    );
+    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({

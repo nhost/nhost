@@ -180,36 +180,36 @@ test('should show a confirmation dialog when the form is submitted', async () =>
 
   changeSliderValue(
     screen.getByRole('slider', { name: /database vcpu/i }),
-    2.25 * RESOURCE_VCPU_MULTIPLIER,
+    2 * RESOURCE_VCPU_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
-    2.25 * RESOURCE_VCPU_MULTIPLIER,
+    2.5 * RESOURCE_VCPU_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
-    2.25 * RESOURCE_VCPU_MULTIPLIER,
+    1.5 * RESOURCE_VCPU_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
-    2.25 * RESOURCE_VCPU_MULTIPLIER,
+    3 * RESOURCE_VCPU_MULTIPLIER,
   );
 
   changeSliderValue(
     screen.getByRole('slider', { name: /database memory/i }),
-    4.5 * RESOURCE_MEMORY_MULTIPLIER,
+    4.75 * RESOURCE_MEMORY_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql memory/i }),
-    4.5 * RESOURCE_MEMORY_MULTIPLIER,
+    4.25 * RESOURCE_MEMORY_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /auth memory/i }),
-    4.5 * RESOURCE_MEMORY_MULTIPLIER,
+    4 * RESOURCE_MEMORY_MULTIPLIER,
   );
   changeSliderValue(
     screen.getByRole('slider', { name: /storage memory/i }),
-    4.5 * RESOURCE_MEMORY_MULTIPLIER,
+    5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -221,15 +221,21 @@ test('should show a confirmation dialog when the form is submitted', async () =>
     }),
   ).toBeInTheDocument();
   expect(
-    within(screen.getByRole('dialog')).getByText(
-      /9 vcpus \+ 18432 mib of memory/i,
-      { exact: true },
-    ),
-  ).toBeInTheDocument();
+    within(screen.getByRole('dialog')).getByText(/postgresql database/i)
+      .parentElement,
+  ).toHaveTextContent(/2 vcpu \+ 4864 mib/i);
   expect(
-    within(screen.getByRole('dialog')).getByText(/\$475\.00\/mo/i, {
-      exact: true,
-    }),
+    within(screen.getByRole('dialog')).getByText(/hasura graphql/i)
+      .parentElement,
+  ).toHaveTextContent(/2.5 vcpu \+ 4352 mib/i);
+  expect(
+    within(screen.getByRole('dialog')).getByText(/auth/i).parentElement,
+  ).toHaveTextContent(/1.5 vcpu \+ 4096 mib/i);
+  expect(
+    within(screen.getByRole('dialog')).getByText(/storage/i).parentElement,
+  ).toHaveTextContent(/3 vcpu \+ 5120 mib/i);
+  expect(
+    within(screen.getByRole('dialog')).getByText(/\$475\.00\/mo/i),
   ).toBeInTheDocument();
 
   // we need to mock the query again because the mutation updated the resources
@@ -354,45 +360,6 @@ test('should change pricing based on selected replicas', async () => {
   );
 });
 
-test('should change pricing in the modal based on selected replicas', async () => {
-  const user = userEvent.setup();
-
-  render(<ResourcesForm />);
-
-  expect(
-    await screen.findByRole('slider', { name: /total available vcpu/i }),
-  ).toBeInTheDocument();
-
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$425\.00\/mo/i,
-  );
-
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    2,
-  );
-
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$525\.00\/mo/i,
-  );
-
-  await user.click(screen.getByRole('button', { name: /save/i }));
-
-  expect(await screen.findByRole('dialog')).toBeInTheDocument();
-
-  // vCPUs and Memory should not change
-  expect(
-    within(screen.getByRole('dialog')).getByText(
-      /^8 vcpus \+ 16384 mib of memory$/i,
-    ),
-  ).toBeInTheDocument();
-
-  // The price should change
-  expect(
-    within(screen.getByRole('dialog')).getByText(/^\$525\.00\/mo$/i),
-  ).toBeInTheDocument();
-});
-
 test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
   const user = userEvent.setup();
 
@@ -439,4 +406,101 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
 
   expect(validationErrorMessage).toBeInTheDocument();
   expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
+});
+
+test('should take replicas into account when confirming the resources', async () => {
+  const user = userEvent.setup();
+
+  render(<ResourcesForm />);
+
+  expect(
+    await screen.findByRole('slider', { name: /total available vcpu/i }),
+  ).toBeInTheDocument();
+
+  changeSliderValue(
+    screen.getByRole('slider', {
+      name: /total available vcpu/i,
+    }),
+    8.5 * RESOURCE_VCPU_MULTIPLIER,
+  );
+
+  // setting up database
+  changeSliderValue(
+    screen.getByRole('slider', { name: /database vcpu/i }),
+    2 * RESOURCE_VCPU_MULTIPLIER,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /database memory/i }),
+    4 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  // setting up hasura
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
+    3,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
+    2.5 * RESOURCE_VCPU_MULTIPLIER,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /hasura graphql memory/i }),
+    5 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  // setting up auth
+  changeSliderValue(screen.getByRole('slider', { name: /auth replicas/i }), 2);
+  changeSliderValue(
+    screen.getByRole('slider', { name: /auth vcpu/i }),
+    1.5 * RESOURCE_VCPU_MULTIPLIER,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /auth memory/i }),
+    3 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  // setting up storage
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage replicas/i }),
+    4,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage vcpu/i }),
+    2.5 * RESOURCE_VCPU_MULTIPLIER,
+  );
+  changeSliderValue(
+    screen.getByRole('slider', { name: /storage memory/i }),
+    5 * RESOURCE_MEMORY_MULTIPLIER,
+  );
+
+  await user.click(screen.getByRole('button', { name: /save/i }));
+
+  expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+  const dialog = screen.getByRole('dialog');
+
+  expect(
+    within(dialog).getByText(/postgresql database/i).parentElement,
+  ).toHaveTextContent(/2 vcpu \+ 4096 mib/i);
+
+  expect(
+    within(dialog).getByText(/hasura graphql/i).parentElement,
+  ).toHaveTextContent(/3 x \(2\.5 vcpu \+ 5120 mib\)/i);
+
+  expect(within(dialog).getByText(/auth/i).parentElement).toHaveTextContent(
+    /2 x \(1\.5 vcpu \+ 3072 mib\)/i,
+  );
+
+  expect(within(dialog).getByText(/storage/i).parentElement).toHaveTextContent(
+    /4 x \(2\.5 vcpu \+ 5120 mib\)/i,
+  );
+
+  // total must contain the sum of all resources when replicas are taken into
+  // account
+  expect(within(dialog).getByText(/total/i).parentElement).toHaveTextContent(
+    /22\.5 vcpu \+ 46080 mib/i,
+  );
+
+  expect(within(dialog).getByText(/\$0.0270\/min/i)).toBeInTheDocument();
+  expect(within(dialog).getByText(/\$1150\.00\/mo/i)).toBeInTheDocument();
 });

@@ -1,4 +1,4 @@
-import { calculateApproximateCost } from '@/features/settings/resources/utils/calculateApproximateCost';
+import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -42,10 +42,9 @@ export default function ResourcesFormFooter() {
   }
 
   const priceForTotalAvailableVCPU =
-    (RESOURCE_VCPU_PRICE * totalAvailableVCPU) / RESOURCE_VCPU_MULTIPLIER;
+    (totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
 
-  const priceForServicesAndReplicas = calculateApproximateCost(
-    RESOURCE_VCPU_PRICE,
+  const billableResources = calculateBillableResources(
     {
       replicas: database?.replicas,
       vcpu: database?.vcpu,
@@ -65,8 +64,11 @@ export default function ResourcesFormFooter() {
   );
 
   const updatedPrice = enabled
-    ? Math.max(priceForTotalAvailableVCPU, priceForServicesAndReplicas) +
-      proPlan.price
+    ? Math.max(
+        priceForTotalAvailableVCPU,
+        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+          RESOURCE_VCPU_PRICE,
+      ) + proPlan.price
     : proPlan.price;
 
   return (
