@@ -784,7 +784,7 @@ export interface DeletePermission {
    */
   filter?: { [key: string]: number | { [key: string]: any } | string };
   // ! V3
-  backend_only: boolean;
+  backend_only?: boolean;
 }
 
 /**

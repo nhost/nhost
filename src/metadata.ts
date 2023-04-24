@@ -61,6 +61,46 @@ export const hasuraAuthMetadataPatch: MetadataPatch = {
             },
           },
         ],
+        select_permissions: [
+          {
+            role: 'user',
+            permission: {
+              columns: [
+                'created_at',
+                'expires_at',
+                'metadata',
+                'type',
+                'user_id',
+              ],
+              filter: {
+                user_id: {
+                  _eq: 'X-Hasura-User-Id',
+                },
+              },
+            },
+          },
+        ],
+        delete_permissions: [
+          {
+            role: 'user',
+            permission: {
+              filter: {
+                _and: [
+                  {
+                    user_id: {
+                      _eq: 'X-Hasura-User-Id',
+                    },
+                  },
+                  {
+                    type: {
+                      _eq: 'pat',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
       },
       {
         table: { name: 'roles', schema },
