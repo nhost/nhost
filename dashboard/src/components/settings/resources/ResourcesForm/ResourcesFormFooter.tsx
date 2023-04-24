@@ -96,7 +96,7 @@ export default function ResourcesFormFooter() {
               <span className="font-medium">${updatedPrice.toFixed(2)}/mo</span>
             </Text>
 
-            <Tooltip title="This is just an estimation.">
+            <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
               <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
             </Tooltip>
           </Box>
