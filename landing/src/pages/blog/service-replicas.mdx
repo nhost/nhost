@@ -1,0 +1,68 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'High Availability and Fault Tolerance with Service Replicas',
+  description:
+    '',
+  image: '/images/blog/service-replicas/replicas.png',
+  date: '2023-04-26',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Resources'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We are excited to launch Service Replicas, a powerful addition to the Nhost Platform that complements our recently introduced Dedicated Compute. Service Replicas improve [high availability](https://en.wikipedia.org/wiki/High_availability) and [fault tolerance](https://en.wikipedia.org/wiki/Fault_tolerance) across your Nhost stack while streamlining their management using our intuitive Replicas Slider. If you haven't yet, I recommend reviewing our previous blog post on [Dedicated Compute](https://nhost.io/blog/dedicated-compute) to better understand its role in scaling your Nhost apps. 
+
+## Understanding and Visualizing Service Replicas
+
+On a high level, Service Replicas are multiple concurrent instances of the same service, deployed across various machines. To better understand their role in enhancing fault tolerance, refer to the following diagram illustrating their functionality:
+
+![Service Replicas](/images/blog/service-replicas/replicas-diagram.png)
+
+This diagram displays a scenario where a Nhost Project has 3 replicas configured for Hasura. It shows the load balancer distributing requests to your GraphQL API among all available replicas while users interact with your web and mobile apps. In case of replica failure, the load balancer redirects user requests to remaining replicas, while Nhost ensures that a replacement replica is up-and-running as quickly as possible. This is an addition that improves the overal reliability of the Nhost Platform and one you should be keen to adopt if you are serious about availability.
+
+## Service Replicas Benefits
+
+- Load balancing: Distribute workloads evenly among replicas to prevent bottlenecks and ensure smooth performance during peak times.
+
+- High availability: Maintain application availability even if one or more replicas fail, improving fault tolerance and providing a reliable user experience.
+
+- Scalability: Scale applications horizontally by adding more replicas as traffic increases. This is particulartly interesting if you're building real-time apps using subscriptions.
+
+- Performance: Enhance user experience with faster response times by distributing the load among replicas.
+
+
+## Scaling with the Replicas Slider
+
+You can configure the number of replicas for your GraphQL API, Auth and Storage services, in your project's settings in the Nhost Dashboard, under Compute Resources. There you will find a new slider for adjusting the number of replicas for each service (except Postgres). Configuring multiple replicas is as simple as:
+
+- Adjust the slider to select the desired number of replicas for each service based on your requirements.
+
+- The Nhost platform automatically handles the deployment and management of replicas, ensuring optimal performance, availability, and fault tolerance.
+
+![Replicas Slider](/images/blog/service-replicas/replicas-slider.png)
+
+## Caveats and Future Improvements
+
+- Postgres Replicas: Currently, we do not support multiple replicas for Postgres. This is something we want to support, but it requires a lot more effort to get right. Please reach out if this is something interesting for you. 
+
+- Compute Ratio: When setting multiple replicas for any service (e.g. auth), the 1:2 ratio between CPU and RAM for that specific service must be respected at the service level as well.
+
+## What's Next?
+
+- We're actively working on providing metrics around compute utilization for each service. 
+
+- Service Replicas will also be configurable using the new config file we're working on.
+
+## Conclusion
+
+Service Replicas offer a powerful solution to enhance your apps' availability, complementing Dedicated Compute which we launched just a week ago. With our user-friendly sliders, you can now configure not only compute per replica, but also how many replicas you need for each service on the Nhost Stack. Managing performance and availability becomes more accessible, allowing you to focus on delivering the best experience for your users as your app grows. 
