@@ -169,7 +169,7 @@ export default function RoleSettings() {
 
   return (
     <SettingsContainer
-      title="Allowed Roles"
+      title="Default Allowed Roles"
       description="Allowed roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
