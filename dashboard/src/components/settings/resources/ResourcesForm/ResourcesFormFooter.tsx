@@ -73,7 +73,7 @@ export default function ResourcesFormFooter() {
 
   return (
     <Box
-      className="grid grid-flow-col items-center justify-between border-t px-4 pt-4"
+      className="grid items-center gap-4 border-t px-4 pt-4 lg:grid-flow-col lg:justify-between lg:gap-2"
       component="footer"
     >
       <Text>
@@ -91,7 +91,7 @@ export default function ResourcesFormFooter() {
       </Text>
 
       {(enabled || isDirty) && (
-        <Box className="grid grid-flow-col items-center gap-4">
+        <Box className="grid grid-flow-col items-center justify-between gap-4">
           <Box className="grid grid-flow-col items-center gap-1.5">
             <Text>
               Approximate cost:{' '}

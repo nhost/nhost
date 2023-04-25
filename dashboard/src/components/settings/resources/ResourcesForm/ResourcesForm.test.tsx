@@ -401,7 +401,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   ).toBeInTheDocument();
 
   const validationErrorMessage = screen.getByLabelText(
-    /vCPU and Memory must match the 1:2 ratio if more than one replica is selected\./i,
+    /vcpu and memory for this service must match the 1:2 ratio if more than one replica is selected\./i,
   );
 
   expect(validationErrorMessage).toBeInTheDocument();
