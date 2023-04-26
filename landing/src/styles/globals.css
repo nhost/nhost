@@ -654,3 +654,11 @@ body {
       rgba(0, 0, 0, 0) 33.72%
     );
 }
+
+[data-rmiz-modal-overlay] {
+  background-color: rgba(0, 0, 0, 1) !important;
+}
+
+[data-rmiz-modal-overlay='hidden'] {
+  background-color: rgba(0, 0, 0, 0) !important;
+}
