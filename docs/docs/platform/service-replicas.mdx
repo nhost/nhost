@@ -6,6 +6,10 @@ image: /img/og/platform/service-replicas.png
 
 Service Replicas is a feature that allows you to create multiple replicas of your services, enhancing availability and fault tolerance for your Nhost apps. By distributing user requests among replicas, your apps can handle more traffic and provide a better user experience. This documentation touches on the key aspects of Service Replicas in the context of the Nhost Cloud Platform.
 
+![Service Replicas](/img/platform/service-replicas/replicas-diagram.png)
+
+To read the announcement, check out our [blog post](https://nhost.io/blog/service-replicas).
+
 ## Supported Services
 
 Replicas can be configured for the following services:
@@ -33,6 +37,15 @@ Please note that when setting multiple replicas for a service, the 1:2 ratio bet
 - Improved fault tolerance: Multiple replicas ensure that if one instance crashes duo to an unexpected issue, the other replicas can continue to serve user requests.
 - Improved availability: Distributing user requests among multiple replicas allows your apps to handle more traffic and maintain a high level of performance.
 - Load balancing: Distributing workloads evenly among replicas to prevent bottlenecks and ensure smooth performance during peak times.
+
+## Pricing
+
+Pricing is based on the size of each replica and the total number of replicas you have configured for each service:
+
+- If you allocate 1 vCPU and 2 GiB of RAM to the auth service, for example, the cost for a single replica is $50.
+- If you have configure 3 replicas for auth, the total cost for all replicas would be $150 (3 replicas x $50 per replica).
+
+Please note that Service Replicas is available only for projects on the Pro plan or higher.
 
 ## Caveats
 
