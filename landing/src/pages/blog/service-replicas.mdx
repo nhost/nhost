@@ -30,17 +30,17 @@ On a high level, Service Replicas are multiple concurrent instances of the same 
 
 This diagram displays a scenario where a Nhost Project has 3 replicas configured for Hasura. It shows the load balancer distributing requests among all available Hasura replicas while users interact with your web and mobile apps. In case of replica failure, the load balancer redirects user requests to remaining replicas, while Nhost ensures that a replacement replica is up-and-running as quickly as possible. 
 
-This is an addition that improves the overal reliability of the Nhost Platform and one you should be keen to adopt if you are serious about availability.
+This is an addition that allows you to scale your application horizontally to both increase performance and the overall availability of your Nhost project.
 
 ## Service Replicas Benefits
 
-- Load balancing: Distribute workloads evenly among replicas to prevent bottlenecks and ensure smooth performance during peak times.
+- Distribute workloads evenly among replicas to prevent bottlenecks and ensure smooth performance during peak times.
 
-- High availability: Maintain application availability even if one or more replicas fail, improving fault tolerance and providing a reliable user experience.
+- Maintain application availability even if one or more replicas fail, improving fault tolerance and providing a reliable user experience.
 
-- Scalability: Scale applications horizontally by adding more replicas as traffic increases. This is particulartly interesting if you're building real-time apps using subscriptions.
+- Scale applications horizontally by adding more replicas as traffic increases. This is particulartly interesting if you're building real-time apps using subscriptions.
 
-- Performance: Enhance user experience with faster response times by distributing the load among replicas.
+- Enhance user experience with faster response times by distributing the load among replicas.
 
 
 ## Scaling with the Replicas Slider
