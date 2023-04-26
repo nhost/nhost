@@ -1,6 +1,6 @@
-import winston from 'winston';
-import expressWinston, { LoggerOptions } from 'express-winston';
 import { Response } from 'express';
+import expressWinston, { LoggerOptions } from 'express-winston';
+import winston from 'winston';
 export const LOG_LEVEL = process.env.AUTH_LOG_LEVEL || 'info';
 
 // * Create a common Winston logger that can be used in both middlewares and manually
@@ -12,13 +12,39 @@ export const logger = winston.createLogger({
 // * Give more importance to Unauthorized and Forbidden status codes to give more visibility to hacking attempts
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
 
-const rewriteUrl = (url: string) => {
-  if (LOG_LEVEL !== 'debug' && (url.includes('?') || url.includes('#'))) {
-    const pathname = new URL(url, 'http://noop').pathname;
-    const char = url.includes('?') ? '?' : '#';
-    return `${pathname}${char}*****`;
+const maskUrl = (url: string) => {
+  if (LOG_LEVEL === 'debug' || (!url.includes('?') && !url.includes('#'))) {
+    return url;
   }
-  return url;
+
+  const { pathname, searchParams, hash } = new URL(url, 'http://noop');
+  const queryParameters = Array.from(searchParams.keys());
+
+  if (queryParameters.length > 0) {
+    return `${pathname}?${queryParameters
+      .map((param) => `${param}=*****`)
+      .join('&')})}`;
+  }
+
+  if (hash) {
+    return `${pathname}#*****`;
+  }
+
+  return pathname;
+};
+
+const maskHeaders = (headers: Record<string, unknown>) => {
+  if (LOG_LEVEL === 'DEBUG') {
+    return headers;
+  }
+
+  return Object.keys(headers).reduce(
+    (returnableHeaders, key) => ({
+      ...returnableHeaders,
+      [key]: '*****',
+    }),
+    {}
+  );
 };
 
 const loggerOptions: LoggerOptions = {
@@ -27,25 +53,33 @@ const loggerOptions: LoggerOptions = {
   metaField: null,
   responseField: null,
   msg: (req, res) =>
-    `${req.method} ${rewriteUrl(req.url)} ${res.statusCode} ${
+    `${req.method} ${maskUrl(req.url)} ${res.statusCode} ${
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (res as any).responseTime
     }ms`,
   // * Always log status, method, url, and userId when it exists
   dynamicMeta: ({ method, url, auth, headers }, res) => {
-    const { responseTime, statusCode } = res as Response & {
+    const { responseTime, statusCode, body } = res as Response & {
       responseTime: number;
+      body: unknown;
     };
+
     const meta: Record<string, unknown> = {
       statusCode,
       method,
       latencyInNs: responseTime * 1e6,
     };
+
+    if (statusCode >= 400) {
+      meta.reason = body;
+    }
+
     if (LOG_LEVEL === 'debug') {
       meta.url = url;
       meta.headers = headers;
     } else {
-      meta.url = rewriteUrl(url);
+      meta.url = maskUrl(url);
+      meta.headers = maskHeaders(headers);
     }
     const userId = auth?.userId;
     if (userId) {
@@ -65,7 +99,7 @@ const loggerOptions: LoggerOptions = {
     return 'info';
   },
   requestWhitelist: [],
-  responseWhitelist: ['responseTime'],
+  responseWhitelist: ['responseTime', 'body'],
 };
 
 /**

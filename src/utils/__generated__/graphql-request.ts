@@ -13048,6 +13048,7 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "cli_tokens" */
   cliTokensAggregate: CliTokens_Aggregate;
   config?: Maybe<ConfigConfig>;
+  configRawJSON: Scalars['String'];
   configs: Array<ConfigAppConfig>;
   /** fetch data from the table: "continents" */
   continents: Array<Continents>;
@@ -13566,6 +13567,12 @@ export type Query_RootCliTokensAggregateArgs = {
 
 
 export type Query_RootConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+};
+
+
+export type Query_RootConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
 };
