@@ -55,7 +55,7 @@ You can configure the number of replicas for your Hasura, Auth and Storage servi
 
 ## Caveats and Future Improvements
 
-- Postgres Replicas: Currently, we do not support multiple replicas for Postgres. This is something we want to support, but it requires a lot more effort to get right. Please reach out if this is something interesting for you. 
+- Currently, we do not support multiple replicas for Postgres. As postgres is a stateful workload this is a feature with a lot of nuances and we want to understand first what our users expect. Please reach out if this is something interesting for you.
 
 - Compute Ratio: When setting multiple replicas for any service (e.g. auth), the 1:2 ratio between vCPU and RAM for that specific service must be respected at the service level as well.
 
