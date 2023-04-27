@@ -1,6 +1,5 @@
 import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
-import { getLocalBackendUrl } from '@/utils/env';
 import slugify from 'slugify';
 import type { DeploymentRowFragment } from './__generated__/graphql';
 
@@ -53,22 +52,6 @@ export type Environment = 'dev' | 'staging' | 'production';
  */
 export function getCurrentEnvironment(): Environment {
   return (process.env.NEXT_PUBLIC_ENV || 'dev') as Environment;
-}
-
-export function generateRemoteAppUrl(subdomain: string): string {
-  if (process.env.NEXT_PUBLIC_NHOST_PLATFORM !== 'true') {
-    return getLocalBackendUrl();
-  }
-
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return process.env.NEXT_PUBLIC_NHOST_BACKEND_URL;
-  }
-
-  if (process.env.NEXT_PUBLIC_ENV === 'staging') {
-    return `https://${subdomain}.staging.nhost.run`;
-  }
-
-  return `https://${subdomain}.nhost.run`;
 }
 
 /**
