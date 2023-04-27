@@ -14,7 +14,6 @@ import { PropsWithChildren, useEffect, useState } from 'react'
 import 'react-medium-image-zoom/dist/styles.css'
 
 // TODO: Break out the MDXProvider in its own MDX component
-// TODO: make the image component work with Zoom so a user can zoom in on images
 const components = {
   img: (props: any) => <ImageWithLegend {...props} />,
 }
