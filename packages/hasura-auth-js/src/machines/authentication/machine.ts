@@ -5,7 +5,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-import { assign, createMachine, InterpreterFrom, send } from 'xstate'
+import { InterpreterFrom, assign, createMachine, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
@@ -35,6 +35,7 @@ import {
   RefreshSessionResponse,
   SignInAnonymousResponse,
   SignInMfaTotpResponse,
+  SignInPATResponse,
   SignInResponse,
   SignOutResponse,
   SignUpResponse
@@ -66,6 +67,7 @@ type AuthServices = {
   passwordlessSmsOtp: { data: PasswordlessSmsOtpResponse }
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
+  signInPAT: { data: SignInPATResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
@@ -181,7 +183,8 @@ export const createAuthMachine = ({
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
-                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
+                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
+                SIGNIN_PAT: 'authenticating.pat'
               }
             },
             authenticating: {
@@ -215,6 +218,20 @@ export const createAuthMachine = ({
                         target: '#nhost.authentication.signedOut.failed'
                       }
                     ]
+                  }
+                },
+                pat: {
+                  invoke: {
+                    src: 'signInPAT',
+                    id: 'authenticateWithPAT',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: {
+                      actions: 'saveAuthenticationError',
+                      target: '#nhost.authentication.signedOut.failed'
+                    }
                   }
                 },
                 anonymous: {
@@ -678,6 +695,11 @@ export const createAuthMachine = ({
           return postRequest<SignInResponse>('/signin/email-password', {
             email,
             password
+          })
+        },
+        signInPAT: (_context, { pat }) => {
+          return postRequest<SignInPATResponse>('/signin/pat', {
+            personalAccessToken: pat
           })
         },
         passwordlessSms: (context, { phoneNumber, options }) => {
