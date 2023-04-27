@@ -1,6 +1,6 @@
 {
   "name": "@nhost/docs",
-  "version": "0.0.16",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",

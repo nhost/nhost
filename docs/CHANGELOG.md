@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.1.0
+
+### Minor Changes
+
+- d72ae3f3: Add section on Service Replicas
+
 ## 0.0.16
 
 ### Patch Changes
