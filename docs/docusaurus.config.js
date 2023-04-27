@@ -176,7 +176,17 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        defaultLanguage: 'javascript'
+        defaultLanguage: 'javascript',
+        magicComments: [
+          {
+            className: 'code-block-error-line',
+            line: 'code-block-error-line'
+          },
+          {
+            className: 'code-block-success-line',
+            line: 'code-block-success-line'
+          }
+        ]
       },
       algolia: {
         appId: '3A3MJQTKHU',

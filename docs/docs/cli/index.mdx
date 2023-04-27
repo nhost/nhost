@@ -95,6 +95,55 @@ const nhost = new NhostClient({
 })
 ```
 
+### Migration from `localhost` to `local`
+
+`localhost` as the `subdomain` is deprecated and will be removed in the future.
+
+Make sure you have the latest version of the CLI and the SDK installed:
+
+```bash
+sudo nhost upgrade
+```
+
+Install the latest version of the SDK:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install @nhost/nhost-js@latest # or @nhost/react@latest / @nhost/nextjs@latest / @nhost/vue@latest
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/nhost-js@latest # or @nhost/react@latest / @nhost/nextjs@latest / @nhost/vue@latest
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add @nhost/nhost-js@latest # or @nhost/react@latest / @nhost/nextjs@latest / @nhost/vue@latest
+```
+
+  </TabItem>
+</Tabs>
+
+Then change `localhost` to `local` in your code:
+
+```js
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  // code-block-error-line
+-  subdomain: 'localhost'
+  // code-block-success-line
++  subdomain: 'local'
+})
+```
+
 ## Emails
 
 During local development with the CLI, all transactional emails from Nhost Authentication are sent to a local Mailhog services, instead of to the recipient's email address.
