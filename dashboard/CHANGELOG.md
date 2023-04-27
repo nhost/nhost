@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.16.1
+
+### Patch Changes
+
+- adc828a5: fix(gql): don't enter an infinite loop when fetching remote app data
+
 ## 0.16.0
 
 ### Minor Changes
