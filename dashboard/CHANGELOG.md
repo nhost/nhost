@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.16.0
+
+### Minor Changes
+
+- 2fb1145f: feat(compute): add support for replicas
+
+### Patch Changes
+
+- d8ceccec: chore(env): remove deprecated `NHOST_BACKEND_URL` environment variable
+
 ## 0.15.2
 
 ### Patch Changes
