@@ -22,7 +22,6 @@ import generateAppServiceUrl, {
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
-import { generateRemoteAppUrl } from '@/utils/helpers';
 import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
 import { Fragment, useState } from 'react';
 
@@ -99,10 +98,6 @@ export default function SystemEnvironmentVariableSettings() {
   }
 
   const systemEnvironmentVariables = [
-    {
-      key: 'NHOST_BACKEND_URL',
-      value: generateRemoteAppUrl(currentProject.subdomain),
-    },
     { key: 'NHOST_SUBDOMAIN', value: currentProject.subdomain },
     { key: 'NHOST_REGION', value: currentProject.region.awsName },
     {
