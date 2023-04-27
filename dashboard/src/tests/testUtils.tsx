@@ -11,8 +11,16 @@ import { ThemeProvider } from '@mui/material/styles';
 import { NhostClient, NhostProvider } from '@nhost/nextjs';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { Queries, RenderOptions, queries } from '@testing-library/react';
-import { render as rtlRender } from '@testing-library/react';
+import type {
+  Queries,
+  RenderOptions,
+  queries,
+  waitForOptions,
+} from '@testing-library/react';
+import {
+  render as rtlRender,
+  waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
+} from '@testing-library/react';
 import { RouterContext } from 'next/dist/shared/lib/router-context';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -87,5 +95,18 @@ function render<
   });
 }
 
+function waitForElementToBeRemoved<T>(
+  callback: T | (() => T),
+  options?: waitForOptions,
+): Promise<void> {
+  try {
+    return rtlWaitForElementToBeRemoved(callback, options);
+  } catch {
+    // We shouldn't fail if the element was to be removed but it wasn't there in
+    // the first place.
+    return Promise.resolve();
+  }
+}
+
 export * from '@testing-library/react';
-export { render };
+export { render, waitForElementToBeRemoved };

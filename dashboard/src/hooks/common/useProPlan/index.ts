@@ -1,1 +1,1 @@
-export { default } from './useProPlan';
+export { default as useProPlan } from './useProPlan';

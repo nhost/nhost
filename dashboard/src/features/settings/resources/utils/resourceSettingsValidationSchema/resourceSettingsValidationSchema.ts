@@ -29,6 +29,16 @@ export const MAX_TOTAL_VCPU = 60 * RESOURCE_VCPU_MULTIPLIER;
 export const MAX_TOTAL_MEMORY = MAX_TOTAL_VCPU * RESOURCE_VCPU_MEMORY_RATIO;
 
 /**
+ * The minimum amount of replicas that has to be allocated per service.
+ */
+export const MIN_SERVICE_REPLICAS = 1;
+
+/**
+ * The maximum amount of replicas that can be allocated per service.
+ */
+export const MAX_SERVICE_REPLICAS = 32;
+
+/**
  * The minimum amount of CPU that has to be allocated per service.
  */
 export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
@@ -51,58 +61,75 @@ export const MAX_SERVICE_MEMORY =
   RESOURCE_VCPU_MEMORY_RATIO *
   RESOURCE_MEMORY_MULTIPLIER;
 
+const serviceValidationSchema = Yup.object({
+  replicas: Yup.number()
+    .label('Replicas')
+    .required()
+    .min(1)
+    .max(MAX_SERVICE_REPLICAS)
+    .test(
+      'is-matching-ratio',
+      `vCPU and Memory for this service must match the 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio if more than one replica is selected.`,
+      (replicas: number, { parent }) => {
+        if (replicas === 1) {
+          return true;
+        }
+
+        return (
+          parent.memory /
+            RESOURCE_MEMORY_MULTIPLIER /
+            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
+          RESOURCE_VCPU_MEMORY_RATIO
+        );
+      },
+    ),
+  vcpu: Yup.number()
+    .label('vCPUs')
+    .required()
+    .min(MIN_SERVICE_VCPU)
+    .max(MAX_SERVICE_VCPU),
+  memory: Yup.number()
+    .required()
+    .min(MIN_SERVICE_MEMORY)
+    .max(MAX_SERVICE_MEMORY),
+});
+
 export const resourceSettingsValidationSchema = Yup.object({
   enabled: Yup.boolean(),
   totalAvailableVCPU: Yup.number()
     .label('Total Available vCPUs')
     .required()
     .min(MIN_TOTAL_VCPU)
-    .max(MAX_TOTAL_VCPU),
+    .max(MAX_TOTAL_VCPU)
+    .test(
+      'is-equal-to-services',
+      'Total vCPUs must be equal to the sum of all services.',
+      (totalAvailableVCPU: number, { parent }) =>
+        parent.database.vcpu +
+          parent.hasura.vcpu +
+          parent.auth.vcpu +
+          parent.storage.vcpu ===
+        totalAvailableVCPU,
+    ),
   totalAvailableMemory: Yup.number()
     .label('Available Memory')
     .required()
     .min(MIN_TOTAL_MEMORY)
-    .max(MAX_TOTAL_MEMORY),
-  databaseVCPU: Yup.number()
-    .label('Database vCPUs')
-    .required()
-    .min(MIN_SERVICE_VCPU)
-    .max(MAX_SERVICE_VCPU),
-  databaseMemory: Yup.number()
-    .label('Database Memory')
-    .required()
-    .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
-  hasuraVCPU: Yup.number()
-    .label('Hasura GraphQL vCPUs')
-    .required()
-    .min(MIN_SERVICE_VCPU)
-    .max(MAX_SERVICE_VCPU),
-  hasuraMemory: Yup.number()
-    .label('Hasura GraphQL Memory')
-    .required()
-    .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
-  authVCPU: Yup.number()
-    .label('Auth vCPUs')
-    .required()
-    .min(MIN_SERVICE_VCPU)
-    .max(MAX_SERVICE_VCPU),
-  authMemory: Yup.number()
-    .label('Auth Memory')
-    .required()
-    .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
-  storageVCPU: Yup.number()
-    .label('Storage vCPUs')
-    .required()
-    .min(MIN_SERVICE_VCPU)
-    .max(MAX_SERVICE_VCPU),
-  storageMemory: Yup.number()
-    .label('Storage Memory')
-    .required()
-    .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_TOTAL_MEMORY)
+    .test(
+      'is-equal-to-services',
+      'Total memory must be equal to the sum of all services.',
+      (totalAvailableMemory: number, { parent }) =>
+        parent.database.memory +
+          parent.hasura.memory +
+          parent.auth.memory +
+          parent.storage.memory ===
+        totalAvailableMemory,
+    ),
+  database: serviceValidationSchema.required(),
+  hasura: serviceValidationSchema.required(),
+  auth: serviceValidationSchema.required(),
+  storage: serviceValidationSchema.required(),
 });
 
 export type ResourceSettingsFormValues = Yup.InferType<

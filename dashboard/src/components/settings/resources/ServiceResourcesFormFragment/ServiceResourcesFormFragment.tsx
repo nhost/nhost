@@ -3,13 +3,17 @@ import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
+  MAX_SERVICE_REPLICAS,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
+  MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
 } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import Box from '@/ui/v2/Box';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
+import Tooltip from '@/ui/v2/Tooltip';
+import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -23,79 +27,98 @@ export interface ServiceResourcesFormFragmentProps {
    */
   description: string;
   /**
-   * Form field name for CPU.
+   * Form field name for service.
    */
-  cpuKey: Exclude<
+  serviceKey: Exclude<
     keyof ResourceSettingsFormValues,
     'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
   >;
   /**
-   * Form field name for Memory.
+   * Whether to disable the replicas field.
    */
-  memoryKey: Exclude<
-    keyof ResourceSettingsFormValues,
-    'enabled' | 'totalAvailableVCPU' | 'totalAvailableMemory'
-  >;
+  disableReplicas?: boolean;
 }
 
 export default function ServiceResourcesFormFragment({
   title,
   description,
-  cpuKey,
-  memoryKey,
+  serviceKey,
+  disableReplicas = false,
 }: ServiceResourcesFormFragmentProps) {
-  const { setValue } = useFormContext<ResourceSettingsFormValues>();
+  const {
+    setValue,
+    trigger: triggerValidation,
+    formState,
+  } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
+  const serviceValues = formValues[serviceKey];
 
   // Total allocated CPU for all resources
-  const totalAllocatedCPU = Object.keys(formValues)
-    .filter((key) => key.endsWith('CPU') && key !== 'totalAvailableVCPU')
-    .reduce((acc, key) => acc + formValues[key], 0);
+  const totalAllocatedVCPU = Object.keys(formValues)
+    .filter(
+      (key) =>
+        !['enabled', 'totalAvailableVCPU', 'totalAvailableMemory'].includes(
+          key,
+        ),
+    )
+    .reduce((acc, key) => acc + formValues[key].vcpu, 0);
 
   // Total allocated memory for all resources
   const totalAllocatedMemory = Object.keys(formValues)
-    .filter((key) => key.endsWith('Memory') && key !== 'totalAvailableMemory')
-    .reduce((acc, key) => acc + formValues[key], 0);
+    .filter(
+      (key) =>
+        !['enabled', 'totalAvailableVCPU', 'totalAvailableMemory'].includes(
+          key,
+        ),
+    )
+    .reduce((acc, key) => acc + formValues[key].memory, 0);
 
-  const remainingCPU = formValues.totalAvailableVCPU - totalAllocatedCPU;
-  const allowedCPU = remainingCPU + formValues[cpuKey];
+  const remainingVCPU = formValues.totalAvailableVCPU - totalAllocatedVCPU;
+  const allowedVCPU = remainingVCPU + serviceValues.vcpu;
 
   const remainingMemory =
     formValues.totalAvailableMemory - totalAllocatedMemory;
-  const allowedMemory = remainingMemory + formValues[memoryKey];
+  const allowedMemory = remainingMemory + serviceValues.memory;
 
-  function handleCPUChange(value: string) {
-    const updatedCPU = parseFloat(value);
-    const exceedsAvailableCPU =
-      updatedCPU + (totalAllocatedCPU - formValues[cpuKey]) >
-      formValues.totalAvailableVCPU;
+  function handleReplicaChange(value: string) {
+    const updatedReplicas = parseInt(value, 10);
 
-    if (
-      Number.isNaN(updatedCPU) ||
-      exceedsAvailableCPU ||
-      updatedCPU < MIN_SERVICE_VCPU
-    ) {
+    if (updatedReplicas < MIN_SERVICE_REPLICAS) {
       return;
     }
 
-    setValue(cpuKey, updatedCPU, { shouldDirty: true });
+    setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
+    triggerValidation(`${serviceKey}.replicas`);
+  }
+
+  function handleVCPUChange(value: string) {
+    const updatedVCPU = parseFloat(value);
+
+    if (Number.isNaN(updatedVCPU) || updatedVCPU < MIN_SERVICE_VCPU) {
+      return;
+    }
+
+    setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
+
+    // trigger validation for "replicas" field
+    if (!disableReplicas) {
+      triggerValidation(`${serviceKey}.replicas`);
+    }
   }
 
   function handleMemoryChange(value: string) {
     const updatedMemory = parseFloat(value);
-    const exceedsAvailableMemory =
-      updatedMemory + (totalAllocatedMemory - formValues[memoryKey]) >
-      formValues.totalAvailableMemory;
 
-    if (
-      Number.isNaN(updatedMemory) ||
-      exceedsAvailableMemory ||
-      updatedMemory < MIN_SERVICE_MEMORY
-    ) {
+    if (Number.isNaN(updatedMemory) || updatedMemory < MIN_SERVICE_MEMORY) {
       return;
     }
 
-    setValue(memoryKey, updatedMemory, { shouldDirty: true });
+    setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
+
+    // trigger validation for "replicas" field
+    if (!disableReplicas) {
+      triggerValidation(`${serviceKey}.replicas`);
+    }
   }
 
   return (
@@ -113,14 +136,14 @@ export default function ServiceResourcesFormFragment({
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
-              {prettifyVCPU(formValues[cpuKey])}
+              {prettifyVCPU(serviceValues.vcpu)}
             </span>
           </Text>
 
-          {remainingCPU > 0 && formValues[cpuKey] < MAX_SERVICE_VCPU && (
+          {remainingVCPU > 0 && serviceValues.vcpu < MAX_SERVICE_VCPU && (
             <Text className="text-sm">
               <span className="font-medium">
-                {prettifyVCPU(remainingCPU)} vCPUs
+                {prettifyVCPU(remainingVCPU)} vCPUs
               </span>{' '}
               remaining
             </Text>
@@ -128,11 +151,11 @@ export default function ServiceResourcesFormFragment({
         </Box>
 
         <Slider
-          value={formValues[cpuKey]}
-          onChange={(_event, value) => handleCPUChange(value.toString())}
+          value={serviceValues.vcpu}
+          onChange={(_event, value) => handleVCPUChange(value.toString())}
           max={MAX_SERVICE_VCPU}
           step={RESOURCE_VCPU_STEP}
-          allowed={allowedCPU}
+          allowed={allowedVCPU}
           aria-label={`${title} vCPU`}
           marks
         />
@@ -143,11 +166,11 @@ export default function ServiceResourcesFormFragment({
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
-              {prettifyMemory(formValues[memoryKey])}
+              {prettifyMemory(serviceValues.memory)}
             </span>
           </Text>
 
-          {remainingMemory > 0 && formValues[memoryKey] < MAX_SERVICE_MEMORY && (
+          {remainingMemory > 0 && serviceValues.memory < MAX_SERVICE_MEMORY && (
             <Text className="text-sm">
               <span className="font-medium">
                 {prettifyMemory(remainingMemory)} of Memory
@@ -158,7 +181,7 @@ export default function ServiceResourcesFormFragment({
         </Box>
 
         <Slider
-          value={formValues[memoryKey]}
+          value={serviceValues.memory}
           onChange={(_event, value) => handleMemoryChange(value.toString())}
           max={MAX_SERVICE_MEMORY}
           step={RESOURCE_MEMORY_STEP}
@@ -167,6 +190,47 @@ export default function ServiceResourcesFormFragment({
           marks
         />
       </Box>
+
+      {!disableReplicas && (
+        <Box className="grid grid-flow-row gap-2">
+          <Box className="grid grid-flow-col items-center justify-start gap-2">
+            <Text
+              color={
+                formState.errors?.[serviceKey]?.replicas?.message
+                  ? 'error'
+                  : 'primary'
+              }
+              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
+            >
+              Replicas:{' '}
+              <span className="font-medium">{serviceValues.replicas}</span>
+            </Text>
+
+            {formState.errors?.[serviceKey]?.replicas?.message ? (
+              <Tooltip
+                title={formState.errors[serviceKey].replicas.message}
+                id={`${serviceKey}-replicas-error-tooltip`}
+              >
+                <ExclamationIcon
+                  color="error"
+                  className="h-4 w-4"
+                  aria-hidden="false"
+                />
+              </Tooltip>
+            ) : null}
+          </Box>
+
+          <Slider
+            value={serviceValues.replicas}
+            onChange={(_event, value) => handleReplicaChange(value.toString())}
+            min={0}
+            max={MAX_SERVICE_REPLICAS}
+            step={1}
+            aria-label={`${title} Replicas`}
+            marks
+          />
+        </Box>
+      )}
     </Box>
   );
 }

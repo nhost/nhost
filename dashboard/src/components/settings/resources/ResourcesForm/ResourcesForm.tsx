@@ -4,18 +4,15 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
-import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
+import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import useProPlan from '@/hooks/common/useProPlan';
+import { useProPlan } from '@/hooks/common/useProPlan';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
-import Text from '@/ui/v2/Text';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -27,29 +24,27 @@ import {
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import getServerError from '@/utils/settings/getServerError';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import ResourcesFormFooter from './ResourcesFormFooter';
 
 function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { cpu, memory } = data?.config?.[service]?.resources?.compute || {};
+  const { compute, replicas } = data?.config?.[service]?.resources || {};
 
   return {
-    vcpu: cpu || 0,
-    memory: memory || 0,
+    replicas,
+    vcpu: compute?.cpu || 0,
+    memory: compute?.memory || 0,
   };
 }
 
 export default function ResourcesForm() {
-  const [validationError, setValidationError] = useState<Error | null>(null);
-
   const { openDialog, closeDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -95,14 +90,26 @@ export default function ResourcesForm() {
       enabled: totalInitialVCPU > 0 && totalInitialMemory > 0,
       totalAvailableVCPU: totalInitialVCPU || 2000,
       totalAvailableMemory: totalInitialMemory || 4096,
-      hasuraVCPU: initialHasuraResources.vcpu || 500,
-      hasuraMemory: initialHasuraResources.memory || 1536,
-      databaseVCPU: initialDatabaseResources.vcpu || 1000,
-      databaseMemory: initialDatabaseResources.memory || 2048,
-      authVCPU: initialAuthResources.vcpu || 250,
-      authMemory: initialAuthResources.memory || 256,
-      storageVCPU: initialStorageResources.vcpu || 250,
-      storageMemory: initialStorageResources.memory || 256,
+      database: {
+        replicas: initialDatabaseResources.replicas || 1,
+        vcpu: initialDatabaseResources.vcpu || 1000,
+        memory: initialDatabaseResources.memory || 2048,
+      },
+      hasura: {
+        replicas: initialHasuraResources.replicas || 1,
+        vcpu: initialHasuraResources.vcpu || 500,
+        memory: initialHasuraResources.memory || 1536,
+      },
+      auth: {
+        replicas: initialAuthResources.replicas || 1,
+        vcpu: initialAuthResources.vcpu || 250,
+        memory: initialAuthResources.memory || 256,
+      },
+      storage: {
+        replicas: initialStorageResources.replicas || 1,
+        vcpu: initialStorageResources.vcpu || 250,
+        memory: initialStorageResources.memory || 256,
+      },
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
@@ -127,16 +134,32 @@ export default function ResourcesForm() {
 
   const { watch, formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
+  const hasFormErrors = Object.keys(formState.errors).length > 0;
 
   const enabled = watch('enabled');
-  const totalAvailableVCPU = enabled ? watch('totalAvailableVCPU') : 0;
+
+  const billableResources = calculateBillableResources(
+    {
+      replicas: initialDatabaseResources.replicas,
+      vcpu: initialDatabaseResources.vcpu,
+    },
+    {
+      replicas: initialHasuraResources.replicas,
+      vcpu: initialHasuraResources.vcpu,
+    },
+    {
+      replicas: initialAuthResources.replicas,
+      vcpu: initialAuthResources.vcpu,
+    },
+    {
+      replicas: initialStorageResources.replicas,
+      vcpu: initialStorageResources.vcpu,
+    },
+  );
 
   const initialPrice =
-    RESOURCE_VCPU_PRICE * (totalInitialVCPU / RESOURCE_VCPU_MULTIPLIER) +
-    proPlan.price;
-  const updatedPrice =
-    RESOURCE_VCPU_PRICE * (totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
-    proPlan.price;
+    proPlan.price +
+    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -144,46 +167,46 @@ export default function ResourcesForm() {
         appId: currentProject?.id,
         config: {
           postgres: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.databaseVCPU,
-                    memory: formValues.databaseMemory,
+                    cpu: formValues.database.vcpu,
+                    memory: formValues.database.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.database.replicas,
                 }
               : null,
           },
           hasura: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.hasuraVCPU,
-                    memory: formValues.hasuraMemory,
+                    cpu: formValues.hasura.vcpu,
+                    memory: formValues.hasura.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.hasura.replicas,
                 }
               : null,
           },
           auth: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.authVCPU,
-                    memory: formValues.authMemory,
+                    cpu: formValues.auth.vcpu,
+                    memory: formValues.auth.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.auth.replicas,
                 }
               : null,
           },
           storage: {
-            resources: enabled
+            resources: formValues.enabled
               ? {
                   compute: {
-                    cpu: formValues.storageVCPU,
-                    memory: formValues.storageMemory,
+                    cpu: formValues.storage.vcpu,
+                    memory: formValues.storage.memory,
                   },
-                  replicas: 1,
+                  replicas: formValues.storage.replicas,
                 }
               : null,
           },
@@ -209,14 +232,26 @@ export default function ResourcesForm() {
           enabled: false,
           totalAvailableVCPU: 2000,
           totalAvailableMemory: 4096,
-          hasuraVCPU: 500,
-          hasuraMemory: 1536,
-          databaseVCPU: 1000,
-          databaseMemory: 2048,
-          authVCPU: 250,
-          authMemory: 256,
-          storageVCPU: 250,
-          storageMemory: 256,
+          database: {
+            replicas: 1,
+            vcpu: 1000,
+            memory: 2048,
+          },
+          hasura: {
+            replicas: 1,
+            vcpu: 500,
+            memory: 1536,
+          },
+          auth: {
+            replicas: 1,
+            vcpu: 250,
+            memory: 256,
+          },
+          storage: {
+            replicas: 1,
+            vcpu: 250,
+            memory: 256,
+          },
         });
       } else {
         form.reset(null, { keepValues: true, keepDirty: false });
@@ -227,41 +262,13 @@ export default function ResourcesForm() {
   }
 
   function handleConfirm(formValues: ResourceSettingsFormValues) {
-    setValidationError(null);
-
-    const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
-      getUnallocatedResources(formValues);
-    const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
-
-    if (hasUnusedResources) {
-      const unusedResourceMessage = [
-        unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
-        unallocatedMemory > 0
-          ? `${prettifyMemory(unallocatedMemory)} of Memory`
-          : '',
-      ]
-        .filter(Boolean)
-        .join(' and ');
-
-      setValidationError(
-        new Error(
-          `You now have ${unusedResourceMessage} unused. Allocate it to any of the services before saving.`,
-        ),
-      );
-
-      return;
-    }
-
     openDialog({
-      title: enabled
+      title: formValues.enabled
         ? 'Confirm Dedicated Resources'
         : 'Disable Dedicated Resources',
       component: (
         <ResourcesConfirmationDialog
-          updatedResources={{
-            vcpu: enabled ? formValues.totalAvailableVCPU : 0,
-            memory: enabled ? formValues.totalAvailableMemory : 0,
-          }}
+          formValues={formValues}
           onCancel={closeDialog}
           onSubmit={async () => {
             await handleSubmit(formValues);
@@ -304,47 +311,46 @@ export default function ResourcesForm() {
               <ServiceResourcesFormFragment
                 title="PostgreSQL Database"
                 description="Manage how much compute you need for the PostgreSQL Database."
-                cpuKey="databaseVCPU"
-                memoryKey="databaseMemory"
+                serviceKey="database"
+                disableReplicas
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Hasura GraphQL"
                 description="Manage how much compute you need for the Hasura GraphQL API."
-                cpuKey="hasuraVCPU"
-                memoryKey="hasuraMemory"
+                serviceKey="hasura"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Auth"
                 description="Manage how much compute you need for Auth."
-                cpuKey="authVCPU"
-                memoryKey="authMemory"
+                serviceKey="auth"
               />
               <Divider />
               <ServiceResourcesFormFragment
                 title="Storage"
                 description="Manage how much compute you need for Storage."
-                cpuKey="storageVCPU"
-                memoryKey="storageMemory"
+                serviceKey="storage"
               />
-              {validationError && (
+
+              {hasFormErrors && (
                 <Box className="px-4 pb-4">
                   <Alert
                     severity="error"
                     className="flex flex-col gap-2 text-left"
                   >
-                    <strong>
-                      Please use all the available vCPUs and Memory
-                    </strong>
+                    <strong>Invalid Configuration</strong>
 
-                    <p>{validationError.message}</p>
+                    <p>
+                      Please check the form for errors and the allocation for
+                      each service and try again.
+                    </p>
                   </Alert>
                 </Box>
               )}
             </>
           ) : (
-            <Box className={twMerge('px-4', (enabled || isDirty) && 'pb-4')}>
+            <Box className={twMerge('px-4', 'pb-4')}>
               <Alert className="text-left">
                 Enable this feature to access custom resource allocation for
                 your services.
@@ -352,29 +358,7 @@ export default function ResourcesForm() {
             </Box>
           )}
 
-          {(enabled || isDirty) && (
-            <Box className="flex flex-row items-center justify-between border-t px-4 pt-4">
-              <span />
-
-              <Box className="flex flex-row items-center gap-4">
-                <Text>
-                  Total cost:{' '}
-                  <span className="font-medium">
-                    ${updatedPrice.toFixed(2)}/mo
-                  </span>
-                </Text>
-
-                <Button
-                  type="submit"
-                  variant={isDirty ? 'contained' : 'outlined'}
-                  color={isDirty ? 'primary' : 'secondary'}
-                  disabled={!isDirty}
-                >
-                  Save
-                </Button>
-              </Box>
-            </Box>
-          )}
+          <ResourcesFormFooter />
         </SettingsContainer>
       </Form>
     </FormProvider>

@@ -43,6 +43,7 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
                 cpu: 2000,
                 memory: 4096,
               },
+              replicas: 1,
             },
           },
           hasura: {
@@ -51,6 +52,7 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
                 cpu: 2000,
                 memory: 4096,
               },
+              replicas: 1,
             },
           },
           auth: {
@@ -59,6 +61,7 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
                 cpu: 2000,
                 memory: 4096,
               },
+              replicas: 1,
             },
           },
           storage: {
@@ -67,6 +70,7 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
                 cpu: 2000,
                 memory: 4096,
               },
+              replicas: 1,
             },
           },
         },
@@ -90,6 +94,7 @@ export const resourcesUpdatedQuery = nhostGraphQLLink.query(
                 cpu: 2250,
                 memory: 4608,
               },
+              replicas: 1,
             },
           },
           hasura: {
@@ -98,6 +103,7 @@ export const resourcesUpdatedQuery = nhostGraphQLLink.query(
                 cpu: 2250,
                 memory: 4608,
               },
+              replicas: 1,
             },
           },
           auth: {
@@ -106,6 +112,7 @@ export const resourcesUpdatedQuery = nhostGraphQLLink.query(
                 cpu: 2250,
                 memory: 4608,
               },
+              replicas: 1,
             },
           },
           storage: {
@@ -114,6 +121,7 @@ export const resourcesUpdatedQuery = nhostGraphQLLink.query(
                 cpu: 2250,
                 memory: 4608,
               },
+              replicas: 1,
             },
           },
         },

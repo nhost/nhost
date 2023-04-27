@@ -1,12 +1,13 @@
+import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
+import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import {
   MAX_TOTAL_VCPU,
-  MIN_TOTAL_MEMORY,
   MIN_TOTAL_VCPU,
 } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import useProPlan from '@/hooks/common/useProPlan';
+import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
@@ -19,7 +20,6 @@ import {
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
 } from '@/utils/CONSTANTS';
-import getUnallocatedResources from '@/utils/settings/getUnallocatedResources';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -59,51 +59,72 @@ export default function TotalResourcesFormFragment({
     throw proPlanError;
   }
 
-  const allocatedCPU =
-    formValues.databaseVCPU +
-    formValues.hasuraVCPU +
-    formValues.authVCPU +
-    formValues.storageVCPU;
-  const allocatedMemory =
-    formValues.databaseMemory +
-    formValues.hasuraMemory +
-    formValues.authMemory +
-    formValues.storageMemory;
+  const priceForTotalAvailableVCPU =
+    (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
+    RESOURCE_VCPU_PRICE;
+
+  const billableResources = calculateBillableResources(
+    {
+      replicas: formValues.database?.replicas,
+      vcpu: formValues.database?.vcpu,
+      memory: formValues.database?.memory,
+    },
+    {
+      replicas: formValues.hasura?.replicas,
+      vcpu: formValues.hasura?.vcpu,
+      memory: formValues.hasura?.memory,
+    },
+    {
+      replicas: formValues.auth?.replicas,
+      vcpu: formValues.auth?.vcpu,
+      memory: formValues.auth?.memory,
+    },
+    {
+      replicas: formValues.storage?.replicas,
+      vcpu: formValues.storage?.vcpu,
+      memory: formValues.storage?.memory,
+    },
+  );
 
   const updatedPrice =
-    RESOURCE_VCPU_PRICE *
-      (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) +
-    proPlan.price;
+    Math.max(
+      priceForTotalAvailableVCPU,
+      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE,
+    ) + proPlan.price;
 
-  const { vcpu: unallocatedVCPU, memory: unallocatedMemory } =
-    getUnallocatedResources(formValues);
+  const { vcpu: allocatedVCPU, memory: allocatedMemory } =
+    getAllocatedResources(formValues);
+  const remainingVCPU = formValues.totalAvailableVCPU - allocatedVCPU;
+  const remainingMemory = formValues.totalAvailableMemory - allocatedMemory;
+  const hasUnusedResources = remainingVCPU > 0 || remainingMemory > 0;
+  const hasOverallocatedResources = remainingVCPU < 0 || remainingMemory < 0;
 
-  const hasUnusedResources = unallocatedVCPU > 0 || unallocatedMemory > 0;
   const unusedResourceMessage = [
-    unallocatedVCPU > 0 ? `${prettifyVCPU(unallocatedVCPU)} vCPUs` : '',
-    unallocatedMemory > 0
-      ? `${prettifyMemory(unallocatedMemory)} of Memory`
-      : '',
+    remainingVCPU > 0 ? `${prettifyVCPU(remainingVCPU)} vCPUs` : '',
+    remainingMemory > 0 ? `${prettifyMemory(remainingMemory)} of Memory` : '',
   ]
     .filter(Boolean)
     .join(' and ');
 
-  function handleCPUChange(value: string) {
-    const updatedCPU = parseFloat(value);
+  const overallocatedResourceMessage = [
+    remainingVCPU < 0 ? `${prettifyVCPU(-remainingVCPU)} vCPUs` : '',
+    remainingMemory < 0 ? `${prettifyMemory(-remainingMemory)} of Memory` : '',
+  ]
+    .filter(Boolean)
+    .join(' and ');
+
+  function handleVCPUChange(value: string) {
+    const updatedVCPU = parseFloat(value);
     const updatedMemory =
-      (updatedCPU / RESOURCE_VCPU_MULTIPLIER) *
+      (updatedVCPU / RESOURCE_VCPU_MULTIPLIER) *
       RESOURCE_VCPU_MEMORY_RATIO *
       RESOURCE_MEMORY_MULTIPLIER;
 
-    if (
-      Number.isNaN(updatedCPU) ||
-      updatedCPU < Math.max(MIN_TOTAL_VCPU, allocatedCPU) ||
-      updatedMemory < Math.max(MIN_TOTAL_MEMORY, allocatedMemory)
-    ) {
+    if (Number.isNaN(updatedVCPU) || updatedVCPU < MIN_TOTAL_VCPU) {
       return;
     }
 
-    setValue('totalAvailableVCPU', updatedCPU, { shouldDirty: true });
+    setValue('totalAvailableVCPU', updatedVCPU, { shouldDirty: true });
     setValue('totalAvailableMemory', updatedMemory, { shouldDirty: true });
   }
 
@@ -147,7 +168,7 @@ export default function TotalResourcesFormFragment({
 
           <StyledAvailableCpuSlider
             value={formValues.totalAvailableVCPU}
-            onChange={(_event, value) => handleCPUChange(value.toString())}
+            onChange={(_event, value) => handleVCPUChange(value.toString())}
             max={MAX_TOTAL_VCPU}
             step={RESOURCE_VCPU_STEP}
             aria-label="Total Available vCPU"
@@ -155,19 +176,34 @@ export default function TotalResourcesFormFragment({
         </Box>
 
         <Alert
-          severity={hasUnusedResources ? 'warning' : 'info'}
+          severity={
+            hasUnusedResources || hasOverallocatedResources ? 'warning' : 'info'
+          }
           className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
         >
-          {hasUnusedResources ? (
+          {hasUnusedResources && !hasOverallocatedResources && (
             <>
               <strong>Please use all the available vCPUs and Memory</strong>
 
               <p>
-                You now have {unusedResourceMessage} unused. Allocate it to any
-                of the services before saving.
+                You have {unusedResourceMessage} unused. Allocate it to any of
+                the services before saving.
               </p>
             </>
-          ) : (
+          )}
+
+          {hasOverallocatedResources && (
+            <>
+              <strong>Overallocated Resources</strong>
+
+              <p>
+                You have {overallocatedResourceMessage} overallocated. Reduce it
+                before saving or increase the total amount.
+              </p>
+            </>
+          )}
+
+          {!hasUnusedResources && !hasOverallocatedResources && (
             <>
               <strong>You&apos;re All Set</strong>
 
