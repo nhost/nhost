@@ -9,10 +9,10 @@ import { useMemo } from 'react';
  * @returns A function that returns a new ApolloClient instance.
  */
 export function useRemoteApplicationGQLClient() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, loading } = useCurrentWorkspaceAndProject();
 
   const userApplicationClient = useMemo(() => {
-    if (!currentProject) {
+    if (loading) {
       return new ApolloClient({ cache: new InMemoryCache() });
     }
 
@@ -32,7 +32,12 @@ export function useRemoteApplicationGQLClient() {
         },
       }),
     });
-  }, [currentProject]);
+  }, [
+    loading,
+    currentProject?.subdomain,
+    currentProject?.region.awsName,
+    currentProject?.config?.hasura.adminSecret,
+  ]);
 
   return userApplicationClient;
 }
