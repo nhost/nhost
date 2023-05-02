@@ -12,6 +12,7 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import { BaseDialog } from '@/ui/v2/Dialog';
+import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { planDescriptions } from '@/utils/planDescriptions';
 import getServerError from '@/utils/settings/getServerError/getServerError';
@@ -21,14 +22,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-function Plan({
-  planName,
-  price,
-  setPlan,
-  planId,
-  selectedPlanId,
-  currentPlan,
-}: any) {
+function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
   return (
     <button
       type="button"
@@ -49,7 +43,7 @@ function Plan({
             component="p"
             className="self-center text-left font-medium"
           >
-            {currentPlan.price > price ? 'Downgrade' : 'Upgrade'} to {planName}
+            Upgrade to {planName}
           </Text>
         </div>
 
@@ -87,8 +81,6 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
   const currentPlan = plans.find((plan) => plan.id === app.plan.id);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
-
-  const isDowngrade = currentPlan.price > selectedPlan?.price;
 
   const [updateApp] = useUpdateApplicationMutation({
     refetchQueries: [
@@ -148,6 +140,53 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     closeAlertDialog();
   };
 
+  if (app.plan.id !== plans.find((plan) => plan.isFree)?.id) {
+    return (
+      <Box className="mx-auto w-full max-w-xl rounded-lg p-6 text-left">
+        <div className="flex flex-col">
+          <div className="mx-auto">
+            <Image
+              src="/assets/upgrade.svg"
+              alt="Nhost Logo"
+              width={72}
+              height={72}
+            />
+          </div>
+          <Text variant="h3" component="h2" className="mt-2 text-center">
+            Downgrade is not available
+          </Text>
+
+          <Text className="mt-1 text-center">
+            You can&apos;t downgrade from a paid plan to a free plan here.
+          </Text>
+
+          <Text className="text-center">
+            Please contact us at{' '}
+            <Link href="mailto:info@nhost.io">info@nhost.io</Link> if you want
+            to downgrade.
+          </Text>
+
+          <div className="mt-6 grid grid-flow-row gap-2">
+            <Button
+              variant="outlined"
+              color="secondary"
+              className="mx-auto w-full max-w-sm"
+              onClick={() => {
+                if (close) {
+                  close();
+                }
+
+                closeAlertDialog();
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Box>
+    );
+  }
+
   return (
     <Box className="w-full max-w-xl rounded-lg p-6 text-left">
       <BaseDialog
@@ -196,9 +235,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
         <div className="mt-6 grid grid-flow-row gap-2">
           <Button onClick={handleChangePlanClick} disabled={!selectedPlan}>
-            {!selectedPlan && 'Change Plan'}
-            {selectedPlan && isDowngrade && 'Downgrade'}
-            {selectedPlan && !isDowngrade && 'Upgrade'}
+            Upgrade
           </Button>
 
           <Button
