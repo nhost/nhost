@@ -346,7 +346,7 @@ importers:
       '@mdx-js/react': ^1.6.22
       '@tsconfig/docusaurus': ^1.0.6
       clsx: ^1.2.1
-      docusaurus-plugin-image-zoom: ^0.1.1
+      docusaurus-plugin-image-zoom: ^1.0.0
       mdx-mermaid: ^1.3.2
       mermaid: ^9.0.0
       prism-react-renderer: ^1.3.5
@@ -361,7 +361,7 @@ importers:
       '@docusaurus/preset-classic': 2.4.0_cuqacycu3pxuw5a2kqz4vb6b6i
       '@mdx-js/react': 1.6.22_react@18.2.0
       clsx: 1.2.1
-      docusaurus-plugin-image-zoom: 0.1.1
+      docusaurus-plugin-image-zoom: 1.0.0_uedu2d4t5hol762lzraka2ilke
       mdx-mermaid: 1.3.2_uudnhwjralaaj4jw3es27f6qki
       mermaid: 9.3.0
       prism-react-renderer: 1.3.5_react@18.2.0
@@ -10458,7 +10458,7 @@ packages:
     resolution: {integrity: sha512-8KG5RD0GVP4ydEzRn/I4BNDuxDtqVbOdm8675T49OIG/NGhaK0pjPX7ZcDlvKYbA+ulvVK3ztfcF4uBdOxuJbQ==}
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.3.8
+      semver: 7.5.0
     dev: true
 
   /@npmcli/move-file/1.1.2:
@@ -14095,7 +14095,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0_typescript@4.9.5
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -14116,7 +14116,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0
     transitivePeerDependencies:
       - supports-color
@@ -14136,7 +14136,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0_typescript@4.8.3
       typescript: 4.8.3
     transitivePeerDependencies:
@@ -14157,7 +14157,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0_typescript@4.9.4
       typescript: 4.9.4
     transitivePeerDependencies:
@@ -14178,7 +14178,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.3.8
+      semver: 7.5.0
       tsutils: 3.21.0_typescript@4.9.5
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -14198,7 +14198,7 @@ packages:
       eslint: 8.26.0
       eslint-scope: 5.1.1
       eslint-utils: 3.0.0_eslint@8.26.0
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -14218,7 +14218,7 @@ packages:
       eslint: 8.25.0
       eslint-scope: 5.1.1
       eslint-utils: 3.0.0_eslint@8.25.0
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -14238,7 +14238,7 @@ packages:
       eslint: 8.28.0
       eslint-scope: 5.1.1
       eslint-utils: 3.0.0_eslint@8.28.0
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -14258,7 +14258,7 @@ packages:
       eslint: 8.26.0
       eslint-scope: 5.1.1
       eslint-utils: 3.0.0_eslint@8.26.0
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -16833,7 +16833,7 @@ packages:
   /builtins/4.1.0:
     resolution: {integrity: sha512-1bPRZQtmKaO6h7qV1YHXNtr6nCK28k0Zo95KM4dXfILcZZwoHJBN1m3lfLv9LPkcOZlrSr+J1bzMaZFO98Yq0w==}
     dependencies:
-      semver: 7.3.8
+      semver: 7.5.0
     dev: true
 
   /busboy/1.6.0:
@@ -18098,7 +18098,7 @@ packages:
       postcss-modules-values: 4.0.0_postcss@8.4.21
       postcss-value-parser: 4.2.0
       schema-utils: 3.1.1
-      semver: 7.3.8
+      semver: 7.5.0
       webpack: 5.75.0
     dev: true
 
@@ -18115,7 +18115,7 @@ packages:
       postcss-modules-scope: 3.0.0_postcss@8.4.21
       postcss-modules-values: 4.0.0_postcss@8.4.21
       postcss-value-parser: 4.2.0
-      semver: 7.3.8
+      semver: 7.5.0
       webpack: 5.75.0
     dev: false
 
@@ -19062,10 +19062,16 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /docusaurus-plugin-image-zoom/0.1.1:
-    resolution: {integrity: sha512-cJXo5TKh9OR1gE4B5iS5ovLWYYDFwatqRm00iXFPOaShZG99l5tgkDKgbQPAwSL9wg4I+wz3aMwkOtDhMIpKDQ==}
+  /docusaurus-plugin-image-zoom/1.0.0_uedu2d4t5hol762lzraka2ilke:
+    resolution: {integrity: sha512-XtwjT9zq/sWReyK1jOolIzJnQW6/b52ihBhy4JuoolI3F789e8NnJ4cD8K4tXfwyfvyDBnYr9dARtxWUoXJYqA==}
+    peerDependencies:
+      '@docusaurus/module-type-aliases': '>=2.2.0'
+      '@docusaurus/theme-classic': '>=2.2.0'
+      '@docusaurus/types': '>=2.2.0'
     dependencies:
+      '@docusaurus/module-type-aliases': 2.4.0_biqbaboplfbrettd7655fr4n2y
       medium-zoom: 1.0.6
+      validate-peer-dependencies: 2.2.0
     dev: false
 
   /dom-accessibility-api/0.5.14:
@@ -20389,7 +20395,7 @@ packages:
       read-pkg-up: 7.0.1
       regexp-tree: 0.1.24
       safe-regex: 2.1.1
-      semver: 7.3.8
+      semver: 7.5.0
       strip-indent: 3.0.0
     dev: true
 
@@ -20404,7 +20410,7 @@ packages:
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 6.0.10
-      semver: 7.3.8
+      semver: 7.5.0
       vue-eslint-parser: 8.3.0_eslint@8.25.0
     transitivePeerDependencies:
       - supports-color
@@ -21396,7 +21402,7 @@ packages:
       memfs: 3.4.1
       minimatch: 3.1.2
       schema-utils: 2.7.0
-      semver: 7.3.8
+      semver: 7.5.0
       tapable: 1.1.3
       webpack: 4.46.0
     dev: true
@@ -21427,7 +21433,7 @@ packages:
       memfs: 3.4.1
       minimatch: 3.1.2
       schema-utils: 2.7.0
-      semver: 7.3.8
+      semver: 7.5.0
       tapable: 1.1.3
       webpack: 5.75.0
     dev: true
@@ -21457,7 +21463,7 @@ packages:
       memfs: 3.4.1
       minimatch: 3.1.2
       schema-utils: 2.7.0
-      semver: 7.3.8
+      semver: 7.5.0
       tapable: 1.1.3
       typescript: 4.8.4
       webpack: 5.75.0
@@ -24057,7 +24063,7 @@ packages:
       acorn: 8.8.2
       eslint-visitor-keys: 3.3.0
       espree: 9.4.0
-      semver: 7.3.8
+      semver: 7.5.0
     dev: true
 
   /jsonc-parser/3.2.0:
@@ -25608,7 +25614,7 @@ packages:
     resolution: {integrity: sha512-fRlDb4I0eLcQeUvGq7IY3xHrSb0c9ummdvDSYWfT9+LKP+3jCKw/tKoqaM7r1BAoiAC6GtwyjaGnOz6B3OtF+A==}
     engines: {node: '>=10'}
     dependencies:
-      semver: 7.3.8
+      semver: 7.5.0
     dev: false
 
   /node-addon-api/3.2.1:
@@ -26407,14 +26413,12 @@ packages:
   /path-root-regex/0.1.2:
     resolution: {integrity: sha512-4GlJ6rZDhQZFE0DPVKh0e9jmZ5egZfxTkp7bcRDuPlJXbAwhxcl2dINPUAsjLdejqaLsCeg8axcLjIbvBjN4pQ==}
     engines: {node: '>=0.10.0'}
-    dev: true
 
   /path-root/0.1.1:
     resolution: {integrity: sha512-QLcPegTHF11axjfojBIoDygmS2E3Lf+8+jI6wOVmNVenrKSo3mFdSGiIgdSHenczw3wPtlVMQaFVwGmM7BJdtg==}
     engines: {node: '>=0.10.0'}
     dependencies:
       path-root-regex: 0.1.2
-    dev: true
 
   /path-scurry/1.6.4:
     resolution: {integrity: sha512-Qp/9IHkdNiXJ3/Kon++At2nVpnhRiPq/aSvQN+H3U1WZbvNRK0RIQK/o4HMqPoXjpuGJUEWpHSs6Mnjxqh3TQg==}
@@ -26852,7 +26856,7 @@ packages:
       loader-utils: 2.0.4
       postcss: 7.0.39
       schema-utils: 3.1.1
-      semver: 7.3.8
+      semver: 7.5.0
       webpack: 4.46.0
     dev: true
 
@@ -26868,7 +26872,7 @@ packages:
       loader-utils: 2.0.4
       postcss: 7.0.39
       schema-utils: 3.1.1
-      semver: 7.3.8
+      semver: 7.5.0
       webpack: 5.75.0
     dev: true
 
@@ -26882,7 +26886,7 @@ packages:
       cosmiconfig: 7.0.1
       klona: 2.0.5
       postcss: 8.4.21
-      semver: 7.3.8
+      semver: 7.5.0
       webpack: 5.75.0
     dev: false
 
@@ -27541,7 +27545,7 @@ packages:
       jsdoc: 3.6.11
       minimist: 1.2.7
       protobufjs: 7.1.2
-      semver: 7.3.8
+      semver: 7.5.0
       tmp: 0.2.1
       uglify-js: 3.17.4
     dev: false
@@ -28676,6 +28680,13 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /resolve-package-path/4.0.3:
+    resolution: {integrity: sha512-SRpNAPW4kewOaNUt8VPqhJ0UMxawMwzJD8V7m1cJfdSTK9ieZwS6K7Dabsm4bmLFM96Z5Y/UznrpG5kt1im8yA==}
+    engines: {node: '>= 12'}
+    dependencies:
+      path-root: 0.1.1
+    dev: false
+
   /resolve-pathname/3.0.0:
     resolution: {integrity: sha512-C7rARubxI8bXFNB/hqcp/4iUeIXJhJZvFPFPiSPRnhU5UPxzMFIl+2E6yY6c4k9giDJAhtV+enfA+G89N6Csng==}
     dev: false
@@ -29040,7 +29051,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /send/0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
@@ -31587,7 +31597,7 @@ packages:
       is-yarn-global: 0.3.0
       latest-version: 5.1.0
       pupa: 2.1.1
-      semver: 7.3.8
+      semver: 7.5.0
       semver-diff: 3.1.1
       xdg-basedir: 4.0.0
     dev: false
@@ -31888,6 +31898,14 @@ packages:
       spdx-correct: 3.1.1
       spdx-expression-parse: 3.0.1
     dev: true
+
+  /validate-peer-dependencies/2.2.0:
+    resolution: {integrity: sha512-8X1OWlERjiUY6P6tdeU9E0EwO8RA3bahoOVG7ulOZT5MqgNDUO/BQoVjYiHPcNe+v8glsboZRIw9iToMAA2zAA==}
+    engines: {node: '>= 12'}
+    dependencies:
+      resolve-package-path: 4.0.3
+      semver: 7.5.0
+    dev: false
 
   /validator/13.7.0:
     resolution: {integrity: sha512-nYXQLCBkpJ8X6ltALua9dRrZDHVYxjJ1wgskNt1lH9fzGjs3tgojGSCBjmEPwkWS1y29+DrizMTW19Pr9uB2nw==}
@@ -32542,7 +32560,7 @@ packages:
       espree: 9.4.0
       esquery: 1.4.0
       lodash: 4.17.21
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -32560,7 +32578,7 @@ packages:
       espree: 9.4.0
       esquery: 1.4.0
       lodash: 4.17.21
-      semver: 7.3.8
+      semver: 7.5.0
     transitivePeerDependencies:
       - supports-color
     dev: true
