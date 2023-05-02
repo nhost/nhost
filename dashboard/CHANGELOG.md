@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.16.2
+
+### Patch Changes
+
+- 0f34f0c6: fix(projects): disallow downgrading to free plan
+- 8da291ad: chore(deps): bump `@types/react` to v18.2.0 and `@types/react-dom` to v18.2.1
+
 ## 0.16.1
 
 ### Patch Changes
