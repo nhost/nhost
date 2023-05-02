@@ -25,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -45,7 +45,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "gridPos": {
         "h": 11,
@@ -69,7 +69,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "gridPos": {
         "h": 11,
@@ -106,7 +106,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.",
       "fieldConfig": {
@@ -185,7 +185,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total[$__rate_interval])) * 1000",
@@ -201,7 +201,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -279,7 +279,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_memory_usage_bytes)",
@@ -294,7 +294,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "When a service lacks resources the process is throttled until resources are available again.\n\nThis graph shows for how long pods are being throttled. This can incur in added latency to requests.",
       "fieldConfig": {
@@ -374,7 +374,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_seconds_total[$__rate_interval]))",
@@ -391,7 +391,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "When a service lacks resources the process is throttled until resources are available again.\n\nThis graph shows how often the process is being throttled. As throttling happens in intervals of 100ms here you can see how many of those intervals required throttling.",
       "fieldConfig": {
@@ -471,7 +471,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_periods_total[$__rate_interval]))/sum by(pod) (rate(container_cpu_cfs_periods_total[$__rate_interval]))",
@@ -488,7 +488,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -530,7 +530,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -565,7 +566,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (rate(container_network_transmit_bytes_total[$__rate_interval]))",
@@ -577,7 +578,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "- sum by(pod) (rate(container_network_receive_bytes_total[$__rate_interval]))",
@@ -607,7 +608,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
       "fieldConfig": {
@@ -650,7 +651,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -684,7 +686,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total{container=\"postgres\"}[$__rate_interval])) * 1000",
@@ -696,7 +698,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_cpu_shares{container=\"postgres\"}) / 1.024",
@@ -712,7 +714,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
@@ -755,7 +757,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -790,7 +793,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_memory_usage_bytes{container=\"postgres\"})",
@@ -802,7 +805,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"postgres\"})",
@@ -818,7 +821,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This shows the amount of data utilized by the postgres volume. This number may differ from the database size reported by postgres depending on the features configured. For instance, when archiving is enabled postgres needs to write on disk a lot of supporting files which might lead to big increase in disk usage.\n\nWhen postgres runs out of disk space it fails to start so it is important to ensure you don't fill the volume. If you need to increase your disk capacity don't hesitate to let us know.",
       "fieldConfig": {
@@ -896,7 +899,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "kubelet_volume_stats_used_bytes{persistentvolumeclaim=\"postgres-pv-claim\"}",
@@ -907,7 +910,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "kubelet_volume_stats_capacity_bytes{persistentvolumeclaim=\"postgres-pv-claim\"}",
@@ -923,7 +926,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1000,7 +1003,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (rate(container_fs_reads_bytes_total{container=\"postgres\"}[$__rate_interval]))",
@@ -1012,7 +1015,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (rate(container_fs_writes_bytes_total{container=\"postgres\"}[$__rate_interval]))",
@@ -1042,7 +1045,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
       "fieldConfig": {
@@ -1119,7 +1122,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total{container=\"hasura\"}[$__rate_interval])) * 1000",
@@ -1131,7 +1134,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_cpu_shares{container=\"hasura\"}) / 1.024",
@@ -1147,7 +1150,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
@@ -1225,7 +1228,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura\"})",
@@ -1237,7 +1240,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"hasura\"})",
@@ -1266,7 +1269,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
       "fieldConfig": {
@@ -1343,7 +1346,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total{container=\"hasura-auth\"}[$__rate_interval])) * 1000",
@@ -1355,7 +1358,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_cpu_shares{container=\"hasura-auth\"}) / 1.024",
@@ -1371,7 +1374,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
@@ -1449,7 +1452,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura-auth\"})",
@@ -1461,7 +1464,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"hasura-auth\"})",
@@ -1490,7 +1493,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "CPU utilization is calculated by calculating the average usage between two datapoints. At maximum granularity this is a 1 minute average, but when selecting longer periods of time granularity can decrease.\n\nGiven that the graph shows average usage it might be difficult to detect very sudden spikes.\n\nThe allotted line indicates how many CPU cycles are dedicated for the service. As free and pro projects have only shared CPU this line should show only a symbolic number. For projects with [dedicated compute resources](https://docs.nhost.io/platform/compute) this line should match the amount of resources configured.",
       "fieldConfig": {
@@ -1567,7 +1570,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total{container=\"hasura-storage\"}[$__rate_interval])) * 1000",
@@ -1579,7 +1582,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_cpu_shares{container=\"hasura-storage\"}) / 1.024",
@@ -1595,7 +1598,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "${DS_PROMETHEUS}"
       },
       "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
@@ -1673,7 +1676,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura-storage\"})",
@@ -1685,7 +1688,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"hasura-storage\"})",
@@ -1705,10 +1708,28 @@
     "nhost"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "Prometheus",
+          "value": "Prometheus"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "Prometheus",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
