@@ -1,4 +1,41 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "9.2.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "text",
+      "name": "Text",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -188,7 +225,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total[$__rate_interval])) * 1000",
+          "expr": "sum by(pod) (irate(container_cpu_usage_seconds_total{container!~\"POD|\"}[$__rate_interval])) * 1000",
           "interval": "2m",
           "legendFormat": "__auto",
           "range": true,
@@ -282,7 +319,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes)",
+          "expr": "sum by (pod) (container_memory_usage_bytes{container!~\"POD|\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -377,7 +414,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_seconds_total[$__rate_interval]))",
+          "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_seconds_total{container!~\"POD|\"}[$__rate_interval]))",
           "hide": false,
           "interval": "2m",
           "legendFormat": "__auto",
@@ -474,7 +511,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_periods_total[$__rate_interval]))/sum by(pod) (rate(container_cpu_cfs_periods_total[$__rate_interval]))",
+          "expr": "sum by(pod) (rate(container_cpu_cfs_throttled_periods_total{container!~\"POD|\"}[$__rate_interval]))/sum by(pod) (rate(container_cpu_cfs_periods_total{container!~\"POD|\"}[$__rate_interval]))",
           "hide": false,
           "interval": "2m",
           "legendFormat": "__auto",
@@ -864,7 +901,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -968,7 +1006,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1088,7 +1127,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1193,7 +1233,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1312,7 +1353,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1417,7 +1459,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1536,7 +1579,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1641,7 +1685,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": null
               },
               {
                 "color": "red",
@@ -1729,13 +1774,13 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Project Metrics",
   "uid": "KCRbuGs4z",
-  "version": 25,
+  "version": 1,
   "weekStart": ""
 }
