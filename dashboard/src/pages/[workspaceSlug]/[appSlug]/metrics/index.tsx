@@ -20,7 +20,11 @@ export default function MetricsPage() {
     currentProject?.config?.observability?.grafana?.adminPassword;
 
   if (loading) {
-    return <ActivityIndicator label="Loading project..." delay={1000} />;
+    return (
+      <Container>
+        <ActivityIndicator label="Loading project..." delay={1000} />
+      </Container>
+    );
   }
 
   return (
@@ -67,18 +71,22 @@ export default function MetricsPage() {
 
               <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
                 <Text className="font-medium" variant="subtitle2">
-                  {Array(adminPassword.length).fill('•').join('')}
+                  {adminPassword
+                    ? Array(adminPassword.length).fill('•').join('')
+                    : 'N/A'}
                 </Text>
 
-                <IconButton
-                  onClick={() => copy(adminPassword, 'Grafana password')}
-                  variant="borderless"
-                  color="secondary"
-                  className="min-w-0 p-1"
-                  aria-label="Copy password"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </IconButton>
+                {adminPassword && (
+                  <IconButton
+                    onClick={() => copy(adminPassword, 'Grafana password')}
+                    variant="borderless"
+                    color="secondary"
+                    className="min-w-0 p-1"
+                    aria-label="Copy password"
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                  </IconButton>
+                )}
               </div>
             </div>
           </Box>
