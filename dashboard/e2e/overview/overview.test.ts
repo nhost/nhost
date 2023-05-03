@@ -54,6 +54,9 @@ test('should show a sidebar with menu items', async () => {
   ).toBeVisible();
   await expect(navLocator.getByRole('link', { name: /logs/i })).toBeVisible();
   await expect(
+    navLocator.getByRole('link', { name: /metrics/i }),
+  ).toBeVisible();
+  await expect(
     navLocator.getByRole('link', { name: /settings/i }),
   ).toBeVisible();
 });

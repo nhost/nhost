@@ -12,7 +12,8 @@ export type NhostService =
   | 'graphql'
   | 'functions'
   | 'storage'
-  | 'hasura';
+  | 'hasura'
+  | 'grafana';
 
 /**
  * The default slugs that are used when running the dashboard locally. These
@@ -25,6 +26,7 @@ export const defaultLocalBackendSlugs: Record<NhostService, string> = {
   functions: '/v1/functions',
   storage: '/v1/files',
   hasura: '',
+  grafana: '',
 };
 
 /**
@@ -37,6 +39,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
   functions: '/v1',
   storage: '/v1',
   hasura: '',
+  grafana: '',
 };
 
 /**
@@ -53,7 +56,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
 export default function generateAppServiceUrl(
   subdomain: string,
   region: string,
-  service: 'auth' | 'graphql' | 'functions' | 'storage' | 'hasura',
+  service: 'auth' | 'graphql' | 'functions' | 'storage' | 'hasura' | 'grafana',
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
@@ -66,6 +69,7 @@ export default function generateAppServiceUrl(
       storage: getStorageServiceUrl(),
       functions: getFunctionsServiceUrl(),
       hasura: getHasuraApiUrl(),
+      grafana: '',
     };
 
     if (!serviceUrls[service]) {
