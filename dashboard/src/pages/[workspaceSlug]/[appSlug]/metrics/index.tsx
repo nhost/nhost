@@ -1,3 +1,4 @@
+import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
@@ -7,9 +8,9 @@ import Button from '@/ui/v2/Button/Button';
 import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
 import Text from '@/ui/v2/Text';
-import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon/ArrowSquareOutIcon';
+import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import Image from 'next/image';
 import type { ReactElement } from 'react';
@@ -23,6 +24,14 @@ export default function MetricsPage() {
     return (
       <Container>
         <ActivityIndicator label="Loading project..." delay={1000} />
+      </Container>
+    );
+  }
+
+  if (currentProject.plan.isFree) {
+    return (
+      <Container>
+        <UnlockFeatureByUpgrading message="Unlock metrics by upgrading your project to the Pro plan." />
       </Container>
     );
   }
@@ -45,8 +54,10 @@ export default function MetricsPage() {
           </Text>
 
           <Text className="text-center">
-            Grafana is the dashboard you&apos;ll use to monitor your
-            project&apos;s performance.
+            Grafana is the observability dashboard for your project. Here you
+            will be able to see various metrics about its usage and performance.
+            Copy the admin password to your clipboard and enter it in the next
+            screen.
           </Text>
 
           <Box className="mt-6 grid grid-flow-row gap-0 border-y-1">
