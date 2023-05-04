@@ -4,9 +4,7 @@ daysUntilStale: 60
 daysUntilClose: 7
 limitPerRun: 30
 onlyLabels: []
-exemptLabels:
-  - enhancement
-  - 'good first issue'
+exemptLabels: []
 
 exemptProjects: false
 exemptMilestones: false
