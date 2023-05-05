@@ -218,6 +218,11 @@ export const ENV = {
   get AUTH_CONCEAL_ERRORS() {
     return castBooleanEnv('AUTH_CONCEAL_ERRORS', false);
   },
+
+  get AUTH_SHOW_LOG_QUERY_PARAMS() {
+    return castBooleanEnv('AUTH_SHOW_LOG_QUERY_PARAMS', false);
+  },
+
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {
   //   return castBooleanEnv('AUTH_SKIP_INIT', false);

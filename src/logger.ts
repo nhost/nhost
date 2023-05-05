@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import expressWinston, { LoggerOptions } from 'express-winston';
 import winston from 'winston';
+import { ENV } from './utils/env';
 export const LOG_LEVEL = process.env.AUTH_LOG_LEVEL || 'info';
 
 // * Create a common Winston logger that can be used in both middlewares and manually
@@ -13,7 +14,11 @@ export const logger = winston.createLogger({
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
 
 const maskUrl = (url: string) => {
-  if (LOG_LEVEL === 'debug' || (!url.includes('?') && !url.includes('#'))) {
+  if (
+    ENV.AUTH_SHOW_LOG_QUERY_PARAMS ||
+    LOG_LEVEL === 'debug' ||
+    (!url.includes('?') && !url.includes('#'))
+  ) {
     return url;
   }
 
