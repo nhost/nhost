@@ -491,9 +491,6 @@ importers:
       vitest:
         specifier: ^0.30.1
         version: 0.30.1(jsdom@21.0.0)
-      webpack:
-        specifier: ^5.75.0
-        version: 5.75.0
 
   docs:
     dependencies:
