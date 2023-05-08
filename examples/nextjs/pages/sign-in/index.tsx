@@ -18,6 +18,9 @@ export const SignInPage: NextPage = () => {
       <AuthLink variant="subtle" link="/sign-in/email-password">
         Continue with email + password
       </AuthLink>
+      <AuthLink variant="subtle" link="/sign-in/pat">
+        Continue with personal access token
+      </AuthLink>
     </SignInLayout>
   )
 }
