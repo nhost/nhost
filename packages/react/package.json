@@ -33,6 +33,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"
