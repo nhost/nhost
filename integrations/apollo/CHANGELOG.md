@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 5.2.4
+
+### Patch Changes
+
+- 90c60311: chore(deps): add `types` to `package.json`
+- Updated dependencies [90c60311]
+  - @nhost/nhost-js@2.2.2
+
 ## 5.2.3
 
 ### Patch Changes

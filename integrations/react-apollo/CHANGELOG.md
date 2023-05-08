@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 5.0.20
+
+### Patch Changes
+
+- 90c60311: chore(deps): add `types` to `package.json`
+- Updated dependencies [90c60311]
+  - @nhost/apollo@5.2.4
+  - @nhost/react@2.0.16
+
 ## 5.0.19
 
 ### Patch Changes

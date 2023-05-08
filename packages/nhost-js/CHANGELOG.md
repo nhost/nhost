@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 2.2.2
+
+### Patch Changes
+
+- 90c60311: chore(deps): add `types` to `package.json`
+- Updated dependencies [90c60311]
+  - @nhost/graphql-js@0.1.1
+  - @nhost/hasura-auth-js@2.1.1
+  - @nhost/hasura-storage-js@2.1.1
+
 ## 2.2.1
 
 ### Patch Changes
