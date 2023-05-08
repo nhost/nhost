@@ -1,5 +1,13 @@
 # @nhost/vue
 
+## 1.13.22
+
+### Patch Changes
+
+- 90c60311: chore(deps): add `types` to `package.json`
+- Updated dependencies [90c60311]
+  - @nhost/nhost-js@2.2.2
+
 ## 1.13.21
 
 ### Patch Changes

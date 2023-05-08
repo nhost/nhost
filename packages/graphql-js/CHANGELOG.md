@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.1
+
+### Patch Changes
+
+- 90c60311: chore(deps): add `types` to `package.json`
+
 ## 0.1.0
 
 ### Minor Changes
