@@ -43,7 +43,7 @@ export interface User {
 export interface NhostSession {
   accessToken: string
   accessTokenExpiresIn: number
-  refreshToken: string
+  refreshToken: string | null
   user: User
 }
 
