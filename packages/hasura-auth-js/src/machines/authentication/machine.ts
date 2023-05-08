@@ -225,7 +225,7 @@ export const createAuthMachine = ({
                     src: 'signInPAT',
                     id: 'authenticateWithPAT',
                     onDone: {
-                      actions: ['saveSession', 'reportTokenChanged'],
+                      actions: ['savePATSession', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -312,10 +312,8 @@ export const createAuthMachine = ({
                     idle: {
                       always: [
                         { cond: 'isAutoRefreshDisabled', target: 'disabled' },
-                        {
-                          cond: 'hasRefreshToken',
-                          target: 'running'
-                        }
+                        { cond: 'isRefreshTokenPAT', target: 'disabled' },
+                        { cond: 'hasRefreshToken', target: 'running' }
                       ]
                     },
                     running: {
@@ -565,6 +563,34 @@ export const createAuthMachine = ({
             return { value: refreshToken }
           }
         }),
+
+        savePATSession: assign({
+          user: (_, { data }) => data?.session?.user || null,
+          accessToken: (_, { data }) => {
+            if (data.session) {
+              const { accessTokenExpiresIn, accessToken } = data.session
+              const nextRefresh = new Date(Date.now() + accessTokenExpiresIn * 1_000)
+              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
+              return {
+                value: accessToken,
+                expiresAt: nextRefresh
+              }
+            }
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            return {
+              value: null,
+              expiresAt: null
+            }
+          },
+          refreshToken: (_, { data }) => {
+            const refreshToken = data.session?.refreshToken || null
+            if (refreshToken) {
+              storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
+            }
+            return { value: refreshToken, isPAT: true }
+          }
+        }),
+
         saveMfaTicket: assign({
           mfa: (_, e) => e.data?.mfa
         }),
@@ -635,6 +661,7 @@ export const createAuthMachine = ({
         isAnonymous: (ctx, e) => !!ctx.user?.isAnonymous,
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
+        isRefreshTokenPAT: (ctx) => !!ctx.refreshToken?.isPAT,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {

@@ -269,6 +269,7 @@ export interface Typegen0 {
       | 'error.platform.signInMfaTotp'
       | 'error.platform.signingOut'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
+    savePATSession: 'done.invoke.authenticateWithPAT'
     saveRefreshAttempt: 'error.platform.refreshToken'
     saveRegistrationError:
       | 'error.platform.passwordlessEmail'
@@ -281,7 +282,6 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateUserWithSecurityKey'
-      | 'done.invoke.authenticateWithPAT'
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.importRefreshToken'
       | 'done.invoke.passwordlessSmsOtp'
@@ -303,6 +303,7 @@ export interface Typegen0 {
       | 'done.invoke.signUpSecurityKey'
     isAnonymous: 'SIGNED_IN'
     isAutoRefreshDisabled: ''
+    isRefreshTokenPAT: ''
     isSignedIn: '' | 'error.platform.authenticateWithToken'
     noToken: ''
     refreshTimerShouldRefresh: ''

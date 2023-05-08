@@ -18,6 +18,7 @@ export type AuthContext = {
   }
   refreshToken: {
     value: string | null
+    isPAT?: boolean
   }
   /** Number of times the user tried to get an access token from a refresh token but got a network error */
   importTokenAttempts: number

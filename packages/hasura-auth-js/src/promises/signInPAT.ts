@@ -6,12 +6,13 @@ import { AuthActionLoadingState, SessionActionHandlerResult } from './types'
 export interface SignInPATHandlerResult extends SessionActionHandlerResult {}
 export interface SignInPATState extends SignInPATHandlerResult, AuthActionLoadingState {}
 
-export const signInPatPromise = (
+export const signInPATPromise = (
   interpreter: AuthInterpreter,
   pat: string
 ): Promise<SignInPATHandlerResult> =>
   new Promise((resolve) => {
     const { changed } = interpreter.send('SIGNIN_PAT', { pat })
+
     if (!changed) {
       resolve({
         isSuccess: false,
@@ -21,23 +22,25 @@ export const signInPatPromise = (
         accessToken: null
       })
     }
+
     interpreter.onTransition((state) => {
-      if (state.matches({ authentication: 'signedIn' })) {
-        resolve({
-          isSuccess: true,
-          isError: false,
-          error: null,
-          user: state.context.user,
-          accessToken: state.context.accessToken.value
+      if (state.matches({ authentication: { signedOut: 'failed' } })) {
+        return resolve({
+          accessToken: null,
+          user: null,
+          error: state.context.errors.authentication || null,
+          isError: true,
+          isSuccess: false
         })
       }
-      if (state.matches({ authentication: { signedOut: 'failed' } })) {
-        resolve({
-          isSuccess: false,
-          isError: true,
-          error: state.context.errors.authentication || null,
-          user: null,
-          accessToken: null
+
+      if (state.matches({ authentication: 'signedIn' })) {
+        return resolve({
+          accessToken: state.context.accessToken.value,
+          user: state.context.user,
+          error: null,
+          isError: false,
+          isSuccess: true
         })
       }
     })
