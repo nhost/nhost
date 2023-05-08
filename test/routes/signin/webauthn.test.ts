@@ -49,7 +49,7 @@ describe('webauthn', () => {
     await request
       .post('/signin/webauthn')
       .send({ email })
-      .expect(StatusCodes.NOT_FOUND);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should failed if trying to sign in but user does not exist', async () => {
@@ -130,7 +130,7 @@ describe('webauthn', () => {
     await request
       .post('/signin/webauthn/verify')
       .send({ email, credential: {} })
-      .expect(StatusCodes.NOT_FOUND);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should failed verify when user is disabled', async () => {

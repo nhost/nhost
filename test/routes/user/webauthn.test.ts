@@ -78,7 +78,7 @@ describe('webauthn', () => {
       .post('/user/webauthn/add')
       .set('Authorization', `Bearer ${userSession?.accessToken}`)
       .send({ email })
-      .expect(StatusCodes.NOT_FOUND);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should return registration options when sign in using webauthn', async () => {
@@ -141,7 +141,7 @@ describe('webauthn', () => {
       .post('/user/webauthn/verify')
       .set('Authorization', `Bearer ${userSession?.accessToken}`)
       .send({ credential: {} })
-      .expect(StatusCodes.NOT_FOUND);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should fail verify user when no credential is passed', async () => {

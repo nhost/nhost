@@ -28,7 +28,7 @@ const maskUrl = (url: string) => {
   if (queryParameters.length > 0) {
     return `${pathname}?${queryParameters
       .map((param) => `${param}=*****`)
-      .join('&')})}`;
+      .join('&')}`;
   }
 
   if (hash) {

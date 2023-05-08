@@ -2,8 +2,8 @@ import { sendError } from '@/errors';
 import axios from 'axios';
 import { RequestHandler } from 'express';
 import { GrantProvider, GrantResponse } from 'grant';
-import { NormalisedProfile } from './utils';
 import jwt from 'jsonwebtoken';
+import { NormalisedProfile } from './utils';
 export const OAUTH_ROUTE = '/signin/provider';
 
 const azureBaseUrl = 'https://login.microsoftonline.com';
@@ -291,16 +291,25 @@ export const PROVIDERS_CONFIG: Record<
       client_secret: process.env.AUTH_PROVIDER_TWITCH_CLIENT_SECRET,
       scope: ['user:read:email'],
     },
-    profile: ({
-      profile: {
-        data: [profile],
-      },
-    }) => ({
-      id: profile.id,
-      email: profile.email,
-      displayName: profile.display_name,
-      avatarUrl: profile.profile_image_url,
-    }),
+    profile: ({ profile: { data } }) => {
+      if (!Array.isArray(data)) {
+        return {
+          id: null,
+          email: null,
+          displayName: null,
+          avatarUrl: null,
+        };
+      }
+
+      const [profile] = data;
+
+      return {
+        id: profile.id,
+        email: profile.email,
+        displayName: profile.display_name,
+        avatarUrl: profile.profile_image_url,
+      };
+    },
   },
 
   twitter: {

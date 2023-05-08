@@ -1,9 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
-import express, { Router } from 'express';
-import session from 'express-session';
-import grant from 'grant';
-
 import { ERRORS, sendError } from '@/errors';
+import { logger } from '@/logger';
 import {
   ENV,
   generateRedirectUrl,
@@ -12,21 +8,24 @@ import {
   gqlSdk,
   insertUser,
 } from '@/utils';
+import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
   queryValidator,
   redirectTo as redirectToRule,
   registrationOptions,
 } from '@/validation';
+import express, { Router } from 'express';
+import session from 'express-session';
+import grant from 'grant';
+import { v4 as uuidv4 } from 'uuid';
+import { OAUTH_ROUTE } from './config';
 import { SessionStore } from './session-store';
-import { logger } from '@/logger';
-import { InsertUserMutation } from '@/utils/__generated__/graphql-request';
 import {
   createGrantConfig,
   normaliseProfile,
   preRequestProviderMiddleware,
   transformOauthProfile,
 } from './utils';
-import { OAUTH_ROUTE } from './config';
 
 const SESSION_NAME = 'connect.sid';
 
@@ -99,6 +98,7 @@ export const oauthProviders = Router()
     const providerConfig = grantConfig[provider];
     // * Check if provider is enabled
     if (!providerConfig) {
+      logger.warn(`Provider "${provider}" is not enabled`);
       return sendError(res, 'disabled-endpoint', { redirectTo }, true);
     }
     // * Check if the provider has a client id and secret
@@ -106,7 +106,7 @@ export const oauthProviders = Router()
       !(providerConfig.client_id && providerConfig.client_secret) &&
       !(providerConfig.key && providerConfig.secret)
     ) {
-      logger.warn(`Missing client id/key or secret for provider ${provider}`);
+      logger.warn(`Missing client id/key or secret for provider "${provider}"`);
       return sendError(
         res,
         'invalid-oauth-configuration',

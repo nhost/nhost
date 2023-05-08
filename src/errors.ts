@@ -52,7 +52,7 @@ export const ERRORS = asErrors({
     message: 'Route not found',
   },
   'disabled-endpoint': {
-    status: StatusCodes.NOT_FOUND,
+    status: StatusCodes.CONFLICT,
     message: 'This endpoint is disabled',
   },
   'invalid-request': {

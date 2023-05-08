@@ -1,11 +1,10 @@
-import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
-
+import { Client } from 'pg';
+import { SignInResponse } from '../../../src/types';
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { isValidAccessToken } from '../../utils';
-import { SignInResponse } from '../../../src/types';
 
 describe('anonymous', () => {
   let client: Client;
@@ -67,6 +66,6 @@ describe('anonymous', () => {
       AUTH_ANONYMOUS_USERS_ENABLED: false,
     });
 
-    await request.post('/signin/anonymous').expect(StatusCodes.NOT_FOUND);
+    await request.post('/signin/anonymous').expect(StatusCodes.CONFLICT);
   });
 });

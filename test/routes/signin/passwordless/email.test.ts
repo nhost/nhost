@@ -1,14 +1,13 @@
-import { Client } from 'pg';
 import * as faker from 'faker';
-import rfc2047 from 'rfc2047';
 import { StatusCodes } from 'http-status-codes';
-
+import { Client } from 'pg';
+import rfc2047 from 'rfc2047';
 import { ENV } from '../../../../src/utils/env';
 import { request } from '../../../server';
 import {
-  mailHogSearch,
   deleteAllMailHogEmails,
   expectUrlParameters,
+  mailHogSearch,
 } from '../../../utils';
 
 describe('passwordless email (magic link)', () => {
@@ -145,7 +144,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      .expect(StatusCodes.NOT_FOUND);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should fail to sign if email is not valid', async () => {
