@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -33,6 +33,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"

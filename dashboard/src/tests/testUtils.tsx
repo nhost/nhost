@@ -95,16 +95,16 @@ function render<
   });
 }
 
-function waitForElementToBeRemoved<T>(
+async function waitForElementToBeRemoved<T>(
   callback: T | (() => T),
   options?: waitForOptions,
 ): Promise<void> {
   try {
-    return rtlWaitForElementToBeRemoved(callback, options);
+    await rtlWaitForElementToBeRemoved(callback, options);
   } catch {
     // We shouldn't fail if the element was to be removed but it wasn't there in
     // the first place.
-    return Promise.resolve();
+    await Promise.resolve();
   }
 }
 

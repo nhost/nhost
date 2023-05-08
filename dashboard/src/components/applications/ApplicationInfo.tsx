@@ -46,6 +46,10 @@ export default function ApplicationInfo() {
     }
   }
 
+  if (!currentProject) {
+    return null;
+  }
+
   return (
     <div className="mt-4 grid grid-flow-row gap-4">
       <div className="grid grid-flow-row justify-center gap-0.5">

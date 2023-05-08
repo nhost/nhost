@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-urql",
-  "version": "2.0.16",
+  "version": "2.0.17",
   "description": "Nhost React URQL client",
   "license": "MIT",
   "keywords": [
@@ -32,6 +32,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"

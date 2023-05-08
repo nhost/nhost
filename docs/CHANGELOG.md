@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.1.1
+
+### Patch Changes
+
+- f6639ae0: docs: add migration info
+
 ## 0.1.0
 
 ### Minor Changes

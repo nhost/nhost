@@ -1,5 +1,26 @@
 # @nhost/dashboard
 
+## 0.16.3
+
+### Patch Changes
+
+- Updated dependencies [90c60311]
+  - @nhost/react-apollo@5.0.20
+  - @nhost/nextjs@1.13.22
+
+## 0.16.2
+
+### Patch Changes
+
+- 0f34f0c6: fix(projects): disallow downgrading to free plan
+- 8da291ad: chore(deps): bump `@types/react` to v18.2.0 and `@types/react-dom` to v18.2.1
+
+## 0.16.1
+
+### Patch Changes
+
+- adc828a5: fix(gql): don't enter an infinite loop when fetching remote app data
+
 ## 0.16.0
 
 ### Minor Changes

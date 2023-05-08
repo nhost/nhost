@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -31,6 +31,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"

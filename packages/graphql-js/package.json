@@ -1,6 +1,6 @@
 {
   "name": "@nhost/graphql-js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nhost GraphQL client",
   "license": "MIT",
   "keywords": [
@@ -27,6 +27,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"

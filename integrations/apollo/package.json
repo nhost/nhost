@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "5.2.3",
+  "version": "5.2.4",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [
@@ -33,6 +33,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "types": "./dist/index.d.ts",
       "import": {
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"

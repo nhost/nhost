@@ -26,7 +26,7 @@ export default function ApplicationRestoring() {
       {currentProjectState.state === ApplicationStatus.Empty ? (
         <div className="grid grid-flow-row gap-1">
           <Text variant="h3" component="h1">
-            Setting Up {currentProject.name}
+            Setting Up {currentProject?.name}
           </Text>
 
           <Text>This normally takes around 2 minutes</Text>
