@@ -53,7 +53,7 @@ function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
       </div>
 
       <Text variant="h3" component="p">
-        $ {price}/mo
+        ${price}/mo
       </Text>
     </button>
   );
@@ -99,6 +99,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
             appId: app.id,
             app: {
               planId: selectedPlan.id,
+              desiredState: 5,
             },
           },
         }),
