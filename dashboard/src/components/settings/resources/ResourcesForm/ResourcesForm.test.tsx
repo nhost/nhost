@@ -244,7 +244,7 @@ test('should show a confirmation dialog when the form is submitted', async () =>
 
   await user.click(screen.getByRole('button', { name: /confirm/i }));
 
-  await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
+  await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
 
   expect(
     await screen.findByText(/resources have been updated successfully./i),
@@ -304,7 +304,7 @@ test('should hide the pricing information when custom resource allocation is dis
 
   await user.click(screen.getByRole('button', { name: /confirm/i }));
 
-  await waitForElementToBeRemoved(() => screen.getByRole('dialog'));
+  await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
 
   expect(screen.queryByText(/approximate cost:/i)).not.toBeInTheDocument();
 });
