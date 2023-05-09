@@ -1,5 +1,13 @@
 ## Changelog
 
+## 0.19.3
+
+### Patch Changes
+
+- 29eff81: fix(oauth): be more verbose when a provider fails
+- 5529f7d: fix(pat): replace enum type with an enum table to fix issues with PAT creation
+- 005e259: chore(logs): add `AUTH_SHOW_LOG_QUERY_PARAMS` environment variable to control query parameter visibility
+
 ## 0.19.2
 
 ### Patch Changes
