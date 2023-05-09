@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.16.4
+
+### Patch Changes
+
+- 3f396a9e: fix(projects): unpause after upgrading a paused project to pro
+- 3f396a9e: fix(projects): don't redirect to 404 page after project creation
+
 ## 0.16.3
 
 ### Patch Changes
