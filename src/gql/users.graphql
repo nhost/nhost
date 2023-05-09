@@ -77,7 +77,7 @@ query getUsersByPAT($patHash: String!) {
         { refreshTokenHash: { _eq: $patHash } }
         { user: { disabled: { _eq: false } } }
         { expiresAt: { _gte: now } }
-        { type: { _eq: "pat" } }
+        { type: { _eq: pat } }
       ]
     }
   ) {

@@ -47,12 +47,48 @@ Object {
           },
         },
         Object {
+          "array_relationships": Array [
+            Object {
+              "name": "refreshTokens",
+              "using": Object {
+                "foreign_key_constraint_on": Object {
+                  "column": "type",
+                  "table": Object {
+                    "name": "refresh_tokens",
+                    "schema": "auth",
+                  },
+                },
+              },
+            },
+          ],
+          "configuration": Object {
+            "custom_name": "authRefreshTokenTypes",
+            "custom_root_fields": Object {
+              "delete": "deleteAuthRefreshTokenTypes",
+              "delete_by_pk": "deleteAuthRefreshTokenType",
+              "insert": "insertAuthRefreshTokenTypes",
+              "insert_one": "insertAuthRefreshTokenType",
+              "select": "authRefreshTokenTypes",
+              "select_aggregate": "authRefreshTokenTypesAggregate",
+              "select_by_pk": "authRefreshTokenType",
+              "update": "updateAuthRefreshTokenTypes",
+              "update_by_pk": "updateAuthRefreshTokenType",
+            },
+          },
+          "is_enum": true,
+          "table": Object {
+            "name": "refresh_token_types",
+            "schema": "auth",
+          },
+        },
+        Object {
           "configuration": Object {
             "custom_column_names": Object {
               "created_at": "createdAt",
               "expires_at": "expiresAt",
               "refresh_token": "refreshToken",
               "refresh_token_hash": "refreshTokenHash",
+              "type": "type",
               "user_id": "userId",
             },
             "custom_name": "authRefreshTokens",
@@ -90,6 +126,12 @@ Object {
             },
           ],
           "object_relationships": Array [
+            Object {
+              "name": "refreshTokenType",
+              "using": Object {
+                "foreign_key_constraint_on": "type",
+              },
+            },
             Object {
               "name": "user",
               "using": Object {
