@@ -5,7 +5,7 @@ is_enum: true
 configuration:
   column_config: {}
   custom_column_names: {}
-  custom_name: authRefreshTokenType
+  custom_name: authRefreshTokenTypes
   custom_root_fields:
     delete: deleteAuthRefreshTokenTypes
     delete_by_pk: deleteAuthRefreshTokenType
