@@ -56,7 +56,9 @@ export default function ResetDatabasePasswordSettings() {
   const handleGenerateRandomPassword = () => {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
     triggerToast('New random database password generated.');
-    setValue('databasePassword', newRandomDatabasePassword);
+    setValue('databasePassword', newRandomDatabasePassword, {
+      shouldDirty: true,
+    });
   };
 
   const handleChangeDatabasePassword = async (

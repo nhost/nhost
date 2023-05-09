@@ -33,7 +33,8 @@ export default function ApplicationPaused() {
   } = useCurrentWorkspaceAndProject();
   const user = useUserData();
   const isOwner = currentWorkspace.workspaceMembers.some(
-    ({ id, type }) => id === user?.id && type === 'owner',
+    ({ type, user: workspaceUser }) =>
+      workspaceUser.id === user?.id && type === 'owner',
   );
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
@@ -120,20 +121,22 @@ export default function ApplicationPaused() {
         </Box>
 
         <Box className="grid grid-flow-row gap-2">
-          <Button
-            className="mx-auto w-full max-w-[280px]"
-            onClick={() => {
-              openDialog({
-                component: <ChangePlanModal />,
-                props: {
-                  PaperProps: { className: 'p-0' },
-                  maxWidth: 'lg',
-                },
-              });
-            }}
-          >
-            Upgrade to Pro
-          </Button>
+          {isOwner && (
+            <Button
+              className="mx-auto w-full max-w-[280px]"
+              onClick={() => {
+                openDialog({
+                  component: <ChangePlanModal />,
+                  props: {
+                    PaperProps: { className: 'p-0' },
+                    maxWidth: 'lg',
+                  },
+                });
+              }}
+            >
+              Upgrade to Pro
+            </Button>
+          )}
 
           <div className="grid grid-flow-row gap-2">
             <Button

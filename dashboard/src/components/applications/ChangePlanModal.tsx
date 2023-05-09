@@ -6,7 +6,9 @@ import {
   useGetPaymentMethodsQuery,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import useApplicationState from '@/hooks/useApplicationState';
 import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -15,11 +17,11 @@ import { BaseDialog } from '@/ui/v2/Dialog';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import { planDescriptions } from '@/utils/planDescriptions';
-import getServerError from '@/utils/settings/getServerError/getServerError';
+import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
@@ -62,12 +64,14 @@ function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
 export function ChangePlanModalWithData({ app, plans, close }: any) {
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const { closeAlertDialog } = useDialog();
+  const [pollingCurrentProject, setPollingCurrentProject] = useState(false);
 
   const {
     currentWorkspace,
     currentProject,
     refetch: refetchWorkspaceAndProject,
   } = useCurrentWorkspaceAndProject();
+  const { state } = useApplicationState();
 
   const { data } = useGetPaymentMethodsQuery({
     variables: {
@@ -81,6 +85,29 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
   const currentPlan = plans.find((plan) => plan.id === app.plan.id);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
+
+  useEffect(() => {
+    if (!pollingCurrentProject || state === ApplicationStatus.Paused) {
+      return;
+    }
+
+    close?.();
+    closeAlertDialog();
+    setShowPaymentModal(false);
+    setPollingCurrentProject(false);
+  }, [state, pollingCurrentProject, close, closeAlertDialog]);
+
+  useEffect(() => {
+    if (!pollingCurrentProject) {
+      return () => {};
+    }
+
+    const interval = setInterval(() => {
+      refetchWorkspaceAndProject();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [pollingCurrentProject, refetchWorkspaceAndProject, currentProject]);
 
   const [updateApp] = useUpdateApplicationMutation({
     refetchQueries: [
@@ -113,11 +140,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
         getToastStyleProps(),
       );
 
-      await refetchWorkspaceAndProject();
-
-      close?.();
-      closeAlertDialog();
-      setShowPaymentModal(false);
+      setPollingCurrentProject(true);
     } catch (error) {
       // Note: Error is handled by the toast.
     }
@@ -135,11 +158,48 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     }
 
     await handleUpdateAppPlan();
-
-    setShowPaymentModal(false);
-    close?.();
-    closeAlertDialog();
   };
+
+  if (pollingCurrentProject) {
+    return (
+      <Box className="mx-auto w-full max-w-xl rounded-lg p-6 text-left">
+        <div className="flex flex-col">
+          <div className="mx-auto">
+            <Image
+              src="/assets/upgrade.svg"
+              alt="Nhost Logo"
+              width={72}
+              height={72}
+            />
+          </div>
+
+          <Text variant="h3" component="h2" className="mt-2 text-center">
+            Successfully upgraded to {currentPlan.name}
+          </Text>
+
+          <ActivityIndicator
+            label="We are unpausing your project. This may take some time..."
+            className="mx-auto mt-2"
+          />
+
+          <Button
+            variant="outlined"
+            color="secondary"
+            className="mx-auto mt-4 w-full max-w-sm"
+            onClick={() => {
+              if (close) {
+                close();
+              }
+
+              closeAlertDialog();
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      </Box>
+    );
+  }
 
   if (app.plan.id !== plans.find((plan) => plan.isFree)?.id) {
     return (
@@ -216,7 +276,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           You&apos;re currently on the <strong>{app.plan.name}</strong> plan.
         </Text>
 
-        <div className="mt-5">
+        <div className="mt-2">
           {plans
             .filter((plan) => plan.id !== app.plan.id)
             .map((plan) => (
@@ -234,8 +294,12 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
             ))}
         </div>
 
-        <div className="mt-6 grid grid-flow-row gap-2">
-          <Button onClick={handleChangePlanClick} disabled={!selectedPlan}>
+        <div className="mt-2 grid grid-flow-row gap-2">
+          <Button
+            onClick={handleChangePlanClick}
+            disabled={!selectedPlan}
+            loading={pollingCurrentProject}
+          >
             Upgrade
           </Button>
 
