@@ -1,5 +1,6 @@
 - "!include auth_provider_requests.yaml"
 - "!include auth_providers.yaml"
+- "!include auth_refresh_token_types.yaml"
 - "!include auth_refresh_tokens.yaml"
 - "!include auth_roles.yaml"
 - "!include auth_user_providers.yaml"

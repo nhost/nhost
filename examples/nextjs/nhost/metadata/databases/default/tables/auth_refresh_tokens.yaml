@@ -11,6 +11,8 @@ configuration:
       custom_name: refreshToken
     refresh_token_hash:
       custom_name: refreshTokenHash
+    type:
+      custom_name: type
     user_id:
       custom_name: userId
   custom_column_names:
@@ -18,6 +20,7 @@ configuration:
     expires_at: expiresAt
     refresh_token: refreshToken
     refresh_token_hash: refreshTokenHash
+    type: type
     user_id: userId
   custom_name: authRefreshTokens
   custom_root_fields:
@@ -31,6 +34,9 @@ configuration:
     update: updateAuthRefreshTokens
     update_by_pk: updateAuthRefreshToken
 object_relationships:
+  - name: refreshTokenType
+    using:
+      foreign_key_constraint_on: type
   - name: user
     using:
       foreign_key_constraint_on: user_id
