@@ -1,6 +1,6 @@
 import Container from '@/components/layout/Container';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useCheckProvisioning } from '@/hooks/useCheckProvisioning';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';

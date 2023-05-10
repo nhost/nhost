@@ -1,4 +1,5 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   useGetAppFunctionsMetadataQuery,
   useGetProjectMetricsQuery,
@@ -6,7 +7,6 @@ import {
 } from '@/generated/graphql';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import LinearProgress from '@/ui/v2/LinearProgress';
 import Text from '@/ui/v2/Text';
 import { prettifySize } from '@/utils/common/prettifySize';
