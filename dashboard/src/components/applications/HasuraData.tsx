@@ -1,5 +1,5 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';

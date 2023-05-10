@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   refetchGetApplicationPlanQuery,
   useGetAppPlanAndGlobalPlansQuery,

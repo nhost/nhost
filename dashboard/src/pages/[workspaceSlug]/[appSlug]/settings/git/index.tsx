@@ -7,7 +7,7 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 import BaseDirectorySettings from '@/components/settings/git/BaseDirectorySettings';
 import DeploymentBranchSettings from '@/components/settings/git/DeploymentBranchSettings';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';

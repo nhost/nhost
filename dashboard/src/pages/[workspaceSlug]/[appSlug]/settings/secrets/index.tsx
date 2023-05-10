@@ -5,7 +5,7 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
 import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Secret } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

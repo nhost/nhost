@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { useQuery } from '@tanstack/react-query';

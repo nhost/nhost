@@ -3,7 +3,7 @@ import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import InlineCode from '@/components/common/InlineCode';
 import NavLink from '@/components/common/NavLink';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useDatabaseQuery from '@/hooks/dataBrowser/useDatabaseQuery';
 import useDeleteTableWithToastMutation from '@/hooks/dataBrowser/useDeleteTableMutation/useDeleteTableWithToastMutation';

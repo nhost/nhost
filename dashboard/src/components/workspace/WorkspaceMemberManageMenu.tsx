@@ -1,5 +1,5 @@
 import RemoveWorkspaceMember from '@/components/workspace/RemoveWorkspaceMember';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';

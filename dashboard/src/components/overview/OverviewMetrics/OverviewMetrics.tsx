@@ -1,6 +1,6 @@
 import type { MetricsCardProps } from '@/components/overview/MetricsCard';
 import { MetricsCard } from '@/components/overview/MetricsCard';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import Text from '@/ui/v2/Text';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { prettifyNumber } from '@/utils/common/prettifyNumber';

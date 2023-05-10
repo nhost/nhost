@@ -1,5 +1,5 @@
 import LogsDatePicker from '@/components/logs/LogsDatePicker';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { AvailableLogsServices, LogsCustomInterval } from '@/types/logs';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';

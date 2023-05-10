@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useInsertFeedbackOneMutation } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
 import Button from '@/ui/v2/Button';

@@ -7,7 +7,7 @@ import DataGridPreviewCell from '@/components/common/DataGridPreviewCell';
 import DataGridTextCell from '@/components/common/DataGridTextCell';
 import FilesDataGridControls from '@/components/files/FilesDataGridControls';
 import { FileIcon } from '@/components/icons/FileIcon';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useAppClient } from '@/hooks/useAppClient';
 import useBuckets from '@/hooks/useBuckets';
 import useFiles from '@/hooks/useFiles';

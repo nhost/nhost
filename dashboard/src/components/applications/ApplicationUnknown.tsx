@@ -1,7 +1,7 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';

@@ -5,7 +5,7 @@ import type {
 import BaseRoleForm, {
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import {

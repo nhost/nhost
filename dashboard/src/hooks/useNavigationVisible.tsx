@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useApplicationState from '@/hooks/useApplicationState';
 import usePreviousApplicationState from '@/hooks/usePreviousApplicationStates';
 import { ApplicationStatus } from '@/types/application';

@@ -1,5 +1,5 @@
 import RemoveWorkspaceMemberInvite from '@/components/workspace/RemoveWorkspaceMemberInvite';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/graphql';
 import {
   refetchGetWorkspaceMembersQuery,

@@ -4,7 +4,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { calculateBillableResources } from '@/features/projects/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';

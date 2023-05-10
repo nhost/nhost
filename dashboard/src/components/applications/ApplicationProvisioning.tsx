@@ -1,5 +1,5 @@
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useCheckProvisioning } from '@/hooks/useCheckProvisioning';
 import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
