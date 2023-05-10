@@ -95,3 +95,13 @@ export interface SecurityKey {
   /** Human-readable nickname fof the security key */
   nickname?: string
 }
+
+/**
+ * Data of a personal access token creation response.
+ */
+export interface PersonalAccessTokenCreationResponse {
+  /**
+   * The personal access token.
+   */
+  personalAccessToken: string
+}

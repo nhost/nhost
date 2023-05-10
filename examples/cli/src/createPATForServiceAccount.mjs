@@ -1,16 +1,6 @@
-import { NhostClient } from '@nhost/nhost-js'
-import dotenv from 'dotenv'
-import pino from 'pino'
-
-dotenv.config()
-
-const client = new NhostClient({
-  subdomain: 'local'
-})
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info'
-})
+import { env } from './env.mjs'
+import { logger } from './logger.mjs'
+import { client } from './nhostClient.mjs'
 
 /**
  * This function signs in as the service account and creates a new personal
@@ -19,12 +9,23 @@ const logger = pino({
  *
  * @returns {Promise<{ error: Error | null, personalAccessToken: string | null }>}
  */
-async function createPATForServiceAccount() {
+export async function createPATForServiceAccount() {
+  const envVars = env()
+
+  if (envVars.SERVICE_ACCOUNT_PAT) {
+    logger.info('Skipping PAT creation. Reason: PAT was provided as an environment variable.')
+
+    return {
+      error: null,
+      personalAccessToken: envVars.SERVICE_ACCOUNT_PAT
+    }
+  }
+
   logger.debug('Signing in with the service account...')
 
   const { error: signInError } = await client.auth.signIn({
-    email: process.env.NHOST_SERVICE_ACCOUNT_EMAIL,
-    password: process.env.NHOST_SERVICE_ACCOUNT_PASSWORD
+    email: envVars.SERVICE_ACCOUNT_EMAIL,
+    password: envVars.SERVICE_ACCOUNT_PASSWORD
   })
 
   if (signInError) {
@@ -39,7 +40,16 @@ async function createPATForServiceAccount() {
   logger.info('Successfully signed in with the service account.')
   logger.debug('Creating PAT for the service account...')
 
-  // TODO: Implement PAT creation
+  const { error: patCreationError, personalAccessToken } = await client.auth.createPAT(
+    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  )
+
+  if (patCreationError) {
+    return {
+      error: patCreationError,
+      personalAccessToken: null
+    }
+  }
 
   logger.info('Successfully created PAT for the service account.')
   logger.debug('Signing out as the service account...')
@@ -57,32 +67,6 @@ async function createPATForServiceAccount() {
 
   return {
     error: null,
-    personalAccessToken: '34f74930-09c0-4af5-a8d5-28fad78e3414'
+    personalAccessToken
   }
 }
-
-async function main() {
-  const { error: patError, personalAccessToken } = await createPATForServiceAccount()
-
-  if (patError) {
-    logger.error(patError.message)
-
-    return
-  }
-
-  logger.debug('Signing in with the personal access token...')
-
-  const { error: signInError } = await client.auth.signInPAT(personalAccessToken)
-
-  if (signInError) {
-    logger.error(signInError.message)
-
-    return
-  }
-
-  logger.info('Successfully signed in with the personal access token.')
-
-  // TODO: Do something with the client
-}
-
-main()

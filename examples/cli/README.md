@@ -45,3 +45,15 @@ The CLI tool will sign in using the service account credentials and create a
 personal access token. This token will then be used to authenticate and make
 requests to the Nhost backend as the service account without having to provide
 the email address and password.
+
+## Environment Variables
+
+Credentials can be provided using environment variables. Create a `.env` file
+in the root folder of the example. See `.env.example` for an example
+configuration.
+
+You can specify the following environment variables:
+
+- `NHOST_SERVICE_ACCOUNT_PAT` - The personal access token of the service account. If provided, the email address and password will be ignored.
+- `NHOST_SERVICE_ACCOUNT_EMAIL` - The email address of the service account.
+- `NHOST_SERVICE_ACCOUNT_PASSWORD` - The password of the service account.

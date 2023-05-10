@@ -33,6 +33,7 @@ import {
   signUpEmailPasswordPromise,
   signUpEmailSecurityKeyPromise
 } from './promises'
+import { createPATPromise } from './promises/createPAT'
 import {
   AuthChangedFunction,
   AuthErrorPayload,
@@ -435,6 +436,19 @@ export class HasuraAuthClient {
   ): Promise<{ error: AuthErrorPayload | null; key?: SecurityKey }> {
     const { error, key } = await addSecurityKeyPromise(this._client, nickname)
     return { error, key }
+  }
+
+  /**
+   * Use `nhost.auth.createPAT` to create a personal access token for the user.
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/create-pat
+   */
+  async createPAT(
+    expiresAt: Date,
+    metadata?: Record<string, string | number>
+  ): Promise<{ error: AuthErrorPayload | null; personalAccessToken?: string }> {
+    const res = await createPATPromise(this._client, { expiresAt, metadata })
+    return res
   }
 
   /**
