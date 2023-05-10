@@ -22,10 +22,11 @@ import {
   resetPasswordPromise,
   sendVerificationEmailPromise,
   signInAnonymousPromise,
-  signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
+  signInEmailPasswordlessPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
+  signInPATPromise,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
@@ -51,6 +52,7 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
+  SignInPATResponse,
   SignInParams,
   SignInResponse,
   SignOutResponse,
@@ -266,6 +268,25 @@ export class HasuraAuthClient {
     }
 
     return { error: INVALID_SIGN_IN_METHOD, mfa: null, session: null }
+  }
+
+  /**
+   * Use `nhost.auth.signInPAT` to sign in with a personal access token (PAT).
+   *
+   * @example
+   * ```ts
+   * nhost.auth.signInPAT('34f74930-09c0-4af5-a8d5-28fad78e3415')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in-pat
+   *
+   * @param personalAccessToken - The personal access token to sign in with
+   */
+  async signInPAT(personalAccessToken: string): Promise<SignInPATResponse> {
+    const interpreter = await this.waitUntilReady()
+    const res = await signInPATPromise(interpreter, personalAccessToken)
+
+    return getAuthenticationResult(res)
   }
 
   /**

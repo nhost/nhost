@@ -1,0 +1,18 @@
+{
+  "name": "@nhost-examples/cli",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "*",
+    "dotenv": "^16.0.3",
+    "pino": "^8.14.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
