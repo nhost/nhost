@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.16.5
+
+### Patch Changes
+
+- 12e2855f: chore(deps): bump `jsdom` to v22
+- e4972b83: feat(metrics): add Grafana page
+
 ## 0.16.4
 
 ### Patch Changes
