@@ -1,6 +1,6 @@
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import useApplicationState from '@/hooks/useApplicationState';
 import usePreviousApplicationState from '@/hooks/usePreviousApplicationStates';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import { useRouter } from 'next/router';
 

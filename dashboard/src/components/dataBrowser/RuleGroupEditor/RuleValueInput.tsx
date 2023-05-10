@@ -3,7 +3,7 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import type { ColumnAutocompleteProps } from '@/components/dataBrowser/ColumnAutocomplete';
 import ColumnAutocomplete from '@/components/dataBrowser/ColumnAutocomplete';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import type { HasuraOperator } from '@/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';

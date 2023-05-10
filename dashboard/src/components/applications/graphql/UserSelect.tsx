@@ -1,5 +1,5 @@
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';

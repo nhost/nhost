@@ -1,8 +1,8 @@
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';

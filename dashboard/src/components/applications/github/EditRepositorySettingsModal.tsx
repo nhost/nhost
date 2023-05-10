@@ -2,8 +2,8 @@ import type { EditRepositorySettingsFormData } from '@/components/applications/g
 import { useDialog } from '@/components/common/DialogProvider';
 import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import GithubIcon from '@/components/icons/GithubIcon';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';

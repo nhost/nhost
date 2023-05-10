@@ -5,7 +5,7 @@ import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import {

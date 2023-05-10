@@ -2,7 +2,7 @@ import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import DeploymentListItem from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';

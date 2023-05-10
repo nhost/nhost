@@ -1,5 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
 import type { GetPaymentMethodsFragment } from '@/generated/graphql';
 import {
   refetchGetPaymentMethodsQuery,
@@ -7,7 +9,6 @@ import {
   useGetPaymentMethodsQuery,
   useSetNewDefaultPaymentMethodMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Table from '@/ui/v2/Table';
@@ -43,6 +44,7 @@ function CheckCircle() {
 export default function WorkspacePaymentMethods() {
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const { openAlertDialog, openDialog, closeDialog } = useDialog();
+  const isOwner = useIsCurrentUserOwner();
 
   const { loading, error, data } = useGetPaymentMethodsQuery({
     variables: {
@@ -132,7 +134,7 @@ export default function WorkspacePaymentMethods() {
                 <TableCell className="text-left">Exp. Date</TableCell>
                 <TableCell className="text-left">Card Added</TableCell>
                 <TableCell className="text-left"> </TableCell>
-                <TableCell className="text-left"> </TableCell>
+                {isOwner && <TableCell className="text-left"> </TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -188,60 +190,64 @@ export default function WorkspacePaymentMethods() {
                         </Button>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        color="error"
-                        size="small"
-                        variant="borderless"
-                        onClick={() => {
-                          openAlertDialog({
-                            title: 'Delete Payment Method',
-                            payload: `Are you sure you want to delete this payment?`,
-                            props: {
-                              primaryButtonText: 'Delete',
-                              primaryButtonColor: 'error',
-                              onPrimaryAction: () =>
-                                handleDeletePaymentMethod(paymentMethod),
-                            },
-                          });
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
+                    {isOwner && (
+                      <TableCell className="text-right">
+                        <Button
+                          color="error"
+                          size="small"
+                          variant="borderless"
+                          onClick={() => {
+                            openAlertDialog({
+                              title: 'Delete Payment Method',
+                              payload: `Are you sure you want to delete this payment?`,
+                              props: {
+                                primaryButtonText: 'Delete',
+                                primaryButtonColor: 'error',
+                                onPrimaryAction: () =>
+                                  handleDeletePaymentMethod(paymentMethod),
+                              },
+                            });
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
         </TableContainer>
-        <div className="my-6">
-          {!maxPaymentMethodsReached && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <BillingPaymentMethodForm
-                      workspaceId={currentWorkspace.id}
-                      onPaymentMethodAdded={closeDialog}
-                    />
-                  ),
-                });
-              }}
-              disabled={maxPaymentMethodsReached}
-            >
-              Add Payment Method
-            </Button>
-          )}
-          {maxPaymentMethodsReached && (
-            <Text className="my-2 text-sm" color="error">
-              You can have at most three payment methods per workspace. To add a
-              new payment method, please first delete one of your existing
-              payment methods.
-            </Text>
-          )}
-        </div>
+        {isOwner && (
+          <div className="my-6">
+            {!maxPaymentMethodsReached && (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  openDialog({
+                    component: (
+                      <BillingPaymentMethodForm
+                        workspaceId={currentWorkspace.id}
+                        onPaymentMethodAdded={closeDialog}
+                      />
+                    ),
+                  });
+                }}
+                disabled={maxPaymentMethodsReached}
+              >
+                Add Payment Method
+              </Button>
+            )}
+            {maxPaymentMethodsReached && (
+              <Text className="my-2 text-sm" color="error">
+                You can have at most three payment methods per workspace. To add
+                a new payment method, please first delete one of your existing
+                payment methods.
+              </Text>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

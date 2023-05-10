@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import {
   refetchGetApplicationPlanQuery,
   useGetAppPlanAndGlobalPlansQuery,
@@ -7,7 +8,6 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import useApplicationState from '@/hooks/useApplicationState';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

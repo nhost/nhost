@@ -1,5 +1,5 @@
 import InfoCard from '@/components/overview/InfoCard';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
 

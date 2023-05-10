@@ -2,7 +2,7 @@ import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import FilesDataGrid from '@/components/files/FilesDataGrid';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { NhostApolloProvider } from '@nhost/react-apollo';

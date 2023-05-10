@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import type { EditUserFormValues } from '@/components/users/EditUserForm';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Avatar from '@/ui/v2/Avatar';
 import Chip from '@/ui/v2/Chip';

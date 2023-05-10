@@ -1,6 +1,6 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useInterval } from '@/hooks/useInterval';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';

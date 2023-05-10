@@ -5,13 +5,14 @@ import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
@@ -38,6 +39,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
 
 export default function SettingsGeneralPage() {
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const isOwner = useIsCurrentUserOwner();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
   const [updateApp] = useUpdateApplicationMutation();
   const client = useApolloClient();
@@ -219,35 +221,37 @@ export default function SettingsGeneralPage() {
         />
       )}
 
-      <SettingsContainer
-        title="Delete Project"
-        description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-        submitButtonText="Delete"
-        slotProps={{
-          root: {
-            sx: { borderColor: (theme) => theme.palette.error.main },
-          },
-          submitButton: {
-            type: 'button',
-            color: 'error',
-            variant: 'contained',
-            disabled: maintenanceActive,
-            onClick: () => {
-              openDialog({
-                component: (
-                  <RemoveApplicationModal
-                    close={closeDialog}
-                    handler={handleDeleteApplication}
-                  />
-                ),
-                props: {
-                  PaperProps: { className: 'max-w-sm' },
-                },
-              });
+      {isOwner && (
+        <SettingsContainer
+          title="Delete Project"
+          description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+          submitButtonText="Delete"
+          slotProps={{
+            root: {
+              sx: { borderColor: (theme) => theme.palette.error.main },
             },
-          },
-        }}
-      />
+            submitButton: {
+              type: 'button',
+              color: 'error',
+              variant: 'contained',
+              disabled: maintenanceActive,
+              onClick: () => {
+                openDialog({
+                  component: (
+                    <RemoveApplicationModal
+                      close={closeDialog}
+                      handler={handleDeleteApplication}
+                    />
+                  ),
+                  props: {
+                    PaperProps: { className: 'max-w-sm' },
+                  },
+                });
+              },
+            },
+          }}
+        />
+      )}
     </Container>
   );
 }

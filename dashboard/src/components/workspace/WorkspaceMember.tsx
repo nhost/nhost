@@ -2,9 +2,9 @@ import { WorkspaceMemberManageMenu } from '@/components/workspace/WorkspaceMembe
 import { Avatar } from '@/ui/Avatar';
 import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';
-import { capitalize } from '@/utils/helpers';
-import { nhost } from '@/utils/nhost';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
+import { capitalize } from '@/utils/helpers';
+import { useUserData } from '@nhost/nextjs';
 
 export interface WorkspaceMemberProps {
   workspaceMember: GetWorkspaceMembersWorkspaceMemberFragment;
@@ -15,8 +15,8 @@ export default function WorkspaceMember({
   workspaceMember,
   isOwner,
 }: WorkspaceMemberProps) {
-  const user = nhost.auth.getUser();
-  const isSelf = user?.id === workspaceMember.user.id;
+  const currentUser = useUserData();
+  const isSelf = currentUser?.id === workspaceMember.user.id;
 
   return (
     <div className="mt-6 flex flex-row place-content-between">

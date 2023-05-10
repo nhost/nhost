@@ -1,15 +1,15 @@
 import Form from '@/components/common/Form';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';

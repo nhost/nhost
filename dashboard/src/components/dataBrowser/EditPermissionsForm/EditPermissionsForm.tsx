@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAccessLevel,

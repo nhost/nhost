@@ -1,5 +1,5 @@
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import type { MutationOptions } from '@tanstack/react-query';

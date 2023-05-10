@@ -1,8 +1,9 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
 import { useAppCreatedAt } from '@/hooks/useAppCreatedAt';
 import { useCurrentDate } from '@/hooks/useCurrentDate';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Modal } from '@/ui/Modal';
@@ -56,9 +57,7 @@ export default function ApplicationErrored() {
   const client = useApolloClient();
   const { currentDate } = useCurrentDate();
   const user = useUserData();
-  const isOwner = currentWorkspace.workspaceMembers.some(
-    ({ id, type }) => id === user?.id && type === 'owner',
-  );
+  const isOwner = useIsCurrentUserOwner();
 
   const { appCreatedAt } = useAppCreatedAt();
 

@@ -1,7 +1,7 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import type { RolePermissionEditorFormValues } from '@/components/dataBrowser/EditPermissionsForm/RolePermissionEditorForm';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Autocomplete from '@/ui/v2/Autocomplete';
 import Button from '@/ui/v2/Button';

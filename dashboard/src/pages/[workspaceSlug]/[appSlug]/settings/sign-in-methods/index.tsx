@@ -17,8 +17,8 @@ import TwitterProviderSettings from '@/components/settings/signInMethods/Twitter
 import WebAuthnSettings from '@/components/settings/signInMethods/WebAuthnSettings';
 import WindowsLiveProviderSettings from '@/components/settings/signInMethods/WindowsLiveProviderSettings';
 import WorkOsProviderSettings from '@/components/settings/signInMethods/WorkOsProviderSettings';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
 

@@ -1,6 +1,6 @@
 import NavLink from '@/components/common/NavLink';
 import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';

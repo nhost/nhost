@@ -1,11 +1,11 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
-import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
 import ApplicationInfo from './ApplicationInfo';
@@ -13,12 +13,9 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationUnknown() {
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const user = useUserData();
-  const isOwner = currentWorkspace.workspaceMembers.some(
-    ({ id, type }) => id === user?.id && type === 'owner',
-  );
+  const isOwner = useIsCurrentUserOwner();
 
   return (
     <>

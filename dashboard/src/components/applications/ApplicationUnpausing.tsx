@@ -1,5 +1,5 @@
 import Container from '@/components/layout/Container';
-import useProjectRedirectWhenReady from '@/hooks/common/useProjectRedirectWhenReady';
+import { useProjectRedirectWhenReady } from '@/features/projects/common/useProjectRedirectWhenReady';
 import Image from 'next/image';
 import { AppLoader } from './AppLoader';
 

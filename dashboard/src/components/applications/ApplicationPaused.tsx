@@ -3,12 +3,13 @@ import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
@@ -26,16 +27,11 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
   const { openDialog } = useDialog();
-  const {
-    currentWorkspace,
-    currentProject,
-    refetch: refetchWorkspaceAndProject,
-  } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
+  const isOwner = useIsCurrentUserOwner();
   const user = useUserData();
-  const isOwner = currentWorkspace.workspaceMembers.some(
-    ({ type, user: workspaceUser }) =>
-      workspaceUser.id === user?.id && type === 'owner',
-  );
+
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({

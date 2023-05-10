@@ -1,6 +1,6 @@
 import NavLink from '@/components/common/NavLink';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Text from '@/ui/v2/Text';
