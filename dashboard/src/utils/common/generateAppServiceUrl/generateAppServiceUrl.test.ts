@@ -52,6 +52,10 @@ test('should generate a per service subdomain in remote mode', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.nhost.run',
   );
+
+  expect(generateAppServiceUrl('test', 'eu-west-1', 'grafana')).toBe(
+    'https://test.grafana.eu-west-1.nhost.run',
+  );
 });
 
 test('should generate staging subdomains in staging environment', () => {
@@ -77,9 +81,13 @@ test('should generate staging subdomains in staging environment', () => {
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.staging.nhost.run',
   );
+
+  expect(generateAppServiceUrl('test', 'eu-west-1', 'grafana')).toBe(
+    'https://test.grafana.eu-west-1.staging.nhost.run',
+  );
 });
 
-test('should generate no slug for Hasura neither in local mode nor in remote mode', () => {
+test('should generate no slug for Hasura and Grafana neither in local mode nor in remote mode', () => {
   process.env.NEXT_PUBLIC_NHOST_HASURA_API_URL = 'http://localhost:8082';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
@@ -92,11 +100,17 @@ test('should generate no slug for Hasura neither in local mode nor in remote mod
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.staging.nhost.run',
   );
+  expect(generateAppServiceUrl('test', 'eu-west-1', 'grafana')).toBe(
+    'https://test.grafana.eu-west-1.staging.nhost.run',
+  );
 
   process.env.NEXT_PUBLIC_ENV = 'production';
 
   expect(generateAppServiceUrl('test', 'eu-west-1', 'hasura')).toBe(
     'https://test.hasura.eu-west-1.nhost.run',
+  );
+  expect(generateAppServiceUrl('test', 'eu-west-1', 'grafana')).toBe(
+    'https://test.grafana.eu-west-1.nhost.run',
   );
 });
 
