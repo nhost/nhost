@@ -1,5 +1,6 @@
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
@@ -20,25 +21,36 @@ export function UnlockFeatureByUpgrading({
   ...props
 }: UnlockFeatureByUpgradingProps) {
   const { openDialog } = useDialog();
+  const isOwner = useIsCurrentUserOwner();
 
   return (
     <div className={twMerge('flex', className)} {...props}>
       <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
-        <Text className="text-left">{message}</Text>
+        <Text className="grid grid-flow-row justify-items-start gap-0.5">
+          <Text component="span">{message}</Text>
 
-        <Button
-          variant="borderless"
-          onClick={() => {
-            openDialog({
-              component: <ChangePlanModal />,
-              props: {
-                PaperProps: { className: 'p-0 max-w-xl w-full' },
-              },
-            });
-          }}
-        >
-          Upgrade
-        </Button>
+          {!isOwner && (
+            <Text component="span" color="secondary" className="text-sm">
+              Ask an owner of this workspace to upgrade the project.
+            </Text>
+          )}
+        </Text>
+
+        {isOwner && (
+          <Button
+            variant="borderless"
+            onClick={() => {
+              openDialog({
+                component: <ChangePlanModal />,
+                props: {
+                  PaperProps: { className: 'p-0 max-w-xl w-full' },
+                },
+              });
+            }}
+          >
+            Upgrade
+          </Button>
+        )}
       </Alert>
     </div>
   );

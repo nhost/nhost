@@ -1,4 +1,5 @@
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -10,7 +11,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -120,6 +120,7 @@ function WorkspaceMemberInviteForm({
 export default function WorkspaceMembers() {
   const [workspaceInviteError, setWorkspaceInviteError] = useState('');
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
+  const isOwner = useIsCurrentUserOwner();
 
   const { data, loading } = useGetWorkspaceMembersQuery({
     variables: {
@@ -128,35 +129,26 @@ export default function WorkspaceMembers() {
     fetchPolicy: 'cache-first',
   });
 
-  const user = nhost.auth.getUser();
-  const isOwner = data?.workspace?.workspaceMembers.some(
-    (member) => member.user.id === user!.id && member.type === 'owner',
-  );
-
   return (
     <div className="mx-auto mt-18 max-w-3xl font-display">
       <div className="mb-2 grid grid-flow-row gap-1">
         <Text variant="h3">Members</Text>
-        <Text>
+        <Text color="secondary" className="text-sm">
           People in this workspace can manage all projects listed above.
         </Text>
       </div>
 
-      <WorkspaceMemberInviteForm
-        workspaceMembers={data?.workspace?.workspaceMembers}
-        setWorkspaceInviteError={setWorkspaceInviteError}
-        isOwner={isOwner}
-      />
+      {isOwner && (
+        <WorkspaceMemberInviteForm
+          workspaceMembers={data?.workspace?.workspaceMembers}
+          setWorkspaceInviteError={setWorkspaceInviteError}
+          isOwner={isOwner}
+        />
+      )}
 
       {workspaceInviteError && (
         <Alert severity="error" className="my-2">
           {workspaceInviteError}
-        </Alert>
-      )}
-
-      {!loading && !isOwner && (
-        <Alert severity="error" className="my-2">
-          Only owners can invite new members to the workspace
         </Alert>
       )}
 

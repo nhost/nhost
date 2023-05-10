@@ -5,17 +5,17 @@ import BaseProviderSettings, {
   baseProviderValidationSchema,
 } from '@/components/settings/signInMethods/BaseProviderSettings';
 import { useUI } from '@/context/UIContext';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import IconButton from '@/ui/v2/IconButton';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import getServerError from '@/utils/settings/getServerError';

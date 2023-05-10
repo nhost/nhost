@@ -1,5 +1,5 @@
 import NavLink from '@/components/common/NavLink';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import Backdrop from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';

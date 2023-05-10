@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Rule, RuleGroup } from '@/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import type { BoxProps } from '@/ui/v2/Box';

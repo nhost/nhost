@@ -1,11 +1,11 @@
 import RemoveWorkspaceMemberInvite from '@/components/workspace/RemoveWorkspaceMemberInvite';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/graphql';
 import {
   refetchGetWorkspaceMembersQuery,
   useDeleteWorkspaceMemberInvitesMutation,
   useUpdateWorkspaceMemberInviteMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
