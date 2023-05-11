@@ -62,7 +62,7 @@
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
     "@vitejs/plugin-react": "^4.0.0",
-    "@vitest/coverage-c8": "^0.30.0",
+    "@vitest/coverage-c8": "^0.31.0",
     "eslint": "^8.26.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
@@ -82,7 +82,7 @@
     "vite": "^4.0.2",
     "vite-plugin-dts": "^2.0.0",
     "vite-tsconfig-paths": "^4.0.3",
-    "vitest": "^0.30.0"
+    "vitest": "^0.31.0"
   },
   "resolutions": {
     "graphql": "16.6.0"
