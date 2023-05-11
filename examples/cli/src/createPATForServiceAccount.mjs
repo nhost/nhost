@@ -29,8 +29,6 @@ export async function createPATForServiceAccount() {
   })
 
   if (signInError) {
-    logger.error(signInError.message)
-
     return {
       error: signInError,
       personalAccessToken: null

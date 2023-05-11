@@ -1,6 +1,10 @@
 table:
   name: books
   schema: public
+object_relationships:
+  - name: writer
+    using:
+      foreign_key_constraint_on: writer_id
 insert_permissions:
   - role: user
     permission:
