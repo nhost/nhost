@@ -6,14 +6,20 @@ import ApplicationRestoring from '@/components/applications/ApplicationRestoring
 import ApplicationUnknown from '@/components/applications/ApplicationUnknown';
 import ApplicationUnpausing from '@/components/applications/ApplicationUnpausing';
 import ProjectLayout from '@/components/layout/ProjectLayout';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useApplicationState from '@/hooks/useApplicationState';
 import { ApplicationStatus } from '@/types/application';
 import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlatform = useIsPlatform();
   const { state } = useApplicationState();
+
+  if (!currentProject) {
+    return null;
+  }
 
   if (!isPlatform) {
     return <ApplicationLive />;
