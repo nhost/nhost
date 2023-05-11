@@ -57,3 +57,5 @@ You can specify the following environment variables:
 - `NHOST_SERVICE_ACCOUNT_PAT` - The personal access token of the service account. If provided, the email address and password will be ignored.
 - `NHOST_SERVICE_ACCOUNT_EMAIL` - The email address of the service account.
 - `NHOST_SERVICE_ACCOUNT_PASSWORD` - The password of the service account.
+
+> If email and password are provided, the CLI tool will sign in first to create a personal access token for the account. This token will then be used to authenticate and make requests to the Nhost backend as the service account without having to provide the email address and password. Make sure to copy the token from the output and use it in the `NHOST_SERVICE_ACCOUNT_PAT` environment variable later.
