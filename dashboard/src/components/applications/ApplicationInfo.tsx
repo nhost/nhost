@@ -1,12 +1,12 @@
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
+import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
 import getServerError from '@/utils/settings/getServerError';

@@ -10,6 +10,11 @@ fragment Project on apps {
   nhostBaseFolder
   providersUpdated
   config(resolve: true) {
+    observability {
+      grafana {
+        adminPassword
+      }
+    }
     hasura {
       adminSecret
     }

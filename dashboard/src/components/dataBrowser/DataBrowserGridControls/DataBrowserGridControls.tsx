@@ -1,9 +1,9 @@
 import type { DataGridPaginationProps } from '@/components/common/DataGridPagination';
 import DataGridPagination from '@/components/common/DataGridPagination';
 import { useDialog } from '@/components/common/DialogProvider';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useDeleteRecordMutation from '@/hooks/dataBrowser/useDeleteRecordMutation';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';

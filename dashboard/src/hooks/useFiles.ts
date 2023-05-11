@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,

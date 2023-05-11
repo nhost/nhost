@@ -3,7 +3,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import CreateRoleForm from '@/components/settings/roles/CreateRoleForm';
 import EditRoleForm from '@/components/settings/roles/EditRoleForm';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

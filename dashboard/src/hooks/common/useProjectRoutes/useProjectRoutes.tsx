@@ -4,6 +4,7 @@ import CloudIcon from '@/ui/v2/icons/CloudIcon';
 import CogIcon from '@/ui/v2/icons/CogIcon';
 import DatabaseIcon from '@/ui/v2/icons/DatabaseIcon';
 import FileTextIcon from '@/ui/v2/icons/FileTextIcon';
+import { GaugeIcon } from '@/ui/v2/icons/GaugeIcon';
 import GraphQLIcon from '@/ui/v2/icons/GraphQLIcon';
 import HasuraIcon from '@/ui/v2/icons/HasuraIcon';
 import HomeIcon from '@/ui/v2/icons/HomeIcon';
@@ -78,6 +79,13 @@ export default function useProjectRoutes() {
       disabled: !isPlatform,
     },
     {
+      relativePath: '/metrics',
+      exact: false,
+      label: 'Metrics',
+      icon: <GaugeIcon />,
+      disabled: !isPlatform,
+    },
+    {
       relativeMainPath: '/settings',
       relativePath: '/settings/general',
       exact: false,
@@ -124,7 +132,6 @@ export default function useProjectRoutes() {
       label: 'Storage',
       icon: <StorageIcon />,
     },
-
     ...nhostRoutes,
   ];
 

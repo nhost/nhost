@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -6,52 +6,42 @@ import { useEffect } from 'react';
  * Redirects to 404 page if either currentWorkspace/currentProject resolves to undefined.
  */
 export default function useNotFoundRedirect() {
-  const { currentProject, currentWorkspace, loading } =
-    useCurrentWorkspaceAndProject();
   const router = useRouter();
   const {
     query: { workspaceSlug, appSlug, updating },
     isReady,
   } = router;
 
-  const notIn404Already = router.pathname !== '/404';
-  const noResolvedWorkspace =
-    isReady && !loading && workspaceSlug && currentWorkspace === undefined;
-  const noResolvedApplication =
-    isReady &&
-    !loading &&
-    workspaceSlug &&
-    appSlug &&
-    currentProject === undefined;
-
-  const inSettingsDatabasePage = router.pathname.includes('/settings/database');
+  const { currentProject, currentWorkspace, loading } =
+    useCurrentWorkspaceAndProject();
 
   useEffect(() => {
-    // This code is checking if the URL has a query of the form `?updating=true`
-    // If it does (`updating` is true) this useEffect will immediately exit without executing
-    //  any further statements (e.g. the page will show a loader until `updating` is false).
-    // This is to prevent the user from being redirected to the 404 page while we are updating
-    // either the workspace slug or application slug.
-    if (updating) {
+    if (
+      // If we're updating, we don't want to redirect to 404
+      updating ||
+      // If the router is not ready, we don't want to redirect to 404
+      !isReady ||
+      // If the current workspace and project are not loaded, we don't want to redirect to 404
+      loading ||
+      // If we're already on the 404 page, we don't want to redirect to 404
+      router.pathname === '/404' ||
+      // If we are on a valid workspace and project, we don't want to redirect to 404
+      (workspaceSlug && currentWorkspace && appSlug && currentProject) ||
+      // If we are on a valid workspace and no project is selected, we don't want to redirect to 404
+      (workspaceSlug && currentWorkspace && !appSlug && !currentProject)
+    ) {
       return;
     }
 
-    if (noResolvedWorkspace && notIn404Already) {
-      router.replace('/404');
-    }
-
-    if (noResolvedApplication && notIn404Already) {
-      router.replace('/404');
-    }
+    router.replace('/404');
   }, [
-    isReady,
-    updating,
     currentProject,
     currentWorkspace,
-    noResolvedApplication,
-    noResolvedWorkspace,
-    notIn404Already,
+    isReady,
+    loading,
+    appSlug,
     router,
-    inSettingsDatabasePage,
+    updating,
+    workspaceSlug,
   ]);
 }

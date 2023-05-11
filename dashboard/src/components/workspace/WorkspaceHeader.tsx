@@ -1,53 +1,34 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { EditWorkspaceNameForm } from '@/components/home/EditWorkspaceNameForm';
 import RemoveWorkspaceModal from '@/components/workspace/RemoveWorkspaceModal';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
-import { Avatar } from '@/ui/Avatar';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import Text from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import { nhost } from '@/utils/nhost';
 import Image from 'next/image';
 
 export default function WorkspaceHeader() {
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
-
   const { openDialog } = useDialog();
-
-  const user = nhost.auth.getUser();
-
-  const isOwner = currentWorkspace?.workspaceMembers.some(
-    (member) => member.user.id === user?.id && member.type === 'owner',
-  );
+  const isOwner = useIsCurrentUserOwner();
 
   const noApplications = currentWorkspace?.projects.length === 0;
-
-  const IS_DEFAULT_WORKSPACE = currentWorkspace?.name === 'Default Workspace';
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
       <div className="flex flex-row place-content-between">
         <div className="flex flex-row items-center">
-          {IS_DEFAULT_WORKSPACE &&
-          user.id === currentWorkspace?.creatorUserId ? (
-            <Avatar
-              className="h-14 w-14 self-center rounded-full"
-              name={user?.displayName}
-              avatarUrl={user?.avatarUrl}
+          <div className="inline-block h-14 w-14 overflow-hidden rounded-xl">
+            <Image
+              src="/logos/new.svg"
+              alt="Nhost Logo"
+              width={56}
+              height={56}
             />
-          ) : (
-            <div className="inline-block h-14 w-14 overflow-hidden rounded-xl">
-              <Image
-                src="/logos/new.svg"
-                alt="Nhost Logo"
-                width={56}
-                height={56}
-              />
-            </div>
-          )}
-
+          </div>
           <div className="flex flex-col items-start pl-3">
             <Text variant="h1" className="font-display text-3xl font-medium">
               {currentWorkspace?.name}
