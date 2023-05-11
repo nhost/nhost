@@ -7,7 +7,7 @@ import DisableNewUsersSettings from '@/components/settings/authentication/Disabl
 import GravatarSettings from '@/components/settings/authentication/GravatarSettings';
 import MFASettings from '@/components/settings/authentication/MFASettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';

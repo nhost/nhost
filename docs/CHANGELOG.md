@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.2.0
+
+### Minor Changes
+
+- fe341519: Add section on Metrics to the docs
+
 ## 0.1.1
 
 ### Patch Changes

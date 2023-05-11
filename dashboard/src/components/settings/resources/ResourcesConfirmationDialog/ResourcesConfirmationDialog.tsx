@@ -1,7 +1,7 @@
-import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
-import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import { calculateBillableResources } from '@/features/projects/settings/resources/utils/calculateBillableResources';
+import { prettifyMemory } from '@/features/projects/settings/resources/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/projects/settings/resources/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';

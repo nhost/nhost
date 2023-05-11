@@ -9,12 +9,12 @@ import FormActivityIndicator from '@/components/common/FormActivityIndicator';
 import InlineCode from '@/components/common/InlineCode';
 import DataBrowserEmptyState from '@/components/dataBrowser/DataBrowserEmptyState';
 import DataBrowserGridControls from '@/components/dataBrowser/DataBrowserGridControls';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useDeleteColumnWithToastMutation from '@/hooks/dataBrowser/useDeleteColumnMutation/useDeleteColumnWithToastMutation';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import type { UpdateRecordVariables } from '@/hooks/dataBrowser/useUpdateRecordMutation';
 import useUpdateRecordWithToastMutation from '@/hooks/dataBrowser/useUpdateRecordMutation/useUpdateRecordWithToastMutation';
 import useTablePath from '@/hooks/useTablePath';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import type {
   DataBrowserGridColumn,
   NormalizedQueryDataRow,

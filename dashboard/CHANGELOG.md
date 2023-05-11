@@ -1,5 +1,26 @@
 # @nhost/dashboard
 
+## 0.16.6
+
+### Patch Changes
+
+- d926f156: fix(projects): redirect to 404 when an invalid project is opened
+- 49b99728: fix(projects): disable features for non-owner members of workspaces
+
+## 0.16.5
+
+### Patch Changes
+
+- 12e2855f: chore(deps): bump `jsdom` to v22
+- e4972b83: feat(metrics): add Grafana page
+
+## 0.16.4
+
+### Patch Changes
+
+- 3f396a9e: fix(projects): unpause after upgrading a paused project to pro
+- 3f396a9e: fix(projects): don't redirect to 404 page after project creation
+
 ## 0.16.3
 
 ### Patch Changes

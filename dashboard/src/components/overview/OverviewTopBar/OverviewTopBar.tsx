@@ -1,12 +1,13 @@
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/context/UIContext';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
-import { useCurrentWorkspaceAndProject } from '@/hooks/v2/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
-import CogIcon from '@/ui/v2/icons/CogIcon';
 import Text from '@/ui/v2/Text';
+import CogIcon from '@/ui/v2/icons/CogIcon';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import Link from 'next/link';
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const isOwner = useIsCurrentUserOwner();
   const isPro = !currentProject?.plan?.isFree;
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
@@ -87,7 +89,7 @@ export default function OverviewTopBar() {
                   color={isPro ? 'primary' : 'default'}
                 />
 
-                {!isPro && (
+                {!isPro && isOwner && (
                   <Button
                     variant="borderless"
                     className="mr-2"
