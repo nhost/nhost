@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.16.6
+
+### Patch Changes
+
+- d926f156: fix(projects): redirect to 404 when an invalid project is opened
+- 49b99728: fix(projects): disable features for non-owner members of workspaces
+
 ## 0.16.5
 
 ### Patch Changes
