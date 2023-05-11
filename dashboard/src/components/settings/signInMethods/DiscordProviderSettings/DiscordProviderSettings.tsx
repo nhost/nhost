@@ -139,7 +139,7 @@ export default function DiscordProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/discord/callback`}
             disabled
@@ -154,7 +154,7 @@ export default function DiscordProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/discord/callback`,
                       'Redirect URL',

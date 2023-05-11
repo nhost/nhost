@@ -1,3 +1,4 @@
+import type { ProjectFragment } from '@/utils/__generated__/graphql';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
@@ -55,7 +56,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
  */
 export default function generateAppServiceUrl(
   subdomain: string,
-  region: string,
+  region: ProjectFragment['region'],
   service: 'auth' | 'graphql' | 'functions' | 'storage' | 'hasura' | 'grafana',
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
@@ -87,9 +88,14 @@ export default function generateAppServiceUrl(
     return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}${localBackendSlugs[service]}`;
   }
 
-  if (process.env.NEXT_PUBLIC_ENV === 'staging') {
-    return `https://${subdomain}.${service}.${region}.staging.nhost.run${remoteBackendSlugs[service]}`;
-  }
+  const constructedDomain = [
+    subdomain,
+    service,
+    region?.awsName,
+    region?.domain || 'nhost.run',
+  ]
+    .filter(Boolean)
+    .join('.');
 
-  return `https://${subdomain}.${service}.${region}.nhost.run${remoteBackendSlugs[service]}`;
+  return `https://${constructedDomain}${remoteBackendSlugs[service]}`;
 }

@@ -139,7 +139,7 @@ export default function LinkedInProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/linkedin/callback`}
             disabled
@@ -154,7 +154,7 @@ export default function LinkedInProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/linkedin/callback`,
                       'Redirect URL',

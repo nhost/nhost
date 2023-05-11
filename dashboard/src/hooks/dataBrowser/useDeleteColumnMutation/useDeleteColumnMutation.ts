@@ -42,7 +42,7 @@ export default function useDeleteColumnMutation({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     'hasura',
   );
   const mutationFn = isPlatform ? deleteColumn : deleteColumnMigration;

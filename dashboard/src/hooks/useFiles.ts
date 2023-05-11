@@ -69,7 +69,7 @@ export default function useFiles({
               ) => {
                 const fetchUrl = `${generateAppServiceUrl(
                   currentProject.subdomain,
-                  currentProject.region.awsName,
+                  currentProject.region,
                   'storage',
                 )}/files/${file.id}`;
 

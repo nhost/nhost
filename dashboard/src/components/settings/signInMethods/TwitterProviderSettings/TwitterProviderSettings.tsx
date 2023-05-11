@@ -167,7 +167,7 @@ export default function TwitterProviderSettings() {
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/twitter/callback`}
             className="col-span-2"
@@ -186,7 +186,7 @@ export default function TwitterProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/twitter/callback`,
                       'Redirect URL',

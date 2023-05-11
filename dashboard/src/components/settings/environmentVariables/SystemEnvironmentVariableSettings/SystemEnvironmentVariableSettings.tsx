@@ -107,7 +107,7 @@ export default function SystemEnvironmentVariableSettings() {
           ? `${getHasuraConsoleServiceUrl()}/console`
           : generateAppServiceUrl(
               currentProject?.subdomain,
-              currentProject?.region.awsName,
+              currentProject?.region,
               'hasura',
               defaultLocalBackendSlugs,
               { ...defaultRemoteBackendSlugs, hasura: '/console' },

@@ -145,7 +145,7 @@ export default function TwitchProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/twitch/callback`}
             disabled
@@ -160,7 +160,7 @@ export default function TwitchProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/twitch/callback`,
                       'Redirect URL',

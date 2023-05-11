@@ -138,7 +138,7 @@ export default function WindowsLiveProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/windowslive/callback`}
             disabled
@@ -153,7 +153,7 @@ export default function WindowsLiveProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/windowslive/callback`,
                       'Redirect URL',
