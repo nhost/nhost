@@ -35,27 +35,75 @@ pnpm install
 nhost up
 ```
 
-4. Start the CLI tool
+4. Run the help command to see the available commands
 
 ```sh
-pnpm start
+pnpm start --help
 ```
-
-The CLI tool will sign in using the service account credentials and create a
-personal access token. This token will then be used to authenticate and make
-requests to the Nhost backend as the service account without having to provide
-the email address and password.
 
 ## Environment Variables
 
-Credentials can be provided using environment variables. Create a `.env` file
-in the root folder of the example. See `.env.example` for an example
-configuration.
+Credentials can be provided through the command line or by using environment
+variables. Create a `.env` file in the root folder of the example. See `.env.example`
+for an example configuration.
 
 You can specify the following environment variables:
 
-- `NHOST_SERVICE_ACCOUNT_PAT` - The personal access token of the service account. If provided, the email address and password will be ignored.
-- `NHOST_SERVICE_ACCOUNT_EMAIL` - The email address of the service account.
-- `NHOST_SERVICE_ACCOUNT_PASSWORD` - The password of the service account.
+- `NHOST_ACCOUNT_PAT` - The personal access token of the service account. If provided, the email address and password will be ignored.
+- `NHOST_ACCOUNT_EMAIL` - The email address of the service account.
+- `NHOST_ACCOUNT_PASSWORD` - The password of the service account.
 
-> If email and password are provided, the CLI tool will sign in first to create a personal access token for the account. This token will then be used to authenticate and make requests to the Nhost backend as the service account without having to provide the email address and password. Make sure to copy the token from the output and use it in the `NHOST_SERVICE_ACCOUNT_PAT` environment variable later.
+> If email and password are provided, the CLI tool will sign in first to create a personal access token for the account. This token will then be used to authenticate and make requests to the Nhost backend as the service account without having to provide the email address and password. Make sure to copy the token from the output and use it in the `NHOST_ACCOUNT_PAT` environment variable later.
+
+## Commands
+
+Environment variables should be placed in a `.env` file in the root folder of
+the example. See `.env.example` for an example configuration.
+
+### Use an existing personal access token to authenticate
+
+```sh
+pnpm start --token <personal-access-token>
+```
+
+or using environment variables:
+
+```sh
+NHOST_ACCOUNT_PAT=<personal-access-token> pnpm start
+```
+
+### Create a new personal access token
+
+```sh
+pnpm start --email cli@nhost.io --password Admin1234! --create-pat <expiration-date>
+```
+
+or using environment variables:
+
+```sh
+NHOST_ACCOUNT_EMAIL=cli@nhost.io NHOST_ACCOUNT_PASSWORD=Admin1234! pnpm start --create-pat <expiration-date>
+```
+
+### Create a new book
+
+```sh
+pnpm start --token <personal-access-token> --create-book <title>
+```
+
+or using environment variables:
+
+```sh
+NHOST_ACCOUNT_PAT=<personal-access-token> pnpm start --create-book <title>
+```
+
+### Delete a book
+
+```sh
+pnpm start --token <personal-access-token> --delete-book <id>
+```
+
+or using environment variables:
+
+```sh
+NHOST_ACCOUNT_PAT=<personal-access-token> pnpm start --delete-book <id>
+```

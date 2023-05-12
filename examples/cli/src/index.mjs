@@ -1,8 +1,9 @@
 import { program } from 'commander'
 import dotenv from 'dotenv'
 import { createBook } from './createBook.mjs'
-import { createPATForServiceAccount } from './createPATForServiceAccount.mjs'
+import { createPATForAccount } from './createPATForAccount.mjs'
 import { deleteBook } from './deleteBook.mjs'
+import { env } from './env.mjs'
 import { logger } from './logger.mjs'
 import { client } from './nhostClient.mjs'
 
@@ -12,30 +13,76 @@ program
   .name('nhost-bookstore-cli')
   .description('This CLI tool shows how to use the Nhost JS SDK and personal access tokens.')
 program
-  .option('--create-book <title>')
-  .option('--delete-book <id>')
-  .option('--create-pat <expiration>')
+  .option('--token <token>', 'The personal access token to use.')
+  .option('--create-book <title>', 'The title of the book to create.')
+  .option('--delete-book <id>', 'The ID of the book to delete.')
+  .option(
+    '--email <email>',
+    'The email of the account to use. If both the email and password are provided, a personal access token will be created for the account.'
+  )
+  .option(
+    '--password <password>',
+    'The password of the account to use. If both the email and password are provided, a personal access token will be created for the account.'
+  )
+  .option(
+    '--create-pat <expiration>',
+    'The expiration date of the personal access token to create. If both the email and password are provided, a personal access token will be created for the account.'
+  )
 program.parse()
 
 async function main() {
   const opts = program.opts()
+  const envVars = env()
 
-  if (!opts.createBook && !opts.deleteBook && !opts.createPat) {
-    logger.info('No command was provided. Exiting...')
+  if (
+    Object.keys(opts).length === 0 &&
+    !envVars.ACCOUNT_EMAIL &&
+    !envVars.ACCOUNT_PASSWORD &&
+    !envVars.ACCOUNT_PAT
+  ) {
+    logger.info('No options were provided. Exiting...')
     return
   }
 
-  const { error: patError, personalAccessToken } = await createPATForServiceAccount()
+  let activeToken
 
-  if (patError) {
-    logger.error(patError.message)
+  const userProvidedEmail = opts.email || envVars.ACCOUNT_EMAIL
+  const userProvidedPassword = opts.password || envVars.ACCOUNT_PASSWORD
+
+  // If the user provided an email and password, create a PAT for the account
+  if (userProvidedEmail && userProvidedPassword && opts.createPat) {
+    const expiresAt = new Date(opts.createPat)
+
+    const { error, personalAccessToken } = await createPATForAccount(
+      userProvidedEmail,
+      userProvidedPassword,
+      expiresAt
+    )
+
+    if (error) {
+      logger.error(error.message)
+      return
+    }
+
+    activeToken = personalAccessToken
+  }
+
+  const userProvidedToken = opts.token || envVars.ACCOUNT_PAT
+
+  if (!activeToken && !userProvidedToken) {
+    logger.error('No personal access token was provided. Exiting...')
     return
   }
 
-  logger.info(`Using PAT: ${personalAccessToken}`)
+  // Use the user-provided token if it exists, otherwise use the PAT that was
+  // just created
+  activeToken = activeToken || userProvidedToken
+
+  logger.info(`Using PAT: ${activeToken}`)
   logger.debug('Signing in with the personal access token...')
 
-  const { error: signInError, session } = await client.auth.signInPAT(personalAccessToken)
+  // Sign in with the personal access token
+  const { error: signInError, session } = await client.auth.signInPAT(activeToken)
 
   if (signInError) {
     logger.error(signInError.message)
@@ -49,6 +96,7 @@ async function main() {
   // Set the access token for the GraphQL client
   client.graphql.setAccessToken(session.accessToken)
 
+  // Create a book if the user provided a title
   if (opts.createBook) {
     const { data, error } = await createBook(opts.createBook, session.user.id)
 
@@ -62,6 +110,7 @@ async function main() {
     )
   }
 
+  // Delete a book if the user provided an ID
   if (opts.deleteBook) {
     const { data, error } = await deleteBook(opts.deleteBook)
 
@@ -76,19 +125,6 @@ async function main() {
     }
 
     logger.info(`Successfully deleted the book with ID "${data.delete_books_by_pk.id}".`)
-  }
-
-  if (opts.createPat) {
-    const { personalAccessToken, error } = await client.auth.createPAT(new Date(opts.createPat), {
-      name: 'via-example-cli'
-    })
-
-    if (error) {
-      logger.error(error.message)
-      return
-    }
-
-    logger.info(`Successfully create a new personal access token: ${personalAccessToken}`)
   }
 }
 
