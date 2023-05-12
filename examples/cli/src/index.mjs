@@ -11,13 +11,16 @@ dotenv.config()
 program
   .name('nhost-bookstore-cli')
   .description('This CLI tool shows how to use the Nhost JS SDK and personal access tokens.')
-program.option('--create-book <title>').option('--delete-book <id>')
+program
+  .option('--create-book <title>')
+  .option('--delete-book <id>')
+  .option('--create-pat <expiration>')
 program.parse()
 
 async function main() {
   const opts = program.opts()
 
-  if (!opts.createBook && !opts.deleteBook) {
+  if (!opts.createBook && !opts.deleteBook && !opts.createPat) {
     logger.info('No command was provided. Exiting...')
     return
   }
@@ -57,8 +60,6 @@ async function main() {
     logger.info(
       `Successfully created book "${data.insert_books_one.title}" with ID "${data.insert_books_one.id}".`
     )
-
-    return
   }
 
   if (opts.deleteBook) {
@@ -75,6 +76,19 @@ async function main() {
     }
 
     logger.info(`Successfully deleted the book with ID "${data.delete_books_by_pk.id}".`)
+  }
+
+  if (opts.createPat) {
+    const { personalAccessToken, error } = await client.auth.createPAT(new Date(opts.createPat), {
+      name: 'via-example-cli'
+    })
+
+    if (error) {
+      logger.error(error.message)
+      return
+    }
+
+    logger.info(`Successfully create a new personal access token: ${personalAccessToken}`)
   }
 }
 
