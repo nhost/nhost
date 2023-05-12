@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 0.16.8
+
+### Patch Changes
+
+- 20fb69fa: chore(projects): change the way how API URLs are constructed
+
+## 0.16.7
+
+### Patch Changes
+
+- 49f9b837: chore(docker): bump `pnpm` to `v8.4.0` and `turbo` to `v1.9.3`
+- 3f478a4e: chore(deps): bump `vitest` to `v0.31.0`, `@types/react` to `v18.2.6` and `@types/react-dom` to `v18.2.4`
+
 ## 0.16.6
 
 ### Patch Changes

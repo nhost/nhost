@@ -14,6 +14,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   ConfigEmail: any;
+  ConfigHasuraAPIs: any;
   ConfigLocale: any;
   ConfigPort: any;
   ConfigUint8: any;
@@ -27,11 +28,16 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
-  refresh_token_type: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
   uuid: any;
+};
+
+export type BackupPresignedUrl = {
+  __typename?: 'BackupPresignedURL';
+  expires_at: Scalars['Timestamp'];
+  url: Scalars['String'];
 };
 
 export type BackupResult = {
@@ -905,7 +911,7 @@ export type ConfigConfig = {
   functions?: Maybe<ConfigFunctions>;
   global?: Maybe<ConfigGlobal>;
   hasura: ConfigHasura;
-  observability?: Maybe<ConfigObservability>;
+  observability: ConfigObservability;
   postgres?: Maybe<ConfigPostgres>;
   provider?: Maybe<ConfigProvider>;
   storage?: Maybe<ConfigStorage>;
@@ -930,7 +936,7 @@ export type ConfigConfigInsertInput = {
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
   hasura: ConfigHasuraInsertInput;
-  observability?: InputMaybe<ConfigObservabilityInsertInput>;
+  observability: ConfigObservabilityInsertInput;
   postgres?: InputMaybe<ConfigPostgresInsertInput>;
   provider?: InputMaybe<ConfigProviderInsertInput>;
   storage?: InputMaybe<ConfigStorageInsertInput>;
@@ -1070,6 +1076,13 @@ export type ConfigHasura = {
   webhookSecret: Scalars['String'];
 };
 
+export type ConfigHasuraApIsComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigHasuraAPIs']>;
+  _in?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  _neq?: InputMaybe<Scalars['ConfigHasuraAPIs']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+};
+
 export type ConfigHasuraComparisonExp = {
   _and?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   _not?: InputMaybe<ConfigHasuraComparisonExp>;
@@ -1137,22 +1150,42 @@ export type ConfigHasuraLogsUpdateInput = {
 
 export type ConfigHasuraSettings = {
   __typename?: 'ConfigHasuraSettings';
+  corsDomain?: Maybe<Array<Scalars['ConfigUrl']>>;
+  devMode?: Maybe<Scalars['Boolean']>;
+  enableAllowList?: Maybe<Scalars['Boolean']>;
+  enableConsole?: Maybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
+  enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
 export type ConfigHasuraSettingsComparisonExp = {
   _and?: InputMaybe<Array<ConfigHasuraSettingsComparisonExp>>;
   _not?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
   _or?: InputMaybe<Array<ConfigHasuraSettingsComparisonExp>>;
+  corsDomain?: InputMaybe<ConfigUrlComparisonExp>;
+  devMode?: InputMaybe<ConfigBooleanComparisonExp>;
+  enableAllowList?: InputMaybe<ConfigBooleanComparisonExp>;
+  enableConsole?: InputMaybe<ConfigBooleanComparisonExp>;
   enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
+  enabledAPIs?: InputMaybe<ConfigHasuraApIsComparisonExp>;
 };
 
 export type ConfigHasuraSettingsInsertInput = {
+  corsDomain?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+  devMode?: InputMaybe<Scalars['Boolean']>;
+  enableAllowList?: InputMaybe<Scalars['Boolean']>;
+  enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
+  enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
 export type ConfigHasuraSettingsUpdateInput = {
+  corsDomain?: InputMaybe<Array<Scalars['ConfigUrl']>>;
+  devMode?: InputMaybe<Scalars['Boolean']>;
+  enableAllowList?: InputMaybe<Scalars['Boolean']>;
+  enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
+  enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
 export type ConfigHasuraUpdateInput = {
@@ -1249,7 +1282,7 @@ export type ConfigLocaleComparisonExp = {
 
 export type ConfigObservability = {
   __typename?: 'ConfigObservability';
-  grafana?: Maybe<ConfigGrafana>;
+  grafana: ConfigGrafana;
 };
 
 export type ConfigObservabilityComparisonExp = {
@@ -1260,7 +1293,7 @@ export type ConfigObservabilityComparisonExp = {
 };
 
 export type ConfigObservabilityInsertInput = {
-  grafana?: InputMaybe<ConfigGrafanaInsertInput>;
+  grafana: ConfigGrafanaInsertInput;
 };
 
 export type ConfigObservabilityUpdateInput = {
@@ -3535,11 +3568,11 @@ export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
   expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
-  refreshToken: Scalars['uuid'];
+  refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type: Scalars['refresh_token_type'];
+  type: Scalars['String'];
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -3610,17 +3643,18 @@ export type AuthRefreshTokens_Bool_Exp = {
   _or?: InputMaybe<Array<AuthRefreshTokens_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  type?: InputMaybe<Refresh_Token_Type_Comparison_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.refresh_tokens" */
 export enum AuthRefreshTokens_Constraint {
-  /** unique or primary key constraint on columns "refresh_token" */
+  /** unique or primary key constraint on columns "id" */
   RefreshTokensPkey = 'refresh_tokens_pkey'
 }
 
@@ -3643,10 +3677,11 @@ export type AuthRefreshTokens_Delete_Key_Input = {
 export type AuthRefreshTokens_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
-  type?: InputMaybe<Scalars['refresh_token_type']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -3656,10 +3691,10 @@ export type AuthRefreshTokens_Max_Fields = {
   __typename?: 'authRefreshTokens_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
+  id?: Maybe<Scalars['uuid']>;
   refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['refresh_token_type']>;
+  type?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3667,7 +3702,7 @@ export type AuthRefreshTokens_Max_Fields = {
 export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
+  id?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
@@ -3679,10 +3714,10 @@ export type AuthRefreshTokens_Min_Fields = {
   __typename?: 'authRefreshTokens_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
+  id?: Maybe<Scalars['uuid']>;
   refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['refresh_token_type']>;
+  type?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3690,7 +3725,7 @@ export type AuthRefreshTokens_Min_Fields = {
 export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
+  id?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
@@ -3717,6 +3752,7 @@ export type AuthRefreshTokens_On_Conflict = {
 export type AuthRefreshTokens_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
@@ -3727,8 +3763,7 @@ export type AuthRefreshTokens_Order_By = {
 
 /** primary key columns input for table: auth.refresh_tokens */
 export type AuthRefreshTokens_Pk_Columns_Input = {
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
-  refreshToken: Scalars['uuid'];
+  id: Scalars['uuid'];
 };
 
 /** prepend existing jsonb value of filtered columns with new jsonb value */
@@ -3742,6 +3777,8 @@ export enum AuthRefreshTokens_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
   /** column name */
   Metadata = 'metadata',
   /** column name */
@@ -3758,10 +3795,11 @@ export enum AuthRefreshTokens_Select_Column {
 export type AuthRefreshTokens_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
-  type?: InputMaybe<Scalars['refresh_token_type']>;
+  refreshTokenHash?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3777,11 +3815,11 @@ export type AuthRefreshTokens_Stream_Cursor_Input = {
 export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  /** DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead. */
   refreshToken?: InputMaybe<Scalars['uuid']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['refresh_token_type']>;
+  type?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3792,9 +3830,13 @@ export enum AuthRefreshTokens_Update_Column {
   /** column name */
   ExpiresAt = 'expiresAt',
   /** column name */
+  Id = 'id',
+  /** column name */
   Metadata = 'metadata',
   /** column name */
   RefreshToken = 'refreshToken',
+  /** column name */
+  RefreshTokenHash = 'refreshTokenHash',
   /** column name */
   Type = 'type',
   /** column name */
@@ -9908,6 +9950,10 @@ export type Mutation_Root = {
   deletePlan?: Maybe<Plans>;
   /** delete data from the table: "plans" */
   deletePlans?: Maybe<Plans_Mutation_Response>;
+  /** delete single row from the table: "regions_allowed_workspace" */
+  deleteRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
+  /** delete data from the table: "regions_allowed_workspace" */
+  deleteRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   deleteSecret: ConfigEnvironmentVariable;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
@@ -9937,6 +9983,10 @@ export type Mutation_Root = {
   delete_countries?: Maybe<Countries_Mutation_Response>;
   /** delete single row from the table: "countries" */
   delete_countries_by_pk?: Maybe<Countries>;
+  /** delete data from the table: "region_type" */
+  delete_region_type?: Maybe<Region_Type_Mutation_Response>;
+  /** delete single row from the table: "region_type" */
+  delete_region_type_by_pk?: Maybe<Region_Type>;
   /** delete data from the table: "regions" */
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
@@ -10030,6 +10080,10 @@ export type Mutation_Root = {
   insertPlan?: Maybe<Plans>;
   /** insert data into the table: "plans" */
   insertPlans?: Maybe<Plans_Mutation_Response>;
+  /** insert a single row into the table: "regions_allowed_workspace" */
+  insertRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
+  /** insert data into the table: "regions_allowed_workspace" */
+  insertRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   insertSecret: ConfigEnvironmentVariable;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
@@ -10059,6 +10113,10 @@ export type Mutation_Root = {
   insert_countries?: Maybe<Countries_Mutation_Response>;
   /** insert a single row into the table: "countries" */
   insert_countries_one?: Maybe<Countries>;
+  /** insert data into the table: "region_type" */
+  insert_region_type?: Maybe<Region_Type_Mutation_Response>;
+  /** insert a single row into the table: "region_type" */
+  insert_region_type_one?: Maybe<Region_Type>;
   /** insert data into the table: "regions" */
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
@@ -10157,6 +10215,10 @@ export type Mutation_Root = {
   updatePlan?: Maybe<Plans>;
   /** update data of the table: "plans" */
   updatePlans?: Maybe<Plans_Mutation_Response>;
+  /** update single row of the table: "regions_allowed_workspace" */
+  updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
+  /** update data of the table: "regions_allowed_workspace" */
+  updateRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
   updateSecret: ConfigEnvironmentVariable;
   updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
@@ -10237,8 +10299,16 @@ export type Mutation_Root = {
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
   update_plans_many?: Maybe<Array<Maybe<Plans_Mutation_Response>>>;
+  /** update data of the table: "region_type" */
+  update_region_type?: Maybe<Region_Type_Mutation_Response>;
+  /** update single row of the table: "region_type" */
+  update_region_type_by_pk?: Maybe<Region_Type>;
+  /** update multiples rows of table: "region_type" */
+  update_region_type_many?: Maybe<Array<Maybe<Region_Type_Mutation_Response>>>;
   /** update data of the table: "regions" */
   update_regions?: Maybe<Regions_Mutation_Response>;
+  /** update multiples rows of table: "regions_allowed_workspace" */
+  update_regions_allowed_workspace_many?: Maybe<Array<Maybe<Regions_Allowed_Workspace_Mutation_Response>>>;
   /** update single row of the table: "regions" */
   update_regions_by_pk?: Maybe<Regions>;
   /** update multiples rows of table: "regions" */
@@ -10326,7 +10396,7 @@ export type Mutation_RootBillingReportDedicatedComputeArgs = {
 
 /** mutation root */
 export type Mutation_RootBillingUpdateAndReportDedicatedComputeReportsArgs = {
-  reportTime: Scalars['Timestamp'];
+  reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -10405,7 +10475,7 @@ export type Mutation_RootDeleteAuthProvidersArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenArgs = {
-  refreshToken: Scalars['uuid'];
+  id: Scalars['uuid'];
 };
 
 
@@ -10614,6 +10684,18 @@ export type Mutation_RootDeletePlansArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteRegionsAllowedWorkspaceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRegionsAllowedWorkspacesArgs = {
+  where: Regions_Allowed_Workspace_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteSecretArgs = {
   appID: Scalars['uuid'];
   key: Scalars['String'];
@@ -10701,6 +10783,18 @@ export type Mutation_RootDelete_CountriesArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Countries_By_PkArgs = {
   code: Scalars['bpchar'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Region_TypeArgs = {
+  where: Region_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Region_Type_By_PkArgs = {
+  type: Scalars['String'];
 };
 
 
@@ -11034,6 +11128,20 @@ export type Mutation_RootInsertPlansArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertRegionsAllowedWorkspaceArgs = {
+  object: Regions_Allowed_Workspace_Insert_Input;
+  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
+  objects: Array<Regions_Allowed_Workspace_Insert_Input>;
+  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
@@ -11135,6 +11243,20 @@ export type Mutation_RootInsert_CountriesArgs = {
 export type Mutation_RootInsert_Countries_OneArgs = {
   object: Countries_Insert_Input;
   on_conflict?: InputMaybe<Countries_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Region_TypeArgs = {
+  objects: Array<Region_Type_Insert_Input>;
+  on_conflict?: InputMaybe<Region_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Region_Type_OneArgs = {
+  object: Region_Type_Insert_Input;
+  on_conflict?: InputMaybe<Region_Type_On_Conflict>;
 };
 
 
@@ -11558,6 +11680,20 @@ export type Mutation_RootUpdatePlansArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateRegionsAllowedWorkspaceArgs = {
+  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
+  pk_columns: Regions_Allowed_Workspace_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRegionsAllowedWorkspacesArgs = {
+  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
+  where: Regions_Allowed_Workspace_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
@@ -11834,9 +11970,35 @@ export type Mutation_RootUpdate_Plans_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Region_TypeArgs = {
+  _set?: InputMaybe<Region_Type_Set_Input>;
+  where: Region_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Region_Type_By_PkArgs = {
+  _set?: InputMaybe<Region_Type_Set_Input>;
+  pk_columns: Region_Type_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Region_Type_ManyArgs = {
+  updates: Array<Region_Type_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_RegionsArgs = {
   _set?: InputMaybe<Regions_Set_Input>;
   where: Regions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Regions_Allowed_Workspace_ManyArgs = {
+  updates: Array<Regions_Allowed_Workspace_Updates>;
 };
 
 
@@ -13135,6 +13297,7 @@ export type Query_Root = {
   files: Array<Files>;
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
+  getBackupPresignedURL: BackupPresignedUrl;
   getCPUSecondsUsage: Metrics;
   getEgressVolume: Metrics;
   getFunctionsInvocations: Metrics;
@@ -13171,12 +13334,24 @@ export type Query_Root = {
   plans: Array<Plans>;
   /** fetch aggregated fields from the table: "plans" */
   plansAggregate: Plans_Aggregate;
-  /** fetch data from the table: "regions" */
+  /** fetch data from the table: "region_type" */
+  region_type: Array<Region_Type>;
+  /** fetch aggregated fields from the table: "region_type" */
+  region_type_aggregate: Region_Type_Aggregate;
+  /** fetch data from the table: "region_type" using primary key columns */
+  region_type_by_pk?: Maybe<Region_Type>;
+  /** An array relationship */
   regions: Array<Regions>;
-  /** fetch aggregated fields from the table: "regions" */
+  /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
+  selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
+  /** fetch data from the table: "regions_allowed_workspace" */
+  selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
+  /** fetch aggregated fields from the table: "regions_allowed_workspace" */
+  selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
   /**
    * Returns lists of apps that have some live traffic in the give time range.
    * From defaults to 24 hours ago and to defaults to now.
@@ -13334,7 +13509,7 @@ export type Query_RootAuthProvidersAggregateArgs = {
 
 
 export type Query_RootAuthRefreshTokenArgs = {
-  refreshToken: Scalars['uuid'];
+  id: Scalars['uuid'];
 };
 
 
@@ -13788,6 +13963,13 @@ export type Query_RootFilesAggregateArgs = {
 };
 
 
+export type Query_RootGetBackupPresignedUrlArgs = {
+  appID: Scalars['String'];
+  backupID: Scalars['String'];
+  expireInMinutes?: InputMaybe<Scalars['Int']>;
+};
+
+
 export type Query_RootGetCpuSecondsUsageArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
@@ -13936,6 +14118,29 @@ export type Query_RootPlansAggregateArgs = {
 };
 
 
+export type Query_RootRegion_TypeArgs = {
+  distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Region_Type_Order_By>>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+
+export type Query_RootRegion_Type_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Region_Type_Order_By>>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+
+export type Query_RootRegion_Type_By_PkArgs = {
+  type: Scalars['String'];
+};
+
+
 export type Query_RootRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -13956,6 +14161,29 @@ export type Query_RootRegions_AggregateArgs = {
 
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootSelectRegionsAllowedWorkspaceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootSelectRegionsAllowedWorkspacesArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
 
@@ -14066,23 +14294,196 @@ export type Query_RootWorkspacesAggregateArgs = {
   where?: InputMaybe<Workspaces_Bool_Exp>;
 };
 
-/** Boolean expression to compare columns of type "refresh_token_type". All fields are combined with logical 'AND'. */
-export type Refresh_Token_Type_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['refresh_token_type']>;
-  _gt?: InputMaybe<Scalars['refresh_token_type']>;
-  _gte?: InputMaybe<Scalars['refresh_token_type']>;
-  _in?: InputMaybe<Array<Scalars['refresh_token_type']>>;
+/** columns and relationships of "region_type" */
+export type Region_Type = {
+  __typename?: 'region_type';
+  comment: Scalars['String'];
+  /** An array relationship */
+  regions: Array<Regions>;
+  /** An aggregate relationship */
+  regions_aggregate: Regions_Aggregate;
+  type: Scalars['String'];
+};
+
+
+/** columns and relationships of "region_type" */
+export type Region_TypeRegionsArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Order_By>>;
+  where?: InputMaybe<Regions_Bool_Exp>;
+};
+
+
+/** columns and relationships of "region_type" */
+export type Region_TypeRegions_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Order_By>>;
+  where?: InputMaybe<Regions_Bool_Exp>;
+};
+
+/** aggregated selection of "region_type" */
+export type Region_Type_Aggregate = {
+  __typename?: 'region_type_aggregate';
+  aggregate?: Maybe<Region_Type_Aggregate_Fields>;
+  nodes: Array<Region_Type>;
+};
+
+/** aggregate fields of "region_type" */
+export type Region_Type_Aggregate_Fields = {
+  __typename?: 'region_type_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Region_Type_Max_Fields>;
+  min?: Maybe<Region_Type_Min_Fields>;
+};
+
+
+/** aggregate fields of "region_type" */
+export type Region_Type_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Region_Type_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "region_type". All fields are combined with a logical 'AND'. */
+export type Region_Type_Bool_Exp = {
+  _and?: InputMaybe<Array<Region_Type_Bool_Exp>>;
+  _not?: InputMaybe<Region_Type_Bool_Exp>;
+  _or?: InputMaybe<Array<Region_Type_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  regions?: InputMaybe<Regions_Bool_Exp>;
+  regions_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "region_type" */
+export enum Region_Type_Constraint {
+  /** unique or primary key constraint on columns "type" */
+  RegionTypePkey = 'region_type_pkey'
+}
+
+export enum Region_Type_Enum {
+  /** Private region available to selected workspaces */
+  Private = 'private',
+  /** Public region available to all Nhost projects */
+  Public = 'public'
+}
+
+/** Boolean expression to compare columns of type "region_type_enum". All fields are combined with logical 'AND'. */
+export type Region_Type_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Region_Type_Enum>;
+  _in?: InputMaybe<Array<Region_Type_Enum>>;
   _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['refresh_token_type']>;
-  _lte?: InputMaybe<Scalars['refresh_token_type']>;
-  _neq?: InputMaybe<Scalars['refresh_token_type']>;
-  _nin?: InputMaybe<Array<Scalars['refresh_token_type']>>;
+  _neq?: InputMaybe<Region_Type_Enum>;
+  _nin?: InputMaybe<Array<Region_Type_Enum>>;
+};
+
+/** input type for inserting data into table "region_type" */
+export type Region_Type_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  regions?: InputMaybe<Regions_Arr_Rel_Insert_Input>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Region_Type_Max_Fields = {
+  __typename?: 'region_type_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Region_Type_Min_Fields = {
+  __typename?: 'region_type_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "region_type" */
+export type Region_Type_Mutation_Response = {
+  __typename?: 'region_type_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Region_Type>;
+};
+
+/** input type for inserting object relation for remote table "region_type" */
+export type Region_Type_Obj_Rel_Insert_Input = {
+  data: Region_Type_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Region_Type_On_Conflict>;
+};
+
+/** on_conflict condition type for table "region_type" */
+export type Region_Type_On_Conflict = {
+  constraint: Region_Type_Constraint;
+  update_columns?: Array<Region_Type_Update_Column>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "region_type". */
+export type Region_Type_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  regions_aggregate?: InputMaybe<Regions_Aggregate_Order_By>;
+  type?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: region_type */
+export type Region_Type_Pk_Columns_Input = {
+  type: Scalars['String'];
+};
+
+/** select columns of table "region_type" */
+export enum Region_Type_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+/** input type for updating data in table "region_type" */
+export type Region_Type_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "region_type" */
+export type Region_Type_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Region_Type_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Region_Type_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "region_type" */
+export enum Region_Type_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+export type Region_Type_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Region_Type_Set_Input>;
+  where: Region_Type_Bool_Exp;
 };
 
 /** columns and relationships of "regions" */
 export type Regions = {
   __typename?: 'regions';
   active: Scalars['Boolean'];
+  /** An object relationship */
+  allowedWorkspaces?: Maybe<Regions_Allowed_Workspace>;
   /** An array relationship */
   apps: Array<Apps>;
   /** An aggregate relationship */
@@ -14093,8 +14494,17 @@ export type Regions = {
   country: Countries;
   countryCode: Scalars['String'];
   createdAt: Scalars['timestamptz'];
+  description?: Maybe<Scalars['String']>;
+  domain: Scalars['String'];
   id: Scalars['uuid'];
   isGdprCompliant: Scalars['Boolean'];
+  /** An object relationship */
+  region_type: Region_Type;
+  /** An array relationship */
+  regions_allowed_workspaces: Array<Regions_Allowed_Workspace>;
+  /** An aggregate relationship */
+  regions_allowed_workspaces_aggregate: Regions_Allowed_Workspace_Aggregate;
+  type: Region_Type_Enum;
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -14116,6 +14526,26 @@ export type RegionsApps_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Apps_Order_By>>;
   where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+/** columns and relationships of "regions" */
+export type RegionsRegions_Allowed_WorkspacesArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+/** columns and relationships of "regions" */
+export type RegionsRegions_Allowed_Workspaces_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
 /** aggregated selection of "regions" */
@@ -14174,6 +14604,251 @@ export type Regions_Aggregate_Order_By = {
   min?: InputMaybe<Regions_Min_Order_By>;
 };
 
+/** columns and relationships of "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace = {
+  __typename?: 'regions_allowed_workspace';
+  created_at: Scalars['timestamptz'];
+  description: Scalars['String'];
+  id: Scalars['uuid'];
+  /** An object relationship */
+  region?: Maybe<Regions>;
+  region_id: Scalars['uuid'];
+  updated_at: Scalars['timestamptz'];
+  /** An object relationship */
+  workspace?: Maybe<Workspaces>;
+  workspace_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Aggregate = {
+  __typename?: 'regions_allowed_workspace_aggregate';
+  aggregate?: Maybe<Regions_Allowed_Workspace_Aggregate_Fields>;
+  nodes: Array<Regions_Allowed_Workspace>;
+};
+
+export type Regions_Allowed_Workspace_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp_Count>;
+};
+
+export type Regions_Allowed_Workspace_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Aggregate_Fields = {
+  __typename?: 'regions_allowed_workspace_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Regions_Allowed_Workspace_Max_Fields>;
+  min?: Maybe<Regions_Allowed_Workspace_Min_Fields>;
+};
+
+
+/** aggregate fields of "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Regions_Allowed_Workspace_Max_Order_By>;
+  min?: InputMaybe<Regions_Allowed_Workspace_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Arr_Rel_Insert_Input = {
+  data: Array<Regions_Allowed_Workspace_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "regions_allowed_workspace". All fields are combined with a logical 'AND'. */
+export type Regions_Allowed_Workspace_Bool_Exp = {
+  _and?: InputMaybe<Array<Regions_Allowed_Workspace_Bool_Exp>>;
+  _not?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+  _or?: InputMaybe<Array<Regions_Allowed_Workspace_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  region?: InputMaybe<Regions_Bool_Exp>;
+  region_id?: InputMaybe<Uuid_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  workspace?: InputMaybe<Workspaces_Bool_Exp>;
+  workspace_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "regions_allowed_workspace" */
+export enum Regions_Allowed_Workspace_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  RegionsAllowedWorkspacePkey = 'regions_allowed_workspace_pkey',
+  /** unique or primary key constraint on columns "workspace_id", "region_id" */
+  RegionsAllowedWorkspaceRegionIdWorkspaceIdKey = 'regions_allowed_workspace_region_id_workspace_id_key'
+}
+
+/** input type for inserting data into table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
+  region_id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  workspace?: InputMaybe<Workspaces_Obj_Rel_Insert_Input>;
+  workspace_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Regions_Allowed_Workspace_Max_Fields = {
+  __typename?: 'regions_allowed_workspace_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  region_id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  workspace_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  region_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  workspace_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Regions_Allowed_Workspace_Min_Fields = {
+  __typename?: 'regions_allowed_workspace_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  region_id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  workspace_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  region_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  workspace_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Mutation_Response = {
+  __typename?: 'regions_allowed_workspace_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Regions_Allowed_Workspace>;
+};
+
+/** input type for inserting object relation for remote table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Obj_Rel_Insert_Input = {
+  data: Regions_Allowed_Workspace_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Regions_Allowed_Workspace_On_Conflict>;
+};
+
+/** on_conflict condition type for table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_On_Conflict = {
+  constraint: Regions_Allowed_Workspace_Constraint;
+  update_columns?: Array<Regions_Allowed_Workspace_Update_Column>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "regions_allowed_workspace". */
+export type Regions_Allowed_Workspace_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  region?: InputMaybe<Regions_Order_By>;
+  region_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  workspace?: InputMaybe<Workspaces_Order_By>;
+  workspace_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: regions_allowed_workspace */
+export type Regions_Allowed_Workspace_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "regions_allowed_workspace" */
+export enum Regions_Allowed_Workspace_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RegionId = 'region_id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  WorkspaceId = 'workspace_id'
+}
+
+/** input type for updating data in table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  region_id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  workspace_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "regions_allowed_workspace" */
+export type Regions_Allowed_Workspace_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Regions_Allowed_Workspace_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Regions_Allowed_Workspace_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  region_id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  workspace_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "regions_allowed_workspace" */
+export enum Regions_Allowed_Workspace_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  RegionId = 'region_id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  WorkspaceId = 'workspace_id'
+}
+
+export type Regions_Allowed_Workspace_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Regions_Allowed_Workspace_Set_Input>;
+  where: Regions_Allowed_Workspace_Bool_Exp;
+};
+
 /** input type for inserting array relation for remote table "regions" */
 export type Regions_Arr_Rel_Insert_Input = {
   data: Array<Regions_Insert_Input>;
@@ -14187,6 +14862,7 @@ export type Regions_Bool_Exp = {
   _not?: InputMaybe<Regions_Bool_Exp>;
   _or?: InputMaybe<Array<Regions_Bool_Exp>>;
   active?: InputMaybe<Boolean_Comparison_Exp>;
+  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   awsName?: InputMaybe<String_Comparison_Exp>;
@@ -14194,30 +14870,40 @@ export type Regions_Bool_Exp = {
   country?: InputMaybe<Countries_Bool_Exp>;
   countryCode?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  domain?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   isGdprCompliant?: InputMaybe<Boolean_Comparison_Exp>;
+  region_type?: InputMaybe<Region_Type_Bool_Exp>;
+  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp>;
+  type?: InputMaybe<Region_Type_Enum_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "regions" */
 export enum Regions_Constraint {
   /** unique or primary key constraint on columns "id" */
-  LocationsPkey = 'locations_pkey',
-  /** unique or primary key constraint on columns "aws_name" */
-  RegionsAwsNameKey = 'regions_aws_name_key'
+  LocationsPkey = 'locations_pkey'
 }
 
 /** input type for inserting data into table "regions" */
 export type Regions_Insert_Input = {
   active?: InputMaybe<Scalars['Boolean']>;
+  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Obj_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   awsName?: InputMaybe<Scalars['String']>;
   city?: InputMaybe<Scalars['String']>;
   country?: InputMaybe<Countries_Obj_Rel_Insert_Input>;
   countryCode?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  domain?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isGdprCompliant?: InputMaybe<Scalars['Boolean']>;
+  region_type?: InputMaybe<Region_Type_Obj_Rel_Insert_Input>;
+  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Arr_Rel_Insert_Input>;
+  type?: InputMaybe<Region_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -14228,6 +14914,8 @@ export type Regions_Max_Fields = {
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -14238,6 +14926,8 @@ export type Regions_Max_Order_By = {
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -14249,6 +14939,8 @@ export type Regions_Min_Fields = {
   city?: Maybe<Scalars['String']>;
   countryCode?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  domain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -14259,6 +14951,8 @@ export type Regions_Min_Order_By = {
   city?: InputMaybe<Order_By>;
   countryCode?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
@@ -14289,14 +14983,20 @@ export type Regions_On_Conflict = {
 /** Ordering options when selecting data from "regions". */
 export type Regions_Order_By = {
   active?: InputMaybe<Order_By>;
+  allowedWorkspaces?: InputMaybe<Regions_Allowed_Workspace_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   awsName?: InputMaybe<Order_By>;
   city?: InputMaybe<Order_By>;
   country?: InputMaybe<Countries_Order_By>;
   countryCode?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  domain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   isGdprCompliant?: InputMaybe<Order_By>;
+  region_type?: InputMaybe<Region_Type_Order_By>;
+  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Order_By>;
+  type?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
 };
 
@@ -14318,9 +15018,15 @@ export enum Regions_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Description = 'description',
+  /** column name */
+  Domain = 'domain',
+  /** column name */
   Id = 'id',
   /** column name */
   IsGdprCompliant = 'isGdprCompliant',
+  /** column name */
+  Type = 'type',
   /** column name */
   UpdatedAt = 'updatedAt'
 }
@@ -14348,8 +15054,11 @@ export type Regions_Set_Input = {
   city?: InputMaybe<Scalars['String']>;
   countryCode?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  domain?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isGdprCompliant?: InputMaybe<Scalars['Boolean']>;
+  type?: InputMaybe<Region_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -14368,8 +15077,11 @@ export type Regions_Stream_Cursor_Value_Input = {
   city?: InputMaybe<Scalars['String']>;
   countryCode?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  domain?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   isGdprCompliant?: InputMaybe<Scalars['Boolean']>;
+  type?: InputMaybe<Region_Type_Enum>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
@@ -14386,9 +15098,15 @@ export enum Regions_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Description = 'description',
+  /** column name */
+  Domain = 'domain',
+  /** column name */
   Id = 'id',
   /** column name */
   IsGdprCompliant = 'isGdprCompliant',
+  /** column name */
+  Type = 'type',
   /** column name */
   UpdatedAt = 'updatedAt'
 }
@@ -14643,14 +15361,30 @@ export type Subscription_Root = {
   plansAggregate: Plans_Aggregate;
   /** fetch data from the table in a streaming manner: "plans" */
   plans_stream: Array<Plans>;
-  /** fetch data from the table: "regions" */
+  /** fetch data from the table: "region_type" */
+  region_type: Array<Region_Type>;
+  /** fetch aggregated fields from the table: "region_type" */
+  region_type_aggregate: Region_Type_Aggregate;
+  /** fetch data from the table: "region_type" using primary key columns */
+  region_type_by_pk?: Maybe<Region_Type>;
+  /** fetch data from the table in a streaming manner: "region_type" */
+  region_type_stream: Array<Region_Type>;
+  /** An array relationship */
   regions: Array<Regions>;
-  /** fetch aggregated fields from the table: "regions" */
+  /** An aggregate relationship */
   regions_aggregate: Regions_Aggregate;
+  /** fetch data from the table in a streaming manner: "regions_allowed_workspace" */
+  regions_allowed_workspace_stream: Array<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
   /** fetch data from the table in a streaming manner: "regions" */
   regions_stream: Array<Regions>;
+  /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
+  selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
+  /** fetch data from the table: "regions_allowed_workspace" */
+  selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
+  /** fetch aggregated fields from the table: "regions_allowed_workspace" */
+  selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -14837,7 +15571,7 @@ export type Subscription_RootAuthProviders_StreamArgs = {
 
 
 export type Subscription_RootAuthRefreshTokenArgs = {
-  refreshToken: Scalars['uuid'];
+  id: Scalars['uuid'];
 };
 
 
@@ -15533,6 +16267,36 @@ export type Subscription_RootPlans_StreamArgs = {
 };
 
 
+export type Subscription_RootRegion_TypeArgs = {
+  distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Region_Type_Order_By>>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegion_Type_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Region_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Region_Type_Order_By>>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootRegion_Type_By_PkArgs = {
+  type: Scalars['String'];
+};
+
+
+export type Subscription_RootRegion_Type_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Region_Type_Stream_Cursor_Input>>;
+  where?: InputMaybe<Region_Type_Bool_Exp>;
+};
+
+
 export type Subscription_RootRegionsArgs = {
   distinct_on?: InputMaybe<Array<Regions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -15551,6 +16315,13 @@ export type Subscription_RootRegions_AggregateArgs = {
 };
 
 
+export type Subscription_RootRegions_Allowed_Workspace_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Regions_Allowed_Workspace_Stream_Cursor_Input>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
 export type Subscription_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
 };
@@ -15560,6 +16331,29 @@ export type Subscription_RootRegions_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Regions_Stream_Cursor_Input>>;
   where?: InputMaybe<Regions_Bool_Exp>;
+};
+
+
+export type Subscription_RootSelectRegionsAllowedWorkspaceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootSelectRegionsAllowedWorkspacesArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
 
@@ -17225,6 +18019,8 @@ export type Workspaces = {
   addressPostalCode: Scalars['String'];
   /** State, county, province, or region. */
   addressState: Scalars['String'];
+  /** An object relationship */
+  allowedPrivateRegions?: Maybe<Regions_Allowed_Workspace>;
   /** An array relationship */
   apps: Array<Apps>;
   /** An aggregate relationship */
@@ -17243,6 +18039,10 @@ export type Workspaces = {
   paymentMethods: Array<PaymentMethods>;
   /** An aggregate relationship */
   paymentMethods_aggregate: PaymentMethods_Aggregate;
+  /** An array relationship */
+  regions_allowed_workspaces: Array<Regions_Allowed_Workspace>;
+  /** An aggregate relationship */
+  regions_allowed_workspaces_aggregate: Regions_Allowed_Workspace_Aggregate;
   slug: Scalars['String'];
   stripeCustomerId?: Maybe<Scalars['String']>;
   taxIdType: Scalars['String'];
@@ -17296,6 +18096,26 @@ export type WorkspacesPaymentMethods_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<PaymentMethods_Order_By>>;
   where?: InputMaybe<PaymentMethods_Bool_Exp>;
+};
+
+
+/** columns and relationships of "workspaces" */
+export type WorkspacesRegions_Allowed_WorkspacesArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+/** columns and relationships of "workspaces" */
+export type WorkspacesRegions_Allowed_Workspaces_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Regions_Allowed_Workspace_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
+  where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
 };
 
 
@@ -17397,6 +18217,7 @@ export type Workspaces_Bool_Exp = {
   addressLine2?: InputMaybe<String_Comparison_Exp>;
   addressPostalCode?: InputMaybe<String_Comparison_Exp>;
   addressState?: InputMaybe<String_Comparison_Exp>;
+  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   companyName?: InputMaybe<String_Comparison_Exp>;
@@ -17409,6 +18230,8 @@ export type Workspaces_Bool_Exp = {
   paymentMethod?: InputMaybe<PaymentMethods_Bool_Exp>;
   paymentMethods?: InputMaybe<PaymentMethods_Bool_Exp>;
   paymentMethods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Bool_Exp>;
+  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
   stripeCustomerId?: InputMaybe<String_Comparison_Exp>;
   taxIdType?: InputMaybe<String_Comparison_Exp>;
@@ -17443,6 +18266,7 @@ export type Workspaces_Insert_Input = {
   addressPostalCode?: InputMaybe<Scalars['String']>;
   /** State, county, province, or region. */
   addressState?: InputMaybe<Scalars['String']>;
+  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Obj_Rel_Insert_Input>;
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   companyName?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
@@ -17453,6 +18277,7 @@ export type Workspaces_Insert_Input = {
   name?: InputMaybe<Scalars['String']>;
   paymentMethod?: InputMaybe<PaymentMethods_Obj_Rel_Insert_Input>;
   paymentMethods?: InputMaybe<PaymentMethods_Arr_Rel_Insert_Input>;
+  regions_allowed_workspaces?: InputMaybe<Regions_Allowed_Workspace_Arr_Rel_Insert_Input>;
   slug?: InputMaybe<Scalars['String']>;
   stripeCustomerId?: InputMaybe<Scalars['String']>;
   taxIdType?: InputMaybe<Scalars['String']>;
@@ -17604,6 +18429,7 @@ export type Workspaces_Order_By = {
   addressLine2?: InputMaybe<Order_By>;
   addressPostalCode?: InputMaybe<Order_By>;
   addressState?: InputMaybe<Order_By>;
+  allowedPrivateRegions?: InputMaybe<Regions_Allowed_Workspace_Order_By>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   companyName?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
@@ -17614,6 +18440,7 @@ export type Workspaces_Order_By = {
   name?: InputMaybe<Order_By>;
   paymentMethod?: InputMaybe<PaymentMethods_Order_By>;
   paymentMethods_aggregate?: InputMaybe<PaymentMethods_Aggregate_Order_By>;
+  regions_allowed_workspaces_aggregate?: InputMaybe<Regions_Allowed_Workspace_Aggregate_Order_By>;
   slug?: InputMaybe<Order_By>;
   stripeCustomerId?: InputMaybe<Order_By>;
   taxIdType?: InputMaybe<Order_By>;
@@ -17782,7 +18609,7 @@ export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteAp
 export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability?: { __typename?: 'ConfigObservability', grafana?: { __typename?: 'ConfigGrafana', adminPassword: string } | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
@@ -17839,7 +18666,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability?: { __typename?: 'ConfigObservability', grafana?: { __typename?: 'ConfigGrafana', adminPassword: string } | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -18046,9 +18873,9 @@ export type GetFilesAggregateQueryVariables = Exact<{
 
 export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number } | null } };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability?: { __typename?: 'ConfigObservability', grafana?: { __typename?: 'ConfigGrafana', adminPassword: string } | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability?: { __typename?: 'ConfigObservability', grafana?: { __typename?: 'ConfigGrafana', adminPassword: string } | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -18485,6 +19312,7 @@ export const ProjectFragmentDoc = gql`
     id
     countryCode
     awsName
+    domain
     city
   }
   plan {

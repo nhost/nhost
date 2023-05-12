@@ -21,7 +21,7 @@ export function useRemoteApplicationGQLClient() {
       link: new HttpLink({
         uri: generateAppServiceUrl(
           currentProject?.subdomain,
-          currentProject?.region.awsName,
+          currentProject?.region,
           'graphql',
         ),
         headers: {
@@ -35,7 +35,7 @@ export function useRemoteApplicationGQLClient() {
   }, [
     loading,
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     currentProject?.config?.hasura.adminSecret,
   ]);
 

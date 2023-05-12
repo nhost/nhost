@@ -139,7 +139,7 @@ export default function SpotifyProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/spotify/callback`}
             disabled
@@ -154,7 +154,7 @@ export default function SpotifyProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/spotify/callback`,
                       'Redirect URL',

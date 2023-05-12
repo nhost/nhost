@@ -12,7 +12,7 @@ export default function useIsHealthy() {
 
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region?.awsName,
+    currentProject?.region,
     'auth',
   );
 

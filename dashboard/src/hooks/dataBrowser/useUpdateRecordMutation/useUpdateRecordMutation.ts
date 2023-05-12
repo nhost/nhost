@@ -43,7 +43,7 @@ export default function useUpdateRecordMutation<TData extends object = {}>({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     'hasura',
   );
 

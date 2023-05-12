@@ -37,7 +37,7 @@ export default function useTrackForeignKeyRelationMutation({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     'hasura',
   );
   const mutationFn = isPlatform

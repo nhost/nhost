@@ -1,12 +1,12 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
   getStorageServiceUrl,
 } from '@/utils/env';
-import { isDevOrStaging } from '@/utils/helpers';
 import type { NhostNextClientConstructorParams } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
 
@@ -43,11 +43,32 @@ export function useAppClient(
     });
   }
 
+  const authUrl = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'auth',
+  );
+  const graphqlUrl = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'graphql',
+  );
+  const storageUrl = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'storage',
+  );
+  const functionsUrl = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'functions',
+  );
+
   return new NhostClient({
-    subdomain: currentProject.subdomain,
-    region: isDevOrStaging()
-      ? `${currentProject.region.awsName}.staging`
-      : currentProject.region.awsName,
+    authUrl,
+    graphqlUrl,
+    storageUrl,
+    functionsUrl,
     ...options,
   });
 }

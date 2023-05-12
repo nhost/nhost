@@ -217,7 +217,7 @@ export default function AppleProviderSettings() {
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/apple/callback`}
             className="col-span-2"
@@ -236,7 +236,7 @@ export default function AppleProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/apple/callback`,
                       'Redirect URL',
