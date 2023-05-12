@@ -3,7 +3,6 @@ import SettingsLayout from '@/components/settings/SettingsLayout';
 
 import { useGetDatabaseConnectionInfoQuery } from '@/generated/graphql';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import { isDevOrStaging } from '@/utils/helpers';
 import type { ReactElement } from 'react';
 
 import SettingsContainer from '@/components/settings/SettingsContainer';
@@ -15,14 +14,17 @@ import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 
 export default function DatabaseSettingsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const postgresHost = `${currentProject.subdomain}.db.${
-    currentProject.region.awsName
-  }.${isDevOrStaging() ? 'staging.nhost' : 'nhost'}.run`;
+  const postgresHost = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'db',
+  ).replace('https://', '');
 
   const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
     variables: {
