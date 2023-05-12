@@ -184,7 +184,7 @@ export default function WorkOsProviderSettings() {
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/workos/callback`}
             className="col-span-2"
@@ -203,7 +203,7 @@ export default function WorkOsProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/workos/callback`,
                       'Redirect URL',

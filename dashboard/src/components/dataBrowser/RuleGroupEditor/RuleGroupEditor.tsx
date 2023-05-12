@@ -194,7 +194,7 @@ export default function RuleGroupEditor({
                     <Link
                       href={`${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region?.awsName,
+                        currentProject.region,
                         'hasura',
                       )}/console/data/default/schema/${schema}/tables/${table}/permissions`}
                       underline="hover"

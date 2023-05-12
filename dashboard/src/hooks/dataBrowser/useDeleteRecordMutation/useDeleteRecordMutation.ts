@@ -39,7 +39,7 @@ export default function useDeleteRecordMutation({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     'hasura',
   );
 

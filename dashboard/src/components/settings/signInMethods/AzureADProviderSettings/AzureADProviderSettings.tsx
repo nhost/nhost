@@ -163,7 +163,7 @@ export default function AzureADProviderSettings() {
             id="redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/azuread/callback`}
             className="col-span-2"
@@ -182,7 +182,7 @@ export default function AzureADProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/azuread/callback`,
                       'Redirect URL',

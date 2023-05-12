@@ -106,7 +106,7 @@ export default function MetricsPage() {
             <Button
               href={generateAppServiceUrl(
                 currentProject.subdomain,
-                currentProject.region.awsName,
+                currentProject.region,
                 'grafana',
               )}
               // Both `target` and `rel` are available when `href` is set. This is

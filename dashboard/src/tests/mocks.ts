@@ -54,6 +54,7 @@ export const mockApplication: Project = {
     city: 'New York',
     countryCode: 'US',
     id: '1',
+    domain: 'nhost.run',
   },
   createdAt: new Date().toISOString(),
   deployments: [],
@@ -70,6 +71,11 @@ export const mockApplication: Project = {
     price: 0,
   },
   config: {
+    observability: {
+      grafana: {
+        adminPassword: 'admin',
+      },
+    },
     hasura: {
       adminSecret: 'nhost-admin-secret',
     },

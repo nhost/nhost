@@ -145,7 +145,7 @@ export default function GitHubProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/github/callback`}
             disabled
@@ -160,7 +160,7 @@ export default function GitHubProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/github/callback`,
                       'Redirect URL',

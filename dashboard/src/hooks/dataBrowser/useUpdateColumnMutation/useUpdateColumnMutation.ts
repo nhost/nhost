@@ -42,7 +42,7 @@ export default function useUpdateColumnMutation({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region.awsName,
+    currentProject?.region,
     'hasura',
   );
   const mutationFn = isPlatform ? updateColumn : updateColumnMigration;

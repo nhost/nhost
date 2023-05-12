@@ -139,7 +139,7 @@ export default function GoogleProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/google/callback`}
             disabled
@@ -154,7 +154,7 @@ export default function GoogleProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/google/callback`,
                       'Redirect URL',

@@ -19,7 +19,7 @@ export default function StoragePage() {
     <NhostApolloProvider
       graphqlUrl={generateAppServiceUrl(
         currentProject.subdomain,
-        currentProject.region.awsName,
+        currentProject.region,
         'graphql',
       )}
       fetchPolicy="cache-first"

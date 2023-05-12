@@ -98,6 +98,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
         countryCode: null,
         city: null,
         awsName: null,
+        domain: null,
       },
       isProvisioned: true,
       createdAt: new Date().toISOString(),
@@ -108,6 +109,11 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       nhostBaseFolder: null,
       plan: null,
       config: {
+        observability: {
+          grafana: {
+            adminPassword: 'admin',
+          },
+        },
         hasura: {
           adminSecret: getHasuraAdminSecret(),
         },

@@ -139,7 +139,7 @@ export default function FacebookProviderSettings() {
             label="Redirect URL"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
-              currentProject.region.awsName,
+              currentProject.region,
               'auth',
             )}/signin/provider/facebook/callback`}
             disabled
@@ -154,7 +154,7 @@ export default function FacebookProviderSettings() {
                     copy(
                       `${generateAppServiceUrl(
                         currentProject.subdomain,
-                        currentProject.region.awsName,
+                        currentProject.region,
                         'auth',
                       )}/signin/provider/facebook/callback`,
                       'Redirect URL',

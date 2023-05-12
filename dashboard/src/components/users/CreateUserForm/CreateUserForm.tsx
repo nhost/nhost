@@ -68,7 +68,7 @@ export default function CreateUserForm({
 
   const baseAuthUrl = generateAppServiceUrl(
     currentProject?.subdomain,
-    currentProject?.region?.awsName,
+    currentProject?.region,
     'auth',
   );
 

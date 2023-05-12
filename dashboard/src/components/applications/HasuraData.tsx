@@ -33,7 +33,7 @@ export function HasuraData({ close }: HasuraDataProps) {
       ? `${getHasuraConsoleServiceUrl()}`
       : generateAppServiceUrl(
           currentProject?.subdomain,
-          currentProject?.region.awsName,
+          currentProject?.region,
           'hasura',
           defaultLocalBackendSlugs,
           { ...defaultRemoteBackendSlugs, hasura: '/console' },
