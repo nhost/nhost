@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.16.9
+
+### Patch Changes
+
+- 349aac36: fix(settings): use region domain when constructing the postgres connection string
+
 ## 0.16.8
 
 ### Patch Changes
