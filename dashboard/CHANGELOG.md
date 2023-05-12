@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.16.8
+
+### Patch Changes
+
+- 20fb69fa: chore(projects): change the way how API URLs are constructed
+
 ## 0.16.7
 
 ### Patch Changes
