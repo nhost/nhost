@@ -10,6 +10,7 @@ import {
   correctPasswordlessEmailHandler,
   correctPasswordlessSmsHandler,
   correctPasswordlessSmsOtpHandler,
+  createPATSuccessHandler,
   deamonymisationSuccessfulHandler,
   generateMfaTotpSuccessHandler,
   patSignInSuccessHandler,
@@ -36,7 +37,8 @@ export const defaultSuccessHandlers = [
   signUpSuccessHandler,
   correctAnonymousHandler,
   deamonymisationSuccessfulHandler,
-  patSignInSuccessHandler
+  patSignInSuccessHandler,
+  createPATSuccessHandler
 ]
 
 export const server = setupServer(...defaultSuccessHandlers)

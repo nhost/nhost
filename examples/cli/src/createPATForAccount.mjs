@@ -42,13 +42,12 @@ export async function createPATForAccount(email, password, expiresAt, name) {
   logger.info('Successfully signed in with the provided account.')
   logger.debug('Creating PAT for the provided account...')
 
-  const {
-    id,
-    personalAccessToken,
-    error: patCreationError
-  } = await client.auth.createPAT(expiresAt, name ? { name } : undefined)
+  const { data, error: patCreationError } = await client.auth.createPAT(
+    expiresAt,
+    name ? { name } : undefined
+  )
 
-  logger.debug(`Personal Access Token ID: ${id}`)
+  logger.debug(`Personal Access Token ID: ${data?.id}`)
 
   if (patCreationError) {
     return {
@@ -73,6 +72,6 @@ export async function createPATForAccount(email, password, expiresAt, name) {
 
   return {
     error: null,
-    personalAccessToken
+    personalAccessToken: data?.personalAccessToken
   }
 }

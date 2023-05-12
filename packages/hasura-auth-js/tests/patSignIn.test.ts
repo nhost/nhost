@@ -4,7 +4,11 @@ import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src'
 import { BASE_URL } from './helpers/config'
-import { patSignInInternalErrorHandler, patSignInNetworkErrorHandler } from './helpers/handlers'
+import {
+  patSignInInternalErrorHandler,
+  patSignInNetworkErrorHandler,
+  patSignInUnauthorizedErrorHandler
+} from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 
@@ -86,8 +90,32 @@ test(`should succeed if a correct PAT is used`, async () => {
   })
 
   const state = await waitFor(authService, (state) =>
-    state.matches({ authentication: { signedIn: { refreshTimer: 'idle' } } })
+    state.matches({ authentication: { signedIn: { refreshTimer: 'disabled' } } })
   )
 
   expect(state.context.user).not.toBeNull()
+})
+
+test(`should fail if an invalid PAT is used`, async () => {
+  server.use(patSignInUnauthorizedErrorHandler)
+
+  authService.send({
+    type: 'SIGNIN_PAT',
+    pat: faker.datatype.uuid()
+  })
+
+  const state = await waitFor(authService, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
+
+  expect(state.context.user).toBeNull()
+  expect(state.context.errors).toMatchInlineSnapshot(`
+    {
+      "authentication": {
+        "error": "invalid-or-expired-pat",
+        "message": "Invalid or expired PAT",
+        "status": 401,
+      },
+    }
+  `)
 })
