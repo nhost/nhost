@@ -441,14 +441,13 @@ export class HasuraAuthClient {
   /**
    * Use `nhost.auth.createPAT` to create a personal access token for the user.
    *
+   * @param expiresAt Expiration date for the token
+   * @param metadata Optional metadata to store with the token
+   *
    * @docs https://docs.nhost.io/reference/javascript/auth/create-pat
    */
-  async createPAT(
-    expiresAt: Date,
-    metadata?: Record<string, string | number>
-  ): Promise<{ error: AuthErrorPayload | null; personalAccessToken?: string }> {
-    const res = await createPATPromise(this._client, { expiresAt, metadata })
-    return res
+  async createPAT(expiresAt: Date, metadata?: Record<string, string | number>) {
+    return createPATPromise(this._client, { expiresAt, metadata })
   }
 
   /**

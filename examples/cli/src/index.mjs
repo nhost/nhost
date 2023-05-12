@@ -25,7 +25,10 @@ program
     '--password <password>',
     'The password of the account to use. If both the email and password are provided, a personal access token will be created for the account. Defaults to the value of the "NHOST_ACCOUNT_PASSWORD" environment variable.'
   )
-  .option('--create-token')
+  .option(
+    '--create-token',
+    'Whether or not to create a personal access token for the account. If this option is provided, the email and password options must also be provided.'
+  )
   .option(
     '--expires-at <date>',
     'The expiration date of the personal access token to create. It will only be used if the "--create-token" option is provided. Defaults to 7 days from now.'
@@ -74,7 +77,7 @@ async function main() {
 
     if (error) {
       logger.error(error.message)
-      return
+      process.exit(1)
     }
 
     activeToken = personalAccessToken
@@ -84,7 +87,7 @@ async function main() {
 
   if (!activeToken && !userProvidedToken) {
     logger.error('No personal access token was provided. Exiting...')
-    return
+    process.exit(1)
   }
 
   // Use the user-provided token if it exists, otherwise use the PAT that was
@@ -99,7 +102,7 @@ async function main() {
 
   if (signInError) {
     logger.error(signInError.message)
-    return
+    process.exit(1)
   }
 
   logger.info(

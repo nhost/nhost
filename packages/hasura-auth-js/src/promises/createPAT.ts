@@ -16,9 +16,13 @@ export interface CreatePATHandlerParams {
 
 export interface CreatePATHandlerResult extends AuthActionErrorState, AuthActionSuccessState {
   /**
+   * The ID of the personal access token that was created.
+   */
+  id?: string | null
+  /**
    * The personal access token that was created.
    */
-  personalAccessToken?: string
+  personalAccessToken?: string | null
 }
 
 export interface CreatePATState extends CreatePATHandlerResult, AuthActionLoadingState {}
@@ -34,7 +38,8 @@ export const createPATPromise = async (
       interpreter?.getSnapshot().context.accessToken.value
     )
     return {
-      personalAccessToken: data.personalAccessToken,
+      id: data?.id || null,
+      personalAccessToken: data?.personalAccessToken || null,
       isError: false,
       error: null,
       isSuccess: true

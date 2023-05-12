@@ -101,6 +101,10 @@ export interface SecurityKey {
  */
 export interface PersonalAccessTokenCreationResponse {
   /**
+   * The personal access token identifier.
+   */
+  id: string
+  /**
    * The personal access token.
    */
   personalAccessToken: string
