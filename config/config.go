@@ -8,7 +8,6 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/cli/internal/generichelper"
-	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/pelletier/go-toml/v2"
 )
@@ -118,23 +117,6 @@ func defaultHasuraConfig() *model.ConfigHasura {
 			},
 		},
 	}
-}
-
-func GetRemoteAppConfig(creds *nhost.Credentials, appID string) (*model.ConfigConfig, model.Secrets, error) {
-	user, err := nhost.GetUser(creds)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get user: %w", err)
-	}
-
-	for _, member := range user.WorkspaceMembers {
-		for _, item := range member.Workspace.Apps {
-			if item.ID == appID {
-				return item.Config, item.AppSecrets, nil
-			}
-		}
-	}
-
-	return nil, nil, fmt.Errorf("app not found")
 }
 
 func DumpSecrets(s model.Secrets) []byte {

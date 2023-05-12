@@ -1,0 +1,279 @@
+---
+linters:
+    enable-all: true
+    disable:
+      - varnamelen
+      - gomoddirectives
+      - nlreturn
+      - wsl
+      - exhaustivestruct # deprecated
+      - maligned  # deprecated
+      - scopelint  # deprecated
+      - interfacer  # deprecated
+      - golint  # deprecated
+      - structcheck  # deprecated
+      - deadcode  # deprecated
+      - nosnakecase  # deprecated
+      - ifshort  # deprecated
+      - varcheck  # deprecated
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - ireturn
+
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+    # - linters:
+    #     - gochecknoglobals
+    #   text: "Version is a global variable"
+
+    - path: schema\.resolvers\.go
+      linters:
+        - ireturn
+        - lll
+        - gofumpt
+
+    - path: ^aws/.*
+      linters:
+        - paralleltest
+        - testpackage
+        - exhaustruct
+        - gci
+        - gofumpt
+        - goimports
+        - revive
+        - wrapcheck
+        - errorlint
+
+    - path: ^config/.*
+      linters:
+        - nonamedreturns
+        - gomnd
+        - goerr113
+        - forcetypeassert
+        - exhaustruct
+        - wrapcheck
+        - gci
+        - gosimple
+        - gochecknoglobals
+        - gocritic
+        - funlen
+        - paralleltest
+        - gofumpt
+        - goimports
+
+    - path: ^nhost/.*
+      linters:
+        - wrapcheck
+        - paralleltest
+        - testpackage
+        - stylecheck
+        - thelper
+        - nosprintfhostport
+        - gomnd
+        - exhaustruct
+        - revive
+        - lll
+        - ineffassign
+        - errorlint
+        - gosec
+        - tagliatelle
+        - noctx
+        - staticcheck
+        - nolintlint
+        - wastedassign
+        - nonamedreturns
+        - musttag
+        - gochecknoglobals
+        - goerr113
+        - usestdlibvars
+        - funlen
+        - misspell
+        - whitespace
+        - cyclop
+        - unparam
+        - errcheck
+        - predeclared
+        - godot
+        - gofumpt
+        - gci
+        - goimports
+        - gocritic
+        - godox
+        - unused
+        - forbidigo
+        - gocognit
+        - dupword
+        - errchkjson
+        - gosimple
+
+    - path: ^internal/.*
+      linters:
+        - revive
+        - paralleltest
+        - ireturn
+        - testpackage
+        - wrapcheck
+        - lll
+        - gofumpt
+        - gci
+        - goimports
+        - godot
+        - goerr113
+
+    - path: ^logger/.*
+      linters:
+        - gochecknoglobals
+        - gosimple
+        - whitespace
+        - gci
+        - revive
+        - exhaustive
+        - gofumpt
+        - gci
+        - goimports
+        - stylecheck
+        - gocritic
+        - funlen
+        - gomnd
+        - gofmt
+        - exhaustruct
+        - cyclop
+        - staticcheck
+
+    - path: ^util/.*
+      linters:
+        - gochecknoglobals
+        - gosimple
+        - whitespace
+        - gci
+        - revive
+        - exhaustive
+        - gofumpt
+        - gci
+        - goimports
+        - stylecheck
+        - gocritic
+        - funlen
+        - gomnd
+        - gofmt
+        - exhaustruct
+        - cyclop
+        - staticcheck
+        - wrapcheck
+        - tagliatelle
+        - noctx
+        - forcetypeassert
+        - gosec
+        - godot
+        - errcheck
+        - lll
+        - unused
+        - goerr113
+        - godox
+        - forbidigo
+        - whitespace
+        - wastedassign
+        - misspell
+
+    - path: ^hasura/.*
+      linters:
+        - gochecknoglobals
+        - gosimple
+        - whitespace
+        - gci
+        - revive
+        - exhaustive
+        - gofumpt
+        - gci
+        - goimports
+        - stylecheck
+        - gocritic
+        - funlen
+        - gomnd
+        - gofmt
+        - exhaustruct
+        - cyclop
+        - staticcheck
+        - wrapcheck
+        - tagliatelle
+        - noctx
+        - forcetypeassert
+        - gosec
+        - godot
+        - errcheck
+        - lll
+        - unused
+        - goerr113
+        - godox
+
+    - path: ^cmd/.*
+      linters:
+        - gochecknoglobals
+        - gosimple
+        - whitespace
+        - gci
+        - revive
+        - exhaustive
+        - gofumpt
+        - gci
+        - goimports
+        - stylecheck
+        - gocritic
+        - funlen
+        - gomnd
+        - gofmt
+        - exhaustruct
+        - cyclop
+        - staticcheck
+        - wrapcheck
+        - testpackage
+        - paralleltest
+        - noctx
+        - goerr113
+        - ineffassign
+        - errorlint
+        - errchkjson
+        - unused
+        - nestif
+        - prealloc
+        - forcetypeassert
+        - unconver
+        - misspell
+        - lll
+        - gosec
+        - godot
+        - goconst
+        - gochecknoglobals
+        - gochecknoinits
+        - errcheck
+        - forbidigo
+        - unconvert
+
+    - path: ^watcher/.*
+      linters:
+        - gochecknoglobals
+        - gosimple
+        - whitespace
+        - gci
+        - revive
+        - exhaustive
+        - gofumpt
+        - gci
+        - goimports
+        - stylecheck
+        - gocritic
+        - funlen
+        - gomnd
+        - gofmt
+        - exhaustruct
+        - cyclop
+        - staticcheck
+        - containedctx
+        - contextcheck
+        - wrapcheck

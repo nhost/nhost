@@ -12,21 +12,65 @@
           (final: prev: rec {
             go = final.go_1_20;
 
+            golines = final.buildGoModule rec {
+              name = "golines";
+              version = "0.11.0";
+              src = final.fetchFromGitHub {
+                owner = "dbarrosop";
+                repo = "golines";
+                rev = "b7e767e781863a30bc5a74610a46cc29485fb9cb";
+                sha256 = "sha256-pxFgPT6J0vxuWAWXZtuR06H9GoGuXTyg7ue+LFsRzOk=";
+              };
+              vendorHash = "sha256-rxYuzn4ezAxaeDhxd8qdOzt+CKYIh03A9zKNdzILq18=";
+
+              meta = with final.lib; {
+                description = "A golang formatter that fixes long lines";
+                homepage = "https://github.com/segmentio/golines";
+                maintainers = [ "nhost" ];
+                platforms = platforms.linux ++ platforms.darwin;
+              };
+            };
+
             golangci-lint = prev.golangci-lint.override rec {
               buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
-                version = "1.46.2";
+                version = "1.52.2";
                 src = prev.fetchFromGitHub {
                   owner = "golangci";
                   repo = "golangci-lint";
                   rev = "v${version}";
-                  sha256 = "sha256-7sDAwWz+qoB/ngeH35tsJ5FZUfAQvQsU6kU9rUHIHMk=";
+                  sha256 = "sha256-FmNXjOMDDdGxMQvy5f1NoaqrKFpmlPWclXooMxXP8zg";
                 };
-                vendorHash = "sha256-w38OKN6HPoz37utG/2QSPMai55IRDXCIIymeMe6ogIU=";
+                vendorHash = "sha256-BhD3a0LNc3hpiH4QC8FpmNn3swx3to8+6gfcgZT8TLg=";
 
                 meta = with final.lib; args.meta // {
                   broken = false;
                 };
               });
+            };
+
+            gqlgenc = final.buildGoModule rec {
+              pname = "gqlgenc";
+              version = "0.13.5";
+
+              src = final.fetchFromGitHub {
+                owner = "Yamashou";
+                repo = pname;
+                rev = "v${version}";
+                sha256 = "sha256-f4JkVYNLe93EO570k9MiBzOoGDSeJzY2dmM1yXbIE4k=";
+              };
+
+              vendorHash = "sha256-Up7Wi6z0Cbp9RHKAsjj/kd50UqcXtsS+ETRYuxRfGuA=";
+
+              doCheck = false;
+
+              subPackages = [ "./." ];
+
+              meta = with final.lib; {
+                description = "This is Go library for building GraphQL client with gqlgen";
+                homepage = "https://github.com/Yamashou/gqlgenc";
+                license = licenses.mit;
+                maintainers = [ "@nhost" ];
+              };
             };
 
           })
@@ -68,6 +112,9 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               golangci-lint
+              gqlgenc
+              gofumpt
+              golines
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };

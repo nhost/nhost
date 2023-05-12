@@ -1,0 +1,27 @@
+model:
+  filename: ./v2/nhostclient/graphql/models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+client:
+  filename: ./v2/nhostclient/graphql/client_gen.go
+models:
+  Int:
+    model: github.com/99designs/gqlgen/graphql.Int64
+  bigint:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int64
+  timestamptz:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  jsonb:
+    model:
+      - github.com/99designs/gqlgen/graphql.Map
+
+endpoint:
+  url: https://staging.nhost.run/v1/graphql
+  headers:
+    X-Hasura-admin-secret: "$HASURA_ADMIN_SECRET" # support environment variables
+
+query:
+  - ./v2/nhostclient/graphql/query/*.graphql
+generate:
+  clientV2: true
+  omitEmptyTypes: true

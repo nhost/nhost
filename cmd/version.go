@@ -33,7 +33,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//  versionCmd represents the version command
+// versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:        "version",
 	Aliases:    []string{"v"},
@@ -44,7 +44,6 @@ var versionCmd = &cobra.Command{
 		status.Info(fmt.Sprintf("Nhost CLI %s for %s-%s", Version, runtime.GOOS, runtime.GOARCH))
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-
 		//	Get all the releases
 		releases, err := nhost.GetReleases()
 		if err != nil {

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/go-version"
-	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +13,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/hashicorp/go-version"
+	"github.com/sirupsen/logrus"
+
 	"gopkg.in/yaml.v2"
 
 	"github.com/nhost/cli/logger"
@@ -23,8 +24,10 @@ import (
 )
 
 // initialize the binary path
-var status = &util.Writer
-var log = &logger.Log
+var (
+	status = &util.Writer
+	log    = &logger.Log
+)
 
 func getBinary() string {
 	hasuraExecName := "hasura"
@@ -39,7 +42,7 @@ func getBinary() string {
 func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
 	expected, err := version.NewVersion(expectedVersion)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to parse expected version: %w", err)
 	}
 
 	type hasuraVersion struct {
@@ -50,17 +53,17 @@ func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
 	cmd := exec.Command(existingCliPath, "version", "--skip-update-check")
 	out, err := cmd.Output()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get existing CLI version: %w", err)
 	}
 
 	var hv hasuraVersion
 	if err = json.Unmarshal(out, &hv); err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to unmarshal existing CLI version: %w", err)
 	}
 
 	existing, err := version.NewVersion(hv.Version)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to parse existing CLI version: %w", err)
 	}
 
 	return existing.LessThan(expected), nil
@@ -75,7 +78,7 @@ func Binary(hasuraVersion, customBinary string) (string, error) {
 	if customBinary != "" {
 		outdated, err := cliIsOutdated(customBinary, hasuraVersion)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to check if custom binary is outdated: %w", err)
 		}
 		if outdated {
 			return "", fmt.Errorf("specified %s is outdated", customBinary)
@@ -89,7 +92,7 @@ func Binary(hasuraVersion, customBinary string) (string, error) {
 	if pathExists(binaryPath) {
 		outdated, err := cliIsOutdated(binaryPath, hasuraVersion)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to check if existing binary is outdated: %w", err)
 		}
 
 		if !outdated {
@@ -113,12 +116,12 @@ func Binary(hasuraVersion, customBinary string) (string, error) {
 
 	//  create the binary path
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create binary path: %w", err)
 	}
 
 	out, err := os.Create(binaryPath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create binary file: %w", err)
 	}
 
 	defer out.Close()
@@ -133,7 +136,7 @@ func Binary(hasuraVersion, customBinary string) (string, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to download binary: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -141,18 +144,18 @@ func Binary(hasuraVersion, customBinary string) (string, error) {
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to write binary: %w", err)
 	}
 
 	//  Change permissions so that the download file
 	//  can become accessible and executable
-	err = os.Chmod(binaryPath, 0777)
+	err = os.Chmod(binaryPath, 0o777)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to change binary permissions: %w", err)
 	}
 
-	//return the path at which binary has been
+	// return the path at which binary has been
 	//  downloaded and saved
 	return binaryPath, nil
 }
@@ -164,12 +167,11 @@ func pathExists(filePath string) bool {
 }
 
 func (c *Client) GetSchemas() ([]string, error) {
-
 	log.Debug("Fetching schema list")
 
 	var response []string
 
-	//Encode the data
+	// Encode the data
 	reqBody := RequestBody{
 		Type: "run_sql",
 		Args: map[string]string{
@@ -179,25 +181,25 @@ func (c *Client) GetSchemas() ([]string, error) {
 
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	resp, err := c.Request(body, "/v2/query")
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("failed to get schema list: %w", err)
 	}
 
 	defer resp.Body.Close()
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var responseData map[string]interface{}
 	err = json.Unmarshal(body, &responseData)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
 
 	//  Remove the first row/head and filter schemas from following rows
@@ -223,7 +225,6 @@ func (c *Client) GetSchemas() ([]string, error) {
 }
 
 func (c *Client) GetMetadata() (*MetadataV3, error) {
-
 	log.Debug("Fetching metadata")
 
 	reqBody := RequestBody{
@@ -232,32 +233,35 @@ func (c *Client) GetMetadata() (*MetadataV3, error) {
 	}
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error marshalling request body: %w", err)
 	}
 
 	resp, err := c.Request(body, "/v1/metadata")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	body, err = ioutil.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error fetching metadata: %s", string(body))
 	}
 
 	var responseData struct {
 		Metadata MetadataV3 `json:"metadata"`
 	}
 	if err = json.Unmarshal(body, &responseData); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshalling response body: %w", err)
 	}
 
 	return &responseData.Metadata, nil
 }
 
 func (c *Client) GetInconsistentMetadata() (InconsistentMetadataResponse, error) {
-
 	log.Debug("Fetching inconsistent metadata")
 
 	var response InconsistentMetadataResponse
@@ -268,26 +272,25 @@ func (c *Client) GetInconsistentMetadata() (InconsistentMetadataResponse, error)
 
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error marshalling request body: %w", err)
 	}
 
 	resp, err := c.Request(body, "/v1/metadata")
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	err = json.Unmarshal(body, &response)
-	return response, err
+	return response, fmt.Errorf("error unmarshalling response body: %w", err)
 }
 
 func (c *Client) Seed(payload string) error {
-
 	reqBody := RequestBody{
 		Type: "run_sql",
 		Args: map[string]string{
@@ -298,12 +301,12 @@ func (c *Client) Seed(payload string) error {
 
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	resp, err := c.Request(body, "/v2/query")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to seed database: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -311,17 +314,17 @@ func (c *Client) Seed(payload string) error {
 	response, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(string(response))
+		return fmt.Errorf("failed to seed database: %s", string(response))
 	}
 
 	return nil
 }
 
 func (c *Client) ClearMigration(source string) error {
-
 	log.Debug("Clearing migration")
 
-	args := []string{c.CLI,
+	args := []string{
+		c.CLI,
 		"migrate",
 		"delete",
 		"--all",
@@ -343,42 +346,17 @@ func (c *Client) ClearMigration(source string) error {
 	}
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		log.Debug(string(output))
-		return err
+		return fmt.Errorf("error clearing migration: %s", string(output))
 	}
-
-	/* 	reqBody := RequestBody{
-	   		Type: "run_sql",
-	   		Args: map[string]string{
-	   			"source": source,
-	   			"sql":    "TRUNCATE hdb_catalog.schema_migrations;",
-	   		},
-	   	}
-
-	   	body, err := reqBody.Marshal()
-	   	if err != nil {
-	   		return err
-	   	}
-
-	   	resp, err := c.Request(body, "/v2/query")
-	   	if err != nil {
-	   		return err
-	   	}
-
-	   	if resp.StatusCode != http.StatusOK {
-	   		return errors.New("failed to clear migration")
-	   	}
-	*/
 	return nil
 }
 
 func (c *Client) GetExtensions() ([]string, error) {
-
 	log.Debug("Fetching extensions")
 
 	var response []string
 
-	//Encode the data
+	// Encode the data
 	reqBody := RequestBody{
 		Type: "run_sql",
 		Args: map[string]string{
@@ -387,18 +365,18 @@ func (c *Client) GetExtensions() ([]string, error) {
 	}
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error marshalling request body: %w", err)
 	}
 
 	resp, err := c.Request(body, "/v1/query")
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error sending request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error reading response body: %w", err)
 	}
 
 	var responseData map[string]interface{}
@@ -423,13 +401,12 @@ func (c *Client) GetExtensions() ([]string, error) {
 }
 
 func (c *Client) Track(table TableEntry) error {
-
 	log.WithFields(logrus.Fields{
 		"component": table.Table.Name,
 		"value":     table.Table.Schema,
 	}).Debug("Tracking table")
 
-	//Encode the data
+	// Encode the data
 	args := map[string]interface{}{
 		"schema": table.Table.Schema,
 		"name":   table.Table.Name,
@@ -439,19 +416,19 @@ func (c *Client) Track(table TableEntry) error {
 		args["is_enum"] = true
 	}
 
-	//Encode the data
+	// Encode the data
 	reqBody := RequestBody{
 		Type: "track_table",
 		Args: args,
 	}
 	marshalledBody, err := reqBody.Marshal()
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshalling request body: %w", err)
 	}
 
 	resp, err := c.Request(marshalledBody, "/v1/query")
 	if err != nil {
-		return err
+		return fmt.Errorf("error sending request: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -576,7 +553,6 @@ func (c *ClientCommonMetadataOps) GetInconsistentMetadataReader() (io.Reader, er
 */
 
 func (c *Client) Migration(options []string) ([]byte, error) {
-
 	log.Debug("Performing migration")
 
 	pgDumpOpts := []string{"-x", "-O", "--schema-only"}
@@ -586,7 +562,6 @@ func (c *Client) Migration(options []string) ([]byte, error) {
 }
 
 func (c *Client) ApplySeeds(tables []TableEntry) ([]byte, error) {
-
 	log.Debug("Applying seeds")
 
 	pgDumpOpts := []string{"--no-owner", "--no-acl", "--data-only", "--column-inserts"}
@@ -598,18 +573,17 @@ func (c *Client) ApplySeeds(tables []TableEntry) ([]byte, error) {
 }
 
 func GetTablesFromLocalMetadata() ([]TableEntry, error) {
-
 	log.Debug("Fetching tables from local metadata")
 
 	var response []TableEntry
 
 	data, err := os.ReadFile(filepath.Join(nhost.METADATA_DIR, "tables.yaml"))
 	if err != nil {
-		return response, err
+		return response, fmt.Errorf("error reading tables.yaml: %w", err)
 	}
 
 	if err = yaml.Unmarshal(data, &response); err != nil {
-		return response, err
+		return response, fmt.Errorf("error unmarshalling tables.yaml: %w", err)
 	}
 
 	return response, nil

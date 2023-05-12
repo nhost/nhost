@@ -1,0 +1,24 @@
+query GetWorkspacesApps {
+  workspaces {
+    name
+    apps {
+      id
+      name
+      subdomain
+      region {
+        awsName
+      }
+    }
+  }
+}
+
+query GetHasuraAdminSecret($appID: uuid!) {
+  app(id: $appID) {
+    config(resolve: true) {
+      hasura {
+        version
+        adminSecret
+      }
+    }
+  }
+}

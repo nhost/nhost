@@ -55,6 +55,7 @@ import (
 
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
+	v2cmd "github.com/nhost/cli/v2/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -153,7 +154,7 @@ var devCmd = &cobra.Command{
 				}
 
 				if input == "y" || input == "" {
-					if err := pullConfigCmd.RunE(nil, nil); err != nil {
+					if err := v2cmd.ConfigPullCmd().RunE(nil, nil); err != nil {
 						return err
 					}
 					break

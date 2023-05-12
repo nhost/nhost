@@ -1,7 +1,6 @@
 package nhost
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +20,6 @@ const (
 var (
 	log    = &logger.Log
 	DOMAIN string
-	API    string
 
 	//  fetch current working directory
 	NHOST_DIR string
@@ -83,8 +81,6 @@ var (
 
 // Initialize Nhost variables for runtime
 func Init() {
-	API = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
-
 	//  fetch current working directory
 	NHOST_DIR = filepath.Join(util.WORKING_DIR, "nhost")
 
@@ -159,7 +155,6 @@ func Init() {
 // Updates the directory paths in all variables
 // TODO: refactor
 func UpdateLocations(old, new string) {
-
 	//  Add all locations to the list
 	//  including non-mandatory ones
 	payload := append(LOCATIONS.Directories, []*string{
