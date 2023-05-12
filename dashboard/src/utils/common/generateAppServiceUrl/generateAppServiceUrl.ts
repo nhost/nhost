@@ -1,6 +1,7 @@
 import type { ProjectFragment } from '@/utils/__generated__/graphql';
 import {
   getAuthServiceUrl,
+  getDatabaseServiceUrl,
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
   getHasuraApiUrl,
@@ -10,6 +11,7 @@ import {
 
 export type NhostService =
   | 'auth'
+  | 'db'
   | 'graphql'
   | 'functions'
   | 'storage'
@@ -23,6 +25,7 @@ export type NhostService =
  */
 export const defaultLocalBackendSlugs: Record<NhostService, string> = {
   auth: '/v1/auth',
+  db: '',
   graphql: '/v1/graphql',
   functions: '/v1/functions',
   storage: '/v1/files',
@@ -36,6 +39,7 @@ export const defaultLocalBackendSlugs: Record<NhostService, string> = {
  */
 export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
   auth: '/v1',
+  db: '',
   graphql: '/v1',
   functions: '/v1',
   storage: '/v1',
@@ -57,7 +61,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
 export default function generateAppServiceUrl(
   subdomain: string,
   region: ProjectFragment['region'],
-  service: 'auth' | 'graphql' | 'functions' | 'storage' | 'hasura' | 'grafana',
+  service: NhostService,
   localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
@@ -66,6 +70,7 @@ export default function generateAppServiceUrl(
   if (!IS_PLATFORM) {
     const serviceUrls: Record<typeof service, string> = {
       auth: getAuthServiceUrl(),
+      db: getDatabaseServiceUrl(),
       graphql: getGraphqlServiceUrl(),
       storage: getStorageServiceUrl(),
       functions: getFunctionsServiceUrl(),
