@@ -75,13 +75,13 @@ NHOST_ACCOUNT_PAT=<personal-access-token> pnpm start
 ### Create a new personal access token
 
 ```sh
-pnpm start --email cli@nhost.io --password Admin1234! --create-pat <expiration-date>
+pnpm start --email cli@nhost.io --password Admin1234! --create-token --expires-at 2040-01-01 --token-name "CLI Token"
 ```
 
 or using environment variables:
 
 ```sh
-NHOST_ACCOUNT_EMAIL=cli@nhost.io NHOST_ACCOUNT_PASSWORD=Admin1234! pnpm start --create-pat <expiration-date>
+NHOST_ACCOUNT_EMAIL=cli@nhost.io NHOST_ACCOUNT_PASSWORD=Admin1234! pnpm start --create-token --expires-at 2040-01-01 --token-name "CLI Token"
 ```
 
 ### Create a new book

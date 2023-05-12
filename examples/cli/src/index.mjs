@@ -13,21 +13,30 @@ program
   .name('nhost-bookstore-cli')
   .description('This CLI tool shows how to use the Nhost JS SDK and personal access tokens.')
 program
-  .option('--token <token>', 'The personal access token to use.')
-  .option('--create-book <title>', 'The title of the book to create.')
-  .option('--delete-book <id>', 'The ID of the book to delete.')
+  .option(
+    '--token <token>',
+    'The personal access token to use. Defaults to the value of the "NHOST_ACCOUNT_PAT" environment variable.'
+  )
   .option(
     '--email <email>',
-    'The email of the account to use. If both the email and password are provided, a personal access token will be created for the account.'
+    'The email of the account to use. If both the email and password are provided, a personal access token will be created for the account. Defaults to the value of the "NHOST_ACCOUNT_EMAIL" environment variable.'
   )
   .option(
     '--password <password>',
-    'The password of the account to use. If both the email and password are provided, a personal access token will be created for the account.'
+    'The password of the account to use. If both the email and password are provided, a personal access token will be created for the account. Defaults to the value of the "NHOST_ACCOUNT_PASSWORD" environment variable.'
+  )
+  .option('--create-token')
+  .option(
+    '--expires-at <date>',
+    'The expiration date of the personal access token to create. It will only be used if the "--create-token" option is provided. Defaults to 7 days from now.'
   )
   .option(
-    '--create-pat <expiration>',
-    'The expiration date of the personal access token to create. If both the email and password are provided, a personal access token will be created for the account.'
+    '--token-name <name>',
+    'The name of the personal access token to create. It will only be used if the "--create-token" option is provided. This information will be stored as the metadata of the personal access token.'
   )
+  .option('--create-book <title>', 'The title of the book to create.')
+  .option('--delete-book <id>', 'The ID of the book to delete.')
+
 program.parse()
 
 async function main() {
@@ -50,13 +59,17 @@ async function main() {
   const userProvidedPassword = opts.password || envVars.ACCOUNT_PASSWORD
 
   // If the user provided an email and password, create a PAT for the account
-  if (userProvidedEmail && userProvidedPassword && opts.createPat) {
-    const expiresAt = new Date(opts.createPat)
+  if (opts.createToken && userProvidedEmail && userProvidedPassword) {
+    const expiresAt = opts.expiresAt
+      ? new Date(opts.expiresAt)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const name = opts.tokenName
 
     const { error, personalAccessToken } = await createPATForAccount(
       userProvidedEmail,
       userProvidedPassword,
-      expiresAt
+      expiresAt,
+      name
     )
 
     if (error) {

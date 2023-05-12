@@ -30,7 +30,7 @@ export const createPATPromise = async (
   try {
     const { data } = await postFetch<PersonalAccessTokenCreationResponse>(
       `${backendUrl}/pat`,
-      { expiresAt: expiresAt.toUTCString(), metadata: JSON.stringify(metadata) },
+      { expiresAt: expiresAt.toUTCString(), metadata },
       interpreter?.getSnapshot().context.accessToken.value
     )
     return {
