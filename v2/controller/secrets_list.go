@@ -5,19 +5,21 @@ import (
 	"fmt"
 
 	"github.com/nhost/cli/v2/nhostclient/graphql"
+	"github.com/nhost/cli/v2/system"
 )
 
 func SecretsList(
 	ctx context.Context,
 	p Printer,
 	cl NhostClient,
+	fs *system.PathStructure,
 ) error {
-	proj, err := GetAppInfo(ctx, p, cl)
+	proj, err := GetAppInfo(ctx, p, cl, fs)
 	if err != nil {
 		return err
 	}
 
-	session, err := LoadSession(ctx, p, cl)
+	session, err := LoadSession(ctx, p, cl, fs)
 	if err != nil {
 		return fmt.Errorf("failed to load session: %w", err)
 	}

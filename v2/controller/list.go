@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/cli/v2/nhostclient/graphql"
+	"github.com/nhost/cli/v2/system"
 	"github.com/nhost/cli/v2/tui"
 )
 
@@ -49,8 +50,8 @@ func list(p Printer, workspaces []*graphql.GetWorkspacesApps_Workspaces) error {
 	return nil
 }
 
-func List(ctx context.Context, p Printer, cl NhostClient) error {
-	session, err := LoadSession(ctx, p, cl)
+func List(ctx context.Context, p Printer, cl NhostClient, fs *system.PathStructure) error {
+	session, err := LoadSession(ctx, p, cl, fs)
 	if err != nil {
 		return fmt.Errorf("failed to load session: %w", err)
 	}

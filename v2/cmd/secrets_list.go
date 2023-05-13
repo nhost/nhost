@@ -11,8 +11,13 @@ func secretsListCmd() *cobra.Command {
 		Use:   "list",
 		Short: "List all secrets",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			fs, err := getFolders(cmd.Parent())
+			if err != nil {
+				return err
+			}
+
 			cl := nhostclient.New(cmd.Flag(flagDomain).Value.String())
-			return controller.SecretsList(cmd.Context(), cmd, cl) //nolint:wrapcheck
+			return controller.SecretsList(cmd.Context(), cmd, cl, fs) //nolint:wrapcheck
 		},
 	}
 }

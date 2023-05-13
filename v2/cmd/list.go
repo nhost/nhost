@@ -15,8 +15,13 @@ func listCmd() *cobra.Command {
 		Long: `Fetch the list of remote personal and team apps
 for the logged in user from Nhost console.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			fs, err := getFolders(cmd.Parent())
+			if err != nil {
+				return err
+			}
+
 			cl := nhostclient.New(cmd.Flag(flagDomain).Value.String())
-			return controller.List(cmd.Context(), cmd, cl) //nolint:wrapcheck
+			return controller.List(cmd.Context(), cmd, cl, fs) //nolint:wrapcheck
 		},
 	}
 }

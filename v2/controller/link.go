@@ -51,9 +51,9 @@ func confirmApp(app *graphql.GetWorkspacesApps_Workspaces_Apps, p Printer) error
 }
 
 func Link(
-	ctx context.Context, p Printer, cl NhostClient,
+	ctx context.Context, p Printer, cl NhostClient, fs *system.PathStructure,
 ) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
-	session, err := LoadSession(ctx, p, cl)
+	session, err := LoadSession(ctx, p, cl, fs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session: %w", err)
 	}
@@ -89,11 +89,11 @@ func Link(
 		return nil, err
 	}
 
-	if err := os.MkdirAll(system.PathDotNhost(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(fs.DotNhostFolder(), 0o755); err != nil { //nolint:gomnd
 		return nil, fmt.Errorf("failed to create .nhost folder: %w", err)
 	}
 
-	if err := MarshalFile(app, system.PathProject(), json.Marshal); err != nil {
+	if err := MarshalFile(app, fs.ProjectFile(), json.Marshal); err != nil {
 		return nil, fmt.Errorf("failed to marshal project information: %w", err)
 	}
 

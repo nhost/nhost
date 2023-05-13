@@ -15,10 +15,11 @@ func Logout(
 	ctx context.Context,
 	p Printer,
 	cl NhostClient,
+	fs *system.PathStructure,
 ) error {
 	p.Println(tui.Info("Retrieving credentials from local storage"))
 	var creds credentials.Credentials
-	err := UnmarshalFile(system.PathAuthFile(), &creds, json.Unmarshal)
+	err := UnmarshalFile(fs.AuthFile(), &creds, json.Unmarshal)
 	switch {
 	case errors.Is(err, ErrNoContent):
 		p.Println(tui.Info("No credentials found in local storage"))

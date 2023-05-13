@@ -22,13 +22,16 @@ func logincCmd() *cobra.Command {
 		SuggestFor: []string{"logout"},
 		Short:      "Log in to your Nhost account",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			var err error
+			fs, err := getFolders(cmd.Parent())
+			if err != nil {
+				return err
+			}
 
 			email := cmd.Flag(flagEmail).Value.String()
 			password := cmd.Flag(flagPassword).Value.String()
 
 			cl := nhostclient.New(cmd.Flag(flagDomain).Value.String())
-			_, err = controller.Login(cmd.Context(), cmd, cl, email, password)
+			_, err = controller.Login(cmd.Context(), cmd, cl, email, password, fs)
 			return err //nolint:wrapcheck
 		},
 	}

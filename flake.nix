@@ -31,6 +31,28 @@
               };
             };
 
+            hasura-cli = prev.hasura-cli.override {
+              buildGoModule = args: final.buildGoModule (args // rec {
+                version = "2.24.1";
+                src = final.fetchFromGitHub {
+                  owner = "hasura";
+                  repo = "graphql-engine";
+                  rev = "v${version}";
+                  sha256 = "sha256-/hGGjLEZ3czKpyisdpqvrKYMLEa0bFaNZCwo4FDJfgQ=";
+                };
+
+                ldflags = [
+                  "-X github.com/hasura/graphql-engine/cli/v2/version.BuildVersion=${version}"
+                  "-X github.com/hasura/graphql-engine/cli/v2/plugins.IndexBranchRef=master"
+                  "-s"
+                  "-w"
+                  "-extldflags"
+                  "\"-static\""
+                ];
+                vendorSha256 = "sha256-vZKPVQ/FTHnEBsRI5jOT6qm7noGuGukWpmrF8fK0Mgs=";
+              });
+            };
+
             golangci-lint = prev.golangci-lint.override rec {
               buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
                 version = "1.52.2";
@@ -115,6 +137,8 @@
               gqlgenc
               gofumpt
               golines
+              hasura-cli
+              docker-compose
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };

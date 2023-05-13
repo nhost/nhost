@@ -14,15 +14,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const hasuraVersion = 3
+const hasuraMetadataVersion = 3
 
-func initFolders() error {
+func initFolders(fs *system.PathStructure) error {
 	folders := []string{
-		system.PathDotNhost(),
-		filepath.Join(system.PathNhost(), "migrations"),
-		filepath.Join(system.PathNhost(), "metadata"),
-		filepath.Join(system.PathNhost(), "seeds"),
-		filepath.Join(system.PathNhost(), "emails"),
+		fs.DotNhostFolder(),
+		fs.FunctionsFolder(),
+		filepath.Join(fs.NhostFolder(), "migrations"),
+		filepath.Join(fs.NhostFolder(), "metadata"),
+		filepath.Join(fs.NhostFolder(), "seeds"),
+		filepath.Join(fs.NhostFolder(), "emails"),
 	}
 	for _, f := range folders {
 		if err := os.MkdirAll(f, 0o755); err != nil { //nolint:gomnd
@@ -34,14 +35,14 @@ func initFolders() error {
 }
 
 func initInit(
-	ctx context.Context,
+	ctx context.Context, fs *system.PathStructure,
 ) error {
-	hasuraConf := map[string]any{"version": hasuraVersion}
-	if err := MarshalFile(hasuraConf, system.PathHasura(), yaml.Marshal); err != nil {
+	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
+	if err := MarshalFile(hasuraConf, fs.HasuraConfig(), yaml.Marshal); err != nil {
 		return fmt.Errorf("failed to save hasura config: %w", err)
 	}
 
-	if err := initFolders(); err != nil {
+	if err := initFolders(fs); err != nil {
 		return err
 	}
 
@@ -51,7 +52,7 @@ func initInit(
 	}
 	defer gitingoref.Close()
 
-	if err := system.AddToGitignore(system.PathSecrets()); err != nil {
+	if err := system.AddToGitignore(fs.Secrets()); err != nil {
 		return fmt.Errorf("failed to add secrets to .gitignore: %w", err)
 	}
 
@@ -72,19 +73,19 @@ func initInit(
 	return nil
 }
 
-func Init(ctx context.Context) error {
+func Init(ctx context.Context, fs *system.PathStructure) error {
 	config, err := project.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("failed to create default config: %w", err)
 	}
-	if err := MarshalFile(config, system.PathConfig(), toml.Marshal); err != nil {
+	if err := MarshalFile(config, fs.NhostToml(), toml.Marshal); err != nil {
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 
 	secrets := project.DefaultSecrets()
-	if err := MarshalFile(secrets, system.PathSecrets(), env.Marshal); err != nil {
+	if err := MarshalFile(secrets, fs.Secrets(), env.Marshal); err != nil {
 		return fmt.Errorf("failed to save secrets: %w", err)
 	}
 
-	return initInit(ctx)
+	return initInit(ctx, fs)
 }

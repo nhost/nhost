@@ -50,7 +50,8 @@ func configPull(
 	cl NhostClient,
 	proj *graphql.GetWorkspacesApps_Workspaces_Apps,
 	session credentials.Session,
-) error {
+	fs *system.PathStructure,
+) (*model.ConfigConfig, error) {
 	p.Println(tui.Info("Pulling config from Nhost..."))
 	cfg, err := cl.GetConfigRawJSON(
 		ctx,
@@ -58,36 +59,36 @@ func configPull(
 		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get config: %w", err)
+		return nil, fmt.Errorf("failed to get config: %w", err)
 	}
 
 	var v model.ConfigConfig
 	if err := json.Unmarshal([]byte(cfg.ConfigRawJSON), &v); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	if err := os.MkdirAll(system.PathNhost(), 0o755); err != nil { //nolint:gomnd
-		return fmt.Errorf("failed to create nhost directory: %w", err)
+	if err := os.MkdirAll(fs.NhostFolder(), 0o755); err != nil { //nolint:gomnd
+		return nil, fmt.Errorf("failed to create nhost directory: %w", err)
 	}
 
-	if err := MarshalFile(v, system.PathConfig(), toml.Marshal); err != nil {
-		return fmt.Errorf("failed to save nhost.toml: %w", err)
+	if err := MarshalFile(v, fs.NhostToml(), toml.Marshal); err != nil {
+		return nil, fmt.Errorf("failed to save nhost.toml: %w", err)
 	}
 
 	p.Println(tui.Info("Getting secrets list from Nhost..."))
 	resp, err := cl.GetSecrets(ctx, proj.ID, graphql.WithAccessToken(session.Session.AccessToken))
 	if err != nil {
-		return fmt.Errorf("failed to get secrets: %w", err)
+		return nil, fmt.Errorf("failed to get secrets: %w", err)
 	}
 
 	secrets := respToSecrets(resp.GetAppSecrets(), true)
-	if err := MarshalFile(&secrets, system.PathSecrets(), env.Marshal); err != nil {
-		return fmt.Errorf("failed to save nhost.toml: %w", err)
+	if err := MarshalFile(&secrets, fs.Secrets(), env.Marshal); err != nil {
+		return nil, fmt.Errorf("failed to save nhost.toml: %w", err)
 	}
 
 	p.Println(tui.Info("Adding .secrets to .gitignore..."))
 	if err := system.AddToGitignore("\n.secrets\n"); err != nil {
-		return fmt.Errorf("failed to add .secrets to .gitignore: %w", err)
+		return nil, fmt.Errorf("failed to add .secrets to .gitignore: %w", err)
 	}
 
 	p.Println(tui.Info("Success!"))
@@ -99,23 +100,25 @@ func configPull(
 	p.Println(tui.Warn("- Review `.secrets` file and set your development secrets"))
 	p.Println(tui.Warn("- Review `.secrets` was added to .gitignore"))
 
-	return nil
+	return &v, nil
 }
 
 func ConfigPull(
 	ctx context.Context,
 	p Printer,
 	cl NhostClient,
+	fs *system.PathStructure,
 ) error {
-	proj, err := GetAppInfo(ctx, p, cl)
+	proj, err := GetAppInfo(ctx, p, cl, fs)
 	if err != nil {
 		return err
 	}
 
-	session, err := LoadSession(ctx, p, cl)
+	session, err := LoadSession(ctx, p, cl, fs)
 	if err != nil {
 		return fmt.Errorf("failed to load session: %w", err)
 	}
 
-	return configPull(ctx, p, cl, proj, session)
+	_, err = configPull(ctx, p, cl, proj, session, fs)
+	return err
 }

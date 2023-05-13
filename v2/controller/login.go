@@ -16,6 +16,7 @@ func Login(
 	cl NhostClient,
 	email string,
 	password string,
+	fs *system.PathStructure,
 ) (credentials.Credentials, error) {
 	var err error
 
@@ -50,7 +51,7 @@ func Login(
 	p.Println(tui.Info("Successfully created PAT"))
 	p.Println(tui.Info("Storing PAT for future user"))
 
-	if err := MarshalFile(session, system.PathAuthFile(), json.Marshal); err != nil {
+	if err := MarshalFile(session, fs.AuthFile(), json.Marshal); err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to write PAT to file: %w", err)
 	}
 

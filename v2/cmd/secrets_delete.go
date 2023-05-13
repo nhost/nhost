@@ -12,8 +12,13 @@ func secretsDeleteCmd() *cobra.Command {
 		Short: "Delete a secret",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fs, err := getFolders(cmd.Parent())
+			if err != nil {
+				return err
+			}
+
 			cl := nhostclient.New(cmd.Flag(flagDomain).Value.String())
-			return controller.SecretsDelete(cmd.Context(), cmd, cl, args[0]) //nolint:wrapcheck
+			return controller.SecretsDelete(cmd.Context(), cmd, cl, args[0], fs) //nolint:wrapcheck
 		},
 	}
 }

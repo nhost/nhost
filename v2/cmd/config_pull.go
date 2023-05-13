@@ -36,16 +36,21 @@ func configPullCmd() *cobra.Command {
 		Use:  "pull",
 		Long: `Get cloud configuration`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if err := verifyFile(cmd, system.PathConfig()); err != nil {
+			fs, err := getFolders(cmd.Parent())
+			if err != nil {
 				return err
 			}
-			if err := verifyFile(cmd, system.PathSecrets()); err != nil {
+
+			if err := verifyFile(cmd, fs.NhostToml()); err != nil {
+				return err
+			}
+			if err := verifyFile(cmd, fs.Secrets()); err != nil {
 				return err
 			}
 
 			cl := nhostclient.New(cmd.Flag(flagDomain).Value.String())
 
-			return controller.ConfigPull(cmd.Context(), cmd, cl) //nolint:wrapcheck
+			return controller.ConfigPull(cmd.Context(), cmd, cl, fs) //nolint:wrapcheck
 		},
 	}
 }

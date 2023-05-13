@@ -14,12 +14,13 @@ func LoadSession(
 	ctx context.Context,
 	p Printer,
 	cl NhostClient,
+	fs *system.PathStructure,
 ) (credentials.Session, error) {
 	var creds credentials.Credentials
-	if err := UnmarshalFile(system.PathAuthFile(), &creds, json.Unmarshal); err != nil {
+	if err := UnmarshalFile(fs.AuthFile(), &creds, json.Unmarshal); err != nil {
 		p.Println(tui.Warn("Failed to load valid credentials: %v", err))
 		p.Println(tui.Info("Please login again"))
-		creds, err = Login(ctx, p, cl, "", "")
+		creds, err = Login(ctx, p, cl, "", "", fs)
 		if err != nil {
 			return credentials.Session{}, err
 		}
