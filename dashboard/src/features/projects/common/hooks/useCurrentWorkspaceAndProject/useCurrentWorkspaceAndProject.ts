@@ -4,6 +4,7 @@ import { ApplicationStatus } from '@/types/application';
 import { GetWorkspaceAndProjectDocument } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { useNhostClient, useUserData } from '@nhost/nextjs';
+import type { RefetchOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
@@ -28,7 +29,7 @@ export interface UseCurrentWorkspaceAndProjectReturnType {
   /**
    * Refetch the query.
    */
-  refetch: (options?: any) => Promise<any>;
+  refetch: (options?: RefetchOptions) => Promise<any>;
 }
 
 export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndProjectReturnType {

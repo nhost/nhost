@@ -13,12 +13,12 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { useApolloClient } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -38,11 +38,15 @@ export type ProjectNameValidationSchema = Yup.InferType<
 >;
 
 export default function SettingsGeneralPage() {
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const {
+    currentWorkspace,
+    currentProject,
+    loading,
+    refetch: refetchWorkspaceAndProject,
+  } = useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
   const [updateApp] = useUpdateApplicationMutation();
-  const client = useApolloClient();
   const [pauseApplication] = usePauseApplicationMutation({
     variables: { appId: currentProject?.id },
     refetchQueries: [GetAllWorkspacesAndProjectsDocument],
@@ -98,7 +102,7 @@ export default function SettingsGeneralPage() {
     });
 
     try {
-      await toast.promise(
+      const { data: updateAppData } = await toast.promise(
         updateAppMutation,
         {
           loading: `Project name is being updated...`,
@@ -109,23 +113,23 @@ export default function SettingsGeneralPage() {
         },
         getToastStyleProps(),
       );
+
+      const updateAppResult = updateAppData?.updateApp;
+
+      if (!updateAppResult) {
+        await discordAnnounce('Failed to update project name.');
+
+        return;
+      }
+
+      form.reset(undefined, { keepValues: true, keepDirty: false });
+
+      await refetchWorkspaceAndProject();
+      await router.replace(
+        `/${currentWorkspace.slug}/${updateAppResult.slug}/settings/general`,
+      );
     } catch {
       // Note: The toast will handle the error.
-    }
-
-    try {
-      form.reset(undefined, { keepValues: true, keepDirty: false });
-      await router.push(
-        `/${currentWorkspace.slug}/${newProjectSlug}/settings/general`,
-      );
-      await client.refetchQueries({
-        include: [GetAllWorkspacesAndProjectsDocument],
-      });
-    } catch (error) {
-      await discordAnnounce(
-        error.message ||
-          'An error occurred while trying to update application cache.',
-      );
     }
   }
 
@@ -159,6 +163,10 @@ export default function SettingsGeneralPage() {
     );
 
     await router.push('/');
+  }
+
+  if (loading) {
+    return <ActivityIndicator label="Loading project..." />;
   }
 
   return (
@@ -195,7 +203,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {currentProject.plan.isFree && (
+      {currentProject?.plan.isFree && (
         <SettingsContainer
           title="Pause Project"
           description="While your project is paused, it will not be accessible. You can wake it up anytime after."
