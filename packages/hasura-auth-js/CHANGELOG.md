@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.3
+
+### Patch Changes
+
+- 0d6fc421: fix(webauthn): make the call to the correct Hasura Auth endpoint
+
 ## 2.1.2
 
 ### Patch Changes

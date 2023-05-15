@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.16.11
+
+### Patch Changes
+
+- 1230b722: fix(projects): don't redirect to 404 on when the project is renamed
+  - @nhost/react-apollo@5.0.22
+  - @nhost/nextjs@1.13.24
+
 ## 0.16.10
 
 ### Patch Changes
