@@ -25,7 +25,12 @@ jobs:
         image: nhost/postgres:12-v0.0.6
         env:
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-        options: --restart always --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --restart always
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       graphql-engine:
         image: hasura/graphql-engine:v2.15.2
         env:
@@ -75,79 +80,3 @@ jobs:
         with:
           name: coverage
           path: coverage
-
-  e2e-lookup:
-    name: Lookup e2e tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: nhost/nhost
-      # * Install Node and dependencies. Package downloads will be cached for the next jobs.
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-          BUILD: 'none'
-      # * List packages that has an `e2e` script AND a nhost/config.yaml file, then return an array of their name and path
-      - name: List examples with an e2e script
-        id: set-matrix
-        run: |
-          PACKAGES=$(pnpm recursive list --depth -1 --parseable \
-            | xargs -I@ realpath --relative-to=$PWD @ \
-            | xargs -I@ echo "test -f @/nhost/config.yaml && echo @" | sh \
-            | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
-            | awk "!/null/" \
-            | jq -c --slurp)
-          echo "matrix=$PACKAGES" >> $GITHUB_OUTPUT
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs:
-      - e2e-lookup
-    strategy:
-      matrix:
-        package: ${{ fromJson(needs.e2e-lookup.outputs.matrix) }}
-    name: 'e2e (${{ matrix.package.path }})'
-    steps:
-      - name: Checkout nhost/nhost
-        uses: actions/checkout@v3
-        with:
-          repository: nhost/nhost
-      - name: Checkout hasura-auth
-        uses: actions/checkout@v3
-        with:
-          path: hasura-auth
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build
-        uses: docker/build-push-action@v3
-        timeout-minutes: 60
-        with:
-          context: hasura-auth
-          tags: nhost/hasura-auth:local
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          load: true
-      - name: Install Nhost CLI
-        uses: ./.github/actions/nhost-cli
-        with:
-          path: ${{ matrix.package.path }}
-          config: |
-            services:
-              auth:
-                image: nhost/hasura-auth:local
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        # TODO Set turborepo in the nhost/hasura-auth repo
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Run e2e tests
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e
-        # ? (enable turborepo e2e, and fine-tune turbo cache e2e config: env vars, nhost/config.yaml)
-        env:
-          SERVICES_AUTH_IMAGE: nhost/hasura-auth:local

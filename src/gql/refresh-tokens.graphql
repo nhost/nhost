@@ -1,6 +1,6 @@
 mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
   insertAuthRefreshToken(object: $refreshToken) {
-    refreshToken
+    id
   }
 }
 

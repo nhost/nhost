@@ -78,9 +78,6 @@ export const NHOST_PROJECT_METADATA: HasuraMetadataV3 = {
               expires_at: {
                 custom_name: 'expiresAt',
               },
-              refresh_token: {
-                custom_name: 'refreshToken',
-              },
               user_id: {
                 custom_name: 'userId',
               },
@@ -88,7 +85,6 @@ export const NHOST_PROJECT_METADATA: HasuraMetadataV3 = {
             custom_column_names: {
               created_at: 'createdAt',
               expires_at: 'expiresAt',
-              refresh_token: 'refreshToken',
               user_id: 'userId',
             },
             custom_name: 'authRefreshTokens',

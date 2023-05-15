@@ -1,6 +1,6 @@
 import { sendError } from '@/errors';
 import { logger } from '@/logger';
-import { getUser, gqlSdk } from '@/utils';
+import { getUser, gqlSdk, hash } from '@/utils';
 import { AuthRefreshTokenTypes_Enum } from '@/utils/__generated__/graphql-request';
 import { RequestHandler } from 'express';
 import Joi from 'joi';
@@ -47,19 +47,17 @@ export const createPATHandler: RequestHandler<
 
     const personalAccessToken = uuidv4();
 
-    await gqlSdk.insertRefreshToken({
+    const { insertAuthRefreshToken } = await gqlSdk.insertRefreshToken({
       refreshToken: {
         userId: id,
-        refreshToken: personalAccessToken,
+        refreshTokenHash: hash(personalAccessToken),
         expiresAt: new Date(expiresAt),
         metadata,
         type: AuthRefreshTokenTypes_Enum.Pat,
       },
     });
 
-    return res.send({
-      personalAccessToken,
-    });
+    return res.send({ id: insertAuthRefreshToken?.id, personalAccessToken });
   } catch (error) {
     logger.error(error);
 

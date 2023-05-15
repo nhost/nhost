@@ -697,7 +697,7 @@ export interface TableConfig {
   /**
    * Customise the column names
    */
-  custom_column_names?: { [key: string]: string };
+  custom_column_names?: { [key: string]: string | null };
   /**
    * Customise the root fields
    */

@@ -63,7 +63,7 @@ query getUsersByRefreshToken($refreshTokenHash: String!) {
       ]
     }
   ) {
-    refreshToken
+    id
     user {
       ...userFields
     }
@@ -81,7 +81,7 @@ query getUsersByPAT($patHash: String!) {
       ]
     }
   ) {
-    refreshToken
+    id
     user {
       ...userFields
     }

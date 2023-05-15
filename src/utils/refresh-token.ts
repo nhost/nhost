@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ENV } from './env';
 
 /** Hash using SHA256, and prefix with \x so it matches the Postgres hexadecimal syntax */
-const hash = (value: string) =>
+export const hash = (value: string) =>
   `\\x${crypto.createHash('sha256').update(value).digest('hex')}`;
 
 export const getUserByPAT = async (pat: string) => {
@@ -56,7 +56,7 @@ export const getNewRefreshToken = async (
   await gqlSdk.insertRefreshToken({
     refreshToken: {
       userId,
-      refreshToken,
+      refreshTokenHash: hash(refreshToken),
       expiresAt: new Date(newRefreshExpiry()),
     },
   });

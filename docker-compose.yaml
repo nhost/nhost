@@ -1,7 +1,7 @@
 version: '3.6'
 services:
   postgres:
-    image: postgres
+    image: postgres:14.6
     restart: always
     volumes:
       - ./docker/data/db:/var/lib/postgresql/data

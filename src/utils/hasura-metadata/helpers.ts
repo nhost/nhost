@@ -83,33 +83,35 @@ export const patchTableObject = (
     }
   }
   if (configuration) {
-    if (existingTable.configuration) {
-      // * Merge table configuration
-      const existingConfig = existingTable.configuration;
-
-      // * Change custom name if not already set
-      if (configuration.custom_name) {
-        existingConfig.custom_name = configuration.custom_name;
-      }
-      // * Add/replace column configurations
-      existingConfig.column_config = {
-        ...existingConfig.column_config,
-        ...configuration.column_config,
-      };
-      // * Add/replace custom column names
-      existingConfig.custom_column_names = {
-        ...existingConfig.custom_column_names,
-        ...configuration.custom_column_names,
-      };
-      // * Add/replace custom root fields
-      existingConfig.custom_root_fields = {
-        ...existingConfig.custom_root_fields,
-        ...configuration.custom_root_fields,
-      };
-    } else {
-      // * No existing configuration: use the new one
-      existingTable.configuration = tableEntry.configuration;
+    if (!existingTable.configuration) {
+      existingTable.configuration = configuration;
     }
+
+    // * Merge table configuration
+    const existingConfig = existingTable.configuration;
+
+    // * Change custom name if not already set
+    if (configuration.custom_name) {
+      existingConfig.custom_name = configuration.custom_name;
+    }
+
+    // * Add/replace column configurations
+    existingConfig.column_config = {
+      ...existingConfig.column_config,
+      ...configuration.column_config,
+    };
+
+    // * Add/replace custom column names
+    existingConfig.custom_column_names = {
+      ...existingConfig.custom_column_names,
+      ...configuration.custom_column_names,
+    };
+
+    // * Add/replace custom root fields
+    existingConfig.custom_root_fields = {
+      ...existingConfig.custom_root_fields,
+      ...configuration.custom_root_fields,
+    };
   }
 
   if (select_permissions) {
@@ -169,6 +171,52 @@ export const removeRelationship = (
   }
 };
 
+function removeColumnConfig(
+  metadata: HasuraMetadataV3,
+  targetSource: string,
+  targetTable: QualifiedTable,
+  targetColumn: string
+) {
+  const sourceObject = getSource(metadata, targetSource);
+
+  const existingTable = sourceObject.tables?.find(
+    ({ table }) =>
+      table.name === targetTable.name && table.schema === targetTable.schema
+  );
+
+  if (!existingTable || !existingTable.configuration) {
+    return;
+  }
+
+  const existingConfiguration = existingTable.configuration;
+
+  existingTable.configuration.column_config = Object.keys(
+    existingConfiguration.column_config || {}
+  ).reduce((config, currentKey) => {
+    if (currentKey === targetColumn) {
+      return config;
+    }
+
+    return {
+      ...config,
+      [currentKey]: existingConfiguration.column_config[currentKey],
+    };
+  }, {});
+
+  existingTable.configuration.custom_column_names = Object.keys(
+    existingConfiguration.custom_column_names || {}
+  ).reduce((config, currentKey) => {
+    if (currentKey === targetColumn) {
+      return config;
+    }
+
+    return {
+      ...config,
+      [currentKey]: existingConfiguration.custom_column_names?.[currentKey],
+    };
+  }, {});
+}
+
 export interface MetadataPatch {
   additions?: {
     tables?: TableEntry[];
@@ -178,6 +226,11 @@ export interface MetadataPatch {
     relationships?: {
       table: QualifiedTable;
       relationship: string;
+    }[];
+    columnConfigs?: {
+      source: string;
+      table: QualifiedTable;
+      column: string;
     }[];
   };
 }
@@ -199,6 +252,12 @@ export const patchMetadataObject = (
   if (deletions?.relationships) {
     for (const rel of deletions.relationships) {
       removeRelationship(metadata, rel.table, rel.relationship);
+    }
+  }
+
+  if (deletions?.columnConfigs) {
+    for (const config of deletions.columnConfigs) {
+      removeColumnConfig(metadata, config.source, config.table, config.column);
     }
   }
 };

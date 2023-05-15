@@ -1,4 +1,4 @@
-import { ENV } from '@/utils';
+import { ENV, hash } from '@/utils';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
@@ -78,11 +78,11 @@ describe('personal access token', () => {
       .expect(StatusCodes.OK);
 
     const { rows } = await client.query(
-      'SELECT * FROM auth.refresh_tokens WHERE refresh_token=$1;',
-      [patResponse.body?.personalAccessToken]
+      'SELECT * FROM auth.refresh_tokens WHERE refresh_token_hash=$1;',
+      [hash(patResponse.body?.personalAccessToken)]
     );
 
-    expect(rows[0].metadata).toMatchObject({ name: 'Test PAT' });
+    expect(rows[0]?.metadata).toMatchObject({ name: 'Test PAT' });
   });
 
   test('should authenticate using the PAT workflow', async () => {
@@ -101,8 +101,9 @@ describe('personal access token', () => {
       })
       .expect(StatusCodes.OK);
 
-    const { personalAccessToken } = patResponse.body;
+    const { id, personalAccessToken } = patResponse.body;
 
+    expect(id).toBeDefined();
     expect(personalAccessToken).toBeDefined();
 
     const patSignInResponse = await request
@@ -123,12 +124,12 @@ describe('personal access token', () => {
     const refreshToken = faker.datatype.uuid();
 
     await client.query(
-      'INSERT INTO auth.refresh_tokens (refresh_token, user_id, expires_at, type) VALUES ($1, $2, $3, $4);',
+      'INSERT INTO auth.refresh_tokens (user_id, expires_at, type, refresh_token_hash) VALUES ($1, $2, $3, $4);',
       [
-        refreshToken,
         user.id,
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         'regular',
+        hash(refreshToken),
       ]
     );
 
@@ -152,12 +153,12 @@ describe('personal access token', () => {
     const expiredPersonalAccessToken = faker.datatype.uuid();
 
     await client.query(
-      'INSERT INTO auth.refresh_tokens (refresh_token, user_id, expires_at, type) VALUES ($1, $2, $3, $4);',
+      'INSERT INTO auth.refresh_tokens (user_id, expires_at, type, refresh_token_hash) VALUES ($1, $2, $3, $4);',
       [
-        expiredPersonalAccessToken,
         user.id,
         new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         'pat',
+        hash(expiredPersonalAccessToken),
       ]
     );
 

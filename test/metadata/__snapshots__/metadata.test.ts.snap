@@ -83,12 +83,11 @@ Object {
         },
         Object {
           "configuration": Object {
+            "column_config": Object {},
             "custom_column_names": Object {
               "created_at": "createdAt",
               "expires_at": "expiresAt",
-              "refresh_token": "refreshToken",
               "refresh_token_hash": "refreshTokenHash",
-              "type": "type",
               "user_id": "userId",
             },
             "custom_name": "authRefreshTokens",
@@ -127,12 +126,6 @@ Object {
           ],
           "object_relationships": Array [
             Object {
-              "name": "refreshTokenType",
-              "using": Object {
-                "foreign_key_constraint_on": "type",
-              },
-            },
-            Object {
               "name": "user",
               "using": Object {
                 "foreign_key_constraint_on": "user_id",
@@ -143,6 +136,7 @@ Object {
             Object {
               "permission": Object {
                 "columns": Array [
+                  "id",
                   "created_at",
                   "expires_at",
                   "metadata",

@@ -78,21 +78,13 @@ export const hasuraAuthMetadataPatch: MetadataPatch = {
             delete_by_pk: 'deleteAuthRefreshToken',
           },
           custom_column_names: {
-            refresh_token: 'refreshToken',
             refresh_token_hash: 'refreshTokenHash',
-            type: 'type',
             created_at: 'createdAt',
             expires_at: 'expiresAt',
             user_id: 'userId',
           },
         },
         object_relationships: [
-          {
-            name: 'refreshTokenType',
-            using: {
-              foreign_key_constraint_on: 'type',
-            },
-          },
           {
             name: 'user',
             using: {
@@ -105,6 +97,7 @@ export const hasuraAuthMetadataPatch: MetadataPatch = {
             role: 'user',
             permission: {
               columns: [
+                'id',
                 'created_at',
                 'expires_at',
                 'metadata',
@@ -437,6 +430,13 @@ export const hasuraAuthMetadataPatch: MetadataPatch = {
     tables: [{ name: 'user_authenticators', schema }],
     relationships: [
       { table: { name: 'users', schema }, relationship: 'authenticators' },
+    ],
+    columnConfigs: [
+      {
+        source: 'default',
+        table: { name: 'refresh_tokens', schema },
+        column: 'refresh_token',
+      },
     ],
   },
 };
