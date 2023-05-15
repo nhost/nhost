@@ -8,6 +8,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/ssl"
+	"golang.org/x/mod/semver"
 )
 
 const (
@@ -18,6 +19,10 @@ const (
 	hasuraPort    = 8080
 	consolePort   = 9695
 	migratePort   = 1337
+)
+
+const (
+	minimumHasuraVerson = "v2.18.0"
 )
 
 func ptr[T any](v T) *T {
@@ -548,6 +553,10 @@ func console( //nolint:funlen
 	useTLS bool,
 	nhostFolder string,
 ) (*Service, error) {
+	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
+		return nil, fmt.Errorf("hasura version must be at least %s", minimumHasuraVerson) //nolint:goerr113
+	}
+
 	graphql, err := graphql(cfg, useTLS)
 	if err != nil {
 		return nil, err
@@ -730,7 +739,7 @@ func functions( //nolint:funlen
 				Target: "/opt/project/functions/node_modules",
 			},
 		},
-		WorkingDir: new(string),
+		WorkingDir: nil,
 	}
 }
 

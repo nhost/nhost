@@ -9,7 +9,7 @@ builds:
       - "arm64"
       - "amd64"
     ldflags:
-      - -s -w -X "github.com/nhost/cli/cmd.Version=v{{.Version}}"
+      - -s -w -X "main.Version=v{{.Version}}"
     ignore:
       - goos: windows
         goarch: arm64

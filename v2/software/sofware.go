@@ -72,30 +72,29 @@ func (mgr *Manager) LatestRelease(ctx context.Context) (Release, error) {
 	return mgr.cache[0], nil
 }
 
-func (mgr *Manager) DownloadAsset(ctx context.Context, url string) (io.Reader, error) {
+func (mgr *Manager) DownloadAsset(ctx context.Context, url string, dst io.Writer) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	resp, err := mgr.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download release: %w", err)
+		return fmt.Errorf("failed to download release: %w", err)
 	}
 	defer resp.Body.Close()
 
-	g, err := extractTarGz(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to extract tarball: %w", err)
+	if err := extractTarGz(resp.Body, dst); err != nil {
+		return fmt.Errorf("failed to extract tarball: %w", err)
 	}
 
-	return g, nil
+	return nil
 }
 
-func extractTarGz(gzipStream io.Reader) (io.Reader, error) {
+func extractTarGz(gzipStream io.Reader, dst io.Writer) error {
 	uncompressedStream, err := gzip.NewReader(gzipStream)
 	if err != nil {
-		return nil, fmt.Errorf("gzip reader failed: %w", err)
+		return fmt.Errorf("gzip reader failed: %w", err)
 	}
 
 	tarReader := tar.NewReader(uncompressedStream)
@@ -108,19 +107,22 @@ func extractTarGz(gzipStream io.Reader) (io.Reader, error) {
 		}
 
 		if err != nil {
-			return nil, fmt.Errorf("tar reader failed: %w", err)
+			return fmt.Errorf("tar reader failed: %w", err)
 		}
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			return nil, fmt.Errorf( //nolint:goerr113
+			return fmt.Errorf( //nolint:goerr113
 				"expected a file inside tarball, found a directory instead",
 			)
 		case tar.TypeReg:
-			return tarReader, nil
+			if _, err := io.Copy(dst, tarReader); err != nil { //nolint:gosec
+				return fmt.Errorf("failed to copy file: %w", err)
+			}
+			return nil
 
 		default:
-			return nil, fmt.Errorf( //nolint:goerr113
+			return fmt.Errorf( //nolint:goerr113
 				"unknown type: %b in %s",
 				header.Typeflag,
 				header.Name,
@@ -128,5 +130,5 @@ func extractTarGz(gzipStream io.Reader) (io.Reader, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("no file found in tarball") //nolint:goerr113
+	return fmt.Errorf("no file found in tarball") //nolint:goerr113
 }

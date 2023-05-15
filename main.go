@@ -1,32 +1,57 @@
-/*
-MIT License
-
-# Copyright (c) Nhost
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 package main
 
 import (
-	"github.com/nhost/cli/cmd"
+	"errors"
+	"log"
+	"os"
+
+	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/nhost/cli/clienv"
+	"github.com/nhost/cli/cmd/config"
+	"github.com/nhost/cli/cmd/dev"
+	"github.com/nhost/cli/cmd/project"
+	"github.com/nhost/cli/cmd/secrets"
+	"github.com/nhost/cli/cmd/software"
+	"github.com/nhost/cli/cmd/user"
+	"github.com/urfave/cli/v2"
 )
 
+var Version string
+
 func main() {
-	cmd.Execute()
+	flags, err := clienv.Flags()
+	if err != nil {
+		panic(err)
+	}
+
+	app := &cli.App{ //nolint: exhaustruct
+		Name:                 "nhost",
+		EnableBashCompletion: true,
+		Version:              Version,
+		Description:          "Nhost CLI tool",
+		Commands: []*cli.Command{
+			config.Command(),
+			dev.Command(),
+			project.Command(),
+			secrets.Command(),
+			software.Command(),
+			user.Command(),
+		},
+		Metadata: map[string]any{
+			"Author":  "Nhost",
+			"LICENSE": "MIT",
+		},
+		Flags: flags,
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		var graphqlErr *clientv2.ErrorResponse
+
+		switch {
+		case errors.As(err, &graphqlErr):
+			log.Fatal(graphqlErr.GqlErrors)
+		case err != nil:
+			log.Fatal(err)
+		}
+	}
 }
