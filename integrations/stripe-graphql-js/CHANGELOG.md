@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.3
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+
 ## 1.0.2
 
 ### Patch Changes

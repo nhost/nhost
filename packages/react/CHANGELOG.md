@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 2.0.17
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+- Updated dependencies [da03bf39]
+  - @nhost/nhost-js@2.2.3
+
 ## 2.0.16
 
 ### Patch Changes

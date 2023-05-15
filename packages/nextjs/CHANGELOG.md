@@ -1,5 +1,13 @@
 # @nhost/nextjs
 
+## 1.13.23
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+- Updated dependencies [da03bf39]
+  - @nhost/react@2.0.17
+
 ## 1.13.22
 
 ### Patch Changes
