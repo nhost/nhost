@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 5.2.5
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+- Updated dependencies [da03bf39]
+  - @nhost/nhost-js@2.2.3
+
 ## 5.2.4
 
 ### Patch Changes

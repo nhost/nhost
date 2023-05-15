@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.2
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+
 ## 0.1.1
 
 ### Patch Changes

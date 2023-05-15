@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.10
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+
 ## 0.1.9
 
 ### Patch Changes
