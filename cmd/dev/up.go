@@ -21,7 +21,6 @@ const (
 	flagHTTPPort     = "http-port"
 	flagDisableTLS   = "disable-tls"
 	flagPostgresPort = "postgres-port"
-	flagProjectName  = "project-name"
 )
 
 const (
@@ -54,12 +53,6 @@ func CommandUp() *cli.Command {
 				Value:   defaultPostgresPort,
 				EnvVars: []string{"NHOST_POSTGRES_PORT"},
 			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagProjectName,
-				Usage:   "Project name",
-				Value:   "nhost",
-				EnvVars: []string{"NHOST_PROJECT_NAME"},
-			},
 		},
 	}
 }
@@ -67,19 +60,21 @@ func CommandUp() *cli.Command {
 func commandUp(cCtx *cli.Context) error {
 	ce := clienv.New(cCtx)
 
+	// projname to be root directory
+
 	if !clienv.PathExists(ce.Path.NhostToml()) {
 		return fmt.Errorf( //nolint:goerr113
-			"no nhost project found, please run `nhost init`",
+			"no nhost project found, please run `nhost project init` or `nhost config pull`",
 		)
 	}
 	if !clienv.PathExists(ce.Path.Secrets()) {
-		return fmt.Errorf("no secrets found, please run `nhost init`") //nolint:goerr113
+		return fmt.Errorf("no secrets found, please run `nhost project init` or `nhost config pull`") //nolint:goerr113
 	}
 
 	return Up(
 		cCtx.Context,
 		ce,
-		cCtx.String(flagProjectName),
+		ce.ProjectName(),
 		cCtx.Uint(flagHTTPPort),
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
@@ -160,7 +155,7 @@ func up(
 		ce.Path.DataFolder(),
 		ce.Path.NhostFolder(),
 		ce.Path.DotNhostFolder(),
-		ce.Path.FunctionsFolder(),
+		ce.Path.Root(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)

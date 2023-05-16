@@ -121,7 +121,6 @@ func initInit(
 func initFolders(fs *clienv.PathStructure) error {
 	folders := []string{
 		fs.DotNhostFolder(),
-		fs.FunctionsFolder(),
 		filepath.Join(fs.NhostFolder(), "migrations", "default"),
 		filepath.Join(fs.NhostFolder(), "metadata"),
 		filepath.Join(fs.NhostFolder(), "seeds"),

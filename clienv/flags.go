@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	flagDomain          = "domain"
-	flagRootFolder      = "root-folder"
-	flagDataFolder      = "data-folder"
-	flagNhostFolder     = "nhost-folder"
-	flagDotNhostFolder  = "dot-nhost-folder"
-	flagFunctionsFolder = "functions-folder"
+	flagDomain         = "domain"
+	flagProjectName    = "project-name"
+	flagRootFolder     = "root-folder"
+	flagDataFolder     = "data-folder"
+	flagNhostFolder    = "nhost-folder"
+	flagDotNhostFolder = "dot-nhost-folder"
 )
 
 func getGitBranchName() string {
@@ -41,7 +41,6 @@ func Flags() ([]cli.Flag, error) {
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
 	dataFolder := filepath.Join(dotNhostFolder, "data", getGitBranchName())
 	nhostFolder := filepath.Join(workingDir, "nhost")
-	functionsFolder := filepath.Join(workingDir, "functions")
 
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
@@ -80,11 +79,10 @@ func Flags() ([]cli.Flag, error) {
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:     flagFunctionsFolder,
-			Usage:    "Path to functions folder\n\t",
-			EnvVars:  []string{"NHOST_FUNCTIONS_FOLDER"},
-			Value:    functionsFolder,
-			Category: "Project structure",
+			Name:    flagProjectName,
+			Usage:   "Project name",
+			Value:   filepath.Base(workingDir),
+			EnvVars: []string{"NHOST_PROJECT_NAME"},
 		},
 	}, nil
 }

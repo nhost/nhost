@@ -6,22 +6,20 @@ import (
 )
 
 type PathStructure struct {
-	root            string
-	dotNhostFolder  string
-	dataFolder      string
-	functionsFolder string
-	nhostFolder     string
+	root           string
+	dotNhostFolder string
+	dataFolder     string
+	nhostFolder    string
 }
 
 func NewPathStructure(
-	root, dotNhostFolder, dataFolder, functionsFolder, nhostFolder string,
+	root, dotNhostFolder, dataFolder, nhostFolder string,
 ) *PathStructure {
 	return &PathStructure{
-		root:            root,
-		dotNhostFolder:  dotNhostFolder,
-		dataFolder:      dataFolder,
-		functionsFolder: functionsFolder,
-		nhostFolder:     nhostFolder,
+		root:           root,
+		dotNhostFolder: dotNhostFolder,
+		dataFolder:     dataFolder,
+		nhostFolder:    nhostFolder,
 	}
 }
 
@@ -39,10 +37,6 @@ func (p PathStructure) DotNhostFolder() string {
 
 func (p PathStructure) DataFolder() string {
 	return p.dataFolder
-}
-
-func (p PathStructure) FunctionsFolder() string {
-	return p.functionsFolder
 }
 
 func (p PathStructure) NhostFolder() string {

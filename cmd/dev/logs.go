@@ -8,18 +8,11 @@ import (
 
 func CommandLogs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:    "logs",
-		Aliases: []string{},
-		Usage:   "Show logs from local development environment",
-		Action:  commandLogs,
-		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagProjectName,
-				Usage:   "Project name",
-				Value:   "nhost",
-				EnvVars: []string{"NHOST_PROJECT_NAME"},
-			},
-		},
+		Name:            "logs",
+		Aliases:         []string{},
+		Usage:           "Show logs from local development environment",
+		Action:          commandLogs,
+		Flags:           []cli.Flag{},
 		SkipFlagParsing: true,
 	}
 }
@@ -27,7 +20,7 @@ func CommandLogs() *cli.Command {
 func commandLogs(cCtx *cli.Context) error {
 	ce := clienv.New(cCtx)
 
-	dc := dockercompose.New(ce.Path.DockerCompose(), cCtx.String(flagProjectName))
+	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := dc.Logs(cCtx.Context, cCtx.Args().Slice()...); err != nil {
 		ce.Warnln("%s", err)

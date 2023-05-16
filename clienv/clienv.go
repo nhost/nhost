@@ -12,11 +12,12 @@ import (
 )
 
 type CliEnv struct {
-	stdout   io.Writer
-	stderr   io.Writer
-	Path     *PathStructure
-	domain   string
-	nhclient *nhostclient.Client
+	stdout      io.Writer
+	stderr      io.Writer
+	Path        *PathStructure
+	domain      string
+	nhclient    *nhostclient.Client
+	projectName string
 }
 
 func New(cCtx *cli.Context) *CliEnv {
@@ -27,12 +28,16 @@ func New(cCtx *cli.Context) *CliEnv {
 			cCtx.String(flagRootFolder),
 			cCtx.String(flagDotNhostFolder),
 			cCtx.String(flagDataFolder),
-			cCtx.String(flagFunctionsFolder),
 			cCtx.String(flagNhostFolder),
 		),
-		domain:   cCtx.String(flagDomain),
-		nhclient: nil,
+		domain:      cCtx.String(flagDomain),
+		projectName: cCtx.String(flagProjectName),
+		nhclient:    nil,
 	}
+}
+
+func (ce *CliEnv) ProjectName() string {
+	return ce.projectName
 }
 
 func (ce *CliEnv) Domain() string {

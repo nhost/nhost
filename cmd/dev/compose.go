@@ -8,24 +8,17 @@ import (
 
 func CommandCompose() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:    "compose",
-		Aliases: []string{},
-		Usage:   "docker-compose wrapper, sets project name and compose file automatically",
-		Action:  commandCompose,
-		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagProjectName,
-				Usage:   "Project name",
-				Value:   "nhost",
-				EnvVars: []string{"NHOST_PROJECT_NAME"},
-			},
-		},
+		Name:            "compose",
+		Aliases:         []string{},
+		Usage:           "docker-compose wrapper, sets project name and compose file automatically",
+		Action:          commandCompose,
+		Flags:           []cli.Flag{},
 		SkipFlagParsing: true,
 	}
 }
 
 func commandCompose(cCtx *cli.Context) error {
 	ce := clienv.New(cCtx)
-	dc := dockercompose.New(ce.Path.DockerCompose(), cCtx.String(flagProjectName))
+	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
 	return dc.Wrapper(cCtx.Context, cCtx.Args().Slice()...) //nolint:wrapcheck
 }

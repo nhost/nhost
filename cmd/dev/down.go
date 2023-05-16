@@ -12,21 +12,14 @@ func CommandDown() *cli.Command {
 		Aliases: []string{},
 		Usage:   "Stop local development environment",
 		Action:  commandDown,
-		Flags: []cli.Flag{
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagProjectName,
-				Usage:   "Project name",
-				Value:   "nhost",
-				EnvVars: []string{"NHOST_PROJECT_NAME"},
-			},
-		},
+		Flags:   []cli.Flag{},
 	}
 }
 
 func commandDown(cCtx *cli.Context) error {
 	ce := clienv.New(cCtx)
 
-	dc := dockercompose.New(ce.Path.DockerCompose(), cCtx.String(flagProjectName))
+	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := dc.Stop(cCtx.Context); err != nil {
 		ce.Warnln("failed to stop Nhost development environment: %s", err)

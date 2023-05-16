@@ -501,6 +501,9 @@ func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:
 			"postgres": {
 				Condition: "service_healthy",
 			},
+			"functions": {
+				Condition: "service_healthy",
+			},
 		},
 		EntryPoint:  nil,
 		Command:     nil,
@@ -678,7 +681,7 @@ func dashboard(cfg *model.ConfigConfig, useTLS bool) *Service {
 func functions( //nolint:funlen
 	cfg *model.ConfigConfig,
 	useTLS bool,
-	functionsFolder string,
+	rootFolder string,
 ) *Service {
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
@@ -728,7 +731,7 @@ func functions( //nolint:funlen
 		Volumes: []Volume{
 			{
 				Type:   "bind",
-				Source: functionsFolder,
+				Source: rootFolder,
 				Target: "/opt/project/functions",
 			},
 			{
@@ -755,7 +758,7 @@ func ComposeFileFromConfig(
 	dataFolder string,
 	nhostFolder string,
 	dotNhostFolder string,
-	functionsFolder string,
+	rootFolder string,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
@@ -788,7 +791,7 @@ func ComposeFileFromConfig(
 			"auth":      auth(cfg, useTLS, nhostFolder),
 			"console":   console,
 			"dashboard": dashboard(cfg, useTLS),
-			"functions": functions(cfg, useTLS, functionsFolder),
+			"functions": functions(cfg, useTLS, rootFolder),
 			"graphql":   graphql,
 			"minio":     minio,
 			"postgres":  postgres,
