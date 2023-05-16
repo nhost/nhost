@@ -50,6 +50,9 @@ mutation getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt(
     }
   ) {
     affected_rows
+    returning {
+      id
+    }
   }
 }
 

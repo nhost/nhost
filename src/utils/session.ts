@@ -1,12 +1,12 @@
-import { v4 as uuidv4 } from 'uuid';
 import { Session, SignInResponse } from '@/types';
-import { gqlSdk } from './gql-sdk';
-import { generateTicketExpiresAt } from './ticket';
+import { v4 as uuidv4 } from 'uuid';
+import { UserFieldsFragment } from './__generated__/graphql-request';
 import { ENV } from './env';
+import { gqlSdk } from './gql-sdk';
 import { createHasuraAccessToken } from './jwt';
 import { getNewRefreshToken, updateRefreshTokenExpiry } from './refresh-token';
+import { generateTicketExpiresAt } from './ticket';
 import { getUser } from './user';
-import { UserFieldsFragment } from './__generated__/graphql-request';
 
 /**
  * Get new or update current user session
@@ -30,7 +30,7 @@ export const getNewOrUpdateCurrentSession = async ({
   });
   const sessionUser = await getUser({ userId: user.id });
   const accessToken = await createHasuraAccessToken(user);
-  const refreshToken =
+  const { refreshToken, id: refreshTokenId } =
     (currentRefreshToken &&
       (await updateRefreshTokenExpiry(currentRefreshToken))) ||
     (await getNewRefreshToken(user.id));
@@ -38,6 +38,7 @@ export const getNewOrUpdateCurrentSession = async ({
     accessToken,
     accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
     refreshToken,
+    refreshTokenId,
     user: sessionUser,
   };
 };

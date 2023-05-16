@@ -81,6 +81,7 @@ export type Session = {
   accessToken: string;
   accessTokenExpiresIn: number;
   refreshToken: string;
+  refreshTokenId: string;
   user?: User;
 };
 

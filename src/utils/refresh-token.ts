@@ -41,24 +41,29 @@ const newRefreshExpiry = () => {
 };
 
 export const updateRefreshTokenExpiry = async (refreshToken: string) => {
-  await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
-    refreshTokenHash: hash(refreshToken),
-    expiresAt: new Date(newRefreshExpiry()),
-  });
+  const { updateAuthRefreshTokens } =
+    await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
+      refreshTokenHash: hash(refreshToken),
+      expiresAt: new Date(newRefreshExpiry()),
+    });
 
-  return refreshToken;
+  return { refreshToken, id: updateAuthRefreshTokens?.returning[0]?.id };
 };
 
 export const getNewRefreshToken = async (
   userId: string,
   refreshToken = uuidv4()
 ) => {
-  await gqlSdk.insertRefreshToken({
+  const { insertAuthRefreshToken } = await gqlSdk.insertRefreshToken({
     refreshToken: {
       userId,
       refreshTokenHash: hash(refreshToken),
       expiresAt: new Date(newRefreshExpiry()),
     },
   });
-  return refreshToken;
+
+  return {
+    id: insertAuthRefreshToken?.id,
+    refreshToken,
+  };
 };

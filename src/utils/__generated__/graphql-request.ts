@@ -4037,7 +4037,7 @@ export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariable
 }>;
 
 
-export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
+export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'authRefreshTokens', id: any }> } | null };
 
 export type GetUsersByRefreshTokenQueryVariables = Exact<{
   refreshTokenHash: Scalars['String'];
@@ -4336,6 +4336,9 @@ export const GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtDocument = gql`
     where: {_and: [{refreshTokenHash: {_eq: $refreshTokenHash}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}
   ) {
     affected_rows
+    returning {
+      id
+    }
   }
 }
     `;

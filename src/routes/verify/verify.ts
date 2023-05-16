@@ -1,13 +1,13 @@
-import { RequestHandler } from 'express';
+import { sendError } from '@/errors';
+import { EMAIL_TYPES, EmailType } from '@/types';
 import {
-  getNewRefreshToken,
-  gqlSdk,
   generateRedirectUrl,
+  getNewRefreshToken,
   getUserByEmail,
+  gqlSdk,
 } from '@/utils';
 import { Joi, redirectTo } from '@/validation';
-import { sendError } from '@/errors';
-import { EmailType, EMAIL_TYPES } from '@/types';
+import { RequestHandler } from 'express';
 
 export const verifySchema = Joi.object({
   redirectTo: redirectTo.required(),
@@ -96,7 +96,7 @@ export const verifyHandler: RequestHandler<
     // just redirecting the user to the client (as signed-in).
   }
 
-  const refreshToken = await getNewRefreshToken(user.id);
+  const { refreshToken } = await getNewRefreshToken(user.id);
   const redirectUrl = generateRedirectUrl(redirectTo, { refreshToken, type });
 
   return res.redirect(redirectUrl);

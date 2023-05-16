@@ -34,6 +34,7 @@ export const signInPATHandler: RequestHandler<
         accessToken,
         accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
         refreshToken: null,
+        refreshTokenId: null,
         user: sessionUser,
       },
     });
