@@ -646,7 +646,7 @@ func console( //nolint:funlen
 
 func dashboard(cfg *model.ConfigConfig, useTLS bool) *Service {
 	return &Service{
-		Image:      "nhost/dashboard:0.14.1",
+		Image:      "nhost/dashboard:0.16.11",
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command:    nil,
