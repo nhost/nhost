@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhost/cli/v2/nhostclient"
+	"github.com/nhost/cli/nhostclient"
 )
 
 var errTest = errors.New("test error")

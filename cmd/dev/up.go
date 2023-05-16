@@ -11,7 +11,7 @@ import (
 
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
-	"github.com/nhost/cli/v2/dockercompose"
+	"github.com/nhost/cli/dockercompose"
 	"github.com/urfave/cli/v2"
 )
 
@@ -109,8 +109,15 @@ func up(
 
 	ce.Infoln("Setting up Nhost development environment...")
 	composeFile, err := dockercompose.ComposeFileFromConfig(
-		cfg, projectName, httpPort, useTLS, postgresPort,
-		ce.Path.DataFolder(), ce.Path.NhostFolder(), ce.Path.DotNhostFolder(), ce.Path.FunctionsFolder(),
+		cfg,
+		projectName,
+		httpPort,
+		useTLS,
+		postgresPort,
+		ce.Path.DataFolder(),
+		ce.Path.NhostFolder(),
+		ce.Path.DotNhostFolder(),
+		ce.Path.FunctionsFolder(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)

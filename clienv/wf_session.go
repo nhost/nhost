@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/nhost/cli/v2/nhostclient/credentials"
+	"github.com/nhost/cli/nhostclient/credentials"
 )
 
 func (ce *CliEnv) LoadSession(

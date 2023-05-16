@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
-	"github.com/nhost/cli/v2/nhostclient/graphql"
+	"github.com/nhost/cli/nhostclient/graphql"
 )
 
 const (

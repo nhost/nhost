@@ -3,7 +3,7 @@ package clienv
 import (
 	"encoding/json"
 
-	"github.com/nhost/cli/v2/nhostclient/graphql"
+	"github.com/nhost/cli/nhostclient/graphql"
 )
 
 func (ce *CliEnv) GetAppInfo() (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {

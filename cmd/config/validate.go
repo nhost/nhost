@@ -8,8 +8,8 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/v2/nhostclient/graphql"
-	"github.com/nhost/cli/v2/project/env"
+	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )

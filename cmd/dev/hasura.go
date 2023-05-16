@@ -5,7 +5,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/v2/dockercompose"
+	"github.com/nhost/cli/dockercompose"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )

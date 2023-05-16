@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/v2/nhostclient/graphql"
+	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v2"
 )
 

@@ -8,10 +8,10 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/v2/nhostclient/credentials"
-	"github.com/nhost/cli/v2/nhostclient/graphql"
-	"github.com/nhost/cli/v2/project/env"
-	"github.com/nhost/cli/v2/system"
+	"github.com/nhost/cli/nhostclient/credentials"
+	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/cli/project/env"
+	"github.com/nhost/cli/system"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )
@@ -56,7 +56,7 @@ func commandPull(cCtx *cli.Context) error {
 }
 
 func verifyFile(ce *clienv.CliEnv, name string) error {
-	if system.PathExists(name) {
+	if clienv.PathExists(name) {
 		ce.PromptMessage(
 			fmt.Sprintf("%s already exists. Do you want to overwrite it? [y/N] ", name),
 		)

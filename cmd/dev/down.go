@@ -2,7 +2,7 @@ package dev
 
 import (
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/v2/dockercompose"
+	"github.com/nhost/cli/dockercompose"
 	"github.com/urfave/cli/v2"
 )
 

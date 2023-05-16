@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/nhost/cli/v2/nhostclient"
-	"github.com/nhost/cli/v2/nhostclient/credentials"
+	"github.com/nhost/cli/nhostclient"
+	"github.com/nhost/cli/nhostclient/credentials"
 	"github.com/urfave/cli/v2"
 )
 

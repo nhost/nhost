@@ -554,7 +554,10 @@ func console( //nolint:funlen
 	nhostFolder string,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
-		return nil, fmt.Errorf("hasura version must be at least %s", minimumHasuraVerson) //nolint:goerr113
+		return nil, fmt.Errorf(
+			"hasura version must be at least %s",
+			minimumHasuraVerson,
+		) //nolint:goerr113
 	}
 
 	graphql, err := graphql(cfg, useTLS)

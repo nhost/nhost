@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/cli/v2/project/env"
+	"github.com/nhost/cli/project/env"
 )
 
 func TestUnmarshal(t *testing.T) {
