@@ -1,13 +1,14 @@
 import Container from '@/components/layout/Container';
-import AllowedEmailDomainsSettings from '@/components/settings/authentication/AllowedEmailSettings';
-import AllowedRedirectURLsSettings from '@/components/settings/authentication/AllowedRedirectURLsSettings';
-import BlockedEmailSettings from '@/components/settings/authentication/BlockedEmailSettings';
-import ClientURLSettings from '@/components/settings/authentication/ClientURLSettings';
-import DisableNewUsersSettings from '@/components/settings/authentication/DisableNewUsersSettings';
-import GravatarSettings from '@/components/settings/authentication/GravatarSettings';
-import MFASettings from '@/components/settings/authentication/MFASettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { AllowedEmailSettings } from '@/features/projects/settings/authentication/components/AllowedEmailSettings';
+import { AllowedRedirectURLsSettings } from '@/features/projects/settings/authentication/components/AllowedRedirectURLsSettings';
+import { AuthServiceVersionSettings } from '@/features/projects/settings/authentication/components/AuthServiceVersionSettings';
+import { BlockedEmailSettings } from '@/features/projects/settings/authentication/components/BlockedEmailSettings';
+import { ClientURLSettings } from '@/features/projects/settings/authentication/components/ClientURLSettings';
+import { DisableNewUsersSettings } from '@/features/projects/settings/authentication/components/DisableNewUsersSettings';
+import { GravatarSettings } from '@/features/projects/settings/authentication/components/GravatarSettings';
+import { MFASettings } from '@/features/projects/settings/authentication/components/MFASettings';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
@@ -38,9 +39,10 @@ export default function SettingsAuthenticationPage() {
       className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
+      <AuthServiceVersionSettings />
       <ClientURLSettings />
       <AllowedRedirectURLsSettings />
-      <AllowedEmailDomainsSettings />
+      <AllowedEmailSettings />
       <BlockedEmailSettings />
       <MFASettings />
       <GravatarSettings />

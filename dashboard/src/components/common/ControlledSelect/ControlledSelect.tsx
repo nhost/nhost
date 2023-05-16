@@ -1,5 +1,5 @@
 import type { SelectProps } from '@/ui/v2/Select';
-import Select from '@/ui/v2/Select';
+import { Select } from '@/ui/v2/Select';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';

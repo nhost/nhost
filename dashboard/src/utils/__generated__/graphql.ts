@@ -3563,6 +3563,183 @@ export type AuthProviders_Updates = {
   where: AuthProviders_Bool_Exp;
 };
 
+/** columns and relationships of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes = {
+  __typename?: 'authRefreshTokenTypes';
+  comment?: Maybe<Scalars['String']>;
+  /** An array relationship */
+  refreshTokens: Array<AuthRefreshTokens>;
+  /** An aggregate relationship */
+  refreshTokens_aggregate: AuthRefreshTokens_Aggregate;
+  value: Scalars['String'];
+};
+
+
+/** columns and relationships of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypesRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+};
+
+
+/** columns and relationships of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypesRefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+};
+
+/** aggregated selection of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Aggregate = {
+  __typename?: 'authRefreshTokenTypes_aggregate';
+  aggregate?: Maybe<AuthRefreshTokenTypes_Aggregate_Fields>;
+  nodes: Array<AuthRefreshTokenTypes>;
+};
+
+/** aggregate fields of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Aggregate_Fields = {
+  __typename?: 'authRefreshTokenTypes_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthRefreshTokenTypes_Max_Fields>;
+  min?: Maybe<AuthRefreshTokenTypes_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "auth.refresh_token_types". All fields are combined with a logical 'AND'. */
+export type AuthRefreshTokenTypes_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthRefreshTokenTypes_Bool_Exp>>;
+  _not?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthRefreshTokenTypes_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  refreshTokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
+  refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.refresh_token_types" */
+export enum AuthRefreshTokenTypes_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  RefreshTokenTypesPkey = 'refresh_token_types_pkey'
+}
+
+export enum AuthRefreshTokenTypes_Enum {
+  /** Personal access token */
+  Pat = 'pat',
+  /** Regular refresh token */
+  Regular = 'regular'
+}
+
+/** Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'. */
+export type AuthRefreshTokenTypes_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<AuthRefreshTokenTypes_Enum>;
+  _in?: InputMaybe<Array<AuthRefreshTokenTypes_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<AuthRefreshTokenTypes_Enum>;
+  _nin?: InputMaybe<Array<AuthRefreshTokenTypes_Enum>>;
+};
+
+/** input type for inserting data into table "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type AuthRefreshTokenTypes_Max_Fields = {
+  __typename?: 'authRefreshTokenTypes_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type AuthRefreshTokenTypes_Min_Fields = {
+  __typename?: 'authRefreshTokenTypes_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Mutation_Response = {
+  __typename?: 'authRefreshTokenTypes_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthRefreshTokenTypes>;
+};
+
+/** on_conflict condition type for table "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_On_Conflict = {
+  constraint: AuthRefreshTokenTypes_Constraint;
+  update_columns?: Array<AuthRefreshTokenTypes_Update_Column>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.refresh_token_types". */
+export type AuthRefreshTokenTypes_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.refresh_token_types */
+export type AuthRefreshTokenTypes_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "auth.refresh_token_types" */
+export enum AuthRefreshTokenTypes_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "auth.refresh_token_types" */
+export type AuthRefreshTokenTypes_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "authRefreshTokenTypes" */
+export type AuthRefreshTokenTypes_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthRefreshTokenTypes_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthRefreshTokenTypes_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "auth.refresh_token_types" */
+export enum AuthRefreshTokenTypes_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type AuthRefreshTokenTypes_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
+  where: AuthRefreshTokenTypes_Bool_Exp;
+};
+
 /** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
@@ -3570,9 +3747,9 @@ export type AuthRefreshTokens = {
   expiresAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
-  refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type: Scalars['String'];
+  refresh_token?: Maybe<Scalars['uuid']>;
+  type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -3645,9 +3822,9 @@ export type AuthRefreshTokens_Bool_Exp = {
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
-  refreshToken?: InputMaybe<Uuid_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  type?: InputMaybe<String_Comparison_Exp>;
+  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
+  type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -3679,9 +3856,9 @@ export type AuthRefreshTokens_Insert_Input = {
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  refreshToken?: InputMaybe<Scalars['uuid']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
+  refresh_token?: InputMaybe<Scalars['uuid']>;
+  type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -3692,9 +3869,8 @@ export type AuthRefreshTokens_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
+  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3703,9 +3879,8 @@ export type AuthRefreshTokens_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  type?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3715,9 +3890,8 @@ export type AuthRefreshTokens_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  refreshToken?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
+  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3726,9 +3900,8 @@ export type AuthRefreshTokens_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  type?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3754,8 +3927,8 @@ export type AuthRefreshTokens_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
-  refreshToken?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
+  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -3782,9 +3955,9 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   Metadata = 'metadata',
   /** column name */
-  RefreshToken = 'refreshToken',
-  /** column name */
   RefreshTokenHash = 'refreshTokenHash',
+  /** column name */
+  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -3797,9 +3970,9 @@ export type AuthRefreshTokens_Set_Input = {
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  refreshToken?: InputMaybe<Scalars['uuid']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
+  refresh_token?: InputMaybe<Scalars['uuid']>;
+  type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3817,9 +3990,9 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
-  refreshToken?: InputMaybe<Scalars['uuid']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
+  refresh_token?: InputMaybe<Scalars['uuid']>;
+  type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3834,9 +4007,9 @@ export enum AuthRefreshTokens_Update_Column {
   /** column name */
   Metadata = 'metadata',
   /** column name */
-  RefreshToken = 'refreshToken',
-  /** column name */
   RefreshTokenHash = 'refreshTokenHash',
+  /** column name */
+  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -9883,6 +10056,10 @@ export type Mutation_Root = {
   deleteAuthProviders?: Maybe<AuthProviders_Mutation_Response>;
   /** delete single row from the table: "auth.refresh_tokens" */
   deleteAuthRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** delete single row from the table: "auth.refresh_token_types" */
+  deleteAuthRefreshTokenType?: Maybe<AuthRefreshTokenTypes>;
+  /** delete data from the table: "auth.refresh_token_types" */
+  deleteAuthRefreshTokenTypes?: Maybe<AuthRefreshTokenTypes_Mutation_Response>;
   /** delete data from the table: "auth.refresh_tokens" */
   deleteAuthRefreshTokens?: Maybe<AuthRefreshTokens_Mutation_Response>;
   /** delete single row from the table: "auth.roles" */
@@ -10013,6 +10190,10 @@ export type Mutation_Root = {
   insertAuthProviders?: Maybe<AuthProviders_Mutation_Response>;
   /** insert a single row into the table: "auth.refresh_tokens" */
   insertAuthRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** insert a single row into the table: "auth.refresh_token_types" */
+  insertAuthRefreshTokenType?: Maybe<AuthRefreshTokenTypes>;
+  /** insert data into the table: "auth.refresh_token_types" */
+  insertAuthRefreshTokenTypes?: Maybe<AuthRefreshTokenTypes_Mutation_Response>;
   /** insert data into the table: "auth.refresh_tokens" */
   insertAuthRefreshTokens?: Maybe<AuthRefreshTokens_Mutation_Response>;
   /** insert a single row into the table: "auth.roles" */
@@ -10148,6 +10329,10 @@ export type Mutation_Root = {
   updateAuthProviders?: Maybe<AuthProviders_Mutation_Response>;
   /** update single row of the table: "auth.refresh_tokens" */
   updateAuthRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** update single row of the table: "auth.refresh_token_types" */
+  updateAuthRefreshTokenType?: Maybe<AuthRefreshTokenTypes>;
+  /** update data of the table: "auth.refresh_token_types" */
+  updateAuthRefreshTokenTypes?: Maybe<AuthRefreshTokenTypes_Mutation_Response>;
   /** update data of the table: "auth.refresh_tokens" */
   updateAuthRefreshTokens?: Maybe<AuthRefreshTokens_Mutation_Response>;
   /** update single row of the table: "auth.roles" */
@@ -10247,6 +10432,8 @@ export type Mutation_Root = {
   update_authProviderRequests_many?: Maybe<Array<Maybe<AuthProviderRequests_Mutation_Response>>>;
   /** update multiples rows of table: "auth.providers" */
   update_authProviders_many?: Maybe<Array<Maybe<AuthProviders_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.refresh_token_types" */
+  update_authRefreshTokenTypes_many?: Maybe<Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>>;
   /** update multiples rows of table: "auth.refresh_tokens" */
   update_authRefreshTokens_many?: Maybe<Array<Maybe<AuthRefreshTokens_Mutation_Response>>>;
   /** update multiples rows of table: "auth.roles" */
@@ -10476,6 +10663,18 @@ export type Mutation_RootDeleteAuthProvidersArgs = {
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthRefreshTokenTypeArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthRefreshTokenTypesArgs = {
+  where: AuthRefreshTokenTypes_Bool_Exp;
 };
 
 
@@ -10884,6 +11083,20 @@ export type Mutation_RootInsertAuthProvidersArgs = {
 export type Mutation_RootInsertAuthRefreshTokenArgs = {
   object: AuthRefreshTokens_Insert_Input;
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthRefreshTokenTypeArgs = {
+  object: AuthRefreshTokenTypes_Insert_Input;
+  on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
+  objects: Array<AuthRefreshTokenTypes_Insert_Input>;
+  on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
 
 
@@ -11411,6 +11624,20 @@ export type Mutation_RootUpdateAuthRefreshTokenArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateAuthRefreshTokenTypeArgs = {
+  _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
+  pk_columns: AuthRefreshTokenTypes_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthRefreshTokenTypesArgs = {
+  _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
+  where: AuthRefreshTokenTypes_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokensArgs = {
   _append?: InputMaybe<AuthRefreshTokens_Append_Input>;
   _delete_at_path?: InputMaybe<AuthRefreshTokens_Delete_At_Path_Input>;
@@ -11800,6 +12027,12 @@ export type Mutation_RootUpdate_AuthProviderRequests_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviders_ManyArgs = {
   updates: Array<AuthProviders_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthRefreshTokenTypes_ManyArgs = {
+  updates: Array<AuthRefreshTokenTypes_Updates>;
 };
 
 
@@ -13181,6 +13414,12 @@ export type Query_Root = {
   authProvidersAggregate: AuthProviders_Aggregate;
   /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
   authRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.refresh_token_types" using primary key columns */
+  authRefreshTokenType?: Maybe<AuthRefreshTokenTypes>;
+  /** fetch data from the table: "auth.refresh_token_types" */
+  authRefreshTokenTypes: Array<AuthRefreshTokenTypes>;
+  /** fetch aggregated fields from the table: "auth.refresh_token_types" */
+  authRefreshTokenTypesAggregate: AuthRefreshTokenTypes_Aggregate;
   /** fetch data from the table: "auth.refresh_tokens" */
   authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch aggregated fields from the table: "auth.refresh_tokens" */
@@ -13510,6 +13749,29 @@ export type Query_RootAuthProvidersAggregateArgs = {
 
 export type Query_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthRefreshTokenTypeArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootAuthRefreshTokenTypesArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
+};
+
+
+export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
 
@@ -15174,6 +15436,14 @@ export type Subscription_Root = {
   authProviders_stream: Array<AuthProviders>;
   /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
   authRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.refresh_token_types" using primary key columns */
+  authRefreshTokenType?: Maybe<AuthRefreshTokenTypes>;
+  /** fetch data from the table: "auth.refresh_token_types" */
+  authRefreshTokenTypes: Array<AuthRefreshTokenTypes>;
+  /** fetch aggregated fields from the table: "auth.refresh_token_types" */
+  authRefreshTokenTypesAggregate: AuthRefreshTokenTypes_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.refresh_token_types" */
+  authRefreshTokenTypes_stream: Array<AuthRefreshTokenTypes>;
   /** fetch data from the table: "auth.refresh_tokens" */
   authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch aggregated fields from the table: "auth.refresh_tokens" */
@@ -15572,6 +15842,36 @@ export type Subscription_RootAuthProviders_StreamArgs = {
 
 export type Subscription_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthRefreshTokenTypeArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootAuthRefreshTokenTypesArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthRefreshTokenTypes_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthRefreshTokenTypes_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
 
@@ -18698,7 +18998,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
@@ -19983,6 +20283,7 @@ export const GetAuthenticationSettingsDocument = gql`
           rating
         }
       }
+      version
     }
   }
 }
