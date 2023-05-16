@@ -97,7 +97,7 @@ func initInit(
 	}
 	defer gitingoref.Close()
 
-	if err := system.AddToGitignore(fs.Secrets()); err != nil {
+	if err := system.AddToGitignore(".secrets"); err != nil {
 		return fmt.Errorf("failed to add secrets to .gitignore: %w", err)
 	}
 

@@ -9,9 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
+	"github.com/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
 )
 
@@ -84,6 +86,40 @@ func commandUp(cCtx *cli.Context) error {
 	)
 }
 
+func overrideEnv(ce *clienv.CliEnv, cfg *model.ConfigConfig) error {
+	var envDev model.Secrets
+	if err := clienv.UnmarshalFile(ce.Path.EnvDevelopment(), &envDev, env.Unmarshal); err != nil {
+		return fmt.Errorf("failed to %s: %w", ce.Path.EnvDevelopment(), err)
+	}
+	for _, genv := range cfg.Global.Environment {
+		for _, devenv := range envDev {
+			if genv.Name == devenv.Name {
+				ce.Warnln("Overriding environment variable %s", genv.Name)
+				genv.Value = devenv.Value
+			}
+		}
+	}
+	return nil
+}
+
+func migrations(ctx context.Context, ce *clienv.CliEnv, dc *dockercompose.DockerCompose) error {
+	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
+		ce.Infoln("Applying migrations...")
+		if err := dc.ApplyMigrations(ctx); err != nil {
+			return fmt.Errorf("failed to apply migrations: %w", err)
+		}
+	}
+
+	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
+		ce.Infoln("Applying metadata...")
+		if err := dc.ApplyMetadata(ctx); err != nil {
+			return fmt.Errorf("failed to apply metadata: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func up(
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -105,6 +141,13 @@ func up(
 	cfg, err := config.Validate(ce)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	if clienv.PathExists(ce.Path.EnvDevelopment()) {
+		ce.Infoln("Loading development environment variables...")
+		if err := overrideEnv(ce, cfg); err != nil {
+			return err
+		}
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")
@@ -131,26 +174,12 @@ func up(
 		return fmt.Errorf("failed to start Nhost development environment: %w", err)
 	}
 
-	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
-		ce.Infoln("Applying migrations...")
-		if err = dc.ApplyMigrations(ctx); err != nil {
-			return fmt.Errorf("failed to apply migrations: %w", err)
-		}
-	}
-
-	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
-		ce.Infoln("Applying metadata...")
-		if err = dc.ApplyMetadata(ctx); err != nil {
-			return fmt.Errorf("failed to apply metadata: %w", err)
-		}
+	if err := migrations(ctx, ce, dc); err != nil {
+		return err
 	}
 
 	ce.Infoln("Nhost development environment started.")
 	printInfo(ce, httpPort, useTLS)
-	ce.Println("")
-	ce.Println("Run `nhost dev up` to reload the development environment")
-	ce.Println("Run `nhost dev down` to stop the development environment")
-	ce.Println("Run `nhost dev logs` to watch the logs")
 	return nil
 }
 
@@ -181,6 +210,10 @@ func printInfo(ce *clienv.CliEnv, port uint, useTLS bool) {
 	ce.Println("SDK Configuration:")
 	ce.Println(" Subdomain:             local")
 	ce.Println(" Region:                (empty)")
+	ce.Println("")
+	ce.Println("Run `nhost dev up` to reload the development environment")
+	ce.Println("Run `nhost dev down` to stop the development environment")
+	ce.Println("Run `nhost dev logs` to watch the logs")
 }
 
 func Up(
