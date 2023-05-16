@@ -166,9 +166,9 @@ query GetSchemasAndTables {
       id
       name
       columns {
-	      name
-	      type
-	      # and more...
+        name
+        type
+        # and more...
       }
     }
   }
@@ -198,25 +198,25 @@ async function useSchemasAndTables() {
   const [data, setData] = useState()
 
   useEffect(() => {
-	  setNetworkStatus('pending')
+    setNetworkStatus('pending')
 
-	  const response = await fetch('/v2/query', {
-	    method: 'POST',
-	    body: JSON.stringify({ /* ... */ })
-	  })
+    const response = await fetch('/v2/query', {
+      method: 'POST',
+      body: JSON.stringify({ /* ... */ })
+    })
 
-	  const json = await response.json()
+    const json = await response.json()
 
-	  if (!response.ok) {
+    if (!response.ok) {
       setNetworkStatus('rejected')
-	    setError(json)
+      setError(json)
 
       return
-	  }
+    }
 
     setNetworkStatus('resolved')
     setData(json)
-	}, [/* a complex dependency array 😨 */])
+  }, [/* a complex dependency array 😨 */])
 
   return { networkStatus, error, data }
 }
@@ -277,6 +277,6 @@ Of course, that's not all you can expect. So stay tuned if you're curious about 
 
 ## Next Chapters of the Dashboard
 
-You may have noticed that our dashboard isn't part of [the main Nhost repository](https://github.com/nhost/nhost) yet, so so it's not possible to run it locally to check your changes. This has been bothering us for a long time, so we're taking big steps towards open-sourcing our dashboard in every project cycle. We don't have an ETA, but we felt it was important to share our ambitions.
+You may have noticed that our dashboard isn't part of [the main Nhost repository](https://github.com/nhost/nhost) yet, so it's not possible to run it locally to check your changes. This has been bothering us for a long time, so we're taking big steps towards open-sourcing our dashboard in every project cycle. We don't have an ETA, but we felt it was important to share our ambitions.
 
 Please support our open source work by starring our [GitHub repository](https://github.com/nhost/nhost). Thanks ❤️
