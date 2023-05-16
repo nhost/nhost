@@ -13,12 +13,13 @@ import { Option } from '@/ui/v2/Option';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useQuery } from '@tanstack/react-query';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  version: Yup.string().label('Hasura Auth Version'),
+  version: Yup.string().label('Auth Version'),
 });
 
 export type AuthServiceVersionFormValues = Yup.InferType<
@@ -32,17 +33,34 @@ export default function AuthServiceVersionSettings() {
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
+  const {
+    data: dockerData,
+    error: dockerError,
+    isFetching,
+  } = useQuery<string[], Error>(
+    ['docker', 'tags'],
+    async () => {
+      const response = await fetch(
+        '/api/fetch-docker-hub?image=nhost/hasura-auth',
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error.message || 'Something went wrong');
+      }
+
+      return data as string[];
+    },
+    { refetchOnWindowFocus: false },
+  );
+
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
   const { version } = data?.config?.auth || {};
-  const availableVersions = Array.from(
-    new Set(['0.20.0', '0.19.3', '0.19.2', '0.19.1', '0.16.2', '0.16.1']).add(
-      version,
-    ),
-  )
+  const availableVersions = Array.from(new Set(dockerData).add(version))
     .sort()
     .reverse();
 
@@ -52,6 +70,7 @@ export default function AuthServiceVersionSettings() {
     resolver: yupResolver(validationSchema),
   });
 
+  // We don't want to hide the form while the docker tags are being fetched
   if (loading) {
     return (
       <ActivityIndicator
@@ -86,10 +105,10 @@ export default function AuthServiceVersionSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Hasura Auth version is being updated...`,
-          success: `Hasura Auth version has been updated successfully.`,
+          loading: `Auth version is being updated...`,
+          success: `Auth version has been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Hasura Auth's version.`,
+            `An error occurred while trying to update Auth version.`,
           ),
         },
         getToastStyleProps(),
@@ -115,14 +134,16 @@ export default function AuthServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-auth/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >
           <ControlledSelect
             id="version"
             name="version"
             fullWidth
             className="col-span-2"
-            aria-label="Hasura Auth Version"
+            aria-label="Auth Version"
+            error={!!dockerError?.message}
+            helperText={dockerError?.message}
           >
             {availableVersions.map((availableVersion) => (
               <Option value={availableVersion} key={availableVersion}>
@@ -130,6 +151,14 @@ export default function AuthServiceVersionSettings() {
               </Option>
             ))}
           </ControlledSelect>
+
+          {isFetching && (
+            <ActivityIndicator
+              label="Loading available images..."
+              className="col-span-3"
+              delay={2000}
+            />
+          )}
         </SettingsContainer>
       </Form>
     </FormProvider>
