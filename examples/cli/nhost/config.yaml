@@ -1,7 +1,7 @@
 metadata_directory: metadata
 services:
   auth:
-    image: nhost/hasura-auth-local
+    image: nhost/hasura-auth:0.20.0
   hasura:
     environment:
       hasura_graphql_enable_remote_schema_permissions: true
