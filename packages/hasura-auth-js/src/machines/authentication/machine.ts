@@ -8,6 +8,7 @@ import type {
 import { InterpreterFrom, assign, createMachine, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
+  NHOST_REFRESH_TOKEN_ID_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
@@ -524,6 +525,7 @@ export const createAuthMachine = ({
         clearContext: assign(() => {
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+          storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, null)
           return {
             ...INITIAL_MACHINE_CONTEXT
           }
@@ -557,9 +559,16 @@ export const createAuthMachine = ({
           },
           refreshToken: (_, { data }) => {
             const refreshToken = data.session?.refreshToken || null
+            const refreshTokenId = data.session?.refreshTokenId || null
+
             if (refreshToken) {
               storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
             }
+
+            if (refreshTokenId) {
+              storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, refreshTokenId)
+            }
+
             return { value: refreshToken }
           }
         }),
@@ -584,9 +593,16 @@ export const createAuthMachine = ({
           },
           refreshToken: (_, { data }) => {
             const refreshToken = data.session?.refreshToken || null
+            const refreshTokenId = data.session?.refreshTokenId || null
+
             if (refreshToken) {
               storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
             }
+
+            if (refreshTokenId) {
+              storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, refreshTokenId)
+            }
+
             return { value: refreshToken, isPAT: true }
           }
         }),
@@ -630,6 +646,7 @@ export const createAuthMachine = ({
         destroyRefreshToken: assign({
           refreshToken: (_) => {
             storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+            storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, null)
             return { value: null }
           }
         }),

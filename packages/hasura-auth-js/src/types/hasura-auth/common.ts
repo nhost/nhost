@@ -44,6 +44,7 @@ export interface NhostSession {
   accessToken: string
   accessTokenExpiresIn: number
   refreshToken: string | null
+  refreshTokenId?: string | null
   user: User
 }
 

@@ -7,8 +7,6 @@ configuration:
       custom_name: createdAt
     expires_at:
       custom_name: expiresAt
-    refresh_token:
-      custom_name: refreshToken
     refresh_token_hash:
       custom_name: refreshTokenHash
     type:
@@ -18,7 +16,6 @@ configuration:
   custom_column_names:
     created_at: createdAt
     expires_at: expiresAt
-    refresh_token: refreshToken
     refresh_token_hash: refreshTokenHash
     type: type
     user_id: userId
@@ -44,6 +41,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - id
         - created_at
         - expires_at
         - metadata
