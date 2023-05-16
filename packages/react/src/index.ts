@@ -1,3 +1,4 @@
+export { hash } from '@nhost/nhost-js'
 export type { BackendUrl, ErrorPayload, NhostSession, Subdomain, User } from '@nhost/nhost-js'
 export * from './client'
 export * from './components'
