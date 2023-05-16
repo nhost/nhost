@@ -1,4 +1,3 @@
-export { hash } from '@nhost/nhost-js'
 export * from './client'
 export * from './useAccessToken'
 export * from './useAuthInterpreter'
