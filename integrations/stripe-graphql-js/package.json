@@ -1,6 +1,6 @@
 {
   "name": "@nhost/stripe-graphql-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Stripe GraphQL API",
   "license": "MIT",
   "keywords": [

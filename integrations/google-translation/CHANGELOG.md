@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.0.5
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+
 ## 0.0.4
 
 ### Patch Changes

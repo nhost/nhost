@@ -1,5 +1,21 @@
 # @nhost/react-apollo
 
+## 5.0.22
+
+### Patch Changes
+
+- @nhost/apollo@5.2.6
+- @nhost/react@2.0.18
+
+## 5.0.21
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+- Updated dependencies [da03bf39]
+  - @nhost/apollo@5.2.5
+  - @nhost/react@2.0.17
+
 ## 5.0.20
 
 ### Patch Changes

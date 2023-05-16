@@ -32,6 +32,13 @@ export function getAuthServiceUrl() {
 }
 
 /**
+ * Custom URL of the Database service.
+ */
+export function getDatabaseServiceUrl() {
+  return process.env.NEXT_PUBLIC_NHOST_DATABASE_URL || 'local.db.nhost.run';
+}
+
+/**
  * Custom URL of the GraphQL service.
  */
 export function getGraphqlServiceUrl() {

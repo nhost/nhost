@@ -1,5 +1,19 @@
 # @nhost/react-urql
 
+## 2.0.19
+
+### Patch Changes
+
+- @nhost/react@2.0.18
+
+## 2.0.18
+
+### Patch Changes
+
+- da03bf39: chore(build): change build target to ES2019
+- Updated dependencies [da03bf39]
+  - @nhost/react@2.0.17
+
 ## 2.0.17
 
 ### Patch Changes

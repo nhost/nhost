@@ -21,7 +21,7 @@ export const addSecurityKeyPromise = async (
 ): Promise<AddSecurityKeyHandlerResult> => {
   try {
     const { data: options } = await postFetch<PublicKeyCredentialCreationOptionsJSON>(
-      '/user/webauthn/add',
+      `${backendUrl}/user/webauthn/add`,
       {},
       interpreter?.getSnapshot().context.accessToken.value
     )

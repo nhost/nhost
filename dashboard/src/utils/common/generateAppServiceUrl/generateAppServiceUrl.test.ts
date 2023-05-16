@@ -48,6 +48,10 @@ test('should generate a per service subdomain in remote mode', () => {
     'https://test.auth.eu-west-1.nhost.run/v1',
   );
 
+  expect(generateAppServiceUrl('test', region, 'db')).toBe(
+    'https://test.db.eu-west-1.nhost.run',
+  );
+
   expect(generateAppServiceUrl('test', region, 'functions')).toBe(
     'https://test.functions.eu-west-1.nhost.run/v1',
   );
@@ -75,6 +79,10 @@ test('should generate staging subdomains in staging environment', () => {
 
   expect(generateAppServiceUrl('test', stagingRegion, 'auth')).toBe(
     'https://test.auth.eu-west-1.staging.nhost.run/v1',
+  );
+
+  expect(generateAppServiceUrl('test', stagingRegion, 'db')).toBe(
+    'https://test.db.eu-west-1.staging.nhost.run',
   );
 
   expect(generateAppServiceUrl('test', stagingRegion, 'functions')).toBe(
@@ -149,6 +157,13 @@ test('should construct service URLs based on environment variables', () => {
 
   expect(generateAppServiceUrl('test', region, 'auth')).toBe(
     `https://localdev1.nhost.run/v1/auth`,
+  );
+
+  process.env.NEXT_PUBLIC_NHOST_DATABASE_URL =
+    'https://localdev2.nhost.run/v1/db';
+
+  expect(generateAppServiceUrl('test', region, 'db')).toBe(
+    `https://localdev2.nhost.run/v1/db`,
   );
 
   process.env.NEXT_PUBLIC_NHOST_STORAGE_URL =
