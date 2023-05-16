@@ -68,7 +68,9 @@ func commandUp(cCtx *cli.Context) error {
 		)
 	}
 	if !clienv.PathExists(ce.Path.Secrets()) {
-		return fmt.Errorf("no secrets found, please run `nhost project init` or `nhost config pull`") //nolint:goerr113
+		return fmt.Errorf( //nolint:goerr113
+			"no secrets found, please run `nhost project init` or `nhost config pull`",
+		)
 	}
 
 	return Up(

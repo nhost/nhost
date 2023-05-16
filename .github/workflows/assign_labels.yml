@@ -3,7 +3,7 @@ on:
   pull_request_target:
     types: [opened]
 
-name: "pull_request_target_opened"
+name: "assign labels"
 jobs:
   # labeler will label pull requests based on their title.
   # the configuration is at .github/labeler.yml.

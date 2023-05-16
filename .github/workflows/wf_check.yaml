@@ -1,0 +1,39 @@
+---
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        type: string
+        required: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+        submodules: true
+
+    - uses: nixbuild/nix-quick-install-action@v22
+      with:
+        nix_version: 2.14.1
+        nix_conf: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          substituters = https://cache.nixos.org/?priority=40
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          builders-use-substitutes = true
+          extra-platforms = aarch64-linux
+
+    - name: Cache nix store
+      uses: actions/cache@v3
+      with:
+        path: /nix
+        key: nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
+
+    - name: "Run checks"
+      run: make check

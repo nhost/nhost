@@ -15,12 +15,7 @@ builds:
         goarch: arm64
 archives:
   - name_template: "{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    replacements:
-      darwin: "darwin"
-      linux: "linux"
-      windows: "windows"
-      386: "386"
-      amd64: "amd64"
+    rlcp: true
     format_overrides:
       - goos: "windows"
         format: "zip"

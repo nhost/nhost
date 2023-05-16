@@ -1,0 +1,91 @@
+---
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        type: string
+        required: false
+      VERSION:
+        type: string
+        required: true
+    secrets:
+      CERT_FULL_CHAIN:
+        required: true
+      CERT_PRIV_KEY:
+        required: true
+
+jobs:
+  artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+        submodules: true
+
+    - uses: nixbuild/nix-quick-install-action@v22
+      with:
+        nix_version: 2.14.1
+        nix_conf: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          substituters = https://cache.nixos.org/?priority=40
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          builders-use-substitutes = true
+          extra-platforms = aarch64-linux
+
+    - name: Cache nix store
+      uses: actions/cache@v3
+      with:
+        path: /nix
+        key: nix-build-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
+    - name: Compute common env vars
+      id: vars
+      run: |
+        echo "VERSION=$(make get-version VERSION=v0.0.0-${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+
+    - name: place let's encrypt cert
+      run: |
+        cat <<EOF > ssl/.ssl/fullchain.pem
+        ${{ secrets.CERT_FULL_CHAIN }}
+        EOF
+        cat <<EOF > ssl/.ssl/privkey.pem
+        ${{ secrets.CERT_PRIV_KEY }}
+        EOF
+      shell: bash
+
+    - name: "Build artifact"
+      run: |
+        export GORELEASER_CURRENT_TAG=${{ steps.vars.outputs.VERSION }}
+        nix develop .\#cibuild -c goreleaser release --skip-validate
+
+    - name: "Push artifact to artifact repository"
+      uses: actions/upload-artifact@v3
+      with:
+        name: cli-${{ steps.vars.outputs.VERSION }}-darwin-arm64.tar.gz
+        path: dist/cli-${{ steps.vars.outputs.VERSION }}-darwin-arm64.tar.gz
+        retention-days: 7
+
+    - name: "Push artifact to artifact repository"
+      uses: actions/upload-artifact@v3
+      with:
+        name: cli-${{ steps.vars.outputs.VERSION }}-darwin-amd64.tar.gz
+        path: dist/cli-${{ steps.vars.outputs.VERSION }}-darwin-amd64.tar.gz
+        retention-days: 7
+
+    - name: "Push artifact to artifact repository"
+      uses: actions/upload-artifact@v3
+      with:
+        name: cli-${{ steps.vars.outputs.VERSION }}-linux-arm64.tar.gz
+        path: dist/cli-${{ steps.vars.outputs.VERSION }}-linux-arm64.tar.gz
+        retention-days: 7
+
+    - name: "Push artifact to artifact repository"
+      uses: actions/upload-artifact@v3
+      with:
+        name: cli-${{ steps.vars.outputs.VERSION }}-linux-amd64.tar.gz
+        path: dist/cli-${{ steps.vars.outputs.VERSION }}-linux-amd64.tar.gz
+        retention-days: 7

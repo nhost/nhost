@@ -1,0 +1,20 @@
+---
+name: "check and build"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      VERSION: ${{ github.sha }}
+    secrets:
+      CERT_FULL_CHAIN: ${{ secrets.CERT_FULL_CHAIN }}
+      CERT_PRIV_KEY: ${{ secrets.CERT_PRIV_KEY }}
+

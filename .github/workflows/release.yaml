@@ -1,4 +1,4 @@
-# .github/workflows/release.yaml
+---
 on:
   release:
     types: [published]
@@ -11,17 +11,24 @@ jobs:
       id-token: write
       contents: write
     steps:
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v3
 
-      - name: Get go.mod details
-        uses: Eun/go-mod-details@v1.0.6
-        id: go-mod-details
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-
+      - uses: nixbuild/nix-quick-install-action@v22
         with:
-          go-version: ${{ steps.go-mod-details.outputs.go_version }}
+          nix_version: 2.14.1
+          nix_conf: |
+            experimental-features = nix-command flakes
+            sandbox = false
+            substituters = https://cache.nixos.org/?priority=40
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+            builders-use-substitutes = true
+            extra-platforms = aarch64-linux
+
+      - name: Cache nix store
+        uses: actions/cache@v3
+        with:
+          path: /nix
+          key: nix-build-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
 
       - name: place let's encrypt cert
         run: |
@@ -33,13 +40,10 @@ jobs:
           EOF
         shell: bash
 
-      - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v4.2.0
-        with:
-          version: latest
-          args: release --skip-validate
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Build artifact"
+        run: |
+          export GORELEASER_CURRENT_TAG=${{ steps.vars.outputs.VERSION }}
+          nix develop .\#cibuild -c goreleaser release --skip-validate
 
       - name: Upload assets
         shell: bash
