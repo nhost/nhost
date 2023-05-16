@@ -8,8 +8,8 @@ Nhost allows you to sign in users with personal access tokens (PAT) which is a w
 
 ## Configuration
 
-:::warning
-Personal Access Tokens can only be created through Hasura Auth or the [Nhost JavaScript SDK](/reference/javascript) at the moment. We have plans to add support for PATs in the Nhost Dashboard in the future.
+:::info
+Personal Access Tokens can only be created through Hasura Auth or the [Nhost JavaScript SDK](/reference/javascript) at the moment. We have plans to add support for personal access tokens in the Nhost Dashboard in the future.
 :::
 
 ## Create a Personal Access Token
@@ -34,7 +34,7 @@ console.log(data.id) // The personal access token ID (can be used to delete the 
 console.log(data.personalAccessToken) // The personal access token
 ```
 
-Users can create multiple personal access tokens. Each token can be given a name to make it easier to manage them in the future.
+Users can create multiple personal access tokens. Each token can have a different expiration date and metadata.
 
 ## Sign In
 
