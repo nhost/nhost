@@ -1,0 +1,27 @@
+table:
+  name: animals
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_root_fields:
+    delete: deleteAnimals
+    delete_by_pk: deleteAnimal
+    insert: insertAnimals
+    insert_one: insertAnimal
+    select: animals
+    select_aggregate: animalsAggregate
+    select_by_pk: animal
+    select_stream: animalsStream
+    update: updateAnimals
+    update_by_pk: updateAnimal
+    update_many: updateManyAnimals
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - name
+      filter: {}

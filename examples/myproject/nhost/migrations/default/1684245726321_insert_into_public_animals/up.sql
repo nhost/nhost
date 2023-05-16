@@ -1,0 +1,1 @@
+INSERT INTO "public"."animals"("id", "created_at", "updated_at", "name") VALUES (E'8224ec02-6fed-48ff-8c06-6c36298d0fd0', E'2023-05-16T14:02:06.300074+00:00', E'2023-05-16T14:02:06.300074+00:00', E'cat');

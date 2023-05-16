@@ -732,7 +732,7 @@ func functions( //nolint:funlen
 			{
 				Type:   "bind",
 				Source: rootFolder,
-				Target: "/opt/project/functions",
+				Target: "/opt/project",
 			},
 			{
 				Type:   "volume",
