@@ -25,11 +25,11 @@ Say Hello to our new Database UI, a great first step towards fully managing Post
 
 Your database is the source of truth in your application. It's important that you have a clean and fast user interface to manage your tables, columns, and relationships.
 
-With Hasura Console you can manage your database quickly and easily, but "quick and easy" often comes at a price. As daily users of Hasura Console, we often struggled with UX and performance issues that were out of our control. In addition, it wasn’t possible to set up schema restrictions to prevent unwanted changes to the `auth` or `storage` schemas.
+With Hasura Console you can manage your database quickly and easily, but "quick and easy" often comes at a price. As daily users of Hasura Console, we often struggled with UX and performance issues that were out of our control. In addition, it wasn't possible to set up schema restrictions to prevent unwanted changes to the `auth` or `storage` schemas.
 
 We knew we had to develop our own solution to provide the best possible overall experience… and boy has it been an incredible adventure!
 
-## What’s in the Box?
+## What's in the Box?
 
 We talked to our community and found that there are quite a few database-related features that are essential to get started with our platform. With our Database UI, you can manage the following things in your `public` schema:
 
@@ -70,7 +70,7 @@ Creating, editing, and deleting columns
 
 ### Manage Data
 
-We didn’t like the lengthy editing process of the Hasura Console, so we created an inline editing experience instead. Select a cell in the Database UI, navigate with your keyboard, and press `Enter` when you want to change the data. It’s that simple.
+We didn't like the lengthy editing process of the Hasura Console, so we created an inline editing experience instead. Select a cell in the Database UI, navigate with your keyboard, and press `Enter` when you want to change the data. It's that simple.
 
 <video width="99%" autoPlay loop muted controls>
   <source
@@ -96,11 +96,11 @@ Managing foreign keys and showing the results in the GraphQL explorer
 
 ### Focusing On Your Experience
 
-When creating user interfaces for developers, there can be a misconception that usability and accessibility are less important because it’s obvious to them how to use any software in the world. We all know that this assumption is anything but true.
+When creating user interfaces for developers, there can be a misconception that usability and accessibility are less important because it's obvious to them how to use any software in the world. We all know that this assumption is anything but true.
 
-With every improvement we make and every feature we add, we want to make life easier for all users of our platform. That’s why we have started paying more attention to making our UI components usable with your keyboard, or to smaller details like the way your forms are submitted.
+With every improvement we make and every feature we add, we want to make life easier for all users of our platform. That's why we have started paying more attention to making our UI components usable with your keyboard, or to smaller details like the way your forms are submitted.
 
-The inline data editor was one of those features where keyboard interaction was an important factor. There are many table editors, and we knew that people use one or more of them, so it’s important to provide a similar user experience.
+The inline data editor was one of those features where keyboard interaction was an important factor. There are many table editors, and we knew that people use one or more of them, so it's important to provide a similar user experience.
 
 ## Our Design Process
 
@@ -124,25 +124,25 @@ The result of quick and small iterations
 
 Since user interface design is very subjective, it's important that we focus on the essentials during these conversations and avoid going into too much detail. When feedback is given asynchronously via Figma comments, there is no need for lengthy meetings about subjective topics.
 
-Once we have the final version _(or the `final_final`… or the `final_final_3_final` version…)_ of the designs, it’s time to ship some code. 🚢
+Once we have the final version _(or the `final_final`… or the `final_final_3_final` version…)_ of the designs, it's time to ship some code. 🚢
 
 ## Under the Hood
 
-Thanks to the Storage section in the Nhost Dashboard, we already had a very good foundation for the basics of the Database UI, so it was only natural that we needed to build on that. Although much was already implemented, we faced some interesting technical challenges and had to make some important decisions, such as laying the foundation for Nhost’s design system.
+Thanks to the Storage section in the Nhost Dashboard, we already had a very good foundation for the basics of the Database UI, so it was only natural that we needed to build on that. Although much was already implemented, we faced some interesting technical challenges and had to make some important decisions, such as laying the foundation for Nhost's design system.
 
 ### Material UI
 
 Maintaining custom components mixed with several different UI libraries is anything but fun. Especially when these UI libraries have only a handful of built-in components, making them mostly unsuitable for complex use cases.
 
-We've already mentioned how we think about user experience. Therefore, it was important for us to find a library that also takes care of both small and large accessibility details like focus states and keyboard interactions. We chose [Material UI](https://mui.com/), which may seem surprising at first glance, considering that many fancy UI libraries have been released in recent years. Instead of always being on the top of the hype train, we use battle-tested solutions. Using MUI’s unstyled components and low-level hooks let us bypass the outdated Material Design.
+We've already mentioned how we think about user experience. Therefore, it was important for us to find a library that also takes care of both small and large accessibility details like focus states and keyboard interactions. We chose [Base UI](https://mui.com/base/getting-started/overview/), which may seem surprising at first glance, considering that many fancy UI libraries have been released in recent years. Instead of always being on the top of the hype train, we use battle-tested solutions. Base UI's (from MUI) unstyled components and low-level hooks let us bypass the outdated Material Design.
 
-Creating a dedicated UI component package may seem appealing at first, but we wanted to take the introduction of MUI in small steps and migrate just a few components of our dashboard at first. We didn’t want to worry about developer tooling for now.
+Creating a dedicated UI component package may seem appealing at first, but we wanted to take the introduction of MUI in small steps and migrate just a few components of our dashboard at first. We didn't want to worry about developer tooling for now.
 
-We won’t deny that our ultimate goal is to create a unified design system for everything related to Nhost. Our projects and examples will soon be able to use the same components. We won’t go into detail about our decision here, but if you’re interested, you’ll be able to read about it in a future blog post.
+We won't deny that our ultimate goal is to create a unified design system for everything related to Nhost. Our projects and examples will soon be able to use the same components. We won't go into detail about our decision here, but if you're interested, you'll be able to read about it in a future blog post.
 
 ### TanStack Table
 
-It was clear from the beginning that data grids are going to play a central role in the Nhost Dashboard. That’s why we looked for the following features in existing UI libraries:
+It was clear from the beginning that data grids are going to play a central role in the Nhost Dashboard. That's why we looked for the following features in existing UI libraries:
 
 - Potentially headless
 - Built-in sorting
@@ -152,11 +152,11 @@ It was clear from the beginning that data grids are going to play a central role
 - Active community
 - Cell editing
 
-Most of these requirements were met by [Tanstack Table](https://tanstack.com/table/v8) (formerly [React Table](https://react-table-v7.tanstack.com/)), a headless and highly customizable library for creating tables and data grids, so we decided to give it a try. Now we see that this was a very good decision. Unfortunately, cell editing wasn’t part of React Table, so we had to create our own implementation. To create a familiar and good user experience for navigating between cells and editing data, we wanted to mimic the existing solutions as much as possible.
+Most of these requirements were met by [Tanstack Table](https://tanstack.com/table/v8) (formerly [React Table](https://react-table-v7.tanstack.com/)), a headless and highly customizable library for creating tables and data grids, so we decided to give it a try. Now we see that this was a very good decision. Unfortunately, cell editing wasn't part of React Table, so we had to create our own implementation. To create a familiar and good user experience for navigating between cells and editing data, we wanted to mimic the existing solutions as much as possible.
 
 ### TanStack Query
 
-Ideally, we’d retrieve information about a project’s tables, columns, and data using GraphQL APIs with simple queries like these:
+Ideally, we'd retrieve information about a project's tables, columns, and data using GraphQL APIs with simple queries like these:
 
 ```graphql
 query GetSchemasAndTables {
@@ -183,7 +183,7 @@ query GetData($id: uuid!) {
 }
 ```
 
-However, it wasn’t possible to expose low-level information about your PostgreSQL database via Hasura’s GraphQL Engine without polluting the database and Hasura metadata. Fortunately, Hasura provides some handy, [well-documented REST APIs](https://hasura.io/docs/latest/api-reference/index/) on which we could build our functions.
+However, it wasn't possible to expose low-level information about your PostgreSQL database via Hasura's GraphQL Engine without polluting the database and Hasura metadata. Fortunately, Hasura provides some handy, [well-documented REST APIs](https://hasura.io/docs/latest/api-reference/index/) on which we could build our functions.
 
 We knew what APIs to use, but now we needed a tool that took care of caching response data, error management, and also internal state.
 
@@ -222,7 +222,7 @@ async function useSchemasAndTables() {
 }
 ```
 
-This worked well for a while, but when we started working on more complex use cases like sorting or pagination, we spent hours debugging infinite loops caused by the huge dependency array of `useEffect`. Believe us, this wasn’t fun at all.
+This worked well for a while, but when we started working on more complex use cases like sorting or pagination, we spent hours debugging infinite loops caused by the huge dependency array of `useEffect`. Believe us, this wasn't fun at all.
 
 It felt cumbersome to maintain our own solution when there are some great libraries exactly for this use case. [Tanstack Query](https://tanstack.com/query/v4) lifted a huge burden off our shoulders. We were able to focus on SQL queries instead of worrying about caches, internal state management, and the dependencies of the dreaded `useEffect`.
 
@@ -259,7 +259,7 @@ We build SQL queries to get information about your database on the client side. 
 
 Simplified architecture diagram of the Database UI
 
-We send `x-hasura-admin-secret` as a header with each request so that the Database UI has the same permissions as the Hasura Console. The reason we don't add additional abstraction layers between the client and the SQL queries is that our Database UI is only used by users with administrator privileges. It creates, updates, and deletes things in your database, so it doesn’t make sense to introduce an extra layer of complexity just to hide SQL queries.
+We send `x-hasura-admin-secret` as a header with each request so that the Database UI has the same permissions as the Hasura Console. The reason we don't add additional abstraction layers between the client and the SQL queries is that our Database UI is only used by users with administrator privileges. It creates, updates, and deletes things in your database, so it doesn't make sense to introduce an extra layer of complexity just to hide SQL queries.
 
 ## Next Chapters of the Database UI
 
@@ -273,10 +273,10 @@ This motivates us to keep adding valuable features to the Database UI, like thes
 - Filtering
 - Composite primary / unique keys
 
-Of course, that’s not all you can expect. So stay tuned if you’re curious about what the future holds!
+Of course, that's not all you can expect. So stay tuned if you're curious about what the future holds!
 
 ## Next Chapters of the Dashboard
 
-You may have noticed that our dashboard isn’t part of [the main Nhost repository](https://github.com/nhost/nhost) yet, so so it's not possible to run it locally to check your changes. This has been bothering us for a long time, so we're taking big steps towards open-sourcing our dashboard in every project cycle. We don't have an ETA, but we felt it was important to share our ambitions.
+You may have noticed that our dashboard isn't part of [the main Nhost repository](https://github.com/nhost/nhost) yet, so so it's not possible to run it locally to check your changes. This has been bothering us for a long time, so we're taking big steps towards open-sourcing our dashboard in every project cycle. We don't have an ETA, but we felt it was important to share our ambitions.
 
 Please support our open source work by starring our [GitHub repository](https://github.com/nhost/nhost). Thanks ❤️
