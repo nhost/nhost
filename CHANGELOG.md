@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.20.1
+
+### Patch Changes
+
+- d412a93: feat: add `refreshTokenId` to session
+
 ## 0.20.0
 
 ### Minor Changes
