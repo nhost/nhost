@@ -10,7 +10,12 @@ type = 'HS256'
 key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
+corsDomain = ['*']
+devMode = true
+enableAllowList = false
+enableConsole = true
 enableRemoteSchemaPermissions = false
+enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
 
 [hasura.logs]
 level = 'warn'
@@ -128,9 +133,13 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.5-20230104-1'
+version = '14.6-20230406-2'
 
 [provider]
 
 [storage]
 version = '0.3.4'
+
+[observability]
+[observability.grafana]
+adminPassword = '{{ secrets.GRAFANA_ADMIN_PASSWORD }}'

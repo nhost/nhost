@@ -26,6 +26,11 @@ type ConfigInsertConfigResponse {
 }
 
 type Query {
+    configRawJSON(
+        appID: uuid! @hasAppVisibility(),
+        resolve: Boolean!,
+    ):String!
+
     config(
         appID: uuid! @hasAppVisibility(),
         resolve: Boolean!,

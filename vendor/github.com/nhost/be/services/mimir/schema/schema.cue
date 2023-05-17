@@ -1,61 +1,82 @@
-package config
+package schema
 
 import (
 	"net"
 	"strings"
 )
 
+
+// main entrypoint to the configuration
 #Config: {
-	global:    #Global
-	hasura:    #Hasura
-	functions: #Functions
-	auth:      #Auth
-	postgres:  #Postgres
-	provider:  #Provider
-	storage:   #Storage
+    // Global configuration that applies to all services
+	global:        #Global
 
+    // Configuration for hasura
+	hasura:        #Hasura
 
-    _totalResourcesCPU: (
-        hasura.resources.replicas*hasura.resources.compute.cpu+
-		auth.resources.replicas*auth.resources.compute.cpu+
-		storage.resources.replicas*storage.resources.compute.cpu+
+    // Configuration for functions service
+	functions:     #Functions
+
+    // Configuration for auth service
+	auth:          #Auth
+
+    // Configuration for postgres service
+	postgres:      #Postgres
+
+    // Configuration for third party providers like SMTP, SMS, etc.
+	provider:      #Provider
+
+    // Configuration for storage service
+	storage:       #Storage
+
+    // Configuration for observability service
+	observability: #Observability
+
+	_totalResourcesCPU: (
+				hasura.resources.replicas*hasura.resources.compute.cpu +
+		auth.resources.replicas*auth.resources.compute.cpu +
+		storage.resources.replicas*storage.resources.compute.cpu +
 		postgres.resources.replicas*postgres.resources.compute.cpu) @cuegraph(skip)
 
-    _totalResourcesMemory: (
-        hasura.resources.replicas*hasura.resources.compute.memory+
-		auth.resources.replicas*auth.resources.compute.memory+
-		storage.resources.replicas*storage.resources.compute.memory+
+	_totalResourcesMemory: (
+				hasura.resources.replicas*hasura.resources.compute.memory +
+		auth.resources.replicas*auth.resources.compute.memory +
+		storage.resources.replicas*storage.resources.compute.memory +
 		postgres.resources.replicas*postgres.resources.compute.memory) @cuegraph(skip)
 
-	_validateResourcesTotalCpuMemoryRatioMustBe1CPUFor2GB: (
-        _totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
+	_validateResourcesTotalCpuMemoryRatioMustBe1For2: (
+								_totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
 
 	_validateResourcesTotalCpuMin1000: (
-        hasura.resources.compute.cpu+
+						hasura.resources.compute.cpu+
 		auth.resources.compute.cpu+
 		storage.resources.compute.cpu+
 		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
 
-    _validateAllResourcesAreSetOrNot: (
-        (hasura.resources == _|_) ==
-        (auth.resources == _|_) ==
-        (storage.resources == _|_) ==
-        (postgres.resources == _|_) ) & true @cuegraph(skip)
+	_validateAllResourcesAreSetOrNot: (
+						(hasura.resources == _|_) ==
+		(auth.resources == _|_) ==
+		(storage.resources == _|_) ==
+		(postgres.resources == _|_) ) & true @cuegraph(skip)
 }
 
+// Global configuration that applies to all services
 #Global: {
 	// User-defined environment variables that are spread over all services
 	environment: [...#EnvironmentVariable] | *[]
 }
 
 #EnvironmentVariable: {
-	name:  =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_"
+    // Name of the environment variable
+	name:  =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"
+    // Value of the environment variable
 	value: string
 }
 
+// Resource configuration for a service
 #Resources: {
 	compute: {
-		// milicpus
+		// milicpus, 1000 milicpus = 1 cpu
 		cpu: uint32 & >=250 & <=15000
 		// MiB: 128MiB to 30GiB
 		memory: uint32 & >=128 & <=30720
@@ -67,94 +88,166 @@ import (
 		_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 	}
 
+    // Number of replicas for a service
 	replicas: uint8 & >=1 & <=10
+
+	_validateMultipleReplicasRatioMustBe1For2: (
+							replicas == 1 |
+		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
 }
 
+// Configuration for hasura service
 #Hasura: {
-	version: string | *"v2.15.2"
+    // Version of hasura, you can see available versions in the URL below:
+    // https://hub.docker.com/r/hasura/graphql-engine/tags
+	version: string | *"v2.25.0-ce"
 
+    // JWT Secrets configuration
 	jwtSecrets: [#JWTSecret]
+
+    // Admin secret
 	adminSecret:   string
+
+    // Webhook secret
 	webhookSecret: string
 
+    // Configuration for hasura services
+    // Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 	settings: {
+        // HASURA_GRAPHQL_CORS_DOMAIN
+		corsDomain:                    [...#Url] | *["*"]
+        // HASURA_GRAPHQL_DEV_MODE
+		devMode:                       bool | *true
+        // HASURA_GRAPHQL_ENABLE_ALLOWLIST
+		enableAllowList:               bool | *false
+        // HASURA_GRAPHQL_ENABLE_CONSOLE
+		enableConsole:                 bool | *true
+        // HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
 		enableRemoteSchemaPermissions: bool | *false
+        // HASURA_GRAPHQL_ENABLED_APIS
+		enabledAPIs:                   [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
 	}
 
 	logs: {
+        // HASURA_GRAPHQL_LOG_LEVEL
 		level: "debug" | "info" | "error" | *"warn"
 	}
 
 	events: {
+        // HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
 		httpPoolSize: uint32 & >=1 & <=100 | *100
 	}
 
+    // Resources for the service
 	resources?: #Resources
 }
 
+// APIs for hasura
+#HasuraAPIs: "metadata" | "graphql" | "pgdump" | "config"
+
+
+// Configuration for storage service
 #Storage: {
+    // Version of storage service, you can see available versions in the URL below:
+    // https://hub.docker.com/r/nhost/hasura-storage/tags
+    //
+    // Releases:
+    //
+    // https://github.com/nhost/hasura-storage/releases
 	version:    string | *"0.3.4"
+
+    // Resources for the service
 	resources?: #Resources
 }
 
+// Configuration for functions service
 #Functions: {
 	node: {
 		version: 16
 	}
 }
 
+// Configuration for postgres service
 #Postgres: {
-	version: string | *"14.5-20230104-1"
+    // Version of postgres, you can see available versions in the URL below:
+    // https://hub.docker.com/r/nhost/postgres/tags
+	version: string | *"14.6-20230406-2"
 
+    // Resources for the service
 	resources?: #Resources & {
 		replicas: 1
 	}
 }
 
+// Configuration for auth service
+// You can find more information about the configuration here:
+// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
 #Auth: {
-	version: string | *"0.19.1"
+    // Version of auth, you can see available versions in the URL below:
+    // https://hub.docker.com/r/nhost/hasura-auth/tags
+    //
+    // Releases:
+    //
+    // https://github.com/nhost/hasura-auth/releases
+	version: string | *"0.20.1"
 
+    // Resources for the service
 	resources?: #Resources
 
 	redirections: {
+        // AUTH_CLIENT_URL
 		clientUrl: #Url | *"http://localhost:3000"
-		// We should implement wildcards soon, so the #Url type should not be used here
+        // AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
 		allowedUrls: [...string]
 	}
 
 	signUp: {
+        // Inverse of AUTH_DISABLE_NEW_USERS
 		enabled: bool | *true
 	}
 
 	user: {
 		roles: {
+            // AUTH_USER_DEFAULT_ROLE
 			default: #UserRole | *"user"
+            // AUTH_USER_DEFAULT_ALLOWED_ROLES
 			allowed: [ ...#UserRole] | *[default, "me"]
 		}
 		locale: {
+            // AUTH_LOCALE_DEFAULT
 			default: #Locale | *"en"
+            // AUTH_LOCALE_ALLOWED_LOCALES
 			allowed: [...#Locale] | *[default]
 		}
 
 		gravatar: {
+            // AUTH_GRAVATAR_ENABLED
 			enabled: bool | *true
+            // AUTH_GRAVATAR_DEFAULT
 			default: "404" | "mp" | "identicon" | "monsterid" | "wavatar" | "retro" | "robohash" | *"blank"
+            // AUTH_GRAVATAR_RATING
 			rating:  "pg" | "r" | "x" | *"g"
 		}
 		email: {
+            // AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
 			allowed: [...#Email]
+            // AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
 			blocked: [...#Email]
 
 		}
 		emailDomains: {
+            // AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
 			allowed: [...string & net.FQDN]
+            // AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
 			blocked: [...string & net.FQDN]
 		}
 	}
 
 	session: {
 		accessToken: {
+            // AUTH_ACCESS_TOKEN_EXPIRES_IN
 			expiresIn:    uint32 | *900
+            // AUTH_JWT_CUSTOM_CLAIMS
 			customClaims: [...{
 				key:   =~"[a-zA-Z_]{1,}[a-zA-Z0-9_]*"
 				value: string
@@ -162,6 +255,7 @@ import (
 		}
 
 		refreshToken: {
+            // AUTH_REFRESH_TOKEN_EXPIRES_IN
 			expiresIn: uint32 | *43200
 		}
 
@@ -323,7 +417,7 @@ import (
 #Email:    =~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 #Locale:   string & strings.MinRunes(2) & strings.MaxRunes(2)
 
-// * https://hasura.io/docs/latest/auth/authentication/jwt/
+// See https://hasura.io/docs/latest/auth/authentication/jwt/
 #JWTSecret:
 	({
 		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
@@ -387,4 +481,12 @@ import (
 			storage: string
 		}
 	}
+}
+
+#Observability: {
+	grafana: #Grafana
+}
+
+#Grafana: {
+	adminPassword: string
 }

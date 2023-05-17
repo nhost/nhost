@@ -3,16 +3,16 @@ module github.com/nhost/cli
 go 1.20
 
 require (
-	github.com/Yamashou/gqlgenc v0.11.4
+	github.com/Yamashou/gqlgenc v0.13.5
 	github.com/charmbracelet/lipgloss v0.7.1
 	github.com/creack/pty v1.1.18
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-getter v1.7.1
-	github.com/nhost/be v0.0.0-20230417073532-3fb8b94c7444
+	github.com/nhost/be v0.0.0-20230517084616-0ba127ded4f7
 	github.com/pelletier/go-toml/v2 v2.0.7
 	github.com/urfave/cli/v2 v2.25.3
-	golang.org/x/mod v0.9.0
+	golang.org/x/mod v0.10.0
 	golang.org/x/term v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -24,7 +24,7 @@ require (
 	cloud.google.com/go/iam v0.13.0 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	cuelang.org/go v0.5.0 // indirect
-	github.com/99designs/gqlgen v0.17.29 // indirect
+	github.com/99designs/gqlgen v0.17.30 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230331115716-d34776aa93ec // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
@@ -72,16 +72,16 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/oauth2 v0.6.0 // indirect
+	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	golang.org/x/tools v0.7.0 // indirect
+	golang.org/x/tools v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.114.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230331144136-dcfb400f0633 // indirect
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

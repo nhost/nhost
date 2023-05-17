@@ -109,14 +109,48 @@ input ConfigBooleanComparisonExp {
     _nin: [Boolean!]
 }
 
+"""
+Configuration for auth service
+You can find more information about the configuration here:
+https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
+"""
 type ConfigAuth {
+    """
+    Version of auth, you can see available versions in the URL below:
+    https://hub.docker.com/r/nhost/hasura-auth/tags
+    
+    Releases:
+    
+    https://github.com/nhost/hasura-auth/releases
+    """
     version: String
+    """
+    Resources for the service
+    """
     resources: ConfigResources
+    """
+
+    """
     redirections: ConfigAuthRedirections
+    """
+
+    """
     signUp: ConfigAuthSignUp
+    """
+
+    """
     user: ConfigAuthUser
+    """
+
+    """
     session: ConfigAuthSession
+    """
+
+    """
     method: ConfigAuthMethod
+    """
+
+    """
     totp: ConfigAuthTotp
 }
 
@@ -156,12 +190,33 @@ input ConfigAuthComparisonExp {
     totp: ConfigAuthTotpComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethod {
+    """
+
+    """
     anonymous: ConfigAuthMethodAnonymous
+    """
+
+    """
     emailPasswordless: ConfigAuthMethodEmailPasswordless
+    """
+
+    """
     emailPassword: ConfigAuthMethodEmailPassword
+    """
+
+    """
     smsPasswordless: ConfigAuthMethodSmsPasswordless
+    """
+
+    """
     oauth: ConfigAuthMethodOauth
+    """
+
+    """
     webauthn: ConfigAuthMethodWebauthn
 }
 
@@ -195,7 +250,13 @@ input ConfigAuthMethodComparisonExp {
     webauthn: ConfigAuthMethodWebauthnComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodAnonymous {
+    """
+
+    """
     enabled: Boolean
 }
 
@@ -214,9 +275,22 @@ input ConfigAuthMethodAnonymousComparisonExp {
     enabled: ConfigBooleanComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodEmailPassword {
+    """
+    Disabling email+password sign in is not implmented yet
+    enabled: bool | *true
+    """
     hibpEnabled: Boolean
+    """
+
+    """
     emailVerificationRequired: Boolean
+    """
+
+    """
     passwordMinLength: ConfigUint8
 }
 
@@ -241,7 +315,13 @@ input ConfigAuthMethodEmailPasswordComparisonExp {
     passwordMinLength: ConfigUint8ComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodEmailPasswordless {
+    """
+
+    """
     enabled: Boolean
 }
 
@@ -260,21 +340,69 @@ input ConfigAuthMethodEmailPasswordlessComparisonExp {
     enabled: ConfigBooleanComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodOauth {
+    """
+
+    """
     apple: ConfigAuthMethodOauthApple
+    """
+
+    """
     azuread: ConfigAuthMethodOauthAzuread
+    """
+
+    """
     bitbucket: ConfigStandardOauthProvider
+    """
+
+    """
     discord: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     facebook: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     github: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     gitlab: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     google: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     linkedin: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     spotify: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     strava: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     twitch: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     twitter: ConfigAuthMethodOauthTwitter
+    """
+
+    """
     windowslive: ConfigStandardOauthProviderWithScope
+    """
+
+    """
     workos: ConfigAuthMethodOauthWorkos
 }
 
@@ -335,12 +463,33 @@ input ConfigAuthMethodOauthComparisonExp {
     workos: ConfigAuthMethodOauthWorkosComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodOauthApple {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     clientId: String
+    """
+
+    """
     keyId: String
+    """
+
+    """
     teamId: String
+    """
+
+    """
     scope: [String!]
+    """
+
+    """
     privateKey: String
 }
 
@@ -374,10 +523,25 @@ input ConfigAuthMethodOauthAppleComparisonExp {
     privateKey: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodOauthAzuread {
+    """
+
+    """
     tenant: String
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     clientId: String
+    """
+
+    """
     clientSecret: String
 }
 
@@ -405,9 +569,21 @@ input ConfigAuthMethodOauthAzureadComparisonExp {
     clientSecret: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodOauthTwitter {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     consumerKey: String
+    """
+
+    """
     consumerSecret: String
 }
 
@@ -432,11 +608,29 @@ input ConfigAuthMethodOauthTwitterComparisonExp {
     consumerSecret: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodOauthWorkos {
+    """
+
+    """
     connection: String
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     clientId: String
+    """
+
+    """
     organization: String
+    """
+
+    """
     clientSecret: String
 }
 
@@ -467,7 +661,13 @@ input ConfigAuthMethodOauthWorkosComparisonExp {
     clientSecret: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodSmsPasswordless {
+    """
+
+    """
     enabled: Boolean
 }
 
@@ -486,9 +686,21 @@ input ConfigAuthMethodSmsPasswordlessComparisonExp {
     enabled: ConfigBooleanComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodWebauthn {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     relyingParty: ConfigAuthMethodWebauthnRelyingParty
+    """
+
+    """
     attestation: ConfigAuthMethodWebauthnAttestation
 }
 
@@ -513,7 +725,13 @@ input ConfigAuthMethodWebauthnComparisonExp {
     attestation: ConfigAuthMethodWebauthnAttestationComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodWebauthnAttestation {
+    """
+
+    """
     timeout: ConfigUint32
 }
 
@@ -532,8 +750,17 @@ input ConfigAuthMethodWebauthnAttestationComparisonExp {
     timeout: ConfigUint32ComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthMethodWebauthnRelyingParty {
+    """
+
+    """
     name: String
+    """
+
+    """
     origins: [ConfigUrl!]
 }
 
@@ -555,8 +782,17 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     origins: ConfigUrlComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthRedirections {
+    """
+    AUTH_CLIENT_URL
+    """
     clientUrl: ConfigUrl
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+    """
     allowedUrls: [String!]
 }
 
@@ -578,8 +814,17 @@ input ConfigAuthRedirectionsComparisonExp {
     allowedUrls: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthSession {
+    """
+
+    """
     accessToken: ConfigAuthSessionAccessToken
+    """
+
+    """
     refreshToken: ConfigAuthSessionRefreshToken
 }
 
@@ -601,8 +846,17 @@ input ConfigAuthSessionComparisonExp {
     refreshToken: ConfigAuthSessionRefreshTokenComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthSessionAccessToken {
+    """
+    AUTH_ACCESS_TOKEN_EXPIRES_IN
+    """
     expiresIn: ConfigUint32
+    """
+    AUTH_JWT_CUSTOM_CLAIMS
+    """
     customClaims: [ConfigAuthsessionaccessTokenCustomClaims!]
 }
 
@@ -624,7 +878,13 @@ input ConfigAuthSessionAccessTokenComparisonExp {
     customClaims: ConfigAuthsessionaccessTokenCustomClaimsComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthSessionRefreshToken {
+    """
+    AUTH_REFRESH_TOKEN_EXPIRES_IN
+    """
     expiresIn: ConfigUint32
 }
 
@@ -643,7 +903,13 @@ input ConfigAuthSessionRefreshTokenComparisonExp {
     expiresIn: ConfigUint32ComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthSignUp {
+    """
+    Inverse of AUTH_DISABLE_NEW_USERS
+    """
     enabled: Boolean
 }
 
@@ -662,8 +928,17 @@ input ConfigAuthSignUpComparisonExp {
     enabled: ConfigBooleanComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthTotp {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     issuer: String
 }
 
@@ -685,11 +960,29 @@ input ConfigAuthTotpComparisonExp {
     issuer: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUser {
+    """
+
+    """
     roles: ConfigAuthUserRoles
+    """
+
+    """
     locale: ConfigAuthUserLocale
+    """
+
+    """
     gravatar: ConfigAuthUserGravatar
+    """
+
+    """
     email: ConfigAuthUserEmail
+    """
+
+    """
     emailDomains: ConfigAuthUserEmailDomains
 }
 
@@ -720,8 +1013,17 @@ input ConfigAuthUserComparisonExp {
     emailDomains: ConfigAuthUserEmailDomainsComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUserEmail {
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+    """
     allowed: [ConfigEmail!]
+    """
+    AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+    """
     blocked: [ConfigEmail!]
 }
 
@@ -743,8 +1045,17 @@ input ConfigAuthUserEmailComparisonExp {
     blocked: ConfigEmailComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUserEmailDomains {
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+    """
     allowed: [String!]
+    """
+    AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+    """
     blocked: [String!]
 }
 
@@ -766,9 +1077,21 @@ input ConfigAuthUserEmailDomainsComparisonExp {
     blocked: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUserGravatar {
+    """
+    AUTH_GRAVATAR_ENABLED
+    """
     enabled: Boolean
+    """
+
+    """
     default: String
+    """
+
+    """
     rating: String
 }
 
@@ -793,8 +1116,17 @@ input ConfigAuthUserGravatarComparisonExp {
     rating: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUserLocale {
+    """
+    AUTH_LOCALE_DEFAULT
+    """
     default: ConfigLocale
+    """
+    AUTH_LOCALE_ALLOWED_LOCALES
+    """
     allowed: [ConfigLocale!]
 }
 
@@ -816,8 +1148,17 @@ input ConfigAuthUserLocaleComparisonExp {
     allowed: ConfigLocaleComparisonExp
 }
 
+"""
+
+"""
 type ConfigAuthUserRoles {
+    """
+    AUTH_USER_DEFAULT_ROLE
+    """
     default: ConfigUserRole
+    """
+    AUTH_USER_DEFAULT_ALLOWED_ROLES
+    """
     allowed: [ConfigUserRole!]
 }
 
@@ -839,8 +1180,17 @@ input ConfigAuthUserRolesComparisonExp {
     allowed: ConfigUserRoleComparisonExp
 }
 
+"""
+AUTH_JWT_CUSTOM_CLAIMS
+"""
 type ConfigAuthsessionaccessTokenCustomClaims {
+    """
+
+    """
     key: String!
+    """
+
+    """
     value: String!
 }
 
@@ -862,10 +1212,25 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
     value: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigClaimMap {
+    """
+
+    """
     claim: String!
+    """
+
+    """
     value: String
+    """
+
+    """
     path: String
+    """
+
+    """
     default: String
 }
 
@@ -893,14 +1258,42 @@ input ConfigClaimMapComparisonExp {
     default: ConfigStringComparisonExp
 }
 
+"""
+main entrypoint to the configuration
+"""
 type ConfigConfig {
+    """
+    Global configuration that applies to all services
+    """
     global: ConfigGlobal
+    """
+    Configuration for hasura
+    """
     hasura: ConfigHasura!
+    """
+    Configuration for functions service
+    """
     functions: ConfigFunctions
+    """
+    Configuration for auth service
+    """
     auth: ConfigAuth
+    """
+    Configuration for postgres service
+    """
     postgres: ConfigPostgres
+    """
+    Configuration for third party providers like SMTP, SMS, etc.
+    """
     provider: ConfigProvider
+    """
+    Configuration for storage service
+    """
     storage: ConfigStorage
+    """
+    Configuration for observability service
+    """
+    observability: ConfigObservability!
 }
 
 input ConfigConfigUpdateInput {
@@ -911,6 +1304,7 @@ input ConfigConfigUpdateInput {
     postgres: ConfigPostgresUpdateInput
     provider: ConfigProviderUpdateInput
     storage: ConfigStorageUpdateInput
+    observability: ConfigObservabilityUpdateInput
 }
 
 input ConfigConfigInsertInput {
@@ -921,6 +1315,7 @@ input ConfigConfigInsertInput {
     postgres: ConfigPostgresInsertInput
     provider: ConfigProviderInsertInput
     storage: ConfigStorageInsertInput
+    observability: ConfigObservabilityInsertInput!
 }
 
 input ConfigConfigComparisonExp {
@@ -934,6 +1329,7 @@ input ConfigConfigComparisonExp {
     postgres: ConfigPostgresComparisonExp
     provider: ConfigProviderComparisonExp
     storage: ConfigStorageComparisonExp
+    observability: ConfigObservabilityComparisonExp
 }
 
 scalar ConfigEmail
@@ -945,8 +1341,17 @@ input ConfigEmailComparisonExp {
     _nin: [ConfigEmail!]
 }
 
+"""
+
+"""
 type ConfigEnvironmentVariable {
+    """
+
+    """
     name: String!
+    """
+    Value of the environment variable
+    """
     value: String!
 }
 
@@ -968,7 +1373,13 @@ input ConfigEnvironmentVariableComparisonExp {
     value: ConfigStringComparisonExp
 }
 
+"""
+Configuration for functions service
+"""
 type ConfigFunctions {
+    """
+
+    """
     node: ConfigFunctionsNode
 }
 
@@ -987,7 +1398,13 @@ input ConfigFunctionsComparisonExp {
     node: ConfigFunctionsNodeComparisonExp
 }
 
+"""
+
+"""
 type ConfigFunctionsNode {
+    """
+
+    """
     version: Int
 }
 
@@ -1006,7 +1423,13 @@ input ConfigFunctionsNodeComparisonExp {
     version: ConfigIntComparisonExp
 }
 
+"""
+Global configuration that applies to all services
+"""
 type ConfigGlobal {
+    """
+    User-defined environment variables that are spread over all services
+    """
     environment: [ConfigEnvironmentVariable!]
 }
 
@@ -1025,14 +1448,68 @@ input ConfigGlobalComparisonExp {
     environment: ConfigEnvironmentVariableComparisonExp
 }
 
+"""
+
+"""
+type ConfigGrafana {
+    """
+
+    """
+    adminPassword: String!
+}
+
+input ConfigGrafanaUpdateInput {
+    adminPassword: String
+}
+
+input ConfigGrafanaInsertInput {
+    adminPassword: String!
+}
+
+input ConfigGrafanaComparisonExp {
+    _and: [ConfigGrafanaComparisonExp!]
+    _not: ConfigGrafanaComparisonExp
+    _or: [ConfigGrafanaComparisonExp!]
+    adminPassword: ConfigStringComparisonExp
+}
+
+"""
+Configuration for hasura service
+"""
 type ConfigHasura {
+    """
+    Version of hasura, you can see available versions in the URL below:
+    https://hub.docker.com/r/hasura/graphql-engine/tags
+    """
     version: String
+    """
+    JWT Secrets configuration
+    """
     jwtSecrets: [ConfigJWTSecret!]
+    """
+    Admin secret
+    """
     adminSecret: String!
+    """
+    Webhook secret
+    """
     webhookSecret: String!
+    """
+    Configuration for hasura services
+    Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+    """
     settings: ConfigHasuraSettings
+    """
+
+    """
     logs: ConfigHasuraLogs
+    """
+
+    """
     events: ConfigHasuraEvents
+    """
+    Resources for the service
+    """
     resources: ConfigResources
 }
 
@@ -1072,7 +1549,22 @@ input ConfigHasuraComparisonExp {
     resources: ConfigResourcesComparisonExp
 }
 
+scalar ConfigHasuraAPIs
+
+input ConfigHasuraAPIsComparisonExp {
+    _eq: ConfigHasuraAPIs
+    _neq: ConfigHasuraAPIs
+    _in: [ConfigHasuraAPIs!]
+    _nin: [ConfigHasuraAPIs!]
+}
+
+"""
+
+"""
 type ConfigHasuraEvents {
+    """
+    HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+    """
     httpPoolSize: ConfigUint32
 }
 
@@ -1091,7 +1583,13 @@ input ConfigHasuraEventsComparisonExp {
     httpPoolSize: ConfigUint32ComparisonExp
 }
 
+"""
+
+"""
 type ConfigHasuraLogs {
+    """
+
+    """
     level: String
 }
 
@@ -1110,36 +1608,114 @@ input ConfigHasuraLogsComparisonExp {
     level: ConfigStringComparisonExp
 }
 
+"""
+Configuration for hasura services
+Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+"""
 type ConfigHasuraSettings {
+    """
+    HASURA_GRAPHQL_CORS_DOMAIN
+    """
+    corsDomain: [ConfigUrl!]
+    """
+    HASURA_GRAPHQL_DEV_MODE
+    """
+    devMode: Boolean
+    """
+    HASURA_GRAPHQL_ENABLE_ALLOWLIST
+    """
+    enableAllowList: Boolean
+    """
+    HASURA_GRAPHQL_ENABLE_CONSOLE
+    """
+    enableConsole: Boolean
+    """
+    HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+    """
     enableRemoteSchemaPermissions: Boolean
+    """
+    HASURA_GRAPHQL_ENABLED_APIS
+    """
+    enabledAPIs: [ConfigHasuraAPIs!]
 }
 
 input ConfigHasuraSettingsUpdateInput {
+        corsDomain: [ConfigUrl!]
+    devMode: Boolean
+    enableAllowList: Boolean
+    enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
+        enabledAPIs: [ConfigHasuraAPIs!]
 }
 
 input ConfigHasuraSettingsInsertInput {
+        corsDomain: [ConfigUrl!]
+    devMode: Boolean
+    enableAllowList: Boolean
+    enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
+        enabledAPIs: [ConfigHasuraAPIs!]
 }
 
 input ConfigHasuraSettingsComparisonExp {
     _and: [ConfigHasuraSettingsComparisonExp!]
     _not: ConfigHasuraSettingsComparisonExp
     _or: [ConfigHasuraSettingsComparisonExp!]
+    corsDomain: ConfigUrlComparisonExp
+    devMode: ConfigBooleanComparisonExp
+    enableAllowList: ConfigBooleanComparisonExp
+    enableConsole: ConfigBooleanComparisonExp
     enableRemoteSchemaPermissions: ConfigBooleanComparisonExp
+    enabledAPIs: ConfigHasuraAPIsComparisonExp
 }
 
+"""
+See https://hasura.io/docs/latest/auth/authentication/jwt/
+"""
 type ConfigJWTSecret {
+    """
+
+    """
     type: String
+    """
+
+    """
     key: String
+    """
+
+    """
     jwk_url: ConfigUrl
+    """
+
+    """
     claims_format: String
+    """
+
+    """
     audience: String
+    """
+
+    """
     issuer: String
+    """
+
+    """
     allowed_skew: ConfigUint32
+    """
+
+    """
     header: String
+    """
+
+    """
     claims_map: [ConfigClaimMap!]
+    """
+
+    """
     claims_namespace: String
+    """
+
+    """
     claims_namespace_path: String
 }
 
@@ -1197,6 +1773,31 @@ input ConfigLocaleComparisonExp {
     _nin: [ConfigLocale!]
 }
 
+"""
+
+"""
+type ConfigObservability {
+    """
+
+    """
+    grafana: ConfigGrafana!
+}
+
+input ConfigObservabilityUpdateInput {
+    grafana: ConfigGrafanaUpdateInput
+}
+
+input ConfigObservabilityInsertInput {
+    grafana: ConfigGrafanaInsertInput!
+}
+
+input ConfigObservabilityComparisonExp {
+    _and: [ConfigObservabilityComparisonExp!]
+    _not: ConfigObservabilityComparisonExp
+    _or: [ConfigObservabilityComparisonExp!]
+    grafana: ConfigGrafanaComparisonExp
+}
+
 scalar ConfigPort
 
 input ConfigPortComparisonExp {
@@ -1206,8 +1807,18 @@ input ConfigPortComparisonExp {
     _nin: [ConfigPort!]
 }
 
+"""
+Configuration for postgres service
+"""
 type ConfigPostgres {
+    """
+    Version of postgres, you can see available versions in the URL below:
+    https://hub.docker.com/r/nhost/postgres/tags
+    """
     version: String
+    """
+    Resources for the service
+    """
     resources: ConfigResources
 }
 
@@ -1229,8 +1840,17 @@ input ConfigPostgresComparisonExp {
     resources: ConfigResourcesComparisonExp
 }
 
+"""
+
+"""
 type ConfigProvider {
+    """
+
+    """
     smtp: ConfigSmtp
+    """
+
+    """
     sms: ConfigSms
 }
 
@@ -1252,8 +1872,17 @@ input ConfigProviderComparisonExp {
     sms: ConfigSmsComparisonExp
 }
 
+"""
+Resource configuration for a service
+"""
 type ConfigResources {
+    """
+
+    """
     compute: ConfigResourcesCompute!
+    """
+    Number of replicas for a service
+    """
     replicas: ConfigUint8!
 }
 
@@ -1275,8 +1904,17 @@ input ConfigResourcesComparisonExp {
     replicas: ConfigUint8ComparisonExp
 }
 
+"""
+
+"""
 type ConfigResourcesCompute {
+    """
+    milicpus, 1000 milicpus = 1 cpu
+    """
     cpu: ConfigUint32!
+    """
+    MiB: 128MiB to 30GiB
+    """
     memory: ConfigUint32!
 }
 
@@ -1298,10 +1936,25 @@ input ConfigResourcesComputeComparisonExp {
     memory: ConfigUint32ComparisonExp
 }
 
+"""
+
+"""
 type ConfigSms {
+    """
+
+    """
     provider: String
+    """
+
+    """
     accountSid: String!
+    """
+
+    """
     authToken: String!
+    """
+
+    """
     messagingServiceId: String!
 }
 
@@ -1329,13 +1982,37 @@ input ConfigSmsComparisonExp {
     messagingServiceId: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigSmtp {
+    """
+
+    """
     user: String!
+    """
+
+    """
     password: String!
+    """
+
+    """
     sender: String!
+    """
+
+    """
     host: String!
+    """
+
+    """
     port: ConfigPort!
+    """
+
+    """
     secure: Boolean!
+    """
+
+    """
     method: String!
 }
 
@@ -1372,9 +2049,21 @@ input ConfigSmtpComparisonExp {
     method: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigStandardOauthProvider {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     clientId: String
+    """
+
+    """
     clientSecret: String
 }
 
@@ -1399,10 +2088,25 @@ input ConfigStandardOauthProviderComparisonExp {
     clientSecret: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigStandardOauthProviderWithScope {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     clientId: String
+    """
+
+    """
     scope: [String!]
+    """
+
+    """
     clientSecret: String
 }
 
@@ -1430,8 +2134,22 @@ input ConfigStandardOauthProviderWithScopeComparisonExp {
     clientSecret: ConfigStringComparisonExp
 }
 
+"""
+Configuration for storage service
+"""
 type ConfigStorage {
+    """
+    Version of storage service, you can see available versions in the URL below:
+    https://hub.docker.com/r/nhost/hasura-storage/tags
+    
+    Releases:
+    
+    https://github.com/nhost/hasura-storage/releases
+    """
     version: String
+    """
+    Resources for the service
+    """
     resources: ConfigResources
 }
 
@@ -1453,8 +2171,17 @@ input ConfigStorageComparisonExp {
     resources: ConfigResourcesComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfig {
+    """
+
+    """
     auth: ConfigSystemConfigAuth
+    """
+
+    """
     postgres: ConfigSystemConfigPostgres!
 }
 
@@ -1476,7 +2203,13 @@ input ConfigSystemConfigComparisonExp {
     postgres: ConfigSystemConfigPostgresComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfigAuth {
+    """
+
+    """
     email: ConfigSystemConfigAuthEmail
 }
 
@@ -1495,7 +2228,13 @@ input ConfigSystemConfigAuthComparisonExp {
     email: ConfigSystemConfigAuthEmailComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfigAuthEmail {
+    """
+
+    """
     templates: ConfigSystemConfigAuthEmailTemplates
 }
 
@@ -1514,7 +2253,13 @@ input ConfigSystemConfigAuthEmailComparisonExp {
     templates: ConfigSystemConfigAuthEmailTemplatesComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfigAuthEmailTemplates {
+    """
+
+    """
     s3Key: String
 }
 
@@ -1533,10 +2278,25 @@ input ConfigSystemConfigAuthEmailTemplatesComparisonExp {
     s3Key: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfigPostgres {
+    """
+
+    """
     enabled: Boolean
+    """
+
+    """
     database: String!
+    """
+
+    """
     connectionString: ConfigSystemConfigPostgresConnectionString!
+    """
+
+    """
     password: String!
 }
 
@@ -1564,10 +2324,25 @@ input ConfigSystemConfigPostgresComparisonExp {
     password: ConfigStringComparisonExp
 }
 
+"""
+
+"""
 type ConfigSystemConfigPostgresConnectionString {
+    """
+
+    """
     backup: String!
+    """
+
+    """
     hasura: String!
+    """
+
+    """
     auth: String!
+    """
+
+    """
     storage: String!
 }
 

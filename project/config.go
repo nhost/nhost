@@ -24,6 +24,11 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 				},
 			},
 		},
+		Observability: &model.ConfigObservability{
+			Grafana: &model.ConfigGrafana{
+				AdminPassword: "{{ secrets.GRAFANA_ADMIN_PASSWORD }}",
+			},
+		},
 	}
 
 	if c, err = s.Fill(c); err != nil {

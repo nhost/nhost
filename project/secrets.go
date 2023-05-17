@@ -18,5 +18,9 @@ func DefaultSecrets() model.Secrets {
 			Name:  "NHOST_WEBHOOK_SECRET",
 			Value: "nhost-webhook-secret",
 		},
+		{
+			Name:  "GRAFANA_ADMIN_PASSWORD",
+			Value: "grafana-admin-password",
+		},
 	}
 }

@@ -90,18 +90,35 @@ type ConfigStringComparisonExp = GenericComparisonExp[string]
 
 type ConfigBooleanComparisonExp = GenericComparisonExp[bool]
 
-type ConfigFloatComparisonExp = GenericComparisonExp[float64]
+type (
+	ConfigFloatComparisonExp = GenericComparisonExp[float64]
+	// Configuration for auth service
+	// You can find more information about the configuration here:
+	// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
+	ConfigAuth struct {
+		// Version of auth, you can see available versions in the URL below:
+		// https://hub.docker.com/r/nhost/hasura-auth/tags
+		//
+		// Releases:
+		//
+		// https://github.com/nhost/hasura-auth/releases
+		Version *string `json:"version" toml:"version"`
+		// Resources for the service
+		Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
-type ConfigAuth struct {
-	Version      *string                 `json:"version" toml:"version"`
-	Resources    *ConfigResources        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
-	SignUp       *ConfigAuthSignUp       `json:"signUp,omitempty" toml:"signUp,omitempty"`
-	User         *ConfigAuthUser         `json:"user,omitempty" toml:"user,omitempty"`
-	Session      *ConfigAuthSession      `json:"session,omitempty" toml:"session,omitempty"`
-	Method       *ConfigAuthMethod       `json:"method,omitempty" toml:"method,omitempty"`
-	Totp         *ConfigAuthTotp         `json:"totp,omitempty" toml:"totp,omitempty"`
-}
+		Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
+
+		SignUp *ConfigAuthSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
+
+		User *ConfigAuthUser `json:"user,omitempty" toml:"user,omitempty"`
+
+		Session *ConfigAuthSession `json:"session,omitempty" toml:"session,omitempty"`
+
+		Method *ConfigAuthMethod `json:"method,omitempty" toml:"method,omitempty"`
+
+		Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
+	}
+)
 
 func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
@@ -646,12 +663,17 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 }
 
 type ConfigAuthMethod struct {
-	Anonymous         *ConfigAuthMethodAnonymous         `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
+	Anonymous *ConfigAuthMethodAnonymous `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
+
 	EmailPasswordless *ConfigAuthMethodEmailPasswordless `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
-	EmailPassword     *ConfigAuthMethodEmailPassword     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
-	SmsPasswordless   *ConfigAuthMethodSmsPasswordless   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
-	Oauth             *ConfigAuthMethodOauth             `json:"oauth,omitempty" toml:"oauth,omitempty"`
-	Webauthn          *ConfigAuthMethodWebauthn          `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
+
+	EmailPassword *ConfigAuthMethodEmailPassword `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
+
+	SmsPasswordless *ConfigAuthMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
+
+	Oauth *ConfigAuthMethodOauth `json:"oauth,omitempty" toml:"oauth,omitempty"`
+
+	Webauthn *ConfigAuthMethodWebauthn `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
 }
 
 func (o *ConfigAuthMethod) MarshalJSON() ([]byte, error) {
@@ -1217,9 +1239,13 @@ func (exp *ConfigAuthMethodAnonymousComparisonExp) Matches(o *ConfigAuthMethodAn
 }
 
 type ConfigAuthMethodEmailPassword struct {
-	HibpEnabled               *bool  `json:"hibpEnabled" toml:"hibpEnabled"`
-	EmailVerificationRequired *bool  `json:"emailVerificationRequired" toml:"emailVerificationRequired"`
-	PasswordMinLength         *uint8 `json:"passwordMinLength" toml:"passwordMinLength"`
+	// Disabling email+password sign in is not implmented yet
+	// enabled: bool | *true
+	HibpEnabled *bool `json:"hibpEnabled" toml:"hibpEnabled"`
+
+	EmailVerificationRequired *bool `json:"emailVerificationRequired" toml:"emailVerificationRequired"`
+
+	PasswordMinLength *uint8 `json:"passwordMinLength" toml:"passwordMinLength"`
 }
 
 func (o *ConfigAuthMethodEmailPassword) MarshalJSON() ([]byte, error) {
@@ -1589,21 +1615,35 @@ func (exp *ConfigAuthMethodEmailPasswordlessComparisonExp) Matches(o *ConfigAuth
 }
 
 type ConfigAuthMethodOauth struct {
-	Apple       *ConfigAuthMethodOauthApple           `json:"apple,omitempty" toml:"apple,omitempty"`
-	Azuread     *ConfigAuthMethodOauthAzuread         `json:"azuread,omitempty" toml:"azuread,omitempty"`
-	Bitbucket   *ConfigStandardOauthProvider          `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
-	Discord     *ConfigStandardOauthProviderWithScope `json:"discord,omitempty" toml:"discord,omitempty"`
-	Facebook    *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty" toml:"facebook,omitempty"`
-	Github      *ConfigStandardOauthProviderWithScope `json:"github,omitempty" toml:"github,omitempty"`
-	Gitlab      *ConfigStandardOauthProviderWithScope `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
-	Google      *ConfigStandardOauthProviderWithScope `json:"google,omitempty" toml:"google,omitempty"`
-	Linkedin    *ConfigStandardOauthProviderWithScope `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
-	Spotify     *ConfigStandardOauthProviderWithScope `json:"spotify,omitempty" toml:"spotify,omitempty"`
-	Strava      *ConfigStandardOauthProviderWithScope `json:"strava,omitempty" toml:"strava,omitempty"`
-	Twitch      *ConfigStandardOauthProviderWithScope `json:"twitch,omitempty" toml:"twitch,omitempty"`
-	Twitter     *ConfigAuthMethodOauthTwitter         `json:"twitter,omitempty" toml:"twitter,omitempty"`
+	Apple *ConfigAuthMethodOauthApple `json:"apple,omitempty" toml:"apple,omitempty"`
+
+	Azuread *ConfigAuthMethodOauthAzuread `json:"azuread,omitempty" toml:"azuread,omitempty"`
+
+	Bitbucket *ConfigStandardOauthProvider `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
+
+	Discord *ConfigStandardOauthProviderWithScope `json:"discord,omitempty" toml:"discord,omitempty"`
+
+	Facebook *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty" toml:"facebook,omitempty"`
+
+	Github *ConfigStandardOauthProviderWithScope `json:"github,omitempty" toml:"github,omitempty"`
+
+	Gitlab *ConfigStandardOauthProviderWithScope `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
+
+	Google *ConfigStandardOauthProviderWithScope `json:"google,omitempty" toml:"google,omitempty"`
+
+	Linkedin *ConfigStandardOauthProviderWithScope `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
+
+	Spotify *ConfigStandardOauthProviderWithScope `json:"spotify,omitempty" toml:"spotify,omitempty"`
+
+	Strava *ConfigStandardOauthProviderWithScope `json:"strava,omitempty" toml:"strava,omitempty"`
+
+	Twitch *ConfigStandardOauthProviderWithScope `json:"twitch,omitempty" toml:"twitch,omitempty"`
+
+	Twitter *ConfigAuthMethodOauthTwitter `json:"twitter,omitempty" toml:"twitter,omitempty"`
+
 	Windowslive *ConfigStandardOauthProviderWithScope `json:"windowslive,omitempty" toml:"windowslive,omitempty"`
-	Workos      *ConfigAuthMethodOauthWorkos          `json:"workos,omitempty" toml:"workos,omitempty"`
+
+	Workos *ConfigAuthMethodOauthWorkos `json:"workos,omitempty" toml:"workos,omitempty"`
 }
 
 func (o *ConfigAuthMethodOauth) MarshalJSON() ([]byte, error) {
@@ -2568,12 +2608,17 @@ func (exp *ConfigAuthMethodOauthComparisonExp) Matches(o *ConfigAuthMethodOauth)
 }
 
 type ConfigAuthMethodOauthApple struct {
-	Enabled    *bool    `json:"enabled" toml:"enabled"`
-	ClientId   *string  `json:"clientId" toml:"clientId"`
-	KeyId      *string  `json:"keyId" toml:"keyId"`
-	TeamId     *string  `json:"teamId" toml:"teamId"`
-	Scope      []string `json:"scope,omitempty" toml:"scope,omitempty"`
-	PrivateKey *string  `json:"privateKey" toml:"privateKey"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	KeyId *string `json:"keyId" toml:"keyId"`
+
+	TeamId *string `json:"teamId" toml:"teamId"`
+
+	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
+
+	PrivateKey *string `json:"privateKey" toml:"privateKey"`
 }
 
 func (o *ConfigAuthMethodOauthApple) MarshalJSON() ([]byte, error) {
@@ -2994,9 +3039,12 @@ func (exp *ConfigAuthMethodOauthAppleComparisonExp) Matches(o *ConfigAuthMethodO
 }
 
 type ConfigAuthMethodOauthAzuread struct {
-	Tenant       *string `json:"tenant" toml:"tenant"`
-	Enabled      *bool   `json:"enabled" toml:"enabled"`
-	ClientId     *string `json:"clientId" toml:"clientId"`
+	Tenant *string `json:"tenant" toml:"tenant"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -3288,8 +3336,10 @@ func (exp *ConfigAuthMethodOauthAzureadComparisonExp) Matches(o *ConfigAuthMetho
 }
 
 type ConfigAuthMethodOauthTwitter struct {
-	Enabled        *bool   `json:"enabled" toml:"enabled"`
-	ConsumerKey    *string `json:"consumerKey" toml:"consumerKey"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ConsumerKey *string `json:"consumerKey" toml:"consumerKey"`
+
 	ConsumerSecret *string `json:"consumerSecret" toml:"consumerSecret"`
 }
 
@@ -3528,10 +3578,14 @@ func (exp *ConfigAuthMethodOauthTwitterComparisonExp) Matches(o *ConfigAuthMetho
 }
 
 type ConfigAuthMethodOauthWorkos struct {
-	Connection   *string `json:"connection" toml:"connection"`
-	Enabled      *bool   `json:"enabled" toml:"enabled"`
-	ClientId     *string `json:"clientId" toml:"clientId"`
+	Connection *string `json:"connection" toml:"connection"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
 	Organization *string `json:"organization" toml:"organization"`
+
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -4008,9 +4062,11 @@ func (exp *ConfigAuthMethodSmsPasswordlessComparisonExp) Matches(o *ConfigAuthMe
 }
 
 type ConfigAuthMethodWebauthn struct {
-	Enabled      *bool                                 `json:"enabled" toml:"enabled"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
 	RelyingParty *ConfigAuthMethodWebauthnRelyingParty `json:"relyingParty,omitempty" toml:"relyingParty,omitempty"`
-	Attestation  *ConfigAuthMethodWebauthnAttestation  `json:"attestation,omitempty" toml:"attestation,omitempty"`
+
+	Attestation *ConfigAuthMethodWebauthnAttestation `json:"attestation,omitempty" toml:"attestation,omitempty"`
 }
 
 func (o *ConfigAuthMethodWebauthn) MarshalJSON() ([]byte, error) {
@@ -4393,7 +4449,8 @@ func (exp *ConfigAuthMethodWebauthnAttestationComparisonExp) Matches(o *ConfigAu
 }
 
 type ConfigAuthMethodWebauthnRelyingParty struct {
-	Name    *string  `json:"name" toml:"name"`
+	Name *string `json:"name" toml:"name"`
+
 	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
 }
 
@@ -4603,7 +4660,9 @@ func (exp *ConfigAuthMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigA
 }
 
 type ConfigAuthRedirections struct {
-	ClientUrl   *string  `json:"clientUrl" toml:"clientUrl"`
+	// AUTH_CLIENT_URL
+	ClientUrl *string `json:"clientUrl" toml:"clientUrl"`
+	// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
 	AllowedUrls []string `json:"allowedUrls,omitempty" toml:"allowedUrls,omitempty"`
 }
 
@@ -4813,7 +4872,8 @@ func (exp *ConfigAuthRedirectionsComparisonExp) Matches(o *ConfigAuthRedirection
 }
 
 type ConfigAuthSession struct {
-	AccessToken  *ConfigAuthSessionAccessToken  `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+	AccessToken *ConfigAuthSessionAccessToken `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+
 	RefreshToken *ConfigAuthSessionRefreshToken `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
 }
 
@@ -5012,7 +5072,9 @@ func (exp *ConfigAuthSessionComparisonExp) Matches(o *ConfigAuthSession) bool {
 }
 
 type ConfigAuthSessionAccessToken struct {
-	ExpiresIn    *uint32                                     `json:"expiresIn" toml:"expiresIn"`
+	// AUTH_ACCESS_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
+	// AUTH_JWT_CUSTOM_CLAIMS
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaims `json:"customClaims,omitempty" toml:"customClaims,omitempty"`
 }
 
@@ -5232,6 +5294,7 @@ func (exp *ConfigAuthSessionAccessTokenComparisonExp) Matches(o *ConfigAuthSessi
 }
 
 type ConfigAuthSessionRefreshToken struct {
+	// AUTH_REFRESH_TOKEN_EXPIRES_IN
 	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
 }
 
@@ -5364,6 +5427,7 @@ func (exp *ConfigAuthSessionRefreshTokenComparisonExp) Matches(o *ConfigAuthSess
 }
 
 type ConfigAuthSignUp struct {
+	// Inverse of AUTH_DISABLE_NEW_USERS
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -5496,8 +5560,9 @@ func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
 }
 
 type ConfigAuthTotp struct {
-	Enabled *bool   `json:"enabled" toml:"enabled"`
-	Issuer  *string `json:"issuer" toml:"issuer"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	Issuer *string `json:"issuer" toml:"issuer"`
 }
 
 func (o *ConfigAuthTotp) MarshalJSON() ([]byte, error) {
@@ -5682,10 +5747,14 @@ func (exp *ConfigAuthTotpComparisonExp) Matches(o *ConfigAuthTotp) bool {
 }
 
 type ConfigAuthUser struct {
-	Roles        *ConfigAuthUserRoles        `json:"roles,omitempty" toml:"roles,omitempty"`
-	Locale       *ConfigAuthUserLocale       `json:"locale,omitempty" toml:"locale,omitempty"`
-	Gravatar     *ConfigAuthUserGravatar     `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
-	Email        *ConfigAuthUserEmail        `json:"email,omitempty" toml:"email,omitempty"`
+	Roles *ConfigAuthUserRoles `json:"roles,omitempty" toml:"roles,omitempty"`
+
+	Locale *ConfigAuthUserLocale `json:"locale,omitempty" toml:"locale,omitempty"`
+
+	Gravatar *ConfigAuthUserGravatar `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
+
+	Email *ConfigAuthUserEmail `json:"email,omitempty" toml:"email,omitempty"`
+
 	EmailDomains *ConfigAuthUserEmailDomains `json:"emailDomains,omitempty" toml:"emailDomains,omitempty"`
 }
 
@@ -6061,7 +6130,9 @@ func (exp *ConfigAuthUserComparisonExp) Matches(o *ConfigAuthUser) bool {
 }
 
 type ConfigAuthUserEmail struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
 	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
 }
 
@@ -6294,7 +6365,9 @@ func (exp *ConfigAuthUserEmailComparisonExp) Matches(o *ConfigAuthUserEmail) boo
 }
 
 type ConfigAuthUserEmailDomains struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
 	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
 }
 
@@ -6527,9 +6600,12 @@ func (exp *ConfigAuthUserEmailDomainsComparisonExp) Matches(o *ConfigAuthUserEma
 }
 
 type ConfigAuthUserGravatar struct {
-	Enabled *bool   `json:"enabled" toml:"enabled"`
+	// AUTH_GRAVATAR_ENABLED
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
 	Default *string `json:"default" toml:"default"`
-	Rating  *string `json:"rating" toml:"rating"`
+
+	Rating *string `json:"rating" toml:"rating"`
 }
 
 func (o *ConfigAuthUserGravatar) MarshalJSON() ([]byte, error) {
@@ -6767,7 +6843,9 @@ func (exp *ConfigAuthUserGravatarComparisonExp) Matches(o *ConfigAuthUserGravata
 }
 
 type ConfigAuthUserLocale struct {
-	Default *string  `json:"default" toml:"default"`
+	// AUTH_LOCALE_DEFAULT
+	Default *string `json:"default" toml:"default"`
+	// AUTH_LOCALE_ALLOWED_LOCALES
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
 }
 
@@ -6977,7 +7055,9 @@ func (exp *ConfigAuthUserLocaleComparisonExp) Matches(o *ConfigAuthUserLocale) b
 }
 
 type ConfigAuthUserRoles struct {
-	Default *string  `json:"default" toml:"default"`
+	// AUTH_USER_DEFAULT_ROLE
+	Default *string `json:"default" toml:"default"`
+	// AUTH_USER_DEFAULT_ALLOWED_ROLES
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
 }
 
@@ -7186,8 +7266,10 @@ func (exp *ConfigAuthUserRolesComparisonExp) Matches(o *ConfigAuthUserRoles) boo
 	return true
 }
 
+// AUTH_JWT_CUSTOM_CLAIMS
 type ConfigAuthsessionaccessTokenCustomClaims struct {
-	Key   string `json:"key" toml:"key"`
+	Key string `json:"key" toml:"key"`
+
 	Value string `json:"value" toml:"value"`
 }
 
@@ -7373,9 +7455,12 @@ func (exp *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp) Matches(o *Con
 }
 
 type ConfigClaimMap struct {
-	Claim   string  `json:"claim" toml:"claim"`
-	Value   *string `json:"value" toml:"value"`
-	Path    *string `json:"path" toml:"path"`
+	Claim string `json:"claim" toml:"claim"`
+
+	Value *string `json:"value" toml:"value"`
+
+	Path *string `json:"path" toml:"path"`
+
 	Default *string `json:"default" toml:"default"`
 }
 
@@ -7666,14 +7751,24 @@ func (exp *ConfigClaimMapComparisonExp) Matches(o *ConfigClaimMap) bool {
 	return true
 }
 
+// main entrypoint to the configuration
 type ConfigConfig struct {
-	Global    *ConfigGlobal    `json:"global,omitempty" toml:"global,omitempty"`
-	Hasura    *ConfigHasura    `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	// Global configuration that applies to all services
+	Global *ConfigGlobal `json:"global,omitempty" toml:"global,omitempty"`
+	// Configuration for hasura
+	Hasura *ConfigHasura `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	// Configuration for functions service
 	Functions *ConfigFunctions `json:"functions,omitempty" toml:"functions,omitempty"`
-	Auth      *ConfigAuth      `json:"auth,omitempty" toml:"auth,omitempty"`
-	Postgres  *ConfigPostgres  `json:"postgres,omitempty" toml:"postgres,omitempty"`
-	Provider  *ConfigProvider  `json:"provider,omitempty" toml:"provider,omitempty"`
-	Storage   *ConfigStorage   `json:"storage,omitempty" toml:"storage,omitempty"`
+	// Configuration for auth service
+	Auth *ConfigAuth `json:"auth,omitempty" toml:"auth,omitempty"`
+	// Configuration for postgres service
+	Postgres *ConfigPostgres `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	// Configuration for third party providers like SMTP, SMS, etc.
+	Provider *ConfigProvider `json:"provider,omitempty" toml:"provider,omitempty"`
+	// Configuration for storage service
+	Storage *ConfigStorage `json:"storage,omitempty" toml:"storage,omitempty"`
+	// Configuration for observability service
+	Observability *ConfigObservability `json:"observability,omitempty" toml:"observability,omitempty"`
 }
 
 func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
@@ -7698,6 +7793,9 @@ func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Storage != nil {
 		m["storage"] = o.Storage
+	}
+	if o.Observability != nil {
+		m["observability"] = o.Observability
 	}
 	return json.Marshal(m)
 }
@@ -7751,21 +7849,30 @@ func (o *ConfigConfig) GetStorage() *ConfigStorage {
 	return o.Storage
 }
 
+func (o *ConfigConfig) GetObservability() *ConfigObservability {
+	if o == nil {
+		return nil
+	}
+	return o.Observability
+}
+
 type ConfigConfigUpdateInput struct {
-	Global         *ConfigGlobalUpdateInput    `json:"global,omitempty" toml:"global,omitempty"`
-	IsSetGlobal    bool                        `json:"-"`
-	Hasura         *ConfigHasuraUpdateInput    `json:"hasura,omitempty" toml:"hasura,omitempty"`
-	IsSetHasura    bool                        `json:"-"`
-	Functions      *ConfigFunctionsUpdateInput `json:"functions,omitempty" toml:"functions,omitempty"`
-	IsSetFunctions bool                        `json:"-"`
-	Auth           *ConfigAuthUpdateInput      `json:"auth,omitempty" toml:"auth,omitempty"`
-	IsSetAuth      bool                        `json:"-"`
-	Postgres       *ConfigPostgresUpdateInput  `json:"postgres,omitempty" toml:"postgres,omitempty"`
-	IsSetPostgres  bool                        `json:"-"`
-	Provider       *ConfigProviderUpdateInput  `json:"provider,omitempty" toml:"provider,omitempty"`
-	IsSetProvider  bool                        `json:"-"`
-	Storage        *ConfigStorageUpdateInput   `json:"storage,omitempty" toml:"storage,omitempty"`
-	IsSetStorage   bool                        `json:"-"`
+	Global             *ConfigGlobalUpdateInput        `json:"global,omitempty" toml:"global,omitempty"`
+	IsSetGlobal        bool                            `json:"-"`
+	Hasura             *ConfigHasuraUpdateInput        `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	IsSetHasura        bool                            `json:"-"`
+	Functions          *ConfigFunctionsUpdateInput     `json:"functions,omitempty" toml:"functions,omitempty"`
+	IsSetFunctions     bool                            `json:"-"`
+	Auth               *ConfigAuthUpdateInput          `json:"auth,omitempty" toml:"auth,omitempty"`
+	IsSetAuth          bool                            `json:"-"`
+	Postgres           *ConfigPostgresUpdateInput      `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	IsSetPostgres      bool                            `json:"-"`
+	Provider           *ConfigProviderUpdateInput      `json:"provider,omitempty" toml:"provider,omitempty"`
+	IsSetProvider      bool                            `json:"-"`
+	Storage            *ConfigStorageUpdateInput       `json:"storage,omitempty" toml:"storage,omitempty"`
+	IsSetStorage       bool                            `json:"-"`
+	Observability      *ConfigObservabilityUpdateInput `json:"observability,omitempty" toml:"observability,omitempty"`
+	IsSetObservability bool                            `json:"-"`
 }
 
 func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -7843,6 +7950,16 @@ func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetStorage = true
 	}
+	if x, ok := m["observability"]; ok {
+		if x != nil {
+			t := &ConfigObservabilityUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Observability = t
+		}
+		o.IsSetObservability = true
+	}
 
 	return nil
 }
@@ -7901,6 +8018,13 @@ func (o *ConfigConfigUpdateInput) GetStorage() *ConfigStorageUpdateInput {
 		return nil
 	}
 	return o.Storage
+}
+
+func (o *ConfigConfigUpdateInput) GetObservability() *ConfigObservabilityUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Observability
 }
 
 func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
@@ -7977,16 +8101,27 @@ func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
 			s.Storage.Update(v.Storage)
 		}
 	}
+	if v.IsSetObservability || v.Observability != nil {
+		if v.Observability == nil {
+			s.Observability = nil
+		} else {
+			if s.Observability == nil {
+				s.Observability = &ConfigObservability{}
+			}
+			s.Observability.Update(v.Observability)
+		}
+	}
 }
 
 type ConfigConfigInsertInput struct {
-	Global    *ConfigGlobalInsertInput    `json:"global,omitempty" toml:"global,omitempty"`
-	Hasura    *ConfigHasuraInsertInput    `json:"hasura,omitempty" toml:"hasura,omitempty"`
-	Functions *ConfigFunctionsInsertInput `json:"functions,omitempty" toml:"functions,omitempty"`
-	Auth      *ConfigAuthInsertInput      `json:"auth,omitempty" toml:"auth,omitempty"`
-	Postgres  *ConfigPostgresInsertInput  `json:"postgres,omitempty" toml:"postgres,omitempty"`
-	Provider  *ConfigProviderInsertInput  `json:"provider,omitempty" toml:"provider,omitempty"`
-	Storage   *ConfigStorageInsertInput   `json:"storage,omitempty" toml:"storage,omitempty"`
+	Global        *ConfigGlobalInsertInput        `json:"global,omitempty" toml:"global,omitempty"`
+	Hasura        *ConfigHasuraInsertInput        `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	Functions     *ConfigFunctionsInsertInput     `json:"functions,omitempty" toml:"functions,omitempty"`
+	Auth          *ConfigAuthInsertInput          `json:"auth,omitempty" toml:"auth,omitempty"`
+	Postgres      *ConfigPostgresInsertInput      `json:"postgres,omitempty" toml:"postgres,omitempty"`
+	Provider      *ConfigProviderInsertInput      `json:"provider,omitempty" toml:"provider,omitempty"`
+	Storage       *ConfigStorageInsertInput       `json:"storage,omitempty" toml:"storage,omitempty"`
+	Observability *ConfigObservabilityInsertInput `json:"observability,omitempty" toml:"observability,omitempty"`
 }
 
 func (o *ConfigConfigInsertInput) GetGlobal() *ConfigGlobalInsertInput {
@@ -8038,6 +8173,13 @@ func (o *ConfigConfigInsertInput) GetStorage() *ConfigStorageInsertInput {
 	return o.Storage
 }
 
+func (o *ConfigConfigInsertInput) GetObservability() *ConfigObservabilityInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Observability
+}
+
 func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 	if v.Global != nil {
 		if s.Global == nil {
@@ -8081,6 +8223,12 @@ func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 		}
 		s.Storage.Insert(v.Storage)
 	}
+	if v.Observability != nil {
+		if s.Observability == nil {
+			s.Observability = &ConfigObservability{}
+		}
+		s.Observability.Insert(v.Observability)
+	}
 }
 
 func (s *ConfigConfig) Clone() *ConfigConfig {
@@ -8096,20 +8244,22 @@ func (s *ConfigConfig) Clone() *ConfigConfig {
 	v.Postgres = s.Postgres.Clone()
 	v.Provider = s.Provider.Clone()
 	v.Storage = s.Storage.Clone()
+	v.Observability = s.Observability.Clone()
 	return v
 }
 
 type ConfigConfigComparisonExp struct {
-	And       []*ConfigConfigComparisonExp  `json:"_and,omitempty"`
-	Not       *ConfigConfigComparisonExp    `json:"_not,omitempty"`
-	Or        []*ConfigConfigComparisonExp  `json:"_or,omitempty"`
-	Global    *ConfigGlobalComparisonExp    `json:"global,omitempty"`
-	Hasura    *ConfigHasuraComparisonExp    `json:"hasura,omitempty"`
-	Functions *ConfigFunctionsComparisonExp `json:"functions,omitempty"`
-	Auth      *ConfigAuthComparisonExp      `json:"auth,omitempty"`
-	Postgres  *ConfigPostgresComparisonExp  `json:"postgres,omitempty"`
-	Provider  *ConfigProviderComparisonExp  `json:"provider,omitempty"`
-	Storage   *ConfigStorageComparisonExp   `json:"storage,omitempty"`
+	And           []*ConfigConfigComparisonExp      `json:"_and,omitempty"`
+	Not           *ConfigConfigComparisonExp        `json:"_not,omitempty"`
+	Or            []*ConfigConfigComparisonExp      `json:"_or,omitempty"`
+	Global        *ConfigGlobalComparisonExp        `json:"global,omitempty"`
+	Hasura        *ConfigHasuraComparisonExp        `json:"hasura,omitempty"`
+	Functions     *ConfigFunctionsComparisonExp     `json:"functions,omitempty"`
+	Auth          *ConfigAuthComparisonExp          `json:"auth,omitempty"`
+	Postgres      *ConfigPostgresComparisonExp      `json:"postgres,omitempty"`
+	Provider      *ConfigProviderComparisonExp      `json:"provider,omitempty"`
+	Storage       *ConfigStorageComparisonExp       `json:"storage,omitempty"`
+	Observability *ConfigObservabilityComparisonExp `json:"observability,omitempty"`
 }
 
 func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
@@ -8119,13 +8269,14 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 
 	if o == nil {
 		o = &ConfigConfig{
-			Global:    &ConfigGlobal{},
-			Hasura:    &ConfigHasura{},
-			Functions: &ConfigFunctions{},
-			Auth:      &ConfigAuth{},
-			Postgres:  &ConfigPostgres{},
-			Provider:  &ConfigProvider{},
-			Storage:   &ConfigStorage{},
+			Global:        &ConfigGlobal{},
+			Hasura:        &ConfigHasura{},
+			Functions:     &ConfigFunctions{},
+			Auth:          &ConfigAuth{},
+			Postgres:      &ConfigPostgres{},
+			Provider:      &ConfigProvider{},
+			Storage:       &ConfigStorage{},
+			Observability: &ConfigObservability{},
 		}
 	}
 	if !exp.Global.Matches(o.Global) {
@@ -8147,6 +8298,9 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 		return false
 	}
 	if !exp.Storage.Matches(o.Storage) {
+		return false
+	}
+	if !exp.Observability.Matches(o.Observability) {
 		return false
 	}
 
@@ -8197,7 +8351,8 @@ func (exp *ConfigEmailComparisonExp) Matches(o string) bool {
 }
 
 type ConfigEnvironmentVariable struct {
-	Name  string `json:"name" toml:"name"`
+	Name string `json:"name" toml:"name"`
+	// Value of the environment variable
 	Value string `json:"value" toml:"value"`
 }
 
@@ -8382,6 +8537,7 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 	return true
 }
 
+// Configuration for functions service
 type ConfigFunctions struct {
 	Node *ConfigFunctionsNode `json:"node,omitempty" toml:"node,omitempty"`
 }
@@ -8653,7 +8809,9 @@ func (exp *ConfigFunctionsNodeComparisonExp) Matches(o *ConfigFunctionsNode) boo
 	return true
 }
 
+// Global configuration that applies to all services
 type ConfigGlobal struct {
+	// User-defined environment variables that are spread over all services
 	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty" toml:"environment,omitempty"`
 }
 
@@ -8819,15 +8977,158 @@ func (exp *ConfigGlobalComparisonExp) Matches(o *ConfigGlobal) bool {
 	return true
 }
 
+type ConfigGrafana struct {
+	AdminPassword string `json:"adminPassword" toml:"adminPassword"`
+}
+
+func (o *ConfigGrafana) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["adminPassword"] = o.AdminPassword
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafana) GetAdminPassword() string {
+	if o == nil {
+		o = &ConfigGrafana{}
+	}
+	return o.AdminPassword
+}
+
+type ConfigGrafanaUpdateInput struct {
+	AdminPassword      *string `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	IsSetAdminPassword bool    `json:"-"`
+}
+
+func (o *ConfigGrafanaUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["adminPassword"]; ok {
+		if v == nil {
+			o.AdminPassword = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.AdminPassword = &x
+		}
+		o.IsSetAdminPassword = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanaUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanaUpdateInput) GetAdminPassword() *string {
+	if o == nil {
+		o = &ConfigGrafanaUpdateInput{}
+	}
+	return o.AdminPassword
+}
+
+func (s *ConfigGrafana) Update(v *ConfigGrafanaUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAdminPassword || v.AdminPassword != nil {
+		if v.AdminPassword != nil {
+			s.AdminPassword = *v.AdminPassword
+		}
+	}
+}
+
+type ConfigGrafanaInsertInput struct {
+	AdminPassword string `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+}
+
+func (o *ConfigGrafanaInsertInput) GetAdminPassword() string {
+	if o == nil {
+		o = &ConfigGrafanaInsertInput{}
+	}
+	return o.AdminPassword
+}
+
+func (s *ConfigGrafana) Insert(v *ConfigGrafanaInsertInput) {
+	s.AdminPassword = v.AdminPassword
+}
+
+func (s *ConfigGrafana) Clone() *ConfigGrafana {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafana{}
+	v.AdminPassword = s.AdminPassword
+	return v
+}
+
+type ConfigGrafanaComparisonExp struct {
+	And           []*ConfigGrafanaComparisonExp `json:"_and,omitempty"`
+	Not           *ConfigGrafanaComparisonExp   `json:"_not,omitempty"`
+	Or            []*ConfigGrafanaComparisonExp `json:"_or,omitempty"`
+	AdminPassword *ConfigStringComparisonExp    `json:"adminPassword,omitempty"`
+}
+
+func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafana{}
+	}
+	if !exp.AdminPassword.Matches(o.AdminPassword) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Configuration for hasura service
 type ConfigHasura struct {
-	Version       *string               `json:"version" toml:"version"`
-	JwtSecrets    []*ConfigJWTSecret    `json:"jwtSecrets,omitempty" toml:"jwtSecrets,omitempty"`
-	AdminSecret   string                `json:"adminSecret" toml:"adminSecret"`
-	WebhookSecret string                `json:"webhookSecret" toml:"webhookSecret"`
-	Settings      *ConfigHasuraSettings `json:"settings,omitempty" toml:"settings,omitempty"`
-	Logs          *ConfigHasuraLogs     `json:"logs,omitempty" toml:"logs,omitempty"`
-	Events        *ConfigHasuraEvents   `json:"events,omitempty" toml:"events,omitempty"`
-	Resources     *ConfigResources      `json:"resources,omitempty" toml:"resources,omitempty"`
+	// Version of hasura, you can see available versions in the URL below:
+	// https://hub.docker.com/r/hasura/graphql-engine/tags
+	Version *string `json:"version" toml:"version"`
+	// JWT Secrets configuration
+	JwtSecrets []*ConfigJWTSecret `json:"jwtSecrets,omitempty" toml:"jwtSecrets,omitempty"`
+	// Admin secret
+	AdminSecret string `json:"adminSecret" toml:"adminSecret"`
+	// Webhook secret
+	WebhookSecret string `json:"webhookSecret" toml:"webhookSecret"`
+	// Configuration for hasura services
+	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+	Settings *ConfigHasuraSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+
+	Logs *ConfigHasuraLogs `json:"logs,omitempty" toml:"logs,omitempty"`
+
+	Events *ConfigHasuraEvents `json:"events,omitempty" toml:"events,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
 func (o *ConfigHasura) MarshalJSON() ([]byte, error) {
@@ -9387,7 +9688,39 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 	return true
 }
 
+type ConfigHasuraAPIsComparisonExp struct {
+	Eq  *string  `json:"_eq,omitempty"`
+	Neq *string  `json:"_neq,omitempty"`
+	In  []string `json:"_in,omitempty"`
+	Nin []string `json:"_nin,omitempty"`
+}
+
+func (exp *ConfigHasuraAPIsComparisonExp) Matches(o string) bool {
+	if exp == nil {
+		return true
+	}
+
+	if exp.Eq != nil && *exp.Eq != o {
+		return false
+	}
+
+	if exp.Neq != nil && *exp.Neq == o {
+		return false
+	}
+
+	if exp.In != nil && !contains(exp.In, o) {
+		return false
+	}
+
+	if exp.Nin != nil && contains(exp.Nin, o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigHasuraEvents struct {
+	// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
 	HttpPoolSize *uint32 `json:"httpPoolSize" toml:"httpPoolSize"`
 }
 
@@ -9651,16 +9984,72 @@ func (exp *ConfigHasuraLogsComparisonExp) Matches(o *ConfigHasuraLogs) bool {
 	return true
 }
 
+// Configuration for hasura services
+// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 type ConfigHasuraSettings struct {
+	// HASURA_GRAPHQL_CORS_DOMAIN
+	CorsDomain []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
+	// HASURA_GRAPHQL_DEV_MODE
+	DevMode *bool `json:"devMode" toml:"devMode"`
+	// HASURA_GRAPHQL_ENABLE_ALLOWLIST
+	EnableAllowList *bool `json:"enableAllowList" toml:"enableAllowList"`
+	// HASURA_GRAPHQL_ENABLE_CONSOLE
+	EnableConsole *bool `json:"enableConsole" toml:"enableConsole"`
+	// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
 	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions" toml:"enableRemoteSchemaPermissions"`
+	// HASURA_GRAPHQL_ENABLED_APIS
+	EnabledAPIs []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
 }
 
 func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
+	if o.CorsDomain != nil {
+		m["corsDomain"] = o.CorsDomain
+	}
+	if o.DevMode != nil {
+		m["devMode"] = o.DevMode
+	}
+	if o.EnableAllowList != nil {
+		m["enableAllowList"] = o.EnableAllowList
+	}
+	if o.EnableConsole != nil {
+		m["enableConsole"] = o.EnableConsole
+	}
 	if o.EnableRemoteSchemaPermissions != nil {
 		m["enableRemoteSchemaPermissions"] = o.EnableRemoteSchemaPermissions
 	}
+	if o.EnabledAPIs != nil {
+		m["enabledAPIs"] = o.EnabledAPIs
+	}
 	return json.Marshal(m)
+}
+
+func (o *ConfigHasuraSettings) GetCorsDomain() []string {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.CorsDomain
+}
+
+func (o *ConfigHasuraSettings) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigHasuraSettings) GetEnableAllowList() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.EnableAllowList
+}
+
+func (o *ConfigHasuraSettings) GetEnableConsole() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.EnableConsole
 }
 
 func (o *ConfigHasuraSettings) GetEnableRemoteSchemaPermissions() *bool {
@@ -9670,15 +10059,98 @@ func (o *ConfigHasuraSettings) GetEnableRemoteSchemaPermissions() *bool {
 	return o.EnableRemoteSchemaPermissions
 }
 
+func (o *ConfigHasuraSettings) GetEnabledAPIs() []string {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.EnabledAPIs
+}
+
 type ConfigHasuraSettingsUpdateInput struct {
-	EnableRemoteSchemaPermissions      *bool `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
-	IsSetEnableRemoteSchemaPermissions bool  `json:"-"`
+	CorsDomain                         []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
+	IsSetCorsDomain                    bool     `json:"-"`
+	DevMode                            *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	IsSetDevMode                       bool     `json:"-"`
+	EnableAllowList                    *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
+	IsSetEnableAllowList               bool     `json:"-"`
+	EnableConsole                      *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
+	IsSetEnableConsole                 bool     `json:"-"`
+	EnableRemoteSchemaPermissions      *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
+	IsSetEnableRemoteSchemaPermissions bool     `json:"-"`
+	EnabledAPIs                        []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	IsSetEnabledAPIs                   bool     `json:"-"`
 }
 
 func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 	m, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["corsDomain"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.CorsDomain = l
+		}
+		o.IsSetCorsDomain = true
+	}
+	if v, ok := m["devMode"]; ok {
+		if v == nil {
+			o.DevMode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DevMode = &x
+		}
+		o.IsSetDevMode = true
+	}
+	if v, ok := m["enableAllowList"]; ok {
+		if v == nil {
+			o.EnableAllowList = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EnableAllowList = &x
+		}
+		o.IsSetEnableAllowList = true
+	}
+	if v, ok := m["enableConsole"]; ok {
+		if v == nil {
+			o.EnableConsole = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EnableConsole = &x
+		}
+		o.IsSetEnableConsole = true
 	}
 	if v, ok := m["enableRemoteSchemaPermissions"]; ok {
 		if v == nil {
@@ -9697,6 +10169,21 @@ func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetEnableRemoteSchemaPermissions = true
 	}
+	if v, ok := m["enabledAPIs"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.EnabledAPIs = l
+		}
+		o.IsSetEnabledAPIs = true
+	}
 
 	return nil
 }
@@ -9708,6 +10195,34 @@ func (o *ConfigHasuraSettingsUpdateInput) MarshalGQL(w io.Writer) {
 	}
 }
 
+func (o *ConfigHasuraSettingsUpdateInput) GetCorsDomain() []string {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.CorsDomain
+}
+
+func (o *ConfigHasuraSettingsUpdateInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigHasuraSettingsUpdateInput) GetEnableAllowList() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.EnableAllowList
+}
+
+func (o *ConfigHasuraSettingsUpdateInput) GetEnableConsole() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.EnableConsole
+}
+
 func (o *ConfigHasuraSettingsUpdateInput) GetEnableRemoteSchemaPermissions() *bool {
 	if o == nil {
 		o = &ConfigHasuraSettingsUpdateInput{}
@@ -9715,17 +10230,86 @@ func (o *ConfigHasuraSettingsUpdateInput) GetEnableRemoteSchemaPermissions() *bo
 	return o.EnableRemoteSchemaPermissions
 }
 
+func (o *ConfigHasuraSettingsUpdateInput) GetEnabledAPIs() []string {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.EnabledAPIs
+}
+
 func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 	if v == nil {
 		return
 	}
+	if v.IsSetCorsDomain || v.CorsDomain != nil {
+		if v.CorsDomain == nil {
+			s.CorsDomain = nil
+		} else {
+			s.CorsDomain = make([]string, len(v.CorsDomain))
+			for i, e := range v.CorsDomain {
+				s.CorsDomain[i] = e
+			}
+		}
+	}
+	if v.IsSetDevMode || v.DevMode != nil {
+		s.DevMode = v.DevMode
+	}
+	if v.IsSetEnableAllowList || v.EnableAllowList != nil {
+		s.EnableAllowList = v.EnableAllowList
+	}
+	if v.IsSetEnableConsole || v.EnableConsole != nil {
+		s.EnableConsole = v.EnableConsole
+	}
 	if v.IsSetEnableRemoteSchemaPermissions || v.EnableRemoteSchemaPermissions != nil {
 		s.EnableRemoteSchemaPermissions = v.EnableRemoteSchemaPermissions
+	}
+	if v.IsSetEnabledAPIs || v.EnabledAPIs != nil {
+		if v.EnabledAPIs == nil {
+			s.EnabledAPIs = nil
+		} else {
+			s.EnabledAPIs = make([]string, len(v.EnabledAPIs))
+			for i, e := range v.EnabledAPIs {
+				s.EnabledAPIs[i] = e
+			}
+		}
 	}
 }
 
 type ConfigHasuraSettingsInsertInput struct {
-	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
+	CorsDomain                    []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
+	DevMode                       *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	EnableAllowList               *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
+	EnableConsole                 *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
+	EnableRemoteSchemaPermissions *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                   []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+}
+
+func (o *ConfigHasuraSettingsInsertInput) GetCorsDomain() []string {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.CorsDomain
+}
+
+func (o *ConfigHasuraSettingsInsertInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigHasuraSettingsInsertInput) GetEnableAllowList() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.EnableAllowList
+}
+
+func (o *ConfigHasuraSettingsInsertInput) GetEnableConsole() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.EnableConsole
 }
 
 func (o *ConfigHasuraSettingsInsertInput) GetEnableRemoteSchemaPermissions() *bool {
@@ -9735,8 +10319,30 @@ func (o *ConfigHasuraSettingsInsertInput) GetEnableRemoteSchemaPermissions() *bo
 	return o.EnableRemoteSchemaPermissions
 }
 
+func (o *ConfigHasuraSettingsInsertInput) GetEnabledAPIs() []string {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.EnabledAPIs
+}
+
 func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
+	if v.CorsDomain != nil {
+		s.CorsDomain = make([]string, len(v.CorsDomain))
+		for i, e := range v.CorsDomain {
+			s.CorsDomain[i] = e
+		}
+	}
+	s.DevMode = v.DevMode
+	s.EnableAllowList = v.EnableAllowList
+	s.EnableConsole = v.EnableConsole
 	s.EnableRemoteSchemaPermissions = v.EnableRemoteSchemaPermissions
+	if v.EnabledAPIs != nil {
+		s.EnabledAPIs = make([]string, len(v.EnabledAPIs))
+		for i, e := range v.EnabledAPIs {
+			s.EnabledAPIs[i] = e
+		}
+	}
 }
 
 func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
@@ -9745,7 +10351,18 @@ func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
 	}
 
 	v := &ConfigHasuraSettings{}
+	if s.CorsDomain != nil {
+		v.CorsDomain = make([]string, len(s.CorsDomain))
+		copy(v.CorsDomain, s.CorsDomain)
+	}
+	v.DevMode = s.DevMode
+	v.EnableAllowList = s.EnableAllowList
+	v.EnableConsole = s.EnableConsole
 	v.EnableRemoteSchemaPermissions = s.EnableRemoteSchemaPermissions
+	if s.EnabledAPIs != nil {
+		v.EnabledAPIs = make([]string, len(s.EnabledAPIs))
+		copy(v.EnabledAPIs, s.EnabledAPIs)
+	}
 	return v
 }
 
@@ -9753,7 +10370,12 @@ type ConfigHasuraSettingsComparisonExp struct {
 	And                           []*ConfigHasuraSettingsComparisonExp `json:"_and,omitempty"`
 	Not                           *ConfigHasuraSettingsComparisonExp   `json:"_not,omitempty"`
 	Or                            []*ConfigHasuraSettingsComparisonExp `json:"_or,omitempty"`
+	CorsDomain                    *ConfigUrlComparisonExp              `json:"corsDomain,omitempty"`
+	DevMode                       *ConfigBooleanComparisonExp          `json:"devMode,omitempty"`
+	EnableAllowList               *ConfigBooleanComparisonExp          `json:"enableAllowList,omitempty"`
+	EnableConsole                 *ConfigBooleanComparisonExp          `json:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                   *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
 }
 
 func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) bool {
@@ -9762,10 +10384,46 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 	}
 
 	if o == nil {
-		o = &ConfigHasuraSettings{}
+		o = &ConfigHasuraSettings{
+			CorsDomain:  []string{},
+			EnabledAPIs: []string{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.CorsDomain {
+			if exp.CorsDomain.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.CorsDomain != nil {
+			return false
+		}
+	}
+	if o.DevMode != nil && !exp.DevMode.Matches(*o.DevMode) {
+		return false
+	}
+	if o.EnableAllowList != nil && !exp.EnableAllowList.Matches(*o.EnableAllowList) {
+		return false
+	}
+	if o.EnableConsole != nil && !exp.EnableConsole.Matches(*o.EnableConsole) {
+		return false
 	}
 	if o.EnableRemoteSchemaPermissions != nil && !exp.EnableRemoteSchemaPermissions.Matches(*o.EnableRemoteSchemaPermissions) {
 		return false
+	}
+	{
+		found := false
+		for _, o := range o.EnabledAPIs {
+			if exp.EnabledAPIs.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.EnabledAPIs != nil {
+			return false
+		}
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -9783,18 +10441,29 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 	return true
 }
 
+// See https://hasura.io/docs/latest/auth/authentication/jwt/
 type ConfigJWTSecret struct {
-	Type                *string           `json:"type" toml:"type"`
-	Key                 *string           `json:"key" toml:"key"`
-	JwkUrl              *string           `json:"jwk_url" toml:"jwk_url"`
-	ClaimsFormat        *string           `json:"claims_format" toml:"claims_format"`
-	Audience            *string           `json:"audience" toml:"audience"`
-	Issuer              *string           `json:"issuer" toml:"issuer"`
-	AllowedSkew         *uint32           `json:"allowed_skew" toml:"allowed_skew"`
-	Header              *string           `json:"header" toml:"header"`
-	ClaimsMap           []*ConfigClaimMap `json:"claims_map,omitempty" toml:"claims_map,omitempty"`
-	ClaimsNamespace     *string           `json:"claims_namespace" toml:"claims_namespace"`
-	ClaimsNamespacePath *string           `json:"claims_namespace_path" toml:"claims_namespace_path"`
+	Type *string `json:"type" toml:"type"`
+
+	Key *string `json:"key" toml:"key"`
+
+	JwkUrl *string `json:"jwk_url" toml:"jwk_url"`
+
+	ClaimsFormat *string `json:"claims_format" toml:"claims_format"`
+
+	Audience *string `json:"audience" toml:"audience"`
+
+	Issuer *string `json:"issuer" toml:"issuer"`
+
+	AllowedSkew *uint32 `json:"allowed_skew" toml:"allowed_skew"`
+
+	Header *string `json:"header" toml:"header"`
+
+	ClaimsMap []*ConfigClaimMap `json:"claims_map,omitempty" toml:"claims_map,omitempty"`
+
+	ClaimsNamespace *string `json:"claims_namespace" toml:"claims_namespace"`
+
+	ClaimsNamespacePath *string `json:"claims_namespace_path" toml:"claims_namespace_path"`
 }
 
 func (o *ConfigJWTSecret) MarshalJSON() ([]byte, error) {
@@ -10520,6 +11189,145 @@ func (exp *ConfigLocaleComparisonExp) Matches(o string) bool {
 	return true
 }
 
+type ConfigObservability struct {
+	Grafana *ConfigGrafana `json:"grafana,omitempty" toml:"grafana,omitempty"`
+}
+
+func (o *ConfigObservability) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Grafana != nil {
+		m["grafana"] = o.Grafana
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigObservability) GetGrafana() *ConfigGrafana {
+	if o == nil {
+		return nil
+	}
+	return o.Grafana
+}
+
+type ConfigObservabilityUpdateInput struct {
+	Grafana      *ConfigGrafanaUpdateInput `json:"grafana,omitempty" toml:"grafana,omitempty"`
+	IsSetGrafana bool                      `json:"-"`
+}
+
+func (o *ConfigObservabilityUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["grafana"]; ok {
+		if x != nil {
+			t := &ConfigGrafanaUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Grafana = t
+		}
+		o.IsSetGrafana = true
+	}
+
+	return nil
+}
+
+func (o *ConfigObservabilityUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigObservabilityUpdateInput) GetGrafana() *ConfigGrafanaUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Grafana
+}
+
+func (s *ConfigObservability) Update(v *ConfigObservabilityUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetGrafana || v.Grafana != nil {
+		if v.Grafana == nil {
+			s.Grafana = nil
+		} else {
+			if s.Grafana == nil {
+				s.Grafana = &ConfigGrafana{}
+			}
+			s.Grafana.Update(v.Grafana)
+		}
+	}
+}
+
+type ConfigObservabilityInsertInput struct {
+	Grafana *ConfigGrafanaInsertInput `json:"grafana,omitempty" toml:"grafana,omitempty"`
+}
+
+func (o *ConfigObservabilityInsertInput) GetGrafana() *ConfigGrafanaInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Grafana
+}
+
+func (s *ConfigObservability) Insert(v *ConfigObservabilityInsertInput) {
+	if v.Grafana != nil {
+		if s.Grafana == nil {
+			s.Grafana = &ConfigGrafana{}
+		}
+		s.Grafana.Insert(v.Grafana)
+	}
+}
+
+func (s *ConfigObservability) Clone() *ConfigObservability {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigObservability{}
+	v.Grafana = s.Grafana.Clone()
+	return v
+}
+
+type ConfigObservabilityComparisonExp struct {
+	And     []*ConfigObservabilityComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigObservabilityComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigObservabilityComparisonExp `json:"_or,omitempty"`
+	Grafana *ConfigGrafanaComparisonExp         `json:"grafana,omitempty"`
+}
+
+func (exp *ConfigObservabilityComparisonExp) Matches(o *ConfigObservability) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigObservability{
+			Grafana: &ConfigGrafana{},
+		}
+	}
+	if !exp.Grafana.Matches(o.Grafana) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigPortComparisonExp struct {
 	Eq  *uint16  `json:"_eq,omitempty"`
 	Neq *uint16  `json:"_neq,omitempty"`
@@ -10551,8 +11359,12 @@ func (exp *ConfigPortComparisonExp) Matches(o uint16) bool {
 	return true
 }
 
+// Configuration for postgres service
 type ConfigPostgres struct {
-	Version   *string          `json:"version" toml:"version"`
+	// Version of postgres, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/postgres/tags
+	Version *string `json:"version" toml:"version"`
+	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
@@ -10746,7 +11558,8 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 
 type ConfigProvider struct {
 	Smtp *ConfigSmtp `json:"smtp,omitempty" toml:"smtp,omitempty"`
-	Sms  *ConfigSms  `json:"sms,omitempty" toml:"sms,omitempty"`
+
+	Sms *ConfigSms `json:"sms,omitempty" toml:"sms,omitempty"`
 }
 
 func (o *ConfigProvider) MarshalJSON() ([]byte, error) {
@@ -10943,9 +11756,11 @@ func (exp *ConfigProviderComparisonExp) Matches(o *ConfigProvider) bool {
 	return true
 }
 
+// Resource configuration for a service
 type ConfigResources struct {
-	Compute  *ConfigResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
-	Replicas uint8                   `json:"replicas" toml:"replicas"`
+	Compute *ConfigResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
+	// Number of replicas for a service
+	Replicas uint8 `json:"replicas" toml:"replicas"`
 }
 
 func (o *ConfigResources) MarshalJSON() ([]byte, error) {
@@ -11137,7 +11952,9 @@ func (exp *ConfigResourcesComparisonExp) Matches(o *ConfigResources) bool {
 }
 
 type ConfigResourcesCompute struct {
-	Cpu    uint32 `json:"cpu" toml:"cpu"`
+	// milicpus, 1000 milicpus = 1 cpu
+	Cpu uint32 `json:"cpu" toml:"cpu"`
+	// MiB: 128MiB to 30GiB
 	Memory uint32 `json:"memory" toml:"memory"`
 }
 
@@ -11323,10 +12140,13 @@ func (exp *ConfigResourcesComputeComparisonExp) Matches(o *ConfigResourcesComput
 }
 
 type ConfigSms struct {
-	Provider           *string `json:"provider" toml:"provider"`
-	AccountSid         string  `json:"accountSid" toml:"accountSid"`
-	AuthToken          string  `json:"authToken" toml:"authToken"`
-	MessagingServiceId string  `json:"messagingServiceId" toml:"messagingServiceId"`
+	Provider *string `json:"provider" toml:"provider"`
+
+	AccountSid string `json:"accountSid" toml:"accountSid"`
+
+	AuthToken string `json:"authToken" toml:"authToken"`
+
+	MessagingServiceId string `json:"messagingServiceId" toml:"messagingServiceId"`
 }
 
 func (o *ConfigSms) MarshalJSON() ([]byte, error) {
@@ -11617,13 +12437,19 @@ func (exp *ConfigSmsComparisonExp) Matches(o *ConfigSms) bool {
 }
 
 type ConfigSmtp struct {
-	User     string `json:"user" toml:"user"`
+	User string `json:"user" toml:"user"`
+
 	Password string `json:"password" toml:"password"`
-	Sender   string `json:"sender" toml:"sender"`
-	Host     string `json:"host" toml:"host"`
-	Port     uint16 `json:"port" toml:"port"`
-	Secure   bool   `json:"secure" toml:"secure"`
-	Method   string `json:"method" toml:"method"`
+
+	Sender string `json:"sender" toml:"sender"`
+
+	Host string `json:"host" toml:"host"`
+
+	Port uint16 `json:"port" toml:"port"`
+
+	Secure bool `json:"secure" toml:"secure"`
+
+	Method string `json:"method" toml:"method"`
 }
 
 func (o *ConfigSmtp) MarshalJSON() ([]byte, error) {
@@ -12073,8 +12899,10 @@ func (exp *ConfigSmtpComparisonExp) Matches(o *ConfigSmtp) bool {
 }
 
 type ConfigStandardOauthProvider struct {
-	Enabled      *bool   `json:"enabled" toml:"enabled"`
-	ClientId     *string `json:"clientId" toml:"clientId"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -12313,10 +13141,13 @@ func (exp *ConfigStandardOauthProviderComparisonExp) Matches(o *ConfigStandardOa
 }
 
 type ConfigStandardOauthProviderWithScope struct {
-	Enabled      *bool    `json:"enabled" toml:"enabled"`
-	ClientId     *string  `json:"clientId" toml:"clientId"`
-	Scope        []string `json:"scope,omitempty" toml:"scope,omitempty"`
-	ClientSecret *string  `json:"clientSecret" toml:"clientSecret"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
+
+	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
 func (o *ConfigStandardOauthProviderWithScope) MarshalJSON() ([]byte, error) {
@@ -12630,8 +13461,16 @@ func (exp *ConfigStandardOauthProviderWithScopeComparisonExp) Matches(o *ConfigS
 	return true
 }
 
+// Configuration for storage service
 type ConfigStorage struct {
-	Version   *string          `json:"version" toml:"version"`
+	// Version of storage service, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-storage/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-storage/releases
+	Version *string `json:"version" toml:"version"`
+	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
@@ -12824,7 +13663,8 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 }
 
 type ConfigSystemConfig struct {
-	Auth     *ConfigSystemConfigAuth     `json:"auth,omitempty" toml:"auth,omitempty"`
+	Auth *ConfigSystemConfigAuth `json:"auth,omitempty" toml:"auth,omitempty"`
+
 	Postgres *ConfigSystemConfigPostgres `json:"postgres,omitempty" toml:"postgres,omitempty"`
 }
 
@@ -13433,10 +14273,13 @@ func (exp *ConfigSystemConfigAuthEmailTemplatesComparisonExp) Matches(o *ConfigS
 }
 
 type ConfigSystemConfigPostgres struct {
-	Enabled          *bool                                       `json:"enabled" toml:"enabled"`
-	Database         string                                      `json:"database" toml:"database"`
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	Database string `json:"database" toml:"database"`
+
 	ConnectionString *ConfigSystemConfigPostgresConnectionString `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
-	Password         string                                      `json:"password" toml:"password"`
+
+	Password string `json:"password" toml:"password"`
 }
 
 func (o *ConfigSystemConfigPostgres) MarshalJSON() ([]byte, error) {
@@ -13734,9 +14577,12 @@ func (exp *ConfigSystemConfigPostgresComparisonExp) Matches(o *ConfigSystemConfi
 }
 
 type ConfigSystemConfigPostgresConnectionString struct {
-	Backup  string `json:"backup" toml:"backup"`
-	Hasura  string `json:"hasura" toml:"hasura"`
-	Auth    string `json:"auth" toml:"auth"`
+	Backup string `json:"backup" toml:"backup"`
+
+	Hasura string `json:"hasura" toml:"hasura"`
+
+	Auth string `json:"auth" toml:"auth"`
+
 	Storage string `json:"storage" toml:"storage"`
 }
 
