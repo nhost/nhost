@@ -8,6 +8,7 @@ func Command() *cli.Command {
 		Aliases: []string{},
 		Usage:   "Perform config operations",
 		Subcommands: []*cli.Command{
+			CommandDefault(),
 			CommandPull(),
 			CommandValidate(),
 		},

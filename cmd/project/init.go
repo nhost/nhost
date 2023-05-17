@@ -12,10 +12,7 @@ import (
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
 	"github.com/nhost/cli/nhostclient/graphql"
-	"github.com/nhost/cli/project"
-	"github.com/nhost/cli/project/env"
 	"github.com/nhost/cli/system"
-	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
 )
@@ -55,28 +52,16 @@ func commandInit(cCtx *cli.Context) error {
 	}
 
 	ce.Infoln("Initializing Nhost project")
-	if err := Init(cCtx.Context, ce); err != nil {
+	if err := config.InitConfigAndSecrets(ce); err != nil {
+		return fmt.Errorf("failed to initialize configuration: %w", err)
+	}
+
+	if err := initInit(cCtx.Context, ce.Path); err != nil {
 		return fmt.Errorf("failed to initialize project: %w", err)
 	}
+
 	ce.Infoln("Successfully initialized Nhost project, run `nhost dev up` to start development")
 	return nil
-}
-
-func Init(ctx context.Context, ce *clienv.CliEnv) error {
-	config, err := project.DefaultConfig()
-	if err != nil {
-		return fmt.Errorf("failed to create default config: %w", err)
-	}
-	if err := clienv.MarshalFile(config, ce.Path.NhostToml(), toml.Marshal); err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
-	}
-
-	secrets := project.DefaultSecrets()
-	if err := clienv.MarshalFile(secrets, ce.Path.Secrets(), env.Marshal); err != nil {
-		return fmt.Errorf("failed to save secrets: %w", err)
-	}
-
-	return initInit(ctx, ce.Path)
 }
 
 func initInit(
