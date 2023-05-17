@@ -11,7 +11,7 @@ export default function SettingsAuthenticationPage() {
 
   const { loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-and-network',
+    skip: !currentProject,
   });
 
   if (loading) {

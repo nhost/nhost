@@ -40,7 +40,6 @@ export default function ApplicationPaused() {
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({
     variables: { userId: user?.id },
-    fetchPolicy: 'cache-and-network',
     skip: !user,
   });
 

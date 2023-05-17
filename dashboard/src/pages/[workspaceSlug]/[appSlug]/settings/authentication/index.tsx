@@ -18,7 +18,7 @@ export default function SettingsAuthenticationPage() {
 
   const { loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-and-network',
+    skip: !currentProject,
   });
 
   if (loading) {

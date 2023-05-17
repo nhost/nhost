@@ -66,16 +66,10 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
             {},
           )
         : { updatedAt: OrderBy.Desc },
-    options: {
-      fetchPolicy: 'cache-and-network',
-    },
   });
 
   const { numberOfFiles, refetch: refetchFilesAggregate } = useFilesAggregate({
     searchString,
-    options: {
-      fetchPolicy: 'cache-and-network',
-    },
   });
 
   const numberOfPages = numberOfFiles ? Math.ceil(numberOfFiles / limit) : 0;
