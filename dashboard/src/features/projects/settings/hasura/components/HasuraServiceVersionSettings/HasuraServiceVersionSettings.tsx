@@ -1,6 +1,7 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
 import { Form } from '@/components/common/Form';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useDockerImageTags } from '@/features/projects/settings/common/hooks/useDockerImageTags';
@@ -10,7 +11,6 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Option } from '@/ui/v2/Option';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,7 +19,12 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  version: Yup.string().label('Hasura Version'),
+  version: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required(),
+  })
+    .label('Hasura Version')
+    .required(),
 });
 
 export type HasuraServiceVersionFormValues = Yup.InferType<
@@ -47,11 +52,12 @@ export default function HasuraServiceVersionSettings() {
   const { version } = data?.config?.hasura || {};
   const availableVersions = Array.from(new Set(tags).add(version))
     .sort()
-    .reverse();
+    .reverse()
+    .map((tag) => ({ label: tag, value: tag }));
 
   const form = useForm<HasuraServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version },
+    defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
   });
 
@@ -70,17 +76,17 @@ export default function HasuraServiceVersionSettings() {
     throw error;
   }
 
-  const { formState } = form;
+  const { control, formState } = form;
 
   const handleHasuraServiceVersionsChange = async (
-    values: HasuraServiceVersionFormValues,
+    formValues: HasuraServiceVersionFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           hasura: {
-            version: values.version,
+            version: formValues.version.value,
           },
         },
       },
@@ -99,7 +105,7 @@ export default function HasuraServiceVersionSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
@@ -121,29 +127,30 @@ export default function HasuraServiceVersionSettings() {
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >
-          <ControlledSelect
+          <ControlledAutocomplete
+            control={control}
             id="version"
             name="version"
-            fullWidth
-            className="col-span-2"
-            aria-label="Hasura Version"
-            error={!!dockerError?.message}
-            helperText={dockerError?.message}
-          >
-            {availableVersions.map((availableVersion) => (
-              <Option value={availableVersion} key={availableVersion}>
-                {availableVersion}
-              </Option>
-            ))}
-          </ControlledSelect>
+            filterOptions={(options, state) => {
+              if (state.inputValue === version) {
+                return options;
+              }
 
-          {dockerStatus === 'loading' && (
-            <ActivityIndicator
-              label="Loading available images..."
-              className="col-span-3"
-              delay={2000}
-            />
-          )}
+              return filterOptions(options, state);
+            }}
+            fullWidth
+            className="lg:col-span-2"
+            options={availableVersions}
+            error={
+              !!formState.errors?.version?.message || !!dockerError?.message
+            }
+            helperText={
+              formState.errors?.version?.message || dockerError?.message
+            }
+            showCustomOption
+            customOptionLabel={(value) => `Use "${value}"`}
+            loading={dockerStatus === 'loading'}
+          />
         </SettingsContainer>
       </Form>
     </FormProvider>

@@ -174,7 +174,10 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   },
 }));
 
-const filterOptions = createFilterOptions<AutocompleteOption>({
+/**
+ * Function to be used to filter options.
+ */
+export const filterOptions = createFilterOptions<AutocompleteOption>({
   matchFrom: 'any',
   ignoreAccents: true,
   ignoreCase: true,
@@ -218,18 +221,22 @@ function Autocomplete(
     setInputValue(externalInputValue);
   }, [externalInputValue]);
 
-  const filteredOptions = filterOptions(props.options as AutocompleteOption[], {
-    inputValue: inputValue || '',
-    getOptionLabel: props.getOptionLabel
-      ? props.getOptionLabel
-      : (option: string | number | AutocompleteOption<string>) => {
-          if (typeof option !== 'object') {
-            return option.toString();
-          }
+  const filterOptionsFn = externalFilterOptions || filterOptions;
+  const filteredOptions = filterOptionsFn(
+    props.options as AutocompleteOption[],
+    {
+      inputValue: inputValue || '',
+      getOptionLabel: props.getOptionLabel
+        ? props.getOptionLabel
+        : (option: string | number | AutocompleteOption<string>) => {
+            if (typeof option !== 'object') {
+              return option.toString();
+            }
 
-          return option.label ?? option.dropdownLabel;
-        },
-  });
+            return option.label ?? option.dropdownLabel;
+          },
+    },
+  );
 
   const autoSelect =
     typeof externalAutoSelect === 'function'
@@ -354,7 +361,7 @@ function Autocomplete(
         );
       }}
       filterOptions={
-        showCustomOption
+        externalFilterOptions || showCustomOption
           ? () => {
               if (inputValue) {
                 return [
@@ -371,7 +378,7 @@ function Autocomplete(
 
               return filteredOptions;
             }
-          : externalFilterOptions || filterOptions
+          : filterOptions
       }
       autoSelect={autoSelect}
       renderInput={({

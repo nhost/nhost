@@ -73,14 +73,14 @@ export default function AuthServiceVersionSettings() {
   const { formState } = form;
 
   const handleAuthServiceVersionsChange = async (
-    values: AuthServiceVersionFormValues,
+    formValues: AuthServiceVersionFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           auth: {
-            version: values.version,
+            version: formValues.version,
           },
         },
       },
@@ -99,7 +99,7 @@ export default function AuthServiceVersionSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
