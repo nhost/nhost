@@ -19011,6 +19011,13 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 
 export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
+export type GetHasuraSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null } } | null };
+
 export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
@@ -20370,6 +20377,48 @@ export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGe
 export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
 export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
       return { query: GetEnvironmentVariablesDocument, variables: variables }
+    }
+export const GetHasuraSettingsDocument = gql`
+    query GetHasuraSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    hasura {
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetHasuraSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHasuraSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+      }
+export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+        }
+export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
+export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
+export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
+export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
+      return { query: GetHasuraSettingsDocument, variables: variables }
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {

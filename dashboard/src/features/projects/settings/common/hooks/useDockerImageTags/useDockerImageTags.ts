@@ -12,7 +12,7 @@ export interface UseDockerImageTagsProps {
  */
 export default function useDockerImageTags({ image }: UseDockerImageTagsProps) {
   return useQuery<string[], Error>(
-    ['docker', 'tags'],
+    ['docker-image-tags', image],
     async () => {
       const response = await fetch(
         `/api/fetch-docker-image-tags?image=${image}`,

@@ -67,7 +67,7 @@ export default async function handler(
   const dockerHubResponse = payload as DockerHubResponse;
 
   const results = dockerHubResponse.results
-    .filter((result) => /^(v)?(\d+\.)?\d+\.\d+(-ce)?/i.test(result.name))
+    .filter((result) => /^(v)?(\d+\.)?\d+\.\d+(-ce)?$/i.test(result.name))
     .map((result) => result.name);
 
   return res.status(200).json(results);

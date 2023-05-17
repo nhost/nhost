@@ -145,6 +145,13 @@ export default function SettingsSidebar({
               </SettingsNavLink>
             )}
             <SettingsNavLink
+              href="/hasura"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Hasura
+            </SettingsNavLink>
+            <SettingsNavLink
               href="/authentication"
               exact={false}
               onClick={handleSelect}
