@@ -3,6 +3,7 @@ import { Form } from '@/components/common/Form';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useDockerImageTags } from '@/features/projects/settings/common/hooks/useDockerImageTags';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
@@ -13,7 +14,6 @@ import { Option } from '@/ui/v2/Option';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useQuery } from '@tanstack/react-query';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -33,34 +33,19 @@ export default function AuthServiceVersionSettings() {
     refetchQueries: [GetAuthenticationSettingsDocument],
   });
 
-  const {
-    data: dockerData,
-    error: dockerError,
-    isFetching,
-  } = useQuery<string[], Error>(
-    ['docker', 'tags'],
-    async () => {
-      const response = await fetch(
-        '/api/fetch-docker-hub?image=nhost/hasura-auth',
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error.message || 'Something went wrong');
-      }
-
-      return data as string[];
-    },
-    { refetchOnWindowFocus: false },
-  );
-
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
+  const {
+    data: tags,
+    error: dockerError,
+    status: dockerStatus,
+  } = useDockerImageTags({ image: 'nhost/hasura-auth' });
+
   const { version } = data?.config?.auth || {};
-  const availableVersions = Array.from(new Set(dockerData).add(version))
+  const availableVersions = Array.from(new Set(tags).add(version))
     .sort()
     .reverse();
 
@@ -152,7 +137,7 @@ export default function AuthServiceVersionSettings() {
             ))}
           </ControlledSelect>
 
-          {isFetching && (
+          {dockerStatus === 'loading' && (
             <ActivityIndicator
               label="Loading available images..."
               className="col-span-3"
