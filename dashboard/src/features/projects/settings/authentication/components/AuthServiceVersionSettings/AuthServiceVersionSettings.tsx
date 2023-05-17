@@ -1,16 +1,15 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
 import { Form } from '@/components/common/Form';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useDockerImageTags } from '@/features/projects/settings/common/hooks/useDockerImageTags';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Option } from '@/ui/v2/Option';
+import { filterOptions } from '@/ui/v2/Autocomplete';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,12 +18,23 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  version: Yup.string().label('Auth Version'),
+  version: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required(),
+  }).label('Auth Version'),
 });
 
 export type AuthServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
+
+const AVAILABLE_AUTH_VERSIONS = [
+  '0.20.1',
+  '0.20.0',
+  '0.19.3',
+  '0.19.2',
+  '0.19.1',
+];
 
 export default function AuthServiceVersionSettings() {
   const { maintenanceActive } = useUI();
@@ -38,20 +48,17 @@ export default function AuthServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const {
-    data: tags,
-    error: dockerError,
-    status: dockerStatus,
-  } = useDockerImageTags({ image: 'nhost/hasura-auth' });
-
   const { version } = data?.config?.auth || {};
-  const availableVersions = Array.from(new Set(tags).add(version))
+  const availableVersions = Array.from(
+    new Set(AVAILABLE_AUTH_VERSIONS).add(version),
+  )
     .sort()
-    .reverse();
+    .reverse()
+    .map((tag) => ({ label: tag, value: tag }));
 
   const form = useForm<AuthServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version },
+    defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
   });
 
@@ -80,7 +87,7 @@ export default function AuthServiceVersionSettings() {
         appId: currentProject.id,
         config: {
           auth: {
-            version: formValues.version,
+            version: formValues.version.value,
           },
         },
       },
@@ -121,29 +128,24 @@ export default function AuthServiceVersionSettings() {
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >
-          <ControlledSelect
+          <ControlledAutocomplete
             id="version"
             name="version"
-            fullWidth
-            className="col-span-2"
-            aria-label="Auth Version"
-            error={!!dockerError?.message}
-            helperText={dockerError?.message}
-          >
-            {availableVersions.map((availableVersion) => (
-              <Option value={availableVersion} key={availableVersion}>
-                {availableVersion}
-              </Option>
-            ))}
-          </ControlledSelect>
+            filterOptions={(options, state) => {
+              if (state.inputValue === version) {
+                return options;
+              }
 
-          {dockerStatus === 'loading' && (
-            <ActivityIndicator
-              label="Loading available images..."
-              className="col-span-3"
-              delay={2000}
-            />
-          )}
+              return filterOptions(options, state);
+            }}
+            fullWidth
+            className="lg:col-span-2"
+            options={availableVersions}
+            error={!!formState.errors?.version?.message}
+            helperText={formState.errors?.version?.message}
+            showCustomOption="auto"
+            customOptionLabel={(value) => `Use custom "${value}"`}
+          />
         </SettingsContainer>
       </Form>
     </FormProvider>

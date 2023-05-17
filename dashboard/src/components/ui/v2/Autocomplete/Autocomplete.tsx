@@ -96,8 +96,10 @@ export interface AutocompleteProps<
   autoSelect?: boolean | ((filteredOptions?: AutocompleteOption[]) => boolean);
   /**
    * Show custom option at the end of filtered options.
+   *
+   * @default 'never'
    */
-  showCustomOption?: boolean;
+  showCustomOption?: 'always' | 'never' | 'auto';
   /**
    * Custom option label.
    */
@@ -201,7 +203,7 @@ function Autocomplete(
     filterOptions: externalFilterOptions,
     autoSelect: externalAutoSelect,
     customOptionLabel: externalCustomOptionLabel,
-    showCustomOption,
+    showCustomOption = 'never',
     'aria-label': ariaLabel,
     ...props
   }: AutocompleteProps<AutocompleteOption>,
@@ -361,24 +363,38 @@ function Autocomplete(
         );
       }}
       filterOptions={
-        externalFilterOptions || showCustomOption
+        showCustomOption !== 'never'
           ? () => {
-              if (inputValue) {
-                return [
-                  ...filteredOptions,
-                  {
-                    value: inputValue,
-                    label: inputValue,
-                    dropdownLabel:
-                      customOptionLabel || `Select "${inputValue}"`,
-                    custom: Boolean(inputValue),
-                  },
-                ];
+              if (!inputValue) {
+                return filteredOptions;
               }
 
-              return filteredOptions;
+              if (showCustomOption === 'auto') {
+                return filteredOptions.length > 0
+                  ? filteredOptions
+                  : [
+                      ...filteredOptions,
+                      {
+                        value: inputValue,
+                        label: inputValue,
+                        dropdownLabel:
+                          customOptionLabel || `Select "${inputValue}"`,
+                        custom: Boolean(inputValue),
+                      },
+                    ];
+              }
+
+              return [
+                ...filteredOptions,
+                {
+                  value: inputValue,
+                  label: inputValue,
+                  dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
+                  custom: Boolean(inputValue),
+                },
+              ];
             }
-          : filterOptions
+          : filterOptionsFn
       }
       autoSelect={autoSelect}
       renderInput={({
