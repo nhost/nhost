@@ -13,6 +13,7 @@ import (
 
 const (
 	authPort      = 4000
+	mailhogPort   = 8025
 	dashboardPort = 3000
 	storagePort   = 8000
 	functionsPort = 3000
@@ -749,6 +750,53 @@ func functions( //nolint:funlen
 	}
 }
 
+func mailhog(dataFolder string) (*Service, error) {
+	mailhogDataFolder := filepath.Join(dataFolder, "mailhog")
+	if err := os.MkdirAll(mailhogDataFolder, 0o755); err != nil { //nolint:gomnd
+		return nil, fmt.Errorf("failed to create mailhog folder: %w", err)
+	}
+
+	return &Service{
+		Image:      "jcalonso/mailhog:v1.0.1",
+		DependsOn:  nil,
+		EntryPoint: []string{},
+		Command:    []string{},
+		Environment: map[string]string{
+			"SMTP_HOST":   "mailhog",
+			"SMTP_PASS":   "password",
+			"SMTP_PORT":   "1025",
+			"SMTP_SECURE": "false",
+			"SMTP_SENDER": "hasura-auth@example.com",
+			"SMTP_USER":   "user",
+		},
+		ExtraHosts:  extraHosts(),
+		HealthCheck: nil,
+		Labels: Ingresses{
+			{
+				Name: "mailhog",
+				TLS:  false,
+				Rule: "Host(`local.mailhog.nhost.run`)",
+				Port: mailhogPort,
+				// Rewrite: &Rewrite{
+				// 	Regex:       "/mailhog(/|$)(.*)",
+				// 	Replacement: "/$2",
+				// },
+			},
+		}.Labels(),
+		Ports:   nil,
+		Restart: "always",
+		Volumes: []Volume{
+			{
+				Type:     "bind",
+				Source:   mailhogDataFolder,
+				Target:   "/maildir",
+				ReadOnly: ptr(false),
+			},
+		},
+		WorkingDir: nil,
+	}, nil
+}
+
 func ComposeFileFromConfig(
 	cfg *model.ConfigConfig,
 	projectName string,
@@ -785,6 +833,11 @@ func ComposeFileFromConfig(
 		return nil, err
 	}
 
+	mailhog, err := mailhog(dataFolder)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &ComposeFile{
 		Version: "3.8",
 		Services: map[string]*Service{
@@ -796,6 +849,7 @@ func ComposeFileFromConfig(
 			"minio":     minio,
 			"postgres":  postgres,
 			"storage":   storage(cfg, useTLS),
+			"mailhog":   mailhog,
 			"traefik":   traefik,
 		},
 		Volumes: map[string]struct{}{

@@ -203,6 +203,7 @@ func printInfo(ce *clienv.CliEnv, port uint, useTLS bool) {
 	ce.Println("- Storage:              %s", url("storage", port, useTLS))
 	ce.Println("- Functions:            %s", url("functions", port, useTLS))
 	ce.Println("- Dashboard:            %s", url("dashboard", port, useTLS))
+	ce.Println("- Mailhog:              %s", url("mailhog", port, useTLS))
 	ce.Println("")
 	ce.Println("SDK Configuration:")
 	ce.Println(" Subdomain:             local")
