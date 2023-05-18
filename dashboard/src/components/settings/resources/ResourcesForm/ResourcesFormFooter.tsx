@@ -1,5 +1,5 @@
-import { calculateBillableResources } from '@/features/resources/utils/calculateBillableResources';
-import type { ResourceSettingsFormValues } from '@/features/resources/utils/resourceSettingsValidationSchema';
+import { calculateBillableResources } from '@/features/projects/settings/resources/utils/calculateBillableResources';
+import type { ResourceSettingsFormValues } from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';
 import { useProPlan } from '@/hooks/common/useProPlan';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
