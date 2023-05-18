@@ -207,19 +207,6 @@ export default function WorkspaceAndProjectList({
           </div>
         ))}
       </Box>
-
-      <Text className="font-medium" color="secondary">
-        Looking for your old apps? They&apos;re still on{' '}
-        <Link
-          href="https://console.nhost.io"
-          target="_blank"
-          rel="noreferrer"
-          underline="always"
-        >
-          console.nhost.io
-        </Link>{' '}
-        during this beta.
-      </Text>
     </Box>
   );
 }

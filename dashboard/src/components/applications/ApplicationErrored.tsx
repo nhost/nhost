@@ -21,8 +21,6 @@ import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
-import { updateOwnCache } from '@/utils/updateOwnCache';
-import { useApolloClient } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -32,7 +30,11 @@ import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationErrored() {
-  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const {
+    currentWorkspace,
+    currentProject,
+    refetch: refetchProject,
+  } = useCurrentWorkspaceAndProject();
   const [changingApplicationStateLoading, setChangingApplicationStateLoading] =
     useState(false);
 
@@ -54,7 +56,6 @@ export default function ApplicationErrored() {
   const [showRecreateModal, setShowRecreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [insertApp] = useInsertApplicationMutation();
-  const client = useApolloClient();
   const { currentDate } = useCurrentDate();
   const user = useUserData();
   const isOwner = useIsCurrentUserOwner();
@@ -94,7 +95,7 @@ export default function ApplicationErrored() {
       });
       discordAnnounce(`Recreating: ${currentProject?.name} (${user.email})`);
       triggerToast(`Recreating ${currentProject?.name} `);
-      await updateOwnCache(client);
+      await refetchProject();
     } catch (e) {
       triggerToast(`Error trying to recreate: ${currentProject?.name}`);
     }
