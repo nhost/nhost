@@ -54,7 +54,10 @@ export default function PostgresServiceVersionSettings() {
   )
     .sort()
     .reverse()
-    .map((tag) => ({ label: tag, value: tag }));
+    .map((availableVersion) => ({
+      label: availableVersion,
+      value: availableVersion,
+    }));
 
   const form = useForm<PostgresServiceVersionFormValues>({
     reValidateMode: 'onSubmit',

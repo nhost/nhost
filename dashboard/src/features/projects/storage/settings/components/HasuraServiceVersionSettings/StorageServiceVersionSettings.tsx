@@ -50,7 +50,10 @@ export default function StorageServiceVersionSettings() {
   )
     .sort()
     .reverse()
-    .map((tag) => ({ label: tag, value: tag }));
+    .map((availableVersion) => ({
+      label: availableVersion,
+      value: availableVersion,
+    }));
 
   const form = useForm<StorageServiceVersionFormValues>({
     reValidateMode: 'onSubmit',

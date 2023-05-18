@@ -54,7 +54,10 @@ export default function AuthServiceVersionSettings() {
   )
     .sort()
     .reverse()
-    .map((tag) => ({ label: tag, value: tag }));
+    .map((availableVersion) => ({
+      label: availableVersion,
+      value: availableVersion,
+    }));
 
   const form = useForm<AuthServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
