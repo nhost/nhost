@@ -58,7 +58,6 @@ export default function HasuraServiceVersionSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  // We don't want to hide the form while the docker tags are being fetched
   if (loading) {
     return (
       <ActivityIndicator

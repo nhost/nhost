@@ -18899,6 +18899,36 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type GetAuthenticationSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
+
+export type GetPostgresSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null } | null };
+
+export type GetHasuraSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null } } | null };
+
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
+
+export type GetResourcesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
+
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -18993,13 +19023,6 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
 
-export type GetAuthenticationSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
-
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
 export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
@@ -19010,22 +19033,6 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 
 
 export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
-
-export type GetHasuraSettingsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null } } | null };
-
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
-
-export type GetResourcesQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -19339,13 +19346,6 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
-export type GetDatabaseConnectionInfoQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetDatabaseConnectionInfoQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null };
-
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
@@ -19437,6 +19437,46 @@ export type UpdateWorkspaceMutationVariables = Exact<{
 
 export type UpdateWorkspaceMutation = { __typename?: 'mutation_root', updateWorkspace?: { __typename?: 'workspaces', id: any, name: string, email: string, companyName: string, addressLine1: string, addressLine2: string, addressPostalCode: string, addressCity: string, addressCountryCode?: string | null, slug: string, taxIdType: string, taxIdValue: string } | null };
 
+export const ServiceResourcesFragmentDoc = gql`
+    fragment ServiceResources on ConfigConfig {
+  auth {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+      replicas
+    }
+  }
+  hasura {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+      replicas
+    }
+  }
+  postgres {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+      replicas
+    }
+  }
+  storage {
+    resources {
+      compute {
+        cpu
+        memory
+      }
+      replicas
+    }
+  }
+}
+    `;
 export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
     fragment getAppPlanAndGlobalPlansApp on apps {
   id
@@ -19514,46 +19554,6 @@ export const JwtSecretFragmentDoc = gql`
   claims_format
   audience
   allowed_skew
-}
-    `;
-export const ServiceResourcesFragmentDoc = gql`
-    fragment ServiceResources on ConfigConfig {
-  auth {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  hasura {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  postgres {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  storage {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
 }
     `;
 export const PermissionVariableFragmentDoc = gql`
@@ -19746,6 +19746,203 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
   memberType
 }
     `;
+export const GetAuthenticationSettingsDocument = gql`
+    query GetAuthenticationSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    auth {
+      id: __typename
+      __typename
+      redirections {
+        clientUrl
+        allowedUrls
+      }
+      totp {
+        enabled
+        issuer
+      }
+      signUp {
+        enabled
+      }
+      user {
+        email {
+          allowed
+          blocked
+        }
+        emailDomains {
+          allowed
+          blocked
+        }
+        gravatar {
+          enabled
+          default
+          rating
+        }
+      }
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAuthenticationSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthenticationSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAuthenticationSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+      }
+export function useGetAuthenticationSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
+        }
+export type GetAuthenticationSettingsQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsQuery>;
+export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsLazyQuery>;
+export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
+export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
+      return { query: GetAuthenticationSettingsDocument, variables: variables }
+    }
+export const GetPostgresSettingsDocument = gql`
+    query GetPostgresSettings($appId: uuid!) {
+  systemConfig(appID: $appId) {
+    postgres {
+      database
+    }
+  }
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    postgres {
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetPostgresSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetPostgresSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPostgresSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPostgresSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetPostgresSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
+      }
+export function useGetPostgresSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>(GetPostgresSettingsDocument, options);
+        }
+export type GetPostgresSettingsQueryHookResult = ReturnType<typeof useGetPostgresSettingsQuery>;
+export type GetPostgresSettingsLazyQueryHookResult = ReturnType<typeof useGetPostgresSettingsLazyQuery>;
+export type GetPostgresSettingsQueryResult = Apollo.QueryResult<GetPostgresSettingsQuery, GetPostgresSettingsQueryVariables>;
+export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQueryVariables) {
+      return { query: GetPostgresSettingsDocument, variables: variables }
+    }
+export const GetHasuraSettingsDocument = gql`
+    query GetHasuraSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    hasura {
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetHasuraSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetHasuraSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+      }
+export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
+        }
+export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
+export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
+export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
+export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
+      return { query: GetHasuraSettingsDocument, variables: variables }
+    }
+export const GetResourcesDocument = gql`
+    query GetResources($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    ...ServiceResources
+  }
+}
+    ${ServiceResourcesFragmentDoc}`;
+
+/**
+ * __useGetResourcesQuery__
+ *
+ * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResourcesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+      }
+export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+        }
+export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
+export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
+export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
+export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
+      return { query: GetResourcesDocument, variables: variables }
+    }
 export const DeleteApplicationDocument = gql`
     mutation deleteApplication($appId: uuid!) {
   deleteApp(id: $appId) {
@@ -20256,76 +20453,6 @@ export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, 
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
-export const GetAuthenticationSettingsDocument = gql`
-    query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
-    id: __typename
-    __typename
-    auth {
-      id: __typename
-      __typename
-      redirections {
-        clientUrl
-        allowedUrls
-      }
-      totp {
-        enabled
-        issuer
-      }
-      signUp {
-        enabled
-      }
-      user {
-        email {
-          allowed
-          blocked
-        }
-        emailDomains {
-          allowed
-          blocked
-        }
-        gravatar {
-          enabled
-          default
-          rating
-        }
-      }
-      version
-    }
-  }
-}
-    `;
-
-/**
- * __useGetAuthenticationSettingsQuery__
- *
- * To run a query within a React component, call `useGetAuthenticationSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthenticationSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthenticationSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetAuthenticationSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
-      }
-export function useGetAuthenticationSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>(GetAuthenticationSettingsDocument, options);
-        }
-export type GetAuthenticationSettingsQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsQuery>;
-export type GetAuthenticationSettingsLazyQueryHookResult = ReturnType<typeof useGetAuthenticationSettingsLazyQuery>;
-export type GetAuthenticationSettingsQueryResult = Apollo.QueryResult<GetAuthenticationSettingsQuery, GetAuthenticationSettingsQueryVariables>;
-export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticationSettingsQueryVariables) {
-      return { query: GetAuthenticationSettingsDocument, variables: variables }
-    }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
   config(appID: $appId, resolve: true) {
@@ -20377,86 +20504,6 @@ export type GetEnvironmentVariablesLazyQueryHookResult = ReturnType<typeof useGe
 export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironmentVariablesQuery, GetEnvironmentVariablesQueryVariables>;
 export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
       return { query: GetEnvironmentVariablesDocument, variables: variables }
-    }
-export const GetHasuraSettingsDocument = gql`
-    query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
-    id: __typename
-    __typename
-    hasura {
-      version
-    }
-  }
-}
-    `;
-
-/**
- * __useGetHasuraSettingsQuery__
- *
- * To run a query within a React component, call `useGetHasuraSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetHasuraSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetHasuraSettingsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetHasuraSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-      }
-export function useGetHasuraSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>(GetHasuraSettingsDocument, options);
-        }
-export type GetHasuraSettingsQueryHookResult = ReturnType<typeof useGetHasuraSettingsQuery>;
-export type GetHasuraSettingsLazyQueryHookResult = ReturnType<typeof useGetHasuraSettingsLazyQuery>;
-export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQuery, GetHasuraSettingsQueryVariables>;
-export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
-      return { query: GetHasuraSettingsDocument, variables: variables }
-    }
-export const GetResourcesDocument = gql`
-    query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
-    ...ServiceResources
-  }
-}
-    ${ServiceResourcesFragmentDoc}`;
-
-/**
- * __useGetResourcesQuery__
- *
- * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetResourcesQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
-      }
-export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
-        }
-export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
-export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
-export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
-export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
-      return { query: GetResourcesDocument, variables: variables }
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
@@ -22144,46 +22191,6 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
-export const GetDatabaseConnectionInfoDocument = gql`
-    query GetDatabaseConnectionInfo($appId: uuid!) {
-  systemConfig(appID: $appId) {
-    postgres {
-      database
-    }
-  }
-}
-    `;
-
-/**
- * __useGetDatabaseConnectionInfoQuery__
- *
- * To run a query within a React component, call `useGetDatabaseConnectionInfoQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDatabaseConnectionInfoQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDatabaseConnectionInfoQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetDatabaseConnectionInfoQuery(baseOptions: Apollo.QueryHookOptions<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>(GetDatabaseConnectionInfoDocument, options);
-      }
-export function useGetDatabaseConnectionInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>(GetDatabaseConnectionInfoDocument, options);
-        }
-export type GetDatabaseConnectionInfoQueryHookResult = ReturnType<typeof useGetDatabaseConnectionInfoQuery>;
-export type GetDatabaseConnectionInfoLazyQueryHookResult = ReturnType<typeof useGetDatabaseConnectionInfoLazyQuery>;
-export type GetDatabaseConnectionInfoQueryResult = Apollo.QueryResult<GetDatabaseConnectionInfoQuery, GetDatabaseConnectionInfoQueryVariables>;
-export function refetchGetDatabaseConnectionInfoQuery(variables: GetDatabaseConnectionInfoQueryVariables) {
-      return { query: GetDatabaseConnectionInfoDocument, variables: variables }
-    }
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(

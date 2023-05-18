@@ -4,8 +4,8 @@ import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
-  GetAuthenticationSettingsDocument,
-  useGetAuthenticationSettingsQuery,
+  GetPostgresSettingsDocument,
+  useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -21,53 +21,52 @@ const validationSchema = Yup.object({
   version: Yup.object({
     label: Yup.string().required(),
     value: Yup.string().required(),
-  }).label('Auth Version'),
+  })
+    .label('Postgres Version')
+    .required(),
 });
 
-export type AuthServiceVersionFormValues = Yup.InferType<
+export type PostgresServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_AUTH_VERSIONS = [
-  '0.20.1',
-  '0.20.0',
-  '0.19.3',
-  '0.19.2',
-  '0.19.1',
+const AVAILABLE_POSTGRES_VERSIONS = [
+  '14.6.20230406-2',
+  '14.6-20230406-1',
+  '14.6-20230404',
 ];
 
-export default function AuthServiceVersionSettings() {
+export default function PostgresServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetAuthenticationSettingsDocument],
+    refetchQueries: [GetPostgresSettingsDocument],
   });
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, loading, error } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { version } = data?.config?.auth || {};
+  const { version } = data?.config?.postgres || {};
   const availableVersions = Array.from(
-    new Set(AVAILABLE_AUTH_VERSIONS).add(version),
+    new Set(AVAILABLE_POSTGRES_VERSIONS).add(version),
   )
     .sort()
     .reverse()
     .map((tag) => ({ label: tag, value: tag }));
 
-  const form = useForm<AuthServiceVersionFormValues>({
+  const form = useForm<PostgresServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
   });
 
-  // We don't want to hide the form while the docker tags are being fetched
   if (loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Auth version..."
+        label="Loading Postgres version..."
         className="justify-center"
       />
     );
@@ -79,14 +78,14 @@ export default function AuthServiceVersionSettings() {
 
   const { formState } = form;
 
-  const handleAuthServiceVersionsChange = async (
-    formValues: AuthServiceVersionFormValues,
+  const handlePostgresServiceVersionsChange = async (
+    formValues: PostgresServiceVersionFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
-          auth: {
+          postgres: {
             version: formValues.version.value,
           },
         },
@@ -97,10 +96,10 @@ export default function AuthServiceVersionSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Auth version is being updated...`,
-          success: `Auth version has been updated successfully.`,
+          loading: `Postgres version is being updated...`,
+          success: `Postgres version has been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Auth version.`,
+            `An error occurred while trying to update Postgres version.`,
           ),
         },
         getToastStyleProps(),
@@ -114,17 +113,17 @@ export default function AuthServiceVersionSettings() {
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleAuthServiceVersionsChange}>
+      <Form onSubmit={handlePostgresServiceVersionsChange}>
         <SettingsContainer
-          title="Auth Version"
-          description="The version of Auth to use."
+          title="Postgres Version"
+          description="The version of Postgres to use."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://github.com/nhost/hasura-auth/releases"
+          docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >

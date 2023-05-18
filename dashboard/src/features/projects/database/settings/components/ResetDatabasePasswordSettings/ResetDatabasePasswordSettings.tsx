@@ -1,18 +1,18 @@
-import Form from '@/components/common/Form';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/common/Form';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateRandomDatabasePassword } from '@/features/projects/database/utils/generateRandomDatabasePassword';
 import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import InputAdornment from '@/ui/v2/InputAdornment';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
+import { InputAdornment } from '@/ui/v2/InputAdornment';
+import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import generateRandomDatabasePassword from '@/utils/settings/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';

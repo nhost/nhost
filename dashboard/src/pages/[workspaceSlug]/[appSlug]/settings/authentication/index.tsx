@@ -1,15 +1,15 @@
 import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
+import { AllowedEmailSettings } from '@/features/projects/authentication/settings/components/AllowedEmailSettings';
+import { AllowedRedirectURLsSettings } from '@/features/projects/authentication/settings/components/AllowedRedirectURLsSettings';
+import { AuthServiceVersionSettings } from '@/features/projects/authentication/settings/components/AuthServiceVersionSettings';
+import { BlockedEmailSettings } from '@/features/projects/authentication/settings/components/BlockedEmailSettings';
+import { ClientURLSettings } from '@/features/projects/authentication/settings/components/ClientURLSettings';
+import { DisableNewUsersSettings } from '@/features/projects/authentication/settings/components/DisableNewUsersSettings';
+import { GravatarSettings } from '@/features/projects/authentication/settings/components/GravatarSettings';
+import { MFASettings } from '@/features/projects/authentication/settings/components/MFASettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { AllowedEmailSettings } from '@/features/projects/settings/authentication/components/AllowedEmailSettings';
-import { AllowedRedirectURLsSettings } from '@/features/projects/settings/authentication/components/AllowedRedirectURLsSettings';
-import { AuthServiceVersionSettings } from '@/features/projects/settings/authentication/components/AuthServiceVersionSettings';
-import { BlockedEmailSettings } from '@/features/projects/settings/authentication/components/BlockedEmailSettings';
-import { ClientURLSettings } from '@/features/projects/settings/authentication/components/ClientURLSettings';
-import { DisableNewUsersSettings } from '@/features/projects/settings/authentication/components/DisableNewUsersSettings';
-import { GravatarSettings } from '@/features/projects/settings/authentication/components/GravatarSettings';
-import { MFASettings } from '@/features/projects/settings/authentication/components/MFASettings';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
