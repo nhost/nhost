@@ -165,7 +165,13 @@ export default function SettingsSidebar({
             >
               Sign-In Methods
             </SettingsNavLink>
-
+            <SettingsNavLink
+              href="/storage"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Storage
+            </SettingsNavLink>
             <SettingsNavLink
               href="/roles-and-permissions"
               exact={false}

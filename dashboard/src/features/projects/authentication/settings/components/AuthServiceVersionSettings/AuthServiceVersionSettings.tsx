@@ -143,7 +143,7 @@ export default function AuthServiceVersionSettings() {
             error={!!formState.errors?.version?.message}
             helperText={formState.errors?.version?.message}
             showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom "${value}"`}
+            customOptionLabel={(value) => `Use custom value: "${value}"`}
           />
         </SettingsContainer>
       </Form>

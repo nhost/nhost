@@ -18929,6 +18929,13 @@ export type GetResourcesQueryVariables = Exact<{
 
 export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
 
+export type GetStorageSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
+
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -19942,6 +19949,48 @@ export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesL
 export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
 export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
       return { query: GetResourcesDocument, variables: variables }
+    }
+export const GetStorageSettingsDocument = gql`
+    query GetStorageSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    storage {
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetStorageSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetStorageSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStorageSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStorageSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetStorageSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
+      }
+export function useGetStorageSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>(GetStorageSettingsDocument, options);
+        }
+export type GetStorageSettingsQueryHookResult = ReturnType<typeof useGetStorageSettingsQuery>;
+export type GetStorageSettingsLazyQueryHookResult = ReturnType<typeof useGetStorageSettingsLazyQuery>;
+export type GetStorageSettingsQueryResult = Apollo.QueryResult<GetStorageSettingsQuery, GetStorageSettingsQueryVariables>;
+export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQueryVariables) {
+      return { query: GetStorageSettingsDocument, variables: variables }
     }
 export const DeleteApplicationDocument = gql`
     mutation deleteApplication($appId: uuid!) {

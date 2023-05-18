@@ -4,8 +4,8 @@ import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
-  GetPostgresSettingsDocument,
-  useGetPostgresSettingsQuery,
+  GetStorageSettingsDocument,
+  useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -22,41 +22,37 @@ const validationSchema = Yup.object({
     label: Yup.string().required(),
     value: Yup.string().required(),
   })
-    .label('Postgres Version')
+    .label('Storage Version')
     .required(),
 });
 
-export type PostgresServiceVersionFormValues = Yup.InferType<
+export type StorageServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_POSTGRES_VERSIONS = [
-  '14.6.20230406-2',
-  '14.6-20230406-1',
-  '14.6-20230404',
-];
+const AVAILABLE_STORAGE_VERSIONS = ['0.3.4', '0.3.3', '0.3.2'];
 
-export default function PostgresServiceVersionSettings() {
+export default function StorageServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetPostgresSettingsDocument],
+    refetchQueries: [GetStorageSettingsDocument],
   });
 
-  const { data, loading, error } = useGetPostgresSettingsQuery({
+  const { data, loading, error } = useGetStorageSettingsQuery({
     variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
-  const { version } = data?.config?.postgres || {};
+  const { version } = data?.config?.storage || {};
   const availableVersions = Array.from(
-    new Set(AVAILABLE_POSTGRES_VERSIONS).add(version),
+    new Set(AVAILABLE_STORAGE_VERSIONS).add(version),
   )
     .sort()
     .reverse()
     .map((tag) => ({ label: tag, value: tag }));
 
-  const form = useForm<PostgresServiceVersionFormValues>({
+  const form = useForm<StorageServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
@@ -66,7 +62,7 @@ export default function PostgresServiceVersionSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Postgres version..."
+        label="Loading Storage version..."
         className="justify-center"
       />
     );
@@ -78,14 +74,14 @@ export default function PostgresServiceVersionSettings() {
 
   const { formState } = form;
 
-  const handlePostgresServiceVersionsChange = async (
-    formValues: PostgresServiceVersionFormValues,
+  const handleStorageServiceVersionsChange = async (
+    formValues: StorageServiceVersionFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
-          postgres: {
+          storage: {
             version: formValues.version.value,
           },
         },
@@ -96,10 +92,10 @@ export default function PostgresServiceVersionSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Postgres version is being updated...`,
-          success: `Postgres version has been updated successfully.`,
+          loading: `Storage version is being updated...`,
+          success: `Storage version has been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Postgres version.`,
+            `An error occurred while trying to update Storage version.`,
           ),
         },
         getToastStyleProps(),
@@ -113,17 +109,17 @@ export default function PostgresServiceVersionSettings() {
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handlePostgresServiceVersionsChange}>
+      <Form onSubmit={handleStorageServiceVersionsChange}>
         <SettingsContainer
-          title="Postgres Version"
-          description="The version of Postgres to use."
+          title="Storage Version"
+          description="The version of Storage to use."
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://hub.docker.com/r/nhost/postgres/tags"
+          docsLink="https://github.com/nhost/hasura-storage/releases"
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >

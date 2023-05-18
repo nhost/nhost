@@ -1,15 +1,15 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { HasuraServiceVersionSettings } from '@/features/projects/hasura/settings/components/HasuraServiceVersionSettings';
+import { StorageServiceVersionSettings } from '@/features/projects/storage/settings/components/HasuraServiceVersionSettings';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
-export default function HasuraSettingsPage() {
+export default function StorageSettingsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetHasuraSettingsQuery({
+  const { loading, error } = useGetStorageSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
   });
@@ -18,7 +18,7 @@ export default function HasuraSettingsPage() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Hasura settings..."
+        label="Loading Storage settings..."
         className="justify-center"
       />
     );
@@ -33,11 +33,11 @@ export default function HasuraSettingsPage() {
       className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <HasuraServiceVersionSettings />
+      <StorageServiceVersionSettings />
     </Container>
   );
 }
 
-HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
+StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return <SettingsLayout>{page}</SettingsLayout>;
 };
