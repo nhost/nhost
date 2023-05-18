@@ -22,16 +22,18 @@ import {
   resetPasswordPromise,
   sendVerificationEmailPromise,
   signInAnonymousPromise,
-  signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
+  signInEmailPasswordlessPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
+  signInPATPromise,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
   signUpEmailSecurityKeyPromise
 } from './promises'
+import { createPATPromise } from './promises/createPAT'
 import {
   AuthChangedFunction,
   AuthErrorPayload,
@@ -51,6 +53,7 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
+  SignInPATResponse,
   SignInParams,
   SignInResponse,
   SignOutResponse,
@@ -269,6 +272,25 @@ export class HasuraAuthClient {
   }
 
   /**
+   * Use `nhost.auth.signInPAT` to sign in with a personal access token (PAT).
+   *
+   * @example
+   * ```ts
+   * nhost.auth.signInPAT('34f74930-09c0-4af5-a8d5-28fad78e3415')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in-pat
+   *
+   * @param personalAccessToken - The personal access token to sign in with
+   */
+  async signInPAT(personalAccessToken: string): Promise<SignInPATResponse> {
+    const interpreter = await this.waitUntilReady()
+    const res = await signInPATPromise(interpreter, personalAccessToken)
+
+    return getAuthenticationResult(res)
+  }
+
+  /**
    * Use `nhost.auth.signOut` to sign out the user.
    *
    * @example
@@ -414,6 +436,18 @@ export class HasuraAuthClient {
   ): Promise<{ error: AuthErrorPayload | null; key?: SecurityKey }> {
     const { error, key } = await addSecurityKeyPromise(this._client, nickname)
     return { error, key }
+  }
+
+  /**
+   * Use `nhost.auth.createPAT` to create a personal access token for the user.
+   *
+   * @param expiresAt Expiration date for the token
+   * @param metadata Optional metadata to store with the token
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/create-pat
+   */
+  async createPAT(expiresAt: Date, metadata?: Record<string, string | number>) {
+    return createPATPromise(this._client, { expiresAt, metadata })
   }
 
   /**

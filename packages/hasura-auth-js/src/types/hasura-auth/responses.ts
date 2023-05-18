@@ -52,6 +52,9 @@ export interface PasswordlessSmsResponse extends NullableErrorResponse {}
 /** payload from hasura-auth endpoint /signin/anonymous */
 export type SignInAnonymousResponse = NhostSessionResponse
 
+/** payload from hasura-auth endpoint /signin/pat */
+export type SignInPATResponse = NhostSessionResponse
+
 /** payload from hasura-auth endpoint /signin/anonymous */
 export type PasswordlessSmsOtpResponse = NhostSessionResponse
 

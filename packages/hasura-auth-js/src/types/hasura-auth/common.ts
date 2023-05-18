@@ -43,7 +43,8 @@ export interface User {
 export interface NhostSession {
   accessToken: string
   accessTokenExpiresIn: number
-  refreshToken: string
+  refreshToken: string | null
+  refreshTokenId?: string | null
   user: User
 }
 
@@ -94,4 +95,18 @@ export interface SecurityKey {
   id: string
   /** Human-readable nickname fof the security key */
   nickname?: string
+}
+
+/**
+ * Data of a personal access token creation response.
+ */
+export interface PersonalAccessTokenCreationResponse {
+  /**
+   * The personal access token identifier.
+   */
+  id: string
+  /**
+   * The personal access token.
+   */
+  personalAccessToken: string
 }

@@ -9,6 +9,7 @@ export type AuthEvents =
   | { type: 'SESSION_UPDATE'; data: { session: NhostSession } }
   | { type: 'TRY_TOKEN'; token: string }
   | { type: 'SIGNIN_ANONYMOUS' }
+  | { type: 'SIGNIN_PAT'; pat: string }
   | { type: 'SIGNIN_SECURITY_KEY_EMAIL'; email?: string }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {

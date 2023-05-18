@@ -15,7 +15,7 @@ if (devTools) {
     iframe: false
   })
 }
-const nhost = new NhostClient({ subdomain: 'localhost', devTools })
+const nhost = new NhostClient({ subdomain: 'local', devTools })
 const title = 'Nhost with NextJs'
 function MyApp({ Component, pageProps }: AppProps) {
   // * Monorepo-related. See: https://stackoverflow.com/questions/71843247/react-nextjs-type-error-component-cannot-be-used-as-a-jsx-component
