@@ -106,7 +106,7 @@ export function NewProjectPageContent({
   const { submitState, setSubmitState } = useSubmitState();
 
   const [insertApp] = useInsertApplicationMutation({
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
 
   // options
