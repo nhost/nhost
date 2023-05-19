@@ -1,4 +1,4 @@
-import type { DatabaseColumn } from '@/types/dataBrowser';
+import type { DatabaseColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 

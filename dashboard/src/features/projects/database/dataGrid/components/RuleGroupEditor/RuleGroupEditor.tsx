@@ -1,5 +1,8 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import type { Rule, RuleGroup } from '@/types/dataBrowser';
+import type {
+  Rule,
+  RuleGroup,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';

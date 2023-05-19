@@ -1,11 +1,11 @@
 import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
-} from '@/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
-import normalizeDefaultValue from '@/utils/dataBrowser/normalizeDefaultValue';
-import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';
-import prepareUpdateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareUpdateForeignKeyRelationQuery';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { normalizeDefaultValue } from '@/features/projects/database/dataGrid/utils/normalizeDefaultValue';
+import { prepareCreateForeignKeyRelationQuery } from '@/features/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
+import { prepareUpdateForeignKeyRelationQuery } from '@/features/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 import { format } from 'node-pg-format';
 
 export interface PrepareUpdateColumnQueryVariables

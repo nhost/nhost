@@ -4,9 +4,9 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/dataBrowser';
-import { getEmptyDownMigrationMessage } from '@/utils/dataBrowser/hasuraQueryHelpers';
-import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getEmptyDownMigrationMessage } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { normalizeQueryError } from '@/features/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 

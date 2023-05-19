@@ -1,10 +1,10 @@
 import type {
   DatabaseColumn,
   MutationOrQueryBaseOptions,
-} from '@/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
-import { identityTypes } from '@/utils/dataBrowser/postgresqlConstants';
-import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { identityTypes } from '@/features/projects/database/dataGrid/utils/postgresqlConstants';
+import { prepareCreateForeignKeyRelationQuery } from '@/features/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { format } from 'node-pg-format';
 
 export interface PrepareCreateColumnQueryVariables

@@ -1,7 +1,7 @@
 import { HighlightedText } from '@/components/common/HighlightedText';
 import type { RolePermissionEditorFormValues } from '@/features/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { useTableQuery } from '@/features/projects/database/dataGrid/hooks/useTableQuery';
-import type { DatabaseAction } from '@/types/dataBrowser';
+import type { DatabaseAction } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';

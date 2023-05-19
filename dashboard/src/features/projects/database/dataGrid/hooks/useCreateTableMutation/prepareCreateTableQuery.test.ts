@@ -1,4 +1,4 @@
-import type { DatabaseTable } from '@/types/dataBrowser';
+import type { DatabaseTable } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import { expect, test } from 'vitest';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 

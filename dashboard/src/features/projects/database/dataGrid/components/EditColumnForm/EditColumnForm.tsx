@@ -8,11 +8,11 @@ import {
 } from '@/features/projects/database/dataGrid/components/BaseColumnForm';
 import { useTrackForeignKeyRelationsMutation } from '@/features/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateColumnMutation } from '@/features/projects/database/dataGrid/hooks/useUpdateColumnMutation';
-import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import type { DataBrowserGridColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { convertDataBrowserGridColumnToDatabaseColumn } from '@/features/projects/database/dataGrid/utils/convertDataBrowserGridColumnToDatabaseColumn';
 import { Alert } from '@/ui/Alert';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import Button from '@/ui/v2/Button';
-import convertDataBrowserGridColumnToDatabaseColumn from '@/utils/dataBrowser/convertDataBrowserGridColumnToDatabaseColumn';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';

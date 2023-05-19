@@ -1,5 +1,5 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
-import type { NormalizedQueryDataRow } from '@/types/dataBrowser';
+import type { NormalizedQueryDataRow } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import type { BaseForeignKeyFormValues } from './BaseForeignKeyForm';

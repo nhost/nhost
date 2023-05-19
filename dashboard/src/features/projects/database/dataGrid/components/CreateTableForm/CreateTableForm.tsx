@@ -9,7 +9,7 @@ import {
 import { useCreateTableMutation } from '@/features/projects/database/dataGrid/hooks/useCreateTableMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useTrackTableMutation } from '@/features/projects/database/dataGrid/hooks/useTrackTableMutation';
-import type { DatabaseTable } from '@/types/dataBrowser';
+import type { DatabaseTable } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';

@@ -1,7 +1,10 @@
 import { HighlightedText } from '@/components/common/HighlightedText';
 import type { RolePermissionEditorFormValues } from '@/features/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { RuleGroupEditor } from '@/features/projects/database/dataGrid/components/RuleGroupEditor';
-import type { DatabaseAction, RuleGroup } from '@/types/dataBrowser';
+import type {
+  DatabaseAction,
+  RuleGroup,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Input from '@/ui/v2/Input';
 import Radio from '@/ui/v2/Radio';
 import RadioGroup from '@/ui/v2/RadioGroup';

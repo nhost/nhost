@@ -5,8 +5,8 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/dataBrowser';
-import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { normalizeQueryError } from '@/features/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
 export interface ManagePermissionMigrationVariables {

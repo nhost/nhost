@@ -1,8 +1,8 @@
 import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
-} from '@/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
 import { format } from 'node-pg-format';
 
 export interface PrepareCreateTableQueryVariables

@@ -2,7 +2,7 @@ import type {
   DatabaseColumn,
   DatabaseTable,
   NormalizedQueryDataRow,
-} from '@/types/dataBrowser';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 const originalTable: NormalizedQueryDataRow = {

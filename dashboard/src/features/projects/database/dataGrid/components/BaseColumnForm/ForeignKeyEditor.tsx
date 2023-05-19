@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { CreateForeignKeyForm } from '@/features/projects/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/projects/database/dataGrid/components/EditForeignKeyForm';
-import type { DatabaseColumn } from '@/types/dataBrowser';
+import type { DatabaseColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';

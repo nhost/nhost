@@ -1,5 +1,5 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
-import type { RuleGroup } from '@/types/dataBrowser';
+import type { RuleGroup } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
@@ -38,7 +38,7 @@ export default function RuleGroupControls({
 
   return (
     <div
-      className={twMerge('grid grid-flow-row gap-2 content-start', className)}
+      className={twMerge('grid grid-flow-row content-start gap-2', className)}
       {...props}
     >
       {showSelect ? (

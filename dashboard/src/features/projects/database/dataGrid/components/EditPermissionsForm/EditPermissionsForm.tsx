@@ -2,13 +2,13 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useMetadataQuery } from '@/features/projects/database/dataGrid/hooks/useMetadataQuery';
 import { useTableQuery } from '@/features/projects/database/dataGrid/hooks/useTableQuery';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import type { DialogFormProps } from '@/types/common';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
   HasuraMetadataPermission,
-} from '@/types/dataBrowser';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

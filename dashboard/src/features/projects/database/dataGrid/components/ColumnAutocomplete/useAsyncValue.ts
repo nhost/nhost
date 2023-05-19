@@ -1,6 +1,6 @@
 import type { FetchMetadataReturnType } from '@/features/projects/database/dataGrid/hooks/useMetadataQuery';
 import type { FetchTableReturnType } from '@/features/projects/database/dataGrid/hooks/useTableQuery';
-import type { HasuraMetadataTable } from '@/types/dataBrowser';
+import type { HasuraMetadataTable } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { useEffect, useState } from 'react';
 

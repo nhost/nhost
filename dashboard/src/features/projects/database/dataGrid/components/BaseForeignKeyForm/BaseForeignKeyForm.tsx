@@ -2,8 +2,11 @@ import ControlledSelect from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { useDatabaseQuery } from '@/features/projects/database/dataGrid/hooks/useDatabaseQuery';
+import type {
+  DatabaseColumn,
+  ForeignKeyRelation,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
-import type { DatabaseColumn, ForeignKeyRelation } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';

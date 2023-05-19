@@ -3,18 +3,21 @@ import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import InlineCode from '@/components/common/InlineCode';
+import type {
+  ColumnType,
+  DatabaseColumn,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import {
+  identityTypes,
+  postgresFunctions,
+  postgresTypeGroups,
+} from '@/features/projects/database/dataGrid/utils/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
-import type { ColumnType, DatabaseColumn } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
-import {
-  identityTypes,
-  postgresFunctions,
-  postgresTypeGroups,
-} from '@/utils/dataBrowser/postgresqlConstants';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';

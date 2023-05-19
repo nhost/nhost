@@ -1,10 +1,10 @@
 import type { BaseRecordFormProps } from '@/features/projects/database/dataGrid/components/BaseRecordForm';
 import { BaseRecordForm } from '@/features/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/projects/database/dataGrid/hooks/useCreateRecordMutation';
-import type { ColumnInsertOptions } from '@/types/dataBrowser';
+import type { ColumnInsertOptions } from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { createDynamicValidationSchema } from '@/features/projects/database/dataGrid/utils/validationSchemaHelpers';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
-import { createDynamicValidationSchema } from '@/utils/dataBrowser/validationSchemaHelpers';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';

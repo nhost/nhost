@@ -14,20 +14,20 @@ import { useDeleteColumnWithToastMutation } from '@/features/projects/database/d
 import { useTableQuery } from '@/features/projects/database/dataGrid/hooks/useTableQuery';
 import type { UpdateRecordVariables } from '@/features/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/projects/database/dataGrid/hooks/useUpdateRecordMutation';
-import useTablePath from '@/hooks/useTablePath';
 import type {
   DataBrowserGridColumn,
   NormalizedQueryDataRow,
-} from '@/types/dataBrowser';
-import KeyIcon from '@/ui/v2/icons/KeyIcon';
-import normalizeDefaultValue from '@/utils/dataBrowser/normalizeDefaultValue';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { normalizeDefaultValue } from '@/features/projects/database/dataGrid/utils/normalizeDefaultValue';
 import {
   POSTGRESQL_CHARACTER_TYPES,
   POSTGRESQL_DATE_TIME_TYPES,
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
-} from '@/utils/dataBrowser/postgresqlConstants';
-import { isSchemaLocked } from '@/utils/dataBrowser/schemaHelpers';
+} from '@/features/projects/database/dataGrid/utils/postgresqlConstants';
+import { isSchemaLocked } from '@/features/projects/database/dataGrid/utils/schemaHelpers';
+import useTablePath from '@/hooks/useTablePath';
+import KeyIcon from '@/ui/v2/icons/KeyIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';

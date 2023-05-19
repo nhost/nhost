@@ -3,8 +3,8 @@ import type {
   NormalizedQueryDataRow,
   QueryError,
   QueryResult,
-} from '@/types/dataBrowser';
-import { getPreparedReadOnlyHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedReadOnlyHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
 
 export interface FetchDatabaseOptions
   extends Omit<MutationOrQueryBaseOptions, 'schema' | 'table'> {}

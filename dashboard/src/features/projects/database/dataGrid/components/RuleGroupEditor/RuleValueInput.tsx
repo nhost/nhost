@@ -4,7 +4,7 @@ import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { ColumnAutocompleteProps } from '@/features/projects/database/dataGrid/components/ColumnAutocomplete';
 import { ColumnAutocomplete } from '@/features/projects/database/dataGrid/components/ColumnAutocomplete';
-import type { HasuraOperator } from '@/types/dataBrowser';
+import type { HasuraOperator } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';

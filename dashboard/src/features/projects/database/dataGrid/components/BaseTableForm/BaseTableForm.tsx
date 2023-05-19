@@ -1,8 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { baseColumnValidationSchema } from '@/features/projects/database/dataGrid/components/BaseColumnForm';
+import type {
+  DatabaseTable,
+  ForeignKeyRelation,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
-import type { DatabaseTable, ForeignKeyRelation } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';

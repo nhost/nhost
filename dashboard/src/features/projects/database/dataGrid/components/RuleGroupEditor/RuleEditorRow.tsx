@@ -1,6 +1,6 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import { ColumnAutocomplete } from '@/features/projects/database/dataGrid/components/ColumnAutocomplete';
-import type { HasuraOperator } from '@/types/dataBrowser';
+import type { HasuraOperator } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';

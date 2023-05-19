@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import Form from '@/components/common/Form';
 import { DatabaseRecordInputGroup } from '@/features/projects/database/dataGrid/components/DatabaseRecordInputGroup';
-import type { DialogFormProps } from '@/types/common';
 import type {
   ColumnInsertOptions,
   DataBrowserGridColumn,
-} from '@/types/dataBrowser';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import type { DialogFormProps } from '@/types/common';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import { useEffect } from 'react';

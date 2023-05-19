@@ -1,4 +1,4 @@
-import type { ForeignKeyRelation } from '@/types/dataBrowser';
+import type { ForeignKeyRelation } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';

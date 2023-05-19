@@ -1,5 +1,5 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
-import type { DatabaseColumn } from '@/types/dataBrowser';
+import type { DatabaseColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Option from '@/ui/v2/Option';
 import { useMemo } from 'react';
 import { useFormState, useWatch } from 'react-hook-form';

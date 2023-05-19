@@ -12,11 +12,11 @@ import { useUpdateTableMutation } from '@/features/projects/database/dataGrid/ho
 import type {
   DatabaseTable,
   NormalizedQueryDataRow,
-} from '@/types/dataBrowser';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { normalizeDatabaseColumn } from '@/features/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
-import normalizeDatabaseColumn from '@/utils/dataBrowser/normalizeDatabaseColumn';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';

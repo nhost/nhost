@@ -3,9 +3,9 @@ import type {
   MutationOrQueryBaseOptions,
   QueryError,
   QueryResult,
-} from '@/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
-import normalizeQueryError from '@/utils/dataBrowser/normalizeQueryError';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { normalizeQueryError } from '@/features/projects/database/dataGrid/utils/normalizeQueryError';
 
 export interface DeleteTableVariables {
   /**

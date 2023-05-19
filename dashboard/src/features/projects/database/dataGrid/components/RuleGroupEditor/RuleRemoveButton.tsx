@@ -1,4 +1,7 @@
-import type { Rule, RuleGroup } from '@/types/dataBrowser';
+import type {
+  Rule,
+  RuleGroup,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import type { ButtonProps } from '@/ui/v2/Button';
 import Button from '@/ui/v2/Button';
 import XIcon from '@/ui/v2/icons/XIcon';
@@ -33,7 +36,7 @@ function RuleRemoveButton({
     <Button
       variant="outlined"
       color="secondary"
-      className={twMerge('lg:!rounded-l-none !min-w-0 h-10', className)}
+      className={twMerge('h-10 !min-w-0 lg:!rounded-l-none', className)}
       disabled={
         disabled ||
         (rules.length === 1 && !groups?.length && !unsupported?.length)
@@ -52,7 +55,7 @@ function RuleRemoveButton({
           : undefined
       }
     >
-      <XIcon className="!w-4 !h-4" />
+      <XIcon className="!h-4 !w-4" />
     </Button>
   );
 }

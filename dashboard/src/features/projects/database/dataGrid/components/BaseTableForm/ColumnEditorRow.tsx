@@ -1,18 +1,21 @@
 import ControlledAutocomplete from '@/components/common/ControlledAutocomplete';
 import ControlledCheckbox from '@/components/common/ControlledCheckbox';
 import InlineCode from '@/components/common/InlineCode';
-import type { ColumnType, ForeignKeyRelation } from '@/types/dataBrowser';
-import type { ButtonProps } from '@/ui/v2/Button';
-import type { CheckboxProps } from '@/ui/v2/Checkbox';
-import IconButton from '@/ui/v2/IconButton';
-import XIcon from '@/ui/v2/icons/XIcon';
-import Input from '@/ui/v2/Input';
-import { OptionBase } from '@/ui/v2/Option';
+import type {
+  ColumnType,
+  ForeignKeyRelation,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import {
   identityTypes,
   postgresFunctions,
   postgresTypeGroups,
-} from '@/utils/dataBrowser/postgresqlConstants';
+} from '@/features/projects/database/dataGrid/utils/postgresqlConstants';
+import type { ButtonProps } from '@/ui/v2/Button';
+import type { CheckboxProps } from '@/ui/v2/Checkbox';
+import IconButton from '@/ui/v2/IconButton';
+import Input from '@/ui/v2/Input';
+import { OptionBase } from '@/ui/v2/Option';
+import XIcon from '@/ui/v2/icons/XIcon';
 import clsx from 'clsx';
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';

@@ -6,10 +6,10 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
-} from '@/types/dataBrowser';
-import { getPreparedHasuraQuery } from '@/utils/dataBrowser/hasuraQueryHelpers';
-import prepareCreateForeignKeyRelationQuery from '@/utils/dataBrowser/prepareCreateForeignKeyRelationQuery';
-import prepareUpdateForeignKeyConstraintQuery from '@/utils/dataBrowser/prepareUpdateForeignKeyRelationQuery/prepareUpdateForeignKeyRelationQuery';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getPreparedHasuraQuery } from '@/features/projects/database/dataGrid/utils/hasuraQueryHelpers';
+import { prepareCreateForeignKeyRelationQuery } from '@/features/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
+import { prepareUpdateForeignKeyRelationQuery } from '@/features/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 
 export interface PrepareUpdateTableQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'table' | 'adminSecret'> {
@@ -185,7 +185,7 @@ export default function prepareUpdateTableQuery({
 
           return [
             ...updatedArgs,
-            ...prepareUpdateForeignKeyConstraintQuery({
+            ...prepareUpdateForeignKeyRelationQuery({
               ...baseVariables,
               originalForeignKeyRelation,
             }),

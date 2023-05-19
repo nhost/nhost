@@ -1,6 +1,6 @@
 import type { DataGridProps } from '@/components/common/DataGrid';
+import type { DataBrowserGridColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
-import type { DataBrowserGridColumn } from '@/types/dataBrowser';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';

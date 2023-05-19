@@ -5,8 +5,8 @@ import type {
   MetadataError,
   MutationOrQueryBaseOptions,
   QueryResult,
-} from '@/types/dataBrowser';
-import normalizeMetadataError from '@/utils/dataBrowser/normalizeMetadataError/normalizeMetadataError';
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
+import normalizeMetadataError from '@/features/projects/database/dataGrid/utils/normalizeMetadataError/normalizeMetadataError';
 
 export interface ManagePermissionVariables {
   /**

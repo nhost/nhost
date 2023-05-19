@@ -1,4 +1,4 @@
-import type { DatabaseAction } from '@/types/dataBrowser';
+import type { DatabaseAction } from '@/features/projects/database/dataGrid/types/dataBrowser';
 import * as Yup from 'yup';
 
 const ruleSchema = Yup.object().shape({

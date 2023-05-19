@@ -1,4 +1,7 @@
-import type { DatabaseAccessLevel, DatabaseAction } from '@/types/dataBrowser';
+import type {
+  DatabaseAccessLevel,
+  DatabaseAction,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import IconButton from '@/ui/v2/IconButton';
 import FullPermissionIcon from '@/ui/v2/icons/FullPermissionIcon';
 import NoPermissionIcon from '@/ui/v2/icons/NoPermissionIcon';
@@ -77,7 +80,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'block p-2 border-0 truncate border-r-1',
+          'block truncate border-0 border-r-1 p-2',
           cellProps.className,
         )}
       >
@@ -87,7 +90,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
           disabled && 'justify-center',
           cellProps.className,
         )}
@@ -98,7 +101,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('insert')}
           >
             <AccessLevelIcon level={accessLevels.insert} />
@@ -109,7 +112,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
           disabled && 'justify-center',
           cellProps.className,
         )}
@@ -120,7 +123,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('select')}
           >
             <AccessLevelIcon level={accessLevels.select} />
@@ -131,7 +134,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid items-center p-0 border-0 text-center w-full h-full border-r-1',
+          'inline-grid h-full w-full items-center border-0 border-r-1 p-0 text-center',
           disabled && 'justify-center',
           cellProps.className,
         )}
@@ -142,7 +145,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('update')}
           >
             <AccessLevelIcon level={accessLevels.update} />
@@ -153,7 +156,7 @@ export default function RolePermissions({
       <TableCell
         {...cellProps}
         className={twMerge(
-          'inline-grid items-center p-0 border-0 text-center w-full h-full',
+          'inline-grid h-full w-full items-center border-0 p-0 text-center',
           disabled && 'justify-center',
           cellProps.className,
         )}
@@ -164,7 +167,7 @@ export default function RolePermissions({
           <IconButton
             variant="borderless"
             color="secondary"
-            className="w-full h-full rounded-none"
+            className="h-full w-full rounded-none"
             onClick={() => onActionSelect('delete')}
           >
             <AccessLevelIcon level={accessLevels.delete} />

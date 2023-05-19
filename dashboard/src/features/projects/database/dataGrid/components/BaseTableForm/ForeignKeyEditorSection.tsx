@@ -2,7 +2,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import type { BaseForeignKeyFormValues } from '@/features/projects/database/dataGrid/components/BaseForeignKeyForm';
 import { CreateForeignKeyForm } from '@/features/projects/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/projects/database/dataGrid/components/EditForeignKeyForm';
-import type { DatabaseColumn, ForeignKeyRelation } from '@/types/dataBrowser';
+import type {
+  DatabaseColumn,
+  ForeignKeyRelation,
+} from '@/features/projects/database/dataGrid/types/dataBrowser';
 import Button from '@/ui/v2/Button';
 import InputLabel from '@/ui/v2/InputLabel';
 import Text from '@/ui/v2/Text';

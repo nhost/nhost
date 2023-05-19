@@ -1,15 +1,15 @@
 import InlineCode from '@/components/common/InlineCode';
 import ReadOnlyToggle from '@/components/common/ReadOnlyToggle';
-import type { DataBrowserGridColumn } from '@/types/dataBrowser';
+import type { DataBrowserGridColumn } from '@/features/projects/database/dataGrid/types/dataBrowser';
+import { getInputType } from '@/features/projects/database/dataGrid/utils/inputHelpers';
+import { normalizeDefaultValue } from '@/features/projects/database/dataGrid/utils/normalizeDefaultValue';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
-import KeyIcon from '@/ui/v2/icons/KeyIcon';
 import Input from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Text from '@/ui/v2/Text';
-import { getInputType } from '@/utils/dataBrowser/inputHelpers';
-import normalizeDefaultValue from '@/utils/dataBrowser/normalizeDefaultValue';
+import KeyIcon from '@/ui/v2/icons/KeyIcon';
 import { Controller, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
