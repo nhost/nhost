@@ -1,8 +1,8 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { FilesDataGrid } from '@/features/projects/storage/dataGrid/components/FilesDataGrid';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { FilesDataGrid } from '@/features/storage/dataGrid/components/FilesDataGrid';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { NhostApolloProvider } from '@nhost/react-apollo';

@@ -3,7 +3,7 @@ import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
-} from '@/features/projects/database/dataGrid/types/dataBrowser';
+} from '@/features/database/dataGrid/types/dataBrowser';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import Tooltip, { useTooltip } from '@/ui/v2/Tooltip';

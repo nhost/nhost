@@ -8,7 +8,7 @@ import type { ReactElement } from 'react';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 
 import ResetDatabasePasswordSettings from '@/components/settings/ResetDatabasePasswordSettings';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';

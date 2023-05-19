@@ -1,8 +1,8 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { DataBrowserGrid } from '@/features/projects/database/dataGrid/components/DataBrowserGrid';
-import { DataBrowserLayout } from '@/features/projects/database/dataGrid/components/DataBrowserLayout';
+import { DataBrowserGrid } from '@/features/database/dataGrid/components/DataBrowserGrid';
+import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useTablePath from '@/hooks/useTablePath';
 import type { ReactElement } from 'react';

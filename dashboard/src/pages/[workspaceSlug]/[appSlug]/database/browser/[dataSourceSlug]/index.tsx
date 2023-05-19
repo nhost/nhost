@@ -1,6 +1,6 @@
 import InlineCode from '@/components/common/InlineCode';
-import { DataBrowserEmptyState } from '@/features/projects/database/dataGrid/components/DataBrowserEmptyState';
-import { DataBrowserLayout } from '@/features/projects/database/dataGrid/components/DataBrowserLayout';
+import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
+import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 

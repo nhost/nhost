@@ -5,7 +5,7 @@ import type {
 import BaseSecretForm, {
   baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,

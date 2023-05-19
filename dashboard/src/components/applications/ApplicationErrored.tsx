@@ -1,7 +1,7 @@
 import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
 import { useCurrentDate } from '@/hooks/useCurrentDate';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';

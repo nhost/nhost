@@ -3,8 +3,8 @@ import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
