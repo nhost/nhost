@@ -3,7 +3,7 @@ RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
 
-RUN yarn global add turbo@1.9.3
+RUN yarn global add turbo@1.9.8
 COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
