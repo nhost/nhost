@@ -57,7 +57,7 @@ export default function DeploymentListItem({
     : '';
 
   const [insertDeployment, { loading }] = useInsertDeploymentMutation({
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const { commitMessage } = deployment;
 

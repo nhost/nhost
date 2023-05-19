@@ -46,7 +46,7 @@ export function RemoveApplicationModal({
   className,
 }: RemoveApplicationModalProps) {
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const [loadingRemove, setLoadingRemove] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
