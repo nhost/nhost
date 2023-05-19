@@ -2,7 +2,6 @@ import FeedbackForm from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
-import { useAppCreatedAt } from '@/hooks/useAppCreatedAt';
 import { useCurrentDate } from '@/hooks/useCurrentDate';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
@@ -60,7 +59,7 @@ export default function ApplicationErrored() {
   const user = useUserData();
   const isOwner = useIsCurrentUserOwner();
 
-  const { appCreatedAt } = useAppCreatedAt();
+  const appCreatedAt = new Date(currentProject.createdAt).getTime();
 
   const FIVE_DAYS_IN_MILLISECONDS = 60 * 24 * 60 * 5 * 1000;
   const HALF_DAY_IN_MILLISECONDS = 60 * 12 * 60 * 1000;
