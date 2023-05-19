@@ -1,6 +1,6 @@
 import Header from '@/components/common/Header';
-import HighlightedText from '@/components/common/HighlightedText';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import { HighlightedText } from '@/components/common/HighlightedText';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { InviteAnnounce } from '@/components/home/InviteAnnounce';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import BaseLayout from '@/components/layout/BaseLayout';
