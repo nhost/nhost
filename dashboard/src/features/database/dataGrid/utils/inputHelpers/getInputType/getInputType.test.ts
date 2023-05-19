@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { getInputType } from './getInputType';
+import getInputType from './getInputType';
 
 describe('getInputType', () => {
   test('should return "number" if the column is numeric', () => {
