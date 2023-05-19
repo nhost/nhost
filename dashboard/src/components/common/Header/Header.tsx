@@ -1,15 +1,19 @@
-import Breadcrumbs from '@/components/common/Breadcrumbs';
-import FeedbackForm from '@/components/common/FeedbackForm';
-import LocalAccountMenu from '@/components/common/LocalAccountMenu';
-import Logo from '@/components/common/Logo';
-import MobileNav from '@/components/common/MobileNav';
-import NavLink from '@/components/common/NavLink';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
+import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { LocalAccountMenu } from '@/components/common/LocalAccountMenu';
+import { Logo } from '@/components/common/Logo';
+import { MobileNav } from '@/components/common/MobileNav';
+import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
-import Box from '@/ui/v2/Box';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/hooks/common/useIsPlatform';
+import { ApplicationStatus } from '@/types/application';
+import { Box } from '@/ui/v2/Box';
+import { Chip } from '@/ui/v2/Chip';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
+import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface HeaderProps
@@ -20,6 +24,25 @@ export interface HeaderProps
 export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
+  const { currentProject, refetch: refetchProject } =
+    useCurrentWorkspaceAndProject();
+  const isProjectUpdating =
+    currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
+
+  // Poll for project updates
+  useEffect(() => {
+    if (!isProjectUpdating) {
+      return () => {};
+    }
+
+    const interval = setInterval(async () => {
+      await refetchProject();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isProjectUpdating, refetchProject]);
 
   return (
     <Box
@@ -38,6 +61,10 @@ export default function Header({ className, ...props }: HeaderProps) {
 
         {(router.query.workspaceSlug || router.query.appSlug) && (
           <Breadcrumbs aria-label="Workspace breadcrumbs" />
+        )}
+
+        {isProjectUpdating && (
+          <Chip size="small" label="Updating" color="warning" />
         )}
       </div>
 

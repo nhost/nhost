@@ -1,1 +1,1 @@
-export { default } from './LocalAccountMenu';
+export { default as LocalAccountMenu } from './LocalAccountMenu';

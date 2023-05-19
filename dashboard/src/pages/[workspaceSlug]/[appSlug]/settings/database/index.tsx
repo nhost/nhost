@@ -2,7 +2,7 @@ import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DatabaseConnectionInfo } from '@/features/projects/database/settings/components/DatabaseConnectionInfo';
-import { PostgresServiceVersionSettings } from '@/features/projects/database/settings/components/PostgresServiceVersionSettings';
+import { DatabaseServiceVersionSettings } from '@/features/projects/database/settings/components/DatabaseServiceVersionSettings';
 import { ResetDatabasePasswordSettings } from '@/features/projects/database/settings/components/ResetDatabasePasswordSettings';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -35,7 +35,7 @@ export default function DatabaseSettingsPage() {
       className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <PostgresServiceVersionSettings />
+      <DatabaseServiceVersionSettings />
       <DatabaseConnectionInfo />
       <ResetDatabasePasswordSettings />
     </Container>

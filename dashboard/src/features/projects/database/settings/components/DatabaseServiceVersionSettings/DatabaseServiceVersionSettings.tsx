@@ -26,17 +26,17 @@ const validationSchema = Yup.object({
     .required(),
 });
 
-export type PostgresServiceVersionFormValues = Yup.InferType<
+export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
 const AVAILABLE_POSTGRES_VERSIONS = [
-  '14.6.20230406-2',
+  '14.6-20230406-2',
   '14.6-20230406-1',
   '14.6-20230404',
 ];
 
-export default function PostgresServiceVersionSettings() {
+export default function DatabaseServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -59,7 +59,7 @@ export default function PostgresServiceVersionSettings() {
       value: availableVersion,
     }));
 
-  const form = useForm<PostgresServiceVersionFormValues>({
+  const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
@@ -81,8 +81,8 @@ export default function PostgresServiceVersionSettings() {
 
   const { formState } = form;
 
-  const handlePostgresServiceVersionsChange = async (
-    formValues: PostgresServiceVersionFormValues,
+  const handleDatabaseServiceVersionsChange = async (
+    formValues: DatabaseServiceVersionFormValues,
   ) => {
     const updateConfigPromise = updateConfig({
       variables: {
@@ -116,7 +116,7 @@ export default function PostgresServiceVersionSettings() {
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handlePostgresServiceVersionsChange}>
+      <Form onSubmit={handleDatabaseServiceVersionsChange}>
         <SettingsContainer
           title="Postgres Version"
           description="The version of Postgres to use."

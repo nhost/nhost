@@ -1,4 +1,4 @@
-import FeedbackForm from '@/components/common/FeedbackForm';
+import { FeedbackForm } from '@/components/common/FeedbackForm';
 import Container from '@/components/layout/Container';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
