@@ -370,7 +370,11 @@ function Autocomplete(
               }
 
               if (showCustomOption === 'auto') {
-                return filteredOptions.length > 0
+                const isInputValueInOptions = filteredOptions.some(
+                  (filteredOption) => filteredOption.label === inputValue,
+                );
+
+                return isInputValueInOptions
                   ? filteredOptions
                   : [
                       ...filteredOptions,
