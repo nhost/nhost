@@ -7,7 +7,7 @@ import ApplicationUnknown from '@/components/applications/ApplicationUnknown';
 import ApplicationUnpausing from '@/components/applications/ApplicationUnpausing';
 import ProjectLayout from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import useApplicationState from '@/hooks/useApplicationState';
 import { ApplicationStatus } from '@/types/application';
 import type { ReactElement } from 'react';

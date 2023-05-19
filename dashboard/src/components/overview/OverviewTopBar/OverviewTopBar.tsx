@@ -3,7 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';

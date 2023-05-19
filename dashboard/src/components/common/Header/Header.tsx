@@ -5,7 +5,7 @@ import Logo from '@/components/common/Logo';
 import MobileNav from '@/components/common/MobileNav';
 import NavLink from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { useRouter } from 'next/router';

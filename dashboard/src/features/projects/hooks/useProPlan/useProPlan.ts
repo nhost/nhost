@@ -1,5 +1,8 @@
 import { useGetPlansQuery } from '@/utils/__generated__/graphql';
 
+/**
+ * Returns the Pro plan.
+ */
 export default function useProPlan() {
   const { data, ...rest } = useGetPlansQuery({
     variables: {

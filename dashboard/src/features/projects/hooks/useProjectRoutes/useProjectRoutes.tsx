@@ -1,5 +1,5 @@
 import { useUI } from '@/context/UIContext';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import CloudIcon from '@/ui/v2/icons/CloudIcon';
 import CogIcon from '@/ui/v2/icons/CogIcon';
 import DatabaseIcon from '@/ui/v2/icons/DatabaseIcon';

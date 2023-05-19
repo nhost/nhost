@@ -1,6 +1,6 @@
+import { useProPlan } from '@/features/projects/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import { useProPlan } from '@/hooks/common/useProPlan';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';

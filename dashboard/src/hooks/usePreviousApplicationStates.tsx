@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import type { ApplicationStatus } from '@/types/application';
 import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
 import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';

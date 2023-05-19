@@ -7,7 +7,7 @@ import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabase
 import { useDeleteTableWithToastMutation } from '@/features/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Backdrop from '@/ui/v2/Backdrop';

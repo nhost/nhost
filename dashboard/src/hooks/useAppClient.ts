@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
 import {
   getAuthServiceUrl,

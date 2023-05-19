@@ -5,10 +5,10 @@ import ResourcesConfirmationDialog from '@/components/settings/resources/Resourc
 import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
 import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useProPlan } from '@/features/projects/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
-import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

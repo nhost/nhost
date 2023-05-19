@@ -4,7 +4,7 @@ import SettingsContainer from '@/components/settings/SettingsContainer';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';

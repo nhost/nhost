@@ -10,7 +10,7 @@ import OverviewTopBar from '@/components/overview/OverviewTopBar';
 import OverviewUsage from '@/components/overview/OverviewUsage';
 import { features } from '@/components/overview/features';
 import { frameworks } from '@/components/overview/frameworks';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import { Alert } from '@/ui/Alert';
 import Divider from '@/ui/v2/Divider';
 
