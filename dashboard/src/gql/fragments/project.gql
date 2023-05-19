@@ -48,7 +48,7 @@ fragment Project on apps {
   githubRepository {
     fullName
   }
-  deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
+  deployments(limit: 4, order_by: { deploymentEndedAt: desc }) {
     id
     commitSHA
     commitMessage
