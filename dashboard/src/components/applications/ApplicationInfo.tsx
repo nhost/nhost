@@ -18,18 +18,14 @@ import { toast } from 'react-hot-toast';
 export default function ApplicationInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [deleteApplication] = useDeleteApplicationMutation({
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const router = useRouter();
 
   async function handleClickRemove() {
     try {
       await toast.promise(
-        deleteApplication({
-          variables: {
-            appId: currentProject.id,
-          },
-        }),
+        deleteApplication({ variables: { appId: currentProject.id } }),
         {
           loading: 'Deleting project...',
           success: 'The project has been deleted successfully.',
