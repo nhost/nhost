@@ -4,18 +4,20 @@ import {
   authTokenSuccessHandler,
   changeEmailSuccessHandler,
   changePasswordSuccessHandler,
+  correctAnonymousHandler,
   correctEmailPasswordHandler,
   correctMfaTotpHandler,
   correctPasswordlessEmailHandler,
   correctPasswordlessSmsHandler,
   correctPasswordlessSmsOtpHandler,
+  createPATSuccessHandler,
+  deamonymisationSuccessfulHandler,
   generateMfaTotpSuccessHandler,
+  patSignInSuccessHandler,
   resetPasswordSuccessHandler,
   sendVerificationEmailSuccessHandler,
   signOutHandler,
-  signUpSuccessHandler,
-  correctAnonymousHandler,
-  deamonymisationSuccessfulHandler
+  signUpSuccessHandler
 } from './handlers'
 
 export const defaultSuccessHandlers = [
@@ -34,7 +36,9 @@ export const defaultSuccessHandlers = [
   signOutHandler,
   signUpSuccessHandler,
   correctAnonymousHandler,
-  deamonymisationSuccessfulHandler
+  deamonymisationSuccessfulHandler,
+  patSignInSuccessHandler,
+  createPATSuccessHandler
 ]
 
 export const server = setupServer(...defaultSuccessHandlers)

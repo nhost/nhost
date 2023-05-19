@@ -5,9 +5,10 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-import { assign, createMachine, InterpreterFrom, send } from 'xstate'
+import { InterpreterFrom, assign, createMachine, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
+  NHOST_REFRESH_TOKEN_ID_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
@@ -35,6 +36,7 @@ import {
   RefreshSessionResponse,
   SignInAnonymousResponse,
   SignInMfaTotpResponse,
+  SignInPATResponse,
   SignInResponse,
   SignOutResponse,
   SignUpResponse
@@ -66,6 +68,7 @@ type AuthServices = {
   passwordlessSmsOtp: { data: PasswordlessSmsOtpResponse }
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
+  signInPAT: { data: SignInPATResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
@@ -181,7 +184,8 @@ export const createAuthMachine = ({
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
-                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
+                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
+                SIGNIN_PAT: 'authenticating.pat'
               }
             },
             authenticating: {
@@ -215,6 +219,20 @@ export const createAuthMachine = ({
                         target: '#nhost.authentication.signedOut.failed'
                       }
                     ]
+                  }
+                },
+                pat: {
+                  invoke: {
+                    src: 'signInPAT',
+                    id: 'authenticateWithPAT',
+                    onDone: {
+                      actions: ['savePATSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: {
+                      actions: 'saveAuthenticationError',
+                      target: '#nhost.authentication.signedOut.failed'
+                    }
                   }
                 },
                 anonymous: {
@@ -295,10 +313,8 @@ export const createAuthMachine = ({
                     idle: {
                       always: [
                         { cond: 'isAutoRefreshDisabled', target: 'disabled' },
-                        {
-                          cond: 'hasRefreshToken',
-                          target: 'running'
-                        }
+                        { cond: 'isRefreshTokenPAT', target: 'disabled' },
+                        { cond: 'hasRefreshToken', target: 'running' }
                       ]
                     },
                     running: {
@@ -509,6 +525,7 @@ export const createAuthMachine = ({
         clearContext: assign(() => {
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+          storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, null)
           return {
             ...INITIAL_MACHINE_CONTEXT
           }
@@ -542,12 +559,54 @@ export const createAuthMachine = ({
           },
           refreshToken: (_, { data }) => {
             const refreshToken = data.session?.refreshToken || null
+            const refreshTokenId = data.session?.refreshTokenId || null
+
             if (refreshToken) {
               storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
             }
+
+            if (refreshTokenId) {
+              storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, refreshTokenId)
+            }
+
             return { value: refreshToken }
           }
         }),
+
+        savePATSession: assign({
+          user: (_, { data }) => data?.session?.user || null,
+          accessToken: (_, { data }) => {
+            if (data.session) {
+              const { accessTokenExpiresIn, accessToken } = data.session
+              const nextRefresh = new Date(Date.now() + accessTokenExpiresIn * 1_000)
+              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
+              return {
+                value: accessToken,
+                expiresAt: nextRefresh
+              }
+            }
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            return {
+              value: null,
+              expiresAt: null
+            }
+          },
+          refreshToken: (_, { data }) => {
+            const refreshToken = data.session?.refreshToken || null
+            const refreshTokenId = data.session?.refreshTokenId || null
+
+            if (refreshToken) {
+              storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
+            }
+
+            if (refreshTokenId) {
+              storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, refreshTokenId)
+            }
+
+            return { value: refreshToken, isPAT: true }
+          }
+        }),
+
         saveMfaTicket: assign({
           mfa: (_, e) => e.data?.mfa
         }),
@@ -587,6 +646,7 @@ export const createAuthMachine = ({
         destroyRefreshToken: assign({
           refreshToken: (_) => {
             storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+            storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, null)
             return { value: null }
           }
         }),
@@ -618,6 +678,7 @@ export const createAuthMachine = ({
         isAnonymous: (ctx, e) => !!ctx.user?.isAnonymous,
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
+        isRefreshTokenPAT: (ctx) => !!ctx.refreshToken?.isPAT,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
@@ -678,6 +739,11 @@ export const createAuthMachine = ({
           return postRequest<SignInResponse>('/signin/email-password', {
             email,
             password
+          })
+        },
+        signInPAT: (_context, { pat }) => {
+          return postRequest<SignInPATResponse>('/signin/pat', {
+            personalAccessToken: pat
           })
         },
         passwordlessSms: (context, { phoneNumber, options }) => {

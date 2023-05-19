@@ -119,6 +119,9 @@ function OverviewDeploymentList() {
   const liveDeploymentId = getLastLiveDeployment(deployments);
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || { deployments: [] };
+  const isDeploymentInProgress = deployments?.some((deployment) =>
+    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus),
+  );
 
   return (
     <List
@@ -131,7 +134,10 @@ function OverviewDeploymentList() {
             deployment={deployment}
             isLive={deployment.id === liveDeploymentId}
             showRedeploy={index === 0}
-            disableRedeploy={scheduledOrPendingDeployments?.length > 0}
+            disableRedeploy={
+              scheduledOrPendingDeployments?.length > 0 ||
+              isDeploymentInProgress
+            }
           />
 
           {index !== deployments.length - 1 && <Divider component="li" />}

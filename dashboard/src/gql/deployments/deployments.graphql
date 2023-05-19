@@ -37,7 +37,7 @@ mutation InsertDeployment($object: deployments_insert_input!) {
 subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: { appId: { _eq: $id } }
-    order_by: { deploymentStartedAt: desc }
+    order_by: { deploymentEndedAt: desc }
     limit: $limit
     offset: $offset
   ) {

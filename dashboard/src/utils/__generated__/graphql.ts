@@ -19638,7 +19638,7 @@ export const ProjectFragmentDoc = gql`
   githubRepository {
     fullName
   }
-  deployments(limit: 4, order_by: {deploymentEndedAt: desc}) {
+  deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
     id
     commitSHA
     commitMessage
@@ -21222,7 +21222,7 @@ export const GetDeploymentsSubDocument = gql`
     subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
   deployments(
     where: {appId: {_eq: $id}}
-    order_by: {deploymentStartedAt: desc}
+    order_by: {deploymentEndedAt: desc}
     limit: $limit
     offset: $offset
   ) {

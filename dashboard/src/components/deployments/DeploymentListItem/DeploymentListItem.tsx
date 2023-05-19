@@ -5,16 +5,20 @@ import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import Button from '@/ui/v2/Button';
-import Chip from '@/ui/v2/Chip';
+import { Chip } from '@/ui/v2/Chip';
 import { ListItem } from '@/ui/v2/ListItem';
-import Tooltip from '@/ui/v2/Tooltip';
+import { Tooltip } from '@/ui/v2/Tooltip';
 import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
 import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
-import { useInsertDeploymentMutation } from '@/utils/__generated__/graphql';
+import {
+  GetAllWorkspacesAndProjectsDocument,
+  useInsertDeploymentMutation,
+} from '@/utils/__generated__/graphql';
 import getServerError from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import type { MouseEvent } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
@@ -52,8 +56,38 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertDeployment, { loading }] = useInsertDeploymentMutation();
+  const [insertDeployment, { loading }] = useInsertDeploymentMutation({
+    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+  });
   const { commitMessage } = deployment;
+
+  async function redeployDeployment(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const insertDeploymentPromise = insertDeployment({
+      variables: {
+        object: {
+          appId: currentProject?.id,
+          commitMessage: deployment.commitMessage,
+          commitSHA: deployment.commitSHA,
+          commitUserAvatarUrl: deployment.commitUserAvatarUrl,
+          commitUserName: deployment.commitUserName,
+          deploymentStatus: 'SCHEDULED',
+        },
+      },
+    });
+
+    await toast.promise(
+      insertDeploymentPromise,
+      {
+        loading: 'Scheduling deployment...',
+        success: 'Deployment has been scheduled successfully.',
+        error: getServerError('An error occurred when scheduling deployment.'),
+      },
+      getToastStyleProps(),
+    );
+  }
 
   return (
     <ListItem.Root>
@@ -88,7 +122,7 @@ export default function DeploymentListItem({
           {showRedeploy && (
             <Tooltip
               title={
-                !disableRedeploy && !loading
+                disableRedeploy || loading
                   ? 'Deployments cannot be re-triggered when a deployment is in progress.'
                   : ''
               }
@@ -100,35 +134,7 @@ export default function DeploymentListItem({
                 size="small"
                 color="secondary"
                 variant="outlined"
-                onClick={async (event) => {
-                  event.stopPropagation();
-                  event.preventDefault();
-
-                  const insertDeploymentPromise = insertDeployment({
-                    variables: {
-                      object: {
-                        appId: currentProject?.id,
-                        commitMessage: deployment.commitMessage,
-                        commitSHA: deployment.commitSHA,
-                        commitUserAvatarUrl: deployment.commitUserAvatarUrl,
-                        commitUserName: deployment.commitUserName,
-                        deploymentStatus: 'SCHEDULED',
-                      },
-                    },
-                  });
-
-                  await toast.promise(
-                    insertDeploymentPromise,
-                    {
-                      loading: 'Scheduling deployment...',
-                      success: 'Deployment has been scheduled successfully.',
-                      error: getServerError(
-                        'An error occurred when scheduling deployment.',
-                      ),
-                    },
-                    getToastStyleProps(),
-                  );
-                }}
+                onClick={redeployDeployment}
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }

@@ -114,6 +114,9 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   const { deployments } = deploymentPageData || { deployments: [] };
   const { deployments: scheduledOrPendingDeployments } =
     scheduledOrPendingDeploymentsData || { deployments: [] };
+  const isDeploymentInProgress = deployments?.some((deployment) =>
+    ['PENDING', 'SCHEDULED'].includes(deployment.deploymentStatus),
+  );
 
   const latestDeployment = latestDeploymentData?.deployments[0];
   const latestLiveDeployment = latestLiveDeploymentData?.deployments[0];
@@ -135,7 +138,10 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                   deployment={deployment}
                   isLive={liveDeploymentId === deployment.id}
                   showRedeploy={latestDeployment.id === deployment.id}
-                  disableRedeploy={scheduledOrPendingDeployments?.length > 0}
+                  disableRedeploy={
+                    scheduledOrPendingDeployments?.length > 0 ||
+                    isDeploymentInProgress
+                  }
                 />
 
                 {index !== deployments.length - 1 && <Divider component="li" />}
