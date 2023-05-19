@@ -25,6 +25,7 @@ module.exports = {
       'error',
       { allowArrowFunctions: true, allowFunctions: true },
     ],
+    'import/no-named-as-default': 'off',
     'import/prefer-default-export': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
     curly: ['error', 'all'],

@@ -10,7 +10,6 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
-import { updateOwnCache } from '@/utils/updateOwnCache';
 import { useApolloClient } from '@apollo/client';
 import { alpha } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
@@ -28,13 +27,18 @@ export function InviteAnnounce() {
     useSubmitState();
 
   // @FIX: We probably don't want to poll every ten seconds for possible invites. (We can change later depending on how it works in production.) Maybe just on the workspace page?
-  const { data, loading, error, refetch, startPolling } =
-    useGetWorkspaceMemberInvitesToManageQuery({
-      variables: {
-        userId: user?.id,
-      },
-      skip: !isPlatform || !user,
-    });
+  const {
+    data,
+    loading,
+    error,
+    refetch: refetchInvitations,
+    startPolling,
+  } = useGetWorkspaceMemberInvitesToManageQuery({
+    variables: {
+      userId: user?.id,
+    },
+    skip: !isPlatform || !user,
+  });
 
   useEffect(() => {
     startPolling(15000);
@@ -79,9 +83,14 @@ export function InviteAnnounce() {
       });
     }
 
-    await updateOwnCache(client);
+    await client.refetchQueries({
+      include: [
+        GetAllWorkspacesAndProjectsDocument,
+        GetWorkspaceMemberInvitesToManageDocument,
+      ],
+    });
     await router.push(`/${invite.workspace.slug}`);
-    await refetch();
+    await refetchInvitations();
     triggerToast('Workspace invite accepted');
     return setSubmitState({
       error: null,

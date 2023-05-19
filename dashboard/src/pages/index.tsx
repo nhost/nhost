@@ -81,12 +81,6 @@ export default function IndexPage() {
                 </Button>
               </NavLink>
             </div>
-            <div>
-              <Text className="mt-9 opacity-70" sx={{ color: 'common.white' }}>
-                Looking for your old apps? They&apos;re still on
-                console.nhost.io during this beta.
-              </Text>
-            </div>
           </div>
         </Box>
 

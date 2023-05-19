@@ -8,8 +8,6 @@ import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { updateOwnCache } from '@/utils/updateOwnCache';
-import { useApolloClient } from '@apollo/client';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useFormContext } from 'react-hook-form';
 import { RepoAndBranch } from './RepoAndBranch';
@@ -27,11 +25,10 @@ export function EditRepositorySettingsModal({
   const isNotCompleted = !watch('productionBranch') || !watch('repoBaseFolder');
   const { closeAlertDialog } = useDialog();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchProject } =
+    useCurrentWorkspaceAndProject();
 
   const [updateApp, { loading }] = useUpdateApplicationMutation();
-
-  const client = useApolloClient();
 
   const handleEditGitHubIntegration = async (
     data: EditRepositorySettingsFormData,
@@ -60,7 +57,8 @@ export function EditRepositorySettingsModal({
         });
       }
 
-      await updateOwnCache(client);
+      await refetchProject();
+
       if (close) {
         close();
       } else {
