@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useMetadataQuery from '@/hooks/dataBrowser/useMetadataQuery';
 import useTableQuery from '@/hooks/dataBrowser/useTableQuery';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';

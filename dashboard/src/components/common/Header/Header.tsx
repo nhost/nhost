@@ -5,7 +5,7 @@ import { Logo } from '@/components/common/Logo';
 import { MobileNav } from '@/components/common/MobileNav';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/hooks/common/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { Box } from '@/ui/v2/Box';

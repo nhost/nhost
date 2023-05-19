@@ -4,7 +4,7 @@ import Container from '@/components/layout/Container';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
-import { generateRandomDatabasePassword } from '@/features/projects/database/utils/generateRandomDatabasePassword';
+import { generateRandomDatabasePassword } from '@/features/database/utils/generateRandomDatabasePassword';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';

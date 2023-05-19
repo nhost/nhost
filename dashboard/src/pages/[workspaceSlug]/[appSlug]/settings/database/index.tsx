@@ -1,9 +1,9 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { DatabaseConnectionInfo } from '@/features/projects/database/settings/components/DatabaseConnectionInfo';
-import { DatabaseServiceVersionSettings } from '@/features/projects/database/settings/components/DatabaseServiceVersionSettings';
-import { ResetDatabasePasswordSettings } from '@/features/projects/database/settings/components/ResetDatabasePasswordSettings';
+import { DatabaseConnectionInfo } from '@/features/database/settings/components/DatabaseConnectionInfo';
+import { DatabaseServiceVersionSettings } from '@/features/database/settings/components/DatabaseServiceVersionSettings';
+import { ResetDatabasePasswordSettings } from '@/features/database/settings/components/ResetDatabasePasswordSettings';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';

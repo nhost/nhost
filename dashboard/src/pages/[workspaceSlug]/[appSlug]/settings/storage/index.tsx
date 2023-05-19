@@ -1,7 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { StorageServiceVersionSettings } from '@/features/projects/storage/settings/components/HasuraServiceVersionSettings';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { StorageServiceVersionSettings } from '@/features/storage/settings/components/HasuraServiceVersionSettings';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';

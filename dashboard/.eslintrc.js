@@ -28,7 +28,7 @@ module.exports = {
     'import/no-named-as-default': 'off',
     'import/prefer-default-export': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
-    // Temporary disable this rule because of a WIP refactoring
+    // TODO: Temporarily disable this rule because of a WIP refactoring
     'import/no-named-as-default': 'off',
     curly: ['error', 'all'],
     'no-restricted-exports': 'off',

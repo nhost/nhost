@@ -1,8 +1,8 @@
 import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { BaseDirectorySettings } from '@/features/projects/settings/git/components/BaseDirectorySettings';
-import { DeploymentBranchSettings } from '@/features/projects/settings/git/components/DeploymentBranchSettings';
-import { GitConnectionSettings } from '@/features/projects/settings/git/components/GitConnectionSettings';
+import { BaseDirectorySettings } from '@/features/settings/git/components/BaseDirectorySettings';
+import { DeploymentBranchSettings } from '@/features/settings/git/components/DeploymentBranchSettings';
+import { GitConnectionSettings } from '@/features/settings/git/components/GitConnectionSettings';
 import type { ReactElement } from 'react';
 
 export default function GitSettingsPage() {

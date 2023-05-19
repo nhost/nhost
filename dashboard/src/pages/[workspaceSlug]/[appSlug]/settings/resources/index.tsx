@@ -2,7 +2,7 @@ import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatur
 import Container from '@/components/layout/Container';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import ResourcesForm from '@/components/settings/resources/ResourcesForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator/ActivityIndicator';
 import type { ReactElement } from 'react';
 
