@@ -1,40 +1,6 @@
-import type { BoxProps } from '@/ui/v2/Box';
-import type { ReactElement } from 'react';
+import type { CardProps } from '@/features/projects/overview/types/cards';
 
-export interface CardElement extends BoxProps {
-  /**
-   * Title for the framework.
-   */
-  title: string;
-  /**
-   * Description of the framework.
-   */
-  description: string;
-  /**
-   * Icon to display on the card.
-   */
-  icon: string | ReactElement;
-  /**
-   * Light version of the icon. This is used for the dark mode.
-   */
-  lightIcon?: string | ReactElement;
-  /**
-   * Determines whether the icon should have a background.
-   * @default false
-   */
-  disableIconBackground?: boolean;
-  /**
-   * Determines whether the icon is a react component.
-   * @default true
-   */
-  iconIsComponent?: boolean;
-  /**
-   * Link to the specific framework documentation.
-   */
-  link?: string;
-}
-
-export const frameworks: CardElement[] = [
+const frameworks: CardProps[] = [
   {
     title: 'React',
     description: 'Guide to build a simple React app',
@@ -66,3 +32,5 @@ export const frameworks: CardElement[] = [
     iconIsComponent: false,
   },
 ];
+
+export default frameworks;

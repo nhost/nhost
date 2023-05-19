@@ -1,6 +1,6 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
@@ -20,7 +20,7 @@ export type UseAppClientReturn = NhostClient;
  * @param options - Client configuration options
  * @returns Application specific Nhost client instance
  */
-export function useAppClient(
+export default function useAppClient(
   options?: UseAppClientOptions,
 ): UseAppClientReturn {
   const isPlatform = useIsPlatform();
@@ -72,5 +72,3 @@ export function useAppClient(
     ...options,
   });
 }
-
-export default useAppClient;

@@ -1,8 +1,8 @@
 import type { DataGridPaginationProps } from '@/components/common/DataGridPagination';
 import DataGridPagination from '@/components/common/DataGridPagination';
 import { useDialog } from '@/components/common/DialogProvider';
+import { useAppClient } from '@/features/projects/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useAppClient } from '@/hooks/useAppClient';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { FileUploadButtonProps } from '@/ui/FileUploadButton';
 import FileUploadButton from '@/ui/FileUploadButton';

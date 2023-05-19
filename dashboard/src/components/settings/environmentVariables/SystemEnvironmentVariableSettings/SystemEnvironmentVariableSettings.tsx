@@ -3,9 +3,9 @@ import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import { useUI } from '@/context/UIContext';
+import { useAppClient } from '@/features/projects/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import { useAppClient } from '@/hooks/useAppClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
@@ -17,9 +17,10 @@ import Text from '@/ui/v2/Text';
 import EyeIcon from '@/ui/v2/icons/EyeIcon';
 import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
-import generateAppServiceUrl, {
+import {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
+  generateAppServiceUrl,
 } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';

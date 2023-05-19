@@ -14,7 +14,7 @@ import type { InputProps } from '@/ui/v2/Input';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 
 export default function DatabaseSettingsPage() {

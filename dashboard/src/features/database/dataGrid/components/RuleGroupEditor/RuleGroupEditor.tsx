@@ -10,7 +10,7 @@ import Button from '@/ui/v2/Button';
 import Link from '@/ui/v2/Link';
 import Text from '@/ui/v2/Text';
 import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

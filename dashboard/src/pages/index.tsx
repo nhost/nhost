@@ -1,5 +1,5 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import MaintenanceAlert from '@/components/common/MaintenanceAlert';
+import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
 import { Sidebar } from '@/components/home/Sidebar';
 import { WorkspaceAndProjectList } from '@/components/home/WorkspaceAndProjectList';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';

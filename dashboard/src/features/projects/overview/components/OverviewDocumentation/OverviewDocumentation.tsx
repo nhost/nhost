@@ -1,5 +1,5 @@
-import type { CardElement } from '@/components/overview/frameworks';
-import OverviewCard from '@/components/overview/OverviewCard';
+import { OverviewCard } from '@/features/projects/overview/components/OverviewCard';
+import type { CardProps } from '@/features/projects/overview/types/cards';
 import Text from '@/ui/v2/Text';
 import { useTheme } from '@mui/material';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
@@ -17,7 +17,7 @@ export interface OverviewDocumentationProps
   /**
    * The elements to display in the card.
    */
-  cardElements: CardElement[];
+  cardElements: CardProps[];
 }
 
 export default function OverviewDocumentation({

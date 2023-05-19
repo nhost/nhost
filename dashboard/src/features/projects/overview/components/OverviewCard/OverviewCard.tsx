@@ -1,4 +1,4 @@
-import type { CardElement } from '@/components/overview/frameworks';
+import type { CardProps } from '@/features/projects/overview/types/cards';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
@@ -8,7 +8,7 @@ import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { twMerge } from 'tailwind-merge';
 
-export interface OverviewCardProps extends CardElement {
+export interface OverviewCardProps extends CardProps {
   /**
    * Props to be passed to the internal components.
    */

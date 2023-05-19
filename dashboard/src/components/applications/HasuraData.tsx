@@ -7,9 +7,10 @@ import IconButton from '@/ui/v2/IconButton';
 import Text from '@/ui/v2/Text';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
-import generateAppServiceUrl, {
+import {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
+  generateAppServiceUrl,
 } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
