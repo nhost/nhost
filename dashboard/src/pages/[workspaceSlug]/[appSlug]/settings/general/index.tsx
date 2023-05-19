@@ -49,11 +49,11 @@ export default function SettingsGeneralPage() {
   const [updateApp] = useUpdateApplicationMutation();
   const [pauseApplication] = usePauseApplicationMutation({
     variables: { appId: currentProject?.id },
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const [deleteApplication] = useDeleteApplicationMutation({
     variables: { appId: currentProject?.id },
-    refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+    refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const router = useRouter();
   const { maintenanceActive } = useUI();
