@@ -29,8 +29,16 @@ func (d *Docker) HasuraWrapper(
 		"-w", "/app",
 		"-it", "--rm",
 		"--entrypoint", "hasura-cli",
-		fmt.Sprintf("hasura/graphql-engine:%s.cli-migrations-v3", hasuraVersion),
 	}
+
+	for _, host := range extraHosts() {
+		args = append(args, "--add-host", host)
+	}
+
+	args = append(
+		args,
+		fmt.Sprintf("hasura/graphql-engine:%s.cli-migrations-v3", hasuraVersion),
+	)
 
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,

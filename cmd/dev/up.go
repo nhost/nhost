@@ -176,34 +176,23 @@ func up(
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printInfo(ce, httpPort, useTLS)
+	printInfo(ce, httpPort, postgresPort, useTLS)
 	return nil
 }
 
-func url(service string, port uint, useTLS bool) string {
-	if useTLS && port == 443 {
-		return fmt.Sprintf("https://local.%s.nhost.run", service)
-	} else if !useTLS && port == 80 {
-		return fmt.Sprintf("http://local.%s.nhost.run", service)
-	}
-
-	protocol := "http"
-	if useTLS {
-		protocol = "https"
-	}
-	return fmt.Sprintf("%s://local.%s.nhost.run:%d", protocol, service, port)
-}
-
-func printInfo(ce *clienv.CliEnv, port uint, useTLS bool) {
+func printInfo(ce *clienv.CliEnv, httpPort, postgresPort uint, useTLS bool) {
 	ce.Println("URLs:")
-	ce.Println("- Postgres:             postgres://postgres:postgres@localhost:5432/postgres")
-	ce.Println("- Hasura:               %s", url("hasura", port, useTLS))
-	ce.Println("- GraphQL:              %s", url("graphql", port, useTLS))
-	ce.Println("- Auth:                 %s", url("auth", port, useTLS))
-	ce.Println("- Storage:              %s", url("storage", port, useTLS))
-	ce.Println("- Functions:            %s", url("functions", port, useTLS))
-	ce.Println("- Dashboard:            %s", url("dashboard", port, useTLS))
-	ce.Println("- Mailhog:              %s", url("mailhog", port, useTLS))
+	ce.Println(
+		"- Postgres:             postgres://postgres:postgres@localhost:%d/postgres",
+		postgresPort,
+	)
+	ce.Println("- Hasura:               %s", dockercompose.URL("hasura", httpPort, useTLS))
+	ce.Println("- GraphQL:              %s", dockercompose.URL("graphql", httpPort, useTLS))
+	ce.Println("- Auth:                 %s", dockercompose.URL("auth", httpPort, useTLS))
+	ce.Println("- Storage:              %s", dockercompose.URL("storage", httpPort, useTLS))
+	ce.Println("- Functions:            %s", dockercompose.URL("functions", httpPort, useTLS))
+	ce.Println("- Dashboard:            %s", dockercompose.URL("dashboard", httpPort, useTLS))
+	ce.Println("- Mailhog:              %s", dockercompose.URL("mailhog", httpPort, useTLS))
 	ce.Println("")
 	ce.Println("SDK Configuration:")
 	ce.Println(" Subdomain:             local")

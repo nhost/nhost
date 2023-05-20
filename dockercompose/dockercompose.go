@@ -45,7 +45,7 @@ func (dc *DockerCompose) WriteComposeFile(composeFile *ComposeFile) error {
 func (dc *DockerCompose) Start(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
-		"docker-compose",
+		"docker", "compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"up",
@@ -55,7 +55,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to start docker-compose: %w", err)
+		return fmt.Errorf("failed to start docker compose: %w", err)
 	}
 	return nil
 }
@@ -63,7 +63,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 func (dc *DockerCompose) Stop(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
-		"docker-compose",
+		"docker", "compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"down",
@@ -72,13 +72,14 @@ func (dc *DockerCompose) Stop(ctx context.Context) error {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to stop docker-compose: %w", err)
+		return fmt.Errorf("failed to stop docker compose: %w", err)
 	}
 	return nil
 }
 
 func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 	args := []string{
+		"compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"logs",
@@ -87,20 +88,21 @@ func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 
 	cmd := exec.CommandContext(
 		ctx,
-		"docker-compose",
+		"docker",
 		args...,
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to show logs from docker-compose: %w", err)
+		return fmt.Errorf("failed to show logs from docker compose: %w", err)
 	}
 	return nil
 }
 
 func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error {
 	args := []string{
+		"compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 	}
@@ -108,14 +110,14 @@ func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error
 
 	cmd := exec.CommandContext(
 		ctx,
-		"docker-compose",
+		"docker",
 		args...,
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to run docker-compose: %w", err)
+		return fmt.Errorf("failed to run docker compose: %w", err)
 	}
 	return nil
 }
@@ -123,7 +125,7 @@ func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error
 func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
-		"docker-compose",
+		"docker", "compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"exec",
@@ -150,7 +152,7 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
-		"docker-compose",
+		"docker", "compose",
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"exec",

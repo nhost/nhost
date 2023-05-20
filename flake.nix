@@ -123,7 +123,6 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               goreleaser
-              docker-compose
             ] ++ goCheckDeps ++ buildInputs ++ nativeBuildInputs;
           };
 

@@ -10,7 +10,7 @@ func CommandCompose() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:            "compose",
 		Aliases:         []string{},
-		Usage:           "docker-compose wrapper, sets project name and compose file automatically",
+		Usage:           "docker compose wrapper, sets project name and compose file automatically",
 		Action:          commandCompose,
 		Flags:           []cli.Flag{},
 		SkipFlagParsing: true,
