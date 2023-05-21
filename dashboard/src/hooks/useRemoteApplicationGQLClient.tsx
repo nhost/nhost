@@ -17,7 +17,7 @@ export function useRemoteApplicationGQLClient() {
   );
 
   const userApplicationClient = useMemo(() => {
-    if (loading) {
+    if (loading || !serviceUrl) {
       return new ApolloClient({ cache: new InMemoryCache() });
     }
 
