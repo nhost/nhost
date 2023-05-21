@@ -1,5 +1,4 @@
-import { PropsWithChildren } from 'react'
-
+import { Fragment, PropsWithChildren, createElement } from 'react'
 import { useAuthenticationStatus } from '../useAuthenticationStatus'
 
 /**
@@ -32,5 +31,5 @@ export function SignedOut({ children }: PropsWithChildren<unknown>) {
     return null
   }
 
-  return <>{children}</>
+  return createElement(Fragment, null, children)
 }
