@@ -128,8 +128,8 @@ importers:
         specifier: ^4.5.14
         version: 4.5.14
       '@fontsource/roboto-mono':
-        specifier: ^4.5.8
-        version: 4.5.8
+        specifier: ^5.0.0
+        version: 5.0.0
       '@graphiql/react':
         specifier: ^0.17.0
         version: 0.17.0(@codemirror/language@6.3.1)(@types/node@16.18.11)(@types/react@18.2.6)(graphql-ws@5.11.2)(graphql@16.6.0)(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
@@ -6845,8 +6845,8 @@ packages:
     resolution: {integrity: sha512-JDC9AocdPLuGsASkvWw9hS5gtHE7K9dOwL98XLrk5yjYqxy4uVnScG58NUvFMJDVJRl/7c8Wnap6PEs+7Zvj1Q==}
     dev: false
 
-  /@fontsource/roboto-mono@4.5.8:
-    resolution: {integrity: sha512-AW44UkbQD0w1CT5mzDbsvhGZ6/bb0YmZzoELj6Sx8vcVEzcbYGUdt2Dtl5zqlOuYMWQFY1mniwWyVv+Bm/lVxw==}
+  /@fontsource/roboto-mono@5.0.0:
+    resolution: {integrity: sha512-PNxomCUy0blr1gNkc2TXfm8zMqnTVAtYfVYKBss6pgjex7lHENhqdDslCPNLwJDDqqPsWgpQ6TrMWEh4OTAVxQ==}
     dev: false
 
   /@gar/promisify@1.1.3:
