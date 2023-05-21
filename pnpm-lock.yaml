@@ -125,8 +125,8 @@ importers:
         specifier: ^11.10.5
         version: 11.10.5(@babel/core@7.20.2)(@emotion/react@11.10.5)(@types/react@18.2.6)(react@18.2.0)
       '@fontsource/inter':
-        specifier: ^4.5.14
-        version: 4.5.14
+        specifier: ^5.0.0
+        version: 5.0.0
       '@fontsource/roboto-mono':
         specifier: ^4.5.8
         version: 4.5.8
@@ -6841,8 +6841,8 @@ packages:
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
-  /@fontsource/inter@4.5.14:
-    resolution: {integrity: sha512-JDC9AocdPLuGsASkvWw9hS5gtHE7K9dOwL98XLrk5yjYqxy4uVnScG58NUvFMJDVJRl/7c8Wnap6PEs+7Zvj1Q==}
+  /@fontsource/inter@5.0.0:
+    resolution: {integrity: sha512-yhNfm2hV+5u7PQDSGYraJ6g1nbaVuWJFiE9fo1r0Tg2xthveZsYFOUltLRLCASo3DIkTkPgf1WX8Wpxfm3IEUQ==}
     dev: false
 
   /@fontsource/roboto-mono@4.5.8:

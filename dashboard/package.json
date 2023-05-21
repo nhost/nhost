@@ -24,7 +24,7 @@
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.4.0",
     "@emotion/styled": "^11.10.5",
-    "@fontsource/inter": "^4.5.14",
+    "@fontsource/inter": "^5.0.0",
     "@fontsource/roboto-mono": "^4.5.8",
     "@graphiql/react": "^0.17.0",
     "@graphiql/toolkit": "^0.8.2",
