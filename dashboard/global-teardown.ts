@@ -46,7 +46,7 @@ async function globalTeardown() {
   await hasuraPage.locator('a', { hasText: /data/i }).click();
   await hasuraPage.getByRole('link', { name: /sql/i }).click();
 
-  await hasuraPage.getByRole('textbox').fill(`
+  await hasuraPage.locator('#raw_sql > textarea').fill(`
 DO $$ DECLARE
   tablename text;
 BEGIN

@@ -146,6 +146,7 @@ export default function PATSettings() {
                           variant="borderless"
                           color="secondary"
                           disabled={maintenanceActive}
+                          aria-label={`More options for ${pat.name}`}
                         >
                           <DotsVerticalIcon />
                         </IconButton>

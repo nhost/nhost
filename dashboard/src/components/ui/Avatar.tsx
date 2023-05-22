@@ -27,17 +27,11 @@ export function Avatar({
   );
 
   if (noAvatar) {
-    // get initials of `name`
-    let initials = '';
-
-    if (name) {
-      name
-        .split(' ') // split names to arary
-        .slice(0, 2) // only use first two elements (first and last name)
-        .forEach((element) => {
-          initials += element.charAt(0).toUpperCase(); // get first char of [first, last]-name
-        });
-    }
+    const initials = name
+      .split(' ')
+      .slice(0, 2)
+      .map((currentNamePart) => `${currentNamePart.charAt(0).toUpperCase()}`)
+      .join('');
 
     return (
       <Box
