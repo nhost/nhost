@@ -1,5 +1,14 @@
 # @nhost/vue
 
+## 1.13.25
+
+### Patch Changes
+
+- 203bc97f: feat(pat): add support for personal access tokens
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+- Updated dependencies [7fea29a8]
+  - @nhost/nhost-js@2.2.5
+
 ## 1.13.24
 
 ### Patch Changes
