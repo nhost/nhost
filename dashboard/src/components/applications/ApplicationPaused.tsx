@@ -35,7 +35,7 @@ export default function ApplicationPaused() {
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
-      refetchQueries: [GetAllWorkspacesAndProjectsDocument],
+      refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
     });
 
   const { data, loading } = useGetFreeAndActiveProjectsQuery({
