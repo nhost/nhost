@@ -30,7 +30,13 @@ export type HasuraServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_HASURA_VERSIONS = ['v2.25.0-ce', 'v2.24.1-ce', 'v2.24.0-ce'];
+const AVAILABLE_HASURA_VERSIONS = [
+  'v2.25.0-ce',
+  'v2.24.1-ce',
+  'v2.23.0-ce',
+  'v2.18.0-ce',
+  'v2.15.2',
+];
 
 export default function HasuraServiceVersionSettings() {
   const { maintenanceActive } = useUI();
@@ -122,7 +128,7 @@ export default function HasuraServiceVersionSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://github.com/hasura/graphql-engine/releases"
+          docsLink="https://hub.docker.com/r/nhost/graphql-engine/tags"
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >
