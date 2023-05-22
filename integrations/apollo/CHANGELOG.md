@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 5.2.7
+
+### Patch Changes
+
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+- Updated dependencies [7fea29a8]
+  - @nhost/nhost-js@2.2.5
+
 ## 5.2.6
 
 ### Patch Changes

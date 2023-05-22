@@ -1,5 +1,16 @@
 # @nhost-examples/nextjs
 
+## 0.1.10
+
+### Patch Changes
+
+- 203bc97f: feat(pat): add support for personal access tokens
+- Updated dependencies [203bc97f]
+- Updated dependencies [7fea29a8]
+  - @nhost/react@2.0.19
+  - @nhost/react-apollo@5.0.23
+  - @nhost/nextjs@1.13.25
+
 ## 0.1.9
 
 ### Patch Changes
