@@ -1,5 +1,14 @@
 # @nhost/react
 
+## 2.0.19
+
+### Patch Changes
+
+- 203bc97f: feat(pat): add support for personal access tokens
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+- Updated dependencies [7fea29a8]
+  - @nhost/nhost-js@2.2.5
+
 ## 2.0.18
 
 ### Patch Changes

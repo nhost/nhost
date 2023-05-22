@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.3
+
+### Patch Changes
+
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+
 ## 0.1.2
 
 ### Patch Changes
