@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 2.1.4
+
+### Patch Changes
+
+- 203bc97f: feat(pat): add support for personal access tokens
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+
 ## 2.1.3
 
 ### Patch Changes

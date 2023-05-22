@@ -1,5 +1,14 @@
 # @nhost/react-urql
 
+## 2.0.20
+
+### Patch Changes
+
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+- Updated dependencies [203bc97f]
+- Updated dependencies [7fea29a8]
+  - @nhost/react@2.0.19
+
 ## 2.0.19
 
 ### Patch Changes

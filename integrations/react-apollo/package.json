@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "5.0.22",
+  "version": "5.0.23",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -34,8 +34,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
       "import": {
+        "types": "./dist/index.d.ts",
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"
       },

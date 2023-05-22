@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.13.24",
+  "version": "1.13.25",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -35,8 +35,8 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
       "import": {
+        "types": "./dist/index.d.ts",
         "node": "./dist/index.cjs.js",
         "default": "./dist/index.esm.js"
       },

@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.2.1
+
+### Patch Changes
+
+- 203bc97f: feat(pat): add support for personal access tokens
+
 ## 0.2.0
 
 ### Minor Changes

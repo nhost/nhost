@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 2.2.5
+
+### Patch Changes
+
+- 7fea29a8: fix: update `types` config and fix the exposed React components
+- Updated dependencies [203bc97f]
+- Updated dependencies [7fea29a8]
+  - @nhost/hasura-auth-js@2.1.4
+  - @nhost/graphql-js@0.1.3
+  - @nhost/hasura-storage-js@2.1.3
+
 ## 2.2.4
 
 ### Patch Changes
