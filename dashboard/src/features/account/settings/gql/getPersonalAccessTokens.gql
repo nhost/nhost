@@ -2,5 +2,6 @@ query GetPersonalAccessTokens {
   personalAccessTokens: authRefreshTokens(where: { type: { _eq: pat } }) {
     id
     metadata
+    expiresAt
   }
 }

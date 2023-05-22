@@ -33,7 +33,7 @@ export function getDateComponents(
     };
   }
 
-  const finalDate = options.adjustTimezone
+  const finalDate = options?.adjustTimezone
     ? new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000)
     : date;
 
