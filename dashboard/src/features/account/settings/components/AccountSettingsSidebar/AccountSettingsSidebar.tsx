@@ -3,6 +3,7 @@ import { FloatingActionButton } from '@/ui/FloatingActionButton';
 import { Backdrop } from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
+import { List } from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import Image from 'next/image';
@@ -111,9 +112,21 @@ export default function AccountSettingsSidebar({
         )}
         {...props}
       >
-        <SettingsNavLink href="/profile" exact={false} onClick={handleSelect}>
-          Profile
-        </SettingsNavLink>
+        <nav aria-label="Settings navigation">
+          <List className="grid gap-2">
+            <SettingsNavLink
+              href="/profile"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Profile
+            </SettingsNavLink>
+
+            <SettingsNavLink href="/pat" exact={false} onClick={handleSelect}>
+              Personal Access Tokens
+            </SettingsNavLink>
+          </List>
+        </nav>
       </Box>
 
       <FloatingActionButton

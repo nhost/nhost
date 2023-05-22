@@ -77,6 +77,7 @@ export default function PasswordSettings() {
             {...register('newPassword')}
             className="col-span-2"
             type="password"
+            id="new-password"
             label="New Password"
             fullWidth
             helperText={formState.errors.newPassword?.message}
@@ -87,6 +88,7 @@ export default function PasswordSettings() {
             {...register('confirmPassword')}
             className="col-span-2 row-start-2"
             type="password"
+            id="confirm-password"
             label="Confirm Password"
             fullWidth
             helperText={formState.errors.confirmPassword?.message}

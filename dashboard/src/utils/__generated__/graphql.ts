@@ -18899,6 +18899,11 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null }> };
+
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -19753,6 +19758,44 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
   memberType
 }
     `;
+export const GetPersonalAccessTokensDocument = gql`
+    query GetPersonalAccessTokens {
+  personalAccessTokens: authRefreshTokens(where: {type: {_eq: pat}}) {
+    id
+    metadata
+  }
+}
+    `;
+
+/**
+ * __useGetPersonalAccessTokensQuery__
+ *
+ * To run a query within a React component, call `useGetPersonalAccessTokensQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersonalAccessTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersonalAccessTokensQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPersonalAccessTokensQuery(baseOptions?: Apollo.QueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
+      }
+export function useGetPersonalAccessTokensLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
+        }
+export type GetPersonalAccessTokensQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensQuery>;
+export type GetPersonalAccessTokensLazyQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensLazyQuery>;
+export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>;
+export function refetchGetPersonalAccessTokensQuery(variables?: GetPersonalAccessTokensQueryVariables) {
+      return { query: GetPersonalAccessTokensDocument, variables: variables }
+    }
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
   config(appID: $appId, resolve: true) {
