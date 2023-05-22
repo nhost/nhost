@@ -1,4 +1,3 @@
-import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
@@ -6,7 +5,6 @@ import { Nav } from '@/components/dashboard/Nav';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
-import { Modal } from '@/ui/Modal';
 import type { ButtonProps } from '@/ui/v2/Button';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
@@ -86,7 +84,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { allRoutes } = useProjectRoutes();
   const shouldDisplayNav = useNavigationVisible();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { signOut } = useSignOut();
   const apolloClient = useApolloClient();
   const router = useRouter();
@@ -94,14 +91,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
   return (
     <>
-      <Modal
-        showModal={showChangePasswordModal}
-        close={() => setShowChangePasswordModal(false)}
-      >
-        {/** TODO: Make use of `DialogProvider` here or create a separate page. */}
-        <ChangePasswordModal close={() => setShowChangePasswordModal(false)} />
-      </Modal>
-
       <Button
         variant="borderless"
         color="secondary"
