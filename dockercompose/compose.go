@@ -277,6 +277,7 @@ func dashboard(cfg *model.ConfigConfig, httpPort uint, useTLS bool) *Service {
 
 func functions( //nolint:funlen
 	cfg *model.ConfigConfig,
+	httpPort uint,
 	useTLS bool,
 	rootFolder string,
 ) *Service {
@@ -286,13 +287,13 @@ func functions( //nolint:funlen
 		"HASURA_GRAPHQL_GRAPHQL_URL":  "http://graphql:8080/v1/graphql",
 		"HASURA_GRAPHQL_JWT_SECRET":   `{"type":"HS256", "key": "0ac0b96af3f247ddbe95c380e70533a0cd6131b3e276ec91cd9971b6c9d2867fa18beb181ab777c450a7080acb742b32fbaeb1e5c782097553a1fa363775f1ba"}`, //nolint:lll
 		"NHOST_ADMIN_SECRET":          cfg.Hasura.AdminSecret,
-		"NHOST_AUTH_URL":              "https://local.auth.nhost.run/v1",
-		"NHOST_FUNCTIONS_URL":         "https://local.functions.nhost.run/v1",
-		"NHOST_GRAPHQL_URL":           "http://local.graphql.nhost.run/v1",
-		"NHOST_HASURA_URL":            "https://local.hasura.nhost.run/console",
+		"NHOST_AUTH_URL":              URL("auth", httpPort, useTLS) + "/v1",
+		"NHOST_FUNCTIONS_URL":         URL("functions", httpPort, useTLS) + "/v1",
+		"NHOST_GRAPHQL_URL":           URL("graphql", httpPort, useTLS) + "/v1",
+		"NHOST_HASURA_URL":            URL("hasura", httpPort, useTLS) + "/console",
+		"NHOST_STORAGE_URL":           URL("storage", httpPort, useTLS) + "/v1",
 		"NHOST_JWT_SECRET":            `{"type":"HS256", "key": "1ac0b96af3f247ddbe95c380e70533a0cd6131b3e276ec91cd9971b6c9d2867fa18beb181ab777c450a7080acb742b32fbaeb1e5c782097553a1fa363775f1bb"}`, //nolint:lll
 		"NHOST_REGION":                "",
-		"NHOST_STORAGE_URL":           "https://local.storage.nhost.run/v1",
 		"NHOST_SUBDOMAIN":             "local",
 		"NHOST_WEBHOOK_SECRET":        "472680a19ef9332aad4be3390cfaffb1",
 	}
@@ -450,7 +451,7 @@ func ComposeFileFromConfig( //nolint:funlen
 			"auth":      auth,
 			"console":   console,
 			"dashboard": dashboard(cfg, httpPort, useTLS),
-			"functions": functions(cfg, useTLS, rootFolder),
+			"functions": functions(cfg, httpPort, useTLS, rootFolder),
 			"graphql":   graphql,
 			"minio":     minio,
 			"postgres":  postgres,
