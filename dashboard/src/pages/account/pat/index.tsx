@@ -6,9 +6,9 @@ import { useGetPersonalAccessTokensQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function PersonalAccessTokenSettingsPage() {
-  const { loading, error } = useGetPersonalAccessTokensQuery();
+  const { data, loading, error } = useGetPersonalAccessTokensQuery();
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}

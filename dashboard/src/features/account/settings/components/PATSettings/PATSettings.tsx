@@ -13,17 +13,35 @@ import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
 import { DotsVerticalIcon } from '@/ui/v2/icons/DotsVerticalIcon';
 import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { useGetPersonalAccessTokensQuery } from '@/utils/__generated__/graphql';
+import {
+  GetPersonalAccessTokensDocument,
+  useDeletePersonalAccessTokenMutation,
+  useGetPersonalAccessTokensQuery,
+} from '@/utils/__generated__/graphql';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { Fragment } from 'react';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function PATSettings() {
   const { maintenanceActive } = useUI();
-  const { openDialog } = useDialog();
+  const { openDialog, openAlertDialog } = useDialog();
 
   const { data, loading, error } = useGetPersonalAccessTokensQuery({
     fetchPolicy: 'cache-only',
   });
+
+  const [deletePAT] = useDeletePersonalAccessTokenMutation({
+    refetchQueries: [GetPersonalAccessTokensDocument],
+  });
+
+  const availablePersonalAccessTokens =
+    data?.personalAccessTokens.map((pat) => ({
+      id: pat.id,
+      name: pat.metadata?.name || 'n/a',
+      expiresAt: pat.expiresAt,
+    })) || [];
 
   function handleOpenCreator() {
     openDialog({
@@ -36,7 +54,49 @@ export default function PATSettings() {
     });
   }
 
-  if (loading) {
+  async function handleDeletePAT({
+    id,
+  }: typeof availablePersonalAccessTokens[0]) {
+    const deletePATPromise = deletePAT({ variables: { patId: id } });
+
+    try {
+      await toast.promise(
+        deletePATPromise,
+        {
+          loading: 'Deleting personal access token...',
+          success: 'Personal access token has been deleted successfully.',
+          error: getServerError(
+            'An error occurred while deleting the personal access token.',
+          ),
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note: The toast will handle the error.
+    }
+  }
+
+  function handleConfirmDelete(
+    originalPAT: typeof availablePersonalAccessTokens[0],
+  ) {
+    openAlertDialog({
+      title: 'Delete Personal Access Token',
+      payload: (
+        <Text>
+          Are you sure you want to delete this personal access token? Any
+          applications or scripts using this token will no longer be able to
+          access the API. You cannot undo this action.
+        </Text>
+      ),
+      props: {
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Delete',
+        onPrimaryAction: () => handleDeletePAT(originalPAT),
+      },
+    });
+  }
+
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -48,14 +108,6 @@ export default function PATSettings() {
   if (error) {
     throw error;
   }
-
-  const availablePersonalAccessTokens = data?.personalAccessTokens.map(
-    (pat) => ({
-      id: pat.id,
-      name: pat.metadata?.name || 'n/a',
-      expiresAt: pat.expiresAt,
-    }),
-  );
 
   return (
     <SettingsContainer
@@ -111,9 +163,9 @@ export default function PATSettings() {
                           horizontal: 'right',
                         }}
                       >
-                        <Dropdown.Item onClick={() => {}}>
+                        <Dropdown.Item onClick={() => handleConfirmDelete(pat)}>
                           <Text className="font-medium" color="error">
-                            Revoke
+                            Delete
                           </Text>
                         </Dropdown.Item>
                       </Dropdown.Content>

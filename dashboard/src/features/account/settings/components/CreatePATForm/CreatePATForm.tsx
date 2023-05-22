@@ -64,14 +64,22 @@ export default function CreatePATForm({
         { name: formValues.name },
       );
 
+      const toastStyle = getToastStyleProps();
+
       if (error) {
-        toast.error(error.message, getToastStyleProps().error);
+        toast.error(error.message, {
+          style: toastStyle.style,
+          ...toastStyle.error,
+        });
         return;
       }
 
       toast.success(
         'The personal access token has been created successfully.',
-        getToastStyleProps().success,
+        {
+          style: toastStyle.style,
+          ...toastStyle.success,
+        },
       );
 
       setPersonalAccessToken(data?.personalAccessToken);

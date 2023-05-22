@@ -18904,6 +18904,13 @@ export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never
 
 export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, expiresAt: any }> };
 
+export type DeletePersonalAccessTokenMutationVariables = Exact<{
+  patId: Scalars['uuid'];
+}>;
+
+
+export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
+
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -19760,7 +19767,10 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
     `;
 export const GetPersonalAccessTokensDocument = gql`
     query GetPersonalAccessTokens {
-  personalAccessTokens: authRefreshTokens(where: {type: {_eq: pat}}) {
+  personalAccessTokens: authRefreshTokens(
+    where: {type: {_eq: pat}}
+    order_by: {expiresAt: asc}
+  ) {
     id
     metadata
     expiresAt
@@ -19797,6 +19807,40 @@ export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<GetPersonalA
 export function refetchGetPersonalAccessTokensQuery(variables?: GetPersonalAccessTokensQueryVariables) {
       return { query: GetPersonalAccessTokensDocument, variables: variables }
     }
+export const DeletePersonalAccessTokenDocument = gql`
+    mutation DeletePersonalAccessToken($patId: uuid!) {
+  deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {
+    id
+    metadata
+  }
+}
+    `;
+export type DeletePersonalAccessTokenMutationFn = Apollo.MutationFunction<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
+
+/**
+ * __useDeletePersonalAccessTokenMutation__
+ *
+ * To run a mutation, you first call `useDeletePersonalAccessTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeletePersonalAccessTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deletePersonalAccessTokenMutation, { data, loading, error }] = useDeletePersonalAccessTokenMutation({
+ *   variables: {
+ *      patId: // value for 'patId'
+ *   },
+ * });
+ */
+export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.MutationHookOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>(DeletePersonalAccessTokenDocument, options);
+      }
+export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
+export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
+export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
   config(appID: $appId, resolve: true) {
