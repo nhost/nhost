@@ -1,8 +1,11 @@
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
+import { Avatar } from '@/ui/Avatar';
+import { Box } from '@/ui/v2/Box';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import IconButton from '@/ui/v2/IconButton';
+import { Text } from '@/ui/v2/Text';
 import UserIcon from '@/ui/v2/icons/UserIcon';
-import Text from '@/ui/v2/Text';
 import getConfig from 'next/config';
 
 export default function LocalAccountMenu() {
@@ -25,14 +28,38 @@ export default function LocalAccountMenu() {
 
       <Dropdown.Content
         PaperProps={{
-          className: 'mt-1 p-6 grid grid-flow-row gap-4 w-full max-w-xs',
+          className: 'mt-1 grid grid-flow-row w-full max-w-xs',
         }}
       >
-        <ThemeSwitcher label="Theme" />
+        <Box className="grid grid-flow-col items-center justify-start gap-4 p-4">
+          <Avatar name="Local User" className="h-10 w-10" />
 
-        <Text className="text-center text-xs" color="disabled">
-          Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
-        </Text>
+          <Box className="grid grid-flow-row gap-0.5">
+            <Text className="font-semibold">Local User</Text>
+          </Box>
+        </Box>
+
+        <Divider />
+
+        <Box className="grid grid-flow-row gap-2 p-2">
+          <ThemeSwitcher
+            label="Theme"
+            variant="inline"
+            fullWidth
+            className="grid-cols-auto justify-between px-2"
+            slotProps={{
+              label: { className: '!text-sm+' },
+            }}
+          />
+        </Box>
+
+        <Divider />
+
+        <Box className="py-4">
+          <Text className="text-center text-xs" color="disabled">
+            Dashboard Version: {publicRuntimeConfig?.version || 'n/a'}
+          </Text>
+        </Box>
       </Dropdown.Content>
     </Dropdown.Root>
   );

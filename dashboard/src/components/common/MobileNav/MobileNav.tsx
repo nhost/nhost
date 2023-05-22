@@ -1,15 +1,15 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
 import { FeedbackForm } from '@/components/common/FeedbackForm';
-import NavLink from '@/components/common/NavLink';
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
+import { NavLink } from '@/components/common/NavLink';
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import { Modal } from '@/ui/Modal';
 import type { ButtonProps } from '@/ui/v2/Button';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
 import Drawer from '@/ui/v2/Drawer';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import MenuIcon from '@/ui/v2/icons/MenuIcon';
@@ -17,7 +17,7 @@ import XIcon from '@/ui/v2/icons/XIcon';
 import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut } from '@nhost/nextjs';
 import getConfig from 'next/config';
@@ -228,15 +228,14 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             <List className="grid grid-flow-row gap-2">
               <ListItem.Root>
                 <ListItem.Button
+                  component={NavLink}
                   variant="borderless"
                   color="secondary"
                   className="w-full justify-start border-none px-2 py-2.5 text-[16px]"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setShowChangePasswordModal(true);
-                  }}
+                  href="/account/profile"
+                  onClick={() => setMenuOpen(false)}
                 >
-                  Change Password
+                  Settings
                 </ListItem.Button>
               </ListItem.Root>
 
@@ -245,7 +244,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
               <ListItem.Root>
                 <ListItem.Button
                   variant="borderless"
-                  color="secondary"
+                  sx={{ color: 'error.main' }}
                   className="justify-start border-none px-2 py-2.5 text-[16px]"
                   onClick={async () => {
                     setMenuOpen(false);

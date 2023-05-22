@@ -1,2 +1,5 @@
 export * from './FloatingActionButton';
-export { default } from './FloatingActionButton';
+export {
+  default as FloatingActionButton,
+  default,
+} from './FloatingActionButton';
