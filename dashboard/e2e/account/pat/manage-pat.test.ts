@@ -17,7 +17,7 @@ test.afterAll(async () => {
   await page.close();
 });
 
-test.only('should be able to create then delete a personal access token', async () => {
+test('should be able to create then delete a personal access token', async () => {
   await page.waitForLoadState('networkidle');
   await page.getByRole('banner').getByRole('button').last().click();
   await page.getByRole('link', { name: /settings/i }).click();
