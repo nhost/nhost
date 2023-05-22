@@ -126,12 +126,13 @@ func Manipulate(buf []byte, opts Options) ([]byte, error) {
 		C.size_t(len(buf)),
 		&result, //nolint: exhaustruct
 		C.Options{
-			width:  C.int(opts.Width),
-			height: C.int(opts.Height),
-			crop:   C.VIPS_INTERESTING_CENTRE,
-			size:   C.VIPS_SIZE_BOTH, //nolint: gocritic
-			blur:   C.double(opts.Blur),
-			format: C.ImageType(opts.Format), //nolint: gocritic
+			quality: C.int(opts.Quality),
+			width:   C.int(opts.Width),
+			height:  C.int(opts.Height),
+			crop:    C.VIPS_INTERESTING_CENTRE,
+			size:    C.VIPS_SIZE_BOTH, //nolint: gocritic
+			blur:    C.double(opts.Blur),
+			format:  C.ImageType(opts.Format), //nolint: gocritic
 		},
 	)
 	if err != 0 {

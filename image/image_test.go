@@ -24,6 +24,19 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
+			sum:      "a88fdb178a6c476e0cb07bdee7a5ffa62d7197dfe54b67cc4a022a36445c6a32",
+			size:     33399,
+			options: image.Options{
+				Height:  100,
+				Width:   300,
+				Blur:    2,
+				Quality: 50,
+				Format:  image.ImageTypeJPEG,
+			},
+		},
+		{
+			name:     "jpg",
+			filename: "testdata/nhost.jpg",
 			sum:      "609365ae9f099954d90270f1c4ba19fed1bf54094d7b6495dc93b4d0ebae9211",
 			size:     33399,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeJPEG},
