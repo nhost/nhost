@@ -3,7 +3,7 @@ import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import BaseLayout from '@/components/layout/BaseLayout';
 import Container from '@/components/layout/Container';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import ThemeProvider from '@/ui/v2/ThemeProvider';
 import GlobalStyles from '@mui/material/GlobalStyles';

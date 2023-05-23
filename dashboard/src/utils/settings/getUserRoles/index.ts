@@ -1,1 +1,1 @@
-export { default } from './getUserRoles';
+export { default, default as getUserRoles } from './getUserRoles';

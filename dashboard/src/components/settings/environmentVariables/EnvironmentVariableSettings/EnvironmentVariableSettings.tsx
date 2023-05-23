@@ -1,28 +1,28 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import CreateEnvironmentVariableForm from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
-import EditEnvironmentVariableForm from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
+import { CreateEnvironmentVariableForm } from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
+import { EditEnvironmentVariableForm } from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import type { EnvironmentVariable } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
+import { IconButton } from '@/ui/v2/IconButton';
+import { DotsVerticalIcon } from '@/ui/v2/icons/DotsVerticalIcon';
+import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import { Text } from '@/ui/v2/Text';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

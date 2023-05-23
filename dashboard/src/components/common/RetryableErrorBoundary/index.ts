@@ -1,2 +1,5 @@
 export * from './RetryableErrorBoundary';
-export { default } from './RetryableErrorBoundary';
+export {
+  default as RetryableErrorBoundary,
+  default,
+} from './RetryableErrorBoundary';

@@ -1,2 +1,2 @@
 export * from './Checkbox';
-export { default } from './Checkbox';
+export { default as Checkbox, default } from './Checkbox';

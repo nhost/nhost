@@ -1,15 +1,15 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { Alert } from '@/ui/Alert';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Checkbox from '@/ui/v2/Checkbox';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Checkbox } from '@/ui/v2/Checkbox';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import router from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';

@@ -1,1 +1,1 @@
-export { default } from './TotalResourcesFormFragment';
+export { default as TotalResourcesFormFragment } from './TotalResourcesFormFragment';

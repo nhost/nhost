@@ -1,3 +1,2 @@
 export * from './CreateUserForm';
-export { default } from './CreateUserForm';
-
+export { default as CreateUserForm } from './CreateUserForm';

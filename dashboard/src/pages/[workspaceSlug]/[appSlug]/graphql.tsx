@@ -9,7 +9,7 @@ import PlayIcon from '@/ui/v2/icons/PlayIcon';
 import Option from '@/ui/v2/Option';
 import Select from '@/ui/v2/Select';
 import Tooltip from '@/ui/v2/Tooltip';
-import generateAppServiceUrl from '@/utils/common/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,

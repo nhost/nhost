@@ -1,3 +1,4 @@
+import { useProPlan } from '@/features/projects/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import { getAllocatedResources } from '@/features/resources/settings/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
@@ -7,12 +8,11 @@ import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_VCPU,
 } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
-import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
+import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,

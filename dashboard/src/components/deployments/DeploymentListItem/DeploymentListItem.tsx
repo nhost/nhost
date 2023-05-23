@@ -1,22 +1,22 @@
-import NavLink from '@/components/common/NavLink';
-import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
+import { NavLink } from '@/components/common/NavLink';
+import { AppDeploymentDuration } from '@/components/deployments/AppDeploymentDuration';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import { Chip } from '@/ui/v2/Chip';
+import { ArrowCounterclockwiseIcon } from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
+import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import ArrowCounterclockwiseIcon from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
-import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertDeploymentMutation,
 } from '@/utils/__generated__/graphql';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { toast } from 'react-hot-toast';

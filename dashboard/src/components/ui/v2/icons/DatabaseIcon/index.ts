@@ -1,1 +1,1 @@
-export { default } from './DatabaseIcon';
+export { default as DatabaseIcon } from './DatabaseIcon';

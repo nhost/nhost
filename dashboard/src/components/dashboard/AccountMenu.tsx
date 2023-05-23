@@ -1,12 +1,12 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/ui/Avatar';
 import { Modal } from '@/ui/Modal';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
 import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
-import PowerIcon from '@/ui/v2/icons/PowerIcon';
-import Text from '@/ui/v2/Text';
+import { PowerIcon } from '@/ui/v2/icons/PowerIcon';
+import { Text } from '@/ui/v2/Text';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import getConfig from 'next/config';

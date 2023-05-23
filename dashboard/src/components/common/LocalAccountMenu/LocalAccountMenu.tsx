@@ -1,8 +1,8 @@
-import ThemeSwitcher from '@/components/common/ThemeSwitcher';
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import IconButton from '@/ui/v2/IconButton';
-import UserIcon from '@/ui/v2/icons/UserIcon';
-import Text from '@/ui/v2/Text';
+import { IconButton } from '@/ui/v2/IconButton';
+import { UserIcon } from '@/ui/v2/icons/UserIcon';
+import { Text } from '@/ui/v2/Text';
 import getConfig from 'next/config';
 
 export default function LocalAccountMenu() {

@@ -1,1 +1,1 @@
-export { default } from './ResourcesForm';
+export { default as ResourcesForm } from './ResourcesForm';

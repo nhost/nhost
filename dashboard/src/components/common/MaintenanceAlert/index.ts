@@ -1,1 +1,1 @@
-export { default } from './MaintenanceAlert';
+export { default as MaintenanceAlert } from './MaintenanceAlert';

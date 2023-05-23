@@ -1,2 +1,2 @@
 export * from './ServiceResourcesFormFragment';
-export { default } from './ServiceResourcesFormFragment';
+export { default as ServiceResourcesFormFragment } from './ServiceResourcesFormFragment';

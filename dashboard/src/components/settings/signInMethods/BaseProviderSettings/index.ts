@@ -1,2 +1,2 @@
 export * from './BaseProviderSettings';
-export { default } from './BaseProviderSettings';
+export { default as BaseProviderSettings } from './BaseProviderSettings';

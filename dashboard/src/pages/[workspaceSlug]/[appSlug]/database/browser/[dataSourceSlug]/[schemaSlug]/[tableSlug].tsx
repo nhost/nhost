@@ -1,9 +1,9 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import DataBrowserGrid from '@/components/dataBrowser/DataBrowserGrid';
-import DataBrowserLayout from '@/components/dataBrowser/DataBrowserLayout';
+import { DataBrowserGrid } from '@/features/database/dataGrid/components/DataBrowserGrid';
+import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import useTablePath from '@/hooks/useTablePath';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useState } from 'react';
