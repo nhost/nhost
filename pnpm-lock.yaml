@@ -300,8 +300,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.1(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-codegen/typescript-graphql-request':
-        specifier: ^4.5.1
-        version: 4.5.8(encoding@0.1.13)(graphql-request@6.0.0)(graphql-tag@2.12.6)(graphql@16.6.0)
+        specifier: ^5.0.0
+        version: 5.0.0(encoding@0.1.13)(graphql-request@6.0.0)(graphql-tag@2.12.6)(graphql@16.6.0)
       '@graphql-codegen/typescript-operations':
         specifier: ^3.0.0
         version: 3.0.1(encoding@0.1.13)(graphql@16.6.0)
@@ -7411,14 +7411,14 @@ packages:
       - supports-color
     dev: true
 
-  /@graphql-codegen/typescript-graphql-request@4.5.8(encoding@0.1.13)(graphql-request@6.0.0)(graphql-tag@2.12.6)(graphql@16.6.0):
-    resolution: {integrity: sha512-XsuAA35Ou03LsklNgnIWXZ5HOHsJ5w1dBuDKtvqM9rD0cAI8x0f4TY0n6O1EraSBSvyHLP3npb1lOTPZzG2TjA==}
+  /@graphql-codegen/typescript-graphql-request@5.0.0(encoding@0.1.13)(graphql-request@6.0.0)(graphql-tag@2.12.6)(graphql@16.6.0):
+    resolution: {integrity: sha512-BM9UzZD/5q3b3Q4c+VOy/QoPWgsnfs1GAnGJjh9xtuty6YsCprwhh12BaV16F+xndNUd6qkghigGyjR8m8RdkA==}
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-      graphql-request: ^3.4.0 || ^4.0.0 || ^5.0.0
+      graphql-request: ^6.0.0
       graphql-tag: ^2.0.0
     dependencies:
-      '@graphql-codegen/plugin-helpers': 2.7.2(graphql@16.6.0)
+      '@graphql-codegen/plugin-helpers': 3.1.2(graphql@16.6.0)
       '@graphql-codegen/visitor-plugin-common': 2.13.1(encoding@0.1.13)(graphql@16.6.0)
       auto-bind: 4.0.0
       graphql: 16.6.0
@@ -25389,7 +25389,7 @@ packages:
     dependencies:
       lilconfig: 2.0.6
       postcss: 8.4.20
-      ts-node: 10.9.1(@types/node@16.18.11)(typescript@4.8.3)
+      ts-node: 10.9.1(@types/node@18.11.17)(typescript@4.9.4)
       yaml: 1.10.2
 
   /postcss-loader@4.3.0(postcss@7.0.39)(webpack@4.46.0):
@@ -29383,6 +29383,7 @@ packages:
       typescript: 4.8.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    dev: true
 
   /ts-node@10.9.1(@types/node@16.18.11)(typescript@4.9.4):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
@@ -29475,7 +29476,6 @@ packages:
       typescript: 4.9.4
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
-    dev: true
 
   /ts-node@10.9.1(@types/node@18.11.18)(typescript@4.9.5):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}

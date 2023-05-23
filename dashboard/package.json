@@ -84,7 +84,7 @@
     "@faker-js/faker": "^7.6.0",
     "@graphql-codegen/cli": "^3.0.0",
     "@graphql-codegen/typescript": "^3.0.0",
-    "@graphql-codegen/typescript-graphql-request": "^4.5.1",
+    "@graphql-codegen/typescript-graphql-request": "^5.0.0",
     "@graphql-codegen/typescript-operations": "^3.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.1",
     "@next/bundle-analyzer": "^12.3.1",
