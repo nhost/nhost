@@ -24,7 +24,7 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export const createPATFormValidationSchema = Yup.object({
-  note: Yup.string().label('Note').nullable().required(),
+  name: Yup.string().label('Name').nullable().required(),
   expiresAt: Yup.string().label('Expiration date').nullable().required(),
 });
 
@@ -78,7 +78,7 @@ export default function CreatePATForm({
   const form = useForm<CreatePATFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      note: null,
+      name: null,
       expiresAt: null,
     },
     resolver: yupResolver(createPATFormValidationSchema),
@@ -97,7 +97,7 @@ export default function CreatePATForm({
       const { error, data } = await nhostClient.auth.createPAT(
         new Date(formValues.expiresAt),
         {
-          note: formValues.note,
+          name: formValues.name,
           application: 'dashboard',
           userAgent: window.navigator.userAgent,
         },
@@ -182,15 +182,13 @@ export default function CreatePATForm({
       <FormProvider {...form}>
         <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-4">
           <Input
-            {...register('note')}
-            id="note"
-            label="Note"
+            {...register('name')}
+            id="name"
+            label="Name"
             autoFocus
             fullWidth
-            helperText={
-              formState.errors.note?.message || 'What is the token used for?'
-            }
-            error={Boolean(formState.errors.note)}
+            helperText={formState.errors.name?.message || 'Enter a unique name'}
+            error={Boolean(formState.errors.name)}
           />
 
           <ControlledSelect

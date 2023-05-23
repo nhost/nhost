@@ -37,7 +37,7 @@ export default function PATSettings() {
   const availablePersonalAccessTokens =
     data?.personalAccessTokens.map((pat) => ({
       id: pat.id,
-      note: pat.metadata?.note || 'n/a',
+      name: pat.metadata?.name || 'n/a',
       expiresAt: pat.expiresAt,
       createdAt: pat.createdAt,
       metadata: pat.metadata,
@@ -125,7 +125,7 @@ export default function PATSettings() {
       }}
     >
       <Box className="grid grid-cols-3 gap-2 border-b-1 py-3 pl-4 pr-12">
-        <Text className="font-medium">Note</Text>
+        <Text className="font-medium">Name</Text>
         <Text className="font-medium">Expires at</Text>
         <Text className="font-medium">Created at</Text>
       </Box>
@@ -148,7 +148,7 @@ export default function PATSettings() {
                           variant="borderless"
                           color="secondary"
                           disabled={maintenanceActive}
-                          aria-label={`More options for ${pat.note}`}
+                          aria-label={`More options for ${pat.name}`}
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -175,7 +175,7 @@ export default function PATSettings() {
                     </Dropdown.Root>
                   }
                 >
-                  <ListItem.Text className="truncate">{pat.note}</ListItem.Text>
+                  <ListItem.Text className="truncate">{pat.name}</ListItem.Text>
 
                   <Text className="truncate">
                     {new Date(pat.expiresAt).toLocaleDateString()}

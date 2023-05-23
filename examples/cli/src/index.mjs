@@ -34,8 +34,8 @@ program
     'The expiration date of the personal access token to create. It will only be used if the "--create-token" option is provided. Defaults to 7 days from now.'
   )
   .option(
-    '--token-note <note>',
-    'Note for the personal access token to create. It will only be used if the "--create-token" option is provided. This information will be stored as the metadata of the personal access token.'
+    '--token-name <name>',
+    'The name of the personal access token to create. It will only be used if the "--create-token" option is provided. This information will be stored as the metadata of the personal access token.'
   )
   .option('--create-book <title>', 'The title of the book to create.')
   .option('--delete-book <id>', 'The ID of the book to delete.')
@@ -66,13 +66,13 @@ async function main() {
     const expiresAt = opts.expiresAt
       ? new Date(opts.expiresAt)
       : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    const note = opts.tokenNote
+    const name = opts.tokenName
 
     const { error, personalAccessToken } = await createPATForAccount(
       userProvidedEmail,
       userProvidedPassword,
       expiresAt,
-      note
+      name
     )
 
     if (error) {
