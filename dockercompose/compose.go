@@ -301,7 +301,7 @@ func functions( //nolint:funlen
 		envVars[envVar.GetName()] = envVar.GetValue()
 	}
 	return &Service{
-		Image:       "nhost/functions:0.1.8",
+		Image:       "nhost/functions:0.1.9",
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
