@@ -238,7 +238,7 @@ export default function BaseColumnForm({
             variant="inline"
             options={availableFunctions}
             disabled={isIdentity}
-            showCustomOption
+            showCustomOption="always"
             customOptionLabel={(optionLabel) =>
               `Use "${optionLabel}" as a literal`
             }

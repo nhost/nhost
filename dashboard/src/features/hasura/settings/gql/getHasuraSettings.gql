@@ -1,0 +1,9 @@
+query GetHasuraSettings($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    id: __typename
+    __typename
+    hasura {
+      version
+    }
+  }
+}

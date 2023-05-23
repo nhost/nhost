@@ -6,7 +6,7 @@ import ApplicationRestoring from '@/components/applications/ApplicationRestoring
 import ApplicationUnknown from '@/components/applications/ApplicationUnknown';
 import ApplicationUnpausing from '@/components/applications/ApplicationUnpausing';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useApplicationState from '@/hooks/useApplicationState';
 import { ApplicationStatus } from '@/types/application';

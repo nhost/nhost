@@ -1,14 +1,15 @@
 import Container from '@/components/layout/Container';
-import AllowedEmailDomainsSettings from '@/components/settings/authentication/AllowedEmailSettings';
-import AllowedRedirectURLsSettings from '@/components/settings/authentication/AllowedRedirectURLsSettings';
-import BlockedEmailSettings from '@/components/settings/authentication/BlockedEmailSettings';
-import ClientURLSettings from '@/components/settings/authentication/ClientURLSettings';
-import DisableNewUsersSettings from '@/components/settings/authentication/DisableNewUsersSettings';
-import GravatarSettings from '@/components/settings/authentication/GravatarSettings';
-import MFASettings from '@/components/settings/authentication/MFASettings';
 import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { AllowedEmailSettings } from '@/features/authentication/settings/components/AllowedEmailSettings';
+import { AllowedRedirectURLsSettings } from '@/features/authentication/settings/components/AllowedRedirectURLsSettings';
+import { AuthServiceVersionSettings } from '@/features/authentication/settings/components/AuthServiceVersionSettings';
+import { BlockedEmailSettings } from '@/features/authentication/settings/components/BlockedEmailSettings';
+import { ClientURLSettings } from '@/features/authentication/settings/components/ClientURLSettings';
+import { DisableNewUsersSettings } from '@/features/authentication/settings/components/DisableNewUsersSettings';
+import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
+import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
@@ -17,6 +18,7 @@ export default function SettingsAuthenticationPage() {
 
   const { loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
+    skip: !currentProject,
   });
 
   if (loading) {
@@ -38,9 +40,10 @@ export default function SettingsAuthenticationPage() {
       className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
+      <AuthServiceVersionSettings />
       <ClientURLSettings />
       <AllowedRedirectURLsSettings />
-      <AllowedEmailDomainsSettings />
+      <AllowedEmailSettings />
       <BlockedEmailSettings />
       <MFASettings />
       <GravatarSettings />

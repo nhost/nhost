@@ -3,7 +3,7 @@ import InlineCode from '@/components/common/InlineCode';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useAppClient } from '@/hooks/useAppClient';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';

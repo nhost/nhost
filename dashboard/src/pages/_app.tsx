@@ -88,7 +88,7 @@ function MyApp({
         <CacheProvider value={emotionCache}>
           <NhostProvider nhost={nhost}>
             <NhostApolloProvider
-              fetchPolicy="cache-first"
+              fetchPolicy="cache-and-network"
               nhost={nhost}
               connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
             >

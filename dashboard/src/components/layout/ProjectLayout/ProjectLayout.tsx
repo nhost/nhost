@@ -2,7 +2,7 @@ import DesktopNav from '@/components/common/DesktopNav';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
 import useProjectRoutes from '@/hooks/common/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';

@@ -44,7 +44,8 @@ export default function StateBadge({
 
   if (
     state === ApplicationStatus.Empty ||
-    state === ApplicationStatus.Unpausing
+    state === ApplicationStatus.Unpausing ||
+    state === ApplicationStatus.Updating
   ) {
     return <Chip size="small" label={normalizedTitle} color="warning" />;
   }
