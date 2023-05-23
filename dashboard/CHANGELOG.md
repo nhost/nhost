@@ -1,5 +1,25 @@
 # @nhost/dashboard
 
+## 0.16.13
+
+### Patch Changes
+
+- 78c7109c: feat(settings): allow selecting service versions
+
+## 0.16.12
+
+### Patch Changes
+
+- 399009d6: fix(gql): don't enter an infinite loop when fetching remote app data
+- 329e5a91: fix(deployments): use the same sorting of deployments everywhere
+- 6d559d6e: chore(settings): add under the hood improvements to the settings page
+- 12eb236c: chore(deps): bump `prettier-plugin-tailwindcss` to `v0.3.0`
+- f9b81a2a: chore(deps): bump `turbo` to `v1.9.8`
+- 1345741b: fix(projects): don't redirect to 404 on project creation
+- Updated dependencies [7fea29a8]
+  - @nhost/react-apollo@5.0.23
+  - @nhost/nextjs@1.13.25
+
 ## 0.16.11
 
 ### Patch Changes

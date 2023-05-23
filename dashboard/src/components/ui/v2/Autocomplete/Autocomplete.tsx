@@ -96,8 +96,10 @@ export interface AutocompleteProps<
   autoSelect?: boolean | ((filteredOptions?: AutocompleteOption[]) => boolean);
   /**
    * Show custom option at the end of filtered options.
+   *
+   * @default 'never'
    */
-  showCustomOption?: boolean;
+  showCustomOption?: 'always' | 'never' | 'auto';
   /**
    * Custom option label.
    */
@@ -174,7 +176,10 @@ export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   },
 }));
 
-const filterOptions = createFilterOptions<AutocompleteOption>({
+/**
+ * Function to be used to filter options.
+ */
+export const filterOptions = createFilterOptions<AutocompleteOption>({
   matchFrom: 'any',
   ignoreAccents: true,
   ignoreCase: true,
@@ -198,7 +203,7 @@ function Autocomplete(
     filterOptions: externalFilterOptions,
     autoSelect: externalAutoSelect,
     customOptionLabel: externalCustomOptionLabel,
-    showCustomOption,
+    showCustomOption = 'never',
     'aria-label': ariaLabel,
     ...props
   }: AutocompleteProps<AutocompleteOption>,
@@ -218,18 +223,22 @@ function Autocomplete(
     setInputValue(externalInputValue);
   }, [externalInputValue]);
 
-  const filteredOptions = filterOptions(props.options as AutocompleteOption[], {
-    inputValue: inputValue || '',
-    getOptionLabel: props.getOptionLabel
-      ? props.getOptionLabel
-      : (option: string | number | AutocompleteOption<string>) => {
-          if (typeof option !== 'object') {
-            return option.toString();
-          }
+  const filterOptionsFn = externalFilterOptions || filterOptions;
+  const filteredOptions = filterOptionsFn(
+    props.options as AutocompleteOption[],
+    {
+      inputValue: inputValue || '',
+      getOptionLabel: props.getOptionLabel
+        ? props.getOptionLabel
+        : (option: string | number | AutocompleteOption<string>) => {
+            if (typeof option !== 'object') {
+              return option.toString();
+            }
 
-          return option.label ?? option.dropdownLabel;
-        },
-  });
+            return option.label ?? option.dropdownLabel;
+          },
+    },
+  );
 
   const autoSelect =
     typeof externalAutoSelect === 'function'
@@ -354,24 +363,42 @@ function Autocomplete(
         );
       }}
       filterOptions={
-        showCustomOption
+        showCustomOption !== 'never'
           ? () => {
-              if (inputValue) {
-                return [
-                  ...filteredOptions,
-                  {
-                    value: inputValue,
-                    label: inputValue,
-                    dropdownLabel:
-                      customOptionLabel || `Select "${inputValue}"`,
-                    custom: Boolean(inputValue),
-                  },
-                ];
+              if (!inputValue) {
+                return filteredOptions;
               }
 
-              return filteredOptions;
+              if (showCustomOption === 'auto') {
+                const isInputValueInOptions = filteredOptions.some(
+                  (filteredOption) => filteredOption.label === inputValue,
+                );
+
+                return isInputValueInOptions
+                  ? filteredOptions
+                  : [
+                      ...filteredOptions,
+                      {
+                        value: inputValue,
+                        label: inputValue,
+                        dropdownLabel:
+                          customOptionLabel || `Select "${inputValue}"`,
+                        custom: Boolean(inputValue),
+                      },
+                    ];
+              }
+
+              return [
+                ...filteredOptions,
+                {
+                  value: inputValue,
+                  label: inputValue,
+                  dropdownLabel: customOptionLabel || `Select "${inputValue}"`,
+                  custom: Boolean(inputValue),
+                },
+              ];
             }
-          : externalFilterOptions || filterOptions
+          : filterOptionsFn
       }
       autoSelect={autoSelect}
       renderInput={({

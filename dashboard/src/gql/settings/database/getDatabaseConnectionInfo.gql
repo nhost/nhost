@@ -1,7 +1,0 @@
-query GetDatabaseConnectionInfo($appId: uuid!) {
-  systemConfig(appID: $appId) {
-    postgres {
-      database
-    }
-  }
-}

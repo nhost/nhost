@@ -1,5 +1,5 @@
 import NavLink from '@/components/common/NavLink';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import FloatingActionButton from '@/ui/FloatingActionButton';
 import Backdrop from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
@@ -145,6 +145,13 @@ export default function SettingsSidebar({
               </SettingsNavLink>
             )}
             <SettingsNavLink
+              href="/hasura"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Hasura
+            </SettingsNavLink>
+            <SettingsNavLink
               href="/authentication"
               exact={false}
               onClick={handleSelect}
@@ -158,7 +165,13 @@ export default function SettingsSidebar({
             >
               Sign-In Methods
             </SettingsNavLink>
-
+            <SettingsNavLink
+              href="/storage"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Storage
+            </SettingsNavLink>
             <SettingsNavLink
               href="/roles-and-permissions"
               exact={false}

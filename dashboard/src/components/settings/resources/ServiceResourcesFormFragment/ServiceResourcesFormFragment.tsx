@@ -1,6 +1,6 @@
-import { prettifyMemory } from '@/features/projects/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/projects/settings/resources/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_REPLICAS,
@@ -8,7 +8,7 @@ import {
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
-} from '@/features/projects/settings/resources/utils/resourceSettingsValidationSchema';
+} from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import Box from '@/ui/v2/Box';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';

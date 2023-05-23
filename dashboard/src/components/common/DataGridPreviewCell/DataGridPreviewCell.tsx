@@ -2,7 +2,7 @@ import AudioPreview from '@/components/icons/AudioPreview';
 import { FileIcon } from '@/components/icons/FileIcon';
 import PDFPreview from '@/components/icons/PDFPreview';
 import VideoPreview from '@/components/icons/VideoPreview';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useAppClient } from '@/hooks/useAppClient';
 import { Modal } from '@/ui/Modal';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
