@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.16.13
+
+### Patch Changes
+
+- 78c7109c: feat(settings): allow selecting service versions
+
 ## 0.16.12
 
 ### Patch Changes
