@@ -1,4 +1,3 @@
-import { getDateComponents } from '@/utils/formatDate';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
@@ -26,17 +25,10 @@ test('should be able to create then delete a personal access token', async () =>
     .click();
 
   const patName = faker.lorem.slug(3);
-  const dateComponents = getDateComponents(
-    new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-  );
 
-  await page.getByRole('textbox', { name: /name/i }).fill(patName);
-  await page
-    .getByRole('textbox', { name: /expires at/i })
-    .fill(
-      `${dateComponents.year}-${dateComponents.month}-${dateComponents.day}`,
-    );
-
+  await page.getByRole('textbox', { name: /note/i }).fill(patName);
+  await page.getByRole('button', { name: /expiration/i }).click();
+  await page.getByRole('option', { name: /7 days/i }).click();
   await page.getByRole('button', { name: /create/i }).click();
 
   await expect(
