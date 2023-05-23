@@ -7,7 +7,7 @@ import { client } from './nhostClient.mjs'
  * @param {string} email - The email of the account.
  * @param {string} password - The password of the account.
  * @param {Date} expiresAt - The expiration date of the personal access token.
- * @param {string} name - The name of the personal access token. This will be stored as the metadata of the personal access token.
+ * @param {string} name - The name of the personal access token. This will be stored in the metadata.
  * @returns {Promise<{ error: Error | null, personalAccessToken: string | null }>}
  */
 export async function createPATForAccount(email, password, expiresAt, name) {
@@ -42,9 +42,13 @@ export async function createPATForAccount(email, password, expiresAt, name) {
   logger.info('Successfully signed in with the provided account.')
   logger.debug('Creating PAT for the provided account...')
 
+  const metadata = {
+    application: 'cli-example'
+  }
+
   const { data, error: patCreationError } = await client.auth.createPAT(
     expiresAt,
-    name ? { name } : undefined
+    name ? { name, ...metadata } : metadata
   )
 
   logger.debug(`Personal Access Token ID: ${data?.id}`)

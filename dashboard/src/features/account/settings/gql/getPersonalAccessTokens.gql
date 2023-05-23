@@ -1,0 +1,11 @@
+query GetPersonalAccessTokens {
+  personalAccessTokens: authRefreshTokens(
+    where: { type: { _eq: pat } }
+    order_by: { expiresAt: asc }
+  ) {
+    id
+    metadata
+    createdAt
+    expiresAt
+  }
+}

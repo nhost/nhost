@@ -2,13 +2,13 @@ import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Button } from '@/ui/v2/Button';
+import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import type { InputProps } from '@/ui/v2/Input';
 import { Input } from '@/ui/v2/Input';
 import { InputAdornment } from '@/ui/v2/InputAdornment';
-import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
-import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import copy from '@/utils/copy';
+import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function DatabaseConnectionInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -79,8 +79,8 @@ export default function DatabaseConnectionInfo() {
     <SettingsContainer
       title="Connection Info"
       description="Connect directly to the Postgres database with this information."
-      slotProps={{ submitButton: { disabled: true, className: 'invisible' } }}
-      className="grid grid-cols-6 gap-4"
+      slotProps={{ footer: { className: 'hidden' } }}
+      className="grid grid-cols-6 gap-4 pb-2"
     >
       {settingsDatabaseCustomInputs.map(
         ({ name, label, className, value: inputValue }) => (

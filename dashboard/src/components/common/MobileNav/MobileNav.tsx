@@ -1,4 +1,3 @@
-import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
@@ -6,7 +5,6 @@ import { Nav } from '@/components/dashboard/Nav';
 import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import { useProjectRoutes } from '@/features/projects/hooks/useProjectRoutes';
 import { useNavigationVisible } from '@/hooks/useNavigationVisible';
-import { Modal } from '@/ui/Modal';
 import type { ButtonProps } from '@/ui/v2/Button';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
@@ -86,7 +84,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   const { allRoutes } = useProjectRoutes();
   const shouldDisplayNav = useNavigationVisible();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { signOut } = useSignOut();
   const apolloClient = useApolloClient();
   const router = useRouter();
@@ -94,14 +91,6 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
 
   return (
     <>
-      <Modal
-        showModal={showChangePasswordModal}
-        close={() => setShowChangePasswordModal(false)}
-      >
-        {/** TODO: Make use of `DialogProvider` here or create a separate page. */}
-        <ChangePasswordModal close={() => setShowChangePasswordModal(false)} />
-      </Modal>
-
       <Button
         variant="borderless"
         color="secondary"
@@ -228,15 +217,14 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
             <List className="grid grid-flow-row gap-2">
               <ListItem.Root>
                 <ListItem.Button
+                  component={NavLink}
                   variant="borderless"
                   color="secondary"
                   className="w-full justify-start border-none px-2 py-2.5 text-[16px]"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setShowChangePasswordModal(true);
-                  }}
+                  href="/account"
+                  onClick={() => setMenuOpen(false)}
                 >
-                  Change Password
+                  Settings
                 </ListItem.Button>
               </ListItem.Root>
 
@@ -245,7 +233,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
               <ListItem.Root>
                 <ListItem.Button
                   variant="borderless"
-                  color="secondary"
+                  sx={{ color: 'error.main' }}
                   className="justify-start border-none px-2 py-2.5 text-[16px]"
                   onClick={async () => {
                     setMenuOpen(false);

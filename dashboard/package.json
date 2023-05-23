@@ -15,7 +15,7 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,md}\" --plugin-search-dir=.",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook",
-    "e2e": "npx playwright@1.33.0 install --with-deps && playwright test"
+    "e2e": "npx playwright@1.34.0 install --with-deps && playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.7.10",
@@ -84,11 +84,10 @@
     "@faker-js/faker": "^7.6.0",
     "@graphql-codegen/cli": "^3.0.0",
     "@graphql-codegen/typescript": "^3.0.0",
-    "@graphql-codegen/typescript-graphql-request": "^4.5.1",
     "@graphql-codegen/typescript-operations": "^3.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.1",
     "@next/bundle-analyzer": "^12.3.1",
-    "@playwright/test": "^1.33.0",
+    "@playwright/test": "^1.34.0",
     "@storybook/addon-actions": "^6.5.14",
     "@storybook/addon-essentials": "^6.5.14",
     "@storybook/addon-interactions": "^6.5.14",

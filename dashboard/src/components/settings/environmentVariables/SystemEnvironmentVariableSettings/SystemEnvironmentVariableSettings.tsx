@@ -127,7 +127,7 @@ export default function SystemEnvironmentVariableSettings() {
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       rootClassName="gap-0"
       className="mt-2 mb-2.5 px-0"
-      slotProps={{ submitButton: { className: 'invisible' } }}
+      slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>

@@ -22,6 +22,7 @@ export default function ThemeSwitcher({
         onChange?.(event, value);
       }}
       slotProps={{
+        ...props?.slotProps,
         listbox: { className: 'min-w-0 w-full' },
         popper: {
           disablePortal: false,

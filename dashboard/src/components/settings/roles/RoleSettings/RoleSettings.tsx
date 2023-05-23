@@ -177,7 +177,7 @@ export default function RoleSettings() {
         'my-2 px-0',
         availableAllowedRoles.length === 0 && 'gap-2',
       )}
-      slotProps={{ submitButton: { className: 'invisible' } }}
+      slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <Box className="border-b-1 px-4 py-3">
         <Text className="font-medium">Name</Text>
