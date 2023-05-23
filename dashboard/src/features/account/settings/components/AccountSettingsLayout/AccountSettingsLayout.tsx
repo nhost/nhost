@@ -1,3 +1,4 @@
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import type { AccountSettingsSidebarProps } from '@/features/account/settings/components/AccountSettingsSidebar';
@@ -44,7 +45,12 @@ export default function AccountSettingsLayout({
           )}
         />
 
-        {children}
+        <Box
+          sx={{ backgroundColor: 'background.default' }}
+          className="flex w-full flex-auto flex-col overflow-x-hidden"
+        >
+          <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
+        </Box>
       </Box>
     </AuthenticatedLayout>
   );

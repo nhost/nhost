@@ -38,7 +38,7 @@ function AccountMenuContent() {
 
       <Divider />
 
-      <Box className="grid grid-flow-row gap-2 p-2">
+      <Box className="p-2">
         <ThemeSwitcher
           label="Theme"
           variant="inline"
@@ -48,7 +48,11 @@ function AccountMenuContent() {
             label: { className: '!text-sm+' },
           }}
         />
+      </Box>
 
+      <Divider />
+
+      <Box className="grid grid-flow-row gap-1 p-2">
         <Button
           variant="borderless"
           color="secondary"
@@ -57,13 +61,8 @@ function AccountMenuContent() {
           href="/account/profile"
           onClick={handleClose}
         >
-          Settings
+          Account Settings
         </Button>
-      </Box>
-
-      <Divider />
-
-      <Box className="p-2">
         <Button
           color="error"
           variant="borderless"
