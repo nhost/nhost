@@ -39,6 +39,8 @@ export default function PATSettings() {
       id: pat.id,
       note: pat.metadata?.note || 'n/a',
       expiresAt: pat.expiresAt,
+      createdAt: pat.createdAt,
+      metadata: pat.metadata,
     })) || [];
 
   function handleOpenCreator() {
@@ -122,9 +124,10 @@ export default function PATSettings() {
         footer: { className: 'hidden' },
       }}
     >
-      <Box className="grid grid-cols-2 gap-2 border-b-1 py-3 pl-4 pr-12 lg:grid-cols-3">
+      <Box className="grid grid-cols-3 gap-2 border-b-1 py-3 pl-4 pr-12">
         <Text className="font-medium">Note</Text>
-        <Text className="font-medium lg:col-span-2">Expires at</Text>
+        <Text className="font-medium">Expires at</Text>
+        <Text className="font-medium">Created at</Text>
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
@@ -133,7 +136,7 @@ export default function PATSettings() {
             {availablePersonalAccessTokens.map((pat, index) => (
               <Fragment key={pat.id}>
                 <ListItem.Root
-                  className="grid grid-cols-2 gap-2 px-4 pr-12 lg:grid-cols-3"
+                  className="grid grid-cols-3 gap-2 px-4 pr-12"
                   secondaryAction={
                     <Dropdown.Root>
                       <Dropdown.Trigger
@@ -174,8 +177,12 @@ export default function PATSettings() {
                 >
                   <ListItem.Text className="truncate">{pat.note}</ListItem.Text>
 
-                  <Text className="truncate lg:col-span-2">
+                  <Text className="truncate">
                     {new Date(pat.expiresAt).toLocaleDateString()}
+                  </Text>
+
+                  <Text className="truncate">
+                    {new Date(pat.createdAt).toLocaleDateString()}
                   </Text>
                 </ListItem.Root>
 

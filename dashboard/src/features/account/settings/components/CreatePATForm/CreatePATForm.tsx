@@ -47,6 +47,26 @@ function getStringifiedDateOffset(offsetDays: number) {
   return `${year}-${month}-${day}`;
 }
 
+function getDaysUntilNextYearSameDay() {
+  const now = new Date();
+  const nextYear = now.getFullYear() + 1;
+  const isNextYearLeapYear =
+    nextYear % 4 === 0 && (nextYear % 100 !== 0 || nextYear % 400 === 0);
+
+  if (!isNextYearLeapYear) {
+    return 365;
+  }
+
+  const currentMonth = now.getUTCMonth() + 1;
+  const currentDay = now.getUTCDate();
+
+  if (currentMonth < 2 || (currentMonth === 2 && currentDay < 29)) {
+    return 365;
+  }
+
+  return 366;
+}
+
 export default function CreatePATForm({
   onCancel,
   location,
@@ -78,7 +98,6 @@ export default function CreatePATForm({
         new Date(formValues.expiresAt),
         {
           note: formValues.note,
-          createdAt: new Date().toISOString(),
           application: 'dashboard',
           userAgent: window.navigator.userAgent,
         },
@@ -192,7 +211,11 @@ export default function CreatePATForm({
             <Option value={getStringifiedDateOffset(60)}>60 days</Option>
             <Option value={getStringifiedDateOffset(90)}>90 days</Option>
             <Option value={getStringifiedDateOffset(180)}>180 days</Option>
-            <Option value={getStringifiedDateOffset(365)}>1 year</Option>
+            <Option
+              value={getStringifiedDateOffset(getDaysUntilNextYearSameDay())}
+            >
+              1 year
+            </Option>
           </ControlledSelect>
 
           <Box className="grid grid-flow-row gap-2">

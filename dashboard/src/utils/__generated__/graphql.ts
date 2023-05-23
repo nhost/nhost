@@ -18902,7 +18902,7 @@ export type Workspaces_Updates = {
 export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, expiresAt: any }> };
+export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, createdAt: any, expiresAt: any }> };
 
 export type DeletePersonalAccessTokenMutationVariables = Exact<{
   patId: Scalars['uuid'];
@@ -19773,6 +19773,7 @@ export const GetPersonalAccessTokensDocument = gql`
   ) {
     id
     metadata
+    createdAt
     expiresAt
   }
 }

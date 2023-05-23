@@ -43,7 +43,6 @@ export async function createPATForAccount(email, password, expiresAt, note) {
   logger.debug('Creating PAT for the provided account...')
 
   const metadata = {
-    createdAt: new Date().toISOString(),
     application: 'cli-example'
   }
 

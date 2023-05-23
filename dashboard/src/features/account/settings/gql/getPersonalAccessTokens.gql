@@ -5,6 +5,7 @@ query GetPersonalAccessTokens {
   ) {
     id
     metadata
+    createdAt
     expiresAt
   }
 }
