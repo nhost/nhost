@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
-import SettingsContainer from '@/components/settings/SettingsContainer';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import useIsPlatform from '@/hooks/common/useIsPlatform';
@@ -11,18 +11,18 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
+import EyeIcon from '@/ui/v2/icons/EyeIcon';
+import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import EyeIcon from '@/ui/v2/icons/EyeIcon';
-import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import generateAppServiceUrl, {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
 } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -126,7 +126,7 @@ export default function SystemEnvironmentVariableSettings() {
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       rootClassName="gap-0"
       className="mt-2 mb-2.5 px-0"
-      slotProps={{ submitButton: { className: 'invisible' } }}
+      slotProps={{ submitButton: { className: 'hidden' } }}
     >
       <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
         <Text className="font-medium">Variable Name</Text>

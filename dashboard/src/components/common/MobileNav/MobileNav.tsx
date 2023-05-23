@@ -221,7 +221,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   variant="borderless"
                   color="secondary"
                   className="w-full justify-start border-none px-2 py-2.5 text-[16px]"
-                  href="/account/profile"
+                  href="/account"
                   onClick={() => setMenuOpen(false)}
                 >
                   Settings

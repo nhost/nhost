@@ -58,11 +58,12 @@ function AccountMenuContent() {
           color="secondary"
           className="w-full justify-start"
           LinkComponent={NavLink}
-          href="/account/profile"
+          href="/account"
           onClick={handleClose}
         >
           Account Settings
         </Button>
+
         <Button
           color="error"
           variant="borderless"
